@@ -623,7 +623,9 @@ func (a *App) getPushNotificationMessage(postMessage string, wasMentioned bool, 
 	message := ""
 	category := ""
 
-	if *a.Config().EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+	contentsConfig := *a.Config().EmailSettings.PushNotificationContents
+
+	if contentsConfig == model.FULL_NOTIFICATION {
 		category = model.CATEGORY_CAN_REPLY
 
 		if channelType == model.CHANNEL_DIRECT {
@@ -631,7 +633,7 @@ func (a *App) getPushNotificationMessage(postMessage string, wasMentioned bool, 
 		} else {
 			message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(postMessage)
 		}
-	} else if *a.Config().EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
+	} else if contentsConfig == model.GENERIC_NO_CHANNEL_NOTIFICATION {
 		if channelType == model.CHANNEL_DIRECT {
 			category = model.CATEGORY_CAN_REPLY
 
@@ -659,6 +661,8 @@ func (a *App) getPushNotificationMessage(postMessage string, wasMentioned bool, 
 	if len(postMessage) == 0 && hasFiles {
 		if channelType == model.CHANNEL_DIRECT {
 			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_dm")
+		} else if contentsConfig == model.GENERIC_NO_CHANNEL_NOTIFICATION {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_no_channel")
 		} else {
 			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only") + channelName
 		}

@@ -1815,6 +1815,10 @@
     "translation": " uploaded one or more files in "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " uploaded one or more files"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " uploaded one or more files in a direct message"
   },
