@@ -165,6 +165,7 @@ const (
 
 type ServiceSettings struct {
 	SiteURL                                           *string
+	WebsocketURL                                      *string
 	LicenseFileLocation                               *string
 	ListenAddress                                     *string
 	ConnectionSecurity                                *string
@@ -196,6 +197,7 @@ type ServiceSettings struct {
 	EnforceMultifactorAuthentication                  *bool
 	EnableUserAccessTokens                            *bool
 	AllowCorsFrom                                     *string
+	AllowCookiesForSubdomains                         *bool
 	SessionLengthWebInDays                            *int
 	SessionLengthMobileInDays                         *int
 	SessionLengthSSOInDays                            *int
@@ -230,6 +232,10 @@ type ServiceSettings struct {
 func (s *ServiceSettings) SetDefaults() {
 	if s.SiteURL == nil {
 		s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
+	}
+
+	if s.WebsocketURL == nil {
+		s.WebsocketURL = NewString("")
 	}
 
 	if s.LicenseFileLocation == nil {
@@ -386,6 +392,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.AllowCorsFrom == nil {
 		s.AllowCorsFrom = NewString(SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM)
+	}
+
+	if s.AllowCookiesForSubdomains == nil {
+		s.AllowCookiesForSubdomains = NewBool(false)
 	}
 
 	if s.WebserverMode == nil {
@@ -1778,6 +1788,10 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
+	}
+
 	if err := o.TeamSettings.isValid(); err != nil {
 		return err
 	}
@@ -2082,6 +2096,12 @@ func (ss *ServiceSettings) isValid() *AppError {
 	if len(*ss.SiteURL) != 0 {
 		if _, err := url.ParseRequestURI(*ss.SiteURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if len(*ss.WebsocketURL) != 0 {
+		if _, err := url.ParseRequestURI(*ss.WebsocketURL); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

@@ -1083,7 +1083,7 @@ func addUintptrFormatterTests() {
 
 func addUnsafePointerFormatterTests() {
 	// Null pointer.
-	v := unsafe.Pointer(uintptr(0))
+	v := unsafe.Pointer(nil)
 	nv := (*unsafe.Pointer)(nil)
 	pv := &v
 	vAddr := fmt.Sprintf("%p", pv)

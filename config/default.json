@@ -1,6 +1,7 @@
 {
     "ServiceSettings": {
         "SiteURL": "http://localhost:8065",
+        "WebsocketURL": "",
         "LicenseFileLocation": "",
         "ListenAddress": ":8065",
         "ConnectionSecurity": "",
@@ -32,6 +33,7 @@
         "EnforceMultifactorAuthentication": false,
         "EnableUserAccessTokens": false,
         "AllowCorsFrom": "",
+        "AllowCookiesForSubdomains": false,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,

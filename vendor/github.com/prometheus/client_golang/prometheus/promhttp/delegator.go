@@ -102,10 +102,10 @@ func init() {
 		return d
 	}
 	pickDelegator[closeNotifier] = func(d *responseWriterDelegator) delegator { // 1
-		return closeNotifierDelegator{d}
+		return &closeNotifierDelegator{d}
 	}
 	pickDelegator[flusher] = func(d *responseWriterDelegator) delegator { // 2
-		return flusherDelegator{d}
+		return &flusherDelegator{d}
 	}
 	pickDelegator[flusher+closeNotifier] = func(d *responseWriterDelegator) delegator { // 3
 		return struct {
@@ -115,7 +115,7 @@ func init() {
 		}{d, &flusherDelegator{d}, &closeNotifierDelegator{d}}
 	}
 	pickDelegator[hijacker] = func(d *responseWriterDelegator) delegator { // 4
-		return hijackerDelegator{d}
+		return &hijackerDelegator{d}
 	}
 	pickDelegator[hijacker+closeNotifier] = func(d *responseWriterDelegator) delegator { // 5
 		return struct {

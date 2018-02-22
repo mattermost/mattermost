@@ -81,9 +81,9 @@ func cmdFirstKeyPos(cmd Cmder, info *CommandInfo) int {
 	case "eval", "evalsha":
 		if cmd.stringArg(2) != "0" {
 			return 3
-		} else {
-			return 0
 		}
+
+		return 0
 	case "publish":
 		return 1
 	}

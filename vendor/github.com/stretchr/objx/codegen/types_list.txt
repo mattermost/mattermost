@@ -1,6 +1,6 @@
 Interface,interface{},"something",nil,Inter
 Map,map[string]interface{},map[string]interface{}{"name":"Tyler"},nil,MSI
-ObjxMap,(Map),New(1),New(nil),ObjxMap
+ObjxMap,(objx.Map),objx.New(1),objx.New(nil),ObjxMap
 Bool,bool,true,false,Bool
 String,string,"hello","",Str
 Int,int,1,0,Int

@@ -92,6 +92,61 @@ func TestMapFromJSONWithError(t *testing.T) {
 	assert.Nil(t, m)
 }
 
+func TestConversionJSONInt(t *testing.T) {
+	jsonString :=
+		`{
+    "a": 1,
+    "b": {
+      "data": 1
+    },
+    "c": [1],
+    "d": [[1]]
+  }`
+	m, err := objx.FromJSON(jsonString)
+
+	assert.Nil(t, err)
+	require.NotNil(t, m)
+	assert.Equal(t, 1, m.Get("a").Int())
+	assert.Equal(t, 1, m.Get("b.data").Int())
+
+	assert.True(t, m.Get("c").IsInterSlice())
+	assert.Equal(t, 1, m.Get("c").InterSlice()[0])
+
+	assert.True(t, m.Get("d").IsInterSlice())
+	assert.Equal(t, []interface{}{1}, m.Get("d").InterSlice()[0])
+}
+
+func TestJSONSliceInt(t *testing.T) {
+	jsonString :=
+		`{
+      "a": [
+        {"b": 1},
+        {"c": 2}
+      ]
+    }`
+	m, err := objx.FromJSON(jsonString)
+
+	assert.Nil(t, err)
+	require.NotNil(t, m)
+	assert.Equal(t, []objx.Map{objx.Map{"b": 1}, objx.Map{"c": 2}}, m.Get("a").ObjxMapSlice())
+}
+
+func TestJSONSliceMixed(t *testing.T) {
+	jsonString :=
+		`{
+      "a": [
+        {"b": 1},
+        "a"
+      ]
+    }`
+	m, err := objx.FromJSON(jsonString)
+
+	assert.Nil(t, err)
+	require.NotNil(t, m)
+
+	assert.Nil(t, m.Get("a").ObjxMapSlice())
+}
+
 func TestMapFromBase64String(t *testing.T) {
 	base64String := "eyJuYW1lIjoiTWF0In0="
 	o, err := objx.FromBase64(base64String)

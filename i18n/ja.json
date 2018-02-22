@@ -132,10 +132,6 @@
     "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "%vにあるサーバーテンプレートを読み込んでいます"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "サーバーテンプレート%vを読み込めませんでした"
   },
@@ -1812,11 +1808,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " 一つ以上のファイルをアップロードしました "
+    "translation": " ファイルをアップロードしました "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " 一つ以上のファイルをダイレクトメッセージにアップロードしました"
+    "translation": " ファイルをダイレクトメッセージにアップロードしました"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2203,10 +2199,6 @@
     "translation": "利用登録リンクは有効期限が切れています"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "利用登録リンクが不正です"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "このURLは利用できません。他のURLを試してみてください。"
   },
@@ -2305,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v はチームから脱退しました。"
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "チャンネル移動メッセージを投稿できませんでした"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "このチャンネルは %v からこのチームへ移動されました。"
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2711,6 +2711,10 @@
     "translation": "利用登録リンクが不正です"
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "利用登録リンクが不正です"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "不正なチーム名です"
   },
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "内向きのウェブフックのペイロードを読み込めませんでした。"
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "内向きのウェブフックのマルチパートペイロードをデコードできませんでした。"
   },
   {
     "id": "api.webhook.init.debug",
@@ -3689,6 +3697,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "プラグインのアップロードは無効化されています。"
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "このチームは登録ユーザー数の上限に達しました。システム管理者に上限値の設定を変更するように依頼してください。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4759,6 +4771,10 @@
     "translation": "ファイル設定のサムネイルの幅が不正です。ゼロ以上の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "未読チャンネルのグループ化設定が不正です。'disabled', 'default_on', 'default_off'のいずれかでなくてはなりません。"
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "画像プロキシタイプの設定が不正です。"
   },
@@ -4867,12 +4883,20 @@
     "translation": "メッセージエクスポート処理の ExportFromTimestamp は(ユニックス標準時からの秒数で表される)タイムスタンプでなくてはなりません。このタイムスタンプ以降に投稿されたメッセージのみエクスポートされます。"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "メッセージエクスポート処理の ExportFormat は 'actiance' か 'globalrelay' のいずれかでなくてはなりません"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "メッセーエクスポート処理の FileLocation はエクスポートデータが書き込まれる書き込み可能なディレクトリでなくてはなりません"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "メッセージエクスポート処理の FileLocation は FileSettings.Directory のサブディレクトリでなくてはなりません"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "メッセージエクスポート処理の GlobalRelayEmailAddress には有効な電子メールアドレスが設定されていなくてはなりません"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7087,6 +7111,10 @@
     "translation": "SMTPサーバー%vに接続できませんでした"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "電子メールへ添付を書き込むことができませんでした"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "SMTPサーバーへの接続を終了できませんでした"
   },
@@ -7153,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "ディレクトリーウォッチャーを作成できませんでした %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "ディレクトリーウォッチャーで失敗しました %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7263,16 +7287,8 @@
     "translation": "テンプレート%vを読み直しています"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "テンプレート%vの解析に失敗しました"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "不正な投稿IDです"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "ファイル%vが変更されたためテンプレートを読み直しています"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7291,10 +7307,6 @@
     "translation": "利用登録"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "利用登録リンクが不正です"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "利用登録リンクの期限が切れています"
   },
@@ -7309,10 +7321,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "利用登録リンクの期限が切れています"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "利用登録リンクが不正です"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

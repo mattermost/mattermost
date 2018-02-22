@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"reflect"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -512,6 +511,8 @@ func GenerateTestId() string {
 }
 
 func CheckUserSanitization(t *testing.T, user *model.User) {
+	t.Helper()
+
 	if user.Password != "" {
 		t.Fatal("password wasn't blank")
 	}
@@ -526,6 +527,8 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 }
 
 func CheckTeamSanitization(t *testing.T, team *model.Team) {
+	t.Helper()
+
 	if team.Email != "" {
 		t.Fatal("email wasn't blank")
 	}
@@ -536,13 +539,13 @@ func CheckTeamSanitization(t *testing.T, team *model.Team) {
 }
 
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
+	t.Helper()
+
 	if !reflect.ValueOf(data).IsNil() {
-		debug.PrintStack()
 		t.Fatal("etag data was not nil")
 	}
 
 	if resp.StatusCode != http.StatusNotModified {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusNotModified))
 		t.Fatal("wrong status code for etag")
@@ -550,15 +553,17 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 }
 
 func CheckNoError(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.Error != nil {
-		debug.PrintStack()
 		t.Fatal("Expected no error, got " + resp.Error.Error())
 	}
 }
 
 func CheckCreatedStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.StatusCode != http.StatusCreated {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusCreated))
 		t.Fatal("wrong status code")
@@ -566,14 +571,14 @@ func CheckCreatedStatus(t *testing.T, resp *model.Response) {
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.Error == nil {
-		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusForbidden))
 		return
 	}
 
 	if resp.StatusCode != http.StatusForbidden {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusForbidden))
 		t.Fatal("wrong status code")
@@ -581,14 +586,14 @@ func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 }
 
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.Error == nil {
-		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusUnauthorized))
 		return
 	}
 
 	if resp.StatusCode != http.StatusUnauthorized {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusUnauthorized))
 		t.Fatal("wrong status code")
@@ -596,14 +601,14 @@ func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 }
 
 func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.Error == nil {
-		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusNotFound))
 		return
 	}
 
 	if resp.StatusCode != http.StatusNotFound {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusNotFound))
 		t.Fatal("wrong status code")
@@ -611,14 +616,14 @@ func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 }
 
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.Error == nil {
-		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusBadRequest))
 		return
 	}
 
 	if resp.StatusCode != http.StatusBadRequest {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
 		t.Fatal("wrong status code")
@@ -626,14 +631,14 @@ func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 }
 
 func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.Error == nil {
-		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusNotImplemented))
 		return
 	}
 
 	if resp.StatusCode != http.StatusNotImplemented {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusNotImplemented))
 		t.Fatal("wrong status code")
@@ -641,6 +646,8 @@ func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	CheckNoError(t, resp)
 
 	if resp.StatusCode != http.StatusOK {
@@ -649,14 +656,14 @@ func CheckOKStatus(t *testing.T, resp *model.Response) {
 }
 
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
+	t.Helper()
+
 	if resp.Error == nil {
-		debug.PrintStack()
 		t.Fatal("should have errored with message:" + errorId)
 		return
 	}
 
 	if resp.Error.Id != errorId {
-		debug.PrintStack()
 		t.Log("actual: " + resp.Error.Id)
 		t.Log("expected: " + errorId)
 		t.Fatal("incorrect error message")
@@ -664,14 +671,14 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 }
 
 func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.Error == nil {
-		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusInternalServerError))
 		return
 	}
 
 	if resp.StatusCode != http.StatusInternalServerError {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
 		t.Fatal("wrong status code")
@@ -679,14 +686,14 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 }
 
 func CheckPayLoadTooLargeStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+
 	if resp.Error == nil {
-		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusRequestEntityTooLarge))
 		return
 	}
 
 	if resp.StatusCode != http.StatusRequestEntityTooLarge {
-		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusRequestEntityTooLarge))
 		t.Fatal("wrong status code")

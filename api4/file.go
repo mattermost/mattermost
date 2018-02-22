@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -65,32 +66,62 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
+	var resStruct *model.FileUploadResponse
+	var appErr *model.AppError
+
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil && err != http.ErrNotMultipart {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	} else if err == http.ErrNotMultipart {
+		defer r.Body.Close()
+
+		c.RequireChannelId()
+		c.RequireFilename()
+
+		if c.Err != nil {
+			return
+		}
+
+		channelId := c.Params.ChannelId
+		filename := c.Params.Filename
+
+		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
+			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
+			return
+		}
+
+		resStruct, appErr = c.App.UploadFiles(
+			FILE_TEAM_ID,
+			channelId,
+			c.Session.UserId,
+			[]io.ReadCloser{r.Body},
+			[]string{filename},
+			[]string{},
+		)
+	} else {
+		m := r.MultipartForm
+
+		props := m.Value
+		if len(props["channel_id"]) == 0 {
+			c.SetInvalidParam("channel_id")
+			return
+		}
+		channelId := props["channel_id"][0]
+		if len(channelId) == 0 {
+			c.SetInvalidParam("channel_id")
+			return
+		}
+
+		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
+			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
+			return
+		}
+
+		resStruct, appErr = c.App.UploadMultipartFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
 	}
 
-	m := r.MultipartForm
-
-	props := m.Value
-	if len(props["channel_id"]) == 0 {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-	channelId := props["channel_id"][0]
-	if len(channelId) == 0 {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
-		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
-		return
-	}
-
-	resStruct, err := c.App.UploadFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
