@@ -295,11 +295,10 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), status.UserId, result.Err)
-		return result.Err
 	}
 
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", model.STATUS_DND)
+	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
 	a.Go(func() {
 		a.Publish(event)
