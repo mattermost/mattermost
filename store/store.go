@@ -479,3 +479,6 @@ type RoleStore interface {
 	GetByNames(names []string) StoreChannel
 	PermanentDeleteAll() StoreChannel
 }
+
+type SchemeStore interface {
+}

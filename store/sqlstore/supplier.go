@@ -89,6 +89,7 @@ type SqlSupplierOldStores struct {
 	plugin               store.PluginStore
 	channelMemberHistory store.ChannelMemberHistoryStore
 	role                 store.RoleStore
+	scheme               store.SchemeStore
 }
 
 type SqlSupplier struct {
@@ -139,6 +140,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
+	initSqlSupplierSchemes(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -832,6 +834,10 @@ func (ss *SqlSupplier) Plugin() store.PluginStore {
 
 func (ss *SqlSupplier) Role() store.RoleStore {
 	return ss.oldStores.role
+}
+
+func (ss *SqlSupplier) Scheme() store.SchemeStore {
+	return ss.oldStores.scheme
 }
 
 func (ss *SqlSupplier) DropAllTables() {

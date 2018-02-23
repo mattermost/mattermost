@@ -88,4 +88,5 @@ type SqlStore interface {
 	Plugin() store.PluginStore
 	UserAccessToken() store.UserAccessTokenStore
 	Role() store.RoleStore
+	Scheme() store.SchemeStore
 }
