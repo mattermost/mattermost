@@ -171,20 +171,25 @@ func (a *App) StartServer() error {
 	}
 
 	if *a.Config().ServiceSettings.Forward80To443 {
-		if *a.Config().ServiceSettings.UseLetsEncrypt {
-			go http.ListenAndServe(":http", m.HTTPHandler(nil))
+		if host, _, err := net.SplitHostPort(addr); err != nil {
+			l4g.Error("Unable to setup forwarding: " + err.Error())
 		} else {
-			go func() {
-				redirectListener, err := net.Listen("tcp", ":80")
-				if err != nil {
-					listener.Close()
-					l4g.Error("Unable to setup forwarding: " + err.Error())
-					return
-				}
-				defer redirectListener.Close()
+			httpListenAddress := net.JoinHostPort(host, "http")
 
-				http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
-			}()
+			if *a.Config().ServiceSettings.UseLetsEncrypt {
+				go http.ListenAndServe(httpListenAddress, m.HTTPHandler(nil))
+			} else {
+				go func() {
+					redirectListener, err := net.Listen("tcp", httpListenAddress)
+					if err != nil {
+						l4g.Error("Unable to setup forwarding: " + err.Error())
+						return
+					}
+					defer redirectListener.Close()
+
+					http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
+				}()
+			}
 		}
 	}
 
