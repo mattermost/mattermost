@@ -368,7 +368,7 @@ func UpgradeDatabaseToVersion48(sqlStore SqlStore) {
 
 	//TODO: Uncomment the following condition when version 4.8.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_7_0, VERSION_4_8_0) {
-	//	sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
+	sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
 	//	saveSchemaVersion(sqlStore, VERSION_4_8_0)
 	//}
 }
