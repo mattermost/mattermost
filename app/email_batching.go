@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -57,6 +58,8 @@ type EmailBatchingJob struct {
 	app                  *App
 	newNotifications     chan *batchedNotification
 	pendingNotifications map[string][]*batchedNotification
+	task                 *model.ScheduledTask
+	taskMutex            sync.Mutex
 }
 
 func NewEmailBatchingJob(a *App, bufferSize int) *EmailBatchingJob {
@@ -68,12 +71,17 @@ func NewEmailBatchingJob(a *App, bufferSize int) *EmailBatchingJob {
 }
 
 func (job *EmailBatchingJob) Start() {
-	if task := model.GetTaskByName(EMAIL_BATCHING_TASK_NAME); task != nil {
-		task.Cancel()
-	}
-
 	l4g.Debug(utils.T("api.email_batching.start.starting"), *job.app.Config().EmailSettings.EmailBatchingInterval)
-	model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*job.app.Config().EmailSettings.EmailBatchingInterval)*time.Second)
+	newTask := model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*job.app.Config().EmailSettings.EmailBatchingInterval)*time.Second)
+
+	job.taskMutex.Lock()
+	oldTask := job.task
+	job.task = newTask
+	job.taskMutex.Unlock()
+
+	if oldTask != nil {
+		oldTask.Cancel()
+	}
 }
 
 func (job *EmailBatchingJob) Add(user *model.User, post *model.Post, team *model.Team) bool {
