@@ -600,7 +600,12 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	props["token"] = stateToken.Token
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
-	redirectUri := a.GetSiteURL() + "/signup/" + service + "/complete"
+	siteUrl := a.GetSiteURL()
+	if strings.TrimSpace(siteUrl) == "" {
+		siteUrl = GetProtocol(r) + "://" + r.Host
+	}
+
+	redirectUri := siteUrl + "/signup/" + service + "/complete"
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
