@@ -34,15 +34,6 @@ const (
 )
 
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
-var siteURL = ""
-
-func GetSiteURL() string {
-	return siteURL
-}
-
-func SetSiteURL(url string) {
-	siteURL = strings.TrimRight(url, "/")
-}
 
 // FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
 // relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty

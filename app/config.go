@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"net/url"
 	"runtime/debug"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -54,7 +55,7 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 	a.config.Store(cfg)
 
-	utils.SetSiteURL(*cfg.ServiceSettings.SiteURL)
+	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
 
 	a.InvokeConfigListeners(old, cfg)
 	return nil
@@ -263,4 +264,8 @@ func (a *App) GetCookieDomain() string {
 		}
 	}
 	return ""
+}
+
+func (a *App) GetSiteURL() string {
+	return a.siteURL
 }

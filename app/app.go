@@ -63,6 +63,8 @@ type App struct {
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func()
 
+	siteURL string
+
 	newStore func() store.Store
 
 	htmlTemplateWatcher  *utils.HTMLTemplateWatcher
