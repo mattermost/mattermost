@@ -420,5 +420,13 @@ func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 	sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
 	//	saveSchemaVersion(sqlStore, VERSION_4_10_0)
+	sqlStore.CreateColumnIfNotExists("Teams", "SchemeId", "varchar(26)", "varchar(26)", "")
+	sqlStore.CreateColumnIfNotExists("Channels", "SchemeId", "varchar(26)", "varchar(26)", "")
+	sqlStore.CreateColumnIfNotExists("TeamMembers", "SchemeUser", "boolean", "boolean", "0")
+	sqlStore.CreateColumnIfNotExists("TeamMembers", "SchemeAdmin", "boolean", "boolean", "0")
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "SchemeUser", "boolean", "boolean", "0")
+	sqlStore.CreateColumnIfNotExists("ChannelMembers", "SchemeAdmin", "boolean", "boolean", "0")
+
+	//	saveSchemaVersion(sqlStore, VERSION_4_9_0)
 	//}
 }
