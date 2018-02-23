@@ -22,7 +22,7 @@
         "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
-        "EnableAPIv3": true,
+        "EnableAPIv3": false,
         "EnableLinkPreviews": false,
         "EnableTesting": false,
         "EnableDeveloper": false,

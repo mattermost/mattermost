@@ -59,6 +59,7 @@ func Setup() *app.App {
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
+		*cfg.ServiceSettings.EnableAPIv3 = true
 	})
 
 	return a
