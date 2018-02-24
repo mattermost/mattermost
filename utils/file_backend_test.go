@@ -95,6 +95,20 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 	s.EqualValues(readString, "test")
 }
 
+func (s *FileBackendTestSuite) TestReadWriteFileImage() {
+	b := []byte("testimage")
+	path := "tests/" + model.NewId() + ".png"
+
+	s.Nil(s.backend.WriteFile(b, path))
+	defer s.backend.RemoveFile(path)
+
+	read, err := s.backend.ReadFile(path)
+	s.Nil(err)
+
+	readString := string(read)
+	s.EqualValues(readString, "testimage")
+}
+
 func (s *FileBackendTestSuite) TestCopyFile() {
 	b := []byte("test")
 	path1 := "tests/" + model.NewId()
