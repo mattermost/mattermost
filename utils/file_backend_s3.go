@@ -138,16 +138,14 @@ func (b *S3FileBackend) WriteFile(f []byte, path string) *model.AppError {
 		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	options := s3.PutObjectOptions{}
-	if b.encrypt {
-		options.UserMetadata["x-amz-server-side-encryption"] = "AES256"
+	var contentType string
+	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
+		contentType = model.GetImageMimeType(ext)
+	} else {
+		contentType = "binary/octet-stream"
 	}
 
-	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
-		options.ContentType = model.GetImageMimeType(ext)
-	} else {
-		options.ContentType = "binary/octet-stream"
-	}
+	options := s3PutOptions(b.encrypt, contentType)
 
 	if _, err = s3Clnt.PutObject(b.bucket, path, bytes.NewReader(f), -1, options); err != nil {
 		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -228,6 +226,17 @@ func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 
 	close(doneCh)
 	return nil
+}
+
+func s3PutOptions(encrypt bool, contentType string) s3.PutObjectOptions {
+	options := s3.PutObjectOptions{}
+	if encrypt {
+		options.UserMetadata = make(map[string]string)
+		options.UserMetadata["x-amz-server-side-encryption"] = "AES256"
+	}
+	options.ContentType = contentType
+
+	return options
 }
 
 func s3CopyMetadata(encrypt bool) map[string]string {
