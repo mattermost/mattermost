@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	STATUS_OUT_OF_OFFICE   = "ooo"
 	STATUS_OFFLINE         = "offline"
 	STATUS_AWAY            = "away"
 	STATUS_DND             = "dnd"
