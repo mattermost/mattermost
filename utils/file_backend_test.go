@@ -36,6 +36,14 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 }
 
 func TestS3FileBackendTestSuite(t *testing.T) {
+	runBackendTest(t, false)
+}
+
+func TestS3FileBackendTestSuiteWithEncryption(t *testing.T) {
+	runBackendTest(t, true)
+}
+
+func runBackendTest(t *testing.T, encrypt bool) {
 	s3Host := os.Getenv("CI_HOST")
 	if s3Host == "" {
 		s3Host = "dockerhost"
@@ -56,6 +64,7 @@ func TestS3FileBackendTestSuite(t *testing.T) {
 			AmazonS3Bucket:          model.MINIO_BUCKET,
 			AmazonS3Endpoint:        s3Endpoint,
 			AmazonS3SSL:             model.NewBool(false),
+			AmazonS3SSE:             model.NewBool(encrypt),
 		},
 	})
 }
@@ -84,6 +93,20 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 
 	readString := string(read)
 	s.EqualValues(readString, "test")
+}
+
+func (s *FileBackendTestSuite) TestReadWriteFileImage() {
+	b := []byte("testimage")
+	path := "tests/" + model.NewId() + ".png"
+
+	s.Nil(s.backend.WriteFile(b, path))
+	defer s.backend.RemoveFile(path)
+
+	read, err := s.backend.ReadFile(path)
+	s.Nil(err)
+
+	readString := string(read)
+	s.EqualValues(readString, "testimage")
 }
 
 func (s *FileBackendTestSuite) TestCopyFile() {
