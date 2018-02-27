@@ -7,12 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"net/mail"
-
-	"fmt"
-
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
