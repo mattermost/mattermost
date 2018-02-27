@@ -163,7 +163,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 }
 
 func (db channelMemberWithSchemeRolesList) ToModel() *model.ChannelMembers {
-	var cms model.ChannelMembers
+	cms := model.ChannelMembers{}
 
 	for _, cm := range db {
 		cms = append(cms, *cm.ToModel())
@@ -186,7 +186,7 @@ type allChannelMember struct {
 type allChannelMembers []allChannelMember
 
 func (db allChannelMember) Process() (string, string) {
-	var roles []string
+	roles := strings.Fields(db.Roles)
 
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
 	// them to the Roles field for backwards compatability reasons.
@@ -1216,7 +1216,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		var data allChannelMembers
 		_, err := s.GetReplica().Select(&data, `
 			SELECT
-				ChannelMembers.ChannelId, ChannelMembers.Roles,
+				ChannelMembers.ChannelId, ChannelMembers.Roles, ChannelMembers.SchemeUser, ChannelMembers.SchemeAdmin,
 				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
 				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
 				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,

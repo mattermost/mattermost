@@ -32,7 +32,7 @@ func (a *App) CreateDefaultChannels(teamId string) ([]*model.Channel, *model.App
 	return channels, nil
 }
 
-func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole string, userRequestorId string) *model.AppError {
+func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
 	var err *model.AppError = nil
 
 	var requestor *model.User
@@ -52,7 +52,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 		cm := &model.ChannelMember{
 			ChannelId:   townSquare.Id,
 			UserId:      user.Id,
-			Roles:       channelRole,
+			SchemeUser:  true,
+			SchemeAdmin: shouldBeAdmin,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
 
@@ -85,7 +86,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 		cm := &model.ChannelMember{
 			ChannelId:   offTopic.Id,
 			UserId:      user.Id,
-			Roles:       channelRole,
+			SchemeUser:  true,
+			SchemeAdmin: shouldBeAdmin,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
 
@@ -166,7 +168,8 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			cm := &model.ChannelMember{
 				ChannelId:   sc.Id,
 				UserId:      channel.CreatorId,
-				Roles:       model.CHANNEL_USER_ROLE_ID + " " + model.CHANNEL_ADMIN_ROLE_ID,
+				SchemeUser:  true,
+				SchemeAdmin: true,
 				NotifyProps: model.GetDefaultChannelNotifyProps(),
 			}
 
@@ -322,7 +325,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 				UserId:      user.Id,
 				ChannelId:   group.Id,
 				NotifyProps: model.GetDefaultChannelNotifyProps(),
-				Roles:       model.CHANNEL_USER_ROLE_ID,
+				SchemeUser:  true,
 			}
 
 			if result := <-a.Srv.Store.Channel().SaveMember(cm); result.Err != nil {
@@ -432,6 +435,7 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 	return channel, err
 }
 
+// FIXME: Scheme Migration (Have done a hacky bodge for the moment).
 func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
@@ -443,7 +447,8 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
-	member.Roles = newRoles
+	// Here be the hack.
+	member.ExplicitRoles = newRoles
 
 	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {
 		return nil, result.Err
@@ -591,7 +596,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.CHANNEL_USER_ROLE_ID,
+		SchemeUser:  true,
 	}
 	if result := <-a.Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
 		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)
@@ -950,7 +955,7 @@ func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelM
 	}
 }
 
-func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (a *App)  GetChannelMembersPage(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage); result.Err != nil {
 		return nil, result.Err
 	} else {

@@ -120,7 +120,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 
 	// create a new user that joins the default channels
 	user := th.CreateUser()
-	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, model.CHANNEL_USER_ROLE_ID, "")
+	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
 	histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)).([]*model.ChannelMemberHistoryResult)
@@ -146,7 +146,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 
 	// create a new user that joins the default channels
 	user := th.CreateUser()
-	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, model.CHANNEL_USER_ROLE_ID, "")
+	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
 	histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)).([]*model.ChannelMemberHistoryResult)

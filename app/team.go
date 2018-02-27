@@ -342,14 +342,10 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		return uua.Err
 	}
 
-	channelRole := model.CHANNEL_USER_ROLE_ID
-
-	if team.Email == user.Email {
-		channelRole = model.CHANNEL_USER_ROLE_ID + " " + model.CHANNEL_ADMIN_ROLE_ID
-	}
+	shouldBeAdmin := team.Email == user.Email
 
 	// Soft error if there is an issue joining the default channels
-	if err := a.JoinDefaultChannels(team.Id, user, channelRole, userRequestorId); err != nil {
+	if err := a.JoinDefaultChannels(team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
 		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
 	}
 

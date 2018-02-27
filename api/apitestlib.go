@@ -275,7 +275,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 
 	if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
 		cm := cmr.Data.(*model.ChannelMember)
-		cm.Roles = "channel_admin channel_user"
+		cm.SchemeAdmin = true
 		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
 			panic(sr.Err)
@@ -293,7 +293,7 @@ func (me *TestHelper) MakeUserChannelUser(user *model.User, channel *model.Chann
 
 	if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
 		cm := cmr.Data.(*model.ChannelMember)
-		cm.Roles = "channel_user"
+		cm.SchemeAdmin = false
 		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
 			panic(sr.Err)
