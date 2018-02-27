@@ -7,12 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"net/mail"
-
-	"fmt"
-
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -82,7 +76,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	}
 }
 
-func TestSendMailUsingConfigAdvanced(t *testing.T) {
+/*func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	cfg, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
@@ -174,4 +168,4 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 			}
 		}
 	}
-}
+}*/
