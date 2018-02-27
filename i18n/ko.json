@@ -1369,6 +1369,10 @@
     "translation": "파일을 업로드 할 수 없습니다. 머릿말 파싱에 실패하였습니다."
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Unable to upload files. Incorrect number of files specified."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
@@ -1813,6 +1817,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " uploaded one or more files in a direct message"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " uploaded one or more files"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -3648,7 +3656,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled."
+    "translation": "Plugins have been disabled. Please check your logs for details."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -4181,6 +4189,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "AD/LDAP 서버에서 사용자를 찾을 수 없음: "
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email already used by another SAML user."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "User not found in the users file."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Username already used by another Mattermost user."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5025,6 +5045,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "webserver connection security에 대해 허용되지 않은 값입니다."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "WebRTC Gateway Websocket Url은 URL형식이여야 하며 ws:// 또는 wss://로 시작해야합니다."
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
