@@ -134,9 +134,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 
 	message := model.NewWebSocketEvent(event, "", "", "", nil)
 	message.Add("team", sanitizedTeam.ToJson())
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 }
 
 func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
@@ -173,10 +171,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", userId, nil)
 	message.Add("member", member.ToJson())
-
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 }
 
 func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
