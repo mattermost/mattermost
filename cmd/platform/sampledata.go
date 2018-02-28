@@ -312,7 +312,7 @@ func sampleDataCmdF(cmd *cobra.Command, args []string) error {
 		}
 		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
 		if importErr != nil {
-			return errors.New(fmt.Sprintf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber))
+			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}
 	} else if bulk != "-" {
 		err := bulkFile.Close()
@@ -395,7 +395,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		position := rand.Intn(len(possibleTeams))
 		team := possibleTeams[position]
 		possibleTeams = append(possibleTeams[:position], possibleTeams[position+1:]...)
-		if teamChannels, err := teamsAndChannels[team]; err == true {
+		if teamChannels, err := teamsAndChannels[team]; err {
 			teams = append(teams, createTeamMembership(channelMemberships, teamChannels, &team))
 		}
 	}
@@ -429,10 +429,7 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 		roles = "team_user team_admin"
 	}
 	channels := []app.UserChannelImportData{}
-	teamChannelsCopy := []string{}
-	for _, value := range teamChannels {
-		teamChannelsCopy = append(teamChannelsCopy, value)
-	}
+	teamChannelsCopy := append([]string(nil), teamChannels...)
 	for x := 0; x < numOfchannels; x++ {
 		if len(teamChannelsCopy) == 0 {
 			break

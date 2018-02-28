@@ -510,18 +510,6 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 	}
 }
 
-func CheckTeamSanitization(t *testing.T, team *model.Team) {
-	t.Helper()
-
-	if team.Email != "" {
-		t.Fatal("email wasn't blank")
-	}
-
-	if team.AllowedDomains != "" {
-		t.Fatal("'allowed domains' wasn't blank")
-	}
-}
-
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	t.Helper()
 
@@ -665,21 +653,6 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	if resp.StatusCode != http.StatusInternalServerError {
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
-		t.Fatal("wrong status code")
-	}
-}
-
-func CheckPayLoadTooLargeStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	if resp.Error == nil {
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusRequestEntityTooLarge))
-		return
-	}
-
-	if resp.StatusCode != http.StatusRequestEntityTooLarge {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusRequestEntityTooLarge))
 		t.Fatal("wrong status code")
 	}
 }

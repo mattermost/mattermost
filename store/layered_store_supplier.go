@@ -6,8 +6,6 @@ package store
 import "github.com/mattermost/mattermost-server/model"
 import "context"
 
-type ResultHandler func(*StoreResult)
-
 type LayeredStoreSupplierResult struct {
 	StoreResult
 }
