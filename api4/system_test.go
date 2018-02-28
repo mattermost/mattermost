@@ -1,7 +1,9 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 
@@ -465,4 +467,66 @@ func TestGetAnalyticsOld(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.GetAnalyticsOld("", th.BasicTeam.Id)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestS3TestConnection(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	s3Host := os.Getenv("CI_HOST")
+	if s3Host == "" {
+		s3Host = "dockerhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9001"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+	config := model.Config{
+		FileSettings: model.FileSettings{
+			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
+			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
+			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
+			AmazonS3Bucket:          "",
+			AmazonS3Endpoint:        "",
+			AmazonS3SSL:             model.NewBool(false),
+		},
+	}
+
+	_, resp := Client.TestS3Connection(&config)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckBadRequestStatus(t, resp)
+	if resp.Error.Message != "S3 Bucket is required" {
+		t.Fatal("should return error - missing s3 bucket")
+	}
+
+	config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckBadRequestStatus(t, resp)
+	if resp.Error.Message != "S3 Endpoint is required" {
+		t.Fatal("should return error - missing s3 endpoint")
+	}
+
+	config.FileSettings.AmazonS3Endpoint = s3Endpoint
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckBadRequestStatus(t, resp)
+	if resp.Error.Message != "S3 Region is required" {
+		t.Fatal("should return error - missing s3 region")
+	}
+
+	config.FileSettings.AmazonS3Region = "us-east-1"
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckOKStatus(t, resp)
+
+	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckInternalErrorStatus(t, resp)
+	if resp.Error.Message != "Error checking if bucket exists." {
+		t.Fatal("should return error ")
+	}
 }
