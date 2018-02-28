@@ -37,7 +37,10 @@ type S3FileBackend struct {
 // disables automatic region lookup.
 func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	var creds *credentials.Credentials
-	if b.signV2 {
+
+	if b.accessKey == "" && b.secretKey == "" {
+		creds = credentials.NewIAM("")
+	} else if b.signV2 {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV2)
 	} else {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV4)
@@ -243,4 +246,20 @@ func s3CopyMetadata(encrypt bool) map[string]string {
 	metaData := make(map[string]string)
 	metaData["x-amz-server-side-encryption"] = "AES256"
 	return metaData
+}
+
+func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
+	if len(settings.AmazonS3Bucket) == 0 {
+		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+	}
+
+	if len(settings.AmazonS3Endpoint) == 0 {
+		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_endpoint", nil, "", http.StatusBadRequest)
+	}
+
+	if len(settings.AmazonS3Region) == 0 {
+		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_region", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
