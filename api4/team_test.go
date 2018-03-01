@@ -15,6 +15,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -1914,4 +1916,83 @@ func TestGetTeamInviteInfo(t *testing.T) {
 
 	_, resp = Client.GetTeamInviteInfo("junk")
 	CheckNotFoundStatus(t, resp)
+}
+
+func TestSetTeamIcon(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	data, err := readTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	th.LoginTeamAdmin()
+
+	ok, resp := Client.SetTeamIcon(team.Id, data)
+	if !ok {
+		t.Fatal(resp.Error)
+	}
+	CheckNoError(t, resp)
+
+	ok, resp = Client.SetTeamIcon(model.NewId(), data)
+	if ok {
+		t.Fatal("Should return false, set team icon not allowed")
+	}
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
+
+	_, resp = Client.SetTeamIcon(team.Id, data)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	Client.Logout()
+
+	_, resp = Client.SetTeamIcon(team.Id, data)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	teamBefore, err := th.App.GetTeam(team.Id)
+	require.Nil(t, err)
+
+	_, resp = th.SystemAdminClient.SetTeamIcon(team.Id, data)
+	CheckNoError(t, resp)
+
+	teamAfter, err := th.App.GetTeam(team.Id)
+	require.Nil(t, err)
+	assert.True(t, teamBefore.LastTeamIconUpdate < teamAfter.LastTeamIconUpdate, "LastTeamIconUpdate should have been updated for team")
+
+	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}
+	if err := th.cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGetTeamIcon(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	// should always fail because no initial image and no auto creation
+	_, resp := Client.GetTeamIcon(team.Id, "")
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.GetTeamIcon(team.Id, "")
+	CheckUnauthorizedStatus(t, resp)
 }
