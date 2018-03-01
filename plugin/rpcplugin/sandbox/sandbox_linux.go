@@ -267,7 +267,7 @@ func pivotRoot(newRoot string) error {
 func dropInheritableCapabilities() error {
 	type capHeader struct {
 		version uint32
-		pid     int
+		pid     int32
 	}
 
 	type capData struct {
