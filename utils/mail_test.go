@@ -7,6 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"net/smtp"
+
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -169,3 +172,64 @@ func TestSendMailUsingConfig(t *testing.T) {
 		}
 	}
 }*/
+
+func TestAuthMethods(t *testing.T) {
+	config := model.Config{
+		EmailSettings: model.EmailSettings{
+			EnableSMTPAuth: model.NewBool(false),
+			SMTPUsername:   "test",
+			SMTPPassword:   "fakepass",
+			SMTPServer:     "fakeserver",
+			SMTPPort:       "25",
+		},
+	}
+
+	auth := &authChooser{Config: &config}
+	tests := []struct {
+		desc   string
+		server *smtp.ServerInfo
+		err    string
+	}{
+		{
+			desc:   "auth PLAIN success",
+			server: &smtp.ServerInfo{Name: "fakeserver:25", Auth: []string{"PLAIN"}, TLS: true},
+		},
+		{
+			desc:   "auth PLAIN unencrypted connection fail",
+			server: &smtp.ServerInfo{Name: "fakeserver:25", Auth: []string{"PLAIN"}, TLS: false},
+			err:    "unencrypted connection",
+		},
+		{
+			desc:   "auth PLAIN wrong host name",
+			server: &smtp.ServerInfo{Name: "wrongServer:999", Auth: []string{"PLAIN"}, TLS: true},
+			err:    "wrong host name",
+		},
+		{
+			desc:   "auth LOGIN success",
+			server: &smtp.ServerInfo{Name: "fakeserver:25", Auth: []string{"LOGIN"}, TLS: true},
+		},
+		{
+			desc:   "auth LOGIN unencrypted connection fail",
+			server: &smtp.ServerInfo{Name: "wrongServer:999", Auth: []string{"LOGIN"}, TLS: true},
+			err:    "wrong host name",
+		},
+		{
+			desc:   "auth LOGIN wrong host name",
+			server: &smtp.ServerInfo{Name: "fakeserver:25", Auth: []string{"LOGIN"}, TLS: false},
+			err:    "unencrypted connection",
+		},
+	}
+
+	for i, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			_, _, err := auth.Start(test.server)
+			got := ""
+			if err != nil {
+				got = err.Error()
+			}
+			if got != test.err {
+				t.Errorf("%d. got error = %q; want %q", i, got, test.err)
+			}
+		})
+	}
+}
