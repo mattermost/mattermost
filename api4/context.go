@@ -212,8 +212,10 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 func (c *Context) LogError(err *model.AppError) {
 
-	// filter out endless reconnects
-	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 || err.Id == "web.check_browser_compatibility.app_error" {
+	// Filter out 404s, endless reconnects and browser compatibility errors
+	if err.StatusCode == http.StatusNotFound ||
+		(c.Path == "/api/v3/users/websocket" && err.StatusCode == 401) ||
+		err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
 		l4g.Error(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
@@ -442,6 +444,18 @@ func (c *Context) RequireFileId() *Context {
 
 	if len(c.Params.FileId) != 26 {
 		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireFilename() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.Filename) == 0 {
+		c.SetInvalidUrlParam("filename")
 	}
 
 	return c

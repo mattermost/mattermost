@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWebSocketEvent(t *testing.T) {
@@ -53,4 +55,50 @@ func TestWebSocketResponse(t *testing.T) {
 	if m.Data["RootId"] != result.Data["RootId"] {
 		t.Fatal("Ids do not match")
 	}
+}
+
+func TestWebSocketEvent_PrecomputeJSON(t *testing.T) {
+	event := NewWebSocketEvent(WEBSOCKET_EVENT_POSTED, "foo", "bar", "baz", nil)
+	event.Sequence = 7
+
+	before := event.ToJson()
+	event.PrecomputeJSON()
+	after := event.ToJson()
+
+	assert.JSONEq(t, before, after)
+}
+
+var stringSink string
+
+func BenchmarkWebSocketEvent_ToJson(b *testing.B) {
+	event := NewWebSocketEvent(WEBSOCKET_EVENT_POSTED, "foo", "bar", "baz", nil)
+	for i := 0; i < 100; i++ {
+		event.Data[NewId()] = NewId()
+	}
+
+	b.Run("SerializedNTimes", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			stringSink = event.ToJson()
+		}
+	})
+
+	b.Run("PrecomputedNTimes", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			event.PrecomputeJSON()
+		}
+	})
+
+	b.Run("PrecomputedAndSerializedNTimes", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			event.PrecomputeJSON()
+			stringSink = event.ToJson()
+		}
+	})
+
+	event.PrecomputeJSON()
+	b.Run("PrecomputedOnceAndSerializedNTimes", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			stringSink = event.ToJson()
+		}
+	})
 }

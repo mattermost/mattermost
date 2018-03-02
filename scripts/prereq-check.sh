@@ -2,7 +2,7 @@
 check_version()
 {
     local version=$1 check=$2
-    local winner=$(echo -e "$version\n$check" | sed '/^$/d' | sort -nr | head -1)
+    local winner=$(echo -e "$version\n$check" | sed '/^$/d' | sort -t. -s -k 1,1nr -k 2,2nr -k 3,3nr -k 4,4nr | head -1)
     [[ "$winner" = "$version" ]] && return 0
     return 1
 }

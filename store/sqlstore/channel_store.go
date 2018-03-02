@@ -946,9 +946,9 @@ func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId str
 
 		var data []allChannelMemberNotifyProps
 		_, err := s.GetReplica().Select(&data, `
-			SELECT ChannelMembers.UserId, ChannelMembers.NotifyProps
-			FROM Channels, ChannelMembers
-			WHERE Channels.Id = ChannelMembers.ChannelId AND ChannelMembers.ChannelId = :ChannelId`, map[string]interface{}{"ChannelId": channelId})
+			SELECT UserId, NotifyProps
+			FROM ChannelMembers
+			WHERE ChannelId = :ChannelId`, map[string]interface{}{"ChannelId": channelId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelMembersPropsForChannel", "store.sql_channel.get_members.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)

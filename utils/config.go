@@ -34,15 +34,6 @@ const (
 )
 
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
-var siteURL = ""
-
-func GetSiteURL() string {
-	return siteURL
-}
-
-func SetSiteURL(url string) {
-	siteURL = strings.TrimRight(url, "/")
-}
 
 // FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
 // relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
@@ -353,8 +344,10 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
+	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
+	props["EnableAPIv3"] = strconv.FormatBool(*c.ServiceSettings.EnableAPIv3)
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
