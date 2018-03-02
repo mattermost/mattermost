@@ -5,6 +5,8 @@ package utils
 
 import (
 	"crypto/tls"
+	"errors"
+	"io"
 	"mime"
 	"net"
 	"net/mail"
@@ -15,8 +17,6 @@ import (
 
 	"net/http"
 
-	"io"
-
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/html2text"
 	"github.com/mattermost/mattermost-server/model"
@@ -24,6 +24,56 @@ import (
 
 func encodeRFC2047Word(s string) string {
 	return mime.BEncoding.Encode("utf-8", s)
+}
+
+type authChooser struct {
+	smtp.Auth
+	Config *model.Config
+}
+
+func (a *authChooser) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	a.Auth = LoginAuth(a.Config.EmailSettings.SMTPUsername, a.Config.EmailSettings.SMTPPassword, a.Config.EmailSettings.SMTPServer+":"+a.Config.EmailSettings.SMTPPort)
+	for _, method := range server.Auth {
+		if method == "PLAIN" {
+			a.Auth = smtp.PlainAuth("", a.Config.EmailSettings.SMTPUsername, a.Config.EmailSettings.SMTPPassword, a.Config.EmailSettings.SMTPServer+":"+a.Config.EmailSettings.SMTPPort)
+			break
+		}
+	}
+	return a.Auth.Start(server)
+}
+
+type loginAuth struct {
+	username, password, host string
+}
+
+func LoginAuth(username, password, host string) smtp.Auth {
+	return &loginAuth{username, password, host}
+}
+
+func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	if !server.TLS {
+		return "", nil, errors.New("unencrypted connection")
+	}
+
+	if server.Name != a.host {
+		return "", nil, errors.New("wrong host name")
+	}
+
+	return "LOGIN", []byte{}, nil
+}
+
+func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
+	if more {
+		switch string(fromServer) {
+		case "Username:":
+			return []byte(a.username), nil
+		case "Password:":
+			return []byte(a.password), nil
+		default:
+			return nil, errors.New("Unkown fromServer")
+		}
+	}
+	return nil, nil
 }
 
 func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
@@ -75,9 +125,7 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 	}
 
 	if *config.EmailSettings.EnableSMTPAuth {
-		auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
-
-		if err = c.Auth(auth); err != nil {
+		if err = c.Auth(&authChooser{Config: config}); err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}

@@ -99,6 +99,7 @@ func (s SqlTeamStore) Update(team *model.Team) store.StoreChannel {
 			team.CreateAt = oldTeam.CreateAt
 			team.UpdateAt = model.GetMillis()
 			team.Name = oldTeam.Name
+			team.LastTeamIconUpdate = oldTeam.LastTeamIconUpdate
 
 			if count, err := s.GetMaster().Update(team); err != nil {
 				result.Err = model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
@@ -556,6 +557,16 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) store.StoreChannel {
 		_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_team.remove_member.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		}
+	})
+}
+
+func (us SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := us.GetMaster().Exec("UPDATE Teams SET LastTeamIconUpdate = :Time, UpdateAt = :Time WHERE Id = :teamId", map[string]interface{}{"Time": curTime, "teamId": teamId}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.UpdateLastTeamIconUpdate", "store.sql_team.update_last_team_icon_update.app_error", nil, "team_id="+teamId, http.StatusInternalServerError)
+		} else {
+			result.Data = teamId
 		}
 	})
 }

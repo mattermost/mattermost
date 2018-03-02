@@ -280,9 +280,36 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+	files := make([]io.ReadCloser, len(fileHeaders))
+	filenames := make([]string, len(fileHeaders))
+
+	for i, fileHeader := range fileHeaders {
+		file, fileErr := fileHeader.Open()
+		if fileErr != nil {
+			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.bad_parse.app_error", nil, fileErr.Error(), http.StatusBadRequest)
+		}
+
+		// Will be closed after UploadFiles returns
+		defer file.Close()
+
+		files[i] = file
+		filenames[i] = fileHeader.Filename
+	}
+
+	return a.UploadFiles(teamId, channelId, userId, files, filenames, clientIds)
+}
+
+// Uploads some files to the given team and channel as the given user. files and filenames should have
+// the same length. clientIds should either not be provided or have the same length as files and filenames.
+// The provided files should be closed by the caller so that they are not leaked.
+func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(filenames) != len(files) || (len(clientIds) > 0 && len(clientIds) != len(files)) {
+		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.incorrect_number_of_files.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	resStruct := &model.FileUploadResponse{
@@ -294,18 +321,12 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHe
 	thumbnailPathList := []string{}
 	imageDataList := [][]byte{}
 
-	for i, fileHeader := range fileHeaders {
-		file, fileErr := fileHeader.Open()
-		if fileErr != nil {
-			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.bad_parse.app_error", nil, fileErr.Error(), http.StatusBadRequest)
-		}
-		defer file.Close()
-
+	for i, file := range files {
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, fileHeader.Filename, data)
+		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, filenames[i], data)
 		if err != nil {
 			return nil, err
 		}

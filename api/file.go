@@ -76,7 +76,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resStruct, err := c.App.UploadFiles(c.TeamId, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
+	resStruct, err := c.App.UploadMultipartFiles(c.TeamId, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
 	if err != nil {
 		c.Err = err
 		return

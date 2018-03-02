@@ -104,6 +104,7 @@ type TeamStore interface {
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
+	UpdateLastTeamIconUpdate(teamId string, curTime int64) StoreChannel
 }
 
 type ChannelStore interface {

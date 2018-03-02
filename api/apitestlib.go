@@ -100,6 +100,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
 		cfg.EmailSettings.SendEmailNotifications = true
+		*cfg.ServiceSettings.EnableAPIv3 = true
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	if testStore != nil {

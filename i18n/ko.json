@@ -132,10 +132,6 @@
     "translation": "용량이 커서 파일을 업로드 할 수 없습니다."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "서버 템플릿 %v 파싱 중"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "서버 템플릿 %v 를 파싱하는데 실패하였습니다"
   },
@@ -1812,11 +1808,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files in "
+    "translation": " uploaded one or more files in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Uploaded one or more files in a direct message"
+    "translation": " uploaded one or more files in a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2203,10 +2199,6 @@
     "translation": "가입 링크가 만료되었습니다."
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "유효하지 않는 URL 입니다. 변경 후 다시 시도해주세요."
   },
@@ -2305,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "들어옴/나감 메시지를 등록하는 데 실패함"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2711,6 +2711,10 @@
     "translation": "유효하지 않은 가입 링크입니다."
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "유효하지 않은 가입 링크입니다."
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "올바르지 않은 팀 이름"
   },
@@ -3067,6 +3071,10 @@
     "translation": "Incoming webhook의 payload를 읽을 수 없습니다."
   },
   {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "webhook API 경로 초기화 중"
   },
@@ -3136,7 +3144,7 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Failed to post channel purpose message"
+    "translation": "들어옴/나감 메시지를 등록하는 데 실패함"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
@@ -3689,6 +3697,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4759,6 +4771,10 @@
     "translation": "파일 세팅에 대한 잘못된 썸네일 너비값입니다. 0보다 큰 값이여야 합니다."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Invalid image proxy type for service settings."
   },
@@ -4867,12 +4883,20 @@
     "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7087,6 +7111,10 @@
     "translation": "Failed to open a connection to SMTP server %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Failed to close connection to SMTP server"
   },
@@ -7153,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Failed to create directory watcher %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Failed in directory watcher %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7263,16 +7287,8 @@
     "translation": "%v에서 서버 템플릿 파싱중"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "서버 템플릿 %v 를 파싱하는데 실패하였습니다"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "잘못된 글 ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Re-parsing templates because of modified file %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7291,10 +7307,6 @@
     "translation": "가입"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "가입 링크가 만료되었습니다."
   },
@@ -7309,10 +7321,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "가입 링크가 만료되었습니다."
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

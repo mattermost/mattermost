@@ -9,15 +9,14 @@ package utils
 
 import (
 	"container/list"
-	"errors"
 	"sync"
 	"time"
 )
 
 // Caching Interface
 type ObjectCache interface {
-	AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64) bool
-	AddWithDefaultExpires(key, value interface{}) bool
+	AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
+	AddWithDefaultExpires(key, value interface{})
 	Purge()
 	Get(key interface{}) (value interface{}, ok bool)
 	Remove(key interface{})
@@ -32,10 +31,11 @@ type Cache struct {
 	evictList              *list.List
 	items                  map[interface{}]*list.Element
 	lock                   sync.RWMutex
-	onEvicted              func(key interface{}, value interface{})
 	name                   string
 	defaultExpiry          int64
 	invalidateClusterEvent string
+	currentGeneration      int64
+	len                    int
 }
 
 // entry is used to hold a value in the evictList
@@ -43,25 +43,16 @@ type entry struct {
 	key          interface{}
 	value        interface{}
 	expireAtSecs int64
+	generation   int64
 }
 
 // New creates an LRU of the given size
 func NewLru(size int) *Cache {
-	cache, _ := NewLruWithEvict(size, nil)
-	return cache
-}
-
-func NewLruWithEvict(size int, onEvicted func(key interface{}, value interface{})) (*Cache, error) {
-	if size <= 0 {
-		return nil, errors.New(T("utils.iru.with_evict"))
-	}
-	c := &Cache{
+	return &Cache{
 		size:      size,
 		evictList: list.New(),
 		items:     make(map[interface{}]*list.Element, size),
-		onEvicted: onEvicted,
 	}
-	return c, nil
 }
 
 func NewLruWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) *Cache {
@@ -77,26 +68,19 @@ func (c *Cache) Purge() {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	if c.onEvicted != nil {
-		for k, v := range c.items {
-			c.onEvicted(k, v.Value)
-		}
-	}
-
-	c.evictList = list.New()
-	c.items = make(map[interface{}]*list.Element, c.size)
+	c.len = 0
+	c.currentGeneration++
 }
 
-func (c *Cache) Add(key, value interface{}) bool {
-	return c.AddWithExpiresInSecs(key, value, 0)
+func (c *Cache) Add(key, value interface{}) {
+	c.AddWithExpiresInSecs(key, value, 0)
 }
 
-func (c *Cache) AddWithDefaultExpires(key, value interface{}) bool {
-	return c.AddWithExpiresInSecs(key, value, c.defaultExpiry)
+func (c *Cache) AddWithDefaultExpires(key, value interface{}) {
+	c.AddWithExpiresInSecs(key, value, c.defaultExpiry)
 }
 
-// Add adds a value to the cache.  Returns true if an eviction occurred.
-func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64) bool {
+func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -107,45 +91,46 @@ func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
 	// Check for existing item
 	if ent, ok := c.items[key]; ok {
 		c.evictList.MoveToFront(ent)
-		ent.Value.(*entry).value = value
-		ent.Value.(*entry).expireAtSecs = expireAtSecs
-		return false
+		e := ent.Value.(*entry)
+		e.value = value
+		e.expireAtSecs = expireAtSecs
+		if e.generation != c.currentGeneration {
+			e.generation = c.currentGeneration
+			c.len++
+		}
+		return
 	}
 
 	// Add new item
-	ent := &entry{key, value, expireAtSecs}
+	ent := &entry{key, value, expireAtSecs, c.currentGeneration}
 	entry := c.evictList.PushFront(ent)
 	c.items[key] = entry
+	c.len++
 
-	evict := c.evictList.Len() > c.size
-	// Verify size not exceeded
-	if evict {
-		c.removeOldest()
+	if c.evictList.Len() > c.size {
+		c.removeElement(c.evictList.Back())
 	}
-	return evict
 }
 
-// Get looks up a key's value from the cache.
 func (c *Cache) Get(key interface{}) (value interface{}, ok bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
 	if ent, ok := c.items[key]; ok {
+		e := ent.Value.(*entry)
 
-		if ent.Value.(*entry).expireAtSecs > 0 {
-			if (time.Now().UnixNano() / int64(time.Second)) > ent.Value.(*entry).expireAtSecs {
-				c.removeElement(ent)
-				return nil, false
-			}
+		if e.generation != c.currentGeneration || (e.expireAtSecs > 0 && (time.Now().UnixNano()/int64(time.Second)) > e.expireAtSecs) {
+			c.removeElement(ent)
+			return nil, false
 		}
 
 		c.evictList.MoveToFront(ent)
 		return ent.Value.(*entry).value, true
 	}
-	return
+
+	return nil, false
 }
 
-// Remove removes the provided key from the cache.
 func (c *Cache) Remove(key interface{}) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -155,25 +140,19 @@ func (c *Cache) Remove(key interface{}) {
 	}
 }
 
-// RemoveOldest removes the oldest item from the cache.
-func (c *Cache) RemoveOldest() {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.removeOldest()
-}
-
 // Keys returns a slice of the keys in the cache, from oldest to newest.
 func (c *Cache) Keys() []interface{} {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
-	keys := make([]interface{}, len(c.items))
-	ent := c.evictList.Back()
+	keys := make([]interface{}, c.len)
 	i := 0
-	for ent != nil {
-		keys[i] = ent.Value.(*entry).key
-		ent = ent.Prev()
-		i++
+	for ent := c.evictList.Back(); ent != nil; ent = ent.Prev() {
+		e := ent.Value.(*entry)
+		if e.generation == c.currentGeneration {
+			keys[i] = e.key
+			i++
+		}
 	}
 
 	return keys
@@ -183,7 +162,7 @@ func (c *Cache) Keys() []interface{} {
 func (c *Cache) Len() int {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.evictList.Len()
+	return c.len
 }
 
 func (c *Cache) Name() string {
@@ -194,20 +173,12 @@ func (c *Cache) GetInvalidateClusterEvent() string {
 	return c.invalidateClusterEvent
 }
 
-// removeOldest removes the oldest item from the cache.
-func (c *Cache) removeOldest() {
-	ent := c.evictList.Back()
-	if ent != nil {
-		c.removeElement(ent)
-	}
-}
-
 // removeElement is used to remove a given list element from the cache
 func (c *Cache) removeElement(e *list.Element) {
 	c.evictList.Remove(e)
 	kv := e.Value.(*entry)
-	delete(c.items, kv.key)
-	if c.onEvicted != nil {
-		c.onEvicted(kv.key, kv.value)
+	if kv.generation == c.currentGeneration {
+		c.len--
 	}
+	delete(c.items, kv.key)
 }

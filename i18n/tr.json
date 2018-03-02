@@ -132,10 +132,6 @@
     "translation": "Dosya yüklenemedi. Dosya çok büyük."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "%v üzerindeki sunucu kalıpları işleniyor"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "%v üzerindeki sunucu kalıpları işlenemedi"
   },
@@ -1812,11 +1808,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Şunun içine bir ya da bir kaç dosya yüklendi "
+    "translation": " şunun içine bir ya da bir kaç dosya yükledi "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Bir doğrudan ileti içine bir ya da bir kaç dosya yüklendi"
+    "translation": " bir doğrudan ileti içine bir ya da bir kaç dosya yükledi"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2203,10 +2199,6 @@
     "translation": "Hesap açma bağlantısının süresi geçmiş"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Adres kullanılamıyor. Lütfen yeniden deneyin."
   },
@@ -2305,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v takımdan ayrıldı."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Kanal amacı iletisi gönderilemedi"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2711,6 +2711,10 @@
     "translation": "Hesap açma bağlantısı geçersiz görünüyor"
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Takım adı geçersiz"
   },
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "Gelen web bağlantısının yükü okunamadı."
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -3689,6 +3697,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Uygulama ekleri ya da uygulama eki yüklemeleri devre dışı bırakılmış. "
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticinizle görüşün."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4759,6 +4771,10 @@
     "translation": "Küçük görsel genişliği dosya ayarı geçersiz. Sıfır ya da pozitif bir sayı olmalı."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Hizmet ayarları okunmamış kanallar gruplansın geçersiz. 'disabled', 'default_on' ya da 'default_off' olmalıdır."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Hizmet ayarlarında görsel vekil sunucu türü geçersiz."
   },
@@ -4867,12 +4883,20 @@
     "translation": "İleti dışa aktarma görevi DışaAktarmaZamanıBaşlangıcı değeri bir zaman damgası olmalıdır (Unix Epoch başlangıcından itibaren saniye olarak). Yalnız bu zaman damgasından sonra gönderilmiş iletiler dışa aktarılır."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "İleti dışa aktarma görevi DosyaKonumu değeri dışa aktarılacak verilerin kaydedilebilmesi için yazılabilen bir klasör olmalıdır"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "İleti dışa aktarma görevi DosyaKonumu DosyaAyarları.Klasör değerinin bir alt klasörü olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7087,6 +7111,10 @@
     "translation": "%v SMTP sunucusu üzerinde bağlantı açılamadı"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "SMTP sunucu bağlantısı kapatılamadı"
   },
@@ -7153,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Klasör izleyici eklenemedi %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Klasör izleyicide sorun çıktı %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7263,16 +7287,8 @@
     "translation": "%v üzerindeki kalıplar işleniyor"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "%v üzerindeki kalıplar işlenemedi"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "İleti kodu geçersiz"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "%v dosyası değiştirildiğinden kalıplar yeniden işleniyor"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7291,10 +7307,6 @@
     "translation": "Hesap Açın"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Hesap açma bağlantısının süresi geçmiş"
   },
@@ -7309,10 +7321,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Hesap açma bağlantısının süresi geçmiş"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

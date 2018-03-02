@@ -37,7 +37,10 @@ type S3FileBackend struct {
 // disables automatic region lookup.
 func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	var creds *credentials.Credentials
-	if b.signV2 {
+
+	if b.accessKey == "" && b.secretKey == "" {
+		creds = credentials.NewIAM("")
+	} else if b.signV2 {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV2)
 	} else {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV4)
@@ -138,16 +141,14 @@ func (b *S3FileBackend) WriteFile(f []byte, path string) *model.AppError {
 		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	options := s3.PutObjectOptions{}
-	if b.encrypt {
-		options.UserMetadata["x-amz-server-side-encryption"] = "AES256"
+	var contentType string
+	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
+		contentType = model.GetImageMimeType(ext)
+	} else {
+		contentType = "binary/octet-stream"
 	}
 
-	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
-		options.ContentType = model.GetImageMimeType(ext)
-	} else {
-		options.ContentType = "binary/octet-stream"
-	}
+	options := s3PutOptions(b.encrypt, contentType)
 
 	if _, err = s3Clnt.PutObject(b.bucket, path, bytes.NewReader(f), -1, options); err != nil {
 		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -230,8 +231,35 @@ func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
+func s3PutOptions(encrypt bool, contentType string) s3.PutObjectOptions {
+	options := s3.PutObjectOptions{}
+	if encrypt {
+		options.UserMetadata = make(map[string]string)
+		options.UserMetadata["x-amz-server-side-encryption"] = "AES256"
+	}
+	options.ContentType = contentType
+
+	return options
+}
+
 func s3CopyMetadata(encrypt bool) map[string]string {
 	metaData := make(map[string]string)
 	metaData["x-amz-server-side-encryption"] = "AES256"
 	return metaData
+}
+
+func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
+	if len(settings.AmazonS3Bucket) == 0 {
+		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+	}
+
+	if len(settings.AmazonS3Endpoint) == 0 {
+		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_endpoint", nil, "", http.StatusBadRequest)
+	}
+
+	if len(settings.AmazonS3Region) == 0 {
+		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_region", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
