@@ -55,9 +55,7 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", userId, nil)
 	message.Add("preferences", preferences.ToJson())
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 
 	return nil
 }
@@ -80,9 +78,7 @@ func (a *App) DeletePreferences(userId string, preferences model.Preferences) *m
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_DELETED, "", "", userId, nil)
 	message.Add("preferences", preferences.ToJson())
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 
 	return nil
 }
