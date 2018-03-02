@@ -84,9 +84,7 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 			if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
 				message.Add("channel_id", post.ChannelId)
-				a.Go(func() {
-					a.Publish(message)
-				})
+				a.Publish(message)
 			}
 		}
 
@@ -314,10 +312,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
 	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
-
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 
 	return post
 }
@@ -424,10 +419,7 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
 	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
-
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
@@ -567,10 +559,8 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
 		message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+		a.Publish(message)
 
-		a.Go(func() {
-			a.Publish(message)
-		})
 		a.Go(func() {
 			a.DeletePostFiles(post)
 		})

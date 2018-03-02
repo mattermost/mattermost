@@ -20,7 +20,7 @@ func (api *API) webrtcMessage(req *model.WebSocketRequest) (map[string]interface
 
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_WEBRTC, "", "", toUserId, nil)
 	event.Data = req.Data
-	go api.App.Publish(event)
+	api.App.Publish(event)
 
 	return nil, nil
 }
