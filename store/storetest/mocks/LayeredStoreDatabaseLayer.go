@@ -547,6 +547,68 @@ func (_m *LayeredStoreDatabaseLayer) RoleSave(ctx context.Context, role *model.R
 	return r0
 }
 
+// Scheme provides a mock function with given fields:
+func (_m *LayeredStoreDatabaseLayer) Scheme() store.SchemeStore {
+	ret := _m.Called()
+
+	var r0 store.SchemeStore
+	if rf, ok := ret.Get(0).(func() store.SchemeStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SchemeStore)
+		}
+	}
+
+	return r0
+}
+
+// SchemeGet provides a mock function with given fields: ctx, schemeId, hints
+func (_m *LayeredStoreDatabaseLayer) SchemeGet(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, schemeId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, schemeId, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
+// SchemeSave provides a mock function with given fields: ctx, scheme, hints
+func (_m *LayeredStoreDatabaseLayer) SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, scheme)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Scheme, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, scheme, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
 // Session provides a mock function with given fields:
 func (_m *LayeredStoreDatabaseLayer) Session() store.SessionStore {
 	ret := _m.Called()
