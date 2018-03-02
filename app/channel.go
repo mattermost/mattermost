@@ -435,7 +435,39 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 	return channel, err
 }
 
-// FIXME: Scheme Migration (Have done a hacky bodge for the moment).
+func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, *model.AppError) {
+	var channel *model.Channel
+	var err *model.AppError
+
+	if channel, err = a.GetChannel(channelId); err != nil {
+		return "", "", err
+	}
+
+	if len(channel.SchemeId) != 0 {
+		if scheme, err := a.GetScheme(channel.SchemeId); err != nil {
+			return "", "", err
+		} else {
+			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+		}
+	}
+
+	var team *model.Team
+
+	if team, err = a.GetTeam(channel.TeamId); err != nil {
+		return "", "", err
+	}
+
+	if len(team.SchemeId) != 0 {
+		if scheme, err := a.GetScheme(team.SchemeId); err != nil {
+			return "", "", err
+		} else {
+			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+		}
+	}
+
+	return model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, nil
+}
+
 func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
@@ -443,12 +475,37 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
-	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+	schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(channelId)
+	if err != nil {
 		return nil, err
 	}
 
-	// Here be the hack.
-	member.ExplicitRoles = newRoles
+	var newExplicitRoles []string
+	member.SchemeUser = false
+	member.SchemeAdmin = false
+
+	for _, roleName := range strings.Fields(newRoles) {
+		if role, err := a.GetRoleByName(roleName); err != nil {
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		} else if !role.SchemeManaged {
+			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
+			newExplicitRoles = append(newExplicitRoles, roleName)
+		} else {
+			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
+			switch roleName {
+			case schemeAdminRole:
+				member.SchemeAdmin = true
+			case schemeUserRole:
+				member.SchemeUser = true
+			default:
+				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
+				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+			}
+		}
+	}
+
+	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
 	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {
 		return nil, result.Err

@@ -1388,7 +1388,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	const CHANNEL_ADMIN = "channel_admin channel_user"
+	const CHANNEL_ADMIN = "channel_user channel_admin"
 	const CHANNEL_MEMBER = "channel_user"
 
 	// User 1 creates a channel, making them channel admin by default.
