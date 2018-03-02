@@ -62,6 +62,7 @@ type Store interface {
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
 	Role() RoleStore
+	Scheme() SchemeStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
@@ -481,4 +482,6 @@ type RoleStore interface {
 }
 
 type SchemeStore interface {
+	Save(scheme *model.Scheme) StoreChannel
+	Get(schemeId string) StoreChannel
 }
