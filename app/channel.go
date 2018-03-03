@@ -1092,7 +1092,9 @@ func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, c
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{
+			"userId":        user.Id,
 			"username":      user.Username,
+			"addedUserId":   addedUser.Id,
 			"addedUsername": addedUser.Username,
 		},
 	}
@@ -1112,7 +1114,9 @@ func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, chan
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{
+			"userId":        user.Id,
 			"username":      user.Username,
+			"addedUserId":   addedUser.Id,
 			"addedUsername": addedUser.Username,
 		},
 	}
@@ -1131,6 +1135,7 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 		Type:      model.POST_REMOVE_FROM_CHANNEL,
 		UserId:    removerUserId,
 		Props: model.StringInterface{
+			"removedUserId":   removedUser.Id,
 			"removedUsername": removedUser.Username,
 		},
 	}
