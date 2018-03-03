@@ -4,13 +4,18 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/png"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -134,9 +139,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 
 	message := model.NewWebSocketEvent(event, "", "", "", nil)
 	message.Add("team", sanitizedTeam.ToJson())
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 }
 
 func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
@@ -173,10 +176,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", userId, nil)
 	message.Add("member", member.ToJson())
-
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 }
 
 func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
@@ -918,4 +918,89 @@ func (a *App) SanitizeTeams(session model.Session, teams []*model.Team) []*model
 	}
 
 	return teams
+}
+
+func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.filesettings_no_driver.app_error", nil, "", http.StatusNotImplemented)
+	} else {
+		path := "teams/" + team.Id + "/teamIcon.png"
+		if data, err := a.ReadFile(path); err != nil {
+			return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.read_file.app_error", nil, err.Error(), http.StatusNotFound)
+		} else {
+			return data, nil
+		}
+	}
+}
+
+func (a *App) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model.AppError {
+	file, err := imageData.Open()
+	if err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.open.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	defer file.Close()
+	return a.SetTeamIconFromFile(teamId, file)
+}
+
+func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.AppError {
+
+	team, getTeamErr := a.GetTeam(teamId)
+
+	if getTeamErr != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.get_team.app_error", nil, getTeamErr.Error(), http.StatusBadRequest)
+	}
+
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	// Decode image config first to check dimensions before loading the whole thing into memory later on
+	config, _, err := image.DecodeConfig(file)
+	if err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
+	} else if config.Width*config.Height > model.MaxImageSize {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	file.Seek(0, 0)
+
+	// Decode image into Image object
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	file.Seek(0, 0)
+
+	orientation, _ := getImageOrientation(file)
+	img = makeImageUpright(img, orientation)
+
+	// Scale team icon
+	teamIconWidthAndHeight := 128
+	img = imaging.Fill(img, teamIconWidthAndHeight, teamIconWidthAndHeight, imaging.Center, imaging.Lanczos)
+
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, img)
+	if err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	path := "teams/" + teamId + "/teamIcon.png"
+
+	if err := a.WriteFile(buf.Bytes(), path); err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	curTime := model.GetMillis()
+
+	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, curTime); result.Err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	}
+
+	// manually set time to avoid possible cluster inconsistencies
+	team.LastTeamIconUpdate = curTime
+
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return nil
 }

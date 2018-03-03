@@ -33,6 +33,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("MemberCount", func(t *testing.T) { testTeamStoreMemberCount(t, ss) })
 	t.Run("GetChannelUnreadsForAllTeams", func(t *testing.T) { testGetChannelUnreadsForAllTeams(t, ss) })
 	t.Run("GetChannelUnreadsForTeam", func(t *testing.T) { testGetChannelUnreadsForTeam(t, ss) })
+	t.Run("UpdateLastTeamIconUpdate", func(t *testing.T) { testUpdateLastTeamIconUpdate(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1001,5 +1002,30 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 		if ms[0].MsgCount != 10 {
 			t.Fatal("subtraction failed")
 		}
+	}
+}
+
+func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
+
+	// team icon initially updated a second ago
+	lastTeamIconUpdateInitial := model.GetMillis() - 1000
+
+	o1 := &model.Team{}
+	o1.DisplayName = "Display Name"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.LastTeamIconUpdate = lastTeamIconUpdateInitial
+	o1 = (<-ss.Team().Save(o1)).Data.(*model.Team)
+
+	curTime := model.GetMillis()
+
+	if err := (<-ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	ro1 := (<-ss.Team().Get(o1.Id)).Data.(*model.Team)
+	if ro1.LastTeamIconUpdate <= lastTeamIconUpdateInitial {
+		t.Fatal("LastTeamIconUpdate not updated")
 	}
 }

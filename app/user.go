@@ -202,9 +202,7 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
 		message.Add("user_id", ruser.Id)
-		a.Go(func() {
-			a.Publish(message)
-		})
+		a.Publish(message)
 
 		return ruser, nil
 	}
@@ -832,7 +830,6 @@ func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 		message.Add("user", user)
-
 		a.Publish(message)
 	}
 
@@ -1002,9 +999,7 @@ func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", user)
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
