@@ -1,0 +1,28 @@
+language: go
+go:
+  - 1.6
+  - 1.7
+  - 1.8
+  - 1.9
+
+env:
+  global:
+    - CC_TEST_REPORTER_ID=68feaa3410049ce73e145287acbcdacc525087a30627f96f04e579e75bd71c00
+
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+
+install:
+  - wget https://github.com/go-task/task/releases/download/v1.4.4/task_linux_amd64.tar.gz
+  - tar xf task_linux_amd64.tar.gz
+  - mv task $HOME/gopath/bin
+
+script:
+  - task dl-deps
+  - task lint
+  - task test-coverage
+
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

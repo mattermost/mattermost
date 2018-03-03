@@ -15,42 +15,21 @@ package push_test
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
 )
 
-func ExampleCollectors() {
+func ExamplePusher_Push() {
 	completionTime := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "db_backup_last_completion_timestamp_seconds",
-		Help: "The timestamp of the last succesful completion of a DB backup.",
+		Help: "The timestamp of the last successful completion of a DB backup.",
 	})
-	completionTime.Set(float64(time.Now().Unix()))
-	if err := push.Collectors(
-		"db_backup", push.HostnameGroupingKey(),
-		"http://pushgateway:9091",
-		completionTime,
-	); err != nil {
-		fmt.Println("Could not push completion time to Pushgateway:", err)
-	}
-}
-
-func ExampleRegistry() {
-	registry := prometheus.NewRegistry()
-
-	completionTime := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "db_backup_last_completion_timestamp_seconds",
-		Help: "The timestamp of the last succesful completion of a DB backup.",
-	})
-	registry.MustRegister(completionTime)
-
-	completionTime.Set(float64(time.Now().Unix()))
-	if err := push.FromGatherer(
-		"db_backup", push.HostnameGroupingKey(),
-		"http://pushgateway:9091",
-		registry,
-	); err != nil {
+	completionTime.SetToCurrentTime()
+	if err := push.New("http://pushgateway:9091", "db_backup").
+		Collector(completionTime).
+		Grouping("db", "customers").
+		Push(); err != nil {
 		fmt.Println("Could not push completion time to Pushgateway:", err)
 	}
 }

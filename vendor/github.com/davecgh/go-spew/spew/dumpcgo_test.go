@@ -1,4 +1,4 @@
-// Copyright (c) 2013 Dave Collins <dave@davec.name>
+// Copyright (c) 2013-2016 Dave Collins <dave@davec.name>
 //
 // Permission to use, copy, modify, and distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
@@ -82,18 +82,20 @@ func addCgoDumpTests() {
 	v5Len := fmt.Sprintf("%d", v5l)
 	v5Cap := fmt.Sprintf("%d", v5c)
 	v5t := "[6]testdata._Ctype_uint8_t"
+	v5t2 := "[6]testdata._Ctype_uchar"
 	v5s := "(len=" + v5Len + " cap=" + v5Cap + ") " +
 		"{\n 00000000  74 65 73 74 35 00                               " +
 		"  |test5.|\n}"
-	addDumpTest(v5, "("+v5t+") "+v5s+"\n")
+	addDumpTest(v5, "("+v5t+") "+v5s+"\n", "("+v5t2+") "+v5s+"\n")
 
 	// C typedefed unsigned char array.
 	v6, v6l, v6c := testdata.GetCgoTypdefedUnsignedCharArray()
 	v6Len := fmt.Sprintf("%d", v6l)
 	v6Cap := fmt.Sprintf("%d", v6c)
 	v6t := "[6]testdata._Ctype_custom_uchar_t"
+	v6t2 := "[6]testdata._Ctype_uchar"
 	v6s := "(len=" + v6Len + " cap=" + v6Cap + ") " +
 		"{\n 00000000  74 65 73 74 36 00                               " +
 		"  |test6.|\n}"
-	addDumpTest(v6, "("+v6t+") "+v6s+"\n")
+	addDumpTest(v6, "("+v6t+") "+v6s+"\n", "("+v6t2+") "+v6s+"\n")
 }

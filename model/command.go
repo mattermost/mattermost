@@ -38,43 +38,25 @@ type Command struct {
 }
 
 func (o *Command) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func CommandFromJson(data io.Reader) *Command {
-	decoder := json.NewDecoder(data)
-	var o Command
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Command
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func CommandListToJson(l []*Command) string {
-	b, err := json.Marshal(l)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(l)
+	return string(b)
 }
 
 func CommandListFromJson(data io.Reader) []*Command {
-	decoder := json.NewDecoder(data)
 	var o []*Command
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Command) IsValid() *AppError {

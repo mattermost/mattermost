@@ -5,29 +5,35 @@ import:
   repo: https://github.com/mattermost/log4go.git
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
-  version: v1.2.4
+  version: v1.3.0
 - package: github.com/dyatlov/go-opengraph
   subpackages:
   - opengraph
 - package: github.com/fsnotify/fsnotify
-  version: v1.4.2
+  version: v1.4.7
 - package: github.com/go-ldap/ldap
-  version: v2.5.0
+  version: v2.5.1
+- package: github.com/go-redis/redis
+  version: v6.8.3
 - package: github.com/go-sql-driver/mysql
-  version: v1.3
 - package: github.com/golang/freetype
 - package: github.com/gorilla/handlers
   version: v1.3.0
 - package: github.com/gorilla/mux
-  version: v1.6.0
+  version: v1.6.1
 - package: github.com/gorilla/websocket
-  version: v1.2.0
+- package: github.com/hashicorp/memberlist
+- package: github.com/icrowley/fake
 - package: github.com/lib/pq
+- package: github.com/mattermost/gorp
+- package: github.com/mattermost/html2text
 - package: github.com/mattermost/rsc
   subpackages:
   - qr
 - package: github.com/minio/minio-go
-  version: v3.0.3
+  version: 4.0.7
+  subpackages:
+  - pkg/credentials
 - package: github.com/mssola/user_agent
 - package: github.com/nicksnyder/go-i18n
   version: v1.10.0
@@ -35,64 +41,39 @@ import:
   - i18n
 - package: github.com/pborman/uuid
   version: v1.1
-- package: github.com/rsc/letsencrypt
-  version: v0.0.1
+- package: github.com/pkg/errors
+  version: v0.8.0
 - package: github.com/rwcarlsen/goexif
   subpackages:
   - exif
 - package: github.com/segmentio/analytics-go
   version: 2.1.1
 - package: github.com/spf13/cobra
-- package: github.com/spf13/pflag
-  version: v1.0.0
 - package: github.com/spf13/viper
-- package: github.com/tylerb/graceful
-  version: v1.2.15
+- package: github.com/stretchr/testify
+  version: v1.2.1
+  subpackages:
+  - assert
+  - mock
+  - require
 - package: golang.org/x/crypto
   subpackages:
   - bcrypt
 - package: golang.org/x/image
   subpackages:
   - bmp
+- package: golang.org/x/net
+  subpackages:
+  - bpf
+- package: golang.org/x/sys
+  subpackages:
+  - unix
+- package: gopkg.in/gomail.v2
+  version: 2.0.0
+- package: gopkg.in/olivere/elastic.v5
+  version: v6.1.7
 - package: gopkg.in/throttled/throttled.v2
   version: v2.1.0
   subpackages:
   - store/memstore
-- package: github.com/prometheus/client_golang
-  version: v0.8.0
-  subpackages:
-  - prometheus
-- package: github.com/beorn7/perks
-  subpackages:
-  - quantile
-- package: github.com/golang/protobuf
-  subpackages:
-  - proto
-- package: github.com/prometheus/client_model
-  subpackages:
-  - go
-- package: github.com/prometheus/common
-  subpackages:
-  - expfmt
-- package: github.com/matttproud/golang_protobuf_extensions
-  version: v1.0.0
-  subpackages:
-  - pbutil
-- package: github.com/prometheus/procfs
-- package: github.com/cpanato/html2text
-- package: gopkg.in/olivere/elastic.v5
-  version: v5.0.53
-- package: github.com/mattermost/gorp
-  version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a
-- package: github.com/go-redis/redis
-  version: v6.7.3
-- package: github.com/stretchr/testify
-  version: v1.1.4
-  subpackages:
-  - assert
-  - require
-- package: gopkg.in/gomail.v2
-  version: 2.0.0
-- package: github.com/mattermost/html2text
-- package: github.com/icrowley/fake
-- package: github.com/avct/uasurfer
+- package: gopkg.in/yaml.v2

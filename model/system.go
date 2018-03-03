@@ -6,14 +6,16 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"math/big"
 )
 
 const (
-	SYSTEM_DIAGNOSTIC_ID        = "DiagnosticId"
-	SYSTEM_RAN_UNIT_TESTS       = "RanUnitTests"
-	SYSTEM_LAST_SECURITY_TIME   = "LastSecurityTime"
-	SYSTEM_ACTIVE_LICENSE_ID    = "ActiveLicenseId"
-	SYSTEM_LAST_COMPLIANCE_TIME = "LastComplianceTime"
+	SYSTEM_DIAGNOSTIC_ID          = "DiagnosticId"
+	SYSTEM_RAN_UNIT_TESTS         = "RanUnitTests"
+	SYSTEM_LAST_SECURITY_TIME     = "LastSecurityTime"
+	SYSTEM_ACTIVE_LICENSE_ID      = "ActiveLicenseId"
+	SYSTEM_LAST_COMPLIANCE_TIME   = "LastComplianceTime"
+	SYSTEM_ASYMMETRIC_SIGNING_KEY = "AsymmetricSigningKey"
 )
 
 type System struct {
@@ -22,21 +24,23 @@ type System struct {
 }
 
 func (o *System) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func SystemFromJson(data io.Reader) *System {
-	decoder := json.NewDecoder(data)
-	var o System
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *System
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+type SystemAsymmetricSigningKey struct {
+	ECDSAKey *SystemECDSAKey `json:"ecdsa_key,omitempty"`
+}
+
+type SystemECDSAKey struct {
+	Curve string   `json:"curve"`
+	X     *big.Int `json:"x"`
+	Y     *big.Int `json:"y"`
+	D     *big.Int `json:"d,omitempty"`
 }

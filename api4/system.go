@@ -121,6 +121,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Do not allow plugin uploads to be toggled through the API
+	cfg.PluginSettings.EnableUploads = c.App.GetConfig().PluginSettings.EnableUploads
+
 	err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
@@ -266,7 +269,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := utils.GetClientLicenseEtag(true)
+	etag := c.App.GetClientLicenseEtag(true)
 	if c.HandleEtag(etag, "Get Client License", w, r) {
 		return
 	}
@@ -274,9 +277,9 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var clientLicense map[string]string
 
 	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		clientLicense = utils.ClientLicense()
+		clientLicense = c.App.ClientLicense()
 	} else {
-		clientLicense = utils.GetSanitizedClientLicense()
+		clientLicense = c.App.GetSanitizedClientLicense()
 	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)

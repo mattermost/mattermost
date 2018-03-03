@@ -191,7 +191,7 @@ func (a *App) SendUserAccessTokenAddedEmail(email, locale string) *model.AppErro
 	bodyPage := a.NewEmailTemplate("password_change_body", locale)
 	bodyPage.Props["Title"] = T("api.templates.user_access_token_body.title")
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.user_access_token_body.info",
-		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "SiteURL": utils.GetSiteURL()})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "SiteURL": a.GetSiteURL()})
 
 	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error(), http.StatusInternalServerError)
@@ -276,6 +276,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 			props["display_name"] = team.DisplayName
 			props["name"] = team.Name
 			props["time"] = fmt.Sprintf("%v", model.GetMillis())
+			props["invite_id"] = team.InviteId
 			data := model.MapToJson(props)
 			hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt))
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(hash))
@@ -316,5 +317,6 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 }
 
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
-	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config())
+	license := a.License()
+	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
 }

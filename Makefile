@@ -276,7 +276,7 @@ store-mocks: ## Creates mock files.
 	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 update-jira-plugin: ## Updates Jira plugin.
-	go get github.com/jteeuwen/go-bindata/...
+	go get github.com/mattermost/go-bindata/...
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
 	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_darwin_amd64.go plugin.tar.gz
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
@@ -287,7 +287,7 @@ update-jira-plugin: ## Updates Jira plugin.
 	gofmt -s -w ./app/plugin/jira
 
 update-zoom-plugin: ## Updates Zoom plugin.
-	go get github.com/jteeuwen/go-bindata/...
+	go get github.com/mattermost/go-bindata/...
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
 	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_darwin_amd64.go plugin.tar.gz
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
@@ -380,6 +380,15 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
+test-data: start-docker ## Add test data to the local instance.
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) sampledata -w 1
+
+	@echo You may need to restart the Mattermost server before using the following
+	@echo ====================================================================================
+	@echo Login with a system admin account email=user-0@sample.mattermost.com password=user-0
+	@echo Login with a regular account email=user-1@sample.mattermost.com password=user-1
+	@echo ====================================================================================
+
 run-server: start-docker ## Starts the server.
 	@echo Running mattermost for development
 
@@ -468,7 +477,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
-	find . -type d -name data | xargs rm -r
+	find . -type d -name data -not -path './vendor/*' | xargs rm -r
 	rm -rf logs
 
 	rm -f mattermost.log

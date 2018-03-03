@@ -132,10 +132,6 @@
     "translation": "Impossibile caricare il file. Il file è troppo grande."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Analisi dei template del server: %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Impossibile analizzare i modelli del server %v"
   },
@@ -198,6 +194,14 @@
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
     "translation": "La creazione e amministrazione di Canali Pubblici è limitata all'Amministratore di Sistema e di gruppo."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Questo canale è stato convertito in un Canale Pubblico e ogni membro del gruppo può farne parte."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Questo canale è stato convertito in un Canale Privato."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2176,7 +2180,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v aggiunto al gruppo da parte di %v"
+    "translation": "%v aggiunto al gruppo da parte di %v."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2193,10 +2197,6 @@
   {
     "id": "api.team.create_team_from_signup.expired_link.app_error",
     "translation": "Il collegamento per l'iscrizione è scaduto"
-  },
-  {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
   },
   {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
@@ -2297,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v ha lasciato il gruppo."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Impossibile pubblicare il messaggio di spostamento del canale."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Questo canale è stato spostato in questo gruppo da %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2703,6 +2711,10 @@
     "translation": "Il collegamento per l'iscrizione non sembra essere valido"
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Nome gruppo non valido"
   },
@@ -3059,6 +3071,10 @@
     "translation": "Impossibile leggere il contenuto del webhook in ingresso."
   },
   {
+    "id": "api.webhook.incoming.error",
+    "translation": "Impossibile decodificare la richiesta multipart del webhook in ingresso."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Inizializzazione API Routes dei webhook"
   },
@@ -3352,7 +3368,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "L'attributo della pubblicazione CreateAt, se presente, non deve essere zero."
+    "translation": "La proprietà CreateAt della pubblicazione non può essere zero."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3369,6 +3385,54 @@
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "Proprietà della pubblicazione mancante: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "La proprietà della reazione CreateAt deve evvere maggiore della proprietà CreateAt della pubblicazione principale."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Proprietà della reazione mancante: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "La proprietà della reazione CreateAt non può essere zero."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "La lunghezza della proprietà EmojiName della reazione è maggiore della lunghezza ammessa."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Proprietà della reazione mancante: EmojiName."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Proprietà della reazione mancante: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "La proprietà CreateAt della risposta deve essere maggiore della proprietà CreateAt della pubblicazione principale."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Proprietà della risposta mancante: create_at."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "La proprietà CreateAt della risposta non può essere zero."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "La lunghezza della proprietà Message della risposta è maggiore della lunghezza ammessa."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Proprietà della risposta mancante: Message."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "Proprietà della risposta mancante: User."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3507,6 +3571,10 @@
     "translation": "Il campo Posizione dell'utente è troppo lungo."
   },
   {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Immagine profilo non valida."
+  },
+  {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
     "translation": "I ruoli utente non sono validi."
   },
@@ -3629,6 +3697,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "I plugin e/o il caricamento dei plugin è stato disattivato."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Questo gruppo ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4583,6 +4655,10 @@
     "translation": "A deve essere più grand di Da"
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Opzioni proxy immagine atmos/camo non valide nelle impostazione del servizio. Dev'essere una chiave condivisa."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Impossibile abilitare la spedizione email programmata quando il supporto cluster è abilitato."
   },
@@ -4695,6 +4771,14 @@
     "translation": "Larghezza antemprima non valida per le impostazioni file.  Deve essere un numero positivo."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Canali non letti del gruppo non validi per le impostazioni del servizio. Dev'essere 'disabled', 'default_on' oppure 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Tipo proxy immagine non valido nelle impostazioni del servizio."
+  },
+  {
     "id": "model.config.is_valid.ldap_basedn",
     "translation": "Il campo AD/LDAP \"BaseDN\" è richiesto."
   },
@@ -4799,12 +4883,20 @@
     "translation": "Lavoro esportazione messaggi il valore ExportFromTimestamp deve essere un timestamp (espresso in secondi dall'epoca unix). Solo i messaggi successivi a questo valore saranno esportati."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "ExportFormat del lavoro di esportazione messaggi deve essere 'actianve' oppure 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Lavoro esportazione messaggi il valore FileLocation deve essere una cartella accessibile in scrittura in cui verranno salvati i dati esportati"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Lavoro esportazione messaggi il valore FileLocation deve essere una sottocartella di FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "GlobalRelayEmailAddress del lavoro di esportazione messaggi deve essere un indirizzo email valido"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -5336,7 +5428,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Posizione non valida: non deve essere maggiore di 35 caratteri."
+    "translation": "Posizione non valida: non deve essere maggiore di 128 caratteri."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -6779,6 +6871,10 @@
     "translation": "Impossibile trovare il Token di accesso personale"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "Impossibile trovare tutti i token di accesso personale"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_token.app_error",
     "translation": "Impossibile trovare il token di accesso personale per token"
   },
@@ -6789,6 +6885,10 @@
   {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "Impossibile salvare il Token di accesso personale"
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "Si è verificato un errore durante la ricerca dei token di accesso personali"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7011,6 +7111,10 @@
     "translation": "Impossibile aprire una connessione al server SMTP %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Impossibile aggiungere l'allegato all'email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Impossibile chiudere la connessione al server SMTP"
   },
@@ -7077,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Impossibile creare osservatore cartella %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Fallito nell'osservatore cartella %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7187,16 +7287,8 @@
     "translation": "Analisi dei template del server: %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Impossibile analizzare i modelli %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "ID pubblicazione non valido"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Rianalisi dei modelli in corso a causa della modifica al file %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7215,10 +7307,6 @@
     "translation": "Iscrizione"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Il collegamento per l'iscrizione è scaduto"
   },
@@ -7233,10 +7321,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Il collegamento per l'iscrizione è scaduto"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

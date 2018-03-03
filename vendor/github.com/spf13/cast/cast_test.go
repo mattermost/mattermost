@@ -697,6 +697,10 @@ func TestStringMapStringSliceE(t *testing.T) {
 	var stringMapInterface1 = map[string]interface{}{"key 1": []string{"value 1"}, "key 2": []string{"value 2"}}
 	var stringMapInterfaceResult1 = map[string][]string{"key 1": {"value 1"}, "key 2": {"value 2"}}
 
+	var jsonStringMapString = `{"key 1": "value 1", "key 2": "value 2"}`
+	var jsonStringMapStringArray = `{"key 1": ["value 1"], "key 2": ["value 2", "value 3"]}`
+	var jsonStringMapStringArrayResult = map[string][]string{"key 1": {"value 1"}, "key 2": {"value 2", "value 3"}}
+
 	type Key struct {
 		k string
 	}
@@ -718,11 +722,15 @@ func TestStringMapStringSliceE(t *testing.T) {
 		{interfaceMapInterfaceSlice, stringMapStringSlice, false},
 		{interfaceMapString, stringMapStringSingleSliceFieldsResult, false},
 		{interfaceMapInterface, stringMapStringSingleSliceFieldsResult, false},
+		{jsonStringMapStringArray, jsonStringMapStringArrayResult, false},
+
 		// errors
 		{nil, nil, true},
 		{testing.T{}, nil, true},
 		{map[interface{}]interface{}{"foo": testing.T{}}, nil, true},
 		{map[interface{}]interface{}{Key{"foo"}: "bar"}, nil, true}, // ToStringE(Key{"foo"}) should fail
+		{jsonStringMapString, nil, true},
+		{"", nil, true},
 	}
 
 	for i, test := range tests {
@@ -751,9 +759,13 @@ func TestToStringMapE(t *testing.T) {
 	}{
 		{map[interface{}]interface{}{"tag": "tags", "group": "groups"}, map[string]interface{}{"tag": "tags", "group": "groups"}, false},
 		{map[string]interface{}{"tag": "tags", "group": "groups"}, map[string]interface{}{"tag": "tags", "group": "groups"}, false},
+		{`{"tag": "tags", "group": "groups"}`, map[string]interface{}{"tag": "tags", "group": "groups"}, false},
+		{`{"tag": "tags", "group": true}`, map[string]interface{}{"tag": "tags", "group": true}, false},
+
 		// errors
 		{nil, nil, true},
 		{testing.T{}, nil, true},
+		{"", nil, true},
 	}
 
 	for i, test := range tests {
@@ -783,9 +795,12 @@ func TestToStringMapBoolE(t *testing.T) {
 		{map[interface{}]interface{}{"v1": true, "v2": false}, map[string]bool{"v1": true, "v2": false}, false},
 		{map[string]interface{}{"v1": true, "v2": false}, map[string]bool{"v1": true, "v2": false}, false},
 		{map[string]bool{"v1": true, "v2": false}, map[string]bool{"v1": true, "v2": false}, false},
+		{`{"v1": true, "v2": false}`, map[string]bool{"v1": true, "v2": false}, false},
+
 		// errors
 		{nil, nil, true},
 		{testing.T{}, nil, true},
+		{"", nil, true},
 	}
 
 	for i, test := range tests {
@@ -811,6 +826,9 @@ func TestToStringMapStringE(t *testing.T) {
 	var stringMapInterface = map[string]interface{}{"key 1": "value 1", "key 2": "value 2", "key 3": "value 3"}
 	var interfaceMapString = map[interface{}]string{"key 1": "value 1", "key 2": "value 2", "key 3": "value 3"}
 	var interfaceMapInterface = map[interface{}]interface{}{"key 1": "value 1", "key 2": "value 2", "key 3": "value 3"}
+	var jsonString = `{"key 1": "value 1", "key 2": "value 2", "key 3": "value 3"}`
+	var invalidJsonString = `{"key 1": "value 1", "key 2": "value 2", "key 3": "value 3"`
+	var emptyString = ""
 
 	tests := []struct {
 		input  interface{}
@@ -821,9 +839,13 @@ func TestToStringMapStringE(t *testing.T) {
 		{stringMapInterface, stringMapString, false},
 		{interfaceMapString, stringMapString, false},
 		{interfaceMapInterface, stringMapString, false},
+		{jsonString, stringMapString, false},
+
 		// errors
 		{nil, nil, true},
 		{testing.T{}, nil, true},
+		{invalidJsonString, nil, true},
+		{emptyString, nil, true},
 	}
 
 	for i, test := range tests {
@@ -984,9 +1006,12 @@ func TestToDurationSliceE(t *testing.T) {
 		{[]string{"1s", "1m"}, []time.Duration{time.Second, time.Minute}, false},
 		{[]int{1, 2}, []time.Duration{1, 2}, false},
 		{[]interface{}{1, 3}, []time.Duration{1, 3}, false},
+		{[]time.Duration{1, 3}, []time.Duration{1, 3}, false},
+
 		// errors
 		{nil, nil, true},
 		{testing.T{}, nil, true},
+		{[]string{"invalid"}, nil, true},
 	}
 
 	for i, test := range tests {

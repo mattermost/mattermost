@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 )
 
@@ -22,6 +23,7 @@ const (
 	WEBSOCKET_EVENT_ADDED_TO_TEAM       = "added_to_team"
 	WEBSOCKET_EVENT_LEAVE_TEAM          = "leave_team"
 	WEBSOCKET_EVENT_UPDATE_TEAM         = "update_team"
+	WEBSOCKET_EVENT_DELETE_TEAM         = "delete_team"
 	WEBSOCKET_EVENT_USER_ADDED          = "user_added"
 	WEBSOCKET_EVENT_USER_UPDATED        = "user_updated"
 	WEBSOCKET_EVENT_USER_ROLE_UPDATED   = "user_role_updated"
@@ -57,11 +59,32 @@ type WebsocketBroadcast struct {
 	TeamId    string          `json:"team_id"`    // broadcast only occurs for users in this team
 }
 
+type precomputedWebSocketEventJSON struct {
+	Event     json.RawMessage
+	Data      json.RawMessage
+	Broadcast json.RawMessage
+}
+
 type WebSocketEvent struct {
 	Event     string                 `json:"event"`
 	Data      map[string]interface{} `json:"data"`
 	Broadcast *WebsocketBroadcast    `json:"broadcast"`
 	Sequence  int64                  `json:"seq"`
+
+	precomputedJSON *precomputedWebSocketEventJSON
+}
+
+// PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
+// This makes ToJson much more efficient when sending the same event to multiple connections.
+func (m *WebSocketEvent) PrecomputeJSON() {
+	event, _ := json.Marshal(m.Event)
+	data, _ := json.Marshal(m.Data)
+	broadcast, _ := json.Marshal(m.Broadcast)
+	m.precomputedJSON = &precomputedWebSocketEventJSON{
+		Event:     json.RawMessage(event),
+		Data:      json.RawMessage(data),
+		Broadcast: json.RawMessage(broadcast),
+	}
 }
 
 func (m *WebSocketEvent) Add(key string, value interface{}) {
@@ -82,23 +105,17 @@ func (o *WebSocketEvent) EventType() string {
 }
 
 func (o *WebSocketEvent) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
+	if o.precomputedJSON != nil {
+		return fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, o.precomputedJSON.Event, o.precomputedJSON.Data, o.precomputedJSON.Broadcast, o.Sequence)
 	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
-	decoder := json.NewDecoder(data)
-	var o WebSocketEvent
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *WebSocketEvent
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 type WebSocketResponse struct {
@@ -129,21 +146,12 @@ func (o *WebSocketResponse) EventType() string {
 }
 
 func (o *WebSocketResponse) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func WebSocketResponseFromJson(data io.Reader) *WebSocketResponse {
-	decoder := json.NewDecoder(data)
-	var o WebSocketResponse
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *WebSocketResponse
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

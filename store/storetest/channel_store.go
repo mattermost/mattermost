@@ -1940,116 +1940,109 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	o11.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o11, -1))
 
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "ChannelA"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 2 {
-			t.Fatal("wrong length")
-		}
-	}
-
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, ""); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) == 0 {
-			t.Fatal("should not be empty")
-		}
-	}
-
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "blargh"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 0 {
-			t.Fatal("should be empty")
-		}
-	}
-
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 2 {
-			t.Fatal("should return 2 channels, not including private channel")
-		}
-
-		if (*channels)[0].Name != o7.Name {
-			t.Fatal("wrong channel returned")
-		}
-
-		if (*channels)[1].Name != o6.Name {
-			t.Fatal("wrong channel returned")
-		}
-	}
-
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-topic"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 1 {
-			t.Fatal("should return 1 channel")
-		}
-
-		if (*channels)[0].Name != o6.Name {
-			t.Fatal("wrong channel returned")
-		}
-	}
-
-	/*
-		// Disabling this check as it will fail on PostgreSQL as we have "liberalised" channel matching to deal with
-		// Full-Text Stemming Limitations.
-		if result := <-ss.Channel().SearchMore(m1.
-		if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-topics"); result.Err != nil {
-			t.Fatal(result.Err)
-		} else {
-			channels := result.Data.(*model.ChannelList)
-			if len(*channels) != 0 {
-				t.Fatal("should be empty")
+	for name, search := range map[string]func(teamId string, term string) store.StoreChannel{
+		"AutocompleteInTeam": ss.Channel().AutocompleteInTeam,
+		"SearchInTeam":       ss.Channel().SearchInTeam,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if result := <-search(o1.TeamId, "ChannelA"); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				if len(*channels) != 2 {
+					t.Fatal("wrong length")
+				}
 			}
-		}
-	*/
 
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "town square"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 1 {
-			t.Fatal("should return 1 channel")
-		}
+			if result := <-search(o1.TeamId, ""); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				if len(*channels) == 0 {
+					t.Fatal("should not be empty")
+				}
+			}
 
-		if (*channels)[0].Name != o9.Name {
-			t.Fatal("wrong channel returned")
-		}
-	}
+			if result := <-search(o1.TeamId, "blargh"); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				if len(*channels) != 0 {
+					t.Fatal("should be empty")
+				}
+			}
 
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "the"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		t.Log(channels.ToJson())
-		if len(*channels) != 1 {
-			t.Fatal("should return 1 channel")
-		}
+			if result := <-search(o1.TeamId, "off-"); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				if len(*channels) != 2 {
+					t.Fatal("should return 2 channels, not including private channel")
+				}
 
-		if (*channels)[0].Name != o10.Name {
-			t.Fatal("wrong channel returned")
-		}
-	}
+				if (*channels)[0].Name != o7.Name {
+					t.Fatal("wrong channel returned")
+				}
 
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "Mobile"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		t.Log(channels.ToJson())
-		if len(*channels) != 1 {
-			t.Fatal("should return 1 channel")
-		}
+				if (*channels)[1].Name != o6.Name {
+					t.Fatal("wrong channel returned")
+				}
+			}
 
-		if (*channels)[0].Name != o11.Name {
-			t.Fatal("wrong channel returned")
-		}
+			if result := <-search(o1.TeamId, "off-topic"); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				if len(*channels) != 1 {
+					t.Fatal("should return 1 channel")
+				}
+
+				if (*channels)[0].Name != o6.Name {
+					t.Fatal("wrong channel returned")
+				}
+			}
+
+			if result := <-search(o1.TeamId, "town square"); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				if len(*channels) != 1 {
+					t.Fatal("should return 1 channel")
+				}
+
+				if (*channels)[0].Name != o9.Name {
+					t.Fatal("wrong channel returned")
+				}
+			}
+
+			if result := <-search(o1.TeamId, "the"); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				t.Log(channels.ToJson())
+				if len(*channels) != 1 {
+					t.Fatal("should return 1 channel")
+				}
+
+				if (*channels)[0].Name != o10.Name {
+					t.Fatal("wrong channel returned")
+				}
+			}
+
+			if result := <-search(o1.TeamId, "Mobile"); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				t.Log(channels.ToJson())
+				if len(*channels) != 1 {
+					t.Fatal("should return 1 channel")
+				}
+
+				if (*channels)[0].Name != o11.Name {
+					t.Fatal("wrong channel returned")
+				}
+			}
+		})
 	}
 }
 

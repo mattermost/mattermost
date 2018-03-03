@@ -99,44 +99,20 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.IpAddress = utils.GetIpAddress(r)
 	c.Params = ApiParamsFromRequest(r)
 
-	token := ""
-	isTokenFromQueryString := false
+	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	// Attempt to parse token out of the header
-	authHeader := r.Header.Get(model.HEADER_AUTH)
-	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
-		// Default session token
-		token = authHeader[7:]
-
-	} else if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
-		// OAuth token
-		token = authHeader[6:]
-	}
-
-	// Attempt to parse the token from the cookie
-	if len(token) == 0 {
-		if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
-			token = cookie.Value
-
-			if h.requireSession && !h.trustRequester {
-				if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
-					token = ""
-				}
-			}
+	// CSRF Check
+	if tokenLocation == app.TokenLocationCookie && h.requireSession && !h.trustRequester {
+		if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
+			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+			token = ""
 		}
-	}
-
-	// Attempt to parse token out of the query string
-	if len(token) == 0 {
-		token = r.URL.Query().Get("access_token")
-		isTokenFromQueryString = true
 	}
 
 	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), utils.IsLicensed()))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -153,10 +129,15 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if h.requireSession {
 				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
-		} else if !session.IsOAuth && isTokenFromQueryString {
+		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
 			c.Session = *session
+		}
+
+		// Rate limit by UserID
+		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.Session.UserId, w) {
+			return
 		}
 	}
 
@@ -231,8 +212,10 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 func (c *Context) LogError(err *model.AppError) {
 
-	// filter out endless reconnects
-	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 || err.Id == "web.check_browser_compatibility.app_error" {
+	// Filter out 404s, endless reconnects and browser compatibility errors
+	if err.StatusCode == http.StatusNotFound ||
+		(c.Path == "/api/v3/users/websocket" && err.StatusCode == 401) ||
+		err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
 		l4g.Error(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
@@ -268,7 +251,7 @@ func (c *Context) SessionRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
+	if license := c.App.License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 
@@ -461,6 +444,18 @@ func (c *Context) RequireFileId() *Context {
 
 	if len(c.Params.FileId) != 26 {
 		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireFilename() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.Filename) == 0 {
+		c.SetInvalidUrlParam("filename")
 	}
 
 	return c

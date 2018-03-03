@@ -27,43 +27,25 @@ type Status struct {
 }
 
 func (o *Status) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func StatusFromJson(data io.Reader) *Status {
-	decoder := json.NewDecoder(data)
-	var o Status
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Status
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func StatusListToJson(u []*Status) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func StatusListFromJson(data io.Reader) []*Status {
-	decoder := json.NewDecoder(data)
 	var statuses []*Status
-	err := decoder.Decode(&statuses)
-	if err == nil {
-		return statuses
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&statuses)
+	return statuses
 }
 
 func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]interface{} {

@@ -1,6 +1,7 @@
 {
     "ServiceSettings": {
         "SiteURL": "http://localhost:8065",
+        "WebsocketURL": "",
         "LicenseFileLocation": "",
         "ListenAddress": ":8065",
         "ConnectionSecurity": "",
@@ -21,7 +22,7 @@
         "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
-        "EnableAPIv3": true,
+        "EnableAPIv3": false,
         "EnableLinkPreviews": false,
         "EnableTesting": false,
         "EnableDeveloper": false,
@@ -32,6 +33,7 @@
         "EnforceMultifactorAuthentication": false,
         "EnableUserAccessTokens": false,
         "AllowCorsFrom": "",
+        "AllowCookiesForSubdomains": false,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,
@@ -57,8 +59,9 @@
         "CloseUnusedDirectMessages": false,
         "EnableTutorial": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
-        "ExperimentalGroupUnreadChannels": false,
+        "ExperimentalGroupUnreadChannels": "disabled",
         "ImageProxyType": "",
+        "ImageProxyOptions": "",
         "ImageProxyURL": ""
     },
     "TeamSettings": {
@@ -180,6 +183,7 @@
         "MaxBurst": 100,
         "MemoryStoreSize": 10000,
         "VaryByRemoteAddr": true,
+        "VaryByUser": false,
         "VaryByHeader": ""
     },
     "PrivacySettings": {

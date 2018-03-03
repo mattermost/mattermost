@@ -36,6 +36,38 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	}
 }
 
+func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
+		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should default to 'disabled'")
+	}
+
+	// This setting was briefly a boolean, so ensure that those values still work as expected
+	c1 = Config{
+		ServiceSettings: ServiceSettings{
+			ExperimentalGroupUnreadChannels: NewString("1"),
+		},
+	}
+	c1.SetDefaults()
+
+	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON {
+		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set true to 'default on'")
+	}
+
+	c1 = Config{
+		ServiceSettings: ServiceSettings{
+			ExperimentalGroupUnreadChannels: NewString("0"),
+		},
+	}
+	c1.SetDefaults()
+
+	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
+		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set false to 'disabled'")
+	}
+}
+
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
 	fs := &FileSettings{}
 	mes := &MessageExportSettings{}
@@ -104,7 +136,7 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 	require.Error(t, mes.isValid(*fs))
 }
 
-func TestMessageExportSettingsIsValid(t *testing.T) {
+func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 	fs := &FileSettings{
 		DriverName: NewString("foo"), // bypass file location check
 	}
@@ -113,6 +145,55 @@ func TestMessageExportSettingsIsValid(t *testing.T) {
 		ExportFromTimestamp: NewInt64(0),
 		DailyRunTime:        NewString("15:04"),
 		BatchSize:           NewInt(100),
+	}
+
+	// should fail fast because export format isn't set
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+	}
+
+	// should fail fast because global relay email address isn't set
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidActiance(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+	}
+
+	// should pass because everything is valid
+	require.Nil(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelay(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:            NewBool(true),
+		ExportFormat:            NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp:     NewInt64(0),
+		DailyRunTime:            NewString("15:04"),
+		BatchSize:               NewInt(100),
+		GlobalRelayEmailAddress: NewString("test@mattermost.com"),
 	}
 
 	// should pass because everything is valid
@@ -127,6 +208,7 @@ func TestMessageExportSetDefaults(t *testing.T) {
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
+	require.Equal(t, COMPLIANCE_EXPORT_TYPE_ACTIANCE, *mes.ExportFormat)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {

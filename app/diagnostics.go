@@ -11,7 +11,6 @@ import (
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/segmentio/analytics-go"
 )
 
@@ -241,6 +240,11 @@ func (a *App) trackConfig() {
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
+		"isdefault_image_proxy_type":                              isDefault(*cfg.ServiceSettings.ImageProxyType, ""),
+		"isdefault_image_proxy_url":                               isDefault(*cfg.ServiceSettings.ImageProxyURL, ""),
+		"isdefault_image_proxy_options":                           isDefault(*cfg.ServiceSettings.ImageProxyOptions, ""),
+		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
+		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -347,7 +351,8 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
 		"enable_rate_limiter":      *cfg.RateLimitSettings.Enable,
-		"vary_by_remote_address":   cfg.RateLimitSettings.VaryByRemoteAddr,
+		"vary_by_remote_address":   *cfg.RateLimitSettings.VaryByRemoteAddr,
+		"vary_by_user":             *cfg.RateLimitSettings.VaryByUser,
 		"per_sec":                  *cfg.RateLimitSettings.PerSec,
 		"max_burst":                *cfg.RateLimitSettings.MaxBurst,
 		"memory_store_size":        *cfg.RateLimitSettings.MemoryStoreSize,
@@ -498,6 +503,7 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_MESSAGE_EXPORT, map[string]interface{}{
 		"enable_message_export":         *cfg.MessageExportSettings.EnableExport,
+		"export_format":                 *cfg.MessageExportSettings.ExportFormat,
 		"daily_run_time":                *cfg.MessageExportSettings.DailyRunTime,
 		"default_export_from_timestamp": *cfg.MessageExportSettings.ExportFromTimestamp,
 		"batch_size":                    *cfg.MessageExportSettings.BatchSize,
@@ -505,17 +511,17 @@ func (a *App) trackConfig() {
 }
 
 func (a *App) trackLicense() {
-	if utils.IsLicensed() {
+	if license := a.License(); license != nil {
 		data := map[string]interface{}{
-			"customer_id": utils.License().Customer.Id,
-			"license_id":  utils.License().Id,
-			"issued":      utils.License().IssuedAt,
-			"start":       utils.License().StartsAt,
-			"expire":      utils.License().ExpiresAt,
-			"users":       *utils.License().Features.Users,
+			"customer_id": license.Customer.Id,
+			"license_id":  license.Id,
+			"issued":      license.IssuedAt,
+			"start":       license.StartsAt,
+			"expire":      license.ExpiresAt,
+			"users":       *license.Features.Users,
 		}
 
-		features := utils.License().Features.ToMap()
+		features := license.Features.ToMap()
 		for featureName, featureValue := range features {
 			data["feature_"+featureName] = featureValue
 		}

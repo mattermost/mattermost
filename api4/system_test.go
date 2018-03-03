@@ -7,6 +7,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetPing(t *testing.T) {
@@ -106,9 +107,10 @@ func TestUpdateConfig(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	cfg := th.App.GetConfig()
+	cfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
 
-	_, resp := Client.UpdateConfig(cfg)
+	_, resp = Client.UpdateConfig(cfg)
 	CheckForbiddenStatus(t, resp)
 
 	SiteName := th.App.Config().TeamSettings.SiteName
@@ -139,6 +141,22 @@ func TestUpdateConfig(t *testing.T) {
 			t.Fatal()
 		}
 	}
+
+	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
+		oldEnableUploads := *th.App.GetConfig().PluginSettings.EnableUploads
+		*cfg.PluginSettings.EnableUploads = !oldEnableUploads
+
+		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+		assert.Equal(t, oldEnableUploads, *th.App.GetConfig().PluginSettings.EnableUploads)
+
+		cfg.PluginSettings.EnableUploads = nil
+		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+		assert.Equal(t, oldEnableUploads, *th.App.GetConfig().PluginSettings.EnableUploads)
+	})
 }
 
 func TestGetOldClientConfig(t *testing.T) {

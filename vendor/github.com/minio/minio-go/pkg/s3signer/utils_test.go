@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,7 @@ package s3signer
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"testing"
 )
@@ -65,7 +67,7 @@ func TestEncodeURL2Path(t *testing.T) {
 			t.Fatal("Error:", err)
 		}
 		urlPath := "/" + bucketName + "/" + o.encodedObjName
-		if urlPath != encodeURL2Path(u) {
+		if urlPath != encodeURL2Path(&http.Request{URL: u}) {
 			t.Fatal("Error")
 		}
 	}

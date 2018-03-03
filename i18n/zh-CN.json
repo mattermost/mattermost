@@ -132,10 +132,6 @@
     "translation": "无法上传文件。文件太大。"
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "解析服务模板 %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "解析服务模板出错 %v"
   },
@@ -153,7 +149,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v 由 %v 邀请加入频道"
+    "translation": "%v 由 %v 邀请加入频道。"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -198,6 +194,14 @@
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
     "translation": "只有团队和系统管理员能创建与管理公开频道。"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "此频道已转换到公共频道并允许任何团队成员加入。"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "此频道已转换到私有频道。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -1154,7 +1158,7 @@
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
-    "translation": "无法删除表情符 %v 时删除反应"
+    "translation": "无法删除表情符 %v 时删除互动"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -1896,31 +1900,31 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "因网址中频道 ID 与消息 ID不符而删除反应失败"
+    "translation": "因网址中频道 ID 与消息 ID不符而删除互动失败"
   },
   {
     "id": "api.reaction.init.debug",
-    "translation": "正在初始化反应 API 路由"
+    "translation": "正在初始化互动 API 路由"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "因网址中频道 ID 与消息 ID不符而获取反应失败"
+    "translation": "因网址中频道 ID 与消息 ID不符而获取互动失败"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
-    "translation": "无效反应。"
+    "translation": "无效互动。"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "因网址中频道 ID 与消息 ID不符而保存反应失败"
+    "translation": "因网址中频道 ID 与消息 ID不符而保存互动失败"
   },
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
-    "translation": "您不能保存其他用户的反应。"
+    "translation": "您不能保存其他用户的互动。"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
-    "translation": "发送 websocket 反应事件时获取消息失败"
+    "translation": "发送 websocket 互动事件时获取消息失败"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -2176,7 +2180,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v 由 %v 邀请加入到团队"
+    "translation": "%v 由 %v 邀请加入到团队。"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2193,10 +2197,6 @@
   {
     "id": "api.team.create_team_from_signup.expired_link.app_error",
     "translation": "注册链接已过期"
-  },
-  {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "注册链接无效"
   },
   {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
@@ -2299,6 +2299,14 @@
     "translation": "%v 离开了团队。"
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "发送频道作用消息失败"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "试图永久删除团队 %v id=%v"
   },
@@ -2312,7 +2320,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v 已从频道移出。"
+    "translation": "%v 已移出团队。"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -2703,6 +2711,10 @@
     "translation": "注册链接无效"
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "注册链接无效"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "无效团队名称"
   },
@@ -3059,6 +3071,10 @@
     "translation": "不能读取传入的webhook的负载。"
   },
   {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "正在初始化 webhook API 路由"
   },
@@ -3352,7 +3368,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "如果提供消息 CreateAt 属性则不能为零。"
+    "translation": "消息 CreateAt 属性不能为零。"
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3369,6 +3385,54 @@
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "缺少消息必须属性：User。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "互动 CreateAt 属性必须大于父消息 CreateAt。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "缺少互动必须属性：create_at。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "互动 CreateAt 属性不能为零。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "互动 EmojiName 属性超过允许的最大长度。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "缺少互动必须属性：User。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "缺少互动必须属性：User。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "回复 CreateAt 属性必须大于父消息 CreateAt。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "缺少回复必须属性：create_at。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "回复 CreateAt 属性不能为零。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "回复消息属性超过允许的最大长度。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "缺少回复必须属性：Message。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "缺少回复必须属性：User。"
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3507,6 +3571,10 @@
     "translation": "用户职位过长。"
   },
   {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "无效个人资料图片。"
+  },
+  {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
     "translation": "无效用户角色。"
   },
@@ -3629,6 +3697,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "插件上传已禁用。"
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "这个团队已经达到允许的最大用户数量。请与系统管理员联系以设置更高的限制。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4583,6 +4655,10 @@
     "translation": "必须比From参数大"
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "无效的 atmos/camo 图片代理设定。必须设为您的共享密钥。"
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "当机群启用时没法启动批量电子邮件。"
   },
@@ -4695,6 +4771,14 @@
     "translation": "文件设置时缩略图宽度无效。必须是正数。"
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "无效未读频道分组的服务设定。必须为 'disabled'、'default_on' 或 'default_off'。"
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "无效的图片代理类型服务设定。"
+  },
+  {
     "id": "model.config.is_valid.ldap_basedn",
     "translation": "AD/LDAP 栏 \"BaseDN\" 为必须。"
   },
@@ -4799,12 +4883,20 @@
     "translation": "消息导出任务 ExportFromTimestamp 必须为时间戳 (unix 时间)。只有在此时间后发送的消息会被导出。"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "消息导出任务 FileLocation 比如为可写的目录"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "消息导出任务 FileLocation 必须为 FileSettings.Directory 的子目录"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -5336,7 +5428,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "无效位置：不能超过 35 个字符。"
+    "translation": "无效位置：不能超过 128 个字符。"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -6312,47 +6404,47 @@
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "删除反应时无法打开事务"
+    "translation": "删除互动时无法打开事务"
   },
   {
     "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "删除反应时无法提交事务"
+    "translation": "删除互动时无法提交事务"
   },
   {
     "id": "store.sql_reaction.delete.save.app_error",
-    "translation": "无法删除反应"
+    "translation": "无法删除互动"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
-    "translation": "无法用提供的表情符删除反应"
+    "translation": "无法用提供的表情符删除互动"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
-    "translation": "无法用提供的表情符获取反应"
+    "translation": "无法用提供的表情符获取互动"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
-    "translation": "无法删除反应时更新 Post.HasReactions post_id=%v, error=%v"
+    "translation": "无法删除互动时更新 Post.HasReactions post_id=%v, error=%v"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "无法获取消息的反应"
+    "translation": "无法获取消息的互动"
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "批量永久删除反应时遇到错误"
+    "translation": "批量永久删除互动时遇到错误"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "无法保存反应时打开事务"
+    "translation": "无法保存互动时打开事务"
   },
   {
     "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "无法保存反应时提交事务"
+    "translation": "无法保存互动时提交事务"
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "无法保存反应"
+    "translation": "无法保存互动"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6779,6 +6871,10 @@
     "translation": "我们无法获取个人访问令牌"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "我们无法获取所有个人访问令牌"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_token.app_error",
     "translation": "我们无法从令牌获取个人访问令牌"
   },
@@ -6789,6 +6885,10 @@
   {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "我们无法保存个人访问令牌"
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "我们查找用户访问令牌时遇到一个错误"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7011,6 +7111,10 @@
     "translation": "无法打开一个SMTP服务器连接 %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "未能关闭连接到SMTP服务器"
   },
@@ -7077,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "创建目录监视器失败 %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "目录中的监视器失败 %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7187,16 +7287,8 @@
     "translation": "解析模板 %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "解析模板失败 %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "无效Post ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "修改文件后重新解析模板 %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7215,10 +7307,6 @@
     "translation": "注册"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "注册链接无效"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "注册链接已过期"
   },
@@ -7233,10 +7321,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "注册链接已过期"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "注册链接无效"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

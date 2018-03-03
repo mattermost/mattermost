@@ -233,7 +233,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if pushServer == model.MHPNS && (!utils.IsLicensed() || !*utils.License().Features.MHPNS) {
+		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 			l4g.Warn(utils.T("api.post.send_notifications_and_forget.push_notification.mhpnsWarn"))
 			sendPushNotifications = false
 		} else {
@@ -358,11 +358,11 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 	}
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
+	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 
-	teamURL := utils.GetSiteURL() + "/" + team.Name
+	teamURL := a.GetSiteURL() + "/" + team.Name
 	var bodyText = a.getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
 	a.Go(func() {
@@ -421,7 +421,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		bodyPage = a.NewEmailTemplate("post_body_generic", recipient.Locale)
 	}
 
-	bodyPage.Props["SiteURL"] = utils.GetSiteURL()
+	bodyPage.Props["SiteURL"] = a.GetSiteURL()
 	if teamName != "select_team" {
 		bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
 	} else {
@@ -566,8 +566,6 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 		channelName = senderName
 	}
 
-	userLocale := utils.GetUserTranslations(user.Locale)
-
 	msg := model.PushNotification{}
 	if badge := <-a.Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
 		msg.Badge = 1
@@ -584,56 +582,22 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	msg.ChannelName = channel.Name
 	msg.SenderId = post.UserId
 
-	if ou, ok := post.Props["override_username"]; ok && ou != nil {
-		msg.OverrideUsername = ou.(string)
+	if ou, ok := post.Props["override_username"].(string); ok {
+		msg.OverrideUsername = ou
 	}
 
-	if oi, ok := post.Props["override_icon_url"]; ok && oi != nil {
-		msg.OverrideIconUrl = oi.(string)
+	if oi, ok := post.Props["override_icon_url"].(string); ok {
+		msg.OverrideIconUrl = oi
 	}
 
-	if fw, ok := post.Props["from_webhook"]; ok && fw != nil {
-		msg.FromWebhook = fw.(string)
+	if fw, ok := post.Props["from_webhook"].(string); ok {
+		msg.FromWebhook = fw
 	}
 
-	if *a.Config().EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
-		msg.Category = model.CATEGORY_CAN_REPLY
-		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Message = senderName + ": " + model.ClearMentionTags(post.Message)
-		} else {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
-		}
-	} else if *a.Config().EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
-		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_CAN_REPLY
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
-		} else {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention_no_channel")
-		}
-	} else {
-		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_CAN_REPLY
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
-			msg.Category = model.CATEGORY_CAN_REPLY
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
-		} else {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
-		}
-	}
+	userLocale := utils.GetUserTranslations(user.Locale)
+	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
-	// If the post only has images then push an appropriate message
-	if len(post.Message) == 0 && post.FileIds != nil && len(post.FileIds) > 0 {
-		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_dm")
-		} else {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only") + channelName
-		}
-	}
-
-	//l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
+	msg.Message, msg.Category = a.getPushNotificationMessage(post.Message, wasMentioned, hasFiles, senderName, channelName, channel.Type, userLocale)
 
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
@@ -653,6 +617,58 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	}
 
 	return nil
+}
+
+func (a *App) getPushNotificationMessage(postMessage string, wasMentioned bool, hasFiles bool, senderName string, channelName string, channelType string, userLocale i18n.TranslateFunc) (string, string) {
+	message := ""
+	category := ""
+
+	contentsConfig := *a.Config().EmailSettings.PushNotificationContents
+
+	if contentsConfig == model.FULL_NOTIFICATION {
+		category = model.CATEGORY_CAN_REPLY
+
+		if channelType == model.CHANNEL_DIRECT {
+			message = senderName + ": " + model.ClearMentionTags(postMessage)
+		} else {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(postMessage)
+		}
+	} else if contentsConfig == model.GENERIC_NO_CHANNEL_NOTIFICATION {
+		if channelType == model.CHANNEL_DIRECT {
+			category = model.CATEGORY_CAN_REPLY
+
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+		} else if wasMentioned {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
+		} else {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention_no_channel")
+		}
+	} else {
+		if channelType == model.CHANNEL_DIRECT {
+			category = model.CATEGORY_CAN_REPLY
+
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+		} else if wasMentioned {
+			category = model.CATEGORY_CAN_REPLY
+
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+		} else {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
+		}
+	}
+
+	// If the post only has images then push an appropriate message
+	if len(postMessage) == 0 && hasFiles {
+		if channelType == model.CHANNEL_DIRECT {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_dm")
+		} else if contentsConfig == model.GENERIC_NO_CHANNEL_NOTIFICATION {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_no_channel")
+		} else {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only") + channelName
+		}
+	}
+
+	return message, category
 }
 
 func (a *App) ClearPushNotification(userId string, channelId string) {
@@ -819,44 +835,52 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 			ret.MentionedUserIds[id] = true
 		}
 	}
+	checkForMention := func(word string) bool {
+		isMention := false
 
+		if word == "@here" {
+			ret.HereMentioned = true
+		}
+
+		if word == "@channel" {
+			ret.ChannelMentioned = true
+		}
+
+		if word == "@all" {
+			ret.AllMentioned = true
+		}
+
+		// Non-case-sensitive check for regular keys
+		if ids, match := keywords[strings.ToLower(word)]; match {
+			addMentionedUsers(ids)
+			isMention = true
+		}
+
+		// Case-sensitive check for first name
+		if ids, match := keywords[word]; match {
+			addMentionedUsers(ids)
+			isMention = true
+		}
+
+		return isMention
+	}
 	processText := func(text string) {
 		for _, word := range strings.FieldsFunc(text, func(c rune) bool {
 			// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
 			return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
 		}) {
-			isMention := false
-
 			// skip word with format ':word:' with an assumption that it is an emoji format only
 			if word[0] == ':' && word[len(word)-1] == ':' {
 				continue
 			}
 
-			if word == "@here" {
-				ret.HereMentioned = true
+			if checkForMention(word) {
+				continue
 			}
 
-			if word == "@channel" {
-				ret.ChannelMentioned = true
-			}
-
-			if word == "@all" {
-				ret.AllMentioned = true
-			}
-
-			// Non-case-sensitive check for regular keys
-			if ids, match := keywords[strings.ToLower(word)]; match {
-				addMentionedUsers(ids)
-				isMention = true
-			}
-
-			// Case-sensitive check for first name
-			if ids, match := keywords[word]; match {
-				addMentionedUsers(ids)
-				isMention = true
-			}
-
-			if isMention {
+			// remove trailing '.', as that is the end of a sentence
+			word = strings.TrimSuffix(word, ".")
+			if checkForMention(word) {
 				continue
 			}
 
@@ -867,27 +891,10 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 				})
 
 				for _, splitWord := range splitWords {
-					if splitWord == "@here" {
-						ret.HereMentioned = true
+					if checkForMention(splitWord) {
+						continue
 					}
-
-					if splitWord == "@all" {
-						ret.AllMentioned = true
-					}
-
-					if splitWord == "@channel" {
-						ret.ChannelMentioned = true
-					}
-
-					// Non-case-sensitive check for regular keys
-					if ids, match := keywords[strings.ToLower(splitWord)]; match {
-						addMentionedUsers(ids)
-					}
-
-					// Case-sensitive check for first name
-					if ids, match := keywords[splitWord]; match {
-						addMentionedUsers(ids)
-					} else if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+					if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
 						username := splitWord[1:]
 						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, username)
 					}

@@ -162,6 +162,14 @@ func InvalidUserError(fieldName string, userId string) *AppError {
 	return NewAppError("User.IsValid", id, nil, details, http.StatusBadRequest)
 }
 
+func NormalizeUsername(username string) string {
+	return strings.ToLower(username)
+}
+
+func NormalizeEmail(email string) string {
+	return strings.ToLower(email)
+}
+
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
@@ -178,8 +186,8 @@ func (u *User) PreSave() {
 		u.AuthData = nil
 	}
 
-	u.Username = strings.ToLower(u.Username)
-	u.Email = strings.ToLower(u.Email)
+	u.Username = NormalizeUsername(u.Username)
+	u.Email = NormalizeEmail(u.Email)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
@@ -207,8 +215,8 @@ func (u *User) PreSave() {
 
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
-	u.Username = strings.ToLower(u.Username)
-	u.Email = strings.ToLower(u.Email)
+	u.Username = NormalizeUsername(u.Username)
+	u.Email = NormalizeEmail(u.Email)
 	u.UpdateAt = GetMillis()
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -298,30 +306,18 @@ func (u *User) Patch(patch *UserPatch) {
 
 // ToJson convert a User to a json string
 func (u *User) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func (u *UserPatch) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func (u *UserAuth) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 // Generate a valid strong etag so the browser can cache the results
@@ -488,76 +484,43 @@ func (u *User) IsSAMLUser() bool {
 
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
-	decoder := json.NewDecoder(data)
-	var user User
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *User
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserPatchFromJson(data io.Reader) *UserPatch {
-	decoder := json.NewDecoder(data)
-	var user UserPatch
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *UserPatch
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserAuthFromJson(data io.Reader) *UserAuth {
-	decoder := json.NewDecoder(data)
-	var user UserAuth
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *UserAuth
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserMapToJson(u map[string]*User) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func UserMapFromJson(data io.Reader) map[string]*User {
-	decoder := json.NewDecoder(data)
 	var users map[string]*User
-	err := decoder.Decode(&users)
-	if err == nil {
-		return users
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&users)
+	return users
 }
 
 func UserListToJson(u []*User) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func UserListFromJson(data io.Reader) []*User {
-	decoder := json.NewDecoder(data)
 	var users []*User
-	err := decoder.Decode(&users)
-	if err == nil {
-		return users
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&users)
+	return users
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
@@ -608,7 +571,7 @@ func IsValidUsername(s string) bool {
 }
 
 func CleanUsername(s string) string {
-	s = strings.ToLower(strings.Replace(s, " ", "-", -1))
+	s = NormalizeUsername(strings.Replace(s, " ", "-", -1))
 
 	for _, value := range reservedName {
 		if s == value {

@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/hashicorp/uuid"
+	"github.com/hashicorp/go-uuid"
 )
 
 func CopyTree(t *Tree) *Tree {
@@ -55,7 +55,10 @@ func TestRadix_HugeTxn(t *testing.T) {
 	txn1 := r.Txn()
 	var expect []string
 	for i := 0; i < defaultModifiedCache*100; i++ {
-		gen := uuid.GenerateUUID()
+		gen, err := uuid.GenerateUUID()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
 		txn1.Insert([]byte(gen), i)
 		expect = append(expect, gen)
 	}
@@ -85,7 +88,10 @@ func TestRadix(t *testing.T) {
 	var min, max string
 	inp := make(map[string]interface{})
 	for i := 0; i < 1000; i++ {
-		gen := uuid.GenerateUUID()
+		gen, err := uuid.GenerateUUID()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
 		inp[gen] = i
 		if gen < min || i == 0 {
 			min = gen
@@ -167,7 +173,7 @@ func TestRoot(t *testing.T) {
 	}
 	val, ok := r.Get(nil)
 	if !ok || val != true {
-		t.Fatalf("bad: %v %#v", val)
+		t.Fatalf("bad: %#v", val)
 	}
 	r, val, ok = r.Delete(nil)
 	if !ok || val != true {
@@ -1486,5 +1492,40 @@ func TestTrackMutate_cachedNodeChange(t *testing.T) {
 				t.Fatalf("bad: %s", path)
 			}
 		}
+	}
+}
+
+func TestLenTxn(t *testing.T) {
+	r := New()
+
+	if r.Len() != 0 {
+		t.Fatalf("not starting with empty tree")
+	}
+
+	txn := r.Txn()
+	keys := []string{
+		"foo/bar/baz",
+		"foo/baz/bar",
+		"foo/zip/zap",
+		"foobar",
+		"nochange",
+	}
+	for _, k := range keys {
+		txn.Insert([]byte(k), nil)
+	}
+	r = txn.Commit()
+
+	if r.Len() != len(keys) {
+		t.Fatalf("bad: expected %d, got %d", len(keys), r.Len())
+	}
+
+	txn = r.Txn()
+	for _, k := range keys {
+		txn.Delete([]byte(k))
+	}
+	r = txn.Commit()
+
+	if r.Len() != 0 {
+		t.Fatalf("tree len should be zero, got %d", r.Len())
 	}
 }

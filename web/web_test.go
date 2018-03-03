@@ -44,7 +44,10 @@ func Setup() *app.App {
 	}
 	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	a.StartServer()
+	serverErr := a.StartServer()
+	if serverErr != nil {
+		panic(serverErr)
+	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
@@ -56,6 +59,7 @@ func Setup() *app.App {
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
+		*cfg.ServiceSettings.EnableAPIv3 = true
 	})
 
 	return a
@@ -130,6 +134,12 @@ func TestIncomingWebhook(t *testing.T) {
 		if _, err := ApiClient.PostToWebhook("abc123", payload); err == nil {
 			t.Fatal("should have errored - bad hook")
 		}
+
+		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nthis is a test :tada:\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
+		if _, err := ApiClient.DoPost("/hooks/"+hook1.Id, payloadMultiPart, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"); err != nil {
+			t.Fatal("should have errored - bad hook")
+		}
+
 	} else {
 		if _, err := ApiClient.PostToWebhook("123", "123"); err == nil {
 			t.Fatal("should have failed - webhooks turned off")

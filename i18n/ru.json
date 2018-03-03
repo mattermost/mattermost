@@ -132,10 +132,6 @@
     "translation": "Невозможно загрузить файл. Он слишком большой."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Разбор шаблонов сервера на %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Не удалось разобрать шаблоны сервера %v"
   },
@@ -198,6 +194,14 @@
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
     "translation": "Создание и управление Публичными Каналами возможно Командой и Системными Администраторами."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Канал преобразован в публичный и к нему может присоединиться любой участник."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Канал преобразован в приватный."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2195,10 +2199,6 @@
     "translation": "Ссылка на регистрацию устарела"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Неправильная ссылка на регистрацию"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Этот URL-адрес недоступен. Пожалуйста, попробуйте другой."
   },
@@ -2299,6 +2299,14 @@
     "translation": "%v покинул(а) команду."
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Не удалось обновить заголовок канала."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Канал перемещен в эту команду из %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Попытка безвозвратно удалить команду %v id=%v"
   },
@@ -2312,7 +2320,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v удален из канала."
+    "translation": " %v удален из команды."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -2703,6 +2711,10 @@
     "translation": "Ссылка для регистрации, похоже, неверна."
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "Неправильная ссылка на регистрацию"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Неверное имя команды"
   },
@@ -3059,6 +3071,10 @@
     "translation": "Не удалось прочитать полезную нагрузку входящего вебхука."
   },
   {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Инициализация API вебхуков"
   },
@@ -3240,7 +3256,7 @@
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": "Error importing user channel memberships. Failed to save preferences."
+    "translation": "Ошибка импорта участия пользователя в каналах. Не удалось сохранить настройки."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3288,7 +3304,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
+    "translation": "Заголовок личного канала слишком длинный."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
@@ -3296,11 +3312,11 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Direct channel members list contains too few items"
+    "translation": "В списке пользователей личного канала слишком мало элементов."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Direct channel members list contains too many items"
+    "translation": "В списке пользователей личного канала слишком много элементов."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
@@ -3312,11 +3328,11 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Direct post channel members list contains too few items"
+    "translation": "В списке пользователей личного канала слишком мало элементов."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Direct post channel members list contains too many items"
+    "translation": "В списке пользователей личного канала слишком много элементов."
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
@@ -3352,7 +3368,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero if provided."
+    "translation": "Post CreateAt property must not be zero."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3368,6 +3384,54 @@
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "Reaction CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "Post Message длиннее, чем максимально разрешённая длина."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: create_at."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "Reply CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "Post Message длиннее, чем максимально разрешённая длина."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: Message."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
     "translation": "Отсутствует необходимое поле для Post: User."
   },
   {
@@ -3507,6 +3571,10 @@
     "translation": "Расположение пользователя слишком длинное."
   },
   {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Invalid profile image."
+  },
+  {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
     "translation": "Неверные роли пользователя."
   },
@@ -3629,6 +3697,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Эта команда достигла максимального количества разрешенных учетных записей. Свяжитесь с системным администратором для установки большего предела."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4583,6 +4655,10 @@
     "translation": "\"До\" должно быть больше, чем \"С\""
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Невозможно включить пакетную обработку почты при включенной кластеризации."
   },
@@ -4695,6 +4771,14 @@
     "translation": "Неверная ширина миниатюры в настройках файлов. Число должно быть положительным."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Invalid image proxy type for service settings."
+  },
+  {
     "id": "model.config.is_valid.ldap_basedn",
     "translation": "Требуется поле AD/LDAP \"BaseDN\"."
   },
@@ -4799,12 +4883,20 @@
     "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -6779,6 +6871,10 @@
     "translation": "Не удалось получить персональный токен доступа"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "Не удалось получить персональный токен доступа"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_token.app_error",
     "translation": "Не удалось получить персональный токен доступа по токену"
   },
@@ -6789,6 +6885,10 @@
   {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "Не удалось сохранить персональный токен доступа"
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "Возникла ошибка с обнаружением токена доступа"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7011,6 +7111,10 @@
     "translation": "Не удалось установить соединение с SMTP сервером %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Не удалось закрыть соединение с SMTP сервером"
   },
@@ -7077,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Не удалось создать наблюдатель каталога %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Сбой в наблюдателе каталога %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7187,16 +7287,8 @@
     "translation": "Разбор шаблонов на %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Не удалось разобрать шаблоны %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Неверный идентификатор поста"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Повторный разбор шаблонов из-за модификации файла %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7215,10 +7307,6 @@
     "translation": "Регистрация"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Ссылка для регистрации, похоже, недействительна"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Ссылка для регистрации устарела"
   },
@@ -7233,10 +7321,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Ссылка для регистрации устарела"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Ссылка для регистрации, похоже, недействительна"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

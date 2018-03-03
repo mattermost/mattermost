@@ -40,43 +40,25 @@ type IncomingWebhookRequest struct {
 }
 
 func (o *IncomingWebhook) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func IncomingWebhookFromJson(data io.Reader) *IncomingWebhook {
-	decoder := json.NewDecoder(data)
-	var o IncomingWebhook
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *IncomingWebhook
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func IncomingWebhookListToJson(l []*IncomingWebhook) string {
-	b, err := json.Marshal(l)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(l)
+	return string(b)
 }
 
 func IncomingWebhookListFromJson(data io.Reader) []*IncomingWebhook {
-	decoder := json.NewDecoder(data)
 	var o []*IncomingWebhook
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *IncomingWebhook) IsValid() *AppError {
@@ -221,4 +203,13 @@ func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *A
 	o.Attachments = StringifySlackFieldValue(o.Attachments)
 
 	return o, nil
+}
+
+func (o *IncomingWebhookRequest) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
 }

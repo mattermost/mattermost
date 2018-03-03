@@ -169,23 +169,33 @@ func (l *License) IsStarted() bool {
 }
 
 func (l *License) ToJson() string {
-	b, err := json.Marshal(l)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
+	b, _ := json.Marshal(l)
+	return string(b)
+}
+
+// NewTestLicense returns a license that expires in the future and has the given features.
+func NewTestLicense(features ...string) *License {
+	ret := &License{
+		ExpiresAt: GetMillis() + 90*24*60*60*1000,
+		Customer:  &Customer{},
+		Features:  &Features{},
 	}
+	ret.Features.SetDefaults()
+
+	featureMap := map[string]bool{}
+	for _, feature := range features {
+		featureMap[feature] = true
+	}
+	featureJson, _ := json.Marshal(featureMap)
+	json.Unmarshal(featureJson, &ret.Features)
+
+	return ret
 }
 
 func LicenseFromJson(data io.Reader) *License {
-	decoder := json.NewDecoder(data)
-	var o License
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *License
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (lr *LicenseRecord) IsValid() *AppError {

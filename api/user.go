@@ -299,9 +299,9 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	il.ClientCfg = c.App.ClientConfig()
 	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		il.LicenseCfg = utils.ClientLicense()
+		il.LicenseCfg = c.App.ClientLicense()
 	} else {
-		il.LicenseCfg = utils.GetSanitizedClientLicense()
+		il.LicenseCfg = c.App.GetSanitizedClientLicense()
 	}
 
 	w.Write([]byte(il.ToJson()))
@@ -752,7 +752,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sent, err := c.App.SendPasswordReset(email, utils.GetSiteURL()); err != nil {
+	if sent, err := c.App.SendPasswordReset(email, c.App.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	} else if sent {
@@ -1046,7 +1046,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := c.App.SendMfaChangeEmail(user.Email, activate, user.Locale, utils.GetSiteURL()); err != nil {
+		if err := c.App.SendMfaChangeEmail(user.Email, activate, user.Locale, c.App.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})
@@ -1057,7 +1057,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if license := c.App.License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
 		rdata := map[string]string{}
 		rdata["mfa_required"] = "false"
 		w.Write([]byte(model.MapToJson(rdata)))
@@ -1159,7 +1159,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	} else {
-		if err := c.App.CheckUserAdditionalAuthenticationCriteria(user, ""); err != nil {
+		if err := c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 			return
@@ -1180,7 +1180,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 			c.App.Go(func() {
-				if err := c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, utils.GetSiteURL()); err != nil {
+				if err := c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
 					l4g.Error(err.Error())
 				}
 			})

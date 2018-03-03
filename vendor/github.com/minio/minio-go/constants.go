@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +51,7 @@ const maxMultipartPutObjectSize = 1024 * 1024 * 1024 * 1024 * 5
 const unsignedPayload = "UNSIGNED-PAYLOAD"
 
 // Total number of parallel workers used for multipart operation.
-var totalWorkers = 3
+const totalWorkers = 4
 
 // Signature related constants.
 const (
@@ -64,3 +65,6 @@ const (
 	amzHeaderKey     = "X-Amz-Meta-X-Amz-Key"
 	amzHeaderMatDesc = "X-Amz-Meta-X-Amz-Matdesc"
 )
+
+// Storage class header constant.
+const amzStorageClass = "X-Amz-Storage-Class"

@@ -98,6 +98,20 @@ func stringIntMapParser(rd *proto.Reader, n int64) (interface{}, error) {
 }
 
 // Implements proto.MultiBulkParse
+func stringStructMapParser(rd *proto.Reader, n int64) (interface{}, error) {
+	m := make(map[string]struct{}, n)
+	for i := int64(0); i < n; i++ {
+		key, err := rd.ReadStringReply()
+		if err != nil {
+			return nil, err
+		}
+
+		m[key] = struct{}{}
+	}
+	return m, nil
+}
+
+// Implements proto.MultiBulkParse
 func zSliceParser(rd *proto.Reader, n int64) (interface{}, error) {
 	zz := make([]Z, n/2)
 	for i := int64(0); i < n; i += 2 {

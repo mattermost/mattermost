@@ -132,10 +132,6 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Parsing server templates at %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Failed to parse server templates %v"
   },
@@ -198,6 +194,14 @@
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
     "translation": "Public Channel management and creation is restricted to Team and System Administrators."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "This channel has been converted to a Private Channel."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -314,14 +318,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
-  },
-  {
-    "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
-  },
-  {
-    "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "This channel has been converted to a Private Channel."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -1373,6 +1369,10 @@
     "translation": "Unable to upload file. Header cannot be parsed."
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Unable to upload files. Incorrect number of files specified."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
@@ -1812,11 +1812,15 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files in "
+    "translation": " uploaded one or more files in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " uploaded one or more files"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Uploaded one or more files in a direct message"
+    "translation": " uploaded one or more files in a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2203,10 +2207,6 @@
     "translation": "The signup link has expired"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "The signup link does not appear to be valid"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "This URL is unavailable. Please try another."
   },
@@ -2305,6 +2305,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Failed to post channel move message."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2711,6 +2719,10 @@
     "translation": "The signup link does not appear to be valid"
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Invalid team name"
   },
@@ -3067,6 +3079,10 @@
     "translation": "Could not read payload of incoming webhook."
   },
   {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Initializing webhook API routes"
   },
@@ -3351,54 +3367,6 @@
     "translation": "Missing required direct post property: user"
   },
   {
-    "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "Missing required Reaction property: User."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "Missing required Reaction property: EmojiName."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Reaction EmojiName property is longer than the maximum permitted length."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "Missing required Reaction property: create_at."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "Reaction CreateAt property must not be zero."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "Missing required Reply property: User."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "Missing required Reply property: Message."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "Reply Message property is longer than the maximum permitted length."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "Missing required Reply property: create_at."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": "Reply CreateAt property must not be zero."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_post_import_data.channel_missing.error",
     "translation": "Missing required Post property: Channel."
   },
@@ -3425,6 +3393,54 @@
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "Missing required Post property: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Missing required Reaction property: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "Reaction CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "Reaction EmojiName property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Missing required Reaction property: EmojiName."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Missing required Reaction property: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Missing required Reply property: create_at."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "Reply CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "Reply Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Missing required Reply property: Message."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "Missing required Reply property: User."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3563,6 +3579,10 @@
     "translation": "User Position is too long."
   },
   {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Invalid profile image."
+  },
+  {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
     "translation": "User roles are not valid."
   },
@@ -3573,10 +3593,6 @@
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
     "translation": "Missing require user property: username."
-  },
-  {
-    "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": "Invalid profile image."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
@@ -3640,7 +3656,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled."
+    "translation": "Plugins have been disabled. Please check your logs for details."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3689,6 +3705,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4171,6 +4191,18 @@
     "translation": "Unable to find user on AD/LDAP server: "
   },
   {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "User not found in the users file."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Username already used by another Mattermost user."
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email already used by another SAML user."
+  },
+  {
     "id": "ent.saml.attribute.app_error",
     "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
@@ -4643,6 +4675,10 @@
     "translation": "To must be greater than From"
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
   },
@@ -4755,6 +4791,14 @@
     "translation": "Invalid thumbnail width for file settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Invalid image proxy type for service settings."
+  },
+  {
     "id": "model.config.is_valid.ldap_basedn",
     "translation": "AD/LDAP field \"BaseDN\" is required."
   },
@@ -4815,14 +4859,6 @@
     "translation": "Invalid listen address for service settings Must be set."
   },
   {
-    "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type for service settings."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
-  },
-  {
     "id": "model.config.is_valid.localization.available_locales.app_error",
     "translation": "Available Languages must contain Default Client Language"
   },
@@ -4867,12 +4903,20 @@
     "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -4933,6 +4977,10 @@
   {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "Site URL must be a valid URL and start with http:// or https://"
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "Websocket URL must be a valid URL and start with ws:// or wss://"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -6847,24 +6895,24 @@
     "translation": "We couldn't get the personal access token"
   },
   {
-    "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "We couldn't get the personal access token by token"
-  },
-  {
     "id": "store.sql_user_access_token.get_all.app_error",
     "translation": "We couldn't get all personal access tokens"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_token.app_error",
+    "translation": "We couldn't get the personal access token by token"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
     "translation": "We couldn't get the personal access tokens by user"
   },
   {
-    "id": "store.sql_user_access_token.search.app_error",
-    "translation": "We encountered an error searching user access tokens"
-  },
-  {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "We couldn't save the personal access token"
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "We encountered an error searching user access tokens"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7087,6 +7135,10 @@
     "translation": "Failed to open a connection to SMTP server %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Failed to close connection to SMTP server"
   },
@@ -7153,10 +7205,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Failed to create directory watcher %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Failed in directory watcher %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7263,16 +7311,8 @@
     "translation": "Parsing templates at %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Failed to parse templates %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Invalid Post ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Re-parsing templates because of modified file %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7291,10 +7331,6 @@
     "translation": "Signup"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "The signup link does not appear to be valid"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "The signup link has expired"
   },
@@ -7309,10 +7345,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "The signup link has expired"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

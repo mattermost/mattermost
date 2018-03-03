@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"strings"
 
-	"gopkg.in/olivere/elastic.v5/uritemplates"
+	"github.com/olivere/elastic/uritemplates"
 )
 
 // Search for documents in Elasticsearch.
@@ -60,7 +60,7 @@ func (s *SearchService) Source(source interface{}) *SearchService {
 
 // FilterPath allows reducing the response, a mechanism known as
 // response filtering and described here:
-// https://www.elastic.co/guide/en/elasticsearch/reference/5.6/common-options.html#common-options-response-filtering.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/common-options.html#common-options-response-filtering.
 func (s *SearchService) FilterPath(filterPath ...string) *SearchService {
 	s.filterPath = append(s.filterPath, filterPath...)
 	return s
@@ -113,7 +113,7 @@ func (s *SearchService) TimeoutInMillis(timeoutInMillis int) *SearchService {
 // SearchType sets the search operation type. Valid values are:
 // "query_then_fetch", "query_and_fetch", "dfs_query_then_fetch",
 // "dfs_query_and_fetch", "count", "scan".
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-search-type.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-search-type.html
 // for details.
 func (s *SearchService) SearchType(searchType string) *SearchService {
 	s.searchType = searchType
@@ -268,10 +268,17 @@ func (s *SearchService) StoredFields(fields ...string) *SearchService {
 	return s
 }
 
+// TrackScores is applied when sorting and controls if scores will be
+// tracked as well. Defaults to false.
+func (s *SearchService) TrackScores(trackScores bool) *SearchService {
+	s.searchSource = s.searchSource.TrackScores(trackScores)
+	return s
+}
+
 // SearchAfter allows a different form of pagination by using a live cursor,
 // using the results of the previous page to help the retrieval of the next.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-search-after.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-search-after.html
 func (s *SearchService) SearchAfter(sortValues ...interface{}) *SearchService {
 	s.searchSource = s.searchSource.SearchAfter(sortValues...)
 	return s
@@ -385,7 +392,12 @@ func (s *SearchService) Do(ctx context.Context) (*SearchResult, error) {
 		}
 		body = src
 	}
-	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
+	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
+		Method: "POST",
+		Path:   path,
+		Params: params,
+		Body:   body,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +434,8 @@ func (r *SearchResult) TotalHits() int64 {
 
 // Each is a utility function to iterate over all hits. It saves you from
 // checking for nil values. Notice that Each will ignore errors in
-// serializing JSON.
+// serializing JSON and hits with empty/nil _source will get an empty
+// value
 func (r *SearchResult) Each(typ reflect.Type) []interface{} {
 	if r.Hits == nil || r.Hits.Hits == nil || len(r.Hits.Hits) == 0 {
 		return nil
@@ -430,6 +443,10 @@ func (r *SearchResult) Each(typ reflect.Type) []interface{} {
 	var slice []interface{}
 	for _, hit := range r.Hits.Hits {
 		v := reflect.New(typ).Elem()
+		if hit.Source == nil {
+			slice = append(slice, v.Interface())
+			continue
+		}
 		if err := json.Unmarshal(*hit.Source, v.Addr().Interface()); err == nil {
 			slice = append(slice, v.Interface())
 		}
@@ -473,7 +490,7 @@ type SearchHitInnerHits struct {
 }
 
 // SearchExplanation explains how the score for a hit was computed.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-explain.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-explain.html.
 type SearchExplanation struct {
 	Value       float64             `json:"value"`             // e.g. 1.0
 	Description string              `json:"description"`       // e.g. "boost" or "ConstantScore(*:*), product of:"
@@ -483,11 +500,11 @@ type SearchExplanation struct {
 // Suggest
 
 // SearchSuggest is a map of suggestions.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-suggesters.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters.html.
 type SearchSuggest map[string][]SearchSuggestion
 
 // SearchSuggestion is a single search suggestion.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-suggesters.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters.html.
 type SearchSuggestion struct {
 	Text    string                   `json:"text"`
 	Offset  int                      `json:"offset"`
@@ -496,7 +513,7 @@ type SearchSuggestion struct {
 }
 
 // SearchSuggestionOption is an option of a SearchSuggestion.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-suggesters.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters.html.
 type SearchSuggestionOption struct {
 	Text         string           `json:"text"`
 	Index        string           `json:"_index"`
@@ -559,6 +576,6 @@ type ProfileResult struct {
 // Highlighting
 
 // SearchHitHighlight is the highlight information of a search hit.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-highlighting.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-highlighting.html
 // for a general discussion of highlighting.
 type SearchHitHighlight map[string][]string

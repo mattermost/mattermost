@@ -55,13 +55,17 @@ func Key(key string) string {
 	return key
 }
 
+func RandomSlot() int {
+	return rand.Intn(SlotNumber)
+}
+
 // hashSlot returns a consistent slot number between 0 and 16383
 // for any given string key.
 func Slot(key string) int {
-	key = Key(key)
 	if key == "" {
-		return rand.Intn(SlotNumber)
+		return RandomSlot()
 	}
+	key = Key(key)
 	return int(crc16sum(key)) % SlotNumber
 }
 

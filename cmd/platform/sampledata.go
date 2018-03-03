@@ -346,22 +346,22 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	}
 
 	useMilitaryTime := "false"
-	if rand.Intn(2) == 0 {
+	if idx != 0 && rand.Intn(2) == 0 {
 		useMilitaryTime = "true"
 	}
 
 	collapsePreviews := "false"
-	if rand.Intn(2) == 0 {
+	if idx != 0 && rand.Intn(2) == 0 {
 		collapsePreviews = "true"
 	}
 
 	messageDisplay := "clean"
-	if rand.Intn(2) == 0 {
+	if idx != 0 && rand.Intn(2) == 0 {
 		messageDisplay = "compact"
 	}
 
 	channelDisplayMode := "full"
-	if rand.Intn(2) == 0 {
+	if idx != 0 && rand.Intn(2) == 0 {
 		channelDisplayMode = "centered"
 	}
 

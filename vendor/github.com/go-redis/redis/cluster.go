@@ -226,7 +226,7 @@ func (c *clusterNodes) NextGeneration() uint32 {
 }
 
 // GC removes unused nodes.
-func (c *clusterNodes) GC(generation uint32) error {
+func (c *clusterNodes) GC(generation uint32) {
 	var collected []*clusterNode
 	c.mu.Lock()
 	for i := 0; i < len(c.addrs); {
@@ -243,14 +243,11 @@ func (c *clusterNodes) GC(generation uint32) error {
 	}
 	c.mu.Unlock()
 
-	var firstErr error
-	for _, node := range collected {
-		if err := node.Client.Close(); err != nil && firstErr == nil {
-			firstErr = err
+	time.AfterFunc(time.Minute, func() {
+		for _, node := range collected {
+			_ = node.Client.Close()
 		}
-	}
-
-	return firstErr
+	})
 }
 
 func (c *clusterNodes) All() ([]*clusterNode, error) {
@@ -448,6 +445,10 @@ type ClusterClient struct {
 	cmdsInfoOnce internal.Once
 	cmdsInfo     map[string]*CommandInfo
 
+	process           func(Cmder) error
+	processPipeline   func([]Cmder) error
+	processTxPipeline func([]Cmder) error
+
 	// Reports whether slots reloading is in progress.
 	reloading uint32
 }
@@ -461,7 +462,12 @@ func NewClusterClient(opt *ClusterOptions) *ClusterClient {
 		opt:   opt,
 		nodes: newClusterNodes(opt),
 	}
-	c.setProcessor(c.Process)
+
+	c.process = c.defaultProcess
+	c.processPipeline = c.defaultProcessPipeline
+	c.processTxPipeline = c.defaultProcessTxPipeline
+
+	c.cmdable.setProcessor(c.Process)
 
 	// Add initial nodes.
 	for _, addr := range opt.Addrs {
@@ -533,16 +539,22 @@ func (c *ClusterClient) cmdInfo(name string) *CommandInfo {
 	return info
 }
 
+func cmdSlot(cmd Cmder, pos int) int {
+	if pos == 0 {
+		return hashtag.RandomSlot()
+	}
+	firstKey := cmd.stringArg(pos)
+	return hashtag.Slot(firstKey)
+}
+
 func (c *ClusterClient) cmdSlot(cmd Cmder) int {
 	cmdInfo := c.cmdInfo(cmd.Name())
-	firstKey := cmd.stringArg(cmdFirstKeyPos(cmd, cmdInfo))
-	return hashtag.Slot(firstKey)
+	return cmdSlot(cmd, cmdFirstKeyPos(cmd, cmdInfo))
 }
 
 func (c *ClusterClient) cmdSlotAndNode(state *clusterState, cmd Cmder) (int, *clusterNode, error) {
 	cmdInfo := c.cmdInfo(cmd.Name())
-	firstKey := cmd.stringArg(cmdFirstKeyPos(cmd, cmdInfo))
-	slot := hashtag.Slot(firstKey)
+	slot := cmdSlot(cmd, cmdFirstKeyPos(cmd, cmdInfo))
 
 	if cmdInfo != nil && cmdInfo.ReadOnly && c.opt.ReadOnly {
 		if c.opt.RouteByLatency {
@@ -590,6 +602,10 @@ func (c *ClusterClient) Watch(fn func(*Tx) error, keys ...string) error {
 			break
 		}
 
+		if internal.IsRetryableError(err, true) {
+			continue
+		}
+
 		moved, ask, addr := internal.IsMovedError(err)
 		if moved || ask {
 			c.lazyReloadState()
@@ -598,6 +614,13 @@ func (c *ClusterClient) Watch(fn func(*Tx) error, keys ...string) error {
 				return err
 			}
 			continue
+		}
+
+		if err == pool.ErrClosed {
+			node, err = state.slotMasterNode(slot)
+			if err != nil {
+				return err
+			}
 		}
 
 		return err
@@ -614,7 +637,20 @@ func (c *ClusterClient) Close() error {
 	return c.nodes.Close()
 }
 
+func (c *ClusterClient) WrapProcess(
+	fn func(oldProcess func(Cmder) error) func(Cmder) error,
+) {
+	c.process = fn(c.process)
+}
+
 func (c *ClusterClient) Process(cmd Cmder) error {
+	if c.process != nil {
+		return c.process(cmd)
+	}
+	return c.defaultProcess(cmd)
+}
+
+func (c *ClusterClient) defaultProcess(cmd Cmder) error {
 	state, err := c.state()
 	if err != nil {
 		cmd.setErr(err)
@@ -635,10 +671,10 @@ func (c *ClusterClient) Process(cmd Cmder) error {
 
 		if ask {
 			pipe := node.Client.Pipeline()
-			pipe.Process(NewCmd("ASKING"))
-			pipe.Process(cmd)
+			_ = pipe.Process(NewCmd("ASKING"))
+			_ = pipe.Process(cmd)
 			_, err = pipe.Exec()
-			pipe.Close()
+			_ = pipe.Close()
 			ask = false
 		} else {
 			err = node.Client.Process(cmd)
@@ -677,6 +713,14 @@ func (c *ClusterClient) Process(cmd Cmder) error {
 				break
 			}
 			continue
+		}
+
+		if err == pool.ErrClosed {
+			_, node, err = c.cmdSlotAndNode(state, cmd)
+			if err != nil {
+				cmd.setErr(err)
+				return err
+			}
 		}
 
 		break
@@ -888,9 +932,9 @@ func (c *ClusterClient) reaper(idleCheckFrequency time.Duration) {
 
 func (c *ClusterClient) Pipeline() Pipeliner {
 	pipe := Pipeline{
-		exec: c.pipelineExec,
+		exec: c.processPipeline,
 	}
-	pipe.setProcessor(pipe.Process)
+	pipe.statefulCmdable.setProcessor(pipe.Process)
 	return &pipe
 }
 
@@ -898,7 +942,13 @@ func (c *ClusterClient) Pipelined(fn func(Pipeliner) error) ([]Cmder, error) {
 	return c.Pipeline().Pipelined(fn)
 }
 
-func (c *ClusterClient) pipelineExec(cmds []Cmder) error {
+func (c *ClusterClient) WrapProcessPipeline(
+	fn func(oldProcess func([]Cmder) error) func([]Cmder) error,
+) {
+	c.processPipeline = fn(c.processPipeline)
+}
+
+func (c *ClusterClient) defaultProcessPipeline(cmds []Cmder) error {
 	cmdsMap, err := c.mapCmdsByNode(cmds)
 	if err != nil {
 		setCmdsErr(cmds, err)
@@ -915,7 +965,11 @@ func (c *ClusterClient) pipelineExec(cmds []Cmder) error {
 		for node, cmds := range cmdsMap {
 			cn, _, err := node.Client.getConn()
 			if err != nil {
-				setCmdsErr(cmds, err)
+				if err == pool.ErrClosed {
+					c.remapCmds(cmds, failedCmds)
+				} else {
+					setCmdsErr(cmds, err)
+				}
 				continue
 			}
 
@@ -953,6 +1007,18 @@ func (c *ClusterClient) mapCmdsByNode(cmds []Cmder) (map[*clusterNode][]Cmder, e
 		cmdsMap[node] = append(cmdsMap[node], cmd)
 	}
 	return cmdsMap, nil
+}
+
+func (c *ClusterClient) remapCmds(cmds []Cmder, failedCmds map[*clusterNode][]Cmder) {
+	remappedCmds, err := c.mapCmdsByNode(cmds)
+	if err != nil {
+		setCmdsErr(cmds, err)
+		return
+	}
+
+	for node, cmds := range remappedCmds {
+		failedCmds[node] = cmds
+	}
 }
 
 func (c *ClusterClient) pipelineProcessCmds(
@@ -1026,9 +1092,9 @@ func (c *ClusterClient) checkMovedErr(
 // TxPipeline acts like Pipeline, but wraps queued commands with MULTI/EXEC.
 func (c *ClusterClient) TxPipeline() Pipeliner {
 	pipe := Pipeline{
-		exec: c.txPipelineExec,
+		exec: c.processTxPipeline,
 	}
-	pipe.setProcessor(pipe.Process)
+	pipe.statefulCmdable.setProcessor(pipe.Process)
 	return &pipe
 }
 
@@ -1036,7 +1102,7 @@ func (c *ClusterClient) TxPipelined(fn func(Pipeliner) error) ([]Cmder, error) {
 	return c.TxPipeline().Pipelined(fn)
 }
 
-func (c *ClusterClient) txPipelineExec(cmds []Cmder) error {
+func (c *ClusterClient) defaultProcessTxPipeline(cmds []Cmder) error {
 	state, err := c.state()
 	if err != nil {
 		return err
@@ -1061,7 +1127,11 @@ func (c *ClusterClient) txPipelineExec(cmds []Cmder) error {
 			for node, cmds := range cmdsMap {
 				cn, _, err := node.Client.getConn()
 				if err != nil {
-					setCmdsErr(cmds, err)
+					if err == pool.ErrClosed {
+						c.remapCmds(cmds, failedCmds)
+					} else {
+						setCmdsErr(cmds, err)
+					}
 					continue
 				}
 

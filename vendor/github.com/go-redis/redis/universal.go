@@ -114,6 +114,8 @@ func (o *UniversalOptions) simple() *Options {
 type UniversalClient interface {
 	Cmdable
 	Process(cmd Cmder) error
+	Subscribe(channels ...string) *PubSub
+	PSubscribe(channels ...string) *PubSub
 	Close() error
 }
 

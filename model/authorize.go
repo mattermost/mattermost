@@ -62,7 +62,7 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
-	if len(ad.State) > 128 {
+	if len(ad.State) > 1024 {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.state.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
@@ -115,43 +115,25 @@ func (ad *AuthData) PreSave() {
 }
 
 func (ad *AuthData) ToJson() string {
-	b, err := json.Marshal(ad)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(ad)
+	return string(b)
 }
 
 func AuthDataFromJson(data io.Reader) *AuthData {
-	decoder := json.NewDecoder(data)
-	var ad AuthData
-	err := decoder.Decode(&ad)
-	if err == nil {
-		return &ad
-	} else {
-		return nil
-	}
+	var ad *AuthData
+	json.NewDecoder(data).Decode(&ad)
+	return ad
 }
 
 func (ar *AuthorizeRequest) ToJson() string {
-	b, err := json.Marshal(ar)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(ar)
+	return string(b)
 }
 
 func AuthorizeRequestFromJson(data io.Reader) *AuthorizeRequest {
-	decoder := json.NewDecoder(data)
-	var ar AuthorizeRequest
-	err := decoder.Decode(&ar)
-	if err == nil {
-		return &ar
-	} else {
-		return nil
-	}
+	var ar *AuthorizeRequest
+	json.NewDecoder(data).Decode(&ar)
+	return ar
 }
 
 func (ad *AuthData) IsExpired() bool {

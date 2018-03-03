@@ -325,17 +325,32 @@ func TestFlushBeforeWrite(t *testing.T) {
 }
 
 func TestImplementCloseNotifier(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	request.Header.Set(acceptEncoding, "gzip")
 	GzipHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request){
 		_, ok := rw.(http.CloseNotifier)
 		assert.True(t, ok, "response writer must implement http.CloseNotifier")
-	})).ServeHTTP(&mockRWCloseNotify{}, &http.Request{})
+	})).ServeHTTP(&mockRWCloseNotify{}, request)
+}
+
+func TestImplementFlusherAndCloseNotifier(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	request.Header.Set(acceptEncoding, "gzip")
+	GzipHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request){
+		_, okCloseNotifier := rw.(http.CloseNotifier)
+		assert.True(t, okCloseNotifier, "response writer must implement http.CloseNotifier")
+		_, okFlusher := rw.(http.Flusher)
+		assert.True(t, okFlusher, "response writer must implement http.Flusher")
+	})).ServeHTTP(&mockRWCloseNotify{}, request)
 }
 
 func TestNotImplementCloseNotifier(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	request.Header.Set(acceptEncoding, "gzip")
 	GzipHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request){
 		_, ok := rw.(http.CloseNotifier)
 		assert.False(t, ok, "response writer must not implement http.CloseNotifier")
-	})).ServeHTTP(httptest.NewRecorder(), &http.Request{})
+	})).ServeHTTP(httptest.NewRecorder(), request)
 }
 
 

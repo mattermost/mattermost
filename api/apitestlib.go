@@ -100,12 +100,17 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
 		cfg.EmailSettings.SendEmailNotifications = true
+		*cfg.ServiceSettings.EnableAPIv3 = true
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	if testStore != nil {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	}
-	th.App.StartServer()
+	serverErr := th.App.StartServer()
+	if serverErr != nil {
+		panic(serverErr)
+	}
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	api4.Init(th.App, th.App.Srv.Router, false)
 	Init(th.App, th.App.Srv.Router)
@@ -114,9 +119,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
-	utils.SetIsLicensed(enterprise)
 	if enterprise {
-		utils.License().Features.SetDefaults()
+		th.App.SetLicense(model.NewTestLicense())
+	} else {
+		th.App.SetLicense(nil)
 	}
 
 	return th

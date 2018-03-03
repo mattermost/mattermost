@@ -69,6 +69,10 @@ const (
 	ALLOW_EDIT_POST_NEVER      = "never"
 	ALLOW_EDIT_POST_TIME_LIMIT = "time_limit"
 
+	GROUP_UNREAD_CHANNELS_DISABLED    = "disabled"
+	GROUP_UNREAD_CHANNELS_DEFAULT_ON  = "default_on"
+	GROUP_UNREAD_CHANNELS_DEFAULT_OFF = "default_off"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -154,10 +158,14 @@ const (
 
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
+
+	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
+	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
 )
 
 type ServiceSettings struct {
 	SiteURL                                           *string
+	WebsocketURL                                      *string
 	LicenseFileLocation                               *string
 	ListenAddress                                     *string
 	ConnectionSecurity                                *string
@@ -189,6 +197,7 @@ type ServiceSettings struct {
 	EnforceMultifactorAuthentication                  *bool
 	EnableUserAccessTokens                            *bool
 	AllowCorsFrom                                     *string
+	AllowCookiesForSubdomains                         *bool
 	SessionLengthWebInDays                            *int
 	SessionLengthMobileInDays                         *int
 	SessionLengthSSOInDays                            *int
@@ -214,7 +223,7 @@ type ServiceSettings struct {
 	EnablePreviewFeatures                             *bool
 	EnableTutorial                                    *bool
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
-	ExperimentalGroupUnreadChannels                   *bool
+	ExperimentalGroupUnreadChannels                   *string
 	ImageProxyType                                    *string
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
@@ -223,6 +232,10 @@ type ServiceSettings struct {
 func (s *ServiceSettings) SetDefaults() {
 	if s.SiteURL == nil {
 		s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
+	}
+
+	if s.WebsocketURL == nil {
+		s.WebsocketURL = NewString("")
 	}
 
 	if s.LicenseFileLocation == nil {
@@ -381,6 +394,10 @@ func (s *ServiceSettings) SetDefaults() {
 		s.AllowCorsFrom = NewString(SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM)
 	}
 
+	if s.AllowCookiesForSubdomains == nil {
+		s.AllowCookiesForSubdomains = NewBool(false)
+	}
+
 	if s.WebserverMode == nil {
 		s.WebserverMode = NewString("gzip")
 	} else if *s.WebserverMode == "regular" {
@@ -424,7 +441,11 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.ExperimentalGroupUnreadChannels == nil {
-		s.ExperimentalGroupUnreadChannels = NewBool(false)
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
+	} else if *s.ExperimentalGroupUnreadChannels == "0" {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
+	} else if *s.ExperimentalGroupUnreadChannels == "1" {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DEFAULT_ON)
 	}
 
 	if s.ImageProxyType == nil {
@@ -802,7 +823,8 @@ type RateLimitSettings struct {
 	PerSec           *int
 	MaxBurst         *int
 	MemoryStoreSize  *int
-	VaryByRemoteAddr bool
+	VaryByRemoteAddr *bool
+	VaryByUser       *bool
 	VaryByHeader     string
 }
 
@@ -821,6 +843,14 @@ func (s *RateLimitSettings) SetDefaults() {
 
 	if s.MemoryStoreSize == nil {
 		s.MemoryStoreSize = NewInt(10000)
+	}
+
+	if s.VaryByRemoteAddr == nil {
+		s.VaryByRemoteAddr = NewBool(true)
+	}
+
+	if s.VaryByUser == nil {
+		s.VaryByUser = NewBool(false)
 	}
 }
 
@@ -1606,14 +1636,22 @@ func (s *PluginSettings) SetDefaults() {
 
 type MessageExportSettings struct {
 	EnableExport        *bool
+	ExportFormat        *string
 	DailyRunTime        *string
 	ExportFromTimestamp *int64
 	BatchSize           *int
+
+	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
+	GlobalRelayEmailAddress *string
 }
 
 func (s *MessageExportSettings) SetDefaults() {
 	if s.EnableExport == nil {
 		s.EnableExport = NewBool(false)
+	}
+
+	if s.ExportFormat == nil {
+		s.ExportFormat = NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE)
 	}
 
 	if s.DailyRunTime == nil {
@@ -1681,12 +1719,8 @@ func (o *Config) Clone() *Config {
 }
 
 func (o *Config) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *Config) GetSSOService(service string) *SSOSettings {
@@ -1703,14 +1737,9 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 }
 
 func ConfigFromJson(data io.Reader) *Config {
-	decoder := json.NewDecoder(data)
-	var o Config
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Config
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Config) SetDefaults() {
@@ -1757,6 +1786,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
@@ -2066,12 +2099,24 @@ func (ss *ServiceSettings) isValid() *AppError {
 		}
 	}
 
+	if len(*ss.WebsocketURL) != 0 {
+		if _, err := url.ParseRequestURI(*ss.WebsocketURL); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if len(*ss.ListenAddress) == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED &&
+		*ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON &&
+		*ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_OFF {
+		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	switch *ss.ImageProxyType {
-	case "", "willnorris/imageproxy":
+	case "":
 	case "atmos/camo":
 		if *ss.ImageProxyOptions == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
@@ -2156,6 +2201,16 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
 		} else if mes.BatchSize == nil || *mes.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
+		} else if mes.ExportFormat == nil || (*mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_ACTIANCE && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_GLOBALRELAY) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_type.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if *mes.ExportFormat == COMPLIANCE_EXPORT_TYPE_GLOBALRELAY {
+			// validating email addresses is hard - just make sure it contains an '@' sign
+			// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
+			if mes.GlobalRelayEmailAddress == nil || !strings.Contains(*mes.GlobalRelayEmailAddress, "@") {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay_email_address.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 	return nil

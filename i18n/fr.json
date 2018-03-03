@@ -132,10 +132,6 @@
     "translation": "Impossible d'envoyer le fichier. Le fichier est trop volumineux."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Analyse des gabarits du serveur %v en cours"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Impossible d'analyser les modèles du serveur %v"
   },
@@ -153,7 +149,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v a été ajouté au canal par %v"
+    "translation": "%v a été ajouté au canal par %v."
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -198,6 +194,14 @@
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
     "translation": "La gestion et la création de canaux publics sont réservés aux administrateurs système et administrateurs d'équipe."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Ce canal a été converti en canal public et peut être rejoint par tout membre de l'équipe."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Ce canal a été converti en canal privé."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -1804,11 +1808,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " A envoyé un ou plusieurs fichiers sur "
+    "translation": " a envoyé un ou plusieurs fichiers dans "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " A envoyé un ou plusieurs fichiers dans un message personnel"
+    "translation": " a envoyé un ou plusieurs fichiers dans un message personnel"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2176,7 +2180,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v a été ajouté à l'équipe par %v"
+    "translation": "%v a été ajouté à l'équipe par %v."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2193,10 +2197,6 @@
   {
     "id": "api.team.create_team_from_signup.expired_link.app_error",
     "translation": "Le lien d'inscription a expiré."
-  },
-  {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Le lien d'inscription semble ne pas être valide."
   },
   {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
@@ -2297,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v a quitté l'équipe."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Impossible de publier la description du canal"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2703,6 +2711,10 @@
     "translation": "Le lien d'enregistrement n'est pas valide."
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "Le lien d'inscription semble ne pas être valide."
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Nom d'équipe incorrect"
   },
@@ -2948,7 +2960,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossible de sauvegarder l'image de profile. Le fichier ne semble pas être un fichier d'image valide."
+    "translation": "Impossible de sauvegarder l'image de profil. Le fichier ne semble pas être un fichier d'image valide."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3057,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "Impossible de lire la charge utile du webhook entrant."
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -3352,7 +3368,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "La propriété de message CreateAt ne doit pas être 0 si ce champ est défini."
+    "translation": "La propriété de message CreateAt ne doit pas être 0."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3369,6 +3385,54 @@
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "La propriété requise du message est manquante : User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "La propriété de réponse CreateAt doit être plus grande que la valeur de la propriété CreateAt parente."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "La propriété requise de réaction est manquante : create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "La propriété de réaction CreateAt ne doit pas être 0."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "La propriété de réaction EmojiName est plus longue que la longueur maximale autorisée."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "La propriété requise de réaction est manquante : EmojiName."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "La propriété requise de réaction est manquante : User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "La propriété de réponse CreateAt doit être plus grande que la valeur de la propriété CreateAt parente."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "La propriété requise de réponse est manquante : create_at."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "La propriété de message CreateAt ne doit pas être 0."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "La propriété de réponse Message est plus longue que la longueur maximale autorisée."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "La propriété requise de réponse est manquante : Message."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "La propriété requise de réponse est manquante : User."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3507,6 +3571,10 @@
     "translation": "Le rôle de l'utilisateur est trop long."
   },
   {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Image de profil invalide."
+  },
+  {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
     "translation": "Les rôles de l'utilisateur sont invalides."
   },
@@ -3629,6 +3697,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Les plugins et/ou l'envoi de plugins ont été désactivés."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Cette équipe a atteint la limite du nombre maximum de comptes autorisés. Contactez votre administrateur système pour augmenter cette limite."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4583,6 +4655,10 @@
     "translation": "Jusqu'à doit être supérieur à De"
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Les paramètres d'options du proxy d'images atmos/camo sont invalides. Votre clé partagée doit être définie comme paramètre."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Impossible d'activer l'envoi d'e-mails par lot lorsque le clustering est activé"
   },
@@ -4695,6 +4771,14 @@
     "translation": "Largeur des miniatures invalide dans les paramètres de fichiers. Doit être un entier positif."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Le paramètre de groupement de canaux non lus est invalide. Doit être défini sur « disabled », « default_on » ou « default_off »."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Paramètre de type de proxy d'image invalide."
+  },
+  {
     "id": "model.config.is_valid.ldap_basedn",
     "translation": "Le champ AD/LDAP \"BaseDN\" est requis."
   },
@@ -4799,12 +4883,20 @@
     "translation": "Le paramètre ExportFromTimestamp de la tâche d'exportation de messages doit être un horodatage (exprimé en secondes depuis l'epoch UNIX). Seuls les messages envoyés après cet horodatage seront exportés."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Le paramètre FileLocation de la tâche d'exportation de messages doit être un dossier avec droits d'écriture. Il s'agit du dossier dans lequel les données seront exportées."
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Le paramètre FileLocation de la tâche d'exportation de messages doit être un sous-dossier de FileSettings.Directory."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -5336,7 +5428,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Rôle invalide : ne doit pas faire plus de 35 caractères."
+    "translation": "Rôle invalide : ne doit pas faire plus de 128 caractères."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -6779,6 +6871,10 @@
     "translation": "Impossible de récupérer le jeton d'accès personnel"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "Impossible de récupérer tous les jetons d'accès personnel"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_token.app_error",
     "translation": "Impossible de récupérer le jeton d'accès personnel par jeton"
   },
@@ -6789,6 +6885,10 @@
   {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "Impossible d'enregistrer le jeton d'accès personnel"
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "Nous avons rencontré une erreur lors de la recherche des jetons d'accès personnel"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7011,6 +7111,10 @@
     "translation": "Échec de l'ouverture de connexion auprès du serveur SMTP %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Échec de fermeture de connexion auprès du serveur SMTP"
   },
@@ -7077,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Échec de la création de l'observateur de dossier %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Échec de l'observateur de dossier %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7187,16 +7287,8 @@
     "translation": "Analyse des gabarits sur %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Impossible d'analyser les gabarits %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "ID de message invalide"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Re-examen des gabarits en raison de la modification du fichier %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7215,10 +7307,6 @@
     "translation": "Inscription"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Le lien d'inscription ne semble pas être valide"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Le lien d'inscription a expiré"
   },
@@ -7233,10 +7321,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Le lien d'inscription a expiré"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Le lien d'inscription ne semble pas être valide"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

@@ -104,7 +104,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		return nil, result.Err
 	}
 
-	a.sendUpdatedTeamEvent(oldTeam)
+	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 
 	return oldTeam, nil
 }
@@ -122,17 +122,17 @@ func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *mo
 		return nil, err
 	}
 
-	a.sendUpdatedTeamEvent(updatedTeam)
+	a.sendTeamEvent(updatedTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 
 	return updatedTeam, nil
 }
 
-func (a *App) sendUpdatedTeamEvent(team *model.Team) {
+func (a *App) sendTeamEvent(team *model.Team, event string) {
 	sanitizedTeam := &model.Team{}
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
+	message := model.NewWebSocketEvent(event, "", "", "", nil)
 	message.Add("team", sanitizedTeam.ToJson())
 	a.Go(func() {
 		a.Publish(message)
@@ -234,6 +234,11 @@ func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*mod
 		team = result.Data.(*model.Team)
 	}
 
+	// verify that the team's invite id hasn't been changed since the invite was sent
+	if team.InviteId != props["invite_id"] {
+		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_mismatched_invite_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
 		return nil, result.Err
@@ -297,10 +302,16 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 			return rtm, true, nil
 		}
 
-		if tmr := <-a.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
-			return nil, false, tmr.Err
+		if membersCount := <-a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId); membersCount.Err != nil {
+			return nil, false, membersCount.Err
+		} else if membersCount.Data.(int64) >= int64(*a.Config().TeamSettings.MaxUsersPerTeam) {
+			return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+tm.TeamId, http.StatusBadRequest)
 		} else {
-			return tmr.Data.(*model.TeamMember), false, nil
+			if tmr := <-a.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+				return nil, false, tmr.Err
+			} else {
+				return tmr.Data.(*model.TeamMember), false, nil
+			}
 		}
 	} else {
 		// Membership appears to be missing.  Lets try to add.
@@ -730,7 +741,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	a.SendInviteEmails(team, user.GetDisplayName(nameFormat), emailList, utils.GetSiteURL())
+	a.SendInviteEmails(team, user.GetDisplayName(nameFormat), emailList, a.GetSiteURL())
 
 	return nil
 }
@@ -820,6 +831,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return result.Err
 	}
 
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)
+
 	return nil
 }
 
@@ -833,6 +846,8 @@ func (a *App) SoftDeleteTeam(teamId string) *model.AppError {
 	if result := <-a.Srv.Store.Team().Update(team); result.Err != nil {
 		return result.Err
 	}
+
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)
 
 	return nil
 }

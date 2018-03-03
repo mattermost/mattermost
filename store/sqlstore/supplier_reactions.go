@@ -134,7 +134,7 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 	}
 
 	for _, reaction := range reactions {
-		if _, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_QUERY,
+		if _, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
 			map[string]interface{}{"PostId": reaction.PostId, "UpdateAt": model.GetMillis()}); err != nil {
 			l4g.Warn(utils.T("store.sql_reaction.delete_all_with_emoji_name.update_post.warn"), reaction.PostId, err.Error())
 		}
@@ -174,7 +174,7 @@ func saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Re
 		return err
 	}
 
-	return updatePostForReactions(transaction, reaction.PostId)
+	return updatePostForReactionsOnInsert(transaction, reaction.PostId)
 }
 
 func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
@@ -189,12 +189,12 @@ func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.
 		return err
 	}
 
-	return updatePostForReactions(transaction, reaction.PostId)
+	return updatePostForReactionsOnDelete(transaction, reaction.PostId)
 }
 
 const (
 	// Set HasReactions = true if and only if the post has reactions, update UpdateAt only if HasReactions changes
-	UPDATE_POST_HAS_REACTIONS_QUERY = `UPDATE
+	UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY = `UPDATE
 			Posts
 		SET
 			UpdateAt = (CASE
@@ -206,8 +206,22 @@ const (
 			Id = :PostId`
 )
 
-func updatePostForReactions(transaction *gorp.Transaction, postId string) error {
-	_, err := transaction.Exec(UPDATE_POST_HAS_REACTIONS_QUERY, map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
+func updatePostForReactionsOnDelete(transaction *gorp.Transaction, postId string) error {
+	_, err := transaction.Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY, map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
+
+	return err
+}
+
+func updatePostForReactionsOnInsert(transaction *gorp.Transaction, postId string) error {
+	_, err := transaction.Exec(
+		`UPDATE
+			Posts
+		SET
+			HasReactions = True,
+			UpdateAt = :UpdateAt
+		WHERE
+			Id = :PostId AND HasReactions = False`,
+		map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
 
 	return err
 }

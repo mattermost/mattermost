@@ -1729,7 +1729,7 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 
 // CreatePost creates a post based on the provided post struct.
 func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
-	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToJson()); err != nil {
+	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToUnsanitizedJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1739,7 +1739,7 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
 
 // UpdatePost updates a post based on the provided post struct.
 func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
-	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToJson()); err != nil {
+	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToUnsanitizedJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1915,7 +1915,8 @@ func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 
 // File Section
 
-// UploadFile will upload a file to a channel, to be later attached to a post.
+// UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
+// This method is functionally equivalent to Client4.UploadFileAsRequestBody.
 func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*FileUploadResponse, *Response) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -1937,6 +1938,12 @@ func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*F
 	}
 
 	return c.DoUploadFile(c.GetFilesRoute(), body.Bytes(), writer.FormDataContentType())
+}
+
+// UploadFileAsRequestBody will upload a file to a channel as the body of a request, to be later attached
+// to a post. This method is functionally equivalent to Client4.UploadFile.
+func (c *Client4) UploadFileAsRequestBody(data []byte, channelId string, filename string) (*FileUploadResponse, *Response) {
+	return c.DoUploadFile(c.GetFilesRoute()+fmt.Sprintf("?channel_id=%v&filename=%v", url.QueryEscape(channelId), url.QueryEscape(filename)), data, http.DetectContentType(data))
 }
 
 // GetFile gets the bytes for a file by id.

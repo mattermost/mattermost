@@ -49,6 +49,13 @@ type EmbeddedSlice struct {
 	Vunique    string
 }
 
+type ArrayAlias [2]string
+
+type EmbeddedArray struct {
+	ArrayAlias `mapstructure:"array_alias"`
+	Vunique    string
+}
+
 type SquashOnNonStructType struct {
 	InvalidSquashType int `mapstructure:",squash"`
 }
@@ -85,6 +92,15 @@ type SliceOfStruct struct {
 	Value []Basic
 }
 
+type Array struct {
+	Vfoo string
+	Vbar [2]string
+}
+
+type ArrayOfStruct struct {
+	Value [2]Basic
+}
+
 type Func struct {
 	Foo func() string
 }
@@ -112,14 +128,20 @@ type TypeConversionResult struct {
 	FloatToBool        bool
 	FloatToString      string
 	SliceUint8ToString string
+	StringToSliceUint8 []byte
+	ArrayUint8ToString string
 	StringToInt        int
 	StringToUint       uint
 	StringToBool       bool
 	StringToFloat      float32
 	StringToStrSlice   []string
 	StringToIntSlice   []int
+	StringToStrArray   [1]string
+	StringToIntArray   [1]int
 	SliceToMap         map[string]interface{}
 	MapToSlice         []interface{}
+	ArrayToMap         map[string]interface{}
+	MapToArray         [1]interface{}
 }
 
 func TestBasicTypes(t *testing.T) {
@@ -227,6 +249,32 @@ func TestBasic_Merge(t *testing.T) {
 	}
 }
 
+// Test for issue #46.
+func TestBasic_Struct(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"vdata": map[string]interface{}{
+			"vstring": "foo",
+		},
+	}
+
+	var result, inner Basic
+	result.Vdata = &inner
+	err := Decode(input, &result)
+	if err != nil {
+		t.Fatalf("got an err: %s", err)
+	}
+	expected := Basic{
+		Vdata: &Basic{
+			Vstring: "foo",
+		},
+	}
+	if !reflect.DeepEqual(result, expected) {
+		t.Fatalf("bad: %#v", result)
+	}
+}
+
 func TestDecode_BasicSquash(t *testing.T) {
 	t.Parallel()
 
@@ -315,6 +363,29 @@ func TestDecode_EmbeddedSlice(t *testing.T) {
 
 	if !reflect.DeepEqual(result.SliceAlias, SliceAlias([]string{"foo", "bar"})) {
 		t.Errorf("slice value: %#v", result.SliceAlias)
+	}
+
+	if result.Vunique != "bar" {
+		t.Errorf("vunique value should be 'bar': %#v", result.Vunique)
+	}
+}
+
+func TestDecode_EmbeddedArray(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"array_alias": [2]string{"foo", "bar"},
+		"vunique":     "bar",
+	}
+
+	var result EmbeddedArray
+	err := Decode(input, &result)
+	if err != nil {
+		t.Fatalf("got an err: %s", err.Error())
+	}
+
+	if !reflect.DeepEqual(result.ArrayAlias, ArrayAlias([2]string{"foo", "bar"})) {
+		t.Errorf("array value: %#v", result.ArrayAlias)
 	}
 
 	if result.Vunique != "bar" {
@@ -582,14 +653,20 @@ func TestDecode_TypeConversion(t *testing.T) {
 		"FloatToBool":        42.42,
 		"FloatToString":      42.42,
 		"SliceUint8ToString": []uint8("foo"),
+		"StringToSliceUint8": "foo",
+		"ArrayUint8ToString": [3]uint8{'f', 'o', 'o'},
 		"StringToInt":        "42",
 		"StringToUint":       "42",
 		"StringToBool":       "1",
 		"StringToFloat":      "42.42",
 		"StringToStrSlice":   "A",
 		"StringToIntSlice":   "42",
+		"StringToStrArray":   "A",
+		"StringToIntArray":   "42",
 		"SliceToMap":         []interface{}{},
 		"MapToSlice":         map[string]interface{}{},
+		"ArrayToMap":         []interface{}{},
+		"MapToArray":         map[string]interface{}{},
 	}
 
 	expectedResultStrict := TypeConversionResult{
@@ -622,14 +699,20 @@ func TestDecode_TypeConversion(t *testing.T) {
 		FloatToBool:        true,
 		FloatToString:      "42.42",
 		SliceUint8ToString: "foo",
+		StringToSliceUint8: []byte("foo"),
+		ArrayUint8ToString: "foo",
 		StringToInt:        42,
 		StringToUint:       42,
 		StringToBool:       true,
 		StringToFloat:      42.42,
 		StringToStrSlice:   []string{"A"},
 		StringToIntSlice:   []int{42},
+		StringToStrArray:   [1]string{"A"},
+		StringToIntArray:   [1]int{42},
 		SliceToMap:         map[string]interface{}{},
 		MapToSlice:         []interface{}{},
+		ArrayToMap:         map[string]interface{}{},
+		MapToArray:         [1]interface{}{},
 	}
 
 	// Test strict type conversion
@@ -872,6 +955,56 @@ func TestNestedTypePointer(t *testing.T) {
 	}
 }
 
+// Test for issue #46.
+func TestNestedTypeInterface(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"vfoo": "foo",
+		"vbar": &map[string]interface{}{
+			"vstring": "foo",
+			"vint":    42,
+			"vbool":   true,
+
+			"vdata": map[string]interface{}{
+				"vstring": "bar",
+			},
+		},
+	}
+
+	var result NestedPointer
+	result.Vbar = new(Basic)
+	result.Vbar.Vdata = new(Basic)
+	err := Decode(input, &result)
+	if err != nil {
+		t.Fatalf("got an err: %s", err.Error())
+	}
+
+	if result.Vfoo != "foo" {
+		t.Errorf("vfoo value should be 'foo': %#v", result.Vfoo)
+	}
+
+	if result.Vbar.Vstring != "foo" {
+		t.Errorf("vstring value should be 'foo': %#v", result.Vbar.Vstring)
+	}
+
+	if result.Vbar.Vint != 42 {
+		t.Errorf("vint value should be 42: %#v", result.Vbar.Vint)
+	}
+
+	if result.Vbar.Vbool != true {
+		t.Errorf("vbool value should be true: %#v", result.Vbar.Vbool)
+	}
+
+	if result.Vbar.Vextra != "" {
+		t.Errorf("vextra value should be empty: %#v", result.Vbar.Vextra)
+	}
+
+	if result.Vbar.Vdata.(*Basic).Vstring != "bar" {
+		t.Errorf("vstring value should be 'bar': %#v", result.Vbar.Vdata.(*Basic).Vstring)
+	}
+}
+
 func TestSlice(t *testing.T) {
 	t.Parallel()
 
@@ -965,6 +1098,290 @@ func TestSliceToMap(t *testing.T) {
 	}
 }
 
+func TestArray(t *testing.T) {
+	t.Parallel()
+
+	inputStringArray := map[string]interface{}{
+		"vfoo": "foo",
+		"vbar": [2]string{"foo", "bar"},
+	}
+
+	inputStringArrayPointer := map[string]interface{}{
+		"vfoo": "foo",
+		"vbar": &[2]string{"foo", "bar"},
+	}
+
+	outputStringArray := &Array{
+		"foo",
+		[2]string{"foo", "bar"},
+	}
+
+	testArrayInput(t, inputStringArray, outputStringArray)
+	testArrayInput(t, inputStringArrayPointer, outputStringArray)
+}
+
+func TestInvalidArray(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"vfoo": "foo",
+		"vbar": 42,
+	}
+
+	result := Array{}
+	err := Decode(input, &result)
+	if err == nil {
+		t.Errorf("expected failure")
+	}
+}
+
+func TestArrayOfStruct(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"value": []map[string]interface{}{
+			{"vstring": "one"},
+			{"vstring": "two"},
+		},
+	}
+
+	var result ArrayOfStruct
+	err := Decode(input, &result)
+	if err != nil {
+		t.Fatalf("got unexpected error: %s", err)
+	}
+
+	if len(result.Value) != 2 {
+		t.Fatalf("expected two values, got %d", len(result.Value))
+	}
+
+	if result.Value[0].Vstring != "one" {
+		t.Errorf("first value should be 'one', got: %s", result.Value[0].Vstring)
+	}
+
+	if result.Value[1].Vstring != "two" {
+		t.Errorf("second value should be 'two', got: %s", result.Value[1].Vstring)
+	}
+}
+
+func TestArrayToMap(t *testing.T) {
+	t.Parallel()
+
+	input := []map[string]interface{}{
+		{
+			"foo": "bar",
+		},
+		{
+			"bar": "baz",
+		},
+	}
+
+	var result map[string]interface{}
+	err := WeakDecode(input, &result)
+	if err != nil {
+		t.Fatalf("got an error: %s", err)
+	}
+
+	expected := map[string]interface{}{
+		"foo": "bar",
+		"bar": "baz",
+	}
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("bad: %#v", result)
+	}
+}
+
+func TestMapOutputForStructuredInputs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		in      interface{}
+		target  interface{}
+		out     interface{}
+		wantErr bool
+	}{
+		{
+			"basic struct input",
+			&Basic{
+				Vstring: "vstring",
+				Vint:    2,
+				Vuint:   3,
+				Vbool:   true,
+				Vfloat:  4.56,
+				Vextra:  "vextra",
+				vsilent: true,
+				Vdata:   []byte("data"),
+			},
+			&map[string]interface{}{},
+			&map[string]interface{}{
+				"Vstring":     "vstring",
+				"Vint":        2,
+				"Vuint":       uint(3),
+				"Vbool":       true,
+				"Vfloat":      4.56,
+				"Vextra":      "vextra",
+				"Vdata":       []byte("data"),
+				"VjsonInt":    0,
+				"VjsonFloat":  0.0,
+				"VjsonNumber": json.Number(""),
+			},
+			false,
+		},
+		{
+			"embedded struct input",
+			&Embedded{
+				Vunique: "vunique",
+				Basic: Basic{
+					Vstring: "vstring",
+					Vint:    2,
+					Vuint:   3,
+					Vbool:   true,
+					Vfloat:  4.56,
+					Vextra:  "vextra",
+					vsilent: true,
+					Vdata:   []byte("data"),
+				},
+			},
+			&map[string]interface{}{},
+			&map[string]interface{}{
+				"Vunique": "vunique",
+				"Basic": map[string]interface{}{
+					"Vstring":     "vstring",
+					"Vint":        2,
+					"Vuint":       uint(3),
+					"Vbool":       true,
+					"Vfloat":      4.56,
+					"Vextra":      "vextra",
+					"Vdata":       []byte("data"),
+					"VjsonInt":    0,
+					"VjsonFloat":  0.0,
+					"VjsonNumber": json.Number(""),
+				},
+			},
+			false,
+		},
+		{
+			"slice input - should error",
+			[]string{"foo", "bar"},
+			&map[string]interface{}{},
+			&map[string]interface{}{},
+			true,
+		},
+		{
+			"struct with slice property",
+			&Slice{
+				Vfoo: "vfoo",
+				Vbar: []string{"foo", "bar"},
+			},
+			&map[string]interface{}{},
+			&map[string]interface{}{
+				"Vfoo": "vfoo",
+				"Vbar": []string{"foo", "bar"},
+			},
+			false,
+		},
+		{
+			"struct with slice of struct property",
+			&SliceOfStruct{
+				Value: []Basic{
+					Basic{
+						Vstring: "vstring",
+						Vint:    2,
+						Vuint:   3,
+						Vbool:   true,
+						Vfloat:  4.56,
+						Vextra:  "vextra",
+						vsilent: true,
+						Vdata:   []byte("data"),
+					},
+				},
+			},
+			&map[string]interface{}{},
+			&map[string]interface{}{
+				"Value": []Basic{
+					Basic{
+						Vstring: "vstring",
+						Vint:    2,
+						Vuint:   3,
+						Vbool:   true,
+						Vfloat:  4.56,
+						Vextra:  "vextra",
+						vsilent: true,
+						Vdata:   []byte("data"),
+					},
+				},
+			},
+			false,
+		},
+		{
+			"struct with map property",
+			&Map{
+				Vfoo:   "vfoo",
+				Vother: map[string]string{"vother": "vother"},
+			},
+			&map[string]interface{}{},
+			&map[string]interface{}{
+				"Vfoo": "vfoo",
+				"Vother": map[string]string{
+					"vother": "vother",
+				}},
+			false,
+		},
+		{
+			"tagged struct",
+			&Tagged{
+				Extra: "extra",
+				Value: "value",
+			},
+			&map[string]string{},
+			&map[string]string{
+				"bar": "extra",
+				"foo": "value",
+			},
+			false,
+		},
+		{
+			"omit tag struct",
+			&struct {
+				Value string `mapstructure:"value"`
+				Omit  string `mapstructure:"-"`
+			}{
+				Value: "value",
+				Omit:  "omit",
+			},
+			&map[string]string{},
+			&map[string]string{
+				"value": "value",
+			},
+			false,
+		},
+		{
+			"decode to wrong map type",
+			&struct {
+				Value string
+			}{
+				Value: "string",
+			},
+			&map[string]int{},
+			&map[string]int{},
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := Decode(tt.in, tt.target); (err != nil) != tt.wantErr {
+				t.Fatalf("%q: TestMapOutputForStructuredInputs() unexpected error: %s", tt.name, err)
+			}
+
+			if !reflect.DeepEqual(tt.out, tt.target) {
+				t.Fatalf("%q: TestMapOutputForStructuredInputs() expected: %#v, got: %#v", tt.name, tt.out, tt.target)
+			}
+		})
+	}
+}
+
 func TestInvalidType(t *testing.T) {
 	t.Parallel()
 
@@ -1021,6 +1438,39 @@ func TestInvalidType(t *testing.T) {
 
 	if derr.Errors[0] != "cannot parse 'Vuint', -42.000000 overflows uint" {
 		t.Errorf("got unexpected error: %s", err)
+	}
+}
+
+func TestDecodeMetadata(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"vfoo": "foo",
+		"vbar": map[string]interface{}{
+			"vstring": "foo",
+			"Vuint":   42,
+			"foo":     "bar",
+		},
+		"bar": "nil",
+	}
+
+	var md Metadata
+	var result Nested
+
+	err := DecodeMetadata(input, &result, &md)
+	if err != nil {
+		t.Fatalf("err: %s", err.Error())
+	}
+
+	expectedKeys := []string{"Vbar", "Vbar.Vstring", "Vbar.Vuint", "Vfoo"}
+	sort.Strings(md.Keys)
+	if !reflect.DeepEqual(md.Keys, expectedKeys) {
+		t.Fatalf("bad keys: %#v", md.Keys)
+	}
+
+	expectedUnused := []string{"Vbar.foo", "bar"}
+	if !reflect.DeepEqual(md.Unused, expectedUnused) {
+		t.Fatalf("bad unused: %#v", md.Unused)
 	}
 }
 
@@ -1164,6 +1614,43 @@ func TestWeakDecode(t *testing.T) {
 	}
 }
 
+func TestWeakDecodeMetadata(t *testing.T) {
+	t.Parallel()
+
+	input := map[string]interface{}{
+		"foo":    "4",
+		"bar":    "value",
+		"unused": "value",
+	}
+
+	var md Metadata
+	var result struct {
+		Foo int
+		Bar string
+	}
+
+	if err := WeakDecodeMetadata(input, &result, &md); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if result.Foo != 4 {
+		t.Fatalf("bad: %#v", result)
+	}
+	if result.Bar != "value" {
+		t.Fatalf("bad: %#v", result)
+	}
+
+	expectedKeys := []string{"Bar", "Foo"}
+	sort.Strings(md.Keys)
+	if !reflect.DeepEqual(md.Keys, expectedKeys) {
+		t.Fatalf("bad keys: %#v", md.Keys)
+	}
+
+	expectedUnused := []string{"unused"}
+	if !reflect.DeepEqual(md.Unused, expectedUnused) {
+		t.Fatalf("bad unused: %#v", md.Unused)
+	}
+}
+
 func testSliceInput(t *testing.T, input map[string]interface{}, expected *Slice) {
 	var result Slice
 	err := Decode(input, &result)
@@ -1176,6 +1663,34 @@ func testSliceInput(t *testing.T, input map[string]interface{}, expected *Slice)
 	}
 
 	if result.Vbar == nil {
+		t.Fatalf("Vbar a slice, got '%#v'", result.Vbar)
+	}
+
+	if len(result.Vbar) != len(expected.Vbar) {
+		t.Errorf("Vbar length should be %d, got %d", len(expected.Vbar), len(result.Vbar))
+	}
+
+	for i, v := range result.Vbar {
+		if v != expected.Vbar[i] {
+			t.Errorf(
+				"Vbar[%d] should be '%#v', got '%#v'",
+				i, expected.Vbar[i], v)
+		}
+	}
+}
+
+func testArrayInput(t *testing.T, input map[string]interface{}, expected *Array) {
+	var result Array
+	err := Decode(input, &result)
+	if err != nil {
+		t.Fatalf("got error: %s", err)
+	}
+
+	if result.Vfoo != expected.Vfoo {
+		t.Errorf("Vfoo expected '%s', got '%s'", expected.Vfoo, result.Vfoo)
+	}
+
+	if result.Vbar == [2]string{} {
 		t.Fatalf("Vbar a slice, got '%#v'", result.Vbar)
 	}
 

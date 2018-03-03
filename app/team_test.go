@@ -7,7 +7,15 @@ import (
 	"strings"
 	"testing"
 
+	"fmt"
+
+	"sync/atomic"
+
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -390,6 +398,153 @@ func TestSanitizeTeams(t *testing.T) {
 
 		if sanitized[1].Email == "" && sanitized[1].AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized second team")
+		}
+	})
+}
+
+func TestAddUserToTeamByHashMismatchedInviteId(t *testing.T) {
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	teamId := model.NewId()
+	userId := model.NewId()
+	inviteSalt := model.NewId()
+
+	inviteId := model.NewId()
+	teamInviteId := model.NewId()
+
+	// generate a fake email invite - stolen from SendInviteEmails() in email.go
+	props := make(map[string]string)
+	props["email"] = model.NewId() + "@mattermost.com"
+	props["id"] = teamId
+	props["display_name"] = model.NewId()
+	props["name"] = model.NewId()
+	props["time"] = fmt.Sprintf("%v", model.GetMillis())
+	props["invite_id"] = inviteId
+	data := model.MapToJson(props)
+	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, inviteSalt))
+
+	// when the server tries to validate the invite, it will pull the user from our mock store
+	// this can return nil, because we'll fail before we get to trying to use it
+	mockStore.UserStore.On("Get", userId).Return(
+		storetest.NewStoreChannel(store.StoreResult{
+			Data: nil,
+			Err:  nil,
+		}),
+	)
+
+	// the server will also pull the team. the one we return has a different invite id than the one in the email invite we made above
+	mockStore.TeamStore.On("Get", teamId).Return(
+		storetest.NewStoreChannel(store.StoreResult{
+			Data: &model.Team{
+				InviteId: teamInviteId,
+			},
+			Err: nil,
+		}),
+	)
+
+	app := App{
+		Srv: &Server{
+			Store: mockStore,
+		},
+		config: atomic.Value{},
+	}
+	app.config.Store(&model.Config{
+		EmailSettings: model.EmailSettings{
+			InviteSalt: inviteSalt,
+		},
+	})
+
+	// this should fail because the invite ids are mismatched
+	team, err := app.AddUserToTeamByHash(userId, hash, data)
+	assert.Nil(t, team)
+	assert.Equal(t, "api.user.create_user.signup_link_mismatched_invite_id.app_error", err.Id)
+}
+
+func TestJoinUserToTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Email:       "success+" + id + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+
+	if _, err := th.App.CreateTeam(team); err != nil {
+		t.Log(err)
+		t.Fatal("Should create a new team")
+	}
+
+	maxUsersPerTeam := th.App.Config().TeamSettings.MaxUsersPerTeam
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = maxUsersPerTeam })
+		th.App.PermanentDeleteTeam(team)
+	}()
+	one := 1
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = &one })
+
+	t.Run("new join", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, alreadyAdded, err := th.App.joinUserToTeam(team, ruser); alreadyAdded || err != nil {
+			t.Fatal("Should return already added equal to false and no error")
+		}
+	})
+
+	t.Run("join when you are a member", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		th.App.joinUserToTeam(team, ruser)
+		if _, alreadyAdded, err := th.App.joinUserToTeam(team, ruser); !alreadyAdded || err != nil {
+			t.Fatal("Should return already added and no error")
+		}
+	})
+
+	t.Run("re-join after leaving", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		th.App.joinUserToTeam(team, ruser)
+		th.App.LeaveTeam(team, ruser, ruser.Id)
+		if _, alreadyAdded, err := th.App.joinUserToTeam(team, ruser); alreadyAdded || err != nil {
+			t.Fatal("Should return already added equal to false and no error")
+		}
+	})
+
+	t.Run("new join with limit problem", func(t *testing.T) {
+		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser1, _ := th.App.CreateUser(&user1)
+		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser2, _ := th.App.CreateUser(&user2)
+		defer th.App.PermanentDeleteUser(&user1)
+		defer th.App.PermanentDeleteUser(&user2)
+		th.App.joinUserToTeam(team, ruser1)
+		if _, _, err := th.App.joinUserToTeam(team, ruser2); err == nil {
+			t.Fatal("Should fail")
+		}
+	})
+
+	t.Run("re-join alfter leaving with limit problem", func(t *testing.T) {
+		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser1, _ := th.App.CreateUser(&user1)
+		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser2, _ := th.App.CreateUser(&user2)
+		defer th.App.PermanentDeleteUser(&user1)
+		defer th.App.PermanentDeleteUser(&user2)
+
+		th.App.joinUserToTeam(team, ruser1)
+		th.App.LeaveTeam(team, ruser1, ruser1.Id)
+		th.App.joinUserToTeam(team, ruser2)
+		if _, _, err := th.App.joinUserToTeam(team, ruser1); err == nil {
+			t.Fatal("Should fail")
 		}
 	})
 }

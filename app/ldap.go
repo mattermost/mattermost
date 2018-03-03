@@ -14,7 +14,7 @@ import (
 func (a *App) SyncLdap() {
 	a.Go(func() {
 
-		if utils.IsLicensed() && *utils.License().Features.LDAP && *a.Config().LdapSettings.EnableSync {
+		if license := a.License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap; ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {
@@ -25,7 +25,8 @@ func (a *App) SyncLdap() {
 }
 
 func (a *App) TestLdap() *model.AppError {
-	if ldapI := a.Ldap; ldapI != nil && utils.IsLicensed() && *utils.License().Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
+	license := a.License()
+	if ldapI := a.Ldap; ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(); err != nil {
 			err.StatusCode = 500
 			return err
@@ -39,7 +40,7 @@ func (a *App) TestLdap() *model.AppError {
 }
 
 func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword string) (string, *model.AppError) {
-	if utils.IsLicensed() && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
+	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -66,7 +67,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword stri
 	}
 
 	a.Go(func() {
-		if err := a.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, utils.GetSiteURL()); err != nil {
+		if err := a.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})
@@ -75,7 +76,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword stri
 }
 
 func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError) {
-	if utils.IsLicensed() && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
+	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -112,7 +113,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 	T := utils.GetUserTranslations(user.Locale)
 
 	a.Go(func() {
-		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, utils.GetSiteURL()); err != nil {
+		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})
