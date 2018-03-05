@@ -365,7 +365,7 @@ func UpgradeDatabaseToVersion471(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion48(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_4_7_0, VERSION_4_8_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_7_1, VERSION_4_8_0) {
 		saveSchemaVersion(sqlStore, VERSION_4_8_0)
 	}
 }
