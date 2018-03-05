@@ -138,6 +138,9 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 			session := ts.(*model.Session)
 			if session.UserId == userId {
 				a.sessionCache.Remove(key)
+				if a.Metrics != nil {
+					a.Metrics.IncrementMemCacheInvalidationCounterSession()
+				}
 			}
 		}
 	}
