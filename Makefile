@@ -118,7 +118,7 @@ start-docker: ## Starts the docker containers for local development.
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 0 ]; then \
 		echo starting mattermost-inbucket; \
-		docker run --name mattermost-inbucket -p 9000:10080 -p 2500:10025 -d jhillyerd/inbucket:latest > /dev/null; \
+		docker run --name mattermost-inbucket -p 9000:10080 -p 2500:10025 -d jhillyerd/inbucket:release-1.2.0 > /dev/null; \
 	elif [ $(shell docker ps | grep -ci mattermost-inbucket) -eq 0 ]; then \
 		echo restarting mattermost-inbucket; \
 		docker start mattermost-inbucket > /dev/null; \
