@@ -112,12 +112,12 @@
     "translation": "S3 Bucket is required"
   },
   {
-    "id": "api.admin.test_s3.missing_s3_region",
-    "translation": "S3 Region is required"
-  },
-  {
     "id": "api.admin.test_s3.missing_s3_endpoint",
     "translation": "S3 Endpoint is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Region is required"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -1827,12 +1827,12 @@
     "translation": " uploaded one or more files in "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
-    "translation": " uploaded one or more files"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " uploaded one or more files in a direct message"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " uploaded one or more files"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2199,50 +2199,6 @@
     "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
-    "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
-  },
-  {
-    "id": "api.team.set_team_icon.storage.app_error",
-    "translation": "Unable to upload team icon. Image storage is not configured."
-  },
-  {
-    "id": "api.team.set_team_icon.too_large.app_error",
-    "translation": "Unable to upload team icon. File is too large."
-  },
-  {
-    "id": "api.team.set_team_icon.parse.app_error",
-    "translation": "Could not parse multipart form"
-  },
-  {
-    "id": "api.team.set_team_icon.no_file.app_error",
-    "translation": "No file under 'image' in request"
-  },
-  {
-    "id": "api.team.set_team_icon.array.app_error",
-    "translation": "Empty array under 'image' in request"
-  },
-  {
-    "id": "api.team.set_team_icon.open.app_error",
-    "translation": "Could not open image file"
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata"
-  },
-  {
-    "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Could not decode team icon"
-  },
-  {
-    "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Could not encode team icon"
-  },
-  {
-    "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "Could not save team icon"
-  },
-  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },
@@ -2385,6 +2341,50 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v removed from the team."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Empty array under 'image' in request"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Could not decode team icon metadata"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Could not encode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "No file under 'image' in request"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Could not open image file"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Could not parse multipart form"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Unable to upload team icon. Image storage is not configured."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Unable to upload team icon. File is too large."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Could not save team icon"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -4247,16 +4247,16 @@
     "translation": "Unable to find user on AD/LDAP server: "
   },
   {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email already used by another SAML user."
+  },
+  {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
     "translation": "User not found in the users file."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
     "translation": "Username already used by another Mattermost user."
-  },
-  {
-    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": "Email already used by another SAML user."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5035,10 +5035,6 @@
     "translation": "Site URL must be a valid URL and start with http:// or https://"
   },
   {
-    "id": "model.config.is_valid.websocket_url.app_error",
-    "translation": "Websocket URL must be a valid URL and start with ws:// or wss://"
-  },
-  {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Unable to enable email batching when SiteURL isn't set."
   },
@@ -5105,6 +5101,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "Websocket URL must be a valid URL and start with ws:// or wss://"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
