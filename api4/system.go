@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"runtime"
-	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
@@ -247,14 +246,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respCfg := map[string]string{}
-	for k, v := range c.App.ClientConfig() {
-		respCfg[k] = v
-	}
-
-	respCfg["NoAccounts"] = strconv.FormatBool(c.App.IsFirstUserAccount())
-
-	w.Write([]byte(model.MapToJson(respCfg)))
+	w.Write([]byte(model.MapToJson(c.App.ClientConfigWithNoAccounts())))
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
