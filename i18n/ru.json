@@ -108,6 +108,18 @@
     "translation": "Mattermost - Тестирование настроек электронной почты"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "S3 Endpoint is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Region is required"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "Пустой массив 'image' в запросе"
   },
@@ -1369,6 +1381,10 @@
     "translation": "Невозможно загрузить файл. Заголовок не может быть распознан."
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Unable to upload files. Incorrect number of files specified."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Размер файла превышает максимальный размер и не может быть загружен: {{.Filename}}"
   },
@@ -1813,6 +1829,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " Загружены один или несколько файлов для сообщения"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " Загружено один или несколько файлов в "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2321,6 +2341,50 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": " %v удален из команды."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Пустой массив 'image' в запросе"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Could not decode team icon metadata"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Could not encode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "Нет файла 'image' в запросе"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Не могу открыть файл изображения"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Невозможно обработать форму из нескольких частей"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Не удалось загрузить файл. Хранилище изображений не настроено."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Невозможно загрузить изображение. Файл слишком большой."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Could not save team icon"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3648,7 +3712,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled."
+    "translation": "Plugins have been disabled. Please check your logs for details."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -4181,6 +4245,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "Не удалось найти пользователя на сервере AD/LDAP: "
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email already used by another SAML user."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "User not found in the users file."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Username already used by another Mattermost user."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5025,6 +5101,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Недопустимое значение настроек безопасности соединения веб-сервера."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "Ссылка на шлюз WebRTC должна быть действующей и начинаться с ws:// или wss://."
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",

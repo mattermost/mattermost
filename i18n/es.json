@@ -108,6 +108,18 @@
     "translation": "Mattermost - Configuración de pruebas de correo"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "S3 Endpoint is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Region is required"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "Arreglo vacio bajo 'image' en la solicitud"
   },
@@ -1369,6 +1381,10 @@
     "translation": "No se puedo cargar el archivo. El encabezado no puede ser analizado."
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Unable to upload files. Incorrect number of files specified."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "No se pudo cargar el archivo que supera las dimensiones máximas: {{.Filename}}"
   },
@@ -1813,6 +1829,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " subió uno o más archivos en un mensaje directo"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " Subió uno o más archivos en "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2321,6 +2341,50 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v removido del equipo."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Arreglo vacio bajo 'image' en la solicitud"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Could not decode team icon metadata"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Could not encode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "No hay un archivo bajo 'image' en la solicitud"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "No se pudo abrir el archivo de imagen"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "No se pudo analizar el formulario multipart"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "No se puede cargar el archivo. El almacenamiento de imágenes no está configurado."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "No se pudo subir la imagen. El archivo es demasiado grande."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Could not save team icon"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3648,7 +3712,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Los Plugins se han deshabilitado."
+    "translation": "Plugins have been disabled. Please check your logs for details."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -4181,6 +4245,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "No se puede encontrar el usuario en el servidor AD/LDAP: "
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email already used by another SAML user."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "User not found in the users file."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Username already used by another Mattermost user."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5025,6 +5101,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Valor no válido para la seguridad de conexión del servidor."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "La dirección url de la Puerta de enlace del Websocket para WebRTC debe ser una dirección válida y comenzar con ws:// o wss://."
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",

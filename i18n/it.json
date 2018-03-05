@@ -108,6 +108,18 @@
     "translation": "Mattermost - Test delle impostazioni Email"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "Bucket S3 richiesto"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "Endpoint S3 richiesto"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "Region S3 richiesta"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "Lista vuota per il campo 'image' nella richiesta"
   },
@@ -1369,6 +1381,10 @@
     "translation": "Impossibile caricare il file. Lettura dell'intestazione fallita."
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Impossibile caricare i file. Specifica numero di file non valido."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Non è stato possibile caricare il file che supera le dimensioni massime: {{.Filename}}"
   },
@@ -1813,6 +1829,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " ha caricato uno o più file in un messaggio diretto"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " ha caricato uno o più file"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2321,6 +2341,50 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v è stato rimosso dal gruppo."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "La richiesta contiene una lista vuota nel campo 'image'"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Impossibile decodificare l'icona del gruppo"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Impossibile decodificare i metadati dell'icona del gruppo"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Impossibile codificare l'icona del gruppo"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "Si è verificato un errore recuperando il gruppo"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "La richiesta non contiene file nel campo 'image'"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Impossibile aprire il file immagine"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Errore durante l'analisi della form multipart"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Impossibile caricare l'icona del gruppo. Lo spazio di archiviazione delle immagini non è configurato."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Impossibile caricare l'icona del gruppo. Il file è troppo grande."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Impossibile salvare l'icona del gruppo"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3648,7 +3712,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Il plugin è stato disattivato."
+    "translation": "I plugin sono disattivati. Controllare i log per ulteriori informazioni."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -4181,6 +4245,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "Impossible trovare l'utente sul server AD/LDAP: "
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email in uso da un altro utente SAML."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "Utente non trovato nel file degli utenti."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Nome utente in uso da un altro utente Mattermost."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5025,6 +5101,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Valore non valido per la sicurezza connessione webserver."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "L'URL del websocket deve essere un URL valido ed iniziare con ws:// o wss://"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",

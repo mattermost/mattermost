@@ -108,6 +108,18 @@
     "translation": "Mattermost - E-posta Ayarları Sınanıyor"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Buketi zorunludur"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "S3 Bitiş Noktası zorunludur"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Bölgesi zorunludur"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "İstekte 'görsel' altında boş dizi"
   },
@@ -1036,7 +1048,7 @@
   },
   {
     "id": "api.context.mfa_required.app_error",
-    "translation": "Bu sunucuda çok aşamalı kimlik doğrulaması kullanılıyor."
+    "translation": "Bu sunucuda çok aşamalı kimlik doğrulaması zorunludur."
   },
   {
     "id": "api.context.missing_teamid.app_error",
@@ -1367,6 +1379,10 @@
   {
     "id": "api.file.upload_file.bad_parse.app_error",
     "translation": "Dosya yüklenemedi. Üst bilgi işlenemedi."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Belirtilen dosya sayısı hatalı olduğundan dosyalar yüklenemedi."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1808,11 +1824,15 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " şunun içine bir ya da bir kaç dosya yükledi "
+    "translation": " şuraya bir ya da bir kaç dosya yükledi "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " bir doğrudan ileti içine bir ya da bir kaç dosya yükledi"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " bir ya da bir kaç dosya yükledi "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2184,7 +2204,7 @@
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Takıma kullanıcı eklemek için parametre gerekli."
+    "translation": "Takıma kullanıcı eklemek için parametre zorunludur."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2300,11 +2320,11 @@
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": "Kanal amacı iletisi gönderilemedi"
+    "translation": "Kanal taşındı iletisi gönderilemedi."
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "This channel has been moved to this team from %v."
+    "translation": "Bu kanal %v üzerinden bu takıma taşındı."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2321,6 +2341,50 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v takımdan çıkarıldı."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "İstekte 'görsel' altında boş dizi"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Could not decode team icon metadata"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Could not encode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "İstekte 'görsel' altında dosya yok"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Görsel dosyası alınamadı"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Çok parçalı form işlenemedi"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Dosya yüklenemedi. Görsel deposu ayarları yapılmamış."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Dosya yüklenemedi. Dosya çok büyük."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Could not save team icon"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3072,7 +3136,7 @@
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
+    "translation": "Gelen web bağlantsının birden çok parçalı yükünün kodu çözülemedi."
   },
   {
     "id": "api.webhook.init.debug",
@@ -3648,7 +3712,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Uygulama ekleri devre dışı bırakılmış."
+    "translation": "Uygulama ekleri devre dışı bırakıldı. Ayrıntılar için günlük kayıtlarına bakın."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -4181,6 +4245,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "Kullanıcı AD/LDAP sunucusu üzerinde bulunamadı:"
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "E-posta başka bir SAML kullanıcısı tarafından kullanılıyor."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "Kullanıcı, kullanıcılar dosyasında bulunamadı."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Bu kullanıcı adı başka bir Mattermost kullanıcısı tarafından kullanılıyor."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -4884,7 +4960,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+    "translation": "İleti dışa aktarma görevinin Dışa Aktarma Biçimi 'actiance' ya da 'genelaktarım' olmalıdır"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.app_error",
@@ -4896,7 +4972,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
-    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
+    "translation": "İleti dışa aktarma görevinin GenelAktarıcıE-postaAdresi geçerli bir e-posta adresi olmalıdır"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -5025,6 +5101,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Web sunucusu bağlantı güvenliği değeri geçersiz."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "Web soketi adresi ws:// ya da wss:// ile başlayan geçerli bir adres olmalıdır"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
@@ -7112,7 +7192,7 @@
   },
   {
     "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
+    "translation": "Ek dosya e-postaya eklenemedi"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",
