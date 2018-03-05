@@ -1,0 +1,7 @@
+language: go
+script:
+  - go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+  - go vet ./...
+  - '! gofmt -s -d . 2>&1 | read'
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
