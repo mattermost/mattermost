@@ -610,4 +610,6 @@ func ConnectAPI(conn io.ReadWriteCloser, muxer *Muxer) *RemoteAPI {
 
 func init() {
 	gob.Register([]*model.SlackAttachment{})
+	gob.Register([]interface{}{})
+	gob.Register(map[string]interface{}{})
 }
