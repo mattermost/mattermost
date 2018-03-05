@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_4_9_0            = "4.9.0"
 	VERSION_4_8_0            = "4.8.0"
 	VERSION_4_7_1            = "4.7.1"
 	VERSION_4_7_0            = "4.7.0"
@@ -68,6 +69,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion47(sqlStore)
 	UpgradeDatabaseToVersion471(sqlStore)
 	UpgradeDatabaseToVersion48(sqlStore)
+	UpgradeDatabaseToVersion49(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -365,10 +367,15 @@ func UpgradeDatabaseToVersion471(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion48(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_7_1, VERSION_4_8_0) {
+		sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
+		saveSchemaVersion(sqlStore, VERSION_4_8_0)
+	}
+}
 
-	//TODO: Uncomment the following condition when version 4.8.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_4_7_0, VERSION_4_8_0) {
-	sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
-	//	saveSchemaVersion(sqlStore, VERSION_4_8_0)
+func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
+	//TODO: Uncomment the following condition when version 4.9.0 is released
+	//if shouldPerformUpgrade(sqlStore, VERSION_4_8_0, VERSION_4_9_0) {
+	//	saveSchemaVersion(sqlStore, VERSION_4_9_0)
 	//}
 }
