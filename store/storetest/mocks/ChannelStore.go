@@ -61,6 +61,11 @@ func (_m *ChannelStore) AutocompleteInTeam(teamId string, term string) store.Sto
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *ChannelStore) ClearCaches() {
+	_m.Called()
+}
+
 // CreateDirectChannel provides a mock function with given fields: userId, otherUserId
 func (_m *ChannelStore) CreateDirectChannel(userId string, otherUserId string) store.StoreChannel {
 	ret := _m.Called(userId, otherUserId)

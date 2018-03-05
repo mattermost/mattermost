@@ -15,7 +15,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -141,10 +140,11 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	l4g.Info(utils.T("api.context.invalidate_all_caches"))
 	a.sessionCache.Purge()
 	ClearStatusCache()
-	sqlstore.ClearChannelCaches()
-	sqlstore.ClearUserCaches()
-	sqlstore.ClearPostCaches()
-	sqlstore.ClearWebhookCaches()
+	a.Srv.Store.Channel().ClearCaches()
+	a.Srv.Store.User().ClearCaches()
+	a.Srv.Store.Post().ClearCaches()
+	a.Srv.Store.FileInfo().ClearCaches()
+	a.Srv.Store.Webhook().ClearCaches()
 	a.LoadLicense()
 }
 
