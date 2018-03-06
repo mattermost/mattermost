@@ -298,9 +298,9 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
-  a.Publish(event)
+	a.Publish(event)
   
-  return nil
+	return nil
 }
 
 func GetStatusFromCache(userId string) *model.Status {
