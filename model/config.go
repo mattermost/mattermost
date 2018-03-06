@@ -1643,6 +1643,21 @@ type GlobalRelayMessageExportSettings struct {
 	EmailAddress *string // the address to send messages to
 }
 
+func (s *GlobalRelayMessageExportSettings) SetDefaults() {
+	if s.CustomerType == nil {
+		s.CustomerType = NewString(GLOBALRELAY_CUSTOMER_TYPE_A9)
+	}
+	if s.SmtpUsername == nil {
+		s.SmtpUsername = NewString("")
+	}
+	if s.SmtpPassword == nil {
+		s.SmtpPassword = NewString("")
+	}
+	if s.EmailAddress == nil {
+		s.EmailAddress = NewString("")
+	}
+}
+
 type MessageExportSettings struct {
 	EnableExport        *bool
 	ExportFormat        *string
@@ -1681,6 +1696,11 @@ func (s *MessageExportSettings) SetDefaults() {
 
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(10000)
+	}
+
+	if s.GlobalRelaySettings == nil {
+		s.GlobalRelaySettings = &GlobalRelayMessageExportSettings{}
+		s.GlobalRelaySettings.SetDefaults()
 	}
 }
 
