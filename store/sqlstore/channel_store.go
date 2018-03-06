@@ -1248,19 +1248,6 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType st
 	})
 }
 
-func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec(
-			`UPDATE Channels SET ExtraUpdateAt = :Time
-			WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId);`,
-			map[string]interface{}{"UserId": userId, "Time": time})
-
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.extraUpdated", "store.sql_channel.extra_updated.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
-}
-
 func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		members := &model.ChannelMembers{}
