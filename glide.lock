@@ -138,8 +138,6 @@ imports:
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/mitchellh/mapstructure
   version: a4e142e9c047c904fa2f1e144d9a84e6133024bc
-- name: github.com/mssola/user_agent
-  version: 5243daae23628aeae9b6268541406bd5e95d5964
 - name: github.com/nicksnyder/go-i18n
   version: 0dc1626d56435e9d605a29875701721c54bc9bbd
   subpackages:

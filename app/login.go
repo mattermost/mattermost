@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/avct/uasurfer"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mssola/user_agent"
 )
 
 func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId string, ldapOnly bool) (*model.User, *model.AppError) {
@@ -71,19 +71,19 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthWebInDays)
 	}
 
-	ua := user_agent.New(r.UserAgent())
+	ua := uasurfer.Parse(r.UserAgent())
 
-	plat := ua.Platform()
+	plat := ua.OS.Platform.String()
 	if plat == "" {
 		plat = "unknown"
 	}
 
-	os := ua.OS()
+	os := ua.OS.Name.String()
 	if os == "" {
 		os = "unknown"
 	}
 
-	bname, bversion := ua.Browser()
+	bname := ua.Browser.Name.String()
 	if bname == "" {
 		bname = "unknown"
 	}
@@ -92,9 +92,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		bname = "Desktop App"
 	}
 
-	if bversion == "" {
-		bversion = "0.0"
-	}
+	bversion := ua.Browser.Version
 
 	session.AddProp(model.SESSION_PROP_PLATFORM, plat)
 	session.AddProp(model.SESSION_PROP_OS, os)
