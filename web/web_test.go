@@ -191,10 +191,10 @@ func TestCheckClientCompatability(t *testing.T) {
 		{"Safari Mobile", "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B137 Safari/601.1", true},
 	}
 	for _, browser := range uaTestParameters {
-		if result := CheckClientCompatability(browser.UserAgent); result == browser.Result {
-			t.Logf("Pass: %s passed browser test.", browser.Name)
-		} else {
-			t.Errorf("Fail: %s User Agent Test failed!", browser.Name)
-		}
+		t.Run(browser.Name, func(t *testing.T) {
+			if result := CheckClientCompatability(browser.UserAgent); result != browser.Result {
+				t.Fatalf("%s User Agent Test failed!", browser.Name)
+			}
+		})
 	}
 }
