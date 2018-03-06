@@ -106,7 +106,7 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 
 	a.AddDirectChannels(team.Id, ruser)
 
-	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, utils.GetSiteURL()); err != nil {
+	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
 		l4g.Error(err.Error())
 	}
 
@@ -119,7 +119,7 @@ func (a *App) CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError)
 		return nil, err
 	}
 
-	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, utils.GetSiteURL()); err != nil {
+	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
 		l4g.Error(err.Error())
 	}
 
@@ -143,7 +143,7 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 		return nil, err
 	}
 
-	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, utils.GetSiteURL()); err != nil {
+	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
 		l4g.Error(err.Error())
 	}
 
@@ -202,9 +202,7 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
 		message.Add("user_id", ruser.Id)
-		a.Go(func() {
-			a.Publish(message)
-		})
+		a.Publish(message)
 
 		return ruser, nil
 	}
@@ -849,7 +847,6 @@ func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 		message.Add("user", user)
-
 		a.Publish(message)
 	}
 
@@ -1019,9 +1016,7 @@ func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", user)
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
@@ -1044,7 +1039,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		if sendNotifications {
 			if rusers[0].Email != rusers[1].Email {
 				a.Go(func() {
-					if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
+					if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
 						l4g.Error(err.Error())
 					}
 				})
@@ -1058,7 +1053,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 
 			if rusers[0].Username != rusers[1].Username {
 				a.Go(func() {
-					if err := a.SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
+					if err := a.SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
 						l4g.Error(err.Error())
 					}
 				})
@@ -1108,7 +1103,7 @@ func (a *App) UpdateMfa(activate bool, userId, token string) *model.AppError {
 			return
 		}
 
-		if err := a.SendMfaChangeEmail(user.Email, activate, user.Locale, utils.GetSiteURL()); err != nil {
+		if err := a.SendMfaChangeEmail(user.Email, activate, user.Locale, a.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})
@@ -1146,7 +1141,7 @@ func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method stri
 	}
 
 	a.Go(func() {
-		if err := a.SendPasswordChangeEmail(user.Email, method, user.Locale, utils.GetSiteURL()); err != nil {
+		if err := a.SendPasswordChangeEmail(user.Email, method, user.Locale, a.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})
@@ -1359,9 +1354,9 @@ func (a *App) SendEmailVerification(user *model.User) *model.AppError {
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
-		return a.SendVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+		return a.SendVerifyEmail(user.Email, user.Locale, a.GetSiteURL(), token.Token)
 	} else {
-		return a.SendEmailChangeVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+		return a.SendEmailChangeVerifyEmail(user.Email, user.Locale, a.GetSiteURL(), token.Token)
 	}
 }
 

@@ -63,3 +63,13 @@ func TestAsymmetricSigningKey(t *testing.T) {
 	assert.NotNil(t, th.App.AsymmetricSigningKey())
 	assert.NotEmpty(t, th.App.ClientConfig()["AsymmetricSigningPublicKey"])
 }
+
+func TestClientConfigWithNoAccounts(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	config := th.App.ClientConfigWithNoAccounts()
+	if _, ok := config["NoAccounts"]; !ok {
+		t.Fatal("expected NoAccounts in returned config")
+	}
+}

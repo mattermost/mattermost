@@ -52,7 +52,7 @@ func RenderWebError(w http.ResponseWriter, r *http.Request, status int, params u
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	destination := strings.TrimRight(GetSiteURL(), "/") + "/error?" + queryString + "&s=" + base64.URLEncoding.EncodeToString(signature)
+	destination := "/error?" + queryString + "&s=" + base64.URLEncoding.EncodeToString(signature)
 
 	if status >= 300 && status < 400 {
 		http.Redirect(w, r, destination, status)

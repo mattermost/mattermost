@@ -38,13 +38,22 @@ type SqlUserStore struct {
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
 var profileByIdsCache *utils.Cache = utils.NewLru(PROFILE_BY_IDS_CACHE_SIZE)
 
-func ClearUserCaches() {
+func (us SqlUserStore) ClearCaches() {
 	profilesInChannelCache.Purge()
 	profileByIdsCache.Purge()
+
+	if us.metrics != nil {
+		us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Purge")
+		us.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Purge")
+	}
 }
 
 func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {
 	profileByIdsCache.Remove(userId)
+
+	if us.metrics != nil {
+		us.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
+	}
 }
 
 func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
@@ -384,6 +393,9 @@ func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 			userMap := cacheItem.(map[string]*model.User)
 			if _, userInCache := userMap[userId]; userInCache {
 				profilesInChannelCache.Remove(key)
+				if us.metrics != nil {
+					us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by User")
+				}
 			}
 		}
 	}
@@ -391,6 +403,9 @@ func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 
 func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
 	profilesInChannelCache.Remove(channelId)
+	if us.metrics != nil {
+		us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by Channel")
+	}
 }
 
 func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) store.StoreChannel {

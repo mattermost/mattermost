@@ -221,9 +221,7 @@ func (a *App) BroadcastStatus(status *model.Status) {
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
-	a.Go(func() {
-		a.Publish(event)
-	})
+	a.Publish(event)
 }
 
 func (a *App) SetStatusOffline(userId string, manual bool) {
@@ -300,11 +298,9 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
-	a.Go(func() {
-		a.Publish(event)
-	})
-
-	return nil
+  a.Publish(event)
+  
+  return nil
 }
 
 func GetStatusFromCache(userId string) *model.Status {

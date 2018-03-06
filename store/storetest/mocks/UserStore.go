@@ -77,6 +77,11 @@ func (_m *UserStore) AnalyticsUniqueUserCount(teamId string) store.StoreChannel 
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *UserStore) ClearCaches() {
+	_m.Called()
+}
+
 // Get provides a mock function with given fields: id
 func (_m *UserStore) Get(id string) store.StoreChannel {
 	ret := _m.Called(id)

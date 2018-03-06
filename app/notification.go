@@ -362,7 +362,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 
-	teamURL := utils.GetSiteURL() + "/" + team.Name
+	teamURL := a.GetSiteURL() + "/" + team.Name
 	var bodyText = a.getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
 	a.Go(func() {
@@ -421,7 +421,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		bodyPage = a.NewEmailTemplate("post_body_generic", recipient.Locale)
 	}
 
-	bodyPage.Props["SiteURL"] = utils.GetSiteURL()
+	bodyPage.Props["SiteURL"] = a.GetSiteURL()
 	if teamName != "select_team" {
 		bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
 	} else {
