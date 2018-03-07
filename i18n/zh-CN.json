@@ -1369,6 +1369,10 @@
     "translation": "无法上传文件。标题无法被解析。"
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "无法上传文件。指定的文件数不匹配。"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "无法上传超过最大尺寸的文件：{{.Filename}}"
   },
@@ -1813,6 +1817,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " 在私信里上传一个或更多个文件"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " 已上传一个或更多个文件"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -3648,7 +3656,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "插件已禁用。"
+    "translation": "日志已停用。请检查您的日志了解详情。"
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3700,7 +3708,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "这个团队已经达到允许的最大用户数量。请与系统管理员联系以设置更高的限制。"
+    "translation": "这个团队已经达到允许的最大帐号数量。请与系统管理员联系以设置更高的限制。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4181,6 +4189,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "未在 AD/LDAP 服务器上找到用户："
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "电子邮箱地址已被其他 SAML 用户使用。"
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "没有在用户文件里找到用户。"
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "用户名已被其他 Mattermost 用户使用。"
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5025,6 +5045,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "错误的网页服务器连接安全值。"
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "Websocket 网址必须时有效的网址并且以 ws:// 或 wss:// 开头。"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
@@ -7112,7 +7136,7 @@
   },
   {
     "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
+    "translation": "给邮件添加附件失败"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",
