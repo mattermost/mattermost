@@ -223,7 +223,11 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 				Posts.Type AS PostType,
 				Posts.FileIds AS PostFileIds,
 				Channels.Id AS ChannelId,
-				Channels.DisplayName AS ChannelDisplayName,
+				CASE 
+					WHEN Channels.Type = 'D' THEN 'Direct Message'
+					WHEN Channels.Type = 'G' THEN 'Group Message'
+					ELSE Channels.DisplayName
+				END AS ChannelDisplayName,
 				Users.Id AS UserId,
 				Users.Email AS UserEmail,
 				Users.Username

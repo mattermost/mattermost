@@ -225,6 +225,14 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		}
 	} else {
 		channel := result.Data.(*model.Channel)
+
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); result.Err != nil {
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
+		}
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); result.Err != nil {
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
+		}
+
 		return channel, nil
 	}
 }
@@ -1426,7 +1434,16 @@ func (a *App) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.
 		}
 		a.InvalidateCacheForUser(userId1)
 		a.InvalidateCacheForUser(userId2)
-		return result.Data.(*model.Channel), nil
+
+		channel := result.Data.(*model.Channel)
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId1, channel.Id, model.GetMillis()); result.Err != nil {
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
+		}
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId2, channel.Id, model.GetMillis()); result.Err != nil {
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
+		}
+
+		return channel, nil
 	} else if result.Err != nil {
 		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
 	}
