@@ -173,6 +173,11 @@ func (m *Manifest) ClientManifest() *Manifest {
 	cm.Name = ""
 	cm.Description = ""
 	cm.Backend = nil
+	if cm.Webapp != nil {
+		cm.Webapp = new(ManifestWebapp)
+		*cm.Webapp = *m.Webapp
+		cm.Webapp.BundlePath = "/static/" + m.Id + "_bundle.js"
+	}
 	return cm
 }
 
