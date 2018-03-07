@@ -72,11 +72,6 @@ func TestAPI(t *testing.T) {
 
 	testPost := &model.Post{
 		Message: "hello",
-		Props: map[string]interface{}{
-			"attachments": []*model.SlackAttachment{
-				&model.SlackAttachment{},
-			},
-		},
 	}
 
 	testAPIRPC(&api, func(remote plugin.API) {
@@ -242,5 +237,43 @@ func TestAPI(t *testing.T) {
 		api.KeyValueStore().(*plugintest.KeyValueStore).On("Delete", "thekey").Return(nil).Once()
 		err = remote.KeyValueStore().Delete("thekey")
 		assert.Nil(t, err)
+	})
+}
+
+func TestAPI_GobRegistration(t *testing.T) {
+	keyValueStore := &plugintest.KeyValueStore{}
+	api := plugintest.API{Store: keyValueStore}
+	defer api.AssertExpectations(t)
+
+	testAPIRPC(&api, func(remote plugin.API) {
+		api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) (*model.Post, *model.AppError) {
+			p.Id = "thepostid"
+			return p, nil
+		}).Once()
+		_, err := remote.CreatePost(&model.Post{
+			Message: "hello",
+			Props: map[string]interface{}{
+				"attachments": []*model.SlackAttachment{
+					&model.SlackAttachment{
+						Actions: []*model.PostAction{
+							&model.PostAction{
+								Integration: &model.PostActionIntegration{
+									Context: map[string]interface{}{
+										"foo":  "bar",
+										"foos": []interface{}{"bar", "baz", 1, 2},
+										"foo_map": map[string]interface{}{
+											"1": "bar",
+											"2": 2,
+										},
+									},
+								},
+							},
+						},
+						Timestamp: 1,
+					},
+				},
+			},
+		})
+		require.Nil(t, err)
 	})
 }
