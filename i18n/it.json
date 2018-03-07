@@ -1369,6 +1369,10 @@
     "translation": "Impossibile caricare il file. Lettura dell'intestazione fallita."
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Impossibile caricare i file. Specifica numero di file non valido."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Non è stato possibile caricare il file che supera le dimensioni massime: {{.Filename}}"
   },
@@ -1813,6 +1817,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " ha caricato uno o più file in un messaggio diretto"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " ha caricato uno o più file"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -3648,7 +3656,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Il plugin è stato disattivato."
+    "translation": "I plugin sono disattivati. Controllare i log per ulteriori informazioni."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -4181,6 +4189,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "Impossible trovare l'utente sul server AD/LDAP: "
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email in uso da un altro utente SAML."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "Utente non trovato nel file degli utenti."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Nome utente in uso da un altro utente Mattermost."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5025,6 +5045,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Valore non valido per la sicurezza connessione webserver."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "L'URL del websocket deve essere un URL valido ed iniziare con ws:// o wss://"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
