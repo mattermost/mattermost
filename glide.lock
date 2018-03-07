@@ -1,11 +1,13 @@
-hash: 6779beaa11fdb9c520471fb87c0a1a6ecc34a4c82610d942c44fba2f27a29936
-updated: 2018-02-15T18:28:32.209282461-08:00
+hash: 822849f55f8ab4b5c7545597b209edb6114bcf1009a552a9ee2503ff8d3fda09
+updated: 2018-03-07T13:01:49.575101746+01:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
   repo: https://github.com/mattermost/log4go.git
 - name: github.com/armon/go-metrics
   version: 7aa49fde808223f8dadfdbfd3a20ff6c19e5f9ec
+- name: github.com/avct/uasurfer
+  version: c4be5581ec9617d04f5c5e02b893903ead0b1eed
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
