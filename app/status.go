@@ -299,7 +299,7 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
 	a.Publish(event)
-  
+
 	return nil
 }
 
