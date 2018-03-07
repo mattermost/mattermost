@@ -267,7 +267,7 @@ func pivotRoot(newRoot string) error {
 func dropInheritableCapabilities() error {
 	type capHeader struct {
 		version uint32
-		pid     int
+		pid     int32
 	}
 
 	type capData struct {
@@ -423,6 +423,15 @@ func checkSupportInNamespace() error {
 
 	if err := enableSeccompFilter(); err != nil {
 		return errors.Wrapf(err, "unable to enable seccomp filter")
+	}
+
+	if f, err := os.Create(os.DevNull); err != nil {
+		return errors.Wrapf(err, "unable to open os.DevNull")
+	} else {
+		defer f.Close()
+		if _, err = f.Write([]byte("foo")); err != nil {
+			return errors.Wrapf(err, "unable to write to os.DevNull")
+		}
 	}
 
 	return nil
