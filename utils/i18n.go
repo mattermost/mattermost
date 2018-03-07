@@ -91,11 +91,6 @@ func GetUserTranslations(locale string) i18n.TranslateFunc {
 	return translations
 }
 
-func SetTranslations(locale string) i18n.TranslateFunc {
-	translations := TfuncWithFallback(locale)
-	return translations
-}
-
 func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.TranslateFunc, string) {
 	// This is for checking against locales like pt_BR or zn_CN
 	headerLocaleFull := strings.Split(r.Header.Get("Accept-Language"), ",")[0]

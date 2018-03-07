@@ -141,17 +141,6 @@ func OAuthAppFromJson(data io.Reader) *OAuthApp {
 	return app
 }
 
-func OAuthAppMapToJson(a map[string]*OAuthApp) string {
-	b, _ := json.Marshal(a)
-	return string(b)
-}
-
-func OAuthAppMapFromJson(data io.Reader) map[string]*OAuthApp {
-	var apps map[string]*OAuthApp
-	json.NewDecoder(data).Decode(&apps)
-	return apps
-}
-
 func OAuthAppListToJson(l []*OAuthApp) string {
 	b, _ := json.Marshal(l)
 	return string(b)

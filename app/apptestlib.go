@@ -135,10 +135,6 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	return me
 }
 
-func (me *TestHelper) MakeUsername() string {
-	return "un_" + model.NewId()
-}
-
 func (me *TestHelper) MakeEmail() string {
 	return "success_" + model.NewId() + "@simulator.amazonses.com"
 }
@@ -189,10 +185,6 @@ func (me *TestHelper) CreateUser() *model.User {
 
 func (me *TestHelper) CreateChannel(team *model.Team) *model.Channel {
 	return me.createChannel(team, model.CHANNEL_OPEN)
-}
-
-func (me *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
-	return me.createChannel(team, model.CHANNEL_PRIVATE)
 }
 
 func (me *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {

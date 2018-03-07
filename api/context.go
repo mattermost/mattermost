@@ -364,10 +364,6 @@ func NewInvalidParamError(where string, name string) *model.AppError {
 	return err
 }
 
-func (c *Context) SetUnknownError(where string, details string) {
-	c.Err = model.NewAppError(where, "api.context.unknown.app_error", nil, details, http.StatusInternalServerError)
-}
-
 func (c *Context) SetPermissionError(permission *model.Permission) {
 	c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
 }
@@ -387,11 +383,6 @@ func (c *Context) SetSiteURLHeader(url string) {
 	c.siteURLHeader = strings.TrimRight(url, "/")
 }
 
-// TODO see where these are used
-func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
-	return c.GetSiteURLHeader() + "/" + team.Name
-}
-
 func (c *Context) GetTeamURL() string {
 	if !c.teamURLValid {
 		c.SetTeamURLFromSession()
@@ -404,10 +395,6 @@ func (c *Context) GetTeamURL() string {
 
 func (c *Context) GetSiteURLHeader() string {
 	return c.siteURLHeader
-}
-
-func (c *Context) GetCurrentTeamMember() *model.TeamMember {
-	return c.Session.GetTeamByTeamId(c.TeamId)
 }
 
 func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {

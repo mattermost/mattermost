@@ -84,28 +84,6 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
-type VaryBy struct {
-	useIP   bool
-	useAuth bool
-}
-
-func (m *VaryBy) Key(r *http.Request) string {
-	key := ""
-
-	if m.useAuth {
-		token, tokenLocation := ParseAuthTokenFromRequest(r)
-		if tokenLocation != TokenLocationNotFound {
-			key += token
-		} else if m.useIP { // If we don't find an authentication token and IP based is enabled, fall back to IP
-			key += utils.GetIpAddress(r)
-		}
-	} else if m.useIP { // Only if Auth based is not enabed do we use a plain IP based
-		key = utils.GetIpAddress(r)
-	}
-
-	return key
-}
-
 func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
 	if r.Host == "" {
 		http.Error(w, "Not Found", http.StatusNotFound)
@@ -221,31 +199,6 @@ func (a *App) StartServer() error {
 	}()
 
 	return nil
-}
-
-type tcpKeepAliveListener struct {
-	*net.TCPListener
-}
-
-func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
-	tc, err := ln.AcceptTCP()
-	if err != nil {
-		return
-	}
-	tc.SetKeepAlive(true)
-	tc.SetKeepAlivePeriod(3 * time.Minute)
-	return tc, nil
-}
-
-func (a *App) Listen(addr string) (net.Listener, error) {
-	if addr == "" {
-		addr = ":http"
-	}
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	return tcpKeepAliveListener{ln.(*net.TCPListener)}, nil
 }
 
 func (a *App) StopServer() {

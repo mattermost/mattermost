@@ -503,19 +503,6 @@ func initializeDefaultRoles() {
 	}
 }
 
-func RoleIdsToString(roles []string) string {
-	output := ""
-	for _, role := range roles {
-		output += role + ", "
-	}
-
-	if output == "" {
-		return "[<NO ROLES>]"
-	}
-
-	return output[:len(output)-1]
-}
-
 func init() {
 	initializePermissions()
 	initializeDefaultRoles()

@@ -13,15 +13,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const (
-	PLUGIN_CONFIG_TYPE_TEXT      = "text"
-	PLUGIN_CONFIG_TYPE_BOOL      = "bool"
-	PLUGIN_CONFIG_TYPE_RADIO     = "radio"
-	PLUGIN_CONFIG_TYPE_DROPDOWN  = "dropdown"
-	PLUGIN_CONFIG_TYPE_GENERATED = "generated"
-	PLUGIN_CONFIG_TYPE_USERNAME  = "username"
-)
-
 type PluginOption struct {
 	// The display name for the option.
 	DisplayName string `json:"display_name" yaml:"display_name"`

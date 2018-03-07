@@ -34,7 +34,6 @@ const (
 	TOKEN_TYPE_PASSWORD_RECOVERY  = "password_recovery"
 	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
 	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60 // 1 hour
-	VERIFY_EMAIL_EXPIRY_TIME      = 1000 * 60 * 60 // 1 hour
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
