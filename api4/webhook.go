@@ -510,7 +510,6 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, *model.AppError) {
-	decodeError := &model.AppError{}
 	incomingWebhookPayload, decodeError := model.IncomingWebhookRequestFromJson(payload)
 
 	if decodeError != nil {

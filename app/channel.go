@@ -377,7 +377,7 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 	})[channel.Type]
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.change_channel_privacy." + privacy)),
+		Message:   utils.T("api.channel.change_channel_privacy." + privacy),
 		Type:      model.POST_CHANGE_CHANNEL_PRIVACY,
 		UserId:    user.Id,
 		Props: model.StringInterface{
@@ -1062,7 +1062,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 			return err
 		}
 
-		if channel.Name == model.DEFAULT_CHANNEL && *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages == false {
+		if channel.Name == model.DEFAULT_CHANNEL && !*a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 			return nil
 		}
 

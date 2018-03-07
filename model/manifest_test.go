@@ -74,7 +74,7 @@ func TestManifestUnmarshal(t *testing.T) {
 				&PluginSetting{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
-					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					Type:               "dropdown",
 					HelpText:           "thehelptext",
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
@@ -181,7 +181,7 @@ func TestManifestJson(t *testing.T) {
 				&PluginSetting{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
-					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					Type:               "dropdown",
 					HelpText:           "thehelptext",
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
@@ -246,7 +246,7 @@ func TestManifestClientManifest(t *testing.T) {
 				&PluginSetting{
 					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
-					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					Type:               "dropdown",
 					HelpText:           "thehelptext",
 					RegenerateHelpText: "theregeneratehelptext",
 					Placeholder:        "theplaceholder",
