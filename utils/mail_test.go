@@ -4,24 +4,27 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"net/mail"
 	"net/smtp"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestMailConnection(t *testing.T) {
+func TestMailConnectionFromConfig(t *testing.T) {
 	cfg, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
-	if conn, err := connectToSMTPServer(cfg); err != nil {
+	if conn, err := ConnectToSMTPServer(cfg); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
-		if _, err1 := newSMTPClient(conn, cfg); err1 != nil {
+		if _, err1 := NewSMTPClient(conn, cfg); err1 != nil {
 			t.Log(err)
 			t.Fatal("Should get new smtp client")
 		}
@@ -30,7 +33,47 @@ func TestMailConnection(t *testing.T) {
 	cfg.EmailSettings.SMTPServer = "wrongServer"
 	cfg.EmailSettings.SMTPPort = "553"
 
-	if _, err := connectToSMTPServer(cfg); err == nil {
+	if _, err := ConnectToSMTPServer(cfg); err == nil {
+		t.Log(err)
+		t.Fatal("Should not to the STMP Server")
+	}
+}
+
+func TestMailConnectionAdvanced(t *testing.T) {
+	cfg, _, err := LoadConfig("config.json")
+	require.Nil(t, err)
+
+	if conn, err := ConnectToSMTPServerAdvanced(
+		cfg.EmailSettings.ConnectionSecurity,
+		*cfg.EmailSettings.SkipServerCertificateVerification,
+		cfg.EmailSettings.SMTPServer,
+		cfg.EmailSettings.SMTPPort,
+	); err != nil {
+		t.Log(err)
+		t.Fatal("Should connect to the STMP Server")
+	} else {
+		if _, err1 := NewSMTPClientAdvanced(
+			conn,
+			cfg.EmailSettings.ConnectionSecurity,
+			*cfg.EmailSettings.SkipServerCertificateVerification,
+			cfg.EmailSettings.SMTPServer,
+			cfg.EmailSettings.SMTPPort,
+			GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
+			*cfg.EmailSettings.EnableSMTPAuth,
+			cfg.EmailSettings.SMTPUsername,
+			cfg.EmailSettings.SMTPPassword,
+		); err1 != nil {
+			t.Log(err)
+			t.Fatal("Should get new smtp client")
+		}
+	}
+
+	if _, err := ConnectToSMTPServerAdvanced(
+		cfg.EmailSettings.ConnectionSecurity,
+		*cfg.EmailSettings.SkipServerCertificateVerification,
+		"wrongServer",
+		"553",
+	); err == nil {
 		t.Log(err)
 		t.Fatal("Should not to the STMP Server")
 	}
@@ -79,7 +122,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	}
 }
 
-/*func TestSendMailUsingConfigAdvanced(t *testing.T) {
+func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	cfg, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
@@ -171,20 +214,15 @@ func TestSendMailUsingConfig(t *testing.T) {
 			}
 		}
 	}
-}*/
+}
 
 func TestAuthMethods(t *testing.T) {
-	config := model.Config{
-		EmailSettings: model.EmailSettings{
-			EnableSMTPAuth: model.NewBool(false),
-			SMTPUsername:   "test",
-			SMTPPassword:   "fakepass",
-			SMTPServer:     "fakeserver",
-			SMTPPort:       "25",
-		},
+	auth := &authChooser{
+		SmtpUsername: "test",
+		SmtpPassword: "fakepass",
+		SmtpServer:   "fakeserver",
+		SmtpPort:     "25",
 	}
-
-	auth := &authChooser{Config: &config}
 	tests := []struct {
 		desc   string
 		server *smtp.ServerInfo
