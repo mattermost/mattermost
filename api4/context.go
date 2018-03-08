@@ -650,6 +650,17 @@ func (c *Context) RequireRoleId() *Context {
 	return c
 }
 
+func (c *Context) RequireSchemeId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.SchemeId) != 26 {
+		c.SetInvalidUrlParam("scheme_id")
+	}
+	return c
+}
+
 func (c *Context) RequireRoleName() *Context {
 	if c.Err != nil {
 		return c
