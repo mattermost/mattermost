@@ -56,10 +56,6 @@ func (emoji *Emoji) PreSave() {
 	emoji.UpdateAt = emoji.CreateAt
 }
 
-func (emoji *Emoji) PreUpdate() {
-	emoji.UpdateAt = GetMillis()
-}
-
 func (emoji *Emoji) ToJson() string {
 	b, _ := json.Marshal(emoji)
 	return string(b)

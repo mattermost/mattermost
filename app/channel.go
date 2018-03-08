@@ -225,6 +225,14 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		}
 	} else {
 		channel := result.Data.(*model.Channel)
+
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); result.Err != nil {
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
+		}
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); result.Err != nil {
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
+		}
+
 		return channel, nil
 	}
 }
@@ -369,7 +377,7 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 	})[channel.Type]
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.change_channel_privacy." + privacy)),
+		Message:   utils.T("api.channel.change_channel_privacy." + privacy),
 		Type:      model.POST_CHANGE_CHANNEL_PRIVACY,
 		UserId:    user.Id,
 		Props: model.StringInterface{
@@ -1054,7 +1062,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 			return err
 		}
 
-		if channel.Name == model.DEFAULT_CHANNEL && *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages == false {
+		if channel.Name == model.DEFAULT_CHANNEL && !*a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 			return nil
 		}
 
@@ -1092,7 +1100,9 @@ func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, c
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{
+			"userId":        user.Id,
 			"username":      user.Username,
+			"addedUserId":   addedUser.Id,
 			"addedUsername": addedUser.Username,
 		},
 	}
@@ -1112,7 +1122,9 @@ func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, chan
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{
+			"userId":        user.Id,
 			"username":      user.Username,
+			"addedUserId":   addedUser.Id,
 			"addedUsername": addedUser.Username,
 		},
 	}
@@ -1131,6 +1143,7 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 		Type:      model.POST_REMOVE_FROM_CHANNEL,
 		UserId:    removerUserId,
 		Props: model.StringInterface{
+			"removedUserId":   removedUser.Id,
 			"removedUsername": removedUser.Username,
 		},
 	}
@@ -1421,7 +1434,16 @@ func (a *App) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.
 		}
 		a.InvalidateCacheForUser(userId1)
 		a.InvalidateCacheForUser(userId2)
-		return result.Data.(*model.Channel), nil
+
+		channel := result.Data.(*model.Channel)
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId1, channel.Id, model.GetMillis()); result.Err != nil {
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
+		}
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId2, channel.Id, model.GetMillis()); result.Err != nil {
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
+		}
+
+		return channel, nil
 	} else if result.Err != nil {
 		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
 	}

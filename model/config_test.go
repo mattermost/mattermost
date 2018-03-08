@@ -183,21 +183,123 @@ func TestMessageExportSettingsIsValidActiance(t *testing.T) {
 	require.Nil(t, mes.isValid(*fs))
 }
 
-func TestMessageExportSettingsIsValidGlobalRelay(t *testing.T) {
+func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
 	fs := &FileSettings{
 		DriverName: NewString("foo"), // bypass file location check
 	}
 	mes := &MessageExportSettings{
-		EnableExport:            NewBool(true),
-		ExportFormat:            NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
-		ExportFromTimestamp:     NewInt64(0),
-		DailyRunTime:            NewString("15:04"),
-		BatchSize:               NewInt(100),
-		GlobalRelayEmailAddress: NewString("test@mattermost.com"),
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
 	}
 
-	// should pass because everything is valid
-	require.Nil(t, mes.isValid(*fs))
+	// should fail because globalrelay settings are missing
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType: NewString("Invalid"),
+			EmailAddress: NewString("valid@mattermost.com"),
+			SmtpUsername: NewString("SomeUsername"),
+			SmtpPassword: NewString("SomePassword"),
+		},
+	}
+
+	// should fail because customer type is invalid
+	require.Error(t, mes.isValid(*fs))
+}
+
+// func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
+func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	tests := []struct {
+		name    string
+		value   *GlobalRelayMessageExportSettings
+		success bool
+	}{
+		{
+			"Invalid email address",
+			&GlobalRelayMessageExportSettings{
+				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A9),
+				EmailAddress: NewString("invalidEmailAddress"),
+				SmtpUsername: NewString("SomeUsername"),
+				SmtpPassword: NewString("SomePassword"),
+			},
+			false,
+		},
+		{
+			"Missing smtp username",
+			&GlobalRelayMessageExportSettings{
+				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+				EmailAddress: NewString("valid@mattermost.com"),
+				SmtpPassword: NewString("SomePassword"),
+			},
+			false,
+		},
+		{
+			"Invalid smtp username",
+			&GlobalRelayMessageExportSettings{
+				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+				EmailAddress: NewString("valid@mattermost.com"),
+				SmtpUsername: NewString(""),
+				SmtpPassword: NewString("SomePassword"),
+			},
+			false,
+		},
+		{
+			"Invalid smtp password",
+			&GlobalRelayMessageExportSettings{
+				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+				EmailAddress: NewString("valid@mattermost.com"),
+				SmtpUsername: NewString("SomeUsername"),
+				SmtpPassword: NewString(""),
+			},
+			false,
+		},
+		{
+			"Valid data",
+			&GlobalRelayMessageExportSettings{
+				CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A9),
+				EmailAddress: NewString("valid@mattermost.com"),
+				SmtpUsername: NewString("SomeUsername"),
+				SmtpPassword: NewString("SomePassword"),
+			},
+			true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mes := &MessageExportSettings{
+				EnableExport:        NewBool(true),
+				ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+				ExportFromTimestamp: NewInt64(0),
+				DailyRunTime:        NewString("15:04"),
+				BatchSize:           NewInt(100),
+				GlobalRelaySettings: tt.value,
+			}
+
+			if tt.success {
+				require.Nil(t, mes.isValid(*fs))
+			} else {
+				require.Error(t, mes.isValid(*fs))
+			}
+		})
+	}
 }
 
 func TestMessageExportSetDefaults(t *testing.T) {

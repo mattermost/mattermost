@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"regexp"
 	"strings"
 )
@@ -18,11 +17,6 @@ type SearchParams struct {
 	InChannels []string
 	FromUsers  []string
 	OrTerms    bool
-}
-
-func (o *SearchParams) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
 }
 
 var searchFlags = [...]string{"from", "channel", "in"}

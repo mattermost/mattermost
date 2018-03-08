@@ -109,13 +109,11 @@ func SlackParseUsers(data io.Reader) ([]SlackUser, error) {
 	decoder := json.NewDecoder(data)
 
 	var users []SlackUser
-	if err := decoder.Decode(&users); err != nil {
-		// This actually returns errors that are ignored.
-		// In this case it is erroring because of a null that Slack
-		// introduced. So we just return the users here.
-		return users, err
-	}
-	return users, nil
+	err := decoder.Decode(&users)
+	// This actually returns errors that are ignored.
+	// In this case it is erroring because of a null that Slack
+	// introduced. So we just return the users here.
+	return users, err
 }
 
 func SlackParsePosts(data io.Reader) ([]SlackPost, error) {

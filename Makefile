@@ -56,7 +56,7 @@ GO_LINKER_FLAGS ?= -ldflags \
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
 
-PLATFORM_FILES=$(shell ls -1 ./cmd/platform/*.go | grep -v _test.go)
+PLATFORM_FILES="./main.go"
 
 # Output paths
 DIST_ROOT=dist
