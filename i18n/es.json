@@ -1369,6 +1369,10 @@
     "translation": "No se puedo cargar el archivo. El encabezado no puede ser analizado."
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "No se pudo subir los archivos. El número de archivos especificado es incorrecto."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "No se pudo cargar el archivo que supera las dimensiones máximas: {{.Filename}}"
   },
@@ -1813,6 +1817,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " subió uno o más archivos en un mensaje directo"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " subió uno o más archivos"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -3648,7 +3656,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Los Plugins se han deshabilitado."
+    "translation": "Los Plugins han sido inhabilitados. Por favor revisa los logs para más detalles."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -4181,6 +4189,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "No se puede encontrar el usuario en el servidor AD/LDAP: "
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Dirección de correo electrónico ya se encuentra en uso por otro usuario SAML."
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "Usuario no encontrado en el archivo de usuarios."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Nombre de usuario ya se encuentra en uso por otro usuario de Mattermost."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5025,6 +5045,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Valor no válido para la seguridad de conexión del servidor."
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "La dirección URL del Websocket debe ser una dirección válida y comenzar con ws:// o wss://."
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
