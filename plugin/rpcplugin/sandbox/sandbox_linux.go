@@ -425,6 +425,15 @@ func checkSupportInNamespace() error {
 		return errors.Wrapf(err, "unable to enable seccomp filter")
 	}
 
+	if f, err := os.Create(os.DevNull); err != nil {
+		return errors.Wrapf(err, "unable to open os.DevNull")
+	} else {
+		defer f.Close()
+		if _, err = f.Write([]byte("foo")); err != nil {
+			return errors.Wrapf(err, "unable to write to os.DevNull")
+		}
+	}
+
 	return nil
 }
 
