@@ -90,18 +90,3 @@ func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
 	}
 	return result.Data.(*model.Post), true
 }
-
-func (cfg *AutoPostCreator) CreateTestPosts(rangePosts utils.Range) ([]*model.Post, bool) {
-	numPosts := utils.RandIntFromRange(rangePosts)
-	posts := make([]*model.Post, numPosts)
-
-	for i := 0; i < numPosts; i++ {
-		var err bool
-		posts[i], err = cfg.CreateRandomPost()
-		if !err {
-			return posts, false
-		}
-	}
-
-	return posts, true
-}

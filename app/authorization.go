@@ -181,18 +181,6 @@ func (a *App) HasPermissionToChannelByPost(askingUserId string, postId string, p
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToUser(askingUserId string, userId string) bool {
-	if askingUserId == userId {
-		return true
-	}
-
-	if a.HasPermissionTo(askingUserId, model.PERMISSION_EDIT_OTHER_USERS) {
-		return true
-	}
-
-	return false
-}
-
 func (a *App) CheckIfRolesGrantPermission(roles []string, permissionId string) bool {
 	for _, roleId := range roles {
 		if role := a.Role(roleId); role == nil {

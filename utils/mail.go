@@ -186,10 +186,8 @@ func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string
 		"Auto-Submitted":            {"auto-generated"},
 		"Precedence":                {"bulk"},
 	}
-	if mimeHeaders != nil {
-		for k, v := range mimeHeaders {
-			headers[k] = []string{encodeRFC2047Word(v)}
-		}
+	for k, v := range mimeHeaders {
+		headers[k] = []string{encodeRFC2047Word(v)}
 	}
 
 	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))

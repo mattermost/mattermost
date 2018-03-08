@@ -373,12 +373,6 @@ func (u *User) MakeNonNil() {
 	}
 }
 
-func (u *User) AddProp(key string, value string) {
-	u.MakeNonNil()
-
-	u.Props[key] = value
-}
-
 func (u *User) AddNotifyProp(key string, value string) {
 	u.MakeNonNil()
 
