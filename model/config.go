@@ -154,6 +154,8 @@ const (
 
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
 	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
+	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
+	GLOBALRELAY_CUSTOMER_TYPE_A10      = "A10"
 )
 
 type ServiceSettings struct {
@@ -1627,6 +1629,28 @@ func (s *PluginSettings) SetDefaults() {
 	}
 }
 
+type GlobalRelayMessageExportSettings struct {
+	CustomerType *string // must be either A9 or A10, dictates SMTP server url
+	SmtpUsername *string
+	SmtpPassword *string
+	EmailAddress *string // the address to send messages to
+}
+
+func (s *GlobalRelayMessageExportSettings) SetDefaults() {
+	if s.CustomerType == nil {
+		s.CustomerType = NewString(GLOBALRELAY_CUSTOMER_TYPE_A9)
+	}
+	if s.SmtpUsername == nil {
+		s.SmtpUsername = NewString("")
+	}
+	if s.SmtpPassword == nil {
+		s.SmtpPassword = NewString("")
+	}
+	if s.EmailAddress == nil {
+		s.EmailAddress = NewString("")
+	}
+}
+
 type MessageExportSettings struct {
 	EnableExport        *bool
 	ExportFormat        *string
@@ -1635,7 +1659,7 @@ type MessageExportSettings struct {
 	BatchSize           *int
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
-	GlobalRelayEmailAddress *string
+	GlobalRelaySettings *GlobalRelayMessageExportSettings
 }
 
 func (s *MessageExportSettings) SetDefaults() {
@@ -1665,6 +1689,11 @@ func (s *MessageExportSettings) SetDefaults() {
 
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(10000)
+	}
+
+	if s.GlobalRelaySettings == nil {
+		s.GlobalRelaySettings = &GlobalRelayMessageExportSettings{}
+		s.GlobalRelaySettings.SetDefaults()
 	}
 }
 
@@ -2199,10 +2228,18 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 		}
 
 		if *mes.ExportFormat == COMPLIANCE_EXPORT_TYPE_GLOBALRELAY {
-			// validating email addresses is hard - just make sure it contains an '@' sign
-			// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
-			if mes.GlobalRelayEmailAddress == nil || !strings.Contains(*mes.GlobalRelayEmailAddress, "@") {
-				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay_email_address.app_error", nil, "", http.StatusBadRequest)
+			if mes.GlobalRelaySettings == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.config_missing.app_error", nil, "", http.StatusBadRequest)
+			} else if mes.GlobalRelaySettings.CustomerType == nil || (*mes.GlobalRelaySettings.CustomerType != GLOBALRELAY_CUSTOMER_TYPE_A9 && *mes.GlobalRelaySettings.CustomerType != GLOBALRELAY_CUSTOMER_TYPE_A10) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type.app_error", nil, "", http.StatusBadRequest)
+			} else if mes.GlobalRelaySettings.EmailAddress == nil || !strings.Contains(*mes.GlobalRelaySettings.EmailAddress, "@") {
+				// validating email addresses is hard - just make sure it contains an '@' sign
+				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.email_address.app_error", nil, "", http.StatusBadRequest)
+			} else if mes.GlobalRelaySettings.SmtpUsername == nil || *mes.GlobalRelaySettings.SmtpUsername == "" {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_username.app_error", nil, "", http.StatusBadRequest)
+			} else if mes.GlobalRelaySettings.SmtpPassword == nil || *mes.GlobalRelaySettings.SmtpPassword == "" {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_password.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 	}
