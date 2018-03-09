@@ -354,11 +354,7 @@ func UpgradeDatabaseToVersion47(sqlStore SqlStore) {
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Username")
 
-		defaultTimezone := make(map[string]string)
-		defaultTimezone["useAutomaticTimezone"] = "true"
-		defaultTimezone["automaticTimezone"] = ""
-		defaultTimezone["manualTimezone"] = ""
-
+		defaultTimezone := model.DefaultUserTimezone()
 		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 		if err != nil {
 			l4g.Critical(err)
