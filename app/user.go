@@ -901,10 +901,6 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 			}
 		}
 
-		if extra := <-a.Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
-			return nil, extra.Err
-		}
-
 		ruser := result.Data.([2]*model.User)[0]
 		options := a.Config().GetSanitizeOptions()
 		options["passwordupdate"] = false
