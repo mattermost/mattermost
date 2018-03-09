@@ -314,6 +314,10 @@ func (c *Client4) GetAnalyticsRoute() string {
 	return fmt.Sprintf("/analytics")
 }
 
+func (c *Client4) GetTimezonesRoute() string {
+	return fmt.Sprintf("/timezone")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -3166,6 +3170,18 @@ func (c *Client4) DeleteReaction(reaction *Reaction) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Timezone Section
+
+// GetSupportedTimezone returns a page of supported timezones on the system.
+func (c *Client4) GetSupportedTimezone() (SupportedTimezones, *Response) {
+	if r, err := c.DoApiGet(c.GetTimezonesRoute(), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return TimezonesFromJson(r.Body), BuildResponse(r)
 	}
 }
 
