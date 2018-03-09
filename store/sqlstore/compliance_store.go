@@ -138,6 +138,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) store.StoreC
 			    Teams.DisplayName AS TeamDisplayName,
 			    Channels.Name AS ChannelName,
 			    Channels.DisplayName AS ChannelDisplayName,
+			    Channels.Type AS ChannelType,
 			    Users.Username AS UserUsername,
 			    Users.Email AS UserEmail,
 			    Users.Nickname AS UserNickname,
@@ -172,6 +173,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) store.StoreC
 			    'Direct Messages' AS TeamDisplayName,
 			    Channels.Name AS ChannelName,
 			    Channels.DisplayName AS ChannelDisplayName,
+			    Channels.Type AS ChannelType,
 			    Users.Username AS UserUsername,
 			    Users.Email AS UserEmail,
 			    Users.Nickname AS UserNickname,
@@ -228,6 +230,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 					WHEN Channels.Type = 'G' THEN 'Group Message'
 					ELSE Channels.DisplayName
 				END AS ChannelDisplayName,
+				Channels.Type AS ChannelType,
 				Users.Id AS UserId,
 				Users.Email AS UserEmail,
 				Users.Username
