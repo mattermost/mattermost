@@ -6,6 +6,7 @@ package model
 type MessageExport struct {
 	ChannelId          *string
 	ChannelDisplayName *string
+	ChannelType        *string
 
 	UserId    *string
 	UserEmail *string
