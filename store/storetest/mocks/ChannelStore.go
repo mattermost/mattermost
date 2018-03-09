@@ -98,22 +98,6 @@ func (_m *ChannelStore) Delete(channelId string, time int64) store.StoreChannel 
 	return r0
 }
 
-// ExtraUpdateByUser provides a mock function with given fields: userId, time
-func (_m *ChannelStore) ExtraUpdateByUser(userId string, time int64) store.StoreChannel {
-	ret := _m.Called(userId, time)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
-		r0 = rf(userId, time)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
 // Get provides a mock function with given fields: id, allowFromCache
 func (_m *ChannelStore) Get(id string, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(id, allowFromCache)
