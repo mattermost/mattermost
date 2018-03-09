@@ -80,7 +80,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 /*func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json", false)
+	cfg, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
 
