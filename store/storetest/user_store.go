@@ -25,6 +25,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
 	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
 	t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, ss) })
+	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, ss) })
 	t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, ss) })
 	t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, ss) })
 	t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, ss) })
@@ -456,6 +457,82 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	}
 
 	if r2 := <-ss.User().GetProfilesInChannel(c2.Id, 0, 1); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if len(r2.Data.([]*model.User)) != 1 {
+			t.Fatal("should have returned only 1 user")
+		}
+	}
+}
+
+func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	store.Must(ss.User().Save(u1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	store.Must(ss.User().Save(u2))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
+
+	c1 := model.Channel{}
+	c1.TeamId = teamId
+	c1.DisplayName = "Profiles in channel"
+	c1.Name = "profiles-" + model.NewId()
+	c1.Type = model.CHANNEL_OPEN
+
+	c2 := model.Channel{}
+	c2.TeamId = teamId
+	c2.DisplayName = "Profiles in private"
+	c2.Name = "profiles-" + model.NewId()
+	c2.Type = model.CHANNEL_PRIVATE
+
+	store.Must(ss.Channel().Save(&c1, -1))
+	store.Must(ss.Channel().Save(&c2, -1))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = c1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = c1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c2.Id
+	m3.UserId = u1.Id
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	store.Must(ss.Channel().SaveMember(&m1))
+	store.Must(ss.Channel().SaveMember(&m2))
+	store.Must(ss.Channel().SaveMember(&m3))
+
+	if r1 := <-ss.User().GetProfilesInChannelByStatus(c1.Id, 0, 100); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users")
+		}
+
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
+		}
+	}
+
+	if r2 := <-ss.User().GetProfilesInChannelByStatus(c2.Id, 0, 1); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.([]*model.User)) != 1 {
