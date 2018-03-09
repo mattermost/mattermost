@@ -14,7 +14,7 @@ import (
 )
 
 func TestMailConnection(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json", false)
+	cfg, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := connectToSMTPServer(cfg); err != nil {
@@ -38,7 +38,7 @@ func TestMailConnection(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json", false)
+	cfg, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
 

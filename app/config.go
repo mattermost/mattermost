@@ -46,11 +46,11 @@ func (a *App) PersistConfig() {
 func (a *App) LoadConfig(configFile string) *model.AppError {
 	old := a.Config()
 
-	cfg, configPath, err := utils.LoadConfig(configFile, false)
+	cfg, configPath, err := utils.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
-	timezoneCfg, _, err := utils.LoadConfig("timezones.json", true)
+	timezoneCfg, _, err := utils.LoadTimezoneConfig("timezones.json")
 	if err != nil {
 		return err
 	}

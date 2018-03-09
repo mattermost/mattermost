@@ -21,12 +21,12 @@ func TestConfigFlag(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	utils.TranslationsPreInit()
-	config, _, err := utils.LoadConfig("config.json", false)
+	config, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
 	configPath := filepath.Join(dir, "foo.json")
 	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))
 
-	tzConfig, _, err := utils.LoadConfig("timezones.json", true)
+	tzConfig, _, err := utils.LoadTimezoneConfig("timezones.json")
 	require.Nil(t, err)
 	tzConfigPath := filepath.Join(dir, "timezones.json")
 	require.NoError(t, ioutil.WriteFile(tzConfigPath, []byte(tzConfig.ToJson()), 0600))

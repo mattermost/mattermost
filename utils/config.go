@@ -278,16 +278,13 @@ func EnsureConfigFile(fileName string) (string, error) {
 	return "", fmt.Errorf("no config file found")
 }
 
-// LoadConfig will try to search around for the corresponding config file.  It will search
-// /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
-// fileName.
-func LoadConfig(fileName string, isTimezoneConfig bool) (config *model.Config, configPath string, appErr *model.AppError) {
+func loadConfigFile(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
 	if fileName != filepath.Base(fileName) {
 		configPath = fileName
 	} else {
 		if path, err := EnsureConfigFile(fileName); err != nil {
 			appErr = model.NewAppError("LoadConfig", "utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-			return
+			return nil, "", appErr
 		} else {
 			configPath = path
 		}
@@ -296,11 +293,19 @@ func LoadConfig(fileName string, isTimezoneConfig bool) (config *model.Config, c
 	config, err := ReadConfigFile(configPath, true)
 	if err != nil {
 		appErr = model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-		return
+		return nil, "", appErr
 	}
 
-	if isTimezoneConfig {
-		return config, "", nil
+	return config, configPath, nil
+}
+
+// LoadConfig will try to search around for the corresponding config file.  It will search
+// /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
+// fileName.
+func LoadConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
+	config, configPath, appErr = loadConfigFile(fileName)
+	if appErr != nil {
+		return nil, "", appErr
 	}
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
@@ -332,6 +337,10 @@ func LoadConfig(fileName string, isTimezoneConfig bool) (config *model.Config, c
 	}
 
 	return config, configPath, nil
+}
+
+func LoadTimezoneConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
+	return loadConfigFile(fileName)
 }
 
 func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
