@@ -26,7 +26,7 @@ func TestStartServerRateLimiterCriticalError(t *testing.T) {
 
 	// Attempt to use Rate Limiter with an invalid config
 	a.UpdateConfig(func(cfg *model.Config) {
-		*cfg.RateLimitSettings.Enable   = true
+		*cfg.RateLimitSettings.Enable = true
 		*cfg.RateLimitSettings.MaxBurst = -100
 	})
 
