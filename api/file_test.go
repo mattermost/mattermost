@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -870,7 +871,7 @@ func TestGetInfoForFilename(t *testing.T) {
 
 func readTestFile(name string) ([]byte, error) {
 	path, _ := utils.FindDir("tests")
-	file, err := os.Open(path + "/" + name)
+	file, err := os.Open(filepath.Join(path, name))
 	if err != nil {
 		return nil, err
 	}

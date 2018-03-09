@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -114,7 +115,7 @@ func GetLicenseFileFromDisk(fileName string) []byte {
 func GetLicenseFileLocation(fileLocation string) string {
 	if fileLocation == "" {
 		configDir, _ := FindDir("config")
-		return configDir + "mattermost.mattermost-license"
+		return filepath.Join(configDir, "mattermost.mattermost-license")
 	} else {
 		return fileLocation
 	}

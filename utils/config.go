@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -51,21 +50,24 @@ func FindConfigFile(fileName string) (path string) {
 	return ""
 }
 
+// FindDir recurses to the root looking for the given directory, falling back to `./` if not found.
 func FindDir(dir string) (string, bool) {
-	fileName := "."
-	found := false
-	if _, err := os.Stat("./" + dir + "/"); err == nil {
-		fileName, _ = filepath.Abs("./" + dir + "/")
-		found = true
-	} else if _, err := os.Stat("../" + dir + "/"); err == nil {
-		fileName, _ = filepath.Abs("../" + dir + "/")
-		found = true
-	} else if _, err := os.Stat("../../" + dir + "/"); err == nil {
-		fileName, _ = filepath.Abs("../../" + dir + "/")
-		found = true
+	cwd, _ := os.Getwd()
+
+	for {
+		foundDir := filepath.Join(cwd, dir)
+		if _, err := os.Stat(foundDir); err == nil {
+			return foundDir, true
+		}
+
+		parent := filepath.Join(cwd, "../")
+		if parent == cwd {
+			break
+		}
+		cwd = parent
 	}
 
-	return fileName + "/", found
+	return "./", false
 }
 
 func DisableDebugLogForTest() {
@@ -136,11 +138,10 @@ func ConfigureLog(s *model.LogSettings) {
 
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		logDir, _ := FindDir("logs")
-		return logDir + LOG_FILENAME
-	} else {
-		return path.Join(fileLocation, LOG_FILENAME)
+		fileLocation, _ = FindDir("logs")
 	}
+
+	return filepath.Join(fileLocation, LOG_FILENAME)
 }
 
 func SaveConfig(fileName string, config *model.Config) *model.AppError {

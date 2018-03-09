@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -675,7 +676,7 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 
 func readTestFile(name string) ([]byte, error) {
 	path, _ := utils.FindDir("tests")
-	file, err := os.Open(path + "/" + name)
+	file, err := os.Open(filepath.Join(path, name))
 	if err != nil {
 		return nil, err
 	}

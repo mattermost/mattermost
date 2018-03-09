@@ -53,9 +53,9 @@ func InitTranslationsWithDir(dir string) error {
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
-			locales[strings.Split(filename, ".")[0]] = i18nDirectory + filename
+			locales[strings.Split(filename, ".")[0]] = filepath.Join(i18nDirectory, filename)
 
-			if err := i18n.LoadTranslationFile(i18nDirectory + filename); err != nil {
+			if err := i18n.LoadTranslationFile(filepath.Join(i18nDirectory, filename)); err != nil {
 				return err
 			}
 		}
