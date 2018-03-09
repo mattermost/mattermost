@@ -4,8 +4,10 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -194,4 +196,27 @@ func TestPluginCommands(t *testing.T) {
 	})
 	require.NotNil(t, err)
 	assert.Equal(t, http.StatusNotFound, err.StatusCode)
+}
+
+type pluginBadActivation struct {
+	testPlugin
+}
+
+func (p *pluginBadActivation) OnActivate(api plugin.API) error {
+	return errors.New("won't activate for some reason")
+}
+
+func TestPluginBadActivation(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.InstallPlugin(&model.Manifest{
+		Id: "foo",
+	}, &pluginBadActivation{})
+
+	t.Run("EnablePlugin bad activation", func(t *testing.T) {
+		err := th.App.EnablePlugin("foo")
+		assert.NotNil(t, err)
+		assert.True(t, strings.Contains(err.DetailedError, "won't activate for some reason"))
+	})
 }
