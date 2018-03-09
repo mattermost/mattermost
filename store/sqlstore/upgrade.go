@@ -359,7 +359,7 @@ func UpgradeDatabaseToVersion47(sqlStore SqlStore) {
 		if err != nil {
 			l4g.Critical(err)
 		}
-		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(150)", "varchar(150)", string(defaultTimezoneValue))
+		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 		saveSchemaVersion(sqlStore, VERSION_4_7_0)
 	}
 }
