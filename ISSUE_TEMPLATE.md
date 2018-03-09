@@ -1,4 +1,20 @@
-Per Mattermost guidelines, GitHub issues are for bug reports: http://www.mattermost.org/filing-issues/. Follow the steps in this link before proceeding with filing an issue below as JIRA is where existing issues are tracked and worked on.
+Per Mattermost guidelines, GitHub issues are for bug reports: <http://www.mattermost.org/filing-issues/>. 
+
+Please follow the steps below to ensure that your bug gets submitted correctly.
+
+1. Confirm you’re filing a new issue. 
+
+Check JIRA <https://mattermost.atlassian.net/issues/> to ensure that the ticket does not already exist.
+
+2. Confirm your issue does not involve security
+
+If your issue involves security, please see our Responsible Disclosure Policy <https://about.mattermost.com/report-security-issue/>
+
+3. File a new issue
+
+File a new issue here: https://github.com/mattermost/mattermost-server/issues/new
+
+4. Mattermost will confirm steps to reproduce and file in JIRA, or ask for more details if there is trouble reproducing it. If there's already an existing bug in JIRA, it will be linked back to the Github issue so you can track when it gets fixed.
 
 For troubleshooting see: http://forum.mattermost.org/.
 For feature proposals see: http://www.mattermost.org/feature-requests/
