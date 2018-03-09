@@ -5,6 +5,7 @@ package utils
 
 import (
 	"bytes"
+	"errors"
 	"html/template"
 	"io"
 	"reflect"
@@ -103,6 +104,10 @@ func (t *HTMLTemplate) Render() string {
 }
 
 func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
+	if t.Templates == nil {
+		return errors.New("no html templates")
+	}
+
 	if err := t.Templates.ExecuteTemplate(w, t.TemplateName, t); err != nil {
 		l4g.Error(T("api.api.render.error"), t.TemplateName, err)
 		return err

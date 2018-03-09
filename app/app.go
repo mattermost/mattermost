@@ -439,7 +439,11 @@ func (a *App) WaitForGoroutines() {
 }
 
 func (a *App) HTMLTemplates() *template.Template {
-	return a.htmlTemplateWatcher.Templates()
+	if a.htmlTemplateWatcher != nil {
+		return a.htmlTemplateWatcher.Templates()
+	}
+
+	return nil
 }
 
 func (a *App) HTTPClient(trustURLs bool) *http.Client {
