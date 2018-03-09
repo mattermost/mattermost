@@ -43,7 +43,6 @@ func TestChannelStore(t *testing.T, ss store.Store) {
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, ss) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, ss) })
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
-	t.Run("UpdateExtrasByUser", func(t *testing.T) { testUpdateExtrasByUser(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
@@ -1638,54 +1637,6 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 2 {
 		t.Fatalf("got incorrect member count %v", result.Data)
-	}
-}
-
-func testUpdateExtrasByUser(t *testing.T, ss store.Store) {
-	teamId := model.NewId()
-
-	c1 := model.Channel{
-		TeamId:      teamId,
-		DisplayName: "Channel1",
-		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
-	}
-	store.Must(ss.Channel().Save(&c1, -1))
-
-	c2 := model.Channel{
-		TeamId:      teamId,
-		DisplayName: "Channel2",
-		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_OPEN,
-	}
-	store.Must(ss.Channel().Save(&c2, -1))
-
-	u1 := &model.User{
-		Email:    model.NewId(),
-		DeleteAt: 0,
-	}
-	store.Must(ss.User().Save(u1))
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
-
-	m1 := model.ChannelMember{
-		ChannelId:   c1.Id,
-		UserId:      u1.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	}
-	store.Must(ss.Channel().SaveMember(&m1))
-
-	u1.DeleteAt = model.GetMillis()
-	store.Must(ss.User().Update(u1, true))
-
-	if result := <-ss.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
-		t.Fatalf("failed to update extras by user: %v", result.Err)
-	}
-
-	u1.DeleteAt = 0
-	store.Must(ss.User().Update(u1, true))
-
-	if result := <-ss.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
-		t.Fatalf("failed to update extras by user: %v", result.Err)
 	}
 }
 
