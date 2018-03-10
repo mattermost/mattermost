@@ -66,7 +66,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 	}
 	defer a.Shutdown()
 
-	utils.TestConnection(a.Config())
+	go utils.TestConnection(a.Config())
 
 	pwd, _ := os.Getwd()
 	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
