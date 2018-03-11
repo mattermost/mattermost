@@ -525,8 +525,8 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
 		}
 
-		props["EnableThemeSelection"] = true
-		props["AllowCustomThemes"] = true 
+		props["EnableThemeSelection"] = "true"
+		props["AllowCustomThemes"] = "true"
 		
 		if *license.Features.ThemeManagement {
 			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
