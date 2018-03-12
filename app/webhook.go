@@ -225,7 +225,7 @@ func SplitWebhookPost(post *model.Post) ([]*model.Post, *model.AppError) {
 
 func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
-	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
+	linkWithTextRegex := regexp.MustCompile(`<([^\n<\|>]+)\|([^\n>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
 	post := &model.Post{UserId: userId, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
