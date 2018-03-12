@@ -527,7 +527,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 		props["EnableThemeSelection"] = "true"
 		props["AllowCustomThemes"] = "true"
-		
+
 		if *license.Features.ThemeManagement {
 			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
 			props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
