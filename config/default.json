@@ -358,7 +358,13 @@
         "DailyRunTime": "01:00",
         "ExportFromTimestamp": 0,
         "FileLocation": "export",
-        "BatchSize": 10000
+        "BatchSize": 10000,
+        "GlobalRelaySettings": {
+            "CustomerType": "A9",
+            "SmtpUsername": "",
+            "SmtpPassword": "",
+            "EmailAddress": ""
+        }
     },
     "JobSettings": {
         "RunJobs": true,
