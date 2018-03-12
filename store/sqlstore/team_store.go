@@ -570,3 +570,15 @@ func (us SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) st
 		}
 	})
 }
+
+func (s SqlTeamStore) GetTeamsByScheme(schemeId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var teams []*model.Team
+		_, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetTeamsByScheme", "store.sql_team.get_by_scheme.app_error", nil, "schemeId="+schemeId+" "+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = teams
+		}
+	})
+}

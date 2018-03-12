@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -34,6 +36,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetChannelUnreadsForAllTeams", func(t *testing.T) { testGetChannelUnreadsForAllTeams(t, ss) })
 	t.Run("GetChannelUnreadsForTeam", func(t *testing.T) { testGetChannelUnreadsForTeam(t, ss) })
 	t.Run("UpdateLastTeamIconUpdate", func(t *testing.T) { testUpdateLastTeamIconUpdate(t, ss) })
+	t.Run("GetTeamsByScheme", func(t *testing.T) { testGetTeamsByScheme(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1028,4 +1031,68 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 	if ro1.LastTeamIconUpdate <= lastTeamIconUpdateInitial {
 		t.Fatal("LastTeamIconUpdate not updated")
 	}
+}
+
+func testGetTeamsByScheme(t *testing.T, ss store.Store) {
+	// Create some schemes.
+	s1 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+
+	s2 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+
+	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+
+	// Create and save some teams.
+	t1 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    s1.Id,
+	}
+
+	t2 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    s1.Id,
+	}
+
+	t3 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+	}
+
+	t1 = (<-ss.Team().Save(t1)).Data.(*model.Team)
+	t2 = (<-ss.Team().Save(t2)).Data.(*model.Team)
+	t3 = (<-ss.Team().Save(t3)).Data.(*model.Team)
+
+	// Get the teams by a valid Scheme ID.
+	res1 := <-ss.Team().GetTeamsByScheme(s1.Id)
+	assert.Nil(t, res1.Err)
+	d1 := res1.Data.([]*model.Team)
+	assert.Len(t, d1, 2)
+
+	// Get the teams by a valid Scheme ID where there aren't any matching Teams.
+	res2 := <-ss.Team().GetTeamsByScheme(s2.Id)
+	assert.Nil(t, res2.Err)
+	d2 := res2.Data.([]*model.Team)
+	assert.Len(t, d2, 0)
+
+	// Get the teams by an invalid Scheme ID.
+	res3 := <-ss.Team().GetTeamsByScheme(model.NewId())
+	assert.Nil(t, res3.Err)
+	d3 := res3.Data.([]*model.Team)
+	assert.Len(t, d3, 0)
 }
