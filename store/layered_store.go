@@ -259,6 +259,12 @@ func (s *LayeredRoleStore) GetByNames(names []string) StoreChannel {
 	})
 }
 
+func (s *LayeredRoleStore) Delete(roldId string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.RoleDelete(s.TmpContext, roldId)
+	})
+}
+
 func (s *LayeredRoleStore) PermanentDeleteAll() StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.RolePermanentDeleteAll(s.TmpContext)

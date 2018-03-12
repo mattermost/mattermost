@@ -478,6 +478,7 @@ type RoleStore interface {
 	Get(roleId string) StoreChannel
 	GetByName(name string) StoreChannel
 	GetByNames(names []string) StoreChannel
+	Delete(roldId string) StoreChannel
 	PermanentDeleteAll() StoreChannel
 }
 

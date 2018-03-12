@@ -193,3 +193,17 @@ func (s *SqlSupplier) SchemeGet(ctx context.Context, schemeId string, hints ...s
 
 	return result
 }
+
+func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	// TODO: Get the scheme.
+
+	// TODO: Check that it isn't being used on any Teams or Channels as appropriate.
+
+	// TODO: Delete the roles belonging to the scheme.
+
+	// TODO: Delete the scheme itself.
+
+	return result
+}

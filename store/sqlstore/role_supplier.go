@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/gorp"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -204,6 +205,37 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 	}
 
 	result.Data = roles
+
+	return result
+}
+
+func (s *SqlSupplier) RoleDelete(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	// Get the role.
+	var role *Role
+	if err := s.GetReplica().SelectOne(&role, "SELECT * from Roles WHERE Id = :Id", map[string]interface{}{"Id": roleId}); err != nil {
+		if err == sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.get.app_error", nil, "Id="+roleId+", "+err.Error(), http.StatusNotFound)
+		} else {
+			result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		return result
+	}
+
+	time := model.GetMillis()
+	role.DeleteAt = time
+	role.UpdateAt = time
+
+	if rowsChanged, err := s.GetMaster().Update(role); err != nil {
+		result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.delete.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else if rowsChanged != 1 {
+		result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.delete.update.app_error", nil, "no record to update", http.StatusInternalServerError)
+	} else {
+		result.Data = role.ToModel()
+		l4g.Error(result.Data)
+	}
 
 	return result
 }
