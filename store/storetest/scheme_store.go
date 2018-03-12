@@ -20,41 +20,41 @@ func TestSchemeStore(t *testing.T, ss store.Store) {
 }
 
 func createDefaultRoles(t *testing.T, ss store.Store) {
-	assert.Nil(t, (<-ss.Role().Save(&model.Role{
+	<-ss.Role().Save(&model.Role{
 		Name:        model.TEAM_ADMIN_ROLE_ID,
 		DisplayName: model.TEAM_ADMIN_ROLE_ID,
 		Permissions: []string{
 			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
-	})).Err)
+	})
 
-	assert.Nil(t, (<-ss.Role().Save(&model.Role{
+	<-ss.Role().Save(&model.Role{
 		Name:        model.TEAM_USER_ROLE_ID,
 		DisplayName: model.TEAM_USER_ROLE_ID,
 		Permissions: []string{
 			model.PERMISSION_VIEW_TEAM.Id,
 			model.PERMISSION_ADD_USER_TO_TEAM.Id,
 		},
-	})).Err)
+	})
 
-	assert.Nil(t, (<-ss.Role().Save(&model.Role{
+	<-ss.Role().Save(&model.Role{
 		Name:        model.CHANNEL_ADMIN_ROLE_ID,
 		DisplayName: model.CHANNEL_ADMIN_ROLE_ID,
 		Permissions: []string{
 			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 		},
-	})).Err)
+	})
 
-	assert.Nil(t, (<-ss.Role().Save(&model.Role{
+	<-ss.Role().Save(&model.Role{
 		Name:        model.CHANNEL_USER_ROLE_ID,
 		DisplayName: model.CHANNEL_USER_ROLE_ID,
 		Permissions: []string{
 			model.PERMISSION_READ_CHANNEL.Id,
 			model.PERMISSION_CREATE_POST.Id,
 		},
-	})).Err)
+	})
 }
 
 func testSchemeStoreSave(t *testing.T, ss store.Store) {

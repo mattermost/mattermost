@@ -14,6 +14,8 @@ import (
 )
 
 func TestTeamStore(t *testing.T, ss store.Store) {
+	createDefaultRoles(t, ss)
+
 	t.Run("Save", func(t *testing.T) { testTeamStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, ss) })
 	t.Run("UpdateDisplayName", func(t *testing.T) { testTeamStoreUpdateDisplayName(t, ss) })

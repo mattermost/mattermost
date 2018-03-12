@@ -1827,3 +1827,15 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) sto
 		}
 	})
 }
+
+func (s SqlChannelStore) GetChannelsByScheme(schemeId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var channels []*model.Channel
+		_, err := s.GetReplica().Select(&channels, "SELECT * FROM Channels WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.GetChannelsByScheme", "store.sql_channel.get_by_scheme.app_error", nil, "schemeId="+schemeId+" "+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = channels
+		}
+	})
+}

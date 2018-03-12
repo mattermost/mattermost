@@ -164,6 +164,7 @@ type ChannelStore interface {
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
 	ClearCaches()
+	GetChannelsByScheme(schemeId string) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {

@@ -88,7 +88,7 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 		}
 
 		if len(defaultRoles) != 4 {
-			result.Err = model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.retrieve_default_scheme_roles.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.retrieve_default_scheme_roles.app_error", nil, "", http.StatusInternalServerError)
 			return result
 		}
 	}
