@@ -104,8 +104,6 @@ type Routes struct {
 
 	ReactionByNameForPostForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}/reactions/{emoji_name:[A-Za-z0-9_-+]+}'
 
-	Timezones *mux.Router // 'api/v4/timezone'
-
 	Webrtc *mux.Router // 'api/v4/webrtc'
 }
 
@@ -194,8 +192,6 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	api.BaseRoutes.ReactionByNameForPostForUser = api.BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
 
-	api.BaseRoutes.Timezones = api.BaseRoutes.ApiRoot.PathPrefix("/timezone").Subrouter()
-
 	api.BaseRoutes.Webrtc = api.BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
 
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
@@ -228,7 +224,6 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitOpenGraph()
 	api.InitPlugin()
 	api.InitImage()
-	api.InitTimezone()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

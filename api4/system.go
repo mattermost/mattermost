@@ -36,6 +36,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.ApiRoot.Handle("/analytics/old", api.ApiSessionRequired(getAnalytics)).Methods("GET")
+
+	api.BaseRoutes.ApiRoot.Handle("/timezones", api.ApiSessionRequired(getSupportedTimezones)).Methods("GET")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -376,6 +378,18 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(rows.ToJson()))
+}
+
+func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
+	supportedTimezones := c.App.Config().SupportedTimezones
+
+	if len(supportedTimezones) == 0 {
+		emptyTimezones := make([]string, 0)
+		w.Write([]byte(model.TimezonesToJson(emptyTimezones)))
+		return
+	}
+
+	w.Write([]byte(model.TimezonesToJson(supportedTimezones)))
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {

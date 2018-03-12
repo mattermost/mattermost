@@ -315,7 +315,7 @@ func (c *Client4) GetAnalyticsRoute() string {
 }
 
 func (c *Client4) GetTimezonesRoute() string {
-	return fmt.Sprintf("/timezone")
+	return fmt.Sprintf("/timezones")
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
