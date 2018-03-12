@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/avct/uasurfer"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mssola/user_agent"
 )
 
 func (api *API) InitAdmin() {
@@ -201,12 +201,11 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 
 	// attach extra headers to trigger a download on IE, Edge, and Safari
-	ua := user_agent.New(r.UserAgent())
-	bname, _ := ua.Browser()
+	ua := uasurfer.Parse(r.UserAgent())
 
 	w.Header().Set("Content-Disposition", "attachment;filename=\""+job.JobName()+".zip\"")
 
-	if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
+	if ua.Browser.Name == uasurfer.BrowserIE || ua.Browser.Name == uasurfer.BrowserSafari {
 		// trim off anything before the final / so we just get the file's name
 		w.Header().Set("Content-Type", "application/octet-stream")
 	}
