@@ -510,7 +510,7 @@ func migrateAuthToLdapCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	fromAuth := args[0]
-	matchField := args[1]
+	matchField := args[2]
 
 	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "saml") {
 		return errors.New("Invalid from_auth argument")
@@ -551,7 +551,7 @@ func migrateAuthToSamlCmdF(cmd *cobra.Command, args []string) error {
 	matchesFile := ""
 	matches := map[string]string{}
 	if !autoFlag {
-		matchesFile = args[1]
+		matchesFile = args[2]
 
 		file, e := ioutil.ReadFile(matchesFile)
 		if e != nil {
