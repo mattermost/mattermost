@@ -31,7 +31,7 @@ podTemplate(label: 'jenkins-slave',
         ),
         containerTemplate(
             name: 'mattermost-inbucket',
-            image: 'jhillyerd/inbucket:latest',
+            image: 'jhillyerd/inbucket:release-1.2.0',
             resourceRequestCpu: '250m',
             resourceLimitCpu: '250m',
             resourceRequestMemory: '256Mi',
