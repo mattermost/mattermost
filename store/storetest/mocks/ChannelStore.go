@@ -274,6 +274,22 @@ func (_m *ChannelStore) GetChannelsByScheme(schemeId string) store.StoreChannel 
 	return r0
 }
 
+// GetChannelsByScheme provides a mock function with given fields: schemeId
+func (_m *ChannelStore) GetChannelsByScheme(schemeId string) store.StoreChannel {
+	ret := _m.Called(schemeId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(schemeId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetDeleted provides a mock function with given fields: team_id, offset, limit
 func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int) store.StoreChannel {
 	ret := _m.Called(team_id, offset, limit)
