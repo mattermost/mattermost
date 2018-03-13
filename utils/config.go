@@ -50,23 +50,16 @@ func FindConfigFile(fileName string) (path string) {
 	return ""
 }
 
-// FindDir recurses to the root looking for the given directory, falling back to `./` if not found.
+// FindDir looks for the given directory in nearby ancestors, falling back to `./` if not found.
 func FindDir(dir string) (string, bool) {
-	cwd, _ := os.Getwd()
-
-	for {
-		foundDir := filepath.Join(cwd, dir)
-		if _, err := os.Stat(foundDir); err == nil {
+	for _, parent := range []string{".", "..", "../.."} {
+		foundDir, err := filepath.Abs(filepath.Join(parent, dir))
+		if err != nil {
+			continue
+		} else if _, err := os.Stat(foundDir); err == nil {
 			return foundDir, true
 		}
-
-		parent := filepath.Join(cwd, "../")
-		if parent == cwd {
-			break
-		}
-		cwd = parent
 	}
-
 	return "./", false
 }
 
