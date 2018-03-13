@@ -13,6 +13,7 @@ import (
 // It should be maitained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"4.8.0",
 	"4.7.1",
 	"4.7.0",
 	"4.6.0",
@@ -104,10 +105,6 @@ func GetPreviousVersion(version string) string {
 	}
 
 	return ""
-}
-
-func IsOfficalBuild() bool {
-	return BuildNumber != "_BUILD_NUMBER_"
 }
 
 func IsCurrentVersion(versionToCheck string) bool {

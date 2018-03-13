@@ -61,6 +61,11 @@ func (_m *PostStore) AnalyticsUserCountsWithPostsByDay(teamId string) store.Stor
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *PostStore) ClearCaches() {
+	_m.Called()
+}
+
 // Delete provides a mock function with given fields: postId, time
 func (_m *PostStore) Delete(postId string, time int64) store.StoreChannel {
 	ret := _m.Called(postId, time)

@@ -25,8 +25,11 @@ const (
 
 var fileInfoCache *utils.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
 
-func ClearFileCaches() {
+func (fs SqlFileInfoStore) ClearCaches() {
 	fileInfoCache.Purge()
+	if fs.metrics != nil {
+		fs.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Purge")
+	}
 }
 
 func NewSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
@@ -118,6 +121,9 @@ func (fs SqlFileInfoStore) GetByPath(path string) store.StoreChannel {
 
 func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	fileInfoCache.Remove(postId)
+	if fs.metrics != nil {
+		fs.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
+	}
 }
 
 func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowFromCache bool) store.StoreChannel {

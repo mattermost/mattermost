@@ -468,6 +468,22 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.EnableDebugLogForTest()
 }
 
+func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
+	utils.DisableDebugLogForTest()
+
+	member, err := me.App.AddUserToChannel(user, channel)
+	if err != nil {
+		l4g.Error(err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(err)
+	}
+
+	utils.EnableDebugLogForTest()
+
+	return member
+}
+
 func (me *TestHelper) GenerateTestEmail() string {
 	if me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
@@ -508,18 +524,6 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 
 	if user.MfaSecret != "" {
 		t.Fatal("mfa secret wasn't blank")
-	}
-}
-
-func CheckTeamSanitization(t *testing.T, team *model.Team) {
-	t.Helper()
-
-	if team.Email != "" {
-		t.Fatal("email wasn't blank")
-	}
-
-	if team.AllowedDomains != "" {
-		t.Fatal("'allowed domains' wasn't blank")
 	}
 }
 
@@ -666,21 +670,6 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	if resp.StatusCode != http.StatusInternalServerError {
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
-		t.Fatal("wrong status code")
-	}
-}
-
-func CheckPayLoadTooLargeStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	if resp.Error == nil {
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusRequestEntityTooLarge))
-		return
-	}
-
-	if resp.StatusCode != http.StatusRequestEntityTooLarge {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusRequestEntityTooLarge))
 		t.Fatal("wrong status code")
 	}
 }

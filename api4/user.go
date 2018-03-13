@@ -290,13 +290,18 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sort != "" && sort != "last_activity_at" && sort != "create_at" {
+	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" {
 		c.SetInvalidUrlParam("sort")
 		return
 	}
 
 	// Currently only supports sorting on a team
+	// or sort="status" on inChannelId
 	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "") {
+		c.SetInvalidUrlParam("sort")
+		return
+	}
+	if sort == "status" && inChannelId == "" {
 		c.SetInvalidUrlParam("sort")
 		return
 	}
@@ -355,8 +360,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
-
-		profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		if sort == "status" {
+			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		} else {
+			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		}
 	} else {
 		// No permission check required
 

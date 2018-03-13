@@ -133,8 +133,24 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 	app.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
 		app.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
+
+		message.Add("config", app.ClientConfigWithNoAccounts())
+		app.Go(func() {
+			app.Publish(message)
+		})
 	})
-	app.licenseListenerId = app.AddLicenseListener(app.configOrLicenseListener)
+	app.licenseListenerId = app.AddLicenseListener(func() {
+		app.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
+		message.Add("license", app.GetSanitizedClientLicense())
+		app.Go(func() {
+			app.Publish(message)
+		})
+
+	})
 	app.regenerateClientConfig()
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))

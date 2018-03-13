@@ -227,7 +227,7 @@ func TestWebSocketEvent(t *testing.T) {
 	}
 
 	evt2 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", "somerandomid", "", nil)
-	go th.App.Publish(evt2)
+	th.App.Publish(evt2)
 	time.Sleep(300 * time.Millisecond)
 
 	eventHit = false

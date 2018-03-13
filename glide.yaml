@@ -77,3 +77,4 @@ import:
   subpackages:
   - store/memstore
 - package: gopkg.in/yaml.v2
+- package: github.com/avct/uasurfer

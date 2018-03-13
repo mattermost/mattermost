@@ -38,13 +38,22 @@ type SqlUserStore struct {
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
 var profileByIdsCache *utils.Cache = utils.NewLru(PROFILE_BY_IDS_CACHE_SIZE)
 
-func ClearUserCaches() {
+func (us SqlUserStore) ClearCaches() {
 	profilesInChannelCache.Purge()
 	profileByIdsCache.Purge()
+
+	if us.metrics != nil {
+		us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Purge")
+		us.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Purge")
+	}
 }
 
 func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {
 	profileByIdsCache.Remove(userId)
+
+	if us.metrics != nil {
+		us.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
+	}
 }
 
 func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
@@ -384,6 +393,9 @@ func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 			userMap := cacheItem.(map[string]*model.User)
 			if _, userInCache := userMap[userId]; userInCache {
 				profilesInChannelCache.Remove(key)
+				if us.metrics != nil {
+					us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by User")
+				}
 			}
 		}
 	}
@@ -391,16 +403,66 @@ func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 
 func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
 	profilesInChannelCache.Remove(channelId)
+	if us.metrics != nil {
+		us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by Channel")
+	}
 }
 
 func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
 
-		query := "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset"
+		query := `
+				SELECT 
+					Users.* 
+				FROM 
+					Users, ChannelMembers 
+				WHERE 
+					ChannelMembers.ChannelId = :ChannelId 
+					AND Users.Id = ChannelMembers.UserId 
+				ORDER BY 
+					Users.Username ASC 
+				LIMIT :Limit OFFSET :Offset
+		`
 
 		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+
+			for _, u := range users {
+				u.Sanitize(map[string]bool{})
+			}
+
+			result.Data = users
+		}
+	})
+}
+
+func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var users []*model.User
+
+		query := `
+			SELECT 
+				Users.*
+			FROM Users
+				INNER JOIN ChannelMembers ON Users.Id = ChannelMembers.UserId
+				LEFT JOIN Status  ON Users.Id = Status.UserId
+			WHERE
+				ChannelMembers.ChannelId = :ChannelId
+			ORDER BY 
+				CASE Status
+					WHEN 'online' THEN 1
+					WHEN 'away' THEN 2
+					WHEN 'dnd' THEN 3
+					ELSE 4
+				END,
+				Users.Username ASC 
+			LIMIT :Limit OFFSET :Offset
+		`
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetProfilesInChannelByStatus", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 
 			for _, u := range users {

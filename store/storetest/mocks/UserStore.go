@@ -77,6 +77,11 @@ func (_m *UserStore) AnalyticsUniqueUserCount(teamId string) store.StoreChannel 
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *UserStore) ClearCaches() {
+	_m.Called()
+}
+
 // Get provides a mock function with given fields: id
 func (_m *UserStore) Get(id string) store.StoreChannel {
 	ret := _m.Called(id)
@@ -335,6 +340,22 @@ func (_m *UserStore) GetProfilesByUsernames(usernames []string, teamId string) s
 
 // GetProfilesInChannel provides a mock function with given fields: channelId, offset, limit
 func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(channelId, offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(channelId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetProfilesInChannelByStatus provides a mock function with given fields: channelId, offset, limit
+func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) store.StoreChannel {
 	ret := _m.Called(channelId, offset, limit)
 
 	var r0 store.StoreChannel

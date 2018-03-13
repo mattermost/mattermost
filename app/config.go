@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"net/url"
 	"runtime/debug"
+	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -34,6 +35,7 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 	updated := old.Clone()
 	f(updated)
 	a.config.Store(updated)
+
 	a.InvokeConfigListeners(old, updated)
 }
 
@@ -268,4 +270,17 @@ func (a *App) GetCookieDomain() string {
 
 func (a *App) GetSiteURL() string {
 	return a.siteURL
+}
+
+// ClientConfigWithNoAccounts gets the configuration in a format suitable for sending to the client.
+func (a *App) ClientConfigWithNoAccounts() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range a.ClientConfig() {
+		respCfg[k] = v
+	}
+
+	// NoAccounts is not actually part of the configuration, but is expected by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
+
+	return respCfg
 }

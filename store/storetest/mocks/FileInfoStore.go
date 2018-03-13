@@ -29,6 +29,11 @@ func (_m *FileInfoStore) AttachToPost(fileId string, postId string) store.StoreC
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *FileInfoStore) ClearCaches() {
+	_m.Called()
+}
+
 // DeleteForPost provides a mock function with given fields: postId
 func (_m *FileInfoStore) DeleteForPost(postId string) store.StoreChannel {
 	ret := _m.Called(postId)
