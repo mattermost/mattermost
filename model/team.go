@@ -243,15 +243,6 @@ func (o *Team) Sanitize() {
 	o.AllowedDomains = ""
 }
 
-func (o *Team) SanitizeForNotLoggedIn() {
-	o.Email = ""
-	o.AllowedDomains = ""
-	o.CompanyName = ""
-	if !o.AllowOpenInvite {
-		o.InviteId = ""
-	}
-}
-
 func (t *Team) Patch(patch *TeamPatch) {
 	if patch.DisplayName != nil {
 		t.DisplayName = *patch.DisplayName

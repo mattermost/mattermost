@@ -461,13 +461,13 @@ func (_m *TeamStore) UpdateDisplayName(name string, teamId string) store.StoreCh
 	return r0
 }
 
-// UpdateMember provides a mock function with given fields: member
-func (_m *TeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel {
-	ret := _m.Called(member)
+// UpdateLastTeamIconUpdate provides a mock function with given fields: teamId, curTime
+func (_m *TeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) store.StoreChannel {
+	ret := _m.Called(teamId, curTime)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.TeamMember) store.StoreChannel); ok {
-		r0 = rf(member)
+	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+		r0 = rf(teamId, curTime)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -477,13 +477,13 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel {
 	return r0
 }
 
-// UpdateLastTeamIconUpdate provides a mock function with given fields: teamId
-func (_m *TeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) store.StoreChannel {
-	ret := _m.Called(teamId)
+// UpdateMember provides a mock function with given fields: member
+func (_m *TeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel {
+	ret := _m.Called(member)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
-		r0 = rf(teamId, curTime)
+	if rf, ok := ret.Get(0).(func(*model.TeamMember) store.StoreChannel); ok {
+		r0 = rf(member)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

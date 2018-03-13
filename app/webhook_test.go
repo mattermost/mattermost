@@ -317,6 +317,64 @@ func TestCreateWebhookPost(t *testing.T) {
 	if err == nil {
 		t.Fatal("should have failed - bad post type")
 	}
+
+	expectedText := "`<>|<>|`"
+	post, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", model.StringInterface{
+		"attachments": []*model.SlackAttachment{
+			{
+				Text: "text",
+			},
+		},
+		"webhook_display_name": hook.DisplayName,
+	}, model.POST_SLACK_ATTACHMENT, "")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	assert.Equal(t, expectedText, post.Message)
+
+	expectedText = "< | \n|\n>"
+	post, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", model.StringInterface{
+		"attachments": []*model.SlackAttachment{
+			{
+				Text: "text",
+			},
+		},
+		"webhook_display_name": hook.DisplayName,
+	}, model.POST_SLACK_ATTACHMENT, "")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	assert.Equal(t, expectedText, post.Message)
+
+	expectedText = `commit bc95839e4a430ace453e8b209a3723c000c1729a
+Author: foo <foo@example.org>
+Date:   Thu Mar 1 19:46:54 2018 +0300
+
+    commit message 2
+
+  test | 1 +
+ 1 file changed, 1 insertion(+)
+
+commit 5df78b7139b543997838071cd912e375d8bd69b2
+Author: foo <foo@example.org>
+Date:   Thu Mar 1 19:46:48 2018 +0300
+
+    commit message 1
+
+ test | 3 +++
+ 1 file changed, 3 insertions(+)`
+	post, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", model.StringInterface{
+		"attachments": []*model.SlackAttachment{
+			{
+				Text: "text",
+			},
+		},
+		"webhook_display_name": hook.DisplayName,
+	}, model.POST_SLACK_ATTACHMENT, "")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	assert.Equal(t, expectedText, post.Message)
 }
 
 func TestSplitWebhookPost(t *testing.T) {

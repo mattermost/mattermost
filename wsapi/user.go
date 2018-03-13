@@ -29,7 +29,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
 	event.Add("parent_id", parentId)
 	event.Add("user_id", req.Session.UserId)
-	go api.App.Publish(event)
+	api.App.Publish(event)
 
 	return nil, nil
 }

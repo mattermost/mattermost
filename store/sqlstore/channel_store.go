@@ -43,12 +43,20 @@ var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBE
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
-func ClearChannelCaches() {
+func (s SqlChannelStore) ClearCaches() {
 	channelMemberCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
 	channelCache.Purge()
 	channelByNameCache.Purge()
+
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
+		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Purge")
+		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Purge")
+		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
+		s.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
+	}
 }
 
 func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
@@ -308,12 +316,18 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) store.StoreC
 	})
 }
 
-func (us SqlChannelStore) InvalidateChannel(id string) {
+func (s SqlChannelStore) InvalidateChannel(id string) {
 	channelCache.Remove(id)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
+	}
 }
 
-func (us SqlChannelStore) InvalidateChannelByName(teamId, name string) {
+func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 	channelByNameCache.Remove(teamId + name)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Channel by Name - Remove by TeamId and Name")
+	}
 }
 
 func (s SqlChannelStore) Get(id string, allowFromCache bool) store.StoreChannel {
@@ -814,14 +828,17 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) store.StoreC
 	})
 }
 
-func (us SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
+func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	allChannelMembersForUserCache.Remove(userId)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Remove by UserId")
+	}
 }
 
-func (us SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
+func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
 	if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
-		if us.metrics != nil {
-			us.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 		}
 		ids := cacheItem.(map[string]string)
 		if _, ok := ids[channelId]; ok {
@@ -830,12 +847,12 @@ func (us SqlChannelStore) IsUserInChannelUseCache(userId string, channelId strin
 			return false
 		}
 	} else {
-		if us.metrics != nil {
-			us.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 		}
 	}
 
-	if result := <-us.GetAllChannelMembersForUser(userId, true); result.Err != nil {
+	if result := <-s.GetAllChannelMembersForUser(userId, true); result.Err != nil {
 		l4g.Error("SqlChannelStore.IsUserInChannelUseCache: " + result.Err.Error())
 		return false
 	} else {
@@ -915,8 +932,11 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 	})
 }
 
-func (us SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
+func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
 	allChannelMembersNotifyPropsForChannelCache.Remove(channelId)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members Notify Props for Channel - Remove by ChannelId")
+	}
 }
 
 type allChannelMemberNotifyProps struct {
@@ -966,8 +986,11 @@ func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId str
 	})
 }
 
-func (us SqlChannelStore) InvalidateMemberCount(channelId string) {
+func (s SqlChannelStore) InvalidateMemberCount(channelId string) {
 	channelMemberCountsCache.Remove(channelId)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Remove by ChannelId")
+	}
 }
 
 func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
@@ -1221,19 +1244,6 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType st
 			result.Err = model.NewAppError("SqlChannelStore.AnalyticsDeletedTypeCount", "store.sql_channel.analytics_deleted_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = v
-		}
-	})
-}
-
-func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec(
-			`UPDATE Channels SET ExtraUpdateAt = :Time
-			WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId);`,
-			map[string]interface{}{"UserId": userId, "Time": time})
-
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.extraUpdated", "store.sql_channel.extra_updated.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 		}
 	})
 }

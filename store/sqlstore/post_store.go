@@ -35,9 +35,14 @@ const (
 var lastPostTimeCache = utils.NewLru(LAST_POST_TIME_CACHE_SIZE)
 var lastPostsCache = utils.NewLru(LAST_POSTS_CACHE_SIZE)
 
-func ClearPostCaches() {
+func (s SqlPostStore) ClearCaches() {
 	lastPostTimeCache.Purge()
 	lastPostsCache.Purge()
+
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
+		s.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Purge")
+	}
 }
 
 func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
@@ -326,6 +331,11 @@ func (s SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
 	lastPostsCache.Remove(channelId + "30")
 	lastPostsCache.Remove(channelId + "60")
+
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Remove by Channel Id")
+		s.metrics.IncrementMemCacheInvalidationCounter("Last Posts Cache - Remove by Channel Id")
+	}
 }
 
 func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {

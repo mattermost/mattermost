@@ -26,9 +26,6 @@ import (
 )
 
 const (
-	MODE_DEV        = "dev"
-	MODE_BETA       = "beta"
-	MODE_PROD       = "prod"
 	LOG_ROTATE_SIZE = 10000
 	LOG_FILENAME    = "mattermost.log"
 )

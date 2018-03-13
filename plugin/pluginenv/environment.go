@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -163,12 +164,24 @@ func (env *Environment) ActivatePlugin(id string) error {
 			return fmt.Errorf("env missing webapp path, cannot activate plugin: %v", id)
 		}
 
-		webappBundle, err := ioutil.ReadFile(fmt.Sprintf("%s/%s/webapp/%s_bundle.js", env.searchPath, id, id))
+		bundlePath := filepath.Clean(bundle.Manifest.Webapp.BundlePath)
+		if bundlePath == "" || bundlePath[0] == '.' {
+			return fmt.Errorf("invalid webapp bundle path")
+		}
+		bundlePath = filepath.Join(env.searchPath, id, bundlePath)
+
+		webappBundle, err := ioutil.ReadFile(bundlePath)
 		if err != nil {
-			if supervisor != nil {
-				supervisor.Stop()
+			// Backwards compatibility for plugins where webapp.bundle_path was ignored. This should
+			// be removed eventually.
+			if webappBundle2, err2 := ioutil.ReadFile(fmt.Sprintf("%s/%s/webapp/%s_bundle.js", env.searchPath, id, id)); err2 == nil {
+				webappBundle = webappBundle2
+			} else {
+				if supervisor != nil {
+					supervisor.Stop()
+				}
+				return errors.Wrapf(err, "unable to read webapp bundle: %v", id)
 			}
-			return errors.Wrapf(err, "unable to read webapp bundle: %v", id)
 		}
 
 		err = ioutil.WriteFile(fmt.Sprintf("%s/%s_bundle.js", env.webappPath, id), webappBundle, 0644)

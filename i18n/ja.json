@@ -1369,6 +1369,10 @@
     "translation": "ファイルをアップロードできません。ヘッダーを解析できません。"
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "ファイルをアップロードできませんでした。指定されたファイル数が正しくありません。"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "最大サイズ以上のファイルはアップロードできません: {{.Filename}}"
   },
@@ -1813,6 +1817,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
     "translation": " ファイルをダイレクトメッセージにアップロードしました"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
+    "translation": " ファイルをアップロードしました"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -3648,7 +3656,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "プラグインは無効化されています。"
+    "translation": "プラグインは無効化されています。詳しくはログを確認してください。"
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3700,7 +3708,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "このチームは登録ユーザー数の上限に達しました。システム管理者に上限値の設定を変更するように依頼してください。"
+    "translation": "このチームは登録ユーザー数の上限に達しました。システム管理者に上限値を上げるよう依頼してください。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4181,6 +4189,18 @@
   {
     "id": "ent.migration.migratetoldap.user_not_found",
     "translation": "AD/LDAPサーバー上でユーザを見つけることができませんでした: "
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "電子メールアドレスは既に別のSAMLユーザーによって使用されています。"
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "ユーザーはユーザーファイル内で見つかりませんでした。"
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "ユーザー名は既に別のMattermostユーザーによって使用されています。"
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -5025,6 +5045,10 @@
   {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "ウェブサーバーの接続のセキュリティーが不正な値です。"
+  },
+  {
+    "id": "model.config.is_valid.websocket_url.app_error",
+    "translation": "ウェブソケットURLは、ws://またはwss://で始まる有効なURLにしてください。"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
