@@ -1746,6 +1746,74 @@ type Config struct {
 	SupportedTimezones    SupportedTimezones
 }
 
+func (o *Config) SaveClone() interface{} {
+	return struct {
+		ServiceSettings       ServiceSettings
+		TeamSettings          TeamSettings
+		ClientRequirements    ClientRequirements
+		SqlSettings           SqlSettings
+		LogSettings           LogSettings
+		PasswordSettings      PasswordSettings
+		FileSettings          FileSettings
+		EmailSettings         EmailSettings
+		RateLimitSettings     RateLimitSettings
+		PrivacySettings       PrivacySettings
+		SupportSettings       SupportSettings
+		AnnouncementSettings  AnnouncementSettings
+		ThemeSettings         ThemeSettings
+		DisplaySettings       DisplaySettings
+		GitLabSettings        SSOSettings
+		GoogleSettings        SSOSettings
+		Office365Settings     SSOSettings
+		LdapSettings          LdapSettings
+		ComplianceSettings    ComplianceSettings
+		LocalizationSettings  LocalizationSettings
+		SamlSettings          SamlSettings
+		NativeAppSettings     NativeAppSettings
+		ClusterSettings       ClusterSettings
+		MetricsSettings       MetricsSettings
+		AnalyticsSettings     AnalyticsSettings
+		WebrtcSettings        WebrtcSettings
+		ElasticsearchSettings ElasticsearchSettings
+		DataRetentionSettings DataRetentionSettings
+		MessageExportSettings MessageExportSettings
+		JobSettings           JobSettings
+		PluginSettings        PluginSettings
+	}{
+		o.ServiceSettings,
+		o.TeamSettings,
+		o.ClientRequirements,
+		o.SqlSettings,
+		o.LogSettings,
+		o.PasswordSettings,
+		o.FileSettings,
+		o.EmailSettings,
+		o.RateLimitSettings,
+		o.PrivacySettings,
+		o.SupportSettings,
+		o.AnnouncementSettings,
+		o.ThemeSettings,
+		o.DisplaySettings,
+		o.GitLabSettings,
+		o.GoogleSettings,
+		o.Office365Settings,
+		o.LdapSettings,
+		o.ComplianceSettings,
+		o.LocalizationSettings,
+		o.SamlSettings,
+		o.NativeAppSettings,
+		o.ClusterSettings,
+		o.MetricsSettings,
+		o.AnalyticsSettings,
+		o.WebrtcSettings,
+		o.ElasticsearchSettings,
+		o.DataRetentionSettings,
+		o.MessageExportSettings,
+		o.JobSettings,
+		o.PluginSettings,
+	}
+}
+
 func (o *Config) Clone() *Config {
 	var ret Config
 	if err := json.Unmarshal([]byte(o.ToJson()), &ret); err != nil {

@@ -144,7 +144,7 @@ func GetLogFileLocation(fileLocation string) string {
 }
 
 func SaveConfig(fileName string, config *model.Config) *model.AppError {
-	b, err := json.MarshalIndent(config, "", "    ")
+	b, err := json.MarshalIndent(config.SaveClone(), "", "    ")
 	if err != nil {
 		return model.NewAppError("SaveConfig", "utils.config.save_config.saving.app_error",
 			map[string]interface{}{"Filename": fileName}, err.Error(), http.StatusBadRequest)
