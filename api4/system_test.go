@@ -497,7 +497,7 @@ func TestS3TestConnection(t *testing.T) {
 			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
 			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
 			AmazonS3Bucket:          "",
-			AmazonS3Endpoint:        "",
+			AmazonS3Endpoint:        s3Endpoint,
 			AmazonS3SSL:             model.NewBool(false),
 		},
 	}
@@ -512,20 +512,11 @@ func TestS3TestConnection(t *testing.T) {
 	}
 
 	config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckBadRequestStatus(t, resp)
-	if resp.Error.Message != "S3 Endpoint is required" {
-		t.Fatal("should return error - missing s3 endpoint")
-	}
-
-	config.FileSettings.AmazonS3Endpoint = s3Endpoint
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckBadRequestStatus(t, resp)
-	if resp.Error.Message != "S3 Region is required" {
-		t.Fatal("should return error - missing s3 region")
-	}
-
 	config.FileSettings.AmazonS3Region = "us-east-1"
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckOKStatus(t, resp)
+
+	config.FileSettings.AmazonS3Region = ""
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 

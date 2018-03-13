@@ -253,12 +253,9 @@ func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
 	}
 
+	// if S3 endpoint is not set call the set defaults to set that
 	if len(settings.AmazonS3Endpoint) == 0 {
-		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_endpoint", nil, "", http.StatusBadRequest)
-	}
-
-	if len(settings.AmazonS3Region) == 0 {
-		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_region", nil, "", http.StatusBadRequest)
+		settings.SetDefaults()
 	}
 
 	return nil
