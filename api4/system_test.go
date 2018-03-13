@@ -262,28 +262,34 @@ func TestEmailTest(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	SendEmailNotifications := th.App.Config().EmailSettings.SendEmailNotifications
-	SMTPServer := th.App.Config().EmailSettings.SMTPServer
-	SMTPPort := th.App.Config().EmailSettings.SMTPPort
-	FeedbackEmail := th.App.Config().EmailSettings.FeedbackEmail
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = SendEmailNotifications })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = SMTPServer })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = SMTPPort })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = FeedbackEmail })
-	}()
+	config := model.Config{
+		EmailSettings: model.EmailSettings{
+			SMTPServer: "",
+			SMTPPort:   "",
+		},
+	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = "" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = "" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = "" })
-
-	_, resp := Client.TestEmail()
+	_, resp := Client.TestEmail(&config)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.TestEmail()
+	_, resp = th.SystemAdminClient.TestEmail(&config)
 	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
 	CheckBadRequestStatus(t, resp)
+
+	inbucket_host := os.Getenv("CI_HOST")
+	if inbucket_host == "" {
+		inbucket_host = "dockerhost"
+	}
+
+	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
+	if inbucket_port == "" {
+		inbucket_port = "9000"
+	}
+
+	config.EmailSettings.SMTPServer = inbucket_host
+	config.EmailSettings.SMTPPort = inbucket_port
+	_, resp = th.SystemAdminClient.TestEmail(&config)
+	CheckOKStatus(t, resp)
 }
 
 func TestDatabaseRecycle(t *testing.T) {
