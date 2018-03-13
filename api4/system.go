@@ -395,6 +395,10 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
+	}
+
 	license := c.App.License()
 	backend, appErr := utils.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
 	if appErr == nil {
