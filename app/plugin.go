@@ -318,6 +318,9 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 	})
 
 	if err := a.SaveConfig(a.Config(), true); err != nil {
+		if err.Id == "ent.cluster.save_config.error" {
+			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
+		}
 		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
