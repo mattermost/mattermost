@@ -23,7 +23,7 @@ import (
 )
 
 func init() {
-	if len(os.Args) < 3 || os.Args[0] != "sandbox.runProcess" {
+	if len(os.Args) < 4 || os.Args[0] != "sandbox.runProcess" {
 		return
 	}
 
@@ -32,7 +32,7 @@ func init() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	if err := runProcess(&config, os.Args[2]); err != nil {
+	if err := runProcess(&config, os.Args[2], os.Args[3]); err != nil {
 		if eerr, ok := err.(*exec.ExitError); ok {
 			if status, ok := eerr.Sys().(syscall.WaitStatus); ok {
 				os.Exit(status.ExitStatus())
@@ -98,13 +98,7 @@ func systemMountPoints() (points []*MountPoint) {
 	return
 }
 
-func runProcess(config *Configuration, path string) error {
-	root, err := ioutil.TempDir("", "")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(root)
-
+func runProcess(config *Configuration, path, root string) error {
 	if err := syscall.Mount("", "/", "", syscall.MS_PRIVATE|syscall.MS_REC, ""); err != nil {
 		return errors.Wrapf(err, "unable to make root private")
 	}
@@ -330,9 +324,10 @@ func runExecutable(path string) error {
 
 type process struct {
 	command *exec.Cmd
+	root    string
 }
 
-func newProcess(ctx context.Context, config *Configuration, path string) (rpcplugin.Process, io.ReadWriteCloser, error) {
+func newProcess(ctx context.Context, config *Configuration, path string) (pOut rpcplugin.Process, rwcOut io.ReadWriteCloser, errOut error) {
 	configJSON, err := json.Marshal(config)
 	if err != nil {
 		return nil, nil, err
@@ -345,8 +340,18 @@ func newProcess(ctx context.Context, config *Configuration, path string) (rpcplu
 	defer childFiles[0].Close()
 	defer childFiles[1].Close()
 
+	root, err := ioutil.TempDir("", "")
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func() {
+		if errOut != nil {
+			os.RemoveAll(root)
+		}
+	}()
+
 	cmd := exec.CommandContext(ctx, "/proc/self/exe")
-	cmd.Args = []string{"sandbox.runProcess", string(configJSON), path}
+	cmd.Args = []string{"sandbox.runProcess", string(configJSON), path, root}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.ExtraFiles = childFiles
@@ -378,19 +383,21 @@ func newProcess(ctx context.Context, config *Configuration, path string) (rpcplu
 
 	return &process{
 		command: cmd,
+		root:    root,
 	}, ipc, nil
 }
 
 func (p *process) Wait() error {
+	defer os.RemoveAll(p.root)
 	return p.command.Wait()
 }
 
 func init() {
-	if len(os.Args) < 1 || os.Args[0] != "sandbox.checkSupportInNamespace" {
+	if len(os.Args) < 2 || os.Args[0] != "sandbox.checkSupportInNamespace" {
 		return
 	}
 
-	if err := checkSupportInNamespace(); err != nil {
+	if err := checkSupportInNamespace(os.Args[1]); err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err.Error())
 		os.Exit(1)
 	}
@@ -398,13 +405,7 @@ func init() {
 	os.Exit(0)
 }
 
-func checkSupportInNamespace() error {
-	root, err := ioutil.TempDir("", "")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(root)
-
+func checkSupportInNamespace(root string) error {
 	if err := syscall.Mount("", "/", "", syscall.MS_PRIVATE|syscall.MS_REC, ""); err != nil {
 		return errors.Wrapf(err, "unable to make root private")
 	}
@@ -444,8 +445,14 @@ func checkSupport() error {
 
 	stderr := &bytes.Buffer{}
 
+	root, err := ioutil.TempDir("", "")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(root)
+
 	cmd := exec.Command("/proc/self/exe")
-	cmd.Args = []string{"sandbox.checkSupportInNamespace"}
+	cmd.Args = []string{"sandbox.checkSupportInNamespace", root}
 	cmd.Stderr = stderr
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWNS | syscall.CLONE_NEWUTS | syscall.CLONE_NEWIPC | syscall.CLONE_NEWPID | syscall.CLONE_NEWUSER,
