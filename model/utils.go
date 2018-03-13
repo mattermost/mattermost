@@ -247,6 +247,15 @@ func StringFromJson(data io.Reader) string {
 	}
 }
 
+func StringInArray(arr []string, value string) bool {
+	for _, v := range arr {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
 func GetServerIpAddress() string {
 	if addrs, err := net.InterfaceAddrs(); err != nil {
 		return ""
