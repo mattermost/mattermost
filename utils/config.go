@@ -452,6 +452,9 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
 
+	props["EnableThemeSelection"] = "true"
+	props["AllowCustomThemes"] = "true"
+
 	if license != nil {
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
@@ -524,9 +527,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["BannerTextColor"] = *c.AnnouncementSettings.BannerTextColor
 			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
 		}
-
-		props["EnableThemeSelection"] = "true"
-		props["AllowCustomThemes"] = "true"
 
 		if *license.Features.ThemeManagement {
 			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
