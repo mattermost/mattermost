@@ -50,7 +50,14 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	timezoneCfg, _, err := utils.LoadTimezoneConfig("timezones.json")
+
+	timezonePath := "timezones.json"
+
+	if cfg.TimezoneSettings.SupportedTimezonesPath != nil && len(*cfg.TimezoneSettings.SupportedTimezonesPath) > 0 {
+		timezonePath = *cfg.TimezoneSettings.SupportedTimezonesPath
+	}
+
+	timezoneCfg, _, err := utils.LoadTimezoneConfig(timezonePath)
 	if err != nil {
 		return err
 	}

@@ -214,6 +214,9 @@
     "DisplaySettings": {
         "EnableTimezoneSelection": false
     },
+    "TimezoneSettings": {
+        "SupportedTimezonesPath": "timezones.json"
+    },
     "GitLabSettings": {
         "Enable": false,
         "Secret": "",
