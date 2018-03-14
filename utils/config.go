@@ -458,7 +458,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
-	props["EnableTimezoneSelection"] = strconv.FormatBool(*c.DisplaySettings.EnableTimezoneSelection)
 
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)

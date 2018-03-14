@@ -211,9 +211,6 @@
         "AllowCustomThemes": true,
         "AllowedThemes": []
     },
-    "DisplaySettings": {
-        "EnableTimezoneSelection": false
-    },
     "TimezoneSettings": {
         "SupportedTimezonesPath": "timezones.json"
     },
