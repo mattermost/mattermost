@@ -2308,11 +2308,11 @@
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": "发送频道作用消息失败"
+    "translation": "发送频道移动消息失败。"
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "This channel has been moved to this team from %v."
+    "translation": "此频道已从 %v 移至此团队。"
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -3080,7 +3080,7 @@
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
+    "translation": "无法解码传入的 webhook 混合数据。"
   },
   {
     "id": "api.webhook.init.debug",
@@ -4904,7 +4904,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+    "translation": "消息导出任务 ExportFormat 必须为 'actiance' 或 'globalrelay'"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.app_error",
@@ -4916,7 +4916,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
-    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
+    "translation": "消息导出任务 GlobalRelayEmailAddress 必须为有效的电子邮箱地址"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
