@@ -14,11 +14,11 @@ const (
 	EMOJI_SORT_BY_NAME    = "name"
 )
 
-var systemEmojis = []string{
-	"croissant",
-	"grinning",
-	"smiley",
-	"smile",
+var systemEmojis = map[string]int{
+	"croissant": 1,
+	"grinning":  1,
+	"smiley":    1,
+	"smile":     1,
 }
 
 type Emoji struct {
@@ -47,7 +47,7 @@ func (emoji *Emoji) IsValid() *AppError {
 		return NewAppError("Emoji.IsValid", "model.emoji.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(emoji.Name) == 0 || len(emoji.Name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(emoji.Name, false) || StringInArray(systemEmojis, emoji.Name) {
+	if len(emoji.Name) == 0 || len(emoji.Name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(emoji.Name, false) || StringInMap(systemEmojis, emoji.Name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
