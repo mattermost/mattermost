@@ -537,16 +537,5 @@ func TestSupportedTimezones(t *testing.T) {
 	supportedTimezones, resp := Client.GetSupportedTimezone()
 
 	CheckNoError(t, resp)
-	for _, timezone := range supportedTimezones {
-		found := false
-		for _, configTimezone := range supportedTimezonesFromConfig {
-			if timezone == configTimezone {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Fatalf("failed to find timezone: %v", timezone)
-		}
-	}
+	assert.Equal(t, supportedTimezonesFromConfig, supportedTimezones)
 }
