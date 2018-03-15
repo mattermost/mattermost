@@ -383,13 +383,13 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 	supportedTimezones := c.App.Config().SupportedTimezones
 
-	if len(supportedTimezones) == 0 {
-		emptyTimezones := make([]string, 0)
-		w.Write([]byte(model.TimezonesToJson(emptyTimezones)))
+	if supportedTimezones != nil {
+		w.Write([]byte(model.TimezonesToJson(supportedTimezones)))
 		return
 	}
 
-	w.Write([]byte(model.TimezonesToJson(supportedTimezones)))
+	emptyTimezones := make([]string, 0)
+	w.Write([]byte(model.TimezonesToJson(emptyTimezones)))
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
