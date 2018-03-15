@@ -191,15 +191,15 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subje
 		return nil
 	}
 
-	conn, err1 := ConnectToSMTPServer(config)
-	if err1 != nil {
-		return err1
+	conn, err := ConnectToSMTPServer(config)
+	if err != nil {
+		return err
 	}
 	defer conn.Close()
 
-	c, err2 := NewSMTPClient(conn, config)
-	if err2 != nil {
-		return err2
+	c, err := NewSMTPClient(conn, config)
+	if err != nil {
+		return err
 	}
 	defer c.Quit()
 	defer c.Close()
