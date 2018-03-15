@@ -637,6 +637,37 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 
 	assert.Equal(t, expectedOrder, r4.Order)
 	assertPosts(expectedPosts, r4.Posts)
+
+	// Replies past the window should be included if the root post itself is in the window
+	root3Reply1 := &model.Post{}
+	root3Reply1.ChannelId = root1.ChannelId
+	root3Reply1.UserId = model.NewId()
+	root3Reply1.Message = "zz" + model.NewId() + "b"
+	root3Reply1.ParentId = root3.Id
+	root3Reply1.RootId = root3.Id
+	root3Reply1 = (<-ss.Post().Save(root3Reply1)).Data.(*model.Post)
+
+	r5 := (<-ss.Post().GetPosts(root1.ChannelId, 1, 5, false)).Data.(*model.PostList)
+	expectedOrder = []string{
+		root3.Id,
+		root2Reply1.Id,
+		root2.Id,
+		root1Reply3.Id,
+		root1Reply2.Id,
+	}
+	expectedPosts = []*model.Post{
+		root1,
+		root1Reply1,
+		root1Reply2,
+		root1Reply3,
+		root2,
+		root2Reply1,
+		root3,
+		root3Reply1,
+	}
+
+	assert.Equal(t, expectedOrder, r5.Order)
+	assertPosts(expectedPosts, r5.Posts)
 }
 
 func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
