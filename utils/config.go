@@ -284,7 +284,7 @@ func loadConfigFile(fileName string) (config *model.Config, configPath string, a
 	} else {
 		if path, err := EnsureConfigFile(fileName); err != nil {
 			appErr = model.NewAppError("LoadConfig", "utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-			return nil, "", appErr
+			return
 		} else {
 			configPath = path
 		}
@@ -293,10 +293,10 @@ func loadConfigFile(fileName string) (config *model.Config, configPath string, a
 	config, err := ReadConfigFile(configPath, true)
 	if err != nil {
 		appErr = model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-		return nil, "", appErr
+		return
 	}
 
-	return config, configPath, nil
+	return
 }
 
 // LoadConfig will try to search around for the corresponding config file.  It will search
@@ -305,7 +305,7 @@ func loadConfigFile(fileName string) (config *model.Config, configPath string, a
 func LoadConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
 	config, configPath, appErr = loadConfigFile(fileName)
 	if appErr != nil {
-		return nil, "", appErr
+		return
 	}
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
