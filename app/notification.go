@@ -55,10 +55,15 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		var otherUserId string
-		if userIds := strings.Split(channel.Name, "__"); userIds[0] == post.UserId {
-			otherUserId = userIds[1]
-		} else {
-			otherUserId = userIds[0]
+
+		userIds := strings.Split(channel.Name, "__")
+
+		if userIds[0] != userIds[1] {
+			if userIds[0] == post.UserId {
+				otherUserId = userIds[1]
+			} else {
+				otherUserId = userIds[0]
+			}
 		}
 
 		if _, ok := profileMap[otherUserId]; ok {
