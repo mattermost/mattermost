@@ -3636,7 +3636,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
