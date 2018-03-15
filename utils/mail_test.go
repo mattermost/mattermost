@@ -44,24 +44,28 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServerAdvanced(
-		cfg.EmailSettings.ConnectionSecurity,
-		*cfg.EmailSettings.SkipServerCertificateVerification,
-		cfg.EmailSettings.SMTPServer,
-		cfg.EmailSettings.SMTPPort,
+		&SmtpConnectionInfo{
+			ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
+			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
+			SmtpServer:           cfg.EmailSettings.SMTPServer,
+			SmtpPort:             cfg.EmailSettings.SMTPPort,
+		},
 	); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
 		if _, err1 := NewSMTPClientAdvanced(
 			conn,
-			cfg.EmailSettings.ConnectionSecurity,
-			*cfg.EmailSettings.SkipServerCertificateVerification,
-			cfg.EmailSettings.SMTPServer,
-			cfg.EmailSettings.SMTPPort,
 			GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
-			*cfg.EmailSettings.EnableSMTPAuth,
-			cfg.EmailSettings.SMTPUsername,
-			cfg.EmailSettings.SMTPPassword,
+			&SmtpConnectionInfo{
+				ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
+				SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
+				SmtpServer:           cfg.EmailSettings.SMTPServer,
+				SmtpPort:             cfg.EmailSettings.SMTPPort,
+				Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
+				SmtpUsername:         cfg.EmailSettings.SMTPUsername,
+				SmtpPassword:         cfg.EmailSettings.SMTPPassword,
+			},
 		); err1 != nil {
 			t.Log(err)
 			t.Fatal("Should get new smtp client")
@@ -69,10 +73,12 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	}
 
 	if _, err := ConnectToSMTPServerAdvanced(
-		cfg.EmailSettings.ConnectionSecurity,
-		*cfg.EmailSettings.SkipServerCertificateVerification,
-		"wrongServer",
-		"553",
+		&SmtpConnectionInfo{
+			ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
+			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
+			SmtpServer:           "wrongServer",
+			SmtpPort:             "553",
+		},
 	); err == nil {
 		t.Log(err)
 		t.Fatal("Should not to the STMP Server")
@@ -218,10 +224,12 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 func TestAuthMethods(t *testing.T) {
 	auth := &authChooser{
-		SmtpUsername: "test",
-		SmtpPassword: "fakepass",
-		SmtpServer:   "fakeserver",
-		SmtpPort:     "25",
+		connectionInfo: &SmtpConnectionInfo{
+			SmtpUsername: "test",
+			SmtpPassword: "fakepass",
+			SmtpServer:   "fakeserver",
+			SmtpPort:     "25",
+		},
 	}
 	tests := []struct {
 		desc   string
