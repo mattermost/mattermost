@@ -18,3 +18,8 @@ func (s *RedisSupplier) SchemeGet(ctx context.Context, schemeId string, hints ..
 	// TODO: Redis caching.
 	return s.Next().SchemeGet(ctx, schemeId, hints...)
 }
+
+func (s *RedisSupplier) SchemeDelete(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().SchemeDelete(ctx, schemeId, hints...)
+}

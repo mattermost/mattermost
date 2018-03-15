@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/gorp"
 
@@ -197,13 +198,75 @@ func (s *SqlSupplier) SchemeGet(ctx context.Context, schemeId string, hints ...s
 func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	// TODO: Get the scheme.
+	// Get the scheme
+	var scheme model.Scheme
+	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
+		if err == sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.get.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusNotFound)
+		} else {
+			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.get.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+		}
 
-	// TODO: Check that it isn't being used on any Teams or Channels as appropriate.
+		return result
+	}
 
-	// TODO: Delete the roles belonging to the scheme.
+	// Check that the scheme isn't being used on any Teams or Channels.
+	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
+		if c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
+			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.team_count.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+			return result
+		} else {
+			if c > 0 {
+				result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.scheme_in_use.app_error", nil, "Id="+schemeId, http.StatusInternalServerError)
+				return result
+			}
+		}
+	} else if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
+		if c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Channels WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
+			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.channel_count.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+			return result
+		} else {
+			if c > 0 {
+				result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.scheme_in_use.app_error", nil, "Id="+schemeId, http.StatusInternalServerError)
+				return result
+			}
+		}
+	}
 
-	// TODO: Delete the scheme itself.
+	// Delete the roles belonging to the scheme.
+	roleIds := []string{scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
+	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
+		roleIds = append(roleIds, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
+	}
+
+	var inQueryList []string
+	queryArgs := make(map[string]interface{})
+	for i, roleId := range roleIds {
+		inQueryList = append(inQueryList, fmt.Sprintf(":RoleId%v", i))
+		queryArgs[fmt.Sprintf("RoleId%v", i)] = roleId
+	}
+	inQuery := strings.Join(inQueryList, ", ")
+
+	time := model.GetMillis()
+	queryArgs["UpdateAt"] = time
+	queryArgs["DeleteAt"] = time
+
+	if _, err := s.GetMaster().Exec("UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Id IN ("+inQuery+")", queryArgs); err != nil {
+		result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.role_update.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	// Delete the scheme itself.
+	scheme.UpdateAt = time
+	scheme.DeleteAt = time
+
+	if rowsChanged, err := s.GetMaster().Update(&scheme); err != nil {
+		result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.update.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+	} else if rowsChanged != 1 {
+		result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.update.app_error", nil, "no record to update", http.StatusInternalServerError)
+	} else {
+		result.Data = &scheme
+	}
 
 	return result
 }

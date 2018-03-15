@@ -35,3 +35,10 @@ func (s *LocalCacheSupplier) SchemeGet(ctx context.Context, schemeId string, hin
 
 	return result
 }
+
+func (s *LocalCacheSupplier) SchemeDelete(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	defer s.doInvalidateCacheCluster(s.schemeCache, schemeId)
+	defer s.doClearCacheCluster(s.roleCache)
+
+	return s.Next().SchemeDelete(ctx, schemeId, hints...)
+}

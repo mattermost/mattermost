@@ -286,3 +286,9 @@ func (s *LayeredSchemeStore) Get(schemeId string) StoreChannel {
 		return supplier.SchemeGet(s.TmpContext, schemeId)
 	})
 }
+
+func (s *LayeredSchemeStore) Delete(schemeId string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.SchemeDelete(s.TmpContext, schemeId)
+	})
+}

@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/gorp"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -234,7 +233,6 @@ func (s *SqlSupplier) RoleDelete(ctx context.Context, roleId string, hints ...st
 		result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.delete.update.app_error", nil, "no record to update", http.StatusInternalServerError)
 	} else {
 		result.Data = role.ToModel()
-		l4g.Error(result.Data)
 	}
 
 	return result
