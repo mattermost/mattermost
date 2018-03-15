@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -491,6 +492,30 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
+	assertPosts := func(expected []*model.Post, actual map[string]*model.Post) {
+		expectedIds := make([]string, 0, len(expected))
+		expectedMessages := make([]string, 0, len(expected))
+		for _, post := range expected {
+			expectedIds = append(expectedIds, post.Id)
+			expectedMessages = append(expectedMessages, post.Message)
+		}
+		sort.Strings(expectedIds)
+		sort.Strings(expectedMessages)
+
+		actualIds := make([]string, 0, len(actual))
+		actualMessages := make([]string, 0, len(actual))
+		for _, post := range actual {
+			actualIds = append(actualIds, post.Id)
+			actualMessages = append(actualMessages, post.Message)
+		}
+		sort.Strings(actualIds)
+		sort.Strings(actualMessages)
+
+		if assert.Equal(t, expectedIds, actualIds) {
+			assert.Equal(t, expectedMessages, actualMessages)
+		}
+	}
+
 	root1 := &model.Post{}
 	root1.ChannelId = model.NewId()
 	root1.UserId = model.NewId()
@@ -542,58 +567,39 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 
 	r1 := (<-ss.Post().GetPosts(root1.ChannelId, 0, 4, false)).Data.(*model.PostList)
 
-	if r1.Order[0] != root2Reply1.Id {
-		t.Fatal("invalid order")
+	expectedOrder := []string{
+		root2Reply1.Id,
+		root2.Id,
+		root1Reply3.Id,
+		root1Reply2.Id,
 	}
 
-	if r1.Order[1] != root2.Id {
-		t.Fatal("invalid order")
+	expectedPosts := []*model.Post{
+		root1,
+		root1Reply1,
+		root1Reply2,
+		root1Reply3,
+		root2,
+		root2Reply1,
 	}
 
-	if r1.Order[2] != root1Reply3.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r1.Order[3] != root1Reply2.Id {
-		t.Fatal("invalid order")
-	}
-
-	if len(r1.Posts) != 6 { //the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
-		t.Fatal("wrong size")
-	}
-
-	if r1.Posts[root1.Id].Message != root1.Message {
-		t.Fatal("Missing parent")
-	}
+	assert.Equal(t, expectedOrder, r1.Order)
+	assertPosts(expectedPosts, r1.Posts)
 
 	r2 := (<-ss.Post().GetPosts(root1.ChannelId, 0, 4, true)).Data.(*model.PostList)
-
-	if r2.Order[0] != root2Reply1.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r2.Order[1] != root2.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r2.Order[2] != root1Reply3.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r2.Order[3] != root1Reply2.Id {
-		t.Fatal("invalid order")
-	}
-
-	if len(r2.Posts) != 6 { //the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
-		t.Fatal("wrong size")
-	}
-
-	if r2.Posts[root1.Id].Message != root1.Message {
-		t.Fatal("Missing parent")
-	}
+	assert.Equal(t, expectedOrder, r2.Order)
+	assertPosts(expectedPosts, r2.Posts)
 
 	// Run once to fill cache
 	<-ss.Post().GetPosts(root1.ChannelId, 0, 30, true)
+	expectedOrder = []string{
+		root2Reply1.Id,
+		root2.Id,
+		root1Reply3.Id,
+		root1Reply2.Id,
+		root1Reply1.Id,
+		root1.Id,
+	}
 
 	root3 := &model.Post{}
 	root3.ChannelId = root1.ChannelId
@@ -601,15 +607,36 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	root3.Message = "zz" + model.NewId() + "b"
 	root3 = (<-ss.Post().Save(root3)).Data.(*model.Post)
 
-	// Should only be 6 since we hit the cache
+	// Response should be the same despite the new post since we hit the cache
 	r3 := (<-ss.Post().GetPosts(root1.ChannelId, 0, 30, true)).Data.(*model.PostList)
-	assert.Equal(t, 6, len(r3.Order))
+	assert.Equal(t, expectedOrder, r3.Order)
+	assertPosts(expectedPosts, r3.Posts)
 
 	ss.Post().InvalidateLastPostTimeCache(root1.ChannelId)
 
 	// Cache was invalidated, we should get all the posts
 	r4 := (<-ss.Post().GetPosts(root1.ChannelId, 0, 30, true)).Data.(*model.PostList)
-	assert.Equal(t, 7, len(r4.Order))
+	expectedOrder = []string{
+		root3.Id,
+		root2Reply1.Id,
+		root2.Id,
+		root1Reply3.Id,
+		root1Reply2.Id,
+		root1Reply1.Id,
+		root1.Id,
+	}
+	expectedPosts = []*model.Post{
+		root1,
+		root1Reply1,
+		root1Reply2,
+		root1Reply3,
+		root2,
+		root2Reply1,
+		root3,
+	}
+
+	assert.Equal(t, expectedOrder, r4.Order)
+	assertPosts(expectedPosts, r4.Posts)
 }
 
 func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
