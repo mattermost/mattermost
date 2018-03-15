@@ -101,7 +101,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "SMTP 서버, 포트, 사용자 정보가 변경되었습니다. SMTP 비밀번호를 다시 입력해주세요."
+    "translation": "SMTP 서버, 포트 또는 사용자이름이 변경되었습니다. SMTP 비밀번호를 다시 입력해주세요."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -141,7 +141,7 @@
   },
   {
     "id": "api.auth.unable_to_get_user.app_error",
-    "translation": "권한을 확인하기 위한 유저 정보를 가져올 수 없습니다."
+    "translation": "권한을 확인하기 위한 사용자 정보를 가져올 수 없습니다."
   },
   {
     "id": "api.brand.init.debug",
@@ -197,11 +197,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+    "translation": "이 채널은 공개 채널로 전환되어 모든 팀원이 들어올 수 있습니다."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "This channel has been converted to a Private Channel."
+    "translation": "이 채널은 비공개 채널로  변경되었습니다."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -433,7 +433,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+    "translation": "'{{.Trigger}}' 트리거에 실행되는 커맨드를 찾지 못했습니다. \"/\"로 시작하는 메시지를 보내려면 메시지 시작 부분에 빈 공간을 추가하십시오."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -521,7 +521,7 @@
   },
   {
     "id": "api.command_channel_header.name",
-    "translation": "header"
+    "translation": "머리글"
   },
   {
     "id": "api.command_channel_header.permission.app_error",
@@ -541,11 +541,11 @@
   },
   {
     "id": "api.command_channel_purpose.desc",
-    "translation": "Edit the channel purpose"
+    "translation": "체널 설명 수정하기"
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "Cannot set purpose for direct message channels. Use /header to set the header instead."
+    "translation": "개인 메시지의 설명은 설정할 수 없습니다. 머리글을 설정하려면 /header 를 사용하세요."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -557,11 +557,11 @@
   },
   {
     "id": "api.command_channel_purpose.name",
-    "translation": "purpose"
+    "translation": "설명"
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "당신은 채널 머릿말을 수정할 권한을 가지고 있지 않습니다."
+    "translation": "당신은 채널 설명을 수정할 권한을 가지고 있지 않습니다."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
@@ -573,11 +573,11 @@
   },
   {
     "id": "api.command_channel_rename.desc",
-    "translation": "Rename the channel"
+    "translation": "채널 이름 바꾸기"
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "개인 메시지 채널은 나갈 수 없습니다"
+    "translation": "개인 메시지 채널의 이름은 변경 할 수 없습니다."
   },
   {
     "id": "api.command_channel_rename.hint",
@@ -585,23 +585,23 @@
   },
   {
     "id": "api.command_channel_rename.message.app_error",
-    "translation": "메시지는 /echo 명령어와 함께 제공되어야 합니다."
+    "translation": "메시지는 /rename 명령어와 함께 제공되어야 합니다."
   },
   {
     "id": "api.command_channel_rename.name",
-    "translation": "rename"
+    "translation": "이름변경"
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "당신은 채널 머릿말을 수정할 권한을 가지고 있지 않습니다."
+    "translation": "당신은 채널 이름을 수정할 권한을 가지고 있지 않습니다."
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Channel name must be {{.Length}} or fewer characters"
+    "translation": "채널 이름은 {{.Length}} 자 이하여야 합니다."
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Channel name must be {{.Length}} or more characters"
+    "translation": "채널 이름은 {{.Length}} 자 이상이여야 합니다."
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -609,11 +609,11 @@
   },
   {
     "id": "api.command_channel_rename.update_channel.success",
-    "translation": "채널 머릿말이 성공적으로 업데이트되었습니다."
+    "translation": "채널이름이 성공적으로 업데이트되었습니다."
   },
   {
     "id": "api.command_code.desc",
-    "translation": "Display text as a code block"
+    "translation": "텍스트를 코드 블록으로 표시합니다."
   },
   {
     "id": "api.command_code.hint",
@@ -621,11 +621,11 @@
   },
   {
     "id": "api.command_code.message.app_error",
-    "translation": "메시지는 /echo 명령어와 함께 제공되어야 합니다."
+    "translation": "메시지는 /code 명령어와 함께 제공되어야 합니다."
   },
   {
     "id": "api.command_code.name",
-    "translation": "code"
+    "translation": "코드"
   },
   {
     "id": "api.command_collapse.desc",
@@ -645,7 +645,7 @@
   },
   {
     "id": "api.command_dnd.disabled",
-    "translation": "Do Not Disturb is disabled."
+    "translation": "방해 금지 모드가 해제되었습니다."
   },
   {
     "id": "api.command_dnd.error",
@@ -705,7 +705,7 @@
   },
   {
     "id": "api.command_groupmsg.desc",
-    "translation": "Sends a Group Message to the specified users"
+    "translation": "지정된 사용자에게 그룹 메시지를 보냅니다."
   },
   {
     "id": "api.command_groupmsg.fail.app_error",
@@ -760,7 +760,7 @@
   },
   {
     "id": "api.command_help.name",
-    "translation": "help"
+    "translation": "도움말"
   },
   {
     "id": "api.command_join.desc",
@@ -816,7 +816,7 @@
   },
   {
     "id": "api.command_leave.success",
-    "translation": "%v 가 채널을 떠났습니다."
+    "translation": "채널을 떠났습니다."
   },
   {
     "id": "api.command_logout.desc",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "다이렉트 채널에 2명의 구성원을 가져올 수 없습니다. channel_id={{.ChannelId}}"
+    "translation": "개인 메시지 채널에 2명의 사용자를 가져오는데 실패했습니다. 채널 아이디={{.ChannelId}}"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_members.error",
@@ -3636,7 +3636,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] {{.SenderDisplayName}} (으)로부터 {{.Month}} {{.Day}}, {{.Year}} 에 새로운 개인 메시지가 왔습니다."
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3712,7 +3712,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
+    "translation": "개인 액세스 토큰이 현재 서버에서 활성화 되어있지 않습니다. 시스템 관리자에게 연락하여 자세한 사항을 확인하시길 바랍니다."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
