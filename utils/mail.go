@@ -83,18 +83,19 @@ func ConnectToSMTPServerAdvanced(connectionSecurity string, skipCertVerification
 	var conn net.Conn
 	var err error
 
+	smtpAddress := smtpServer + ":" + smtpPort
 	if connectionSecurity == model.CONN_SECURITY_TLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: skipCertVerification,
 			ServerName:         smtpServer,
 		}
 
-		conn, err = tls.Dial("tcp", smtpServer+":"+smtpPort, tlsconfig)
+		conn, err = tls.Dial("tcp", smtpAddress, tlsconfig)
 		if err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		conn, err = net.Dial("tcp", smtpServer+":"+smtpPort)
+		conn, err = net.Dial("tcp", smtpAddress)
 		if err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
