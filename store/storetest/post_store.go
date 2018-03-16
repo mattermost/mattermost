@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -491,125 +492,182 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
-	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
+	assertPosts := func(expected []*model.Post, actual map[string]*model.Post) {
+		expectedIds := make([]string, 0, len(expected))
+		expectedMessages := make([]string, 0, len(expected))
+		for _, post := range expected {
+			expectedIds = append(expectedIds, post.Id)
+			expectedMessages = append(expectedMessages, post.Message)
+		}
+		sort.Strings(expectedIds)
+		sort.Strings(expectedMessages)
+
+		actualIds := make([]string, 0, len(actual))
+		actualMessages := make([]string, 0, len(actual))
+		for _, post := range actual {
+			actualIds = append(actualIds, post.Id)
+			actualMessages = append(actualMessages, post.Message)
+		}
+		sort.Strings(actualIds)
+		sort.Strings(actualMessages)
+
+		if assert.Equal(t, expectedIds, actualIds) {
+			assert.Equal(t, expectedMessages, actualMessages)
+		}
+	}
+
+	root1 := &model.Post{}
+	root1.ChannelId = model.NewId()
+	root1.UserId = model.NewId()
+	root1.Message = "zz" + model.NewId() + "b"
+	root1 = (<-ss.Post().Save(root1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
-	o2.RootId = o1.Id
-	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
+	root1Reply1 := &model.Post{}
+	root1Reply1.ChannelId = root1.ChannelId
+	root1Reply1.UserId = model.NewId()
+	root1Reply1.Message = "zz" + model.NewId() + "b"
+	root1Reply1.ParentId = root1.Id
+	root1Reply1.RootId = root1.Id
+	root1Reply1 = (<-ss.Post().Save(root1Reply1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	o2a := &model.Post{}
-	o2a.ChannelId = o1.ChannelId
-	o2a.UserId = model.NewId()
-	o2a.Message = "zz" + model.NewId() + "b"
-	o2a.ParentId = o1.Id
-	o2a.RootId = o1.Id
-	o2a = (<-ss.Post().Save(o2a)).Data.(*model.Post)
+	root1Reply2 := &model.Post{}
+	root1Reply2.ChannelId = root1.ChannelId
+	root1Reply2.UserId = model.NewId()
+	root1Reply2.Message = "zz" + model.NewId() + "b"
+	root1Reply2.ParentId = root1.Id
+	root1Reply2.RootId = root1.Id
+	root1Reply2 = (<-ss.Post().Save(root1Reply2)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	o3 := &model.Post{}
-	o3.ChannelId = o1.ChannelId
-	o3.UserId = model.NewId()
-	o3.Message = "zz" + model.NewId() + "b"
-	o3.ParentId = o1.Id
-	o3.RootId = o1.Id
-	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
+	root1Reply3 := &model.Post{}
+	root1Reply3.ChannelId = root1.ChannelId
+	root1Reply3.UserId = model.NewId()
+	root1Reply3.Message = "zz" + model.NewId() + "b"
+	root1Reply3.ParentId = root1.Id
+	root1Reply3.RootId = root1.Id
+	root1Reply3 = (<-ss.Post().Save(root1Reply3)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	o4 := &model.Post{}
-	o4.ChannelId = o1.ChannelId
-	o4.UserId = model.NewId()
-	o4.Message = "zz" + model.NewId() + "b"
-	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
+	root2 := &model.Post{}
+	root2.ChannelId = root1.ChannelId
+	root2.UserId = model.NewId()
+	root2.Message = "zz" + model.NewId() + "b"
+	root2 = (<-ss.Post().Save(root2)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	o5 := &model.Post{}
-	o5.ChannelId = o1.ChannelId
-	o5.UserId = model.NewId()
-	o5.Message = "zz" + model.NewId() + "b"
-	o5.ParentId = o4.Id
-	o5.RootId = o4.Id
-	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
+	root2Reply1 := &model.Post{}
+	root2Reply1.ChannelId = root1.ChannelId
+	root2Reply1.UserId = model.NewId()
+	root2Reply1.Message = "zz" + model.NewId() + "b"
+	root2Reply1.ParentId = root2.Id
+	root2Reply1.RootId = root2.Id
+	root2Reply1 = (<-ss.Post().Save(root2Reply1)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, false)).Data.(*model.PostList)
+	r1 := (<-ss.Post().GetPosts(root1.ChannelId, 0, 4, false)).Data.(*model.PostList)
 
-	if r1.Order[0] != o5.Id {
-		t.Fatal("invalid order")
+	expectedOrder := []string{
+		root2Reply1.Id,
+		root2.Id,
+		root1Reply3.Id,
+		root1Reply2.Id,
 	}
 
-	if r1.Order[1] != o4.Id {
-		t.Fatal("invalid order")
+	expectedPosts := []*model.Post{
+		root1,
+		root1Reply1,
+		root1Reply2,
+		root1Reply3,
+		root2,
+		root2Reply1,
 	}
 
-	if r1.Order[2] != o3.Id {
-		t.Fatal("invalid order")
-	}
+	assert.Equal(t, expectedOrder, r1.Order)
+	assertPosts(expectedPosts, r1.Posts)
 
-	if r1.Order[3] != o2a.Id {
-		t.Fatal("invalid order")
-	}
-
-	if len(r1.Posts) != 6 { //the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
-		t.Fatal("wrong size")
-	}
-
-	if r1.Posts[o1.Id].Message != o1.Message {
-		t.Fatal("Missing parent")
-	}
-
-	r2 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, true)).Data.(*model.PostList)
-
-	if r2.Order[0] != o5.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r2.Order[1] != o4.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r2.Order[2] != o3.Id {
-		t.Fatal("invalid order")
-	}
-
-	if r2.Order[3] != o2a.Id {
-		t.Fatal("invalid order")
-	}
-
-	if len(r2.Posts) != 6 { //the last 4, + o1 (o2a and o3's parent) + o2 (in same thread as o2a and o3)
-		t.Fatal("wrong size")
-	}
-
-	if r2.Posts[o1.Id].Message != o1.Message {
-		t.Fatal("Missing parent")
-	}
+	r2 := (<-ss.Post().GetPosts(root1.ChannelId, 0, 4, true)).Data.(*model.PostList)
+	assert.Equal(t, expectedOrder, r2.Order)
+	assertPosts(expectedPosts, r2.Posts)
 
 	// Run once to fill cache
-	<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	<-ss.Post().GetPosts(root1.ChannelId, 0, 30, true)
+	expectedOrder = []string{
+		root2Reply1.Id,
+		root2.Id,
+		root1Reply3.Id,
+		root1Reply2.Id,
+		root1Reply1.Id,
+		root1.Id,
+	}
 
-	o6 := &model.Post{}
-	o6.ChannelId = o1.ChannelId
-	o6.UserId = model.NewId()
-	o6.Message = "zz" + model.NewId() + "b"
-	o6 = (<-ss.Post().Save(o6)).Data.(*model.Post)
+	root3 := &model.Post{}
+	root3.ChannelId = root1.ChannelId
+	root3.UserId = model.NewId()
+	root3.Message = "zz" + model.NewId() + "b"
+	root3 = (<-ss.Post().Save(root3)).Data.(*model.Post)
 
-	// Should only be 6 since we hit the cache
-	r3 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
-	assert.Equal(t, 6, len(r3.Order))
+	// Response should be the same despite the new post since we hit the cache
+	r3 := (<-ss.Post().GetPosts(root1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	assert.Equal(t, expectedOrder, r3.Order)
+	assertPosts(expectedPosts, r3.Posts)
 
-	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
+	ss.Post().InvalidateLastPostTimeCache(root1.ChannelId)
 
 	// Cache was invalidated, we should get all the posts
-	r4 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
-	assert.Equal(t, 7, len(r4.Order))
+	r4 := (<-ss.Post().GetPosts(root1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	expectedOrder = []string{
+		root3.Id,
+		root2Reply1.Id,
+		root2.Id,
+		root1Reply3.Id,
+		root1Reply2.Id,
+		root1Reply1.Id,
+		root1.Id,
+	}
+	expectedPosts = []*model.Post{
+		root1,
+		root1Reply1,
+		root1Reply2,
+		root1Reply3,
+		root2,
+		root2Reply1,
+		root3,
+	}
+
+	assert.Equal(t, expectedOrder, r4.Order)
+	assertPosts(expectedPosts, r4.Posts)
+
+	// Replies past the window should be included if the root post itself is in the window
+	root3Reply1 := &model.Post{}
+	root3Reply1.ChannelId = root1.ChannelId
+	root3Reply1.UserId = model.NewId()
+	root3Reply1.Message = "zz" + model.NewId() + "b"
+	root3Reply1.ParentId = root3.Id
+	root3Reply1.RootId = root3.Id
+	root3Reply1 = (<-ss.Post().Save(root3Reply1)).Data.(*model.Post)
+
+	r5 := (<-ss.Post().GetPosts(root1.ChannelId, 1, 5, false)).Data.(*model.PostList)
+	expectedOrder = []string{
+		root3.Id,
+		root2Reply1.Id,
+		root2.Id,
+		root1Reply3.Id,
+		root1Reply2.Id,
+	}
+	expectedPosts = []*model.Post{
+		root1,
+		root1Reply1,
+		root1Reply2,
+		root1Reply3,
+		root2,
+		root2Reply1,
+		root3,
+		root3Reply1,
+	}
+
+	assert.Equal(t, expectedOrder, r5.Order)
+	assertPosts(expectedPosts, r5.Posts)
 }
 
 func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {

@@ -687,31 +687,70 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) stor
 func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts,
-			`SELECT
-			    q2.*
+		_, err := s.GetReplica().Select(&posts, `
+			SELECT
+			    *
 			FROM
-			    Posts q2
-			        INNER JOIN
-			    (SELECT DISTINCT
-			        q3.RootId
-			    FROM
-			        (SELECT
-			        RootId
-			    FROM
-			        Posts
-			    WHERE
-			        ChannelId = :ChannelId1
-			            AND DeleteAt = 0
-			    ORDER BY CreateAt DESC
-			    LIMIT :Limit OFFSET :Offset) q3
-			    WHERE q3.RootId != '') q1
-			    ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
+			    Posts
 			WHERE
-			    ChannelId = :ChannelId2
-			        AND DeleteAt = 0
-			ORDER BY CreateAt`,
-			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
+			    Id IN (SELECT * FROM (
+				-- The root post of any replies in the window
+				(SELECT * FROM (
+				    SELECT
+					CASE RootId
+					    WHEN '' THEN NULL
+					    ELSE RootId
+					END
+				    FROM
+					Posts
+				    WHERE
+					ChannelId = :ChannelId1
+				    AND DeleteAt = 0
+				    ORDER BY 
+					CreateAt DESC
+				    LIMIT :Limit1 OFFSET :Offset1
+				) x )
+
+				UNION
+
+				-- The reply posts to all threads intersecting with the window, including replies
+				-- to root posts in the window itself.
+				(
+				    SELECT
+					Id
+				    FROM
+					Posts
+				    WHERE RootId IN (SELECT * FROM (
+					SELECT
+					    CASE RootId
+						-- If there is no RootId, return the post id itself to be considered
+						-- as a root post.
+						WHEN '' THEN Id
+						-- If there is a RootId, this post isn't a root post and return its
+						-- root to be considered as a root post.
+						ELSE RootId
+					    END
+					FROM
+					    Posts
+					WHERE
+					    ChannelId = :ChannelId2
+					AND DeleteAt = 0
+					ORDER BY 
+					    CreateAt DESC
+					LIMIT :Limit2 OFFSET :Offset2
+				    ) x )
+				)
+			    ) x )
+			AND 
+			    DeleteAt = 0
+		`, map[string]interface{}{
+			"ChannelId1": channelId,
+			"ChannelId2": channelId,
+			"Offset1":    offset,
+			"Offset2":    offset,
+			"Limit1":     limit,
+			"Limit2":     limit,
+		})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
 		} else {
