@@ -247,11 +247,6 @@ func StringFromJson(data io.Reader) string {
 	}
 }
 
-func StringInMap(hashmap map[string]int, value string) bool {
-	_, ok := hashmap[value]
-	return ok
-}
-
 func GetServerIpAddress() string {
 	if addrs, err := net.InterfaceAddrs(); err != nil {
 		return ""
