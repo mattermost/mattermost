@@ -59,6 +59,7 @@ func RenderWebError(w http.ResponseWriter, r *http.Request, status int, params u
 		return
 	}
 
+	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(status)
 	fmt.Fprintln(w, `<!DOCTYPE html><html><head></head>`)
 	fmt.Fprintln(w, `<body onload="window.location = '`+template.HTMLEscapeString(template.JSEscapeString(destination))+`'">`)

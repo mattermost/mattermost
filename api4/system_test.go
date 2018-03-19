@@ -262,28 +262,34 @@ func TestEmailTest(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	SendEmailNotifications := th.App.Config().EmailSettings.SendEmailNotifications
-	SMTPServer := th.App.Config().EmailSettings.SMTPServer
-	SMTPPort := th.App.Config().EmailSettings.SMTPPort
-	FeedbackEmail := th.App.Config().EmailSettings.FeedbackEmail
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = SendEmailNotifications })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = SMTPServer })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = SMTPPort })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = FeedbackEmail })
-	}()
+	config := model.Config{
+		EmailSettings: model.EmailSettings{
+			SMTPServer: "",
+			SMTPPort:   "",
+		},
+	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = "" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = "" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = "" })
-
-	_, resp := Client.TestEmail()
+	_, resp := Client.TestEmail(&config)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.TestEmail()
+	_, resp = th.SystemAdminClient.TestEmail(&config)
 	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
 	CheckBadRequestStatus(t, resp)
+
+	inbucket_host := os.Getenv("CI_HOST")
+	if inbucket_host == "" {
+		inbucket_host = "dockerhost"
+	}
+
+	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
+	if inbucket_port == "" {
+		inbucket_port = "9000"
+	}
+
+	config.EmailSettings.SMTPServer = inbucket_host
+	config.EmailSettings.SMTPPort = inbucket_port
+	_, resp = th.SystemAdminClient.TestEmail(&config)
+	CheckOKStatus(t, resp)
 }
 
 func TestDatabaseRecycle(t *testing.T) {
@@ -491,7 +497,7 @@ func TestS3TestConnection(t *testing.T) {
 			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
 			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
 			AmazonS3Bucket:          "",
-			AmazonS3Endpoint:        "",
+			AmazonS3Endpoint:        s3Endpoint,
 			AmazonS3SSL:             model.NewBool(false),
 		},
 	}
@@ -506,20 +512,11 @@ func TestS3TestConnection(t *testing.T) {
 	}
 
 	config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckBadRequestStatus(t, resp)
-	if resp.Error.Message != "S3 Endpoint is required" {
-		t.Fatal("should return error - missing s3 endpoint")
-	}
-
-	config.FileSettings.AmazonS3Endpoint = s3Endpoint
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckBadRequestStatus(t, resp)
-	if resp.Error.Message != "S3 Region is required" {
-		t.Fatal("should return error - missing s3 region")
-	}
-
 	config.FileSettings.AmazonS3Region = "us-east-1"
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckOKStatus(t, resp)
+
+	config.FileSettings.AmazonS3Region = ""
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 
