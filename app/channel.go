@@ -1308,13 +1308,8 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 		channelIds = append(channelIds, view.ChannelId)
 	}
 
-	var pchan store.StoreChannel
 	if len(view.PrevChannelId) > 0 {
 		channelIds = append(channelIds, view.PrevChannelId)
-
-		if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications && len(view.ChannelId) > 0 {
-			pchan = a.Srv.Store.User().GetUnreadCountForChannel(userId, view.ChannelId)
-		}
 	}
 
 	if len(channelIds) == 0 {
@@ -1323,8 +1318,8 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 
 	uchan := a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
 
-	if pchan != nil {
-		if result := <-pchan; result.Err != nil {
+	if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications && len(view.ChannelId) > 0 {
+		if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, view.ChannelId); result.Err != nil {
 			return nil, result.Err
 		} else {
 			if result.Data.(int64) > 0 {
