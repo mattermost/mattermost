@@ -19,14 +19,14 @@ func TestCheckMandatoryS3Fields(t *testing.T) {
 
 	cfg.AmazonS3Bucket = "test-mm"
 	err = CheckMandatoryS3Fields(&cfg)
-	if err == nil || err.Message != "api.admin.test_s3.missing_s3_endpoint" {
-		t.Fatal("should've failed with missing s3 endpoint")
+	if err != nil {
+		t.Fatal("should've not failed")
 	}
 
-	cfg.AmazonS3Endpoint = "s3.newendpoint.com"
+	cfg.AmazonS3Endpoint = ""
 	err = CheckMandatoryS3Fields(&cfg)
-	if err == nil || err.Message != "api.admin.test_s3.missing_s3_region" {
-		t.Fatal("should've failed with missing s3 region")
+	if err != nil || cfg.AmazonS3Endpoint != "s3.amazonaws.com" {
+		t.Fatal("should've not failed because it should set the endpoint to the default")
 	}
 
 }

@@ -2102,8 +2102,8 @@ func (c *Client4) GetPing() (string, *Response) {
 }
 
 // TestEmail will attempt to connect to the configured SMTP server.
-func (c *Client4) TestEmail() (bool, *Response) {
-	if r, err := c.DoApiPost(c.GetTestEmailRoute(), ""); err != nil {
+func (c *Client4) TestEmail(config *Config) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetTestEmailRoute(), config.ToJson()); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
