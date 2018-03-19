@@ -51,19 +51,6 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 		return err
 	}
 
-	timezonePath := "timezones.json"
-
-	if cfg.TimezoneSettings.SupportedTimezonesPath != nil && len(*cfg.TimezoneSettings.SupportedTimezonesPath) > 0 {
-		timezonePath = *cfg.TimezoneSettings.SupportedTimezonesPath
-	}
-
-	timezoneCfg, _, err := utils.LoadTimezoneConfig(timezonePath)
-	if err != nil {
-		return err
-	}
-
-	cfg.SupportedTimezones = timezoneCfg.SupportedTimezones
-
 	a.configFile = configPath
 
 	utils.ConfigureLog(&cfg.LogSettings)

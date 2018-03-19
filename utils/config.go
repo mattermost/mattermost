@@ -144,7 +144,7 @@ func GetLogFileLocation(fileLocation string) string {
 }
 
 func SaveConfig(fileName string, config *model.Config) *model.AppError {
-	b, err := json.MarshalIndent(config.SaveClone(), "", "    ")
+	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {
 		return model.NewAppError("SaveConfig", "utils.config.save_config.saving.app_error",
 			map[string]interface{}{"Filename": fileName}, err.Error(), http.StatusBadRequest)
@@ -278,7 +278,10 @@ func EnsureConfigFile(fileName string) (string, error) {
 	return "", fmt.Errorf("no config file found")
 }
 
-func loadConfigFile(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
+// LoadConfig will try to search around for the corresponding config file.  It will search
+// /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
+// fileName.
+func LoadConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
 	if fileName != filepath.Base(fileName) {
 		configPath = fileName
 	} else {
@@ -293,18 +296,6 @@ func loadConfigFile(fileName string) (config *model.Config, configPath string, a
 	config, err := ReadConfigFile(configPath, true)
 	if err != nil {
 		appErr = model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-		return
-	}
-
-	return
-}
-
-// LoadConfig will try to search around for the corresponding config file.  It will search
-// /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
-// fileName.
-func LoadConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
-	config, configPath, appErr = loadConfigFile(fileName)
-	if appErr != nil {
 		return
 	}
 
@@ -337,10 +328,6 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 	}
 
 	return config, configPath, nil
-}
-
-func LoadTimezoneConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
-	return loadConfigFile(fileName)
 }
 
 func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {

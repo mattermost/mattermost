@@ -381,7 +381,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
-	supportedTimezones := c.App.Config().SupportedTimezones
+	supportedTimezones := c.App.Timezones()
 
 	if supportedTimezones != nil {
 		w.Write([]byte(model.TimezonesToJson(supportedTimezones)))

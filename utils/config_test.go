@@ -21,12 +21,12 @@ func TestConfig(t *testing.T) {
 	InitTranslations(cfg.LocalizationSettings)
 }
 
-func TestTimezoneConfig(t *testing.T) {
-	TranslationsPreInit()
-	cfg, _, err := LoadTimezoneConfig("timezones.json")
-	require.Nil(t, err)
-	assert.Equal(t, len(cfg.SupportedTimezones) > 0, true)
-}
+//func TestTimezoneConfig(t *testing.T) {
+//	TranslationsPreInit()
+//	cfg, _, err := LoadTimezoneConfig("timezones.json")
+//	require.Nil(t, err)
+//	assert.Equal(t, len(cfg.SupportedTimezones) > 0, true)
+//}
 
 func TestFindConfigFile(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
