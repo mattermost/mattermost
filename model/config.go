@@ -1291,6 +1291,9 @@ type SamlSettings struct {
 	IdpDescriptorUrl            *string
 	AssertionConsumerServiceURL *string
 
+	ScopingIDPProviderId *string
+	ScopingIDPName       *string
+
 	IdpCertificateFile    *string
 	PublicCertificateFile *string
 	PrivateKeyFile        *string
