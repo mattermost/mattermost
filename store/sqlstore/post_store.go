@@ -59,11 +59,13 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		table.ColMap("RootId").SetMaxSize(26)
 		table.ColMap("ParentId").SetMaxSize(26)
 		table.ColMap("OriginalId").SetMaxSize(26)
-		table.ColMap("Message").SetMaxSize(4000)
+		// Note that rune count != byte count, but anything >= 256 causes gorp to use a
+		// TEXT column for MySQL (and Postgres, but with the limit enforced).
+		table.ColMap("Message").SetMaxSize(model.POST_MESSAGE_MAX_RUNES_V2)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
-		table.ColMap("Filenames").SetMaxSize(4000)
+		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
 		table.ColMap("FileIds").SetMaxSize(150)
 	}
 
