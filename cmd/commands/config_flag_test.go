@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"encoding/json"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -25,6 +26,12 @@ func TestConfigFlag(t *testing.T) {
 	require.Nil(t, err)
 	configPath := filepath.Join(dir, "foo.json")
 	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))
+
+	timezones, err := utils.LoadTimezones("timezones.json")
+	require.Nil(t, err)
+	tzConfigPath := filepath.Join(dir, "timezones.json")
+	timezoneData, _ := json.Marshal(timezones)
+	require.NoError(t, ioutil.WriteFile(tzConfigPath, timezoneData, 0600))
 
 	i18n, ok := utils.FindDir("i18n")
 	require.True(t, ok)
