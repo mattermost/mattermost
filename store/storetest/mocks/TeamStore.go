@@ -237,13 +237,13 @@ func (_m *TeamStore) GetMembersByIds(teamId string, userIds []string) store.Stor
 	return r0
 }
 
-// GetTeamsByScheme provides a mock function with given fields: schemeId
-func (_m *TeamStore) GetTeamsByScheme(schemeId string) store.StoreChannel {
-	ret := _m.Called(schemeId)
+// GetTeamsByScheme provides a mock function with given fields: schemeId, offset, limit
+func (_m *TeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(schemeId, offset, limit)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(schemeId)
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(schemeId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
