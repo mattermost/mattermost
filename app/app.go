@@ -139,7 +139,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
 
-		message.Add("config", app.ClientConfigWithNoAccounts())
+		message.Add("config", app.ClientConfigWithComputed())
 		app.Go(func() {
 			app.Publish(message)
 		})

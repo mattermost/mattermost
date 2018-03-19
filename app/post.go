@@ -965,3 +965,7 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 		return url
 	}
 }
+
+func (a *App) MaxPostSize() int {
+	return model.POST_MESSAGE_MAX_RUNES_V1
+}
