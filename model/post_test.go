@@ -23,72 +23,73 @@ func TestPostJson(t *testing.T) {
 
 func TestPostIsValid(t *testing.T) {
 	o := Post{}
+	maxPostSize := 10000
 
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UserId = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ChannelId = NewId()
 	o.RootId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.RootId = ""
 	o.ParentId = "123"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ParentId = NewId()
 	o.RootId = ""
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.ParentId = ""
-	o.Message = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V1+1)
-	if err := o.IsValid(); err == nil {
+	o.Message = strings.Repeat("0", maxPostSize+1)
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.Message = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V1)
-	if err := o.IsValid(); err != nil {
+	o.Message = strings.Repeat("0", maxPostSize)
+	if err := o.IsValid(maxPostSize); err != nil {
 		t.Fatal(err)
 	}
 
 	o.Message = "test"
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(maxPostSize); err != nil {
 		t.Fatal(err)
 	}
 
 	o.Type = "junk"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(maxPostSize); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Type = POST_CUSTOM_TYPE_PREFIX + "type"
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(maxPostSize); err != nil {
 		t.Fatal(err)
 	}
 }

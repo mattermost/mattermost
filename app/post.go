@@ -967,5 +967,12 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 }
 
 func (a *App) MaxPostSize() int {
-	return model.POST_MESSAGE_MAX_RUNES_V1
+	maxPostSize := model.POST_MESSAGE_MAX_RUNES_V1
+	if result := <-a.Srv.Store.Post().GetMaxPostSize(true); result.Err != nil {
+		l4g.Error(result.Err)
+	} else {
+		maxPostSize = int(result.Data.(int32))
+	}
+
+	return maxPostSize
 }

@@ -1086,7 +1086,7 @@ func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun 
 }
 
 func (a *App) ImportReply(data *ReplyImportData, post *model.Post, dryRun bool) *model.AppError {
-	if err := validateReplyImportData(data, post.CreateAt); err != nil {
+	if err := validateReplyImportData(data, post.CreateAt, a.MaxPostSize()); err != nil {
 		return err
 	}
 
@@ -1136,7 +1136,7 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, dryRun bool) 
 }
 
 func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
-	if err := validatePostImportData(data); err != nil {
+	if err := validatePostImportData(data, a.MaxPostSize()); err != nil {
 		return err
 	}
 
@@ -1271,14 +1271,14 @@ func validateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 	return nil
 }
 
-func validateReplyImportData(data *ReplyImportData, parentCreateAt int64) *model.AppError {
+func validateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPostSize int) *model.AppError {
 	if data.User == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.user_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Message == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.message_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES_V1 {
+	} else if utf8.RuneCountInString(*data.Message) > maxPostSize {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.message_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1293,7 +1293,7 @@ func validateReplyImportData(data *ReplyImportData, parentCreateAt int64) *model
 	return nil
 }
 
-func validatePostImportData(data *PostImportData) *model.AppError {
+func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppError {
 	if data.Team == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.team_missing.error", nil, "", http.StatusBadRequest)
 	}
@@ -1308,7 +1308,7 @@ func validatePostImportData(data *PostImportData) *model.AppError {
 
 	if data.Message == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES_V1 {
+	} else if utf8.RuneCountInString(*data.Message) > maxPostSize {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1326,7 +1326,7 @@ func validatePostImportData(data *PostImportData) *model.AppError {
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			validateReplyImportData(&reply, *data.CreateAt)
+			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
 	}
 
@@ -1446,7 +1446,7 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 }
 
 func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
-	if err := validateDirectPostImportData(data); err != nil {
+	if err := validateDirectPostImportData(data, a.MaxPostSize()); err != nil {
 		return err
 	}
 
@@ -1572,7 +1572,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	return nil
 }
 
-func validateDirectPostImportData(data *DirectPostImportData) *model.AppError {
+func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *model.AppError {
 	if data.ChannelMembers == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_required.error", nil, "", http.StatusBadRequest)
 	}
@@ -1591,7 +1591,7 @@ func validateDirectPostImportData(data *DirectPostImportData) *model.AppError {
 
 	if data.Message == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.message_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES_V1 {
+	} else if utf8.RuneCountInString(*data.Message) > maxPostSize {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.message_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1624,7 +1624,7 @@ func validateDirectPostImportData(data *DirectPostImportData) *model.AppError {
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			validateReplyImportData(&reply, *data.CreateAt)
+			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
 	}
 
@@ -1640,12 +1640,13 @@ func validateDirectPostImportData(data *DirectPostImportData) *model.AppError {
 func (a *App) OldImportPost(post *model.Post) {
 	// Workaround for empty messages, which may be the case if they are webhook posts.
 	firstIteration := true
+	maxPostSize := a.MaxPostSize()
 	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0 || firstIteration; messageRuneCount = utf8.RuneCountInString(post.Message) {
 		firstIteration = false
 		var remainder string
-		if messageRuneCount > model.POST_MESSAGE_MAX_RUNES_V1 {
-			remainder = string(([]rune(post.Message))[model.POST_MESSAGE_MAX_RUNES_V1:])
-			post.Message = truncateRunes(post.Message, model.POST_MESSAGE_MAX_RUNES_V1)
+		if messageRuneCount > maxPostSize {
+			remainder = string(([]rune(post.Message))[maxPostSize:])
+			post.Message = truncateRunes(post.Message, maxPostSize)
 		} else {
 			remainder = ""
 		}

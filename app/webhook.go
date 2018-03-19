@@ -143,7 +143,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 	}
 }
 
-func SplitWebhookPost(post *model.Post) ([]*model.Post, *model.AppError) {
+func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
 	splits := make([]*model.Post, 0)
 	remainingText := post.Message
 
@@ -159,12 +159,12 @@ func SplitWebhookPost(post *model.Post) ([]*model.Post, *model.AppError) {
 		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_USER_RUNES}, "", http.StatusBadRequest)
 	}
 
-	for utf8.RuneCountInString(remainingText) > model.POST_MESSAGE_MAX_RUNES_V1 {
+	for utf8.RuneCountInString(remainingText) > maxPostSize {
 		split := base
 		x := 0
 		for index := range remainingText {
 			x++
-			if x > model.POST_MESSAGE_MAX_RUNES_V1 {
+			if x > maxPostSize {
 				split.Message = remainingText[:index]
 				remainingText = remainingText[index:]
 				break
@@ -266,7 +266,7 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		}
 	}
 
-	splits, err := SplitWebhookPost(post)
+	splits, err := SplitWebhookPost(post, a.MaxPostSize())
 	if err != nil {
 		return nil, err
 	}

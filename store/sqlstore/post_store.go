@@ -34,6 +34,7 @@ const (
 
 var lastPostTimeCache = utils.NewLru(LAST_POST_TIME_CACHE_SIZE)
 var lastPostsCache = utils.NewLru(LAST_POSTS_CACHE_SIZE)
+var maxPostSizeCached *int32
 
 func (s SqlPostStore) ClearCaches() {
 	lastPostTimeCache.Purge()
@@ -59,9 +60,7 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		table.ColMap("RootId").SetMaxSize(26)
 		table.ColMap("ParentId").SetMaxSize(26)
 		table.ColMap("OriginalId").SetMaxSize(26)
-		// Note that rune count != byte count, but anything >= 256 causes gorp to use a
-		// TEXT column for MySQL (and Postgres, but with the limit enforced).
-		table.ColMap("Message").SetMaxSize(model.POST_MESSAGE_MAX_RUNES_V2)
+		table.ColMap("Message").SetMaxSize(model.POST_MESSAGE_MAX_BYTES_V2)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
@@ -95,8 +94,16 @@ func (s SqlPostStore) Save(post *model.Post) store.StoreChannel {
 			return
 		}
 
+		var maxPostSize int
+		if result := <-s.GetMaxPostSize(true); result.Err != nil {
+			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+result.Err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			maxPostSize = int(result.Data.(int32))
+		}
+
 		post.PreSave()
-		if result.Err = post.IsValid(); result.Err != nil {
+		if result.Err = post.IsValid(maxPostSize); result.Err != nil {
 			return
 		}
 
@@ -135,7 +142,15 @@ func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.Sto
 		oldPost.Id = model.NewId()
 		oldPost.PreCommit()
 
-		if result.Err = newPost.IsValid(); result.Err != nil {
+		var maxPostSize int
+		if result := <-s.GetMaxPostSize(true); result.Err != nil {
+			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+result.Err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			maxPostSize = int(result.Data.(int32))
+		}
+
+		if result.Err = newPost.IsValid(maxPostSize); result.Err != nil {
 			return
 		}
 
@@ -161,7 +176,15 @@ func (s SqlPostStore) Overwrite(post *model.Post) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		post.UpdateAt = model.GetMillis()
 
-		if result.Err = post.IsValid(); result.Err != nil {
+		var maxPostSize int
+		if result := <-s.GetMaxPostSize(true); result.Err != nil {
+			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+result.Err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			maxPostSize = int(result.Data.(int32))
+		}
+
+		if result.Err = post.IsValid(maxPostSize); result.Err != nil {
 			return
 		}
 
@@ -1202,5 +1225,59 @@ func (s SqlPostStore) GetOldest() store.StoreChannel {
 		}
 
 		result.Data = &post
+	})
+}
+
+// GetMaxPostSize returns the maximum number of runes that may be stored in a post.
+func (s SqlPostStore) GetMaxPostSize(allowFromCache bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var maxPostSize int32 = model.POST_MESSAGE_MAX_RUNES_V1
+
+		if allowFromCache && maxPostSizeCached != nil {
+			result.Data = *maxPostSizeCached
+			return
+		}
+
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			// PostgreSQL uses TEXT as the underlying type, and we will have safely
+			// migrated from any VARCHAR(4000) with the same underlying type on
+			// upgrade.
+			maxPostSize = model.POST_MESSAGE_MAX_RUNES_V2
+
+		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			// Unlike PostgreSQL, MySQL's VARCHAR and TEXT types do not share the same
+			// underlying storage strategy. Honour any existing limitation, and rely
+			// on system administrators to migrate the column if necessary.
+			var maxPostSizeBytes int32
+
+			if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
+				SELECT 
+					CHARACTER_MAXIMUM_LENGTH
+				FROM 
+					INFORMATION_SCHEMA.COLUMNS
+				WHERE 
+					table_schema = DATABASE()
+				AND	table_name = 'Posts'
+				AND	column_name = 'Message'
+				LIMIT 0, 1
+			`); err != nil {
+				result.Err = model.NewAppError("SqlPostStore.GetMaxPostSize", "store.sql_post.query_max_post_size.error", nil, err.Error(), http.StatusInternalServerError)
+			} else {
+				// Assume a worst-case representation of four bytes per rune.
+				maxPostSize = maxPostSizeBytes / 4
+
+				// To maintain backwards compatibility, don't yield a maximum post
+				// size smaller than the previous limit, even though it wasn't
+				// actually possible to store 4000 runes in all cases.
+				if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
+					maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
+				}
+			}
+		} else {
+			l4g.Warn(utils.T("store.sql_post.query_max_post_size.unrecognized_driver"))
+		}
+
+		maxPostSizeCached = &maxPostSize
+		result.Data = maxPostSize
 	})
 }

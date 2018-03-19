@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -17,6 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
 func TestUpdatePostEditAt(t *testing.T) {
@@ -343,6 +346,60 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 			} else if tc.ImageURL != "" {
 				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
 			}
+		})
+	}
+}
+
+func TestMaxPostSize(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Description         string
+		StoreMaxPostSize    int32
+		ExpectedMaxPostSize int
+		ExpectedError       *model.AppError
+	}{
+		{
+			"error fetching max post size",
+			0,
+			model.POST_MESSAGE_MAX_RUNES_V1,
+			model.NewAppError("TestMaxPostSize", "this is an error", nil, "", http.StatusBadRequest),
+		},
+		{
+			"4000 rune limit",
+			4000,
+			4000,
+			nil,
+		},
+		{
+			"16383 rune limit",
+			16383,
+			16383,
+			nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			mockStore := &storetest.Store{}
+			defer mockStore.AssertExpectations(t)
+
+			mockStore.PostStore.On("GetMaxPostSize", true).Return(
+				storetest.NewStoreChannel(store.StoreResult{
+					Data: testCase.StoreMaxPostSize,
+					Err:  testCase.ExpectedError,
+				}),
+			)
+
+			app := App{
+				Srv: &Server{
+					Store: mockStore,
+				},
+				config: atomic.Value{},
+			}
+
+			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
 		})
 	}
 }

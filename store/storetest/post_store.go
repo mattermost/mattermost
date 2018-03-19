@@ -1783,3 +1783,8 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
+
+func TestMaxPostSize(t *testing.T, ss store.Store) {
+	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize(false)).Data.(int32))
+	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize(true)).Data.(int32))
+}
