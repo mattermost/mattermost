@@ -67,12 +67,12 @@ func TestPostIsValid(t *testing.T) {
 	}
 
 	o.ParentId = ""
-	o.Message = strings.Repeat("0", 4001)
+	o.Message = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V1+1)
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.Message = strings.Repeat("0", 4000)
+	o.Message = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V1)
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
