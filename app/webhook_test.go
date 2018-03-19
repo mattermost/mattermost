@@ -386,20 +386,20 @@ func TestSplitWebhookPost(t *testing.T) {
 	for name, tc := range map[string]TestCase{
 		"LongPost": {
 			Post: &model.Post{
-				Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES*3/2),
+				Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES_V1*3/2),
 			},
 			Expected: []*model.Post{
 				{
-					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES),
+					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES_V1),
 				},
 				{
-					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES/2),
+					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES_V1/2),
 				},
 			},
 		},
 		"LongPostAndMultipleAttachments": {
 			Post: &model.Post{
-				Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES*3/2),
+				Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES_V1*3/2),
 				Props: map[string]interface{}{
 					"attachments": []*model.SlackAttachment{
 						&model.SlackAttachment{
@@ -416,10 +416,10 @@ func TestSplitWebhookPost(t *testing.T) {
 			},
 			Expected: []*model.Post{
 				{
-					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES),
+					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES_V1),
 				},
 				{
-					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES/2),
+					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES_V1/2),
 					Props: map[string]interface{}{
 						"attachments": []*model.SlackAttachment{
 							&model.SlackAttachment{

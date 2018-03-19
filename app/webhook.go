@@ -159,12 +159,12 @@ func SplitWebhookPost(post *model.Post) ([]*model.Post, *model.AppError) {
 		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_USER_RUNES}, "", http.StatusBadRequest)
 	}
 
-	for utf8.RuneCountInString(remainingText) > model.POST_MESSAGE_MAX_RUNES {
+	for utf8.RuneCountInString(remainingText) > model.POST_MESSAGE_MAX_RUNES_V1 {
 		split := base
 		x := 0
 		for index := range remainingText {
 			x++
-			if x > model.POST_MESSAGE_MAX_RUNES {
+			if x > model.POST_MESSAGE_MAX_RUNES_V1 {
 				split.Message = remainingText[:index]
 				remainingText = remainingText[index:]
 				break

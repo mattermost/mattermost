@@ -1278,7 +1278,7 @@ func validateReplyImportData(data *ReplyImportData, parentCreateAt int64) *model
 
 	if data.Message == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.message_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES {
+	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES_V1 {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.message_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1308,7 +1308,7 @@ func validatePostImportData(data *PostImportData) *model.AppError {
 
 	if data.Message == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES {
+	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES_V1 {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1591,7 +1591,7 @@ func validateDirectPostImportData(data *DirectPostImportData) *model.AppError {
 
 	if data.Message == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.message_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES {
+	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES_V1 {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.message_length.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1643,9 +1643,9 @@ func (a *App) OldImportPost(post *model.Post) {
 	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0 || firstIteration; messageRuneCount = utf8.RuneCountInString(post.Message) {
 		firstIteration = false
 		var remainder string
-		if messageRuneCount > model.POST_MESSAGE_MAX_RUNES {
-			remainder = string(([]rune(post.Message))[model.POST_MESSAGE_MAX_RUNES:])
-			post.Message = truncateRunes(post.Message, model.POST_MESSAGE_MAX_RUNES)
+		if messageRuneCount > model.POST_MESSAGE_MAX_RUNES_V1 {
+			remainder = string(([]rune(post.Message))[model.POST_MESSAGE_MAX_RUNES_V1:])
+			post.Message = truncateRunes(post.Message, model.POST_MESSAGE_MAX_RUNES_V1)
 		} else {
 			remainder = ""
 		}
