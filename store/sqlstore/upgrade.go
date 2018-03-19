@@ -376,6 +376,7 @@ func UpgradeDatabaseToVersion48(sqlStore SqlStore) {
 func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 	//TODO: Uncomment the following condition when version 4.9.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_8_0, VERSION_4_9_0) {
+	sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
 	defaultTimezone := model.DefaultUserTimezone()
 	defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 	if err != nil {
