@@ -1831,7 +1831,7 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) sto
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var channels []*model.Channel
-		_, err := s.GetReplica().Select(&channels, "SELECT * FROM Channels WHERE SchemeId = :SchemeId ORDER BY DisplayName	LIMIT :Limit OFFSET :Offset", map[string]interface{}{"SchemeId": schemeId, "Offset": offset, "Limit": limit})
+		_, err := s.GetReplica().Select(&channels, "SELECT * FROM Channels WHERE SchemeId = :SchemeId ORDER BY DisplayName LIMIT :Limit OFFSET :Offset", map[string]interface{}{"SchemeId": schemeId, "Offset": offset, "Limit": limit})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetChannelsByScheme", "store.sql_channel.get_by_scheme.app_error", nil, "schemeId="+schemeId+" "+err.Error(), http.StatusInternalServerError)
 		} else {
