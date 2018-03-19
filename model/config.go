@@ -160,7 +160,7 @@ const (
 	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
 	GLOBALRELAY_CUSTOMER_TYPE_A10      = "A10"
 
-	CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH = "primary"
+	CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH   = "primary"
 	CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH = "secondary"
 )
 
@@ -529,7 +529,7 @@ func (s *MetricsSettings) SetDefaults() {
 
 type ExperimentalSettings struct {
 	ClientSideCertEnable *bool
-	ClientSideCertCheck *string
+	ClientSideCertCheck  *string
 }
 
 func (s *ExperimentalSettings) SetDefaults() {

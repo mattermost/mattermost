@@ -15,14 +15,14 @@ import (
 )
 
 func (a *App) CheckForClienSideCert(r *http.Request) (string, string, string) {
-	pem := r.Header.Get("X-SSL-Client-Cert") // mapped to $ssl_client_cert from nginx
+	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
 	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
 	email := ""
 
 	if len(subject) > 0 {
 		for _, v := range strings.Split(subject, "/") {
 			kv := strings.Split(v, "=")
-			if len (kv) == 2 && kv[0] == "emailAddress" {
+			if len(kv) == 2 && kv[0] == "emailAddress" {
 				email = kv[1]
 			}
 		}
