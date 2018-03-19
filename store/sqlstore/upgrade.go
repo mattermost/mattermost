@@ -383,6 +383,13 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 		l4g.Critical(err)
 	}
 	sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// We would never want to unilaterally migrate VARCHAR(4000) to text on a
+		// production MySQL database, but as these use the same underlying types on
+		// Postgres, all we're doing is relaxing the constraint here.
+		sqlStore.AlterColumnTypeIfExists("Posts", "Message", "text", "text")
+	}
 	//	saveSchemaVersion(sqlStore, VERSION_4_9_0)
 	//}
 }
