@@ -942,8 +942,28 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
 
+	certPem, certSubject, certEmail := c.App.CheckForClienSideCert(r)
+	mlog.Info(fmt.Sprintf("Client Cert PEM: %v", certPem))
+	mlog.Info(fmt.Sprintf("Client Cert Subject: %v", certSubject))
+	mlog.Info(fmt.Sprintf("Client Cert Email: %v", certEmail))
+
+	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
+		if license := c.App.License(); license == nil || !*license.Features.SAML {
+			c.Err = model.NewAppError("ClientSideCertNotAllowed", "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license", nil, "", http.StatusBadRequest)
+			return
+		} else {
+			if len(certPem) == 0 || len(certEmail) == 0 {
+				c.Err = model.NewAppError("ClientSideCertMissing", "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate", nil, "", http.StatusBadRequest)
+				return
+			} else {
+				loginId = certEmail
+			}
+		}
+	}
+
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err

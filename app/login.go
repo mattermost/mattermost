@@ -6,12 +6,30 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/avct/uasurfer"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
+
+func (a *App) CheckForClienSideCert(r *http.Request) (string, string, string) {
+	pem := r.Header.Get("X-SSL-Client-Cert") // mapped to $ssl_client_cert from nginx
+	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
+	email := ""
+
+	if len(subject) > 0 {
+		for _, v := range strings.Split(subject, "/") {
+			kv := strings.Split(v, "=")
+			if len (kv) == 2 && kv[0] == "emailAddress" {
+				email = kv[1]
+			}
+		}
+	}
+
+	return pem, subject, email
+}
 
 func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
@@ -33,6 +51,13 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	// Get the MM user we are trying to login
 	if user, err = a.GetUserForLogin(id, loginId); err != nil {
 		return nil, err
+	}
+
+	// If client side cert is enable and it's checking as a primary source
+	// then trust the proxy and cert that the correct user is supplied and allow
+	// them access
+	if *a.Config().ExperimentalSettings.ClientSideCertEnable && *a.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
+		return user, nil
 	}
 
 	// and then authenticate them
