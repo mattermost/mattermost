@@ -8,6 +8,8 @@ import (
 	"io"
 )
 
+type SupportedTimezones []string
+
 func TimezonesToJson(timezoneList []string) string {
 	b, _ := json.Marshal(timezoneList)
 	return string(b)

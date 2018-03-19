@@ -1707,8 +1707,6 @@ func (s *TimezoneSettings) SetDefaults() {
 	}
 }
 
-type SupportedTimezones []string
-
 type ConfigFunc func() *Config
 
 type Config struct {

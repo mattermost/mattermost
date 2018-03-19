@@ -533,7 +533,7 @@ func TestSupportedTimezones(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	supportedTimezonesFromConfig := th.App.Config().SupportedTimezones
+	supportedTimezonesFromConfig := th.App.Timezones()
 	supportedTimezones, resp := Client.GetSupportedTimezone()
 
 	CheckNoError(t, resp)
