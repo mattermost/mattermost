@@ -45,10 +45,10 @@ func (scheme *Scheme) IsValid() bool {
 		return false
 	}
 
-	return scheme.IsValidWithoutId()
+	return scheme.IsValidForCreate()
 }
 
-func (scheme *Scheme) IsValidWithoutId() bool {
+func (scheme *Scheme) IsValidForCreate() bool {
 	if len(scheme.Name) == 0 || len(scheme.Name) > SCHEME_NAME_MAX_LENGTH {
 		return false
 	}

@@ -163,7 +163,7 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 	scheme.UpdateAt = scheme.CreateAt
 
 	// Validate the scheme
-	if !scheme.IsValidWithoutId() {
+	if !scheme.IsValidForCreate() {
 		result.Err = model.NewAppError("SqlSchemeStore.Save", "store.sql_scheme.save.invalid_scheme.app_error", nil, "", http.StatusBadRequest)
 		return result
 	}

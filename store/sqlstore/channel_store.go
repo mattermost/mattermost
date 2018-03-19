@@ -55,7 +55,7 @@ func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
 	return &channelMember{
 		ChannelId:    cm.ChannelId,
 		UserId:       cm.UserId,
-		Roles:        cm.ExplicitRoles, // FIXME: Do we need to do this or anything else, since we are *not* Lazy Migrating.
+		Roles:        cm.ExplicitRoles,
 		LastViewedAt: cm.LastViewedAt,
 		MsgCount:     cm.MsgCount,
 		MentionCount: cm.MentionCount,
