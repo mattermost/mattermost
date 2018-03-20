@@ -52,6 +52,7 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		metrics:           metrics,
 		lastPostTimeCache: utils.NewLru(LAST_POST_TIME_CACHE_SIZE),
 		lastPostsCache:    utils.NewLru(LAST_POSTS_CACHE_SIZE),
+		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
