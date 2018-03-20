@@ -5,9 +5,7 @@ package model
 
 import (
 	"encoding/json"
-	l4g "github.com/alecthomas/log4go"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -15,34 +13,6 @@ const (
 	EMOJI_NAME_MAX_LENGTH = 64
 	EMOJI_SORT_BY_NAME    = "name"
 )
-
-var systemEmojis = initSystemEmoji()
-
-func initSystemEmoji() map[string]string {
-	emojiFile, err := ioutil.ReadFile("emoji.json")
-	if err != nil {
-		l4g.Critical("reading emoji json file", err.Error())
-		return map[string]string{}
-	}
-	var objs interface{}
-
-	err = json.Unmarshal(emojiFile, &objs)
-	if err != nil {
-		l4g.Critical("unmarshalling emoji json file", err.Error())
-		return map[string]string{}
-	}
-
-	var localSystemEmojis = map[string]string{}
-	for _, obj := range objs.([]interface{}) {
-		obj := obj.(map[string]interface{})
-
-		for _, alias := range obj["aliases"].([]interface{}) {
-
-			localSystemEmojis[alias.(string)] = obj["filename"].(string)
-		}
-	}
-	return localSystemEmojis
-}
 
 type Emoji struct {
 	Id        string `json:"id"`
@@ -54,7 +24,7 @@ type Emoji struct {
 }
 
 func inSystemEmoji(emojiName string) bool {
-	_, ok := systemEmojis[emojiName]
+	_, ok := SystemEmojis[emojiName]
 	return ok
 }
 
