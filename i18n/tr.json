@@ -108,6 +108,18 @@
     "translation": "Mattermost - E-posta Ayarları Sınanıyor"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Buketi zorunludur"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "S3 Bitiş Noktası zorunludur"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Bölgesi zorunludur"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "İstekte 'görsel' altında boş dizi"
   },
@@ -629,7 +641,7 @@
   },
   {
     "id": "api.command_collapse.desc",
-    "translation": "Görsel önizlemeleri otomatik daraltılsın"
+    "translation": "Görsel ön izlemeleri otomatik daraltılsın"
   },
   {
     "id": "api.command_collapse.name",
@@ -689,7 +701,7 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "Görsel önizlemesi otomatik daraltılmasın"
+    "translation": "Görsel ön izlemeleri otomatik daraltılmasın"
   },
   {
     "id": "api.command_expand.name",
@@ -701,7 +713,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Önizlemeler genişletilirken bir sorun çıktı"
+    "translation": "Ön izlemeler genişletilirken bir sorun çıktı"
   },
   {
     "id": "api.command_groupmsg.desc",
@@ -1222,7 +1234,7 @@
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": "Dosyanın önizleme görseli yok"
+    "translation": "Dosyanın ön izleme görseli yok"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1262,11 +1274,11 @@
   },
   {
     "id": "api.file.handle_images_forget.encode_preview.error",
-    "translation": "Görsel JPG önizlemesi olarak kodlanamadı. Yol: %v Hata: %v"
+    "translation": "Görsel JPG ön izlemesi olarak kodlanamadı. Yol: %v Hata: %v"
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Önizleme yüklenemedi. Yol: %v Hata: %v"
+    "translation": "Ön izleme yüklenemedi. Yol: %v Hata: %v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
@@ -1768,7 +1780,7 @@
   },
   {
     "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Bağlantı önizleme özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Bağlantı ön izleme özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -2329,6 +2341,50 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v takımdan çıkarıldı."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "İstekte 'görsel' altındaki dizi boş"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Takım simgesinin kodu çözülemedi"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Takım simgesi üst verisinin kodu çözülemedi"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Takım simgesi kodlanamadı"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "Takım alınırken bir sorun çıktı"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "İstekte 'görsel' altında dosya yok"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Görsel dosyası açılamadı"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Çok parçalı form işlenemedi"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Takım simgesi yüklenemedi. Görsel deposu ayarları yapılmamış."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Takım simgesi yüklenemedi. Dosya çok büyük."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Takım simgesi kaydedilemedi"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3647,6 +3703,10 @@
     "translation": "Ayıklanan uygulama eki etkinleştirilemedi. Uygulama eki zaten var ve etkinleştirilmiş olabilir."
   },
   {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "Küme özelliği kullanılırken ve SaltOkunurYapılandırma seçeneği etkinken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir"
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "Uygulama eki durumu yapılandırmaya kaydedilirken sorun çıktı"
   },
@@ -4764,11 +4824,11 @@
   },
   {
     "id": "model.config.is_valid.file_preview_height.app_error",
-    "translation": "Önizleme yüksekliği dosya ayarı geçersiz. Sıfır ya da pozitif bir sayı olmalı."
+    "translation": "Ön izleme yüksekliği dosya ayarı geçersiz. Sıfır ya da pozitif bir sayı olmalı."
   },
   {
     "id": "model.config.is_valid.file_preview_width.app_error",
-    "translation": "Önizleme genişliği dosya ayarı geçersiz. Sıfır ya da pozitif bir sayı olmalı."
+    "translation": "Ön izleme genişliği dosya ayarı geçersiz. Sıfır ya da pozitif bir sayı olmalı."
   },
   {
     "id": "model.config.is_valid.file_profile_height.app_error",
@@ -4907,12 +4967,36 @@
     "translation": "İleti dışa aktarma görevinin Dışa Aktarma Biçimi 'actiance' ya da 'genelaktarım' olmalıdır"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "İleti dışa aktarma görevinin Dışa Aktarma Biçimi 'actiance' ya da 'genelaktarım' olmalıdır"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "İleti dışa aktarma görevi DosyaKonumu değeri dışa aktarılacak verilerin kaydedilebilmesi için yazılabilen bir klasör olmalıdır"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "İleti dışa aktarma görevi DosyaKonumu DosyaAyarları.Klasör değerinin bir alt klasörü olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "İleti dışa aktarma görevi DışaAktarmaBiçimi 'GenelAktarıcı' olarak ayarlanmış ancak GenelAktarıcıAyarları eksik"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "İleti dışa aktarma görevi GenelAktarıcıAyarları.MüşteriTürü 'A9' ya da 'A10' olarak ayarlanmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "İleti dışa aktarma görevinin GenelAktarıcıAyarları.E-postaAdresi ayarı geçerli bir e-posta adresi olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "İleti dışa aktarma görevi GenelAktarıcıAyarları.SmtpParolası ayarlanmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "İleti dışa aktarma görevi GenelAktarıcıAyarları.SmtpKullanıcıAdı ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
