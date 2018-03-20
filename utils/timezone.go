@@ -10,16 +10,16 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func LoadTimezones(fileName string) (model.SupportedTimezones, *model.AppError) {
+func LoadTimezones(fileName string) model.SupportedTimezones {
 	var supportedTimezones model.SupportedTimezones
 
 	if timezoneFile := FindConfigFile(fileName); timezoneFile == "" {
-		return nil, model.NewAppError("LoadTimezones", "app.timezones.load_config.app_error", map[string]interface{}{"Filename": fileName}, "", 0)
+		return model.DefaultSupportedTimezones
 	} else if raw, err := ioutil.ReadFile(timezoneFile); err != nil {
-		return nil, model.NewAppError("LoadTimezones", "app.timezones.read_config.app_error", map[string]interface{}{"Filename": fileName, " ": err.Error()}, "", 0)
+		return model.DefaultSupportedTimezones
 	} else if err := json.Unmarshal(raw, &supportedTimezones); err != nil {
-		return nil, model.NewAppError("LoadTimezones", "app.timezones.failed_deserialize.app_error", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
+		return model.DefaultSupportedTimezones
 	} else {
-		return supportedTimezones, nil
+		return supportedTimezones
 	}
 }

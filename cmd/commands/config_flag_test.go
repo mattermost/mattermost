@@ -27,8 +27,7 @@ func TestConfigFlag(t *testing.T) {
 	configPath := filepath.Join(dir, "foo.json")
 	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))
 
-	timezones, err := utils.LoadTimezones("timezones.json")
-	require.Nil(t, err)
+	timezones := utils.LoadTimezones("timezones.json")
 	tzConfigPath := filepath.Join(dir, "timezones.json")
 	timezoneData, _ := json.Marshal(timezones)
 	require.NoError(t, ioutil.WriteFile(tzConfigPath, timezoneData, 0600))

@@ -128,9 +128,8 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 	app.EnableConfigWatch()
 
-	if err := app.LoadTimezones(); err != nil {
-		return nil, err
-	}
+	app.LoadTimezones()
+
 	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}

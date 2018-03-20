@@ -15,18 +15,14 @@ func (a *App) Timezones() model.SupportedTimezones {
 	return model.SupportedTimezones{}
 }
 
-func (a *App) LoadTimezones() *model.AppError {
+func (a *App) LoadTimezones() {
 	timezonePath := "timezones.json"
 
 	if a.Config().TimezoneSettings.SupportedTimezonesPath != nil && len(*a.Config().TimezoneSettings.SupportedTimezonesPath) > 0 {
 		timezonePath = *a.Config().TimezoneSettings.SupportedTimezonesPath
 	}
 
-	timezoneCfg, err := utils.LoadTimezones(timezonePath)
-	if err != nil {
-		return err
-	}
+	timezoneCfg := utils.LoadTimezones(timezonePath)
 
 	a.timezones.Store(timezoneCfg)
-	return nil
 }

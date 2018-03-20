@@ -23,12 +23,11 @@ func TestConfig(t *testing.T) {
 
 func TestTimezoneConfig(t *testing.T) {
 	TranslationsPreInit()
-	supportedTimezones, err := LoadTimezones("timezones.json")
-	require.Nil(t, err)
+	supportedTimezones := LoadTimezones("timezones.json")
 	assert.Equal(t, len(supportedTimezones) > 0, true)
 
-	_, err = LoadTimezones("timezones_file_does_not_exists.json")
-	assert.NotNil(t, err, true)
+	supportedTimezones2 := LoadTimezones("timezones_file_does_not_exists.json")
+	assert.Equal(t, len(supportedTimezones2) > 0, true)
 }
 
 func TestFindConfigFile(t *testing.T) {
