@@ -21,7 +21,10 @@ import (
 
 type SqlPostStore struct {
 	SqlStore
-	metrics einterfaces.MetricsInterface
+	metrics           einterfaces.MetricsInterface
+	lastPostTimeCache *utils.Cache
+	lastPostsCache    *utils.Cache
+	maxPostSizeCached *int32
 }
 
 const (
@@ -32,13 +35,9 @@ const (
 	LAST_POSTS_CACHE_SEC  = 900 // 15 minutes
 )
 
-var lastPostTimeCache = utils.NewLru(LAST_POST_TIME_CACHE_SIZE)
-var lastPostsCache = utils.NewLru(LAST_POSTS_CACHE_SIZE)
-var maxPostSizeCached *int32
-
 func (s SqlPostStore) ClearCaches() {
-	lastPostTimeCache.Purge()
-	lastPostsCache.Purge()
+	s.lastPostTimeCache.Purge()
+	s.lastPostsCache.Purge()
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Purge")
@@ -48,8 +47,10 @@ func (s SqlPostStore) ClearCaches() {
 
 func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
-		SqlStore: sqlStore,
-		metrics:  metrics,
+		SqlStore:          sqlStore,
+		metrics:           metrics,
+		lastPostTimeCache: utils.NewLru(LAST_POST_TIME_CACHE_SIZE),
+		lastPostsCache:    utils.NewLru(LAST_POSTS_CACHE_SIZE),
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -351,11 +352,11 @@ type etagPosts struct {
 }
 
 func (s SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
-	lastPostTimeCache.Remove(channelId)
+	s.lastPostTimeCache.Remove(channelId)
 
 	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
-	lastPostsCache.Remove(channelId + "30")
-	lastPostsCache.Remove(channelId + "60")
+	s.lastPostsCache.Remove(channelId + "30")
+	s.lastPostsCache.Remove(channelId + "60")
 
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("Last Post Time - Remove by Channel Id")
@@ -366,7 +367,7 @@ func (s SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
-			if cacheItem, ok := lastPostTimeCache.Get(channelId); ok {
+			if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 				}
@@ -391,7 +392,7 @@ func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.Store
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
 		}
 
-		lastPostTimeCache.AddWithExpiresInSecs(channelId, et.UpdateAt, LAST_POST_TIME_CACHE_SEC)
+		s.lastPostTimeCache.AddWithExpiresInSecs(channelId, et.UpdateAt, LAST_POST_TIME_CACHE_SEC)
 	})
 }
 
@@ -479,7 +480,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 
 		// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
 		if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
-			if cacheItem, ok := lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
+			if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
 				}
@@ -523,7 +524,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 
 			// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
 			if offset == 0 && (limit == 60 || limit == 30) {
-				lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
+				s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
 			}
 
 			result.Data = list
@@ -536,7 +537,7 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache
 		if allowFromCache {
 			// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 			// we can safely return no posts.
-			if cacheItem, ok := lastPostTimeCache.Get(channelId); ok && cacheItem.(int64) <= time {
+			if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok && cacheItem.(int64) <= time {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 				}
@@ -601,7 +602,7 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache
 				}
 			}
 
-			lastPostTimeCache.AddWithExpiresInSecs(channelId, latestUpdate, LAST_POST_TIME_CACHE_SEC)
+			s.lastPostTimeCache.AddWithExpiresInSecs(channelId, latestUpdate, LAST_POST_TIME_CACHE_SEC)
 
 			result.Data = list
 		}
@@ -1233,8 +1234,8 @@ func (s SqlPostStore) GetMaxPostSize(allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var maxPostSize int32 = model.POST_MESSAGE_MAX_RUNES_V1
 
-		if allowFromCache && maxPostSizeCached != nil {
-			result.Data = *maxPostSizeCached
+		if allowFromCache && s.maxPostSizeCached != nil {
+			result.Data = *s.maxPostSizeCached
 			return
 		}
 
@@ -1277,7 +1278,7 @@ func (s SqlPostStore) GetMaxPostSize(allowFromCache bool) store.StoreChannel {
 			l4g.Warn(utils.T("store.sql_post.query_max_post_size.unrecognized_driver"))
 		}
 
-		maxPostSizeCached = &maxPostSize
+		s.maxPostSizeCached = &maxPostSize
 		result.Data = maxPostSize
 	})
 }
