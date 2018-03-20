@@ -355,7 +355,7 @@ func TestMaxPostSize(t *testing.T) {
 
 	testCases := []struct {
 		Description         string
-		StoreMaxPostSize    int32
+		StoreMaxPostSize    int
 		ExpectedMaxPostSize int
 		ExpectedError       *model.AppError
 	}{
