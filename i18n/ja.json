@@ -108,6 +108,18 @@
     "translation": "Mattermost - 電子メール設定のテスト"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3バケット名が必要です"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "S3エンドポイントが必要です"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3リージョンが必要です"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "リクエストの'image'以下の配列が空です"
   },
@@ -2331,6 +2343,50 @@
     "translation": "%v はチームから削除されました。"
   },
   {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "リクエストの'image'以下の配列が空です"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "チームアイコンをデコードできませんでした"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "チームアイコンメタデータをデコードできませんでした"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "チームアイコンをエンコードできませんでした"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "チームの取得中にエラーが発生しました"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "リクエストの'image'以下にファイルがありません"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "画像ファイルを開けません"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "マルチパートフォームを解析できませんでした"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "チームアイコンをアップロードできません。画像ストレージが設定されていません。"
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "チームアイコンをアップロードできません。ファイルが大き過ぎます。"
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "チームアイコンを保存できませんでした"
+  },
+  {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "電子メールによるチームへの利用登録は無効です。"
   },
@@ -3647,6 +3703,10 @@
     "translation": "抽出されたプラグインを有効化できませんでした。プラグインが既に存在し、有効化されている可能性があります。"
   },
   {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "クラスター化を有効にするとともにReadOnlyConfigを使用する際は、config.jsonファイルのプラグイン設定は手動で更新する必要があります。"
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "設定にプラグインの状態を保存する際にエラーが発生しました"
   },
@@ -4144,7 +4204,7 @@
   },
   {
     "id": "ent.metrics.stopping.info",
-    "translation": "メトリクスとプロファイリングのサーバーは%vで停止しています"
+    "translation": "%v のメトリクスとプロファイリング用のサーバーは停止しています"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -4907,12 +4967,36 @@
     "translation": "メッセージエクスポート処理の ExportFormat は 'actiance' か 'globalrelay' のいずれかでなくてはなりません"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "メッセージエクスポート処理の ExportFormat は 'actiance' か 'globalrelay' のいずれかでなくてはなりません"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "メッセーエクスポート処理の FileLocation はエクスポートデータが書き込まれる書き込み可能なディレクトリでなくてはなりません"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "メッセージエクスポート処理の FileLocation は FileSettings.Directory のサブディレクトリでなくてはなりません"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "メッセージエクスポート処理のExportFormatは 'globalrelay' に設定されていますが、GlobalRealySettingsが見つかりません。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomerTypeには 'A9' か 'A10' のいずれかを設定してください。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "メッセージエクスポート処理の GlobalRelay.EmailAddress には有効な電子メールアドレスが設定されていなくてはなりません"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "メッセージエクスポート処理のGlobalRelaySettings.SmtpPasswordが設定されていなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "メッセージエクスポート処理のGlobalRelaySettings.SmtpUsernameが設定されていなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",

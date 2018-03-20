@@ -108,6 +108,18 @@
     "translation": "Mattermost - 测试邮箱设置"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "S3 Endpoint is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Region is required"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "请求中图片为空"
   },
@@ -2331,6 +2343,50 @@
     "translation": "%v 已移出团队。"
   },
   {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "请求中图片为空"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "无法解码团队图标"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Could not decode team icon metadata"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "无法编码团队图标"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "获取团队时发生错误"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "请求中缺失图片文件"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "无法打开图像文件"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "不能解析混合表单"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "不能上传团队图标。没有配置图片存储。"
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "不能上传团队图标。文件太大。"
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "无法保存团队图标"
+  },
+  {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "使用电子邮件注册团队被禁用。"
   },
@@ -3647,6 +3703,10 @@
     "translation": "无法激活揭开的插件。插件可能已存在并已激活。"
   },
   {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "保存插件状态到配置出错"
   },
@@ -4907,12 +4967,36 @@
     "translation": "消息导出任务 ExportFormat 必须为 'actiance' 或 'globalrelay'"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "消息导出任务 ExportFormat 必须为 'actiance' 或 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "消息导出任务 FileLocation 比如为可写的目录"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "消息导出任务 FileLocation 必须为 FileSettings.Directory 的子目录"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "消息导出任务 GlobalRelayEmailAddress 必须为有效的电子邮箱地址"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
