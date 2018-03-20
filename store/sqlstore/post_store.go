@@ -4,13 +4,13 @@
 package sqlstore
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"bytes"
+	"sync"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -24,7 +24,8 @@ type SqlPostStore struct {
 	metrics           einterfaces.MetricsInterface
 	lastPostTimeCache *utils.Cache
 	lastPostsCache    *utils.Cache
-	maxPostSizeCached *int32
+	maxPostSizeOnce   sync.Once
+	maxPostSizeCached int
 }
 
 const (
@@ -35,7 +36,7 @@ const (
 	LAST_POSTS_CACHE_SEC  = 900 // 15 minutes
 )
 
-func (s SqlPostStore) ClearCaches() {
+func (s *SqlPostStore) ClearCaches() {
 	s.lastPostTimeCache.Purge()
 	s.lastPostsCache.Purge()
 
@@ -72,7 +73,7 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	return s
 }
 
-func (s SqlPostStore) CreateIndexesIfNotExists() {
+func (s *SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
 	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
@@ -88,7 +89,7 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s SqlPostStore) Save(post *model.Post) store.StoreChannel {
+func (s *SqlPostStore) Save(post *model.Post) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if len(post.Id) > 0 {
 			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
@@ -96,11 +97,11 @@ func (s SqlPostStore) Save(post *model.Post) store.StoreChannel {
 		}
 
 		var maxPostSize int
-		if result := <-s.GetMaxPostSize(true); result.Err != nil {
+		if result := <-s.GetMaxPostSize(); result.Err != nil {
 			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+result.Err.Error(), http.StatusInternalServerError)
 			return
 		} else {
-			maxPostSize = int(result.Data.(int32))
+			maxPostSize = result.Data.(int)
 		}
 
 		post.PreSave()
@@ -132,7 +133,7 @@ func (s SqlPostStore) Save(post *model.Post) store.StoreChannel {
 	})
 }
 
-func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.StoreChannel {
+func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		newPost.UpdateAt = model.GetMillis()
 		newPost.PreCommit()
@@ -144,11 +145,11 @@ func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.Sto
 		oldPost.PreCommit()
 
 		var maxPostSize int
-		if result := <-s.GetMaxPostSize(true); result.Err != nil {
+		if result := <-s.GetMaxPostSize(); result.Err != nil {
 			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+result.Err.Error(), http.StatusInternalServerError)
 			return
 		} else {
-			maxPostSize = int(result.Data.(int32))
+			maxPostSize = result.Data.(int)
 		}
 
 		if result.Err = newPost.IsValid(maxPostSize); result.Err != nil {
@@ -173,16 +174,16 @@ func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.Sto
 	})
 }
 
-func (s SqlPostStore) Overwrite(post *model.Post) store.StoreChannel {
+func (s *SqlPostStore) Overwrite(post *model.Post) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		post.UpdateAt = model.GetMillis()
 
 		var maxPostSize int
-		if result := <-s.GetMaxPostSize(true); result.Err != nil {
+		if result := <-s.GetMaxPostSize(); result.Err != nil {
 			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+result.Err.Error(), http.StatusInternalServerError)
 			return
 		} else {
-			maxPostSize = int(result.Data.(int32))
+			maxPostSize = result.Data.(int)
 		}
 
 		if result.Err = post.IsValid(maxPostSize); result.Err != nil {
@@ -197,7 +198,7 @@ func (s SqlPostStore) Overwrite(post *model.Post) store.StoreChannel {
 	})
 }
 
-func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) store.StoreChannel {
+func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		pl := model.NewPostList()
 
@@ -215,7 +216,7 @@ func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) stor
 	})
 }
 
-func (s SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) store.StoreChannel {
+func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		pl := model.NewPostList()
 
@@ -260,7 +261,7 @@ func (s SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, 
 	})
 }
 
-func (s SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) store.StoreChannel {
+func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		pl := model.NewPostList()
 
@@ -289,7 +290,7 @@ func (s SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset
 	})
 }
 
-func (s SqlPostStore) Get(id string) store.StoreChannel {
+func (s *SqlPostStore) Get(id string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		pl := model.NewPostList()
 
@@ -334,7 +335,7 @@ func (s SqlPostStore) Get(id string) store.StoreChannel {
 	})
 }
 
-func (s SqlPostStore) GetSingle(id string) store.StoreChannel {
+func (s *SqlPostStore) GetSingle(id string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
@@ -351,7 +352,7 @@ type etagPosts struct {
 	UpdateAt int64
 }
 
-func (s SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
+func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	s.lastPostTimeCache.Remove(channelId)
 
 	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
@@ -364,7 +365,7 @@ func (s SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	}
 }
 
-func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
+func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
@@ -396,7 +397,7 @@ func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.Store
 	})
 }
 
-func (s SqlPostStore) Delete(postId string, time int64) store.StoreChannel {
+func (s *SqlPostStore) Delete(postId string, time int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId})
 		if err != nil {
@@ -405,7 +406,7 @@ func (s SqlPostStore) Delete(postId string, time int64) store.StoreChannel {
 	})
 }
 
-func (s SqlPostStore) permanentDelete(postId string) store.StoreChannel {
+func (s *SqlPostStore) permanentDelete(postId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId})
 		if err != nil {
@@ -414,7 +415,7 @@ func (s SqlPostStore) permanentDelete(postId string) store.StoreChannel {
 	})
 }
 
-func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) store.StoreChannel {
+func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
 		if err != nil {
@@ -423,7 +424,7 @@ func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) store.Store
 	})
 }
 
-func (s SqlPostStore) PermanentDeleteByUser(userId string) store.StoreChannel {
+func (s *SqlPostStore) PermanentDeleteByUser(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		// First attempt to delete all the comments for a user
 		if r := <-s.permanentDeleteAllCommentByUser(userId); r.Err != nil {
@@ -463,7 +464,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) store.StoreChannel {
 	})
 }
 
-func (s SqlPostStore) PermanentDeleteByChannel(channelId string) store.StoreChannel {
+func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
 			result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByChannel", "store.sql_post.permanent_delete_by_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
@@ -471,7 +472,7 @@ func (s SqlPostStore) PermanentDeleteByChannel(channelId string) store.StoreChan
 	})
 }
 
-func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
+func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if limit > 1000 {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
@@ -532,7 +533,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 	})
 }
 
-func (s SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
+func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			// If the last post in the channel's time is less than or equal to the time we are getting posts since,
@@ -609,15 +610,15 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache
 	})
 }
 
-func (s SqlPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
+func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
 	return s.getPostsAround(channelId, postId, numPosts, offset, true)
 }
 
-func (s SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
+func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
 	return s.getPostsAround(channelId, postId, numPosts, offset, false)
 }
 
-func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool) store.StoreChannel {
+func (s *SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var direction string
 		var sort string
@@ -698,7 +699,7 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 	})
 }
 
-func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {
+func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
@@ -710,7 +711,7 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) stor
 	})
 }
 
-func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) store.StoreChannel {
+func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts, `
@@ -797,7 +798,7 @@ var specialSearchChar = []string{
 	":",
 }
 
-func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) store.StoreChannel {
+func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		queryParams := map[string]interface{}{
 			"TeamId": teamId,
@@ -971,7 +972,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 	})
 }
 
-func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) store.StoreChannel {
+func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query :=
 			`SELECT DISTINCT
@@ -1024,7 +1025,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) store.Sto
 	})
 }
 
-func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) store.StoreChannel {
+func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query :=
 			`SELECT
@@ -1079,7 +1080,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) store.StoreChannel
 	})
 }
 
-func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) store.StoreChannel {
+func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query :=
 			`SELECT
@@ -1110,7 +1111,7 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 	})
 }
 
-func (s SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {
+func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt AND ChannelId = :ChannelId`
 
@@ -1125,7 +1126,7 @@ func (s SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.Stor
 	})
 }
 
-func (s SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
+func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		keys := bytes.Buffer{}
 		params := make(map[string]interface{})
@@ -1153,7 +1154,7 @@ func (s SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 	})
 }
 
-func (s SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
+func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.PostForIndexing
 		_, err1 := s.GetSearchReplica().Select(&posts,
@@ -1193,7 +1194,7 @@ func (s SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, l
 	})
 }
 
-func (s SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
+func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var query string
 		if s.DriverName() == "postgres" {
@@ -1217,7 +1218,7 @@ func (s SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) store.Sto
 	})
 }
 
-func (s SqlPostStore) GetOldest() store.StoreChannel {
+func (s *SqlPostStore) GetOldest() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")
@@ -1229,29 +1230,22 @@ func (s SqlPostStore) GetOldest() store.StoreChannel {
 	})
 }
 
-// GetMaxPostSize returns the maximum number of runes that may be stored in a post.
-func (s SqlPostStore) GetMaxPostSize(allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var maxPostSize int32 = model.POST_MESSAGE_MAX_RUNES_V1
+func (s *SqlPostStore) determineMaxPostSize() int {
+	var maxPostSize int = model.POST_MESSAGE_MAX_RUNES_V1
 
-		if allowFromCache && s.maxPostSizeCached != nil {
-			result.Data = *s.maxPostSizeCached
-			return
-		}
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// PostgreSQL uses TEXT as the underlying type, and we will have safely
+		// migrated from any VARCHAR(4000) with the same underlying type on
+		// upgrade.
+		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V2
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			// PostgreSQL uses TEXT as the underlying type, and we will have safely
-			// migrated from any VARCHAR(4000) with the same underlying type on
-			// upgrade.
-			maxPostSize = model.POST_MESSAGE_MAX_RUNES_V2
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// Unlike PostgreSQL, MySQL's VARCHAR and TEXT types do not share the same
+		// underlying storage strategy. Honour any existing limitation, and rely
+		// on system administrators to migrate the column if necessary.
+		var maxPostSizeBytes int32
 
-		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			// Unlike PostgreSQL, MySQL's VARCHAR and TEXT types do not share the same
-			// underlying storage strategy. Honour any existing limitation, and rely
-			// on system administrators to migrate the column if necessary.
-			var maxPostSizeBytes int32
-
-			if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
+		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
 				SELECT 
 					CHARACTER_MAXIMUM_LENGTH
 				FROM 
@@ -1262,23 +1256,31 @@ func (s SqlPostStore) GetMaxPostSize(allowFromCache bool) store.StoreChannel {
 				AND	column_name = 'Message'
 				LIMIT 0, 1
 			`); err != nil {
-				result.Err = model.NewAppError("SqlPostStore.GetMaxPostSize", "store.sql_post.query_max_post_size.error", nil, err.Error(), http.StatusInternalServerError)
-			} else {
-				// Assume a worst-case representation of four bytes per rune.
-				maxPostSize = maxPostSizeBytes / 4
-
-				// To maintain backwards compatibility, don't yield a maximum post
-				// size smaller than the previous limit, even though it wasn't
-				// actually possible to store 4000 runes in all cases.
-				if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
-					maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
-				}
-			}
+			l4g.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		} else {
-			l4g.Warn(utils.T("store.sql_post.query_max_post_size.unrecognized_driver"))
-		}
+			// Assume a worst-case representation of four bytes per rune.
+			maxPostSize = int(maxPostSizeBytes) / 4
 
-		s.maxPostSizeCached = &maxPostSize
-		result.Data = maxPostSize
+			// To maintain backwards compatibility, don't yield a maximum post
+			// size smaller than the previous limit, even though it wasn't
+			// actually possible to store 4000 runes in all cases.
+			if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
+				maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
+			}
+		}
+	} else {
+		l4g.Warn(utils.T("store.sql_post.query_max_post_size.unrecognized_driver"))
+	}
+
+	return maxPostSize
+}
+
+// GetMaxPostSize returns the maximum number of runes that may be stored in a post.
+func (s *SqlPostStore) GetMaxPostSize() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		s.maxPostSizeOnce.Do(func() {
+			s.maxPostSizeCached = s.determineMaxPostSize()
+		})
+		result.Data = s.maxPostSizeCached
 	})
 }

@@ -423,12 +423,12 @@ func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) store.Stor
 	return r0
 }
 
-func (_m *PostStore) GetMaxPostSize(allowFromCache bool) store.StoreChannel {
-	ret := _m.Called(allowFromCache)
+func (_m *PostStore) GetMaxPostSize() store.StoreChannel {
+	ret := _m.Called()
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(bool) store.StoreChannel); ok {
-		r0 = rf(allowFromCache)
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
