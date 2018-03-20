@@ -382,6 +382,8 @@ func TestMaxPostSize(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
+			t.Parallel()
+
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
 
