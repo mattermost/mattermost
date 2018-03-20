@@ -385,10 +385,11 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 	sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// We would never want to unilaterally migrate VARCHAR(4000) to text on a
-		// production MySQL database, but as these use the same underlying types on
-		// Postgres, all we're doing is relaxing the constraint here.
-		sqlStore.AlterColumnTypeIfExists("Posts", "Message", "text", "text")
+		// Note that, in Postgres, VARCHAR has the same underlying type as TEXT, but with
+		// a length constraint. Ideally, we'd just use TEXT, but the gorp library creates
+		// VARCHAR with a limit for Postgres whenever a length is specified. There is no
+		// data migration occurring as part of this column alteration.
+		sqlStore.AlterColumnTypeIfExists("Posts", "Message", "varchar(65535)", "varchar(65535)")
 	}
 	//	saveSchemaVersion(sqlStore, VERSION_4_9_0)
 	//}
