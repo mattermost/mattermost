@@ -401,7 +401,7 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 		options = append(options, pluginenv.SupervisorProvider(supervisorOverride))
 	} else if err := sandbox.CheckSupport(); err != nil {
 		l4g.Warn(err.Error())
-		l4g.Warn("plugin sandboxing is not supported. plugins will run with the same access level as the server")
+		l4g.Warn("plugin sandboxing is not supported. plugins will run with the same access level as the server. See documentation to learn more: https://developers.mattermost.com/extend/plugins/security/")
 		options = append(options, pluginenv.SupervisorProvider(rpcplugin.SupervisorProvider))
 	} else {
 		options = append(options, pluginenv.SupervisorProvider(sandbox.SupervisorProvider))
