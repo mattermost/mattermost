@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -43,7 +44,7 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.ImageFilenames) - 1})]
 
 	path, _ := utils.FindDir("web/static/images")
-	file, err := os.Open(path + "/" + filename)
+	file, err := os.Open(filepath.Join(path, filename))
 	if err != nil {
 		return nil, false
 	}
