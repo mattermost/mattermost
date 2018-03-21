@@ -5,8 +5,10 @@ package utils
 
 import (
 	"bytes"
+	"errors"
 	"html/template"
 	"io"
+	"path/filepath"
 	"reflect"
 	"sync/atomic"
 
@@ -39,7 +41,7 @@ func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 		return nil, err
 	}
 
-	if htmlTemplates, err := template.ParseGlob(templatesDir + "*.html"); err != nil {
+	if htmlTemplates, err := template.ParseGlob(filepath.Join(templatesDir, "*.html")); err != nil {
 		return nil, err
 	} else {
 		ret.templates.Store(htmlTemplates)
@@ -56,7 +58,7 @@ func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					l4g.Info("Re-parsing templates because of modified file %v", event.Name)
-					if htmlTemplates, err := template.ParseGlob(templatesDir + "*.html"); err != nil {
+					if htmlTemplates, err := template.ParseGlob(filepath.Join(templatesDir, "*.html")); err != nil {
 						l4g.Error("Failed to parse templates %v", err)
 					} else {
 						ret.templates.Store(htmlTemplates)
@@ -103,6 +105,10 @@ func (t *HTMLTemplate) Render() string {
 }
 
 func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
+	if t.Templates == nil {
+		return errors.New("no html templates")
+	}
+
 	if err := t.Templates.ExecuteTemplate(w, t.TemplateName, t); err != nil {
 		l4g.Error(T("api.api.render.error"), t.TemplateName, err)
 		return err

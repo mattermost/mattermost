@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -53,7 +54,7 @@ func TestPlugin(t *testing.T) {
 	}()
 
 	path, _ := utils.FindDir("tests")
-	file, err := os.Open(path + "/testplugin.tar.gz")
+	file, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
 	if err != nil {
 		t.Fatal(err)
 	}
