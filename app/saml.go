@@ -8,7 +8,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-
 	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -42,7 +41,7 @@ func WriteSamlFile(fileData *multipart.FileHeader) *model.AppError {
 	defer file.Close()
 
 	configDir, _ := utils.FindDir("config")
-	out, err := os.Create(configDir + filename)
+	out, err := os.Create(filepath.Join(configDir, filename))
 	if err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

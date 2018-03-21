@@ -23,12 +23,14 @@ var settings model.LocalizationSettings
 // this functions loads translations from filesystem
 // and assign english while loading server config
 func TranslationsPreInit() error {
+	// Set T even if we fail to load the translations. Lots of shutdown handling code will
+	// segfault trying to handle the error, and the untranslated IDs are strictly better.
+	T = TfuncWithFallback("en")
+	TDefault = TfuncWithFallback("en")
+
 	if err := InitTranslationsWithDir("i18n"); err != nil {
 		return err
 	}
-
-	T = TfuncWithFallback("en")
-	TDefault = TfuncWithFallback("en")
 
 	return nil
 }
@@ -51,9 +53,9 @@ func InitTranslationsWithDir(dir string) error {
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
-			locales[strings.Split(filename, ".")[0]] = i18nDirectory + filename
+			locales[strings.Split(filename, ".")[0]] = filepath.Join(i18nDirectory, filename)
 
-			if err := i18n.LoadTranslationFile(i18nDirectory + filename); err != nil {
+			if err := i18n.LoadTranslationFile(filepath.Join(i18nDirectory, filename)); err != nil {
 				return err
 			}
 		}

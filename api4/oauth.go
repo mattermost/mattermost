@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -375,7 +376,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 
 	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
-	http.ServeFile(w, r, staticDir+"root.html")
+	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
 }
 
 func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
