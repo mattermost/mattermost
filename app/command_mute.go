@@ -61,8 +61,8 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	// Invalidate cache to allow cache lookups while sending notifications
 	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channel.Id)
 
-	// Direct messages won't have a nice channel title, omit it
-	if channel.Type == model.CHANNEL_DIRECT {
+	// Direct and Group messages won't have a nice channel title, omit it
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 		if channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 			publishChannelMemberEvt(a, channelMember, args.UserId)
 			return &model.CommandResponse{Text: args.T("api.command_mute.success_mute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
