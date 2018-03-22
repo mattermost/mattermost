@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"encoding/json"
 	"os"
 	"strings"
 	"time"
@@ -376,6 +377,12 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 	//TODO: Uncomment the following condition when version 4.9.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_8_0, VERSION_4_9_0) {
 	sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
+	defaultTimezone := model.DefaultUserTimezone()
+	defaultTimezoneValue, err := json.Marshal(defaultTimezone)
+	if err != nil {
+		l4g.Critical(err)
+	}
+	sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 	//	saveSchemaVersion(sqlStore, VERSION_4_9_0)
 	//}
 }

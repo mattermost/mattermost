@@ -996,6 +996,10 @@ func TestPatchUser(t *testing.T) {
 	patch.Position = new(string)
 	patch.NotifyProps = model.StringMap{}
 	patch.NotifyProps["comment"] = "somethingrandom"
+	patch.Timezone = model.StringMap{}
+	patch.Timezone["useAutomaticTimezone"] = "true"
+	patch.Timezone["automaticTimezone"] = "America/New_York"
+	patch.Timezone["manualTimezone"] = ""
 
 	ruser, resp := Client.PatchUser(user.Id, patch)
 	CheckNoError(t, resp)
@@ -1018,6 +1022,15 @@ func TestPatchUser(t *testing.T) {
 	}
 	if ruser.NotifyProps["comment"] != "somethingrandom" {
 		t.Fatal("NotifyProps did not update properly")
+	}
+	if ruser.Timezone["useAutomaticTimezone"] != "true" {
+		t.Fatal("useAutomaticTimezone did not update properly")
+	}
+	if ruser.Timezone["automaticTimezone"] != "America/New_York" {
+		t.Fatal("automaticTimezone did not update properly")
+	}
+	if ruser.Timezone["manualTimezone"] != "" {
+		t.Fatal("manualTimezone did not update properly")
 	}
 
 	patch.Username = model.NewString(th.BasicUser2.Username)

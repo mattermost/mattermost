@@ -527,3 +527,15 @@ func TestS3TestConnection(t *testing.T) {
 		t.Fatal("should return error ")
 	}
 }
+
+func TestSupportedTimezones(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	supportedTimezonesFromConfig := th.App.Timezones()
+	supportedTimezones, resp := Client.GetSupportedTimezone()
+
+	CheckNoError(t, resp)
+	assert.Equal(t, supportedTimezonesFromConfig, supportedTimezones)
+}
