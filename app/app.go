@@ -63,6 +63,8 @@ type App struct {
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func()
 
+	timezones atomic.Value
+
 	siteURL string
 
 	newStore func() store.Store
@@ -125,6 +127,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 		return nil, err
 	}
 	app.EnableConfigWatch()
+
+	app.LoadTimezones()
+
 	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
