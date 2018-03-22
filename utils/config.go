@@ -408,8 +408,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
-	props["EnableMobileFileUpload"] = strconv.FormatBool(*c.FileSettings.EnableMobileUpload)
-	props["EnableMobileFileDownload"] = strconv.FormatBool(*c.FileSettings.EnableMobileDownload)
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
 
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
@@ -443,8 +441,55 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
 
+	// Set default values for all options that require a license.
+	props["ExperimentalTownSquareIsReadOnly"] = "false"
+	props["ExperimentalEnableAuthenticationTransfer"] = "true"
+	props["EnableCustomBrand"] = "false"
+	props["CustomBrandText"] = ""
+	props["CustomDescriptionText"] = ""
+	props["EnableLdap"] = "false"
+	props["LdapLoginFieldName"] = ""
+	props["LdapNicknameAttributeSet"] = "false"
+	props["LdapFirstNameAttributeSet"] = "false"
+	props["LdapLastNameAttributeSet"] = "false"
+	props["LdapLoginButtonColor"] = ""
+	props["LdapLoginButtonBorderColor"] = ""
+	props["LdapLoginButtonTextColor"] = ""
+	props["EnableMultifactorAuthentication"] = "false"
+	props["EnforceMultifactorAuthentication"] = "false"
+	props["EnableCompliance"] = "false"
+	props["EnableMobileFileDownload"] = "true"
+	props["EnableMobileFileUpload"] = "true"
+	props["EnableSaml"] = "false"
+	props["SamlLoginButtonText"] = ""
+	props["SamlFirstNameAttributeSet"] = "false"
+	props["SamlLastNameAttributeSet"] = "false"
+	props["SamlNicknameAttributeSet"] = "false"
+	props["SamlLoginButtonColor"] = ""
+	props["SamlLoginButtonBorderColor"] = ""
+	props["SamlLoginButtonTextColor"] = ""
+	props["EnableCluster"] = "false"
+	props["EnableMetrics"] = "false"
+	props["EnableSignUpWithGoogle"] = "false"
+	props["EnableSignUpWithOffice365"] = "false"
+	props["PasswordMinimumLength"] = "0"
+	props["PasswordRequireLowercase"] = "false"
+	props["PasswordRequireUppercase"] = "false"
+	props["PasswordRequireNumber"] = "false"
+	props["PasswordRequireSymbol"] = "false"
+	props["EnableBanner"] = "false"
+	props["BannerText"] = ""
+	props["BannerColor"] = ""
+	props["BannerTextColor"] = ""
+	props["AllowBannerDismissal"] = "false"
 	props["EnableThemeSelection"] = "true"
+	props["DefaultTheme"] = ""
 	props["AllowCustomThemes"] = "true"
+	props["AllowedThemes"] = ""
+	props["DataRetentionEnableMessageDeletion"] = "false"
+	props["DataRetentionMessageRetentionDays"] = "0"
+	props["DataRetentionEnableFileDeletion"] = "false"
+	props["DataRetentionFileRetentionDays"] = "0"
 
 	if license != nil {
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
@@ -474,6 +519,8 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 		if *license.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
+			props["EnableMobileFileDownload"] = strconv.FormatBool(*c.FileSettings.EnableMobileDownload)
+			props["EnableMobileFileUpload"] = strconv.FormatBool(*c.FileSettings.EnableMobileUpload)
 		}
 
 		if *license.Features.SAML {
