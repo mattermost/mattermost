@@ -1233,44 +1233,52 @@ func (s *SqlPostStore) GetOldest() store.StoreChannel {
 
 func (s *SqlPostStore) determineMaxPostSize() int {
 	var maxPostSize int = model.POST_MESSAGE_MAX_RUNES_V1
+	var maxPostSizeBytes int32
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// PostgreSQL uses TEXT as the underlying type, and we will have safely
-		// migrated from any VARCHAR(4000) with the same underlying type on
-		// upgrade.
-		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V2
-
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		// Unlike PostgreSQL, MySQL's VARCHAR and TEXT types do not share the same
-		// underlying storage strategy. Honour any existing limitation, and rely
-		// on system administrators to migrate the column if necessary.
-		var maxPostSizeBytes int32
-
+		// The Post.Message column in Postgres has historically been VARCHAR(4000), but
+		// may be manually enlarged to support longer posts.
 		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
-				SELECT 
-					CHARACTER_MAXIMUM_LENGTH
-				FROM 
-					INFORMATION_SCHEMA.COLUMNS
-				WHERE 
-					table_schema = DATABASE()
-				AND	table_name = 'Posts'
-				AND	column_name = 'Message'
-				LIMIT 0, 1
-			`); err != nil {
+			SELECT
+				COALESCE(character_maximum_length, 0)
+			FROM
+				information_schema.columns
+			WHERE
+				table_name = 'posts'
+			AND	column_name = 'message'
+		`); err != nil {
 			l4g.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
-		} else {
-			// Assume a worst-case representation of four bytes per rune.
-			maxPostSize = int(maxPostSizeBytes) / 4
-
-			// To maintain backwards compatibility, don't yield a maximum post
-			// size smaller than the previous limit, even though it wasn't
-			// actually possible to store 4000 runes in all cases.
-			if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
-				maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
-			}
+		}
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// The Post.Message column in MySQL has historically been TEXT, with a maximum
+		// limit of 65535.
+		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
+			SELECT 
+				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
+			FROM 
+				INFORMATION_SCHEMA.COLUMNS
+			WHERE 
+				table_schema = DATABASE()
+			AND	table_name = 'Posts'
+			AND	column_name = 'Message'
+			LIMIT 0, 1
+		`); err != nil {
+			l4g.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else {
 		l4g.Warn(utils.T("store.sql_post.query_max_post_size.unrecognized_driver"))
+	}
+
+	l4g.Trace(utils.T("store.sql_post.query_max_post_size.max_post_size_bytes"), maxPostSizeBytes)
+
+	// Assume a worst-case representation of four bytes per rune.
+	maxPostSize = int(maxPostSizeBytes) / 4
+
+	// To maintain backwards compatibility, don't yield a maximum post
+	// size smaller than the previous limit, even though it wasn't
+	// actually possible to store 4000 runes in all cases.
+	if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
+		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
 	}
 
 	return maxPostSize

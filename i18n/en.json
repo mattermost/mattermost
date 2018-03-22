@@ -6455,6 +6455,10 @@
     "translation": "No implementation found to determine the maximum supported post size"
   },
   {
+    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
+    "translation": "Post.Message supports at most %d bytes"
+  },
+  {
     "id": "store.sql_post.save.app_error",
     "translation": "We couldn't save the Post"
   },
