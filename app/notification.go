@@ -1007,10 +1007,6 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		return false
 	}
 
-	if channelNotify == model.CHANNEL_MARK_UNREAD_MENTION {
-		return false
-	}
-
 	if userNotify == model.USER_NOTIFY_MENTION && (!ok || channelNotify == model.CHANNEL_NOTIFY_DEFAULT) && !wasMentioned {
 		return false
 	}
