@@ -54,6 +54,7 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	a.configFile = configPath
 
 	utils.ConfigureLog(&cfg.LogSettings)
+	l4g.Info("Using config file at %s", configPath)
 
 	a.config.Store(cfg)
 
