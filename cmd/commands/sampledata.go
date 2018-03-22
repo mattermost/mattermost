@@ -333,6 +333,13 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	firstName := fake.FirstName()
 	lastName := fake.LastName()
 	username := fmt.Sprintf("%s.%s", strings.ToLower(firstName), strings.ToLower(lastName))
+	if idx == 0 {
+		username = "sysadmin"
+		password = "sysadmin"
+		email = "sysadmin@sample.mattermost.com"
+	} else if idx == 1 {
+		username = "user-1"
+	}
 	position := fake.JobTitle()
 	roles := "system_user"
 	if idx%5 == 0 {
