@@ -988,6 +988,13 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	userNotify := userNotifyProps[model.PUSH_NOTIFY_PROP]
 	channelNotify, ok := channelNotifyProps[model.PUSH_NOTIFY_PROP]
 
+	// If the channel is muted do not send push notifications
+	if channelMuted, ok := channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP]; ok {
+		if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
+			return false
+		}
+	}
+
 	if post.IsSystemMessage() {
 		return false
 	}
@@ -997,6 +1004,10 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	}
 
 	if channelNotify == model.CHANNEL_NOTIFY_MENTION && !wasMentioned {
+		return false
+	}
+
+	if channelNotify == model.CHANNEL_MARK_UNREAD_MENTION {
 		return false
 	}
 
