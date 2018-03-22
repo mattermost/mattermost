@@ -1955,6 +1955,14 @@
     "translation": "Server is initializing..."
   },
   {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Must enable Forward80To443 when using LetsEncrypt"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+  },
+  {
     "id": "api.server.start_server.listening.info",
     "translation": "Server is listening on %v"
   },
