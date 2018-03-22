@@ -414,8 +414,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
-	props["EnableMobileFileUpload"] = strconv.FormatBool(*c.FileSettings.EnableMobileUpload)
-	props["EnableMobileFileDownload"] = strconv.FormatBool(*c.FileSettings.EnableMobileDownload)
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
 
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
@@ -466,6 +464,8 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableMultifactorAuthentication"] = "false"
 	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableCompliance"] = "false"
+	props["EnableMobileFileDownload"] = "true"
+	props["EnableMobileFileUpload"] = "true"
 	props["EnableSaml"] = "false"
 	props["SamlLoginButtonText"] = ""
 	props["SamlFirstNameAttributeSet"] = "false"
@@ -525,6 +525,8 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 		if *license.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
+			props["EnableMobileFileDownload"] = strconv.FormatBool(*c.FileSettings.EnableMobileDownload)
+			props["EnableMobileFileUpload"] = strconv.FormatBool(*c.FileSettings.EnableMobileUpload)
 		}
 
 		if *license.Features.SAML {
