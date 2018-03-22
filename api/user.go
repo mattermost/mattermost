@@ -1170,7 +1170,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			teamId := relayProps["team_id"]
 			if len(teamId) > 0 {
 				c.App.Go(func() {
-					c.App.AddDirectChannels(teamId, user)
+					if err := c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
+						l4g.Error(err.Error())
+					} else {
+						c.App.AddDirectChannels(teamId, user)
+					}
 				})
 			}
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:
