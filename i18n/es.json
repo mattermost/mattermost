@@ -108,6 +108,18 @@
     "translation": "Mattermost - Configuración de pruebas de correo"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket es necesario"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "S3 Endpoint es necesario"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Región es necesaria"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "Arreglo vacio bajo 'image' en la solicitud"
   },
@@ -2331,6 +2343,50 @@
     "translation": "%v removido del equipo."
   },
   {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Arreglo vacío bajo 'image' en la solicitud"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "No se pudo descodificar el icono de equipo"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "No se pudo descodificar la metadata del icono de equipo"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "No se pudo codificar el icono de equipo"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "Ocurrió un error al obtener el equipo"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "No hay un archivo bajo 'image' en la solicitud"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "No se pudo abrir el archivo de imagen"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "No se pudo analizar el formulario multipart"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "No se puede cargar el icono del equipo. El almacenamiento de imágenes no está configurado."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "No se pudo subir el icono del equipo. El archivo es demasiado grande."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "No se pudo guardar el icono del equipo"
+  },
+  {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "El registro a equipos por correo electrónico está inhabilitado."
   },
@@ -3647,6 +3703,10 @@
     "translation": "No se puede activar el plugin extraído. Puede que el plugin ya exista y esté activo."
   },
   {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "La configuración de plugin en tu archivo config.json debe ser actualizado manualmente cuando se utiliza ReadOnlyConfig con el agrupamiento de servidores habilitado."
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "Error al guardar el estado del plugin en la configuración"
   },
@@ -4907,12 +4967,36 @@
     "translation": "El trabajo de exportación de Mensaje ExportFormat debe ser 'actiance' o 'globalrelay'"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "El trabajo de exportación de Mensaje ExportFormat debe ser 'actiance' o 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "El ajuste FileLocation para realizar el trabajo de Exportación de Mensajes debe ser un directorio con permiso de escritura donde la data de exportación será almacenada."
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "El ajuste FileLocation para realizar el trabajo de Exportación de Mensajes debe ser un sub-directorio de FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "El trabajo de exportación de mensajes ExportFormat está asignado a 'globalrelay', pero falta establecer los parámetros de GlobalRelaySettings"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "El parámetro de exportación de mensajes GlobalRelaySettings.CustomerType debe ser establecido en 'A9' o 'A10'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "El parámetro de exportación de mensajes GlobalRelaySettings.EmailAddress debe estar asignado a una dirección de correo electrónico válida"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "El parámetro de exportación de mensajes GlobalRelaySettings.SmtpPassword debe estar asignado"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "El parámetro de exportación de mensajes GlobalRelaySettings.SmtpUsername debe estar asignado"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",

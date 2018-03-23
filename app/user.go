@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -717,7 +718,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	initial := string(strings.ToUpper(username)[0])
 
 	fontDir, _ := utils.FindDir("fonts")
-	fontBytes, err := ioutil.ReadFile(fontDir + initialFont)
+	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
 	if err != nil {
 		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

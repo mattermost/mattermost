@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -778,7 +779,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 		}
 
 		path, _ := utils.FindDir("tests")
-		file, err := os.Open(path + "/test.png")
+		file, err := os.Open(filepath.Join(path, "test.png"))
 		if err != nil {
 			t.Fatal(err)
 		}

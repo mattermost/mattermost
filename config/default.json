@@ -211,6 +211,9 @@
         "AllowCustomThemes": true,
         "AllowedThemes": []
     },
+    "TimezoneSettings": {
+        "SupportedTimezonesPath": "timezones.json"
+    },
     "GitLabSettings": {
         "Enable": false,
         "Secret": "",
@@ -282,6 +285,8 @@
         "IdpUrl": "",
         "IdpDescriptorUrl": "",
         "AssertionConsumerServiceURL": "",
+        "ScopingIDPProviderId": "",
+        "ScopingIDPName": "",
         "IdpCertificateFile": "",
         "PublicCertificateFile": "",
         "PrivateKeyFile": "",

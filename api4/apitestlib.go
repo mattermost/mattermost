@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -303,7 +304,11 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	ruser, _ := client.CreateUser(user)
+	ruser, response := client.CreateUser(user)
+	if response.Error != nil {
+		panic(response.Error)
+	}
+
 	ruser.Password = "Password1"
 	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
 	utils.EnableDebugLogForTest()
@@ -676,7 +681,7 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 
 func readTestFile(name string) ([]byte, error) {
 	path, _ := utils.FindDir("tests")
-	file, err := os.Open(path + "/" + name)
+	file, err := os.Open(filepath.Join(path, name))
 	if err != nil {
 		return nil, err
 	}

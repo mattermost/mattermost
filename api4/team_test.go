@@ -573,6 +573,10 @@ func TestGetAllTeams(t *testing.T) {
 	_, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
 
+	team2 := &model.Team{DisplayName: "Name2", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	_, resp = Client.CreateTeam(team2)
+	CheckNoError(t, resp)
+
 	rrteams, resp := Client.GetAllTeams("", 0, 1)
 	CheckNoError(t, resp)
 
@@ -615,6 +619,17 @@ func TestGetAllTeams(t *testing.T) {
 
 	if len(rrteams2) != 0 {
 		t.Fatal("wrong number of teams - should be 0")
+	}
+
+	rrteams, resp = Client.GetAllTeams("", 0, 2)
+	CheckNoError(t, resp)
+	rrteams2, resp = Client.GetAllTeams("", 1, 2)
+	CheckNoError(t, resp)
+
+	for _, t1 := range rrteams {
+		for _, t2 := range rrteams2 {
+			assert.NotEqual(t, t1.Id, t2.Id, "different pages should not have the same teams")
+		}
 	}
 
 	Client.Logout()
@@ -1144,6 +1159,17 @@ func TestGetTeamMembers(t *testing.T) {
 	CheckNoError(t, resp)
 	if len(rmembers) != 0 {
 		t.Fatal("should be no member")
+	}
+
+	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 2, "")
+	CheckNoError(t, resp)
+	rmembers2, resp := Client.GetTeamMembers(team.Id, 1, 2, "")
+	CheckNoError(t, resp)
+
+	for _, tm1 := range rmembers {
+		for _, tm2 := range rmembers2 {
+			assert.NotEqual(t, tm1.UserId+tm1.TeamId, tm2.UserId+tm2.TeamId, "different pages should not have the same members")
+		}
 	}
 
 	_, resp = Client.GetTeamMembers("junk", 0, 100, "")
