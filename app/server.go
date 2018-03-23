@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -149,8 +150,10 @@ func (a *App) StartServer() error {
 	}
 
 	if *a.Config().ServiceSettings.Forward80To443 {
-		if host, _, err := net.SplitHostPort(addr); err != nil {
+		if host, port, err := net.SplitHostPort(addr); err != nil {
 			l4g.Error("Unable to setup forwarding: " + err.Error())
+		} else if port != "443" {
+			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
 			httpListenAddress := net.JoinHostPort(host, "http")
 
@@ -169,6 +172,8 @@ func (a *App) StartServer() error {
 				}()
 			}
 		}
+	} else if *a.Config().ServiceSettings.UseLetsEncrypt {
+		return errors.New(utils.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
 	}
 
 	a.Srv.didFinishListen = make(chan struct{})
