@@ -12,6 +12,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestConfig(t *testing.T) {
@@ -19,6 +21,15 @@ func TestConfig(t *testing.T) {
 	cfg, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	InitTranslations(cfg.LocalizationSettings)
+}
+
+func TestTimezoneConfig(t *testing.T) {
+	TranslationsPreInit()
+	supportedTimezones := LoadTimezones("timezones.json")
+	assert.Equal(t, len(supportedTimezones) > 0, true)
+
+	supportedTimezones2 := LoadTimezones("timezones_file_does_not_exists.json")
+	assert.Equal(t, len(supportedTimezones2) > 0, true)
 }
 
 func TestFindConfigFile(t *testing.T) {
@@ -193,14 +204,97 @@ func TestValidateLocales(t *testing.T) {
 }
 
 func TestGetClientConfig(t *testing.T) {
-	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
-	require.Nil(t, err)
-
-	configMap := GenerateClientConfig(cfg, "", nil)
-	if configMap["EmailNotificationContentsType"] != *cfg.EmailSettings.EmailNotificationContentsType {
-		t.Fatal("EmailSettings.EmailNotificationContentsType not exposed to client config")
+	t.Parallel()
+	testCases := []struct {
+		description    string
+		config         *model.Config
+		diagnosticId   string
+		license        *model.License
+		expectedFields map[string]string
+	}{
+		{
+			"unlicensed",
+			&model.Config{
+				EmailSettings: model.EmailSettings{
+					EmailNotificationContentsType: sToP(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+				},
+				ThemeSettings: model.ThemeSettings{
+					// Ignored, since not licensed.
+					AllowCustomThemes: bToP(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"DiagnosticId":                  "",
+				"EmailNotificationContentsType": "full",
+				"AllowCustomThemes":             "true",
+			},
+		},
+		{
+			"licensed, but not for theme management",
+			&model.Config{
+				EmailSettings: model.EmailSettings{
+					EmailNotificationContentsType: sToP(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+				},
+				ThemeSettings: model.ThemeSettings{
+					// Ignored, since not licensed.
+					AllowCustomThemes: bToP(false),
+				},
+			},
+			"tag1",
+			&model.License{
+				Features: &model.Features{
+					ThemeManagement: bToP(false),
+				},
+			},
+			map[string]string{
+				"DiagnosticId":                  "tag1",
+				"EmailNotificationContentsType": "full",
+				"AllowCustomThemes":             "true",
+			},
+		},
+		{
+			"licensed for theme management",
+			&model.Config{
+				EmailSettings: model.EmailSettings{
+					EmailNotificationContentsType: sToP(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+				},
+				ThemeSettings: model.ThemeSettings{
+					AllowCustomThemes: bToP(false),
+				},
+			},
+			"tag2",
+			&model.License{
+				Features: &model.Features{
+					ThemeManagement: bToP(true),
+				},
+			},
+			map[string]string{
+				"DiagnosticId":                  "tag2",
+				"EmailNotificationContentsType": "full",
+				"AllowCustomThemes":             "false",
+			},
+		},
 	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.description, func(t *testing.T) {
+			t.Parallel()
+
+			testCase.config.SetDefaults()
+			if testCase.license != nil {
+				testCase.license.Features.SetDefaults()
+			}
+
+			configMap := GenerateClientConfig(testCase.config, testCase.diagnosticId, testCase.license)
+			for expectedField, expectedValue := range testCase.expectedFields {
+				assert.Equal(t, expectedValue, configMap[expectedField])
+			}
+		})
+	}
+
 }
 
 func TestReadConfig(t *testing.T) {
@@ -212,4 +306,12 @@ func TestReadConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "http://foo.bar", *config.ServiceSettings.SiteURL)
+}
+
+func sToP(s string) *string {
+	return &s
+}
+
+func bToP(b bool) *bool {
+	return &b
 }

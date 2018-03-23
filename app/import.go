@@ -399,7 +399,7 @@ func (a *App) ImportChannel(data *ChannelImportData, dryRun bool) *model.AppErro
 
 	var team *model.Team
 	if result := <-a.Srv.Store.Team().GetByName(*data.Team); result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, result.Err.Error(), http.StatusBadRequest)
 	} else {
 		team = result.Data.(*model.Team)
 	}
@@ -781,7 +781,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 
 	if len(preferences) > 0 {
 		if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, "", http.StatusInternalServerError)
+			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, result.Err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -899,7 +899,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 
 	if len(preferences) > 0 {
 		if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, "", http.StatusInternalServerError)
+			return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, result.Err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -1069,7 +1069,7 @@ func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun 
 
 	var user *model.User
 	if result := <-a.Srv.Store.User().GetByUsername(*data.User); result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, result.Err.Error(), http.StatusBadRequest)
 	} else {
 		user = result.Data.(*model.User)
 	}
@@ -1092,7 +1092,7 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, dryRun bool) 
 
 	var user *model.User
 	if result := <-a.Srv.Store.User().GetByUsername(*data.User); result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, result.Err.Error(), http.StatusBadRequest)
 	} else {
 		user = result.Data.(*model.User)
 	}
@@ -1147,21 +1147,21 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 
 	var team *model.Team
 	if result := <-a.Srv.Store.Team().GetByName(*data.Team); result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, result.Err.Error(), http.StatusBadRequest)
 	} else {
 		team = result.Data.(*model.Team)
 	}
 
 	var channel *model.Channel
 	if result := <-a.Srv.Store.Channel().GetByName(team.Id, *data.Channel, false); result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *data.Channel}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *data.Channel}, result.Err.Error(), http.StatusBadRequest)
 	} else {
 		channel = result.Data.(*model.Channel)
 	}
 
 	var user *model.User
 	if result := <-a.Srv.Store.User().GetByUsername(*data.User); result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *data.User}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *data.User}, result.Err.Error(), http.StatusBadRequest)
 	} else {
 		user = result.Data.(*model.User)
 	}
@@ -1210,7 +1210,7 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 			var user *model.User
 
 			if result := <-a.Srv.Store.User().GetByUsername(username); result.Err != nil {
-				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, "", http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, result.Err.Error(), http.StatusBadRequest)
 			} else {
 				user = result.Data.(*model.User)
 			}
@@ -1225,7 +1225,7 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 
 		if len(preferences) > 0 {
 			if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-				return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, "", http.StatusInternalServerError)
+				return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, result.Err.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
@@ -1351,7 +1351,7 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 			userIds = append(userIds, user.Id)
 			userMap[username] = user.Id
 		} else {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.member_not_found.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.member_not_found.error", nil, result.Err.Error(), http.StatusBadRequest)
 		}
 	}
 
@@ -1360,14 +1360,14 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	if len(userIds) == 2 {
 		ch, err := a.createDirectChannel(userIds[0], userIds[1])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 		} else {
 			channel = ch
 		}
 	} else {
 		ch, err := a.createGroupChannel(userIds, userIds[0])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		} else {
 			channel = ch
 		}
@@ -1403,7 +1403,7 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	if data.Header != nil {
 		channel.Header = *data.Header
 		if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, result.Err.Error(), http.StatusBadRequest)
 		}
 	}
 
@@ -1461,7 +1461,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 			user := result.Data.(*model.User)
 			userIds = append(userIds, user.Id)
 		} else {
-			return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, result.Err.Error(), http.StatusBadRequest)
 		}
 	}
 
@@ -1469,14 +1469,14 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	if len(userIds) == 2 {
 		ch, err := a.createDirectChannel(userIds[0], userIds[1])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
-			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 		} else {
 			channel = ch
 		}
 	} else {
 		ch, err := a.createGroupChannel(userIds, userIds[0])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
-			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		} else {
 			channel = ch
 		}
@@ -1548,7 +1548,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 		if len(preferences) > 0 {
 			if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-				return model.NewAppError("BulkImport", "app.import.import_direct_post.save_preferences.error", nil, "", http.StatusInternalServerError)
+				return model.NewAppError("BulkImport", "app.import.import_direct_post.save_preferences.error", nil, result.Err.Error(), http.StatusInternalServerError)
 			}
 		}
 	}

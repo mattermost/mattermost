@@ -4,6 +4,7 @@
 package app
 
 import (
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 	"testing"
@@ -370,7 +371,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	// Test a valid User with all fields populated.
 	testsDir, _ := utils.FindDir("tests")
 	data = UserImportData{
-		ProfileImage: ptrStr(testsDir + "test.png"),
+		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
 		Username:     ptrStr("bob"),
 		Email:        ptrStr("bob@example.com"),
 		AuthService:  ptrStr("ldap"),
@@ -1471,7 +1472,7 @@ func TestImportImportUser(t *testing.T) {
 	username := model.NewId()
 	testsDir, _ := utils.FindDir("tests")
 	data = UserImportData{
-		ProfileImage: ptrStr(testsDir + "test.png"),
+		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
 		Username:     &username,
 		Email:        ptrStr(model.NewId() + "@example.com"),
 		Nickname:     ptrStr(model.NewId()),
@@ -1527,7 +1528,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Alter all the fields of that user.
 	data.Email = ptrStr(model.NewId() + "@example.com")
-	data.ProfileImage = ptrStr(testsDir + "testgif.gif")
+	data.ProfileImage = ptrStr(filepath.Join(testsDir, "testgif.gif"))
 	data.AuthService = ptrStr("ldap")
 	data.AuthData = &username
 	data.Nickname = ptrStr(model.NewId())

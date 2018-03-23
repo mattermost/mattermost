@@ -116,12 +116,12 @@
     "translation": "S3 Bucket is required"
   },
   {
-    "id": "api.admin.test_s3.missing_s3_region",
-    "translation": "S3 Region is required"
-  },
-  {
     "id": "api.admin.test_s3.missing_s3_endpoint",
     "translation": "S3 Endpoint is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Region is required"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -2203,50 +2203,6 @@
     "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
-    "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
-  },
-  {
-    "id": "api.team.set_team_icon.storage.app_error",
-    "translation": "Unable to upload team icon. Image storage is not configured."
-  },
-  {
-    "id": "api.team.set_team_icon.too_large.app_error",
-    "translation": "Unable to upload team icon. File is too large."
-  },
-  {
-    "id": "api.team.set_team_icon.parse.app_error",
-    "translation": "Could not parse multipart form"
-  },
-  {
-    "id": "api.team.set_team_icon.no_file.app_error",
-    "translation": "No file under 'image' in request"
-  },
-  {
-    "id": "api.team.set_team_icon.array.app_error",
-    "translation": "Empty array under 'image' in request"
-  },
-  {
-    "id": "api.team.set_team_icon.open.app_error",
-    "translation": "Could not open image file"
-  },
-  {
-    "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata"
-  },
-  {
-    "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Could not decode team icon"
-  },
-  {
-    "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Could not encode team icon"
-  },
-  {
-    "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "Could not save team icon"
-  },
-  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },
@@ -2389,6 +2345,50 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v removed from the team."
+  },
+  {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "Empty array under 'image' in request"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Could not decode team icon metadata"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Could not encode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "No file under 'image' in request"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "Could not open image file"
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "Could not parse multipart form"
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "Unable to upload team icon. Image storage is not configured."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "Unable to upload team icon. File is too large."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Could not save team icon"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3715,12 +3715,12 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
-    "id": "app.plugin.config.app_error",
-    "translation": "Error saving plugin state in config"
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+  },
+  {
+    "id": "app.plugin.config.app_error",
+    "translation": "Error saving plugin state in config"
   },
   {
     "id": "app.plugin.deactivate.app_error",
@@ -3781,6 +3781,18 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
+  },
+  {
+  "id": "app.timezones.failed_deserialize.app_error",
+  "translation": "Failed to deserialize Timezone config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "app.timezones.load_config.app_error",
+    "translation": "Timezone config file does not exists file={{.Filename}}"
+  },
+  {
+    "id": "app.timezones.read_config.app_error",
+    "translation": "Failed to read Timezone config file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4963,30 +4975,6 @@
     "translation": "Message export job BatchSize must be a positive integer"
   },
   {
-    "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
-  },
-  {
-    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
-  },
-  {
-    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
-  },
-  {
-    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address"
-  },
-  {
-    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
-  },
-  {
-    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
-  },
-  {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
     "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
   },
@@ -5003,12 +4991,36 @@
     "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",

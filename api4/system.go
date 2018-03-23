@@ -17,6 +17,8 @@ import (
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
 
+	api.BaseRoutes.System.Handle("/timezones", api.ApiSessionRequired(getSupportedTimezones)).Methods("GET")
+
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(updateConfig)).Methods("PUT")
 	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiSessionRequired(configReload)).Methods("POST")
@@ -376,6 +378,18 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(rows.ToJson()))
+}
+
+func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
+	supportedTimezones := c.App.Timezones()
+
+	if supportedTimezones != nil {
+		w.Write([]byte(model.TimezonesToJson(supportedTimezones)))
+		return
+	}
+
+	emptyTimezones := make([]string, 0)
+	w.Write([]byte(model.TimezonesToJson(emptyTimezones)))
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {

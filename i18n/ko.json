@@ -108,6 +108,18 @@
     "translation": "Mattermost - 이메일 설정 테스트중"
   },
   {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_endpoint",
+    "translation": "S3 Endpoint is required"
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_region",
+    "translation": "S3 Region is required"
+  },
+  {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "요청의 'image' 속성에 빈 배열이 전달되었습니다"
   },
@@ -641,7 +653,7 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Do not disturb disables desktop and mobile push notifications."
+    "translation": "방해 금지모드는 데스크탑과 모바일 푸시 알림을 비활성화합니다."
   },
   {
     "id": "api.command_dnd.disabled",
@@ -2331,6 +2343,50 @@
     "translation": "%v 가 채널에서 제거되었습니다."
   },
   {
+    "id": "api.team.set_team_icon.array.app_error",
+    "translation": "요청의 'image' 속성에 빈 배열이 전달되었습니다"
+  },
+  {
+    "id": "api.team.set_team_icon.decode.app_error",
+    "translation": "Could not decode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.decode_config.app_error",
+    "translation": "Could not decode team icon metadata"
+  },
+  {
+    "id": "api.team.set_team_icon.encode.app_error",
+    "translation": "Could not encode team icon"
+  },
+  {
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
+    "id": "api.team.set_team_icon.no_file.app_error",
+    "translation": "요청의 'image' 속성 아래에 파일이 없습니다"
+  },
+  {
+    "id": "api.team.set_team_icon.open.app_error",
+    "translation": "이미지 파일을 열 수 없습니다."
+  },
+  {
+    "id": "api.team.set_team_icon.parse.app_error",
+    "translation": "잘못된 multipart form을 파싱할 수 없습니다."
+  },
+  {
+    "id": "api.team.set_team_icon.storage.app_error",
+    "translation": "파일을 업로드할 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
+  },
+  {
+    "id": "api.team.set_team_icon.too_large.app_error",
+    "translation": "이미지 파일을 불러올 수 없습니다. 파일이 너무 큽니다."
+  },
+  {
+    "id": "api.team.set_team_icon.write_file.app_error",
+    "translation": "Could not save team icon"
+  },
+  {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "이메일을 통한 팀 가입이 비활성화 되어있습니다."
   },
@@ -3647,6 +3703,10 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
+    "id": "app.plugin.cluster.save_config.app_error",
+    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "Error saving plugin state in config"
   },
@@ -4907,12 +4967,36 @@
     "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
+    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
+    "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
+    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
+    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",

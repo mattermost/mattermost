@@ -221,10 +221,10 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subje
 		return err
 	}
 
-	return SendMail(c, mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, fileBackend)
+	return SendMail(c, mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
 }
 
-func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend FileBackend) *model.AppError {
+func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend FileBackend, date time.Time) *model.AppError {
 	l4g.Debug(T("utils.mail.send_mail.sending.debug"), mimeTo, subject)
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
@@ -249,7 +249,7 @@ func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject,
 
 	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
 	m.SetHeaders(headers)
-	m.SetDateHeader("Date", time.Now())
+	m.SetDateHeader("Date", date)
 	m.SetBody("text/plain", txtBody)
 	m.AddAlternative("text/html", htmlMessage)
 
