@@ -384,10 +384,10 @@ test-data: start-docker ## Add test data to the local instance.
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) sampledata -w 1
 
 	@echo You may need to restart the Mattermost server before using the following
-	@echo ====================================================================================
-	@echo Login with a system admin account email=user-0@sample.mattermost.com password=user-0
-	@echo Login with a regular account email=user-1@sample.mattermost.com password=user-1
-	@echo ====================================================================================
+	@echo ========================================================================
+	@echo Login with a system admin account username=sysadmin password=sysadmin
+	@echo Login with a regular account username=user-1 password=user-1
+	@echo ========================================================================
 
 run-server: start-docker ## Starts the server.
 	@echo Running mattermost for development
