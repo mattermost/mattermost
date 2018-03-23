@@ -940,6 +940,8 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 			}
 		}
 
+		a.sendUpdatedUserEvent(*ruser, false)
+
 		return ruser, nil
 	}
 }
