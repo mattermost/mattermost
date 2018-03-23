@@ -33,6 +33,7 @@ const (
 	POST_REMOVE_FROM_TEAM       = "system_remove_from_team"
 	POST_HEADER_CHANGE          = "system_header_change"
 	POST_DISPLAYNAME_CHANGE     = "system_displayname_change"
+	POST_CONVERT_CHANNEL        = "system_convert_channel"
 	POST_PURPOSE_CHANGE         = "system_purpose_change"
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
 	POST_EPHEMERAL              = "system_ephemeral"
@@ -205,6 +206,7 @@ func (o *Post) IsValid() *AppError {
 		POST_HEADER_CHANGE,
 		POST_PURPOSE_CHANGE,
 		POST_DISPLAYNAME_CHANGE,
+		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
 		POST_CHANGE_CHANNEL_PRIVACY:
 	default:
