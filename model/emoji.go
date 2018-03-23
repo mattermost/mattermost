@@ -23,6 +23,11 @@ type Emoji struct {
 	Name      string `json:"name"`
 }
 
+func inSystemEmoji(emojiName string) bool {
+	_, ok := SystemEmojis[emojiName]
+	return ok
+}
+
 func (emoji *Emoji) IsValid() *AppError {
 	if len(emoji.Id) != 26 {
 		return NewAppError("Emoji.IsValid", "model.emoji.id.app_error", nil, "", http.StatusBadRequest)
@@ -40,7 +45,7 @@ func (emoji *Emoji) IsValid() *AppError {
 		return NewAppError("Emoji.IsValid", "model.emoji.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(emoji.Name) == 0 || len(emoji.Name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(emoji.Name, false) {
+	if len(emoji.Name) == 0 || len(emoji.Name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(emoji.Name, false) || inSystemEmoji(emoji.Name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 

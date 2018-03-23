@@ -80,4 +80,9 @@ func TestEmojiIsValid(t *testing.T) {
 	if err := emoji.IsValid(); err == nil {
 		t.Fatal(err)
 	}
+
+	emoji.Name = "croissant"
+	if err := emoji.IsValid(); err == nil {
+		t.Fatal(err)
+	}
 }
