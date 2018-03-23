@@ -746,7 +746,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) &&
-			team.Type != model.TEAM_OPEN {
+			(team.Type != model.TEAM_OPEN || team.AllowOpenInvite) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
