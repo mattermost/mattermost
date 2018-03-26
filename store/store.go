@@ -198,6 +198,7 @@ type PostStore interface {
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
+	GetMaxPostSize() StoreChannel
 }
 
 type UserStore interface {

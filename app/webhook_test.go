@@ -383,23 +383,25 @@ func TestSplitWebhookPost(t *testing.T) {
 		Expected []*model.Post
 	}
 
+	maxPostSize := 10000
+
 	for name, tc := range map[string]TestCase{
 		"LongPost": {
 			Post: &model.Post{
-				Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES*3/2),
+				Message: strings.Repeat("本", maxPostSize*3/2),
 			},
 			Expected: []*model.Post{
 				{
-					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES),
+					Message: strings.Repeat("本", maxPostSize),
 				},
 				{
-					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES/2),
+					Message: strings.Repeat("本", maxPostSize/2),
 				},
 			},
 		},
 		"LongPostAndMultipleAttachments": {
 			Post: &model.Post{
-				Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES*3/2),
+				Message: strings.Repeat("本", maxPostSize*3/2),
 				Props: map[string]interface{}{
 					"attachments": []*model.SlackAttachment{
 						&model.SlackAttachment{
@@ -416,10 +418,10 @@ func TestSplitWebhookPost(t *testing.T) {
 			},
 			Expected: []*model.Post{
 				{
-					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES),
+					Message: strings.Repeat("本", maxPostSize),
 				},
 				{
-					Message: strings.Repeat("本", model.POST_MESSAGE_MAX_RUNES/2),
+					Message: strings.Repeat("本", maxPostSize/2),
 					Props: map[string]interface{}{
 						"attachments": []*model.SlackAttachment{
 							&model.SlackAttachment{
@@ -452,7 +454,7 @@ func TestSplitWebhookPost(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			splits, err := SplitWebhookPost(tc.Post)
+			splits, err := SplitWebhookPost(tc.Post, maxPostSize)
 			if tc.Expected == nil {
 				require.NotNil(t, err)
 			} else {
