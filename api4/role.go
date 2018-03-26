@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -52,14 +53,21 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var cleanedRoleNames []string
 	for _, rolename := range rolenames {
+		if strings.TrimSpace(rolename) == "" {
+			continue
+		}
+
 		if !model.IsValidRoleName(rolename) {
 			c.SetInvalidParam("rolename")
 			return
 		}
+
+		cleanedRoleNames = append(cleanedRoleNames, rolename)
 	}
 
-	if roles, err := c.App.GetRolesByNames(rolenames); err != nil {
+	if roles, err := c.App.GetRolesByNames(cleanedRoleNames); err != nil {
 		c.Err = err
 		return
 	} else {
