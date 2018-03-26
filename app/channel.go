@@ -478,6 +478,10 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 	} else {
 		a.InvalidateCacheForUser(userId)
 		a.InvalidateCacheForChannelMembersNotifyProps(channelId)
+		// Notify the clients that the member notify props changed
+		evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
+		evt.Add("channelMember", member.ToJson())
+		a.Publish(evt)
 		return member, nil
 	}
 }
