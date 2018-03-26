@@ -129,13 +129,21 @@ func TestGetRolesByNames(t *testing.T) {
 	assert.Contains(t, received, role2)
 	assert.Contains(t, received, role3)
 
-	// Check a list of invalid roles.
-	// TODO: Confirm whether no error for invalid role names is intended.
+	// Check a list of non-existant roles.
 	received, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId()})
 	CheckNoError(t, resp)
 
+	// Empty list should error.
 	_, resp = th.SystemAdminClient.GetRolesByNames([]string{})
 	CheckBadRequestStatus(t, resp)
+
+	// Invalid role name should error.
+	received, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId(), "!!!!!!"})
+	CheckBadRequestStatus(t, resp)
+
+	// Empty/whitespace rolenames should be ignored.
+	received, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId(), "", "    "})
+	CheckNoError(t, resp)
 }
 
 func TestPatchRole(t *testing.T) {
