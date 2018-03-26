@@ -1955,6 +1955,14 @@
     "translation": "Inicjalizowanie serwera..."
   },
   {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Must enable Forward80To443 when using LetsEncrypt"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+  },
+  {
     "id": "api.server.start_server.listening.info",
     "translation": "Serwer nasłuchuje na %v"
   },
@@ -3769,6 +3777,18 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Ten zespół osiągnął limit kont. Skontaktuj się z administratorem aby ustanowić wyższy pułap."
+  },
+  {
+    "id": "app.timezones.failed_deserialize.app_error",
+    "translation": "Failed to deserialize Timezone config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "app.timezones.load_config.app_error",
+    "translation": "Timezone config file does not exists file={{.Filename}}"
+  },
+  {
+    "id": "app.timezones.read_config.app_error",
+    "translation": "Failed to read Timezone config file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -6425,6 +6445,18 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "Nie można wybrać postów do usunięcia dla użytkownika (zbyt wiele), proszę uruchomić ponownie"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.error",
+    "translation": "We couldn't determine the maximum supported post size"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
+    "translation": "Post.Message supports at most %d bytes"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.unrecognized_driver",
+    "translation": "No implementation found to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",
