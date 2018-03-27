@@ -18,6 +18,14 @@ func TestCreateOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
@@ -34,11 +42,15 @@ func TestCreateOAuthApp(t *testing.T) {
 		t.Fatal("trusted did no match")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
 	_, resp = Client.CreateOAuthApp(oapp)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
 	rapp, resp = Client.CreateOAuthApp(oapp)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
@@ -77,6 +89,13 @@ func TestUpdateOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{
@@ -155,7 +174,9 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	th.LoginBasic()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
 	_, resp = Client.UpdateOAuthApp(oapp)
 	CheckForbiddenStatus(t, resp)
 
@@ -164,6 +185,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckNotImplementedStatus(t, resp)
 
@@ -182,8 +204,14 @@ func TestGetOAuthApps(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -226,7 +254,8 @@ func TestGetOAuthApps(t *testing.T) {
 		t.Fatal("wrong apps returned")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	_, resp = Client.GetOAuthApps(0, 1000)
 	CheckForbiddenStatus(t, resp)
@@ -247,8 +276,14 @@ func TestGetOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -287,7 +322,8 @@ func TestGetOAuthApp(t *testing.T) {
 	_, resp = Client.GetOAuthApp(rapp.Id)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	_, resp = Client.GetOAuthApp(rapp2.Id)
 	CheckForbiddenStatus(t, resp)
@@ -314,8 +350,14 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -354,7 +396,8 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	_, resp = Client.GetOAuthAppInfo(rapp.Id)
 	CheckNoError(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	_, resp = Client.GetOAuthAppInfo(rapp2.Id)
 	CheckNoError(t, resp)
@@ -381,8 +424,14 @@ func TestDeleteOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -416,7 +465,9 @@ func TestDeleteOAuthApp(t *testing.T) {
 	_, resp = Client.DeleteOAuthApp(rapp2.Id)
 	CheckNoError(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
 	_, resp = Client.DeleteOAuthApp(rapp.Id)
 	CheckForbiddenStatus(t, resp)
 
@@ -441,8 +492,14 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -480,7 +537,9 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	_, resp = Client.RegenerateOAuthAppSecret(rapp2.Id)
 	CheckNoError(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
 	_, resp = Client.RegenerateOAuthAppSecret(rapp.Id)
 	CheckForbiddenStatus(t, resp)
 

@@ -385,7 +385,14 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.App.SetLicense(model.NewTestLicense())
+
+	th.AddPermissionToRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
@@ -454,8 +461,7 @@ func TestUpdatePost(t *testing.T) {
 	}
 
 	// Test licensed policy controls for edit post
-	th.App.SetLicense(model.NewTestLicense())
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER })
+	th.RemovePermissionFromRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
 
 	post4 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost4, err := Client.CreatePost(post4)
@@ -468,7 +474,7 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("shouldn't have been able to update a message when not allowed")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_TIME_LIMIT })
+	th.AddPermissionToRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = 1 }) //seconds
 
 	post5 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
@@ -944,8 +950,6 @@ func TestDeletePosts(t *testing.T) {
 	channel1 := th.BasicChannel
 	team1 := th.BasicTeam
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL })
-
 	time.Sleep(10 * time.Millisecond)
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
@@ -998,8 +1002,11 @@ func TestDeletePosts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Test licensed policy controls for delete post
-	th.App.SetLicense(model.NewTestLicense())
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
 
 	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
@@ -1011,9 +1018,8 @@ func TestDeletePosts(t *testing.T) {
 
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post4b.Id))
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
-	})
+	th.RemovePermissionFromRole(model.PERMISSION_DELETE_POST.Id, model.CHANNEL_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_DELETE_POST.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	th.LoginBasic()
 
@@ -1034,40 +1040,6 @@ func TestDeletePosts(t *testing.T) {
 	Client.Must(Client.DeletePost(channel1.Id, post5a.Id))
 
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post5b.Id))
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
-	})
-
-	th.LoginBasic()
-
-	time.Sleep(10 * time.Millisecond)
-	post6a := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
-	post6a = Client.Must(Client.CreatePost(post6a)).Data.(*model.Post)
-
-	if _, err := Client.DeletePost(channel1.Id, post6a.Id); err == nil {
-		t.Fatal(err)
-	}
-
-	th.LoginBasic2()
-
-	if _, err := Client.DeletePost(channel1.Id, post6a.Id); err == nil {
-		t.Fatal(err)
-	}
-
-	// Check that if unlicensed the policy restriction is not enforced.
-	th.App.SetLicense(nil)
-
-	time.Sleep(10 * time.Millisecond)
-	post7 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
-	post7 = Client.Must(Client.CreatePost(post7)).Data.(*model.Post)
-
-	if _, err := Client.DeletePost(channel1.Id, post7.Id); err != nil {
-		t.Fatal(err)
-	}
-
-	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post6a.Id))
-
 }
 
 func TestEmailMention(t *testing.T) {

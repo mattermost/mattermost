@@ -139,17 +139,17 @@ func TestAddUserToTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
 	// Set the config so that only team admins can add a user to a team.
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
-
-	// Test without the EE license to see that the permission restriction is ignored.
-	user3 := th.CreateUser(th.BasicClient)
-	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user3.Id); err != nil {
-		t.Fatal(err)
-	}
-
-	// Add an EE license.
-	th.App.SetLicense(model.NewTestLicense())
+	th.AddPermissionToRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_USER_ROLE_ID)
 
 	// Check that a regular user can't add someone to the team.
 	user4 := th.CreateUser(th.BasicClient)
@@ -160,26 +160,15 @@ func TestAddUserToTeam(t *testing.T) {
 	// Should work as team admin.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
+
+	// Change permission level to team user
+	th.AddPermissionToRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	user5 := th.CreateUser(th.BasicClient)
 	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user5.Id); err != nil {
-		t.Fatal(err)
-	}
-
-	// Change permission level to System Admin
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN })
-
-	// Should not work as team admin.
-	user6 := th.CreateUser(th.BasicClient)
-	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user6.Id); err == nil {
-		t.Fatal("should have failed due to permissions error")
-	}
-
-	// Should work as system admin.
-	user7 := th.CreateUser(th.BasicClient)
-	if _, err := th.SystemAdminClient.AddUserToTeam(th.BasicTeam.Id, user7.Id); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -515,7 +504,6 @@ func TestInviteMembers(t *testing.T) {
 	defer th.TearDown()
 
 	Client := th.BasicClient
-	SystemAdminClient := th.SystemAdminClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -546,16 +534,20 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal("Should have errored out on no invites to send")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Set the config so that only team admins can add a user to a team.
+	th.AddPermissionToRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_USER_ROLE_ID)
 
 	th.LoginBasic2()
 	th.LinkUserToTeam(th.BasicUser2, team)
-
-	if _, err := Client.InviteMembers(invites); err != nil {
-		t.Fatal(err)
-	}
-
-	th.App.SetLicense(model.NewTestLicense())
 
 	if _, err := Client.InviteMembers(invites); err == nil {
 		t.Fatal("should have errored not team admin and licensed")
@@ -567,18 +559,6 @@ func TestInviteMembers(t *testing.T) {
 	Client.SetTeamId(team.Id)
 
 	if _, err := Client.InviteMembers(invites); err != nil {
-		t.Fatal(err)
-	}
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN })
-
-	if _, err := Client.InviteMembers(invites); err == nil {
-		t.Fatal("should have errored not system admin and licensed")
-	}
-
-	th.LinkUserToTeam(th.SystemAdminUser, team)
-
-	if _, err := SystemAdminClient.InviteMembers(invites); err != nil {
 		t.Fatal(err)
 	}
 }

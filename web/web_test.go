@@ -55,6 +55,8 @@ func Setup() *app.App {
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewClient(URL)
 
+	a.DoAdvancedPermissionsMigration()
+
 	a.Srv.Store.MarkSystemRanUnitTests()
 
 	a.UpdateConfig(func(cfg *model.Config) {

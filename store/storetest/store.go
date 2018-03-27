@@ -43,6 +43,7 @@ type Store struct {
 	UserAccessTokenStore      mocks.UserAccessTokenStore
 	PluginStore               mocks.PluginStore
 	ChannelMemberHistoryStore mocks.ChannelMemberHistoryStore
+	RoleStore                 mocks.RoleStore
 }
 
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
@@ -68,6 +69,7 @@ func (s *Store) Reaction() store.ReactionStore                 { return &s.React
 func (s *Store) Job() store.JobStore                           { return &s.JobStore }
 func (s *Store) UserAccessToken() store.UserAccessTokenStore   { return &s.UserAccessTokenStore }
 func (s *Store) Plugin() store.PluginStore                     { return &s.PluginStore }
+func (s *Store) Role() store.RoleStore                         { return &s.RoleStore }
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
@@ -104,5 +106,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.UserAccessTokenStore,
 		&s.ChannelMemberHistoryStore,
 		&s.PluginStore,
+		&s.RoleStore,
 	)
 }

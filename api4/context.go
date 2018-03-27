@@ -636,3 +636,26 @@ func (c *Context) RequireActionId() *Context {
 	}
 	return c
 }
+
+func (c *Context) RequireRoleId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.RoleId) != 26 {
+		c.SetInvalidUrlParam("role_id")
+	}
+	return c
+}
+
+func (c *Context) RequireRoleName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidRoleName(c.Params.RoleName) {
+		c.SetInvalidUrlParam("role_name")
+	}
+
+	return c
+}

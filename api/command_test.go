@@ -202,13 +202,10 @@ func TestDeleteCommand(t *testing.T) {
 	Client := th.SystemAdminClient
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
-	onlyAdminIntegration := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = enableCommands })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = onlyAdminIntegration })
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)

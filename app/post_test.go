@@ -48,6 +48,43 @@ func TestUpdatePostEditAt(t *testing.T) {
 	}
 }
 
+func TestUpdatePostTimeLimit(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{}
+	*post = *th.BasicPost
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = -1
+	})
+	if _, err := th.App.UpdatePost(post, true); err != nil {
+		t.Fatal(err)
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = 1000000000
+	})
+	post.Message = model.NewId()
+	if _, err := th.App.UpdatePost(post, true); err != nil {
+		t.Fatal("should allow you to edit the post")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = 1
+	})
+	post.Message = model.NewId()
+	if _, err := th.App.UpdatePost(post, true); err == nil {
+		t.Fatal("should fail on update old post")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = -1
+	})
+}
+
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
