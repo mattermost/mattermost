@@ -15,5 +15,5 @@ When filling in a section please remove the help text and the above text.
 - [ ] All new/modified APIs include changes to the drivers
 - [ ] Has enterprise changes (please link)
 - [ ] Has UI changes
-- [ ] Includes text changes and localization file ([.../i18n/en.json](https://github.com/mattermost/mattermost-server/blob/master/i18n/en.json) updates
+- [ ] Includes text changes and localization file ([.../i18n/en.json](https://github.com/mattermost/mattermost-server/blob/master/i18n/en.json)) updates
 - [ ] Touches critical sections of the codebase (auth, upgrade, etc.)
