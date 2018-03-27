@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_4_7_2            = "4.7.2"
 	VERSION_4_7_1            = "4.7.1"
 	VERSION_4_7_0            = "4.7.0"
 	VERSION_4_6_0            = "4.6.0"
@@ -66,6 +67,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion46(sqlStore)
 	UpgradeDatabaseToVersion47(sqlStore)
 	UpgradeDatabaseToVersion471(sqlStore)
+	UpgradeDatabaseToVersion472(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -359,5 +361,12 @@ func UpgradeDatabaseToVersion471(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_4_7_0, VERSION_4_7_1) {
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
 		saveSchemaVersion(sqlStore, VERSION_4_7_1)
+	}
+}
+
+func UpgradeDatabaseToVersion472(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_7_1, VERSION_4_7_2) {
+		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
+		saveSchemaVersion(sqlStore, VERSION_4_7_2)
 	}
 }

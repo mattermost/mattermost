@@ -9,10 +9,11 @@ import (
 	"strings"
 )
 
-// This is a list of all the current viersions including any patches.
-// It should be maitained in chronological order with most current
+// This is a list of all the current versions including any patches.
+// It should be maintained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"4.7.2",
 	"4.7.1",
 	"4.7.0",
 	"4.6.0",
