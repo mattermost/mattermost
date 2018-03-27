@@ -77,8 +77,20 @@ type API interface {
 	// UpdateChannel updates a channel.
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
+	// AddChannelMember creates a channel membership for a user.
+	AddChannelMember(channel *model.Channel, userId string) (*model.ChannelMember, *model.AppError)
+
 	// GetChannelMember gets a channel membership for a user.
 	GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
+
+	// UpdateChannelMemberRoles updates a user's roles for a channel.
+	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
+
+	// UpdateChannelMemberNotifications updates a user's notification properties for a channel.
+	UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
+
+	// DeleteChannelMember deletes a channel membership for a user.
+	DeleteChannelMember(channelId, userId string) *model.AppError
 
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)

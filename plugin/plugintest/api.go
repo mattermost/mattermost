@@ -223,6 +223,16 @@ func (m *API) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	return channelOut, err
 }
 
+func (m *API) AddChannelMember(channel *model.Channel, userId string) (*model.ChannelMember, *model.AppError) {
+	ret := m.Called(channel, userId)
+	if f, ok := ret.Get(0).(func(_ *model.Channel, _ string) (*model.ChannelMember, *model.AppError)); ok {
+		return f(channel, userId)
+	}
+	member, _ := ret.Get(0).(*model.ChannelMember)
+	err, _ := ret.Get(1).(*model.AppError)
+	return member, err
+}
+
 func (m *API) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	ret := m.Called(channelId, userId)
 	if f, ok := ret.Get(0).(func(_, _ string) (*model.ChannelMember, *model.AppError)); ok {
@@ -231,6 +241,35 @@ func (m *API) GetChannelMember(channelId, userId string) (*model.ChannelMember, 
 	member, _ := ret.Get(0).(*model.ChannelMember)
 	err, _ := ret.Get(1).(*model.AppError)
 	return member, err
+}
+
+func (m *API) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
+	ret := m.Called(channelId, userId, newRoles)
+	if f, ok := ret.Get(0).(func(_, _, _ string) (*model.ChannelMember, *model.AppError)); ok {
+		return f(channelId, userId, newRoles)
+	}
+	member, _ := ret.Get(0).(*model.ChannelMember)
+	err, _ := ret.Get(1).(*model.AppError)
+	return member, err
+}
+
+func (m *API) UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+	ret := m.Called(channelId, userId, notifications)
+	if f, ok := ret.Get(0).(func(_, _ string, _ map[string]string) (*model.ChannelMember, *model.AppError)); ok {
+		return f(channelId, userId, notifications)
+	}
+	member, _ := ret.Get(0).(*model.ChannelMember)
+	err, _ := ret.Get(1).(*model.AppError)
+	return member, err
+}
+
+func (m *API) DeleteChannelMember(channelId, userId string) *model.AppError {
+	ret := m.Called(channelId, userId)
+	if f, ok := ret.Get(0).(func(_, _ string) *model.AppError); ok {
+		return f(channelId, userId)
+	}
+	err, _ := ret.Get(0).(*model.AppError)
+	return err
 }
 
 func (m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {

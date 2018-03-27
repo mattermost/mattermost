@@ -128,9 +128,30 @@ func TestAPI(t *testing.T) {
 		assert.Equal(t, testChannel, channel)
 		assert.Nil(t, err)
 
-		api.On("GetChannelMember", "thechannelid", "theuserid").Return(testChannelMember, nil).Once()
-		member, err := remote.GetChannelMember("thechannelid", "theuserid")
+		api.On("AddChannelMember", testChannel, "theuserid").Return(testChannelMember, nil).Once()
+		member, err := remote.AddChannelMember(testChannel, "theuserid")
 		assert.Equal(t, testChannelMember, member)
+		assert.Nil(t, err)
+
+		api.On("GetChannelMember", "thechannelid", "theuserid").Return(testChannelMember, nil).Once()
+		member, err = remote.GetChannelMember("thechannelid", "theuserid")
+		assert.Equal(t, testChannelMember, member)
+		assert.Nil(t, err)
+
+		api.On("UpdateChannelMemberRoles", testChannel.Id, "theuserid", model.CHANNEL_ADMIN_ROLE_ID).Return(testChannelMember, nil).Once()
+		member, err = remote.UpdateChannelMemberRoles(testChannel.Id, "theuserid", model.CHANNEL_ADMIN_ROLE_ID)
+		assert.Equal(t, testChannelMember, member)
+		assert.Nil(t, err)
+
+		notifications := map[string]string{}
+		notifications[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_MENTION
+		api.On("UpdateChannelMemberNotifications", testChannel.Id, "theuserid", notifications).Return(testChannelMember, nil).Once()
+		member, err = remote.UpdateChannelMemberNotifications(testChannel.Id, "theuserid", notifications)
+		assert.Equal(t, testChannelMember, member)
+		assert.Nil(t, err)
+
+		api.On("DeleteChannelMember", "thechannelid", "theuserid").Return(nil).Once()
+		err = remote.DeleteChannelMember("thechannelid", "theuserid")
 		assert.Nil(t, err)
 
 		api.On("CreateUser", mock.AnythingOfType("*model.User")).Return(func(u *model.User) (*model.User, *model.AppError) {
