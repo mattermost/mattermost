@@ -47,7 +47,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServer:           cfg.EmailSettings.SMTPServer,
+			SmtpServerName:       cfg.EmailSettings.SMTPServer,
+			SmtpServerHost:       cfg.EmailSettings.SMTPServer,
 			SmtpPort:             cfg.EmailSettings.SMTPPort,
 		},
 	); err != nil {
@@ -60,7 +61,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			&SmtpConnectionInfo{
 				ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
 				SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-				SmtpServer:           cfg.EmailSettings.SMTPServer,
+				SmtpServerName:       cfg.EmailSettings.SMTPServer,
+				SmtpServerHost:       cfg.EmailSettings.SMTPServer,
 				SmtpPort:             cfg.EmailSettings.SMTPPort,
 				Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
 				SmtpUsername:         cfg.EmailSettings.SMTPUsername,
@@ -76,7 +78,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServer:           "wrongServer",
+			SmtpServerName:       "wrongServer",
+			SmtpServerHost:       "wrongServer",
 			SmtpPort:             "553",
 		},
 	); err == nil {
@@ -225,10 +228,11 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 func TestAuthMethods(t *testing.T) {
 	auth := &authChooser{
 		connectionInfo: &SmtpConnectionInfo{
-			SmtpUsername: "test",
-			SmtpPassword: "fakepass",
-			SmtpServer:   "fakeserver",
-			SmtpPort:     "25",
+			SmtpUsername:   "test",
+			SmtpPassword:   "fakepass",
+			SmtpServerName: "fakeserver",
+			SmtpServerHost: "fakeserver",
+			SmtpPort:       "25",
 		},
 	}
 	tests := []struct {
