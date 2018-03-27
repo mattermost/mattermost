@@ -310,6 +310,10 @@ func (c *Client4) GetJobsRoute() string {
 	return fmt.Sprintf("/jobs")
 }
 
+func (c *Client4) GetRolesRoute() string {
+	return fmt.Sprintf("/roles")
+}
+
 func (c *Client4) GetAnalyticsRoute() string {
 	return fmt.Sprintf("/analytics")
 }
@@ -1741,6 +1745,17 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// AutocompleteChannelsForTeam will return an ordered list of channels autocomplete suggestions
+func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList, *Response) {
+	query := fmt.Sprintf("?name=%v", name)
+	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/autocomplete"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -3249,6 +3264,48 @@ func (c *Client4) CancelJob(jobId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Roles Section
+
+// GetRole gets a single role by ID.
+func (c *Client4) GetRole(id string) (*Role, *Response) {
+	if r, err := c.DoApiGet(c.GetRolesRoute()+fmt.Sprintf("/%v", id), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return RoleFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetRoleByName gets a single role by Name.
+func (c *Client4) GetRoleByName(name string) (*Role, *Response) {
+	if r, err := c.DoApiGet(c.GetRolesRoute()+fmt.Sprintf("/name/%v", name), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return RoleFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetRolesByNames returns a list of roles based on the provided role names.
+func (c *Client4) GetRolesByNames(roleNames []string) ([]*Role, *Response) {
+	if r, err := c.DoApiPost(c.GetRolesRoute()+"/names", ArrayToJson(roleNames)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return RoleListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// PatchRole partially updates a role in the system. Any missing fields are not updated.
+func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response) {
+	if r, err := c.DoApiPut(c.GetRolesRoute()+fmt.Sprintf("/%v/patch", roleId), patch.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return RoleFromJson(r.Body), BuildResponse(r)
 	}
 }
 

@@ -424,7 +424,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.PostEditTimeLimit == nil {
-		s.PostEditTimeLimit = NewInt(300)
+		s.PostEditTimeLimit = NewInt(-1)
 	}
 
 	if s.EnablePreviewFeatures == nil {
@@ -967,7 +967,7 @@ func (s *ThemeSettings) SetDefaults() {
 type TeamSettings struct {
 	SiteName                            string
 	MaxUsersPerTeam                     *int
-	EnableTeamCreation                  bool
+	EnableTeamCreation                  *bool
 	EnableUserCreation                  bool
 	EnableOpenServer                    *bool
 	RestrictCreationToDomains           string
@@ -1089,6 +1089,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.ExperimentalPrimaryTeam == nil {
 		s.ExperimentalPrimaryTeam = NewString("")
+	}
+
+	if s.EnableTeamCreation == nil {
+		s.EnableTeamCreation = NewBool(true)
 	}
 }
 

@@ -33,6 +33,7 @@ const (
 	POST_REMOVE_FROM_TEAM       = "system_remove_from_team"
 	POST_HEADER_CHANGE          = "system_header_change"
 	POST_DISPLAYNAME_CHANGE     = "system_displayname_change"
+	POST_CONVERT_CHANNEL        = "system_convert_channel"
 	POST_PURPOSE_CHANGE         = "system_purpose_change"
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
 	POST_EPHEMERAL              = "system_ephemeral"
@@ -40,7 +41,9 @@ const (
 	POST_FILEIDS_MAX_RUNES      = 150
 	POST_FILENAMES_MAX_RUNES    = 4000
 	POST_HASHTAGS_MAX_RUNES     = 1000
-	POST_MESSAGE_MAX_RUNES      = 4000
+	POST_MESSAGE_MAX_RUNES_V1   = 4000
+	POST_MESSAGE_MAX_BYTES_V2   = 65535                         // Maximum size of a TEXT column in MySQL
+	POST_MESSAGE_MAX_RUNES_V2   = POST_MESSAGE_MAX_BYTES_V2 / 4 // Assume a worst-case representation
 	POST_PROPS_MAX_RUNES        = 8000
 	POST_PROPS_MAX_USER_RUNES   = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
 	POST_CUSTOM_TYPE_PREFIX     = "custom_"
@@ -141,7 +144,7 @@ func (o *Post) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
-func (o *Post) IsValid() *AppError {
+func (o *Post) IsValid(maxPostSize int) *AppError {
 
 	if len(o.Id) != 26 {
 		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
@@ -179,7 +182,7 @@ func (o *Post) IsValid() *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.Message) > POST_MESSAGE_MAX_RUNES {
+	if utf8.RuneCountInString(o.Message) > maxPostSize {
 		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -205,6 +208,7 @@ func (o *Post) IsValid() *AppError {
 		POST_HEADER_CHANGE,
 		POST_PURPOSE_CHANGE,
 		POST_DISPLAYNAME_CHANGE,
+		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
 		POST_CHANGE_CHANNEL_PRIVACY:
 	default:

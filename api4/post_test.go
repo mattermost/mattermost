@@ -130,7 +130,6 @@ func testCreatePostWithOutgoingHook(
 	channel := th.BasicChannel
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
@@ -477,7 +476,6 @@ func TestUpdatePost(t *testing.T) {
 	channel := th.BasicChannel
 
 	th.App.SetLicense(model.NewTestLicense())
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 
 	post := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)
@@ -549,7 +547,6 @@ func TestPatchPost(t *testing.T) {
 	channel := th.BasicChannel
 
 	th.App.SetLicense(model.NewTestLicense())
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 
 	post := &model.Post{
 		ChannelId:    channel.Id,

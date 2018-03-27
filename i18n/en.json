@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Your current license does not support advanced permissions."
+  },
+  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -330,6 +334,18 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.create_post.error",
+    "translation": "Failed to post channel conversion to private message"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
+    "translation": "Failed to retrieve user while converting the channel from public to private"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.updated_from",
+    "translation": "%s converted the channel from public to private"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -2447,8 +2463,16 @@
     "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
   },
   {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "The provided role does not exist"
+  },
+  {
     "id": "api.templates.email_change_body.title",
     "translation": "You updated your email"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "The role was not valid"
   },
   {
     "id": "api.templates.email_change_subject",
@@ -6483,6 +6507,18 @@
     "translation": "We couldn't select the posts to delete for the user (too many), please re-run"
   },
   {
+    "id": "store.sql_post.query_max_post_size.error",
+    "translation": "We couldn't determine the maximum supported post size"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.unrecognized_driver",
+    "translation": "No implementation found to determine the maximum supported post size"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
+    "translation": "Post.Message supports at most %d bytes"
+  },
+  {
     "id": "store.sql_post.save.app_error",
     "translation": "We couldn't save the Post"
   },
@@ -6609,6 +6645,26 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "Unable to save reaction"
+  },
+  {
+    "id": "store.sql_role.save.insert.app_error",
+    "translation": "Unable to save new role"
+  },
+  {
+    "id": "store.sql_role.save.update.app_error",
+    "translation": "Unable to update role"
+  },
+  {
+    "id": "store.sql_role.get.app_error",
+    "translation": "Unable to get role"
+  },
+  {
+    "id": "store.sql_role.get_by_name.app_error",
+    "translation": "Unable to get role"
+  },
+  {
+    "id": "store.sql_role.get_by_names.app_error",
+    "translation": "Unable to get roles"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

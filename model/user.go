@@ -432,7 +432,7 @@ func IsValidUserRoles(userRoles string) bool {
 	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {
-		if !isValidRole(r) {
+		if !IsValidRoleName(r) {
 			return false
 		}
 	}
@@ -443,11 +443,6 @@ func IsValidUserRoles(userRoles string) bool {
 	}
 
 	return true
-}
-
-func isValidRole(roleId string) bool {
-	_, ok := DefaultRoles[roleId]
-	return ok
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions

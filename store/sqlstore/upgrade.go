@@ -374,6 +374,10 @@ func UpgradeDatabaseToVersion48(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
+	// This version of Mattermost includes an App-Layer migration which migrates from hard-coded roles configured by
+	// a number of parameters in `config.json` to a `Roles` table in the database. The migration code can be seen
+	// in the file `app/app.go` in the function `DoAdvancedPermissionsMigration()`.
+
 	//TODO: Uncomment the following condition when version 4.9.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_8_0, VERSION_4_9_0) {
 	sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")

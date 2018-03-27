@@ -194,10 +194,16 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("fail - bad permissions")
 			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 			return
-		} else {
-			w.Write([]byte(hook.ToJson()))
+		}
+
+		if c.Session.UserId != hook.UserId && !c.App.SessionHasPermissionToTeam(c.Session, hook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
 			return
 		}
+
+		w.Write([]byte(hook.ToJson()))
+		return
 	}
 }
 
@@ -228,14 +234,20 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("fail - bad permissions")
 			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 			return
-		} else {
-			if err = c.App.DeleteIncomingWebhook(hookId); err != nil {
-				c.Err = err
-				return
-			}
-
-			ReturnStatusOK(w)
 		}
+
+		if c.Session.UserId != hook.UserId && !c.App.SessionHasPermissionToTeam(c.Session, hook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
+			return
+		}
+
+		if err = c.App.DeleteIncomingWebhook(hookId); err != nil {
+			c.Err = err
+			return
+		}
+
+		ReturnStatusOK(w)
 	}
 }
 

@@ -24,8 +24,16 @@ func TestCreateIncomingHook(t *testing.T) {
 	user2 := th.CreateUser(Client)
 	th.LinkUserToTeam(user2, team)
 
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook := &model.IncomingWebhook{ChannelId: channel1.Id}
 
@@ -91,7 +99,8 @@ func TestCreateIncomingHook(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	if _, err := Client.CreateIncomingWebhook(hook); err != nil {
 		t.Fatal(err)
@@ -130,7 +139,12 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.UpdateUserToTeamAdmin(user3, team2)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	hook := createIncomingWebhook(channel1.Id, Client, t)
 
@@ -213,7 +227,9 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	t.Run("OnlyAdminIntegrationsDisabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+
+		// Grant permission to regular users.
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 		t.Run("UpdateHookOfSameUser", func(t *testing.T) {
 			sameUserHook := &model.IncomingWebhook{ChannelId: channel1.Id, UserId: user2.Id}
@@ -235,7 +251,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		})
 	})
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	Client.Logout()
 	th.UpdateUserToTeamAdmin(user2, team)
@@ -318,7 +335,15 @@ func TestListIncomingHooks(t *testing.T) {
 	th.LinkUserToTeam(user2, team)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook1 := &model.IncomingWebhook{ChannelId: channel1.Id}
 	hook1 = Client.Must(Client.CreateIncomingWebhook(hook1)).Data.(*model.IncomingWebhook)
@@ -344,7 +369,8 @@ func TestListIncomingHooks(t *testing.T) {
 		t.Fatal("should have errored - not system/team admin")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	if _, err := Client.ListIncomingWebhooks(); err != nil {
 		t.Fatal(err)
@@ -368,7 +394,15 @@ func TestDeleteIncomingHook(t *testing.T) {
 	th.LinkUserToTeam(user2, team)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook := &model.IncomingWebhook{ChannelId: channel1.Id}
 	hook = Client.Must(Client.CreateIncomingWebhook(hook)).Data.(*model.IncomingWebhook)
@@ -401,7 +435,8 @@ func TestDeleteIncomingHook(t *testing.T) {
 		t.Fatal("should have failed - not system/team admin")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	if _, err := Client.DeleteIncomingWebhook(hook.Id); err == nil {
 		t.Fatal("should have failed - not creator or team admin")
@@ -437,7 +472,15 @@ func TestCreateOutgoingHook(t *testing.T) {
 	th.LinkUserToTeam(user3, team2)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 
@@ -507,7 +550,8 @@ func TestCreateOutgoingHook(t *testing.T) {
 		t.Fatal("should have failed - not system/team admin")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	if _, err := Client.CreateOutgoingWebhook(hook); err != nil {
 		t.Fatal(err)
@@ -539,7 +583,15 @@ func TestListOutgoingHooks(t *testing.T) {
 	th.LinkUserToTeam(user2, team)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook1 := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 	hook1 = Client.Must(Client.CreateOutgoingWebhook(hook1)).Data.(*model.OutgoingWebhook)
@@ -565,7 +617,8 @@ func TestListOutgoingHooks(t *testing.T) {
 		t.Fatal("should have failed - not system/team admin")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	if _, err := Client.ListOutgoingWebhooks(); err != nil {
 		t.Fatal(err)
@@ -595,7 +648,15 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	th.LinkUserToTeam(user3, team2)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook := createOutgoingWebhook(channel1.Id, []string{"http://nowhere.com"}, []string{"cats"}, Client, t)
 	createOutgoingWebhook(channel1.Id, []string{"http://nowhere.com"}, []string{"dogs"}, Client, t)
@@ -668,14 +729,17 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		t.Fatal("should have failed - user does not have permissions to manage webhooks")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
 	hook2 := createOutgoingWebhook(channel1.Id, []string{"http://nowhereelse.com"}, []string{"dogs"}, Client, t)
 
 	if _, err := Client.UpdateOutgoingWebhook(hook2); err != nil {
 		t.Fatal("update webhook failed when admin only integrations is turned off")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	Client.Logout()
 	th.LinkUserToTeam(user3, team)
@@ -762,7 +826,15 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	th.LinkUserToTeam(user2, team)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 	hook = Client.Must(Client.CreateOutgoingWebhook(hook)).Data.(*model.OutgoingWebhook)
@@ -795,7 +867,8 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		t.Fatal("should have failed - not system/team admin")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	if _, err := Client.DeleteOutgoingWebhook(hook.Id); err == nil {
 		t.Fatal("should have failed - not creator or team admin")
@@ -829,7 +902,15 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	th.LinkUserToTeam(user3, team2)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	// Revoke permission from regular users.
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 	hook = Client.Must(Client.CreateOutgoingWebhook(hook)).Data.(*model.OutgoingWebhook)
@@ -863,7 +944,8 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 		t.Fatal("should have failed - not system/team admin")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	// Grant permission to regular users.
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	hook = &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}}
 	hook = Client.Must(Client.CreateOutgoingWebhook(hook)).Data.(*model.OutgoingWebhook)

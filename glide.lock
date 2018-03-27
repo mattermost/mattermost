@@ -1,5 +1,5 @@
-hash: 822849f55f8ab4b5c7545597b209edb6114bcf1009a552a9ee2503ff8d3fda09
-updated: 2018-03-07T13:01:49.575101746+01:00
+hash: 287b82849f1c7303ee3eb29c9d0879d404469f7df2ba9b37828e55b0320ef11f
+updated: 2018-03-21T13:01:34.996412416+01:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -63,6 +63,8 @@ imports:
   version: afe77393c53b66afe9212810d9b2013859d04ae6
 - name: github.com/gorilla/websocket
   version: 4ac909741dfa57448bfadfdbca0cf7eeaa68f0e2
+- name: github.com/hako/durafmt
+  version: 987f93c94e473e74aadc826871e61ae6b3360ebb
 - name: github.com/hashicorp/errwrap
   version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
 - name: github.com/hashicorp/go-immutable-radix

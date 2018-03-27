@@ -287,11 +287,11 @@ func TestCleanUsername(t *testing.T) {
 
 func TestRoles(t *testing.T) {
 
-	if IsValidUserRoles("admin") {
+	if !IsValidUserRoles("team_user") {
 		t.Fatal()
 	}
 
-	if IsValidUserRoles("junk") {
+	if IsValidUserRoles("system_admin") {
 		t.Fatal()
 	}
 

@@ -439,6 +439,10 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
+	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+		return nil, err
+	}
+
 	member.Roles = newRoles
 
 	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {
@@ -803,6 +807,34 @@ func (a *App) PostUpdateChannelDisplayNameMessage(userId string, channel *model.
 
 		if _, err := a.CreatePost(post, channel, false); err != nil {
 			return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.create_post.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return nil
+}
+
+func (a *App) PostConvertChannelToPrivate(userId string, channel *model.Channel) *model.AppError {
+	uc := a.Srv.Store.User().Get(userId)
+
+	if uresult := <-uc; uresult.Err != nil {
+		return model.NewAppError("PostConvertChannelToPrivate", "api.channel.post_convert_channel_to_private.retrieve_user.error", nil, uresult.Err.Error(), http.StatusBadRequest)
+	} else {
+		user := uresult.Data.(*model.User)
+
+		message := fmt.Sprintf(utils.T("api.channel.post_convert_channel_to_private.updated_from"), user.Username)
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   message,
+			Type:      model.POST_CONVERT_CHANNEL,
+			UserId:    userId,
+			Props: model.StringInterface{
+				"username": user.Username,
+			},
+		}
+
+		if _, err := a.CreatePost(post, channel, false); err != nil {
+			return model.NewAppError("PostConvertChannelToPrivate", "api.channel.post_convert_channel_to_private.create_post.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 

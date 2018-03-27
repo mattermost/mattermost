@@ -61,6 +61,7 @@ type Store interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
+	Role() RoleStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
@@ -198,6 +199,7 @@ type PostStore interface {
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
+	GetMaxPostSize() StoreChannel
 }
 
 type UserStore interface {
@@ -467,4 +469,11 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+}
+
+type RoleStore interface {
+	Save(role *model.Role) StoreChannel
+	Get(roleId string) StoreChannel
+	GetByName(name string) StoreChannel
+	GetByNames(names []string) StoreChannel
 }

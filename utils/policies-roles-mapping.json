@@ -1,0 +1,532 @@
+{
+    "restrictTeamInvite": {
+        "all": [
+            {
+                "roleName": "team_user",
+                "permission": "invite_user",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "invite_user",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "invite_user",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "invite_user",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "invite_user",
+                "shouldHave": false
+            }
+        ]
+    },
+    "restrictPublicChannelCreation": {
+        "all": [
+            {
+                "roleName": "team_user",
+                "permission": "create_public_channel",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "create_public_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "create_public_channel",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "create_public_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "create_public_channel",
+                "shouldHave": false
+            }
+        ]
+    },
+    "restrictPrivateChannelCreation": {
+        "all": [
+            {
+                "roleName": "team_user",
+                "permission": "create_private_channel",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "create_private_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "create_private_channel",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "create_private_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "create_private_channel",
+                "shouldHave": false
+            }
+        ]
+    },
+    "restrictPublicChannelManagement": {
+        "all": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": true
+            }
+        ],
+        "channel_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_public_channel_properties",
+                "shouldHave": false
+            }
+        ]
+    },
+    "restrictPublicChannelDeletion": {
+        "all": [
+            {
+                "roleName": "team_user",
+                "permission": "delete_public_channel",
+                "shouldHave": true
+            }
+        ],
+        "channel_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "delete_public_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "delete_public_channel",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_public_channel",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "delete_public_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "delete_public_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_public_channel",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "delete_public_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "delete_public_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_public_channel",
+                "shouldHave": false
+            }
+        ]
+    },
+    "restrictPrivateChannelManagement": {
+        "all": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": true
+            }
+        ],
+        "channel_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_private_channel_properties",
+                "shouldHave": false
+            }
+        ]
+    },
+    "restrictPrivateChannelManageMembers": {
+        "all": [
+            {
+                "roleName": "channel_user",
+                "permission": "manage_private_channel_members",
+                "shouldHave": true
+            }
+        ],
+        "channel_admin": [
+            {
+                "roleName": "channel_user",
+                "permission": "manage_private_channel_members",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_private_channel_members",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_private_channel_members",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "channel_user",
+                "permission": "manage_private_channel_members",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_private_channel_members",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_private_channel_members",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "channel_user",
+                "permission": "manage_private_channel_members",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "manage_private_channel_members",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "manage_private_channel_members",
+                "shouldHave": false
+            }
+        ]
+    },
+    "restrictPrivateChannelDeletion": {
+        "all": [
+            {
+                "roleName": "team_user",
+                "permission": "delete_private_channel",
+                "shouldHave": true
+            }
+        ],
+        "channel_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "delete_private_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "delete_private_channel",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_private_channel",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "delete_private_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "delete_private_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_private_channel",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "team_user",
+                "permission": "delete_private_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "channel_admin",
+                "permission": "delete_private_channel",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_private_channel",
+                "shouldHave": false
+            }
+        ]
+    },
+    "allowEditPost": {
+        "always": [
+            {
+                "roleName": "channel_user",
+                "permission": "edit_post",
+                "shouldHave": true
+            },
+            {
+                "roleName": "system_admin",
+                "permission": "edit_post",
+                "shouldHave": true
+            }
+        ],
+        "never": [
+            {
+                "roleName": "channel_user",
+                "permission": "edit_post",
+                "shouldHave": false
+            },
+            {
+                "roleName": "system_admin",
+                "permission": "edit_post",
+                "shouldHave": false
+            }
+        ]
+    },
+    "restrictPostDelete": {
+        "all": [
+            {
+                "roleName": "channel_user",
+                "permission": "delete_post",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_post",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_others_posts",
+                "shouldHave": true
+            }
+        ],
+        "team_admin": [
+            {
+                "roleName": "channel_user",
+                "permission": "delete_post",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_post",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_others_posts",
+                "shouldHave": true
+            }
+        ],
+        "system_admin": [
+            {
+                "roleName": "channel_user",
+                "permission": "delete_post",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_post",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_admin",
+                "permission": "delete_others_posts",
+                "shouldHave": false
+            }
+        ]
+    },
+    "enableTeamCreation": {
+        "true": [
+            {
+                "roleName": "system_user",
+                "permission": "create_team",
+                "shouldHave": true
+            }
+        ],
+        "false": [
+            {
+                "roleName": "system_user",
+                "permission": "create_team",
+                "shouldHave": false
+            }
+        ]
+    },
+    "enableOnlyAdminIntegrations": {
+        "true": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_webhooks",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_user",
+                "permission": "manage_slash_commands",
+                "shouldHave": false
+            },
+            {
+                "roleName": "system_user",
+                "permission": "manage_oauth",
+                "shouldHave": false
+            }
+        ],
+        "false": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_webhooks",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_user",
+                "permission": "manage_slash_commands",
+                "shouldHave": true
+            },
+            {
+                "roleName": "system_user",
+                "permission": "manage_oauth",
+                "shouldHave": true
+            }
+        ]
+    }
+}
