@@ -280,9 +280,9 @@ func initializePermissions() {
 		PERMISSION_SCOPE_SYSTEM,
 	}
 	PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH = &Permission{
-		"manage_sytem_wide_oauth",
-		"authentication.permissions.manage_sytem_wide_oauth.name",
-		"authentication.permissions.manage_sytem_wide_oauth.description",
+		"manage_system_wide_oauth",
+		"authentication.permissions.manage_system_wide_oauth.name",
+		"authentication.permissions.manage_system_wide_oauth.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
 	PERMISSION_CREATE_POST = &Permission{
