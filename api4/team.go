@@ -741,15 +741,16 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
-		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-		return
-	}
-
 	if team, err := c.App.GetTeam(c.Params.TeamId); err != nil {
 		c.Err = err
 		return
 	} else {
+		if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) &&
+			(team.Type != model.TEAM_OPEN || team.AllowOpenInvite) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
 		etag := strconv.FormatInt(team.LastTeamIconUpdate, 10)
 
 		if c.HandleEtag(etag, "Get Team Icon", w, r) {

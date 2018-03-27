@@ -43,6 +43,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("GetPostsBatchForIndexing", func(t *testing.T) { testPostStoreGetPostsBatchForIndexing(t, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, ss) })
 	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, ss) })
+	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -1782,4 +1783,9 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 	r1 := (<-ss.Post().GetOldest()).Data.(*model.Post)
 
 	assert.EqualValues(t, o2.Id, r1.Id)
+}
+
+func testGetMaxPostSize(t *testing.T, ss store.Store) {
+	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
+	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
 }

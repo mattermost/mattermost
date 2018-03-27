@@ -29,7 +29,8 @@ func encodeRFC2047Word(s string) string {
 type SmtpConnectionInfo struct {
 	SmtpUsername         string
 	SmtpPassword         string
-	SmtpServer           string
+	SmtpServerName       string
+	SmtpServerHost       string
 	SmtpPort             string
 	SkipCertVerification bool
 	ConnectionSecurity   string
@@ -42,11 +43,11 @@ type authChooser struct {
 }
 
 func (a *authChooser) Start(server *smtp.ServerInfo) (string, []byte, error) {
-	smtpAddress := a.connectionInfo.SmtpServer + ":" + a.connectionInfo.SmtpPort
+	smtpAddress := a.connectionInfo.SmtpServerName + ":" + a.connectionInfo.SmtpPort
 	a.Auth = LoginAuth(a.connectionInfo.SmtpUsername, a.connectionInfo.SmtpPassword, smtpAddress)
 	for _, method := range server.Auth {
 		if method == "PLAIN" {
-			a.Auth = smtp.PlainAuth("", a.connectionInfo.SmtpUsername, a.connectionInfo.SmtpPassword, a.connectionInfo.SmtpServer+":"+a.connectionInfo.SmtpPort)
+			a.Auth = smtp.PlainAuth("", a.connectionInfo.SmtpUsername, a.connectionInfo.SmtpPassword, a.connectionInfo.SmtpServerName+":"+a.connectionInfo.SmtpPort)
 			break
 		}
 	}
@@ -91,11 +92,11 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 	var conn net.Conn
 	var err error
 
-	smtpAddress := connectionInfo.SmtpServer + ":" + connectionInfo.SmtpPort
+	smtpAddress := connectionInfo.SmtpServerHost + ":" + connectionInfo.SmtpPort
 	if connectionInfo.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: connectionInfo.SkipCertVerification,
-			ServerName:         connectionInfo.SmtpServer,
+			ServerName:         connectionInfo.SmtpServerName,
 		}
 
 		conn, err = tls.Dial("tcp", smtpAddress, tlsconfig)
@@ -117,14 +118,15 @@ func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServer:           config.EmailSettings.SMTPServer,
+			SmtpServerName:       config.EmailSettings.SMTPServer,
+			SmtpServerHost:       config.EmailSettings.SMTPServer,
 			SmtpPort:             config.EmailSettings.SMTPPort,
 		},
 	)
 }
 
 func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, *model.AppError) {
-	c, err := smtp.NewClient(conn, connectionInfo.SmtpServer+":"+connectionInfo.SmtpPort)
+	c, err := smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
 	if err != nil {
 		l4g.Error(T("utils.mail.new_client.open.error"), err)
 		return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -141,7 +143,7 @@ func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpC
 	if connectionInfo.ConnectionSecurity == model.CONN_SECURITY_STARTTLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: connectionInfo.SkipCertVerification,
-			ServerName:         connectionInfo.SmtpServer,
+			ServerName:         connectionInfo.SmtpServerName,
 		}
 		c.StartTLS(tlsconfig)
 	}
@@ -161,7 +163,8 @@ func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServer:           config.EmailSettings.SMTPServer,
+			SmtpServerName:       config.EmailSettings.SMTPServer,
+			SmtpServerHost:       config.EmailSettings.SMTPServer,
 			SmtpPort:             config.EmailSettings.SMTPPort,
 			Auth:                 *config.EmailSettings.EnableSMTPAuth,
 			SmtpUsername:         config.EmailSettings.SMTPUsername,

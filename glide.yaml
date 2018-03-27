@@ -34,7 +34,6 @@ import:
   version: 4.0.7
   subpackages:
   - pkg/credentials
-- package: github.com/mssola/user_agent
 - package: github.com/nicksnyder/go-i18n
   version: v1.10.0
   subpackages:
@@ -78,3 +77,4 @@ import:
   - store/memstore
 - package: gopkg.in/yaml.v2
 - package: github.com/avct/uasurfer
+- package: github.com/hako/durafmt

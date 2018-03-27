@@ -248,7 +248,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.MapToJson(c.App.ClientConfigWithNoAccounts())))
+	w.Write([]byte(model.MapToJson(c.App.ClientConfigWithComputed())))
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {

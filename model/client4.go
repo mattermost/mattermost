@@ -1748,6 +1748,17 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 	}
 }
 
+// AutocompleteChannelsForTeam will return an ordered list of channels autocomplete suggestions
+func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList, *Response) {
+	query := fmt.Sprintf("?name=%v", name)
+	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/autocomplete"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
