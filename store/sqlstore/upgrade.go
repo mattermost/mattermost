@@ -17,7 +17,9 @@ import (
 
 const (
 	VERSION_4_9_0            = "4.9.0"
+	VERSION_4_8_1            = "4.8.1"
 	VERSION_4_8_0            = "4.8.0"
+	VERSION_4_7_2            = "4.7.2"
 	VERSION_4_7_1            = "4.7.1"
 	VERSION_4_7_0            = "4.7.0"
 	VERSION_4_6_0            = "4.6.0"
@@ -69,7 +71,9 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion46(sqlStore)
 	UpgradeDatabaseToVersion47(sqlStore)
 	UpgradeDatabaseToVersion471(sqlStore)
+	UpgradeDatabaseToVersion472(sqlStore)
 	UpgradeDatabaseToVersion48(sqlStore)
+	UpgradeDatabaseToVersion481(sqlStore)
 	UpgradeDatabaseToVersion49(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
@@ -367,15 +371,29 @@ func UpgradeDatabaseToVersion471(sqlStore SqlStore) {
 	}
 }
 
+func UpgradeDatabaseToVersion472(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_7_1, VERSION_4_7_2) {
+		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
+		saveSchemaVersion(sqlStore, VERSION_4_7_2)
+	}
+}
+
 func UpgradeDatabaseToVersion48(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_4_7_1, VERSION_4_8_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_7_2, VERSION_4_8_0) {
 		saveSchemaVersion(sqlStore, VERSION_4_8_0)
+	}
+}
+
+func UpgradeDatabaseToVersion481(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_8_0, VERSION_4_8_1) {
+		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
+		saveSchemaVersion(sqlStore, VERSION_4_8_1)
 	}
 }
 
 func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 	//TODO: Uncomment the following condition when version 4.9.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_4_8_0, VERSION_4_9_0) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_4_8_1, VERSION_4_9_0) {
 	sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
 	defaultTimezone := model.DefaultUserTimezone()
 	defaultTimezoneValue, err := json.Marshal(defaultTimezone)
@@ -383,6 +401,7 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 		l4g.Critical(err)
 	}
 	sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
+	sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
 	//	saveSchemaVersion(sqlStore, VERSION_4_9_0)
 	//}
 }
