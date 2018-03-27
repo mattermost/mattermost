@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -1765,4 +1766,76 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
+}
+
+func TestAutocompleteChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	// A private channel to make sure private channels are not used
+	utils.DisableDebugLogForTest()
+	ptown, _ := th.Client.CreateChannel(&model.Channel{
+		DisplayName: "Town",
+		Name:        "town",
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      th.BasicTeam.Id,
+	})
+	utils.EnableDebugLogForTest()
+	defer func() {
+		th.Client.DeleteChannel(ptown.Id)
+	}()
+
+	for _, tc := range []struct {
+		description      string
+		teamId           string
+		fragment         string
+		expectedIncludes []string
+		expectedExcludes []string
+	}{
+		{
+			"Basic town-square",
+			th.BasicTeam.Id,
+			"town",
+			[]string{"town-square"},
+			[]string{"off-topic", "town"},
+		},
+		{
+			"Basic off-topic",
+			th.BasicTeam.Id,
+			"off-to",
+			[]string{"off-topic"},
+			[]string{"town-square", "town"},
+		},
+		{
+			"Basic town square and off topic",
+			th.BasicTeam.Id,
+			"to",
+			[]string{"off-topic", "town-square"},
+			[]string{"town"},
+		},
+	} {
+		if channels, resp := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment); resp.Error != nil {
+			t.Fatal("Test case " + tc.description + " failed. Err: " + resp.Error.Error())
+		} else {
+			for _, expectedInclude := range tc.expectedIncludes {
+				found := false
+				for _, channel := range *channels {
+					if channel.Name == expectedInclude {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Fatal("Test case " + tc.description + " failed. Expected but didn't find channel: " + expectedInclude)
+				}
+			}
+			for _, expectedExclude := range tc.expectedExcludes {
+				for _, channel := range *channels {
+					if channel.Name == expectedExclude {
+						t.Fatal("Test case " + tc.description + " failed. Found channel we didn't want: " + expectedExclude)
+					}
+				}
+			}
+		}
+	}
 }

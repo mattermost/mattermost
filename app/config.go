@@ -273,15 +273,17 @@ func (a *App) GetSiteURL() string {
 	return a.siteURL
 }
 
-// ClientConfigWithNoAccounts gets the configuration in a format suitable for sending to the client.
-func (a *App) ClientConfigWithNoAccounts() map[string]string {
+// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *App) ClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
 	for k, v := range a.ClientConfig() {
 		respCfg[k] = v
 	}
 
-	// NoAccounts is not actually part of the configuration, but is expected by the client.
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
+	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
 
 	return respCfg
 }
