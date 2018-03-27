@@ -23,6 +23,7 @@ type LayeredStoreDatabaseLayer interface {
 type LayeredStore struct {
 	TmpContext      context.Context
 	ReactionStore   ReactionStore
+	RoleStore       RoleStore
 	DatabaseLayer   LayeredStoreDatabaseLayer
 	LocalCacheLayer *LocalCacheSupplier
 	RedisLayer      *RedisSupplier
@@ -37,6 +38,7 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 	}
 
 	store.ReactionStore = &LayeredReactionStore{store}
+	store.RoleStore = &LayeredRoleStore{store}
 
 	// Setup the chain
 	if ENABLE_EXPERIMENTAL_REDIS {
@@ -161,6 +163,10 @@ func (s *LayeredStore) Plugin() PluginStore {
 	return s.DatabaseLayer.Plugin()
 }
 
+func (s *LayeredStore) Role() RoleStore {
+	return s.RoleStore
+}
+
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }
@@ -216,5 +222,33 @@ func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) StoreCha
 func (s *LayeredReactionStore) PermanentDeleteBatch(endTime int64, limit int64) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.ReactionPermanentDeleteBatch(s.TmpContext, endTime, limit)
+	})
+}
+
+type LayeredRoleStore struct {
+	*LayeredStore
+}
+
+func (s *LayeredRoleStore) Save(role *model.Role) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.RoleSave(s.TmpContext, role)
+	})
+}
+
+func (s *LayeredRoleStore) Get(roleId string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.RoleGet(s.TmpContext, roleId)
+	})
+}
+
+func (s *LayeredRoleStore) GetByName(name string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.RoleGetByName(s.TmpContext, name)
+	})
+}
+
+func (s *LayeredRoleStore) GetByNames(names []string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.RoleGetByNames(s.TmpContext, names)
 	})
 }

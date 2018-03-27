@@ -113,7 +113,6 @@ func (a *App) License() *model.License {
 
 func (a *App) SetLicense(license *model.License) bool {
 	defer func() {
-		a.setDefaultRolesBasedOnConfig()
 		for _, listener := range a.licenseListeners {
 			listener()
 		}

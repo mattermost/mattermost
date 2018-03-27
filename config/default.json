@@ -47,7 +47,7 @@
         "RestrictCustomEmojiCreation": "all",
         "RestrictPostDelete": "all",
         "AllowEditPost": "always",
-        "PostEditTimeLimit": 300,
+        "PostEditTimeLimit": -1,
         "ExperimentalEnableAuthenticationTransfer": true,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,

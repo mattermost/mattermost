@@ -160,6 +160,10 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 		return nil, err
 	}
 
+	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+		return nil, err
+	}
+
 	member.Roles = newRoles
 
 	if result := <-a.Srv.Store.Team().UpdateMember(member); result.Err != nil {

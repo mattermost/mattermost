@@ -1241,6 +1241,10 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		return nil, err
 	}
 
+	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+		return nil, err
+	}
+
 	user.Roles = newRoles
 	uchan := a.Srv.Store.User().Update(user, true)
 	schan := a.Srv.Store.Session().UpdateRoles(user.Id, newRoles)
