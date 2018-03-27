@@ -805,6 +805,34 @@ func (a *App) PostUpdateChannelDisplayNameMessage(userId string, channel *model.
 	return nil
 }
 
+func (a *App) PostConvertChannelToPrivate(userId string, channel *model.Channel) *model.AppError {
+	uc := a.Srv.Store.User().Get(userId)
+
+	if uresult := <-uc; uresult.Err != nil {
+		return model.NewAppError("PostConvertChannelToPrivate", "api.channel.post_convert_channel_to_private.retrieve_user.error", nil, uresult.Err.Error(), http.StatusBadRequest)
+	} else {
+		user := uresult.Data.(*model.User)
+
+		message := fmt.Sprintf(utils.T("api.channel.post_convert_channel_to_private.updated_from"), user.Username)
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   message,
+			Type:      model.POST_CONVERT_CHANNEL,
+			UserId:    userId,
+			Props: model.StringInterface{
+				"username": user.Username,
+			},
+		}
+
+		if _, err := a.CreatePost(post, channel, false); err != nil {
+			return model.NewAppError("PostConvertChannelToPrivate", "api.channel.post_convert_channel_to_private.create_post.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().Get(channelId, true); result.Err != nil && result.Err.Id == "store.sql_channel.get.existing.app_error" {
 		result.Err.StatusCode = http.StatusNotFound
