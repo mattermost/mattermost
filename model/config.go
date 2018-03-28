@@ -1359,6 +1359,14 @@ func (s *SamlSettings) SetDefaults() {
 		s.AssertionConsumerServiceURL = NewString("")
 	}
 
+	if s.ScopingIDPProviderId == nil {
+		s.ScopingIDPProviderId = NewString("")
+	}
+
+	if s.ScopingIDPName == nil {
+		s.ScopingIDPName = NewString("")
+	}
+
 	if s.LoginButtonText == nil || *s.LoginButtonText == "" {
 		s.LoginButtonText = NewString(USER_AUTH_SERVICE_SAML_TEXT)
 	}
