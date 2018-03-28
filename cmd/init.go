@@ -22,6 +22,8 @@ func InitDBCommandContextCobra(cmd *cobra.Command) (*app.App, error) {
 		panic(err)
 	}
 
+	a.DoAdvancedPermissionsMigration()
+
 	return a, nil
 }
 
