@@ -133,7 +133,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Kann Multipart-Formular nicht analysieren"
+    "translation": "Kann Multipart-Formular nicht verarbeiten"
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
@@ -1378,7 +1378,7 @@
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Dateiupload nicht möglich. Header können nicht geparst werden."
+    "translation": "Dateiupload nicht möglich. Header können nicht verarbeitet werden."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1955,6 +1955,14 @@
     "translation": "Server wird initialisiert..."
   },
   {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Must enable Forward80To443 when using LetsEncrypt"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+  },
+  {
     "id": "api.server.start_server.listening.info",
     "translation": "Server hört auf %v"
   },
@@ -2256,7 +2264,7 @@
   },
   {
     "id": "api.team.import_team.parse.app_error",
-    "translation": "Kann Multipart-Formular nicht analysieren"
+    "translation": "Kann Multipart-Formular nicht verarbeiten"
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
@@ -2348,19 +2356,19 @@
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Could not decode team icon"
+    "translation": "Konnte das Teamsymbol nicht dekodieren"
   },
   {
     "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata"
+    "translation": "Konnte Metadaten des Teamsymbols nicht dekodieren"
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Could not encode team icon"
+    "translation": "Konnte Teamsymbols nicht dekodieren"
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten"
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
@@ -2368,15 +2376,15 @@
   },
   {
     "id": "api.team.set_team_icon.open.app_error",
-    "translation": "Konnte Bild nicht öffnen"
+    "translation": "Konnte Bilddatei nicht öffnen"
   },
   {
     "id": "api.team.set_team_icon.parse.app_error",
-    "translation": "Kann Multipart-Formular nicht analysieren"
+    "translation": "Konnte Multipart-Formular nicht verarbeiten"
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
-    "translation": "Die Datei kann nicht hochgeladen werden. Ein Foto Speicherort ist nicht eingerichtet."
+    "translation": "Die Datei kann nicht hochgeladen werden. Ein Foto-Speicherort ist nicht konfiguriert."
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
@@ -2384,7 +2392,7 @@
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "Could not save team icon"
+    "translation": "Konnte Teamsymbol nicht speichern"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3040,7 +3048,7 @@
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": "Kann Multipart-Formular nicht analysieren"
+    "translation": "Konnte Multipart-Formular nicht verarbeiten"
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
@@ -3704,7 +3712,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "Die Plugin-Konfiguration in Ihrer config.json-Datei muss manuell aktualisiert werden, wenn ReadOnlyConfig mit aktiviertem Clustering verwendet wird."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3769,6 +3777,18 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie Ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
+  },
+  {
+    "id": "app.timezones.failed_deserialize.app_error",
+    "translation": "Failed to deserialize Timezone config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "app.timezones.load_config.app_error",
+    "translation": "Timezone config file does not exists file={{.Filename}}"
+  },
+  {
+    "id": "app.timezones.read_config.app_error",
+    "translation": "Failed to read Timezone config file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4980,27 +5000,27 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "ExportFormat des Nachrichtenexport-Jobs ist auf 'globalrelay' gesetzt, aber GlobalRelay-Einstellungen fehlen"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+    "translation": "Nachrichtenexport GlobalRelaySettings.CustomerType muss auf 'A9' oder 'A10' gesetzt werden"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "Nachrichten-Export-Job GlobalRelayEmailAddress muss eine gültige E-Mail-Adresse sein."
+    "translation": "Nachrichtenexport-Job GlobalRelaySettings.EmailAddress muss eine gültige E-Mail-Adresse sein"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+    "translation": "Nachrichtenexport-Job GlobalRelaySettings.SmtpPassword muss gesetzt sein"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
+    "translation": "Nachrichtenexport-Job GlobalRelaySettings.SmtpUsername muss gesetzt sein"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
-    "translation": "Nachrichten-Export-Job GlobalRelayEmailAddress muss eine gültige E-Mail-Adresse sein."
+    "translation": "Nachrichten-Export-Job GlobalRelayEmailAddress muss eine gültige E-Mail-Adresse sein"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -5504,7 +5524,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Ungültiger Benutzer, Auth Daten müssen mit Auth Typ gesetzt werden"
+    "translation": "Ungültiger Benutzer, Auth-Daten müssen mit Auth-Typ gesetzt sein"
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
@@ -6425,6 +6445,18 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "Es konnte die Nachricht nicht ausgewählt werden welche für den Benutzer gelöscht werden soll (zu viele), bitte erneut ausführen"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.error",
+    "translation": "We couldn't determine the maximum supported post size"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
+    "translation": "Post.Message supports at most %d bytes"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.unrecognized_driver",
+    "translation": "No implementation found to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",

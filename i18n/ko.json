@@ -109,15 +109,15 @@
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Bucket is required"
+    "translation": "S3 버킷이 필요합니다"
   },
   {
     "id": "api.admin.test_s3.missing_s3_endpoint",
-    "translation": "S3 Endpoint is required"
+    "translation": "S3 엔드포인트가 필요합니다"
   },
   {
     "id": "api.admin.test_s3.missing_s3_region",
-    "translation": "S3 Region is required"
+    "translation": "S3 지역이 필요합니다"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -661,15 +661,15 @@
   },
   {
     "id": "api.command_dnd.error",
-    "translation": "Error to retrieve the user status."
+    "translation": "유저 상태 검색 중 오류가 발생하였습니다."
   },
   {
     "id": "api.command_dnd.name",
-    "translation": "dnd"
+    "translation": "방해 금지"
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+    "translation": "방해 금지 모드가 활성화되었습니다. 방해 금지 모드가 비활성화 될 때 까지 데스크탑이나 모바일 푸시 알림을 받지 못합니다."
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -734,8 +734,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "We couldn't find the user: {{.Users}}",
-      "other": "We couldn't find the users: {{.Users}}"
+      "one": "유저를 찾지 못했습니다: {{.Users}}유저를 찾지 못했습니다: {{.Users}}",
+      "other": ""
     }
   },
   {
@@ -748,11 +748,11 @@
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+    "translation": "그룹 메시지는 최대 {{.MaxUsers}}명으로 제한되어 있습니다."
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
+    "translation": "그룹 메시지는 최소 {{.MaxUsers}}명으로 제한되어 있습니다."
   },
   {
     "id": "api.command_groupmsg.missing.app_error",
@@ -804,11 +804,11 @@
   },
   {
     "id": "api.command_kick.name",
-    "translation": "kick"
+    "translation": "킥"
   },
   {
     "id": "api.command_leave.desc",
-    "translation": "Leave the current channel"
+    "translation": "현재 채널 떠나기"
   },
   {
     "id": "api.command_leave.fail.app_error",
@@ -824,7 +824,7 @@
   },
   {
     "id": "api.command_leave.name",
-    "translation": "leave"
+    "translation": "떠나기"
   },
   {
     "id": "api.command_leave.success",
@@ -916,15 +916,15 @@
   },
   {
     "id": "api.command_remove.desc",
-    "translation": "Remove a member from the channel"
+    "translation": "채널에서 멤버 제거하기"
   },
   {
     "id": "api.command_remove.direct_group.app_error",
-    "translation": "You can't remove someone from a direct message channel."
+    "translation": "개인 메시지 채널에서 다른 사용자를 제거할 수 없습니다."
   },
   {
     "id": "api.command_remove.hint",
-    "translation": "@[username]"
+    "translation": "@[사용자 이름]"
   },
   {
     "id": "api.command_remove.message.app_error",
@@ -944,7 +944,7 @@
   },
   {
     "id": "api.command_remove.user_not_in_channel",
-    "translation": "{{.Username}} is not a member of this channel."
+    "translation": "{{.Username}}은 이 채널의 사용자가 아닙니다."
   },
   {
     "id": "api.command_search.desc",
@@ -956,7 +956,7 @@
   },
   {
     "id": "api.command_search.name",
-    "translation": "search"
+    "translation": "찾기"
   },
   {
     "id": "api.command_search.unsupported.app_error",
@@ -1125,8 +1125,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "You have a new notification.",
-      "other": "You have {{.Count}} new notifications."
+      "one": "새 알림이 있습니다.{{.Count}}개의 새 알림이 있습니다.",
+      "other": ""
     }
   },
   {
@@ -1350,7 +1350,7 @@
   },
   {
     "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Unable to copy file within S3."
+    "translation": "S3 내에서 파일을 복사 할 수 없습니다."
   },
   {
     "id": "api.file.move_file.delete_from_s3.app_error",
@@ -1382,11 +1382,11 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Unable to upload files. Incorrect number of files specified."
+    "translation": "파일을 업로드 할 수 없습니다. 잘못된 파일 수가 지정되었습니다."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+    "translation": "최대 크기를 초과하는 파일을 업로드 할 수 없습니다: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1418,7 +1418,7 @@
   },
   {
     "id": "api.import.import_post.attach_files.error",
-    "translation": "Error attaching files to post. postId=%v, fileIds=%v, message=%v"
+    "translation": "게시물을 첨부할 때 오류가 발생했습니다. postId=%v, FileIds=%v, message=%v"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -1602,11 +1602,11 @@
   },
   {
     "id": "api.oauth.invalid_state_token.app_error",
-    "translation": "Invalid state token"
+    "translation": "상태 토큰이 잘못되었습니다."
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "OAuth2 앱의 Secret를 재생성하기에 부적절한 권합니다."
+    "translation": "OAuth2 앱의 Secret를 재생성하기에 부적절한 권한 입니다."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1638,7 +1638,7 @@
   },
   {
     "id": "api.opengraph.init.debug",
-    "translation": "Initializing open graph protocol api routes"
+    "translation": "Open graph 프로토콜 API 경로 초기화하기"
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1654,11 +1654,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "add them to this private channel"
+    "translation": "비공개 채널에 사용자 추가하기"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "add them to the channel"
+    "translation": "공개 채널에 사용자 추가하기"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1698,7 +1698,7 @@
   },
   {
     "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
+    "translation": "이 채널은 읽기 전용입니다. 권한을 가진 사용자들만 게시할 수 있습니다."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1718,15 +1718,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @all이 비활성화 되었습니다."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @channel이 비활성화 되었습니다."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+    "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @here이 비활성화 되었습니다."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1734,7 +1734,7 @@
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Action integration error"
+    "translation": "통합 기능 작업 에러"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1804,7 +1804,7 @@
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
-    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
+    "translation": "포스트 작성자가 해당 포스트를 게시한 채널에 존재하지 않습니다, 알림을 보내지 않았습니다 post_id=%v channel_id=%v user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
@@ -1953,6 +1953,14 @@
   {
     "id": "api.server.new_server.init.info",
     "translation": "서버를 초기화 중입니다."
+  },
+  {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Must enable Forward80To443 when using LetsEncrypt"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
   },
   {
     "id": "api.server.start_server.listening.info",
@@ -3769,6 +3777,18 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
+  },
+  {
+    "id": "app.timezones.failed_deserialize.app_error",
+    "translation": "Failed to deserialize Timezone config file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "app.timezones.load_config.app_error",
+    "translation": "Timezone config file does not exists file={{.Filename}}"
+  },
+  {
+    "id": "app.timezones.read_config.app_error",
+    "translation": "Failed to read Timezone config file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -6425,6 +6445,18 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "We couldn't select the posts to delete for the user (too many), please re-run"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.error",
+    "translation": "We couldn't determine the maximum supported post size"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
+    "translation": "Post.Message supports at most %d bytes"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.unrecognized_driver",
+    "translation": "No implementation found to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",

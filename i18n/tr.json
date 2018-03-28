@@ -1955,6 +1955,14 @@
     "translation": "Sunucu hazırlanıyor..."
   },
   {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "LetsEncrypt kullanılırken Forward80To443 etkinleştirilmelidir"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "%s kapısı dinlenirken 80 numaralı kapı 443 numaralı kapıya yönlendirilemedi. Bir vekil sunucu kullanıyorsanız Forward80To443 seçeneğini devre dışı bırakın"
+  },
+  {
     "id": "api.server.start_server.listening.info",
     "translation": "Sunucu %v üzerinden dinleniyor"
   },
@@ -3771,6 +3779,18 @@
     "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticinizle görüşün."
   },
   {
+    "id": "app.timezones.failed_deserialize.app_error",
+    "translation": "Saat dilimi yapılandırma seri numarası kaldırılamadı. Dosya: {{.Filename}} Hata:{{.Error}}"
+  },
+  {
+    "id": "app.timezones.load_config.app_error",
+    "translation": "Saat dilimi yapılandırma dosyası bulunamadı. Dosya: {{.Filename}}"
+  },
+  {
+    "id": "app.timezones.read_config.app_error",
+    "translation": "Saat dilimi yapılandırma dosyası okunamadı. Dosya: {{.Filename}} Hata: {{.Error}}"
+  },
+  {
     "id": "app.user_access_token.disabled",
     "translation": "Bu sunucu üzerinde kişisel erişim kodları devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
@@ -4964,11 +4984,11 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "İleti dışa aktarma görevinin Dışa Aktarma Biçimi 'actiance' ya da 'genelaktarım' olmalıdır"
+    "translation": "İleti dışa aktarma görevinin Dışa Aktarma Biçimi 'actiance' ya da 'genelaktarıcı' olmalıdır"
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "İleti dışa aktarma görevinin Dışa Aktarma Biçimi 'actiance' ya da 'genelaktarım' olmalıdır"
+    "translation": "İleti dışa aktarma görevinin Dışa Aktarma Biçimi 'actiance' ya da 'genelaktarıcı' olmalıdır"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.app_error",
@@ -6425,6 +6445,18 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "Kullanıcının silinecek iletileri seçilemedi (çok fazla), lütfen yeniden çalıştırın"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.error",
+    "translation": "We couldn't determine the maximum supported post size"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
+    "translation": "Post.Message supports at most %d bytes"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.unrecognized_driver",
+    "translation": "No implementation found to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",

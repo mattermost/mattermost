@@ -1955,6 +1955,14 @@
     "translation": "Inicializando el Servidor..."
   },
   {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Must enable Forward80To443 when using LetsEncrypt"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+  },
+  {
     "id": "api.server.start_server.listening.info",
     "translation": "El servidor está escuchando en %v"
   },
@@ -3716,7 +3724,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Los Plugins han sido inhabilitados. Por favor revisa los logs para más detalles."
+    "translation": "Los Complementos han sido inhabilitados. Por favor revisa los logs para más detalles."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3769,6 +3777,18 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Este equipo ha alcanzado el número máximo de cuentas permitidas. Contacta a un administrador de sistema para que asigne un límite mayor."
+  },
+  {
+    "id": "app.timezones.failed_deserialize.app_error",
+    "translation": "No se pudo deserializar el archivo de configuración={{.Filename}} correspondiente a la Zona Horaria, err={{.Error}}"
+  },
+  {
+    "id": "app.timezones.load_config.app_error",
+    "translation": "No existe el archivo de configuración de Zona Horaria archivo={{.Filename}}"
+  },
+  {
+    "id": "app.timezones.read_config.app_error",
+    "translation": "Error al leer el archivo de configuración de la Zona Horaria={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -6425,6 +6445,18 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "No pudimos seleccionar todos los mensajes a eliminar por el usuario (son demasiados), por favor ejecuta de nuevo"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.error",
+    "translation": "We couldn't determine the maximum supported post size"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
+    "translation": "Post.Message supports at most %d bytes"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.unrecognized_driver",
+    "translation": "No implementation found to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",

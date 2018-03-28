@@ -1955,6 +1955,14 @@
     "translation": "Inizializzazione del server..."
   },
   {
+    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
+    "translation": "Inolta 80 a 443 deve essere abilitato quando si utilizza LetsEncrypt"
+  },
+  {
+    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
+    "translation": "Impossibile inoltrare la porta 80 alla porta 443 mentre si è in ascolto sulla porta %s: disabilitare l'inoltro da 80 a 443 se si utilizza un server proxy"
+  },
+  {
     "id": "api.server.start_server.listening.info",
     "translation": "Server in ascolto su %v"
   },
@@ -3704,7 +3712,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "La configurazione del plugin nel file config.json deve essere aggiornata manualmente se si utilizza ReadOnlyConfig con il clustering abilitato."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3769,6 +3777,18 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Questo gruppo ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
+  },
+  {
+    "id": "app.timezones.failed_deserialize.app_error",
+    "translation": "Errore durante la deserializzazione del file di configurazione della Timezone file={{.Filename}}, err={{.Error}}"
+  },
+  {
+    "id": "app.timezones.load_config.app_error",
+    "translation": "Il file di configurazione della Timezone non esiste file={{.Filename}}"
+  },
+  {
+    "id": "app.timezones.read_config.app_error",
+    "translation": "Errore durante la lettura del file di configurazione della Timezone file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4980,23 +5000,23 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "La variabile ExportFormat del lavoro di esportazione messaggi è impostata su 'globalrelay', ma l'impostazione GlobalRelaySettings manca"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+    "translation": "Impostazione GlobalRelaySettings dell'esportazione messaggio. CustomerType deve essere 'A9' oppure 'A10'"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "GlobalRelayEmailAddress del lavoro di esportazione messaggi deve essere un indirizzo email valido"
+    "translation": "Impostazione GlobalRelaySettings del lavoro di esportazione messaggio. EmailAddress deve essere un indirizzo email valido"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+    "translation": "mpostazione GlobalRelaySettings del lavoro di esportazione messaggio. SmtpPassword dev'essere impostato"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
+    "translation": "mpostazione GlobalRelaySettings del lavoro di esportazione messaggio. SmtpUsername dev'essere impostato"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
@@ -6425,6 +6445,18 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "Non è stato possibile selezionare le pubblicazioni da eliminare per l'utente (troppe pubblicazioni), per favore rilancia"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.error",
+    "translation": "We couldn't determine the maximum supported post size"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
+    "translation": "Post.Message supports at most %d bytes"
+  },
+  {
+    "id": "store.sql_post.query_max_post_size.unrecognized_driver",
+    "translation": "No implementation found to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",
