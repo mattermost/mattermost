@@ -482,6 +482,10 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 	} else {
 		a.InvalidateCacheForUser(userId)
 		a.InvalidateCacheForChannelMembersNotifyProps(channelId)
+		// Notify the clients that the member notify props changed
+		evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
+		evt.Add("channelMember", member.ToJson())
+		a.Publish(evt)
 		return member, nil
 	}
 }
@@ -1480,4 +1484,17 @@ func (a *App) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.
 		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
 	}
 	return result.Data.(*model.Channel), nil
+}
+
+func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelMember {
+	member := (<-a.Srv.Store.Channel().GetMember(channelId, userId)).Data.(*model.ChannelMember)
+
+	if member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
+		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_ALL
+	} else {
+		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
+	}
+
+	a.Srv.Store.Channel().UpdateMember(member)
+	return member
 }

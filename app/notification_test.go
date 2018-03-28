@@ -783,6 +783,14 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
 		t.Fatal("Should have returned false")
 	}
+
+	// WHEN default is ALL and channel is MUTED
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_MENTION
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
 }
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
