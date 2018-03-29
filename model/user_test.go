@@ -36,6 +36,9 @@ func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreSave()
 	user.Etag(true, true)
+	if user.Timezone == nil {
+		t.Fatal("Timezone is nil")
+	}
 }
 
 func TestUserPreUpdate(t *testing.T) {
