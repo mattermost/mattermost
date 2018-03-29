@@ -40,7 +40,7 @@ func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	lvl := m["level"]
 	msg := m["message"]
 
-	// filter out javascript errors from franz that are poluting the log files
+	// filter out javascript errors from franz that are polluting the log files
 	if strings.Contains(msg, "/franz") {
 		forceToDebug = true
 	}

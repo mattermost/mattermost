@@ -576,7 +576,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
 
-		cmd.CommandPrettyPrintln("Sucessfully migrated accounts.")
+		cmd.CommandPrettyPrintln("Successfully migrated accounts.")
 	}
 
 	return nil
@@ -631,7 +631,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
 		l4g.Close()
-		cmd.CommandPrettyPrintln("Sucessfully migrated accounts.")
+		cmd.CommandPrettyPrintln("Successfully migrated accounts.")
 	}
 
 	return nil

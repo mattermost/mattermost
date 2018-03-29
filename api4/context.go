@@ -155,7 +155,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleFunc(c, w, r)
 	}
 
-	// Handle errors that have occured
+	// Handle errors that have occurred
 	if c.Err != nil {
 		c.Err.Translate(c.T)
 		c.Err.RequestId = c.RequestId

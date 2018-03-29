@@ -38,7 +38,7 @@ func TestLoadTestSetupCommands(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.Command(channel.Id, "/test setup fuzz 1 1 1")).Data.(*model.CommandResponse)
-	if rs.Text != "Created enviroment" {
+	if rs.Text != "Created environment" {
 		t.Fatal(rs.Text)
 	}
 

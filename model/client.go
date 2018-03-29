@@ -72,7 +72,7 @@ type Client struct {
 	ServerVersion string
 }
 
-// NewClient constructs a new client with convienence methods for talking to
+// NewClient constructs a new client with convenience methods for talking to
 // the server.
 func NewClient(url string) *Client {
 	return &Client{url, url + API_URL_SUFFIX_V3, &http.Client{}, "", "", "", "", "", ""}
@@ -257,7 +257,7 @@ func (c *Client) clearExtraProperties() {
 // General Routes Section
 
 // GetClientProperties returns properties needed by the client to show/hide
-// certian features.  It returns a map of strings.
+// certain features.  It returns a map of strings.
 func (c *Client) GetClientProperties() (map[string]string, *AppError) {
 	c.clearExtraProperties()
 	if r, err := c.DoApiGet(c.GetGeneralRoute()+"/client_props", "", ""); err != nil {
@@ -2231,7 +2231,7 @@ func (c *Client) GetCustomEmojiImageUrl(id string) string {
 
 // Uploads a x509 base64 Certificate or Private Key file to be used with SAML.
 // data byte array is required and needs to be a Multi-Part with 'certificate' as the field name
-// contentType is also required. Returns nil if succesful, otherwise returns an AppError
+// contentType is also required. Returns nil if successful, otherwise returns an AppError
 func (c *Client) UploadCertificateFile(data []byte, contentType string) *AppError {
 	url := c.ApiUrl + "/admin/add_certificate"
 	rq, _ := http.NewRequest("POST", url, bytes.NewReader(data))

@@ -1676,7 +1676,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	// Note from API v3
 	// Note to anyone who thinks this (above) test is wrong:
 	// This operation will not affect the system admin's permissions because they have global access to all teams.
-	// Their team level permissions are irrelavent. A team admin should be able to manage team level permissions.
+	// Their team level permissions are irrelevant. A team admin should be able to manage team level permissions.
 
 	// System admins should be able to manipulate permission no matter what their team level permissions are.
 	// system admin promotes user 2

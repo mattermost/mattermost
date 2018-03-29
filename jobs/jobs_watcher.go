@@ -66,7 +66,7 @@ func (watcher *Watcher) Stop() {
 
 func (watcher *Watcher) PollAndNotify() {
 	if result := <-watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING); result.Err != nil {
-		l4g.Error("Error occured getting all pending statuses: %v", result.Err.Error())
+		l4g.Error("Error occurred getting all pending statuses: %v", result.Err.Error())
 	} else {
 		jobs := result.Data.([]*model.Job)
 
