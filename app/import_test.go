@@ -1338,11 +1338,11 @@ func TestImportImportChannel(t *testing.T) {
 		t.Fatalf("Failed to get channel count.")
 	}
 
-	// Do a valid channel in apply mode with a nonexistant team.
+	// Do a valid channel in apply mode with a non-existent team.
 	data.Name = ptrStr("channelname")
 	data.Team = ptrStr(model.NewId())
 	if err := th.App.ImportChannel(&data, false); err == nil {
-		t.Fatalf("Expected error due to non-existant team (apply mode).")
+		t.Fatalf("Expected error due to non-existent team (apply mode).")
 	}
 
 	// Check that no more channels are in the DB.
@@ -2501,7 +2501,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 	}
 	if err := th.App.ImportDirectChannel(&data, true); err != nil {
-		t.Fatalf("Expected success as cannot validate existance of channel members in dry run mode.")
+		t.Fatalf("Expected success as cannot validate existence of channel members in dry run mode.")
 	}
 
 	// Check that no more channels are in the DB.
@@ -2515,7 +2515,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 	}
 	if err := th.App.ImportDirectChannel(&data, true); err != nil {
-		t.Fatalf("Expected success as cannot validate existance of channel members in dry run mode.")
+		t.Fatalf("Expected success as cannot validate existence of channel members in dry run mode.")
 	}
 
 	// Check that no more channels are in the DB.

@@ -113,7 +113,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Respond with an auth token this can be overriden by a specific test as required
+		// Respond with an auth token this can be overridden by a specific test as required
 		sessionCookie := &http.Cookie{
 			Name:     model.SESSION_COOKIE_TOKEN,
 			Value:    client.AuthToken,

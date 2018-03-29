@@ -79,7 +79,7 @@ func TestDiagnostics(t *testing.T) {
 			t.Fail()
 		}
 	case <-time.After(time.Second * 1):
-		t.Fatal("Did not recieve ID message")
+		t.Fatal("Did not receive ID message")
 	}
 
 	t.Run("Send", func(t *testing.T) {
@@ -94,7 +94,7 @@ func TestDiagnostics(t *testing.T) {
 				t.Fail()
 			}
 		case <-time.After(time.Second * 1):
-			t.Fatal("Did not recieve diagnostic")
+			t.Fatal("Did not receive diagnostic")
 		}
 	})
 
@@ -163,7 +163,7 @@ func TestDiagnostics(t *testing.T) {
 		case <-data:
 			t.Fatal("Should not send diagnostics when they are disabled")
 		case <-time.After(time.Second * 1):
-			// Did not recieve diagnostics
+			// Did not receive diagnostics
 		}
 	})
 }

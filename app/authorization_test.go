@@ -19,7 +19,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 		shouldGrant  bool
 	}{
 		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
-		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, "non-existant-permission", false},
+		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, "non-existent-permission", false},
 		{[]string{model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_READ_CHANNEL.Id, true},
 		{[]string{model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, false},
 		{[]string{model.SYSTEM_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},

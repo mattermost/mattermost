@@ -26,7 +26,7 @@ type WebSocketClient struct {
 	ListenError     *AppError
 }
 
-// NewWebSocketClient constructs a new WebSocket client with convienence
+// NewWebSocketClient constructs a new WebSocket client with convenience
 // methods for talking to the server.
 func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX_V3+"/users/websocket", nil)
@@ -51,7 +51,7 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 	return client, nil
 }
 
-// NewWebSocketClient4 constructs a new WebSocket client with convienence
+// NewWebSocketClient4 constructs a new WebSocket client with convenience
 // methods for talking to the server. Uses the v4 endpoint.
 func NewWebSocketClient4(url, authToken string) (*WebSocketClient, *AppError) {
 	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)

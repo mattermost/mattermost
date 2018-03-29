@@ -129,7 +129,7 @@ func TestGetRolesByNames(t *testing.T) {
 	assert.Contains(t, received, role2)
 	assert.Contains(t, received, role3)
 
-	// Check a list of non-existant roles.
+	// Check a list of non-existent roles.
 	received, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId()})
 	CheckNoError(t, resp)
 

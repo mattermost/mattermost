@@ -428,7 +428,7 @@ func TestOAuthRegenerateAppSecret(t *testing.T) {
 		}
 
 		if app2.ClientSecret == oauthApp.ClientSecret {
-			t.Fatal("Should have been diferent client Secrets")
+			t.Fatal("Should have been different client Secrets")
 		}
 	}
 }

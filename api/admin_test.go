@@ -573,7 +573,7 @@ func TestAdminResetPassword(t *testing.T) {
 	Client.SetTeamId(team.Id)
 
 	if _, err := Client.AdminResetPassword(user.Id, "newpwd1"); err == nil {
-		t.Fatal("Should have errored - not sytem admin")
+		t.Fatal("Should have errored - not system admin")
 	}
 }
 
