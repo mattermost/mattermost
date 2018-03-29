@@ -344,27 +344,36 @@ func TestGetExplicitMentions(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
-		"Don't include potential mention that's part of an actual mention (without trailing punctuation)": {
-			Message:  "this is an message for @user.potential",
-			Keywords: map[string][]string{"@user.potential": {id1}},
+		"Don't include potential mention that's part of an actual mention (without trailing period)": {
+			Message:  "this is an message for @user.name",
+			Keywords: map[string][]string{"@user.name": {id1}},
 			Expected: &ExplicitMentions{
 				MentionedUserIds: map[string]bool{
 					id1: true,
 				},
 			},
 		},
-		"Don't include potential mention that's part of an actual mention (with trailing punctuation)": {
-			Message:  "this is an message for @user.potential.",
-			Keywords: map[string][]string{"@user.potential": {id1}},
+		"Don't include potential mention that's part of an actual mention (with trailing period)": {
+			Message:  "this is an message for @user.name.",
+			Keywords: map[string][]string{"@user.name": {id1}},
 			Expected: &ExplicitMentions{
 				MentionedUserIds: map[string]bool{
 					id1: true,
 				},
 			},
 		},
-		"Don't include potential mention that's part of an actual mention (with multiple trailing punctuation)": {
-			Message:  "this is an message for @user.potential...",
-			Keywords: map[string][]string{"@user.potential": {id1}},
+		"Don't include potential mention that's part of an actual mention (with multiple trailing periods)": {
+			Message:  "this is an message for @user.name...",
+			Keywords: map[string][]string{"@user.name": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"Don't include potential mention that's part of an actual mention (containing and followed by multiple periods)": {
+			Message:  "this is an message for @user...name...",
+			Keywords: map[string][]string{"@user...name": {id1}},
 			Expected: &ExplicitMentions{
 				MentionedUserIds: map[string]bool{
 					id1: true,
