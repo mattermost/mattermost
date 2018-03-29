@@ -54,6 +54,8 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 					a.AddSessionToCache(session)
 				}
 			}
+		} else if sessionResult.Err.StatusCode == http.StatusInternalServerError {
+			return nil, sessionResult.Err
 		}
 	}
 
