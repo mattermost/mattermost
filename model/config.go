@@ -1712,6 +1712,16 @@ func (s *MessageExportSettings) SetDefaults() {
 	}
 }
 
+type DisplaySettings struct {
+	ExperimentalTimezone *bool
+}
+
+func (s *DisplaySettings) SetDefaults() {
+	if s.ExperimentalTimezone == nil {
+		s.ExperimentalTimezone = NewBool(false)
+	}
+}
+
 type TimezoneSettings struct {
 	SupportedTimezonesPath *string
 }
@@ -1755,6 +1765,7 @@ type Config struct {
 	MessageExportSettings MessageExportSettings
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
+	DisplaySettings       DisplaySettings
 	TimezoneSettings      TimezoneSettings
 }
 
@@ -1826,6 +1837,7 @@ func (o *Config) SetDefaults() {
 	o.WebrtcSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.TimezoneSettings.SetDefaults()
+	o.DisplaySettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {

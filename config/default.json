@@ -92,6 +92,9 @@
         "ExperimentalTownSquareIsReadOnly": false,
         "ExperimentalPrimaryTeam": ""
     },
+    "DisplaySettings": {
+        "ExperimentalTimezone": false
+    },
     "ClientRequirements": {
         "AndroidLatestVersion": "",
         "AndroidMinVersion": "",
