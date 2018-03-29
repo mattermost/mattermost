@@ -344,6 +344,33 @@ func TestGetExplicitMentions(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
+		"Don't include potential mention that's part of an actual mention (without trailing punctuation)": {
+			Message:  "this is an message for @user.potential",
+			Keywords: map[string][]string{"@user.potential": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"Don't include potential mention that's part of an actual mention (with trailing punctuation)": {
+			Message:  "this is an message for @user.potential.",
+			Keywords: map[string][]string{"@user.potential": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"Don't include potential mention that's part of an actual mention (with multiple trailing punctuation)": {
+			Message:  "this is an message for @user.potential...",
+			Keywords: map[string][]string{"@user.potential": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			m := GetExplicitMentions(tc.Message, tc.Keywords)
