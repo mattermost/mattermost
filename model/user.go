@@ -211,7 +211,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Timezone == nil {
-		u.Props = make(map[string]string)
+		u.Timezone = make(map[string]string)
 	}
 
 	if len(u.Password) > 0 {
