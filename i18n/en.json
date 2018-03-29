@@ -2839,10 +2839,6 @@
     "translation": "The signup link does not appear to be valid"
   },
   {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
-    "translation": "The signup link does not appear to be valid"
-  },
-  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Invalid team name"
   },
