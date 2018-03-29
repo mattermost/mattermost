@@ -1269,8 +1269,6 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		l4g.Warn(utils.T("store.sql_post.query_max_post_size.unrecognized_driver"))
 	}
 
-	l4g.Trace(utils.T("store.sql_post.query_max_post_size.max_post_size_bytes"), maxPostSizeBytes)
-
 	// Assume a worst-case representation of four bytes per rune.
 	maxPostSize = int(maxPostSizeBytes) / 4
 
@@ -1280,6 +1278,8 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 	if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
 		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
 	}
+
+	l4g.Info(utils.T("store.sql_post.query_max_post_size.max_post_size_bytes"), maxPostSize, maxPostSizeBytes)
 
 	return maxPostSize
 }
