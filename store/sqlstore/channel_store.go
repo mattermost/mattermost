@@ -751,7 +751,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) store.StoreChan
 					if err := transaction.Commit(); err != nil {
 						result.Err = model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 					}
-					// If sucessfull record members have changed in channel
+					// If successfull record members have changed in channel
 					if mu := <-s.extraUpdated(channel); mu.Err != nil {
 						result.Err = mu.Err
 					}
@@ -1066,7 +1066,7 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) store.Sto
 			if err != nil {
 				result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 			} else {
-				// If sucessfull record members have changed in channel
+				// If successfull record members have changed in channel
 				if mu := <-s.extraUpdated(channel); mu.Err != nil {
 					result.Err = mu.Err
 				}

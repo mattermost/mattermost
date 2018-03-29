@@ -50,7 +50,7 @@ func TestFindConfigFile(t *testing.T) {
 }
 
 func TestConfigFromEnviroVars(t *testing.T) {
-	os.Setenv("MM_TEAMSETTINGS_SITENAME", "From Enviroment")
+	os.Setenv("MM_TEAMSETTINGS_SITENAME", "From Environment")
 	os.Setenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT", "Custom Brand")
 	os.Setenv("MM_SERVICESETTINGS_ENABLECOMMANDS", "false")
 	os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
@@ -59,20 +59,20 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	cfg, cfgPath, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
-	if cfg.TeamSettings.SiteName != "From Enviroment" {
-		t.Fatal("Couldn't read config from enviroment var")
+	if cfg.TeamSettings.SiteName != "From Environment" {
+		t.Fatal("Couldn't read config from environment var")
 	}
 
 	if *cfg.TeamSettings.CustomBrandText != "Custom Brand" {
-		t.Fatal("Couldn't read config from enviroment var")
+		t.Fatal("Couldn't read config from environment var")
 	}
 
 	if *cfg.ServiceSettings.EnableCommands {
-		t.Fatal("Couldn't read config from enviroment var")
+		t.Fatal("Couldn't read config from environment var")
 	}
 
 	if *cfg.ServiceSettings.ReadTimeout != 400 {
-		t.Fatal("Couldn't read config from enviroment var")
+		t.Fatal("Couldn't read config from environment var")
 	}
 
 	os.Unsetenv("MM_TEAMSETTINGS_SITENAME")

@@ -32,7 +32,7 @@ func TestMeCommand(t *testing.T) {
 	} else {
 		if p1.Posts[p1.Order[0]].Message != `*hello*` {
 			t.Log(p1.Posts[p1.Order[0]].Message)
-			t.Fatal("invalid shrug reponse")
+			t.Fatal("invalid shrug response")
 		}
 	}
 }

@@ -1463,11 +1463,11 @@ func testGetMember(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().SaveMember(m2))
 
 	if result := <-ss.Channel().GetMember(model.NewId(), userId); result.Err == nil {
-		t.Fatal("should've failed to get member for non-existant channel")
+		t.Fatal("should've failed to get member for non-existent channel")
 	}
 
 	if result := <-ss.Channel().GetMember(c1.Id, model.NewId()); result.Err == nil {
-		t.Fatal("should've failed to get member for non-existant user")
+		t.Fatal("should've failed to get member for non-existent user")
 	}
 
 	if result := <-ss.Channel().GetMember(c1.Id, userId); result.Err != nil {

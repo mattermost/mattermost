@@ -1128,7 +1128,7 @@ type LdapSettings struct {
 	IdAttribute        *string
 	PositionAttribute  *string
 
-	// Syncronization
+	// Synchronization
 	SyncIntervalMinutes *int
 
 	// Advanced
