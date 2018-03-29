@@ -1376,7 +1376,6 @@ func TestAddTeamMember(t *testing.T) {
 	dataObject := make(map[string]string)
 	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis())
 	dataObject["id"] = team.Id
-	dataObject["invite_id"] = team.InviteId
 
 	data := model.MapToJson(dataObject)
 	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
