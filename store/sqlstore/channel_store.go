@@ -1118,10 +1118,10 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 			times[t.Id] = t.LastPostAt
 
 			props["msgCount"+strconv.Itoa(index)] = t.TotalMsgCount
-			msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d) ", index, index)
+			msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d)", index, index)
 
 			props["lastViewed"+strconv.Itoa(index)] = t.LastPostAt
-			lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d) ", index, index)
+			lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d)", index, index)
 
 			props["channelId"+strconv.Itoa(index)] = t.Id
 		}
