@@ -39,6 +39,10 @@ func TestUserPreSave(t *testing.T) {
 	if user.Timezone == nil {
 		t.Fatal("Timezone is nil")
 	}
+
+	if user.Timezone["useAutomaticTimezone"] != "true" {
+		t.Fatal("Timezone is not set to default")
+	}
 }
 
 func TestUserPreUpdate(t *testing.T) {
