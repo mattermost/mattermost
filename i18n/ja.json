@@ -332,6 +332,18 @@
     "translation": "%v がチャンネルから脱退しました。"
   },
   {
+    "id": "api.channel.post_convert_channel_to_private.create_post.error",
+    "translation": "チャンネル変更を非公開メッセージとして投稿できませんでした"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
+    "translation": "公開チャンネルを非公開チャンネルに変更する際にユーザーを取得できませんでした"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.updated_from",
+    "translation": "%s がチャンネルを公開から非公開に変更しました"
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "表示名更新メッセージを投稿できませんでした"
   },
@@ -885,6 +897,38 @@
   {
     "id": "api.command_msg.success",
     "translation": "ユーザーにメッセージを送信しました。"
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "現在のチャンネルか指定された [チャンネル] のデスクトップ、電子メール、プッシュ通知をオフにします"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "チャンネル {{.Channel}} が見つかりませんでした。"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "[チャンネル]"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "ミュート"
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "チャンネルミュートがオフになるまで {{.Channel}} の通知を受け取らなくなります。"
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "チャンネルミュートがオフになるまで、このチャンネルの通知を受け取らなくなります。"
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} のミュートはオフになっています。"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "このチャンネルのミュートはオフになっています。"
   },
   {
     "id": "api.command_offline.desc",
@@ -1947,6 +1991,10 @@
     "translation": "リアクションに対するウェブソケットイベントを送信する際に、投稿を取得することができませんでした"
   },
   {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "現在のライセンスは高度な権限をサポートしていません。"
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "証明書が正常に保存されませんでした。"
   },
@@ -2780,10 +2828,6 @@
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "利用登録リンクが不正です"
-  },
-  {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "利用登録リンクが不正です"
   },
   {
@@ -3775,6 +3819,10 @@
     "translation": "プラグインのアップロードは無効化されています。"
   },
   {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "指定された役割は存在しません。"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "このチームは登録ユーザー数の上限に達しました。システム管理者に上限値を上げるよう依頼してください。"
   },
@@ -4545,6 +4593,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "電子メール通知の設定値が不正です"
+  },
+  {
+    "id": "model.channel_member.is_valid.mute_value.app_error",
+    "translation": "不正なミュートに関する値です"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -6448,15 +6500,15 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "投稿サイズの最大値を定義できません"
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d bytes"
+    "translation": "Post.Message は最大 %d 文字(%d バイト)をサポートしています"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
-    "translation": "No implementation found to determine the maximum supported post size"
+    "translation": "投稿サイズの最大値の定義が見つかりませんでした"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6585,6 +6637,30 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "リアクションを保存できません"
+  },
+  {
+    "id": "store.sql_role.get.app_error",
+    "translation": "役割を取得できませんでした"
+  },
+  {
+    "id": "store.sql_role.get_by_name.app_error",
+    "translation": "役割を取得できませんでした"
+  },
+  {
+    "id": "store.sql_role.get_by_names.app_error",
+    "translation": "役割を取得できませんでした"
+  },
+  {
+    "id": "store.sql_role.save.insert.app_error",
+    "translation": "新しい役割を保存できませんでした"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "役割が不正です。"
+  },
+  {
+    "id": "store.sql_role.save.update.app_error",
+    "translation": "役割を更新できませんでした"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

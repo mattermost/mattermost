@@ -332,6 +332,18 @@
     "translation": "%v 已退出该频道。"
   },
   {
+    "id": "api.channel.post_convert_channel_to_private.create_post.error",
+    "translation": "Failed to post channel conversion to private message"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
+    "translation": "Failed to retrieve user while converting the channel from public to private"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.updated_from",
+    "translation": "%s converted the channel from public to private"
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "发送显示名更新信息时失败"
   },
@@ -885,6 +897,38 @@
   {
     "id": "api.command_msg.success",
     "translation": "消息已发送给用户。"
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "无法找到频道 {{.Channel}}。"
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "[频道]"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "静音"
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "您将不会收到 {{.Channel}} 的通知直到取消频道静音。"
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "您将不会收到此频道的通知直到取消频道静音。"
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} 不再被静音。"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "此频道不再被静音。"
   },
   {
     "id": "api.command_offline.desc",
@@ -1947,6 +1991,10 @@
     "translation": "发送 websocket 互动事件时获取消息失败"
   },
   {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "您当前的授权不支持高级权限。"
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "证书没有正确保存。"
   },
@@ -1960,7 +2008,7 @@
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+    "translation": "无法在监听端口 %s 时转发端口 80 到端口 443：使用代理服务器时停用 Forward80To443"
   },
   {
     "id": "api.server.start_server.listening.info",
@@ -2780,10 +2828,6 @@
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "注册链接无效"
-  },
-  {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "注册链接无效"
   },
   {
@@ -3775,12 +3819,16 @@
     "translation": "插件上传已禁用。"
   },
   {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "提供的角色不存在"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "这个团队已经达到允许的最大帐号数量。请与系统管理员联系以设置更高的限制。"
   },
   {
     "id": "app.timezones.failed_deserialize.app_error",
-    "translation": "Failed to deserialize Timezone config file={{.Filename}}, err={{.Error}}"
+    "translation": "读取时区配置文件失败 file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.timezones.load_config.app_error",
@@ -4545,6 +4593,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "无效的电子邮件通知值"
+  },
+  {
+    "id": "model.channel_member.is_valid.mute_value.app_error",
+    "translation": "无效的静音值"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -6448,15 +6500,15 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "我们无法判断最大支持的消息大小"
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d bytes"
+    "translation": "Post.Message supports at most %d characters (%d bytes)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
-    "translation": "No implementation found to determine the maximum supported post size"
+    "translation": "没用检测消息最大小的实装"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6585,6 +6637,30 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "无法保存互动"
+  },
+  {
+    "id": "store.sql_role.get.app_error",
+    "translation": "无法获取角色"
+  },
+  {
+    "id": "store.sql_role.get_by_name.app_error",
+    "translation": "无法获取角色"
+  },
+  {
+    "id": "store.sql_role.get_by_names.app_error",
+    "translation": "无法获取角色"
+  },
+  {
+    "id": "store.sql_role.save.insert.app_error",
+    "translation": "无法保存新角色"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "无效的角色"
+  },
+  {
+    "id": "store.sql_role.save.update.app_error",
+    "translation": "无法更新角色"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

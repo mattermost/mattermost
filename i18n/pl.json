@@ -332,6 +332,18 @@
     "translation": "%v opuszcza kanał."
   },
   {
+    "id": "api.channel.post_convert_channel_to_private.create_post.error",
+    "translation": "Failed to post channel conversion to private message"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
+    "translation": "Failed to retrieve user while converting the channel from public to private"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.updated_from",
+    "translation": "%s converted the channel from public to private"
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "Nie udało się wysłać wiadomości aktualizującej wyświetlaną nazwę"
   },
@@ -885,6 +897,38 @@
   {
     "id": "api.command_msg.success",
     "translation": "Odbiorca wiadomości."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Could not find the channel {{.Channel}}."
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "[channel]"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "mute"
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "You will not receive notifications for this channel until channel mute is turned off."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} is no longer muted."
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "This channel is no longer muted."
   },
   {
     "id": "api.command_offline.desc",
@@ -1947,6 +1991,10 @@
     "translation": "Nie udało się odczytać wiadomości przy wysyłaniu wydarzenia websocket dla reakcji"
   },
   {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Your current license does not support advanced permissions."
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "Certyfikat nie zapisał się poprawnie."
   },
@@ -2781,10 +2829,6 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "Link rejestracyjny wydaje się być niepoprawny"
-  },
-  {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
-    "translation": "Łącze rejestracji wydaje się być niepoprawne."
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3775,6 +3819,10 @@
     "translation": "Plugins and/or plugin uploads have been disabled."
   },
   {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "The provided role does not exist"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Ten zespół osiągnął limit kont. Skontaktuj się z administratorem aby ustanowić wyższy pułap."
   },
@@ -4545,6 +4593,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "Nieprawidłowa wartość powiadomienia email"
+  },
+  {
+    "id": "model.channel_member.is_valid.mute_value.app_error",
+    "translation": "Invalid muting value"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -6452,7 +6504,7 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d bytes"
+    "translation": "Post.Message supports at most %d characters (%d bytes)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
@@ -6585,6 +6637,30 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "Nie udało się zapisać reakcji"
+  },
+  {
+    "id": "store.sql_role.get.app_error",
+    "translation": "Nie można pobrać wiadomości"
+  },
+  {
+    "id": "store.sql_role.get_by_name.app_error",
+    "translation": "Nie można pobrać wiadomości"
+  },
+  {
+    "id": "store.sql_role.get_by_names.app_error",
+    "translation": "Nie można pobrać wiadomości"
+  },
+  {
+    "id": "store.sql_role.save.insert.app_error",
+    "translation": "Unable to save new role"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "The role was not valid"
+  },
+  {
+    "id": "store.sql_role.save.update.app_error",
+    "translation": "Nie można pobrać wiadomości"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
