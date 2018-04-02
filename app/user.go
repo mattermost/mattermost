@@ -926,6 +926,8 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 			}
 		}
 
+		a.sendUpdatedUserEvent(*ruser)
+
 		return ruser, nil
 	}
 }
@@ -946,7 +948,7 @@ func (a *App) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *mo
 		return nil, err
 	}
 
-	a.sendUpdatedUserEvent(*updatedUser, asAdmin)
+	a.sendUpdatedUserEvent(*updatedUser)
 
 	return updatedUser, nil
 }
@@ -964,7 +966,7 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 		return nil, err
 	}
 
-	a.sendUpdatedUserEvent(*updatedUser, asAdmin)
+	a.sendUpdatedUserEvent(*updatedUser)
 
 	return updatedUser, nil
 }
@@ -993,8 +995,8 @@ func (a *App) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.Us
 	return userAuth, nil
 }
 
-func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
-	a.SanitizeProfile(&user, asAdmin)
+func (a *App) sendUpdatedUserEvent(user model.User) {
+	a.SanitizeProfile(&user, false)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", user)
