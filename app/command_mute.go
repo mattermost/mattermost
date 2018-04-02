@@ -43,14 +43,20 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
+	channelName := ""
+	splitMessage := strings.Split(message, " ")
 	// Overwrite channel with channel-handle if set
 	if strings.HasPrefix(message, "~") {
-		splitMessage := strings.Split(message, " ")
-		chanHandle := strings.Split(splitMessage[0], "~")[1]
-		data := (<-a.Srv.Store.Channel().GetByName(channel.TeamId, chanHandle, true)).Data
+		channelName = splitMessage[0][1:]
+	} else {
+		channelName = splitMessage[0]
+	}
+
+	if len(channelName) > 0 && len(message) > 0 {
+		data := (<-a.Srv.Store.Channel().GetByName(channel.TeamId, channelName, true)).Data
 
 		if data == nil {
-			return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": chanHandle}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channelName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 
 		channel = data.(*model.Channel)
