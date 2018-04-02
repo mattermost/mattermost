@@ -344,6 +344,9 @@ func TestGetExplicitMentions(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
+
+		// The following tests cover cases where the message mentions @user.name, so we shouldn't assume that
+		// the user might be intending to mention some @user that isn't in the channel.
 		"Don't include potential mention that's part of an actual mention (without trailing period)": {
 			Message:  "this is an message for @user.name",
 			Keywords: map[string][]string{"@user.name": {id1}},
