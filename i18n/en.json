@@ -800,7 +800,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[channel-name]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -1020,7 +1020,7 @@
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_mute.name",
