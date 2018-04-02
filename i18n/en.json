@@ -1028,7 +1028,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "Could not find the channel {{.Channel}}. Please use the <a href=\"https://about.mattermost.com/default-channel-handle-documentation/\">channel handle</a> to identify channels."
   },
   {
     "id": "api.command_mute.success_mute",
