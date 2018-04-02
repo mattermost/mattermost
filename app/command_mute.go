@@ -47,7 +47,7 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	splitMessage := strings.Split(message, " ")
 	// Overwrite channel with channel-handle if set
 	if strings.HasPrefix(message, "~") {
-		channelName = strings.Split(splitMessage[0], "~")[1]
+		channelName = splitMessage[0][1:]
 	} else {
 		channelName = splitMessage[0]
 	}
