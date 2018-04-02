@@ -125,8 +125,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			l4g.Info(utils.T("api.context.invalid_session.error"), err.Error())
-			c.RemoveSessionCookie(w, r)
-			if h.requireSession {
+			if err.StatusCode == http.StatusInternalServerError {
+				c.Err = err
+			} else if h.requireSession {
+				c.RemoveSessionCookie(w, r)
 				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
