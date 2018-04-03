@@ -99,7 +99,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				outOfChannelMentions := result.Data.([]*model.User)
 				if channel.Type != model.CHANNEL_GROUP {
 					a.Go(func() {
-						a.sendOutOfChannelMentions(sender, post, channel.Type, outOfChannelMentions)
+						a.sendOutOfChannelMentions(sender, post, outOfChannelMentions)
 					})
 				}
 			}
@@ -754,7 +754,7 @@ func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppE
 	}
 }
 
-func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, channelType string, users []*model.User) *model.AppError {
+func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, users []*model.User) *model.AppError {
 	if len(users) == 0 {
 		return nil
 	}
@@ -772,25 +772,16 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 
 	T := utils.GetUserTranslations(sender.Locale)
 
-	var localePhrase string
-	if channelType == model.CHANNEL_OPEN {
-		localePhrase = T("api.post.check_for_out_of_channel_mentions.link.public")
-	} else if channelType == model.CHANNEL_PRIVATE {
-		localePhrase = T("api.post.check_for_out_of_channel_mentions.link.private")
-	}
-
 	ephemeralPostId := model.NewId()
 	var message string
 	if len(users) == 1 {
 		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
 			"Username": usernames[0],
-			"Phrase":   localePhrase,
 		})
 	} else {
 		message = T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
 			"Usernames":    strings.Join(usernames[:len(usernames)-1], ", @"),
 			"LastUsername": usernames[len(usernames)-1],
-			"Phrase":       localePhrase,
 		})
 	}
 
