@@ -336,6 +336,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 test-server-race: test-te-race test-ee-race ## Checks for race conditions.
+	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
 
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
@@ -360,6 +361,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 test-server: test-te test-ee ## Runs tests.
+	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
@@ -477,7 +479,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
-	find . -type d -name data -not -path './vendor/*' | xargs rm -r
+	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
 	rm -rf logs
 
 	rm -f mattermost.log
