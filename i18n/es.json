@@ -332,6 +332,18 @@
     "translation": "%v abandonó el canal."
   },
   {
+    "id": "api.channel.post_convert_channel_to_private.create_post.error",
+    "translation": "No se pudo publicar el mensaje sobre la conversión del canal como privado"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
+    "translation": "No se pudo recuperar el usuario, durante la conversión del canal de público a privado"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.updated_from",
+    "translation": "%s convirtió el canal de público a privado"
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "No se pudo publicar el mensaje de actualización del nombre del canal"
   },
@@ -885,6 +897,38 @@
   {
     "id": "api.command_msg.success",
     "translation": "Mensaje enviado al usuario."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Could not find the channel {{.Channel}}."
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "[channel]"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "mute"
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "You will not receive notifications for this channel until channel mute is turned off."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} is no longer muted."
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "This channel is no longer muted."
   },
   {
     "id": "api.command_offline.desc",
@@ -1947,6 +1991,10 @@
     "translation": "No se pudo obtener el mensaje cuando el envío el evento de websocket para la reacción"
   },
   {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "La licencia actual no tiene soporte para permisos avanzados."
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "El certificado no se ha guardado correctamente."
   },
@@ -1956,11 +2004,11 @@
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
-    "translation": "Must enable Forward80To443 when using LetsEncrypt"
+    "translation": "Debe habilitar Forward80To443 cuando se utiliza LetsEncrypt"
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+    "translation": "No puede reenviar del puerto 80 al puerto 443, mientras se escucha en el puerto %s: desactiva Forward80To443 si utiliza un servidor proxy"
   },
   {
     "id": "api.server.start_server.listening.info",
@@ -2780,10 +2828,6 @@
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "El enlace de registro parece ser inválido"
-  },
-  {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "El enlace de registro parece ser inválido"
   },
   {
@@ -3775,6 +3819,10 @@
     "translation": "Los Complementos y/o la carga de complementos han sido deshabilitados."
   },
   {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "El rol suministrado no existe"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Este equipo ha alcanzado el número máximo de cuentas permitidas. Contacta a un administrador de sistema para que asigne un límite mayor."
   },
@@ -4545,6 +4593,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "Valor de notificación de correo electrónico no es válido"
+  },
+  {
+    "id": "model.channel_member.is_valid.mute_value.app_error",
+    "translation": "Invalid muting value"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -6448,15 +6500,15 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "No se puede determinar el tamaño máximo soportado de los mensajes"
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d bytes"
+    "translation": "Post.Message supports at most %d characters (%d bytes)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
-    "translation": "No implementation found to determine the maximum supported post size"
+    "translation": "No se encontró ninguna implementación para determinar el tamaño máximo soportado de los mensajes"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6585,6 +6637,30 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "No se puede guardar la reacción"
+  },
+  {
+    "id": "store.sql_role.get.app_error",
+    "translation": "No se pudo obtener el rol"
+  },
+  {
+    "id": "store.sql_role.get_by_name.app_error",
+    "translation": "No se pudo obtener el rol"
+  },
+  {
+    "id": "store.sql_role.get_by_names.app_error",
+    "translation": "No se pudo obtener los roles"
+  },
+  {
+    "id": "store.sql_role.save.insert.app_error",
+    "translation": "No se pudo guardar el nuevo rol"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "El rol no es válido"
+  },
+  {
+    "id": "store.sql_role.save.update.app_error",
+    "translation": "No se pudo actualizar el rol"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

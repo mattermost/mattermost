@@ -332,6 +332,18 @@
     "translation": "%v deixou o canal."
   },
   {
+    "id": "api.channel.post_convert_channel_to_private.create_post.error",
+    "translation": "Falha ao postar a conversão do canal em mensagem privada"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
+    "translation": "Falha ao recuperar usuário durante a conversão do canal de público para privado"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.updated_from",
+    "translation": "%s convertido de canal publico para privado"
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "Falha ao postar a mensagem para atualização do nome de exibição"
   },
@@ -885,6 +897,38 @@
   {
     "id": "api.command_msg.success",
     "translation": "Mensagem enviada."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Could not find the channel {{.Channel}}."
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "[channel]"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "mute"
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "You will not receive notifications for this channel until channel mute is turned off."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} is no longer muted."
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "This channel is no longer muted."
   },
   {
     "id": "api.command_offline.desc",
@@ -1947,6 +1991,10 @@
     "translation": "Falha ao obter a postagem ao enviar evento websocket para reação"
   },
   {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Sua licença atual não tem suporte a permissões avançadas."
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "O certificado não foi salvo corretamente."
   },
@@ -1956,11 +2004,11 @@
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
-    "translation": "Must enable Forward80To443 when using LetsEncrypt"
+    "translation": "Necessário ativar Forward80To443 quando usar LetsEncrypt"
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+    "translation": "Não é possível encaminhar porta 80 para 443 enquanto estiver escutando na porta %s: desative Forward80To443 se usar um servidor proxy"
   },
   {
     "id": "api.server.start_server.listening.info",
@@ -2392,7 +2440,7 @@
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "Não foi possível ler o ícone da equipe"
+    "translation": "Não é possível salvar o ícone da equipe"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -2781,10 +2829,6 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "O link de inscrição não parece ser válido"
-  },
-  {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
-    "translation": "O link de inscrição não parece estar válido"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3775,6 +3819,10 @@
     "translation": "Plugins e/ou envio de plugin foi desabilitado."
   },
   {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "A função fornecida não existe"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Esta equipe alcançou o número máximo de contas permitidas. Contate o administrador do sistema para ajustar um limite maior."
   },
@@ -4545,6 +4593,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "Valor de notificação de email inválida"
+  },
+  {
+    "id": "model.channel_member.is_valid.mute_value.app_error",
+    "translation": "Invalid muting value"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -6452,7 +6504,7 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d bytes"
+    "translation": "Post.Message supports at most %d characters (%d bytes)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
@@ -6585,6 +6637,30 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "Não é possível salvar a reação"
+  },
+  {
+    "id": "store.sql_role.get.app_error",
+    "translation": "Não foi possível obter o post"
+  },
+  {
+    "id": "store.sql_role.get_by_name.app_error",
+    "translation": "Não foi possível obter o post"
+  },
+  {
+    "id": "store.sql_role.get_by_names.app_error",
+    "translation": "Não foi possível obter o post"
+  },
+  {
+    "id": "store.sql_role.save.insert.app_error",
+    "translation": "Unable to save new role"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "A função não é válida"
+  },
+  {
+    "id": "store.sql_role.save.update.app_error",
+    "translation": "Não foi possível obter o post"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
