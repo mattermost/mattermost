@@ -30,10 +30,16 @@ type SlackChannel struct {
 	Purpose map[string]string `json:"purpose"`
 }
 
+type SlackProfile struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+}
+
 type SlackUser struct {
-	Id       string            `json:"id"`
-	Username string            `json:"name"`
-	Profile  map[string]string `json:"profile"`
+	Id       string       `json:"id"`
+	Username string       `json:"name"`
+	Profile  SlackProfile `json:"profile"`
 }
 
 type SlackFile struct {
@@ -144,16 +150,9 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Bu
 	}
 
 	for _, sUser := range slackusers {
-		firstName := ""
-		lastName := ""
-		if name, ok := sUser.Profile["first_name"]; ok {
-			firstName = name
-		}
-		if name, ok := sUser.Profile["last_name"]; ok {
-			lastName = name
-		}
-
-		email := sUser.Profile["email"]
+		firstName := sUser.Profile.FirstName
+		lastName := sUser.Profile.LastName
+		email := sUser.Profile.Email
 		if email == "" {
 			email = sUser.Username + "@example.com"
 			log.WriteString(utils.T("api.slackimport.slack_add_users.missing_email_address", map[string]interface{}{"Email": email, "Username": sUser.Username}))
