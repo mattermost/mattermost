@@ -332,6 +332,18 @@
     "translation": "%v ha lasciato il canale."
   },
   {
+    "id": "api.channel.post_convert_channel_to_private.create_post.error",
+    "translation": "Impossibile pubblicare la conversione del canale a messaggio privato"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
+    "translation": "Impossibile recuperare gli utenti durante la conversione del canale da pubblico a privato"
+  },
+  {
+    "id": "api.channel.post_convert_channel_to_private.updated_from",
+    "translation": "%s ha cambiato il canale da pubblico a privato"
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "Errore nell'invio del messaggio di aggiornamento del nome"
   },
@@ -885,6 +897,38 @@
   {
     "id": "api.command_msg.success",
     "translation": "Messaggio inviato."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Disattiva le notifiche desktop, email e push per il canale corrente oppure per i canali specificati."
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Impossibile trovare il canale {{.Channel}}."
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "[canale]"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "silenzia"
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "Non riceverai ulteriori notifiche per {{.Channel}} fino a quando sarà silenziato."
+  },
+  {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "Non riceverai notifiche per questo canale fino a quando sarà silenziato."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} non è più silenziato."
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Questo canale non è più silenziato."
   },
   {
     "id": "api.command_offline.desc",
@@ -1947,6 +1991,10 @@
     "translation": "Impossibile caricare la pubblicazione: errore durante l'invio dell'evento websocket per la reazione"
   },
   {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "La tua licenza attuale non supporta i permessi avanzati."
+  },
+  {
     "id": "api.saml.save_certificate.app_error",
     "translation": "Il certificato non è stato salvato correttamente."
   },
@@ -2780,10 +2828,6 @@
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
-  },
-  {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "Il collegamento per l'iscrizione non sembra essere valido"
   },
   {
@@ -3775,6 +3819,10 @@
     "translation": "I plugin e/o il caricamento dei plugin è stato disattivato."
   },
   {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "Il ruolo fornito non esiste"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Questo gruppo ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
   },
@@ -4545,6 +4593,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "Valore email della notifica non valido"
+  },
+  {
+    "id": "model.channel_member.is_valid.mute_value.app_error",
+    "translation": "Valore silenzioso non valido"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -6448,15 +6500,15 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "Impossibile determinare la dimensione massima supportata per le pubblicazioni"
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d bytes"
+    "translation": "Post.Message supporta al massimo %d caratteri (%d bytes)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
-    "translation": "No implementation found to determine the maximum supported post size"
+    "translation": "Nessuna implementazione trovata per determinare la dimensione massima supportata per le pubblicazioni"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6585,6 +6637,30 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "Impossibile salvare la reazione"
+  },
+  {
+    "id": "store.sql_role.get.app_error",
+    "translation": "Impossibile recuperare il ruolo"
+  },
+  {
+    "id": "store.sql_role.get_by_name.app_error",
+    "translation": "Impossibile recuperare il ruolo"
+  },
+  {
+    "id": "store.sql_role.get_by_names.app_error",
+    "translation": "Impossibile recuperare i ruoli"
+  },
+  {
+    "id": "store.sql_role.save.insert.app_error",
+    "translation": "Impossibile salvare il nuovo ruolo"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "Il ruolo non è valido"
+  },
+  {
+    "id": "store.sql_role.save.update.app_error",
+    "translation": "Impossibile aggiornare il ruolo"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
