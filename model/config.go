@@ -152,6 +152,8 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
 
+	TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH = "timezones.json"
+
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
 	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
 	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
@@ -1728,7 +1730,7 @@ type TimezoneSettings struct {
 
 func (s *TimezoneSettings) SetDefaults() {
 	if s.SupportedTimezonesPath == nil {
-		s.SupportedTimezonesPath = NewString("timezones.json")
+		s.SupportedTimezonesPath = NewString(TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH)
 	}
 }
 

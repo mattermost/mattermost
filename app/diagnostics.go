@@ -19,7 +19,6 @@ const (
 
 	TRACK_CONFIG_SERVICE        = "config_service"
 	TRACK_CONFIG_TEAM           = "config_team"
-	TRACK_CONFIG_DISPLAY        = "config_display"
 	TRACK_CONFIG_CLIENT_REQ     = "config_client_requirements"
 	TRACK_CONFIG_SQL            = "config_sql"
 	TRACK_CONFIG_LOG            = "config_log"
@@ -28,7 +27,6 @@ const (
 	TRACK_CONFIG_EMAIL          = "config_email"
 	TRACK_CONFIG_PRIVACY        = "config_privacy"
 	TRACK_CONFIG_THEME          = "config_theme"
-	TRACK_CONFIG_TIMEZONE       = "config_timezone"
 	TRACK_CONFIG_OAUTH          = "config_oauth"
 	TRACK_CONFIG_LDAP           = "config_ldap"
 	TRACK_CONFIG_COMPLIANCE     = "config_compliance"
@@ -46,6 +44,8 @@ const (
 	TRACK_CONFIG_PLUGIN         = "config_plugin"
 	TRACK_CONFIG_DATA_RETENTION = "config_data_retention"
 	TRACK_CONFIG_MESSAGE_EXPORT = "config_message_export"
+	TRACK_CONFIG_DISPLAY        = "config_display"
+	TRACK_CONFIG_TIMEZONE       = "config_timezone"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -277,10 +277,6 @@ func (a *App) trackConfig() {
 		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
 	})
 
-	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
-		"experimental_timezone": *cfg.DisplaySettings.ExperimentalTimezone,
-	})
-
 	a.SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
 		"android_latest_version": cfg.ClientRequirements.AndroidLatestVersion,
 		"android_min_version":    cfg.ClientRequirements.AndroidMinVersion,
@@ -375,10 +371,6 @@ func (a *App) trackConfig() {
 		"isdefault_default_theme": isDefault(*cfg.ThemeSettings.DefaultTheme, model.TEAM_SETTINGS_DEFAULT_TEAM_TEXT),
 		"allow_custom_themes":     *cfg.ThemeSettings.AllowCustomThemes,
 		"allowed_themes":          len(cfg.ThemeSettings.AllowedThemes),
-	})
-
-	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
-		"isdefault_supported_timezones_path": isDefault(*cfg.TimezoneSettings.SupportedTimezonesPath, model.TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
@@ -523,6 +515,14 @@ func (a *App) trackConfig() {
 		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
+		"experimental_timezone": *cfg.DisplaySettings.ExperimentalTimezone,
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
+		"isdefault_supported_timezones_path": isDefault(*cfg.TimezoneSettings.SupportedTimezonesPath, model.TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH),
 	})
 }
 
