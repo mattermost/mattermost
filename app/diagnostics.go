@@ -28,6 +28,7 @@ const (
 	TRACK_CONFIG_EMAIL          = "config_email"
 	TRACK_CONFIG_PRIVACY        = "config_privacy"
 	TRACK_CONFIG_THEME          = "config_theme"
+	TRACK_CONFIG_TIMEZONE       = "config_timezone"
 	TRACK_CONFIG_OAUTH          = "config_oauth"
 	TRACK_CONFIG_LDAP           = "config_ldap"
 	TRACK_CONFIG_COMPLIANCE     = "config_compliance"
@@ -374,6 +375,10 @@ func (a *App) trackConfig() {
 		"isdefault_default_theme": isDefault(*cfg.ThemeSettings.DefaultTheme, model.TEAM_SETTINGS_DEFAULT_TEAM_TEXT),
 		"allow_custom_themes":     *cfg.ThemeSettings.AllowCustomThemes,
 		"allowed_themes":          len(cfg.ThemeSettings.AllowedThemes),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
+		"isdefault_supported_timezones_path": isDefault(*cfg.TimezoneSettings.SupportedTimezonesPath, model.TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
