@@ -19,6 +19,7 @@ const (
 
 	TRACK_CONFIG_SERVICE        = "config_service"
 	TRACK_CONFIG_TEAM           = "config_team"
+	TRACK_CONFIG_DISPLAY        = "config_display"
 	TRACK_CONFIG_CLIENT_REQ     = "config_client_requirements"
 	TRACK_CONFIG_SQL            = "config_sql"
 	TRACK_CONFIG_LOG            = "config_log"
@@ -273,6 +274,10 @@ func (a *App) trackConfig() {
 		"enable_X_to_leave_channels_from_LHS":     *cfg.TeamSettings.EnableXToLeaveChannelsFromLHS,
 		"experimental_town_square_is_read_only":   *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
 		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
+		"experimental_timezone": *cfg.DisplaySettings.ExperimentalTimezone,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
