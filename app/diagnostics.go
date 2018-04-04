@@ -44,6 +44,8 @@ const (
 	TRACK_CONFIG_PLUGIN         = "config_plugin"
 	TRACK_CONFIG_DATA_RETENTION = "config_data_retention"
 	TRACK_CONFIG_MESSAGE_EXPORT = "config_message_export"
+	TRACK_CONFIG_DISPLAY        = "config_display"
+	TRACK_CONFIG_TIMEZONE       = "config_timezone"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -513,6 +515,14 @@ func (a *App) trackConfig() {
 		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
+		"experimental_timezone": *cfg.DisplaySettings.ExperimentalTimezone,
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
+		"isdefault_supported_timezones_path": isDefault(*cfg.TimezoneSettings.SupportedTimezonesPath, model.TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH),
 	})
 }
 
