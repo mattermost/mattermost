@@ -411,7 +411,7 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 	}
 }
 
-func UpgradeDatabaseToVersion410(sqlStore *SqlStore) {
+func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 4.10.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_9_0, VERSION_4_10_0) {
 
