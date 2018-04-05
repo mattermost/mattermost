@@ -106,7 +106,7 @@ func TestGetReplica(t *testing.T) {
 				}
 
 			} else if assert.Len(t, replicas, 1) {
-				// Otherwise ensure the replicas contains the master.
+				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
 					assert.Equal(t, supplier.GetMaster(), replica)
 				}

@@ -241,19 +241,14 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 func (s *SqlSupplier) initConnection() {
 	s.master = setupConnection("master", *s.settings.DataSource, s.settings)
 
-	if len(s.settings.DataSourceReplicas) == 0 {
-		s.replicas = make([]*gorp.DbMap, 1)
-		s.replicas[0] = s.master
-	} else {
+	if len(s.settings.DataSourceReplicas) > 0 {
 		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
 		for i, replica := range s.settings.DataSourceReplicas {
 			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
 		}
 	}
 
-	if len(s.settings.DataSourceSearchReplicas) == 0 {
-		s.searchReplicas = s.replicas
-	} else {
+	if len(s.settings.DataSourceSearchReplicas) > 0 {
 		s.searchReplicas = make([]*gorp.DbMap, len(s.settings.DataSourceSearchReplicas))
 		for i, replica := range s.settings.DataSourceSearchReplicas {
 			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, s.settings)
@@ -275,11 +270,19 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
+	if len(ss.settings.DataSourceSearchReplicas) == 0 {
+		return ss.GetReplica()
+	}
+
 	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
 	return ss.searchReplicas[rrNum]
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
+	if len(ss.settings.DataSourceReplicas) == 0 {
+		return ss.GetMaster()
+	}
+
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
 	return ss.replicas[rrNum]
 }
@@ -289,7 +292,6 @@ func (ss *SqlSupplier) TotalMasterDbConnections() int {
 }
 
 func (ss *SqlSupplier) TotalReadDbConnections() int {
-
 	if len(ss.settings.DataSourceReplicas) == 0 {
 		return 0
 	}
