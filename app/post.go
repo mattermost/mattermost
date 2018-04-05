@@ -78,7 +78,7 @@ func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*
 		// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 		if _, ok := post.Props["from_webhook"]; !ok {
 			if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, clearPushNotifications); err != nil {
-				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, post.UserId, err)
+				l4g.Error("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, err)
 			}
 		}
 

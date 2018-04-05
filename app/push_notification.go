@@ -46,7 +46,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 	msg := model.PushNotification{}
 	if badge := <-a.Srv.Store.User().GetUnreadCountFromMaster(user.Id); badge.Err != nil {
 		msg.Badge = 1
-		l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), user.Id, badge.Err)
+		l4g.Error("We could not get the unread message count for the user", user.Id, badge.Err)
 	} else {
 		msg.Badge = int(badge.Data.(int64))
 	}
@@ -181,12 +181,12 @@ func (a *App) ClearPushNotificationSync(userId string, channelId string) {
 	msg.ContentAvailable = 0
 	if badge := <-a.Srv.Store.User().GetUnreadCountFromMaster(userId); badge.Err != nil {
 		msg.Badge = 0
-		l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), userId, badge.Err)
+		l4g.Error("We could not get the unread message count for the user", userId, badge.Err)
 	} else {
 		msg.Badge = int(badge.Data.(int64))
 	}
 
-	l4g.Debug(utils.T("api.post.send_notifications_and_forget.clear_push_notification.debug"), msg.DeviceId, msg.ChannelId)
+	l4g.Debug("Clearing push notification to %v with channel_id %v", msg.DeviceId, msg.ChannelId)
 
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
