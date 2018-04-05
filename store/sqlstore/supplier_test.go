@@ -136,3 +136,94 @@ func TestGetReplica(t *testing.T) {
 		})
 	}
 }
+
+func TestGetAllConns(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		Description              string
+		DataSourceReplicas       []string
+		DataSourceSearchReplicas []string
+		ExpectedNumConnections   int
+	}{
+		{
+			"no replicas",
+			[]string{},
+			[]string{},
+			1,
+		},
+		{
+			"one source replica",
+			[]string{":memory:"},
+			[]string{},
+			2,
+		},
+		{
+			"multiple source replicas",
+			[]string{":memory:", ":memory:", ":memory:"},
+			[]string{},
+			4,
+		},
+		{
+			"one source search replica",
+			[]string{},
+			[]string{":memory:"},
+			1,
+		},
+		{
+			"multiple source search replicas",
+			[]string{},
+			[]string{":memory:", ":memory:", ":memory:"},
+			1,
+		},
+		{
+			"one source replica, one source search replica",
+			[]string{":memory:"},
+			[]string{":memory:"},
+			2,
+		},
+		{
+			"one source replica, multiple source search replicas",
+			[]string{":memory:"},
+			[]string{":memory:", ":memory:", ":memory:"},
+			2,
+		},
+		{
+			"multiple source replica, one source search replica",
+			[]string{":memory:", ":memory:", ":memory:"},
+			[]string{":memory:"},
+			4,
+		},
+		{
+			"multiple source replica, multiple source search replicas",
+			[]string{":memory:", ":memory:", ":memory:"},
+			[]string{":memory:", ":memory:", ":memory:"},
+			4,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			t.Parallel()
+
+			driverName := model.DATABASE_DRIVER_SQLITE
+			dataSource := ":memory:"
+			maxIdleConns := 1
+			maxOpenConns := 1
+			queryTimeout := 5
+
+			settings := model.SqlSettings{
+				DriverName:               &driverName,
+				DataSource:               &dataSource,
+				MaxIdleConns:             &maxIdleConns,
+				MaxOpenConns:             &maxOpenConns,
+				QueryTimeout:             &queryTimeout,
+				DataSourceReplicas:       testCase.DataSourceReplicas,
+				DataSourceSearchReplicas: testCase.DataSourceSearchReplicas,
+			}
+			supplier := sqlstore.NewSqlSupplier(settings, nil)
+
+			assert.Equal(t, testCase.ExpectedNumConnections, len(supplier.GetAllConns()))
+		})
+	}
+}
