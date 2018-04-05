@@ -396,16 +396,15 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 	// a number of parameters in `config.json` to a `Roles` table in the database. The migration code can be seen
 	// in the file `app/app.go` in the function `DoAdvancedPermissionsMigration()`.
 
-	//TODO: Uncomment the following condition when version 4.9.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_4_8_1, VERSION_4_9_0) {
-	sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
-	defaultTimezone := model.DefaultUserTimezone()
-	defaultTimezoneValue, err := json.Marshal(defaultTimezone)
-	if err != nil {
-		l4g.Critical(err)
+	if shouldPerformUpgrade(sqlStore, VERSION_4_8_1, VERSION_4_9_0) {
+		sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
+		defaultTimezone := model.DefaultUserTimezone()
+		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
+		if err != nil {
+			l4g.Critical(err)
+		}
+		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
+		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
+		saveSchemaVersion(sqlStore, VERSION_4_9_0)
 	}
-	sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
-	sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
-	//	saveSchemaVersion(sqlStore, VERSION_4_9_0)
-	//}
 }
