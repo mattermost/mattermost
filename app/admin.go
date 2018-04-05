@@ -156,6 +156,13 @@ func (a *App) GetConfig() *model.Config {
 	return cfg
 }
 
+func (a *App) GetEnvironmentConfig() map[string]interface{} {
+	json := model.StringInterfaceToJson(a.envConfig)
+	envConfig := model.StringInterfaceFromJson(strings.NewReader(json))
+
+	return envConfig
+}
+
 func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
 	oldCfg := a.Config()
 	cfg.SetDefaults()

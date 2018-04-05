@@ -59,6 +59,7 @@ type App struct {
 	Saml             einterfaces.SamlInterface
 
 	config          atomic.Value
+	envConfig       map[string]interface{}
 	configFile      string
 	configListeners map[string]func(*model.Config, *model.Config)
 

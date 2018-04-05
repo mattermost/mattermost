@@ -30,6 +30,13 @@ func (a *App) Config() *model.Config {
 	return &model.Config{}
 }
 
+func (a *App) EnvironmentConfig() map[string]interface{} {
+	if a.envConfig != nil {
+		return a.envConfig
+	}
+	return map[string]interface{}{}
+}
+
 func (a *App) UpdateConfig(f func(*model.Config)) {
 	old := a.Config()
 	updated := old.Clone()
@@ -46,7 +53,7 @@ func (a *App) PersistConfig() {
 func (a *App) LoadConfig(configFile string) *model.AppError {
 	old := a.Config()
 
-	cfg, configPath, err := utils.LoadConfig(configFile)
+	cfg, configPath, envConfig, err := utils.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
@@ -57,6 +64,7 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	l4g.Info("Using config file at %s", configPath)
 
 	a.config.Store(cfg)
+	a.envConfig = envConfig
 
 	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
 

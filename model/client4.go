@@ -2167,6 +2167,18 @@ func (c *Client4) GetOldClientConfig(etag string) (map[string]string, *Response)
 	}
 }
 
+// GetEnvironmentConfig will retrieve a map mirroring the server configuration where fields
+// are set to true if the corresponding config setting is set through an environment variable.
+// Settings that haven't been set through environment variables will be missing from the map.
+func (c *Client4) GetEnvironmentConfig() (map[string]interface{}, *Response) {
+	if r, err := c.DoApiGet(c.GetConfigRoute()+"/environment", ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return StringInterfaceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetOldClientLicense will retrieve the parts of the server license needed by the
 // client, formatted in the old format.
 func (c *Client4) GetOldClientLicense(etag string) (map[string]string, *Response) {
