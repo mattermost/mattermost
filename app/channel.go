@@ -1287,9 +1287,7 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPush
 	if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications {
 		for _, channelId := range channelIds {
 			if model.IsValidId(channelId) {
-				if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err != nil {
-					return nil, result.Err
-				} else {
+				if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err == nil {
 					if result.Data.(int64) > 0 {
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
 					}

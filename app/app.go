@@ -43,6 +43,8 @@ type App struct {
 	Hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
 
+	PushNotificationsHub PushNotificationsHub
+
 	Jobs *jobs.JobServer
 
 	AccountMigration einterfaces.AccountMigrationInterface
@@ -110,6 +112,8 @@ func New(options ...Option) (outApp *App, outErr error) {
 		clientConfig:     make(map[string]string),
 		licenseListeners: map[string]func(){},
 	}
+	app.CreatePushNotificationsHub()
+	app.StartPushNotificationsHubWorkers()
 	defer func() {
 		if outErr != nil {
 			app.Shutdown()
@@ -232,6 +236,7 @@ func (a *App) Shutdown() {
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 
 	a.DisableConfigWatch()
+	a.StopPushNotificationsHubWorkers()
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
