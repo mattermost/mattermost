@@ -68,7 +68,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := c.App.CreatePostAsUser(post)
+	rp, err := c.App.CreatePostAsUser(post, !c.Session.IsMobileApp())
 	if err != nil {
 		c.Err = err
 		return
