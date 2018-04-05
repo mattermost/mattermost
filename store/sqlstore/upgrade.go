@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	VERSION_4_10_0           = "4.10.0"
 	VERSION_4_9_0            = "4.9.0"
 	VERSION_4_8_1            = "4.8.1"
 	VERSION_4_8_0            = "4.8.0"
@@ -75,6 +76,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion48(sqlStore)
 	UpgradeDatabaseToVersion481(sqlStore)
 	UpgradeDatabaseToVersion49(sqlStore)
+	UpgradeDatabaseToVersion410(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -407,4 +409,12 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")
 		saveSchemaVersion(sqlStore, VERSION_4_9_0)
 	}
+}
+
+func UpgradeDatabaseToVersion410(sqlStore *SqlStore) {
+	// TODO: Uncomment following condition when version 4.10.0 is released
+	//if shouldPerformUpgrade(sqlStore, VERSION_4_9_0, VERSION_4_10_0) {
+
+	//	saveSchemaVersion(sqlStore, VERSION_4_10_0)
+	//}
 }
