@@ -1287,9 +1287,24 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPush
 	if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications {
 		for _, channelId := range channelIds {
 			if model.IsValidId(channelId) {
-				if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err == nil {
-					if result.Data.(int64) > 0 {
-						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
+				member := (<-a.Srv.Store.Channel().GetMember(channelId, userId)).Data.(*model.ChannelMember)
+				notify := member.NotifyProps[model.PUSH_NOTIFY_PROP]
+				if notify == model.CHANNEL_NOTIFY_DEFAULT {
+					user, _ := a.GetUser(userId)
+					notify = user.NotifyProps[model.PUSH_NOTIFY_PROP]
+				}
+
+				if notify == model.USER_NOTIFY_ALL {
+					if result := <-a.Srv.Store.User().GetAnyUnreadPostCountForChannel(userId, channelId); result.Err == nil {
+						if result.Data.(int64) > 0 {
+							channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
+						}
+					}
+				} else if notify == model.USER_NOTIFY_MENTION {
+					if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err == nil {
+						if result.Data.(int64) > 0 {
+							channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
+						}
 					}
 				}
 			}
