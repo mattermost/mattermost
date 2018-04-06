@@ -287,6 +287,14 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		return false
 	}
 
+	if msg.Broadcast.OmitAdmins && webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		return false
+	}
+
+	if msg.Broadcast.OmitNonAdmins && !webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		return false
+	}
+
 	// If the event is destined to a specific user
 	if len(msg.Broadcast.UserId) > 0 {
 		if webCon.UserId == msg.Broadcast.UserId {
