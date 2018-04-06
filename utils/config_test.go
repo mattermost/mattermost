@@ -50,48 +50,80 @@ func TestFindConfigFile(t *testing.T) {
 }
 
 func TestConfigFromEnviroVars(t *testing.T) {
-	os.Setenv("MM_TEAMSETTINGS_SITENAME", "From Environment")
-	os.Setenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT", "Custom Brand")
-	os.Setenv("MM_SERVICESETTINGS_ENABLECOMMANDS", "false")
-	os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
-
 	TranslationsPreInit()
-	cfg, cfgPath, err := LoadConfig("config.json")
-	require.Nil(t, err)
 
-	if cfg.TeamSettings.SiteName != "From Environment" {
-		t.Fatal("Couldn't read config from environment var")
-	}
+	config := `{
+		"ServiceSettings": {
+			"EnableCommands": true,
+			"ReadTimeout": 100
+		},
+		"TeamSettings": {
+			"SiteName": "Mattermost",
+			"CustomBrandText": ""
+		}
+	}`
 
-	if *cfg.TeamSettings.CustomBrandText != "Custom Brand" {
-		t.Fatal("Couldn't read config from environment var")
-	}
+	t.Run("string settings", func(t *testing.T) {
+		os.Setenv("MM_TEAMSETTINGS_SITENAME", "From Environment")
+		os.Setenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT", "Custom Brand")
 
-	if *cfg.ServiceSettings.EnableCommands {
-		t.Fatal("Couldn't read config from environment var")
-	}
+		cfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
 
-	if *cfg.ServiceSettings.ReadTimeout != 400 {
-		t.Fatal("Couldn't read config from environment var")
-	}
+		if cfg.TeamSettings.SiteName != "From Environment" {
+			t.Fatal("Couldn't read config from environment var")
+		}
 
-	os.Unsetenv("MM_TEAMSETTINGS_SITENAME")
-	os.Unsetenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT")
-	os.Unsetenv("MM_SERVICESETTINGS_ENABLECOMMANDS")
-	os.Unsetenv("MM_SERVICESETTINGS_READTIMEOUT")
+		if *cfg.TeamSettings.CustomBrandText != "Custom Brand" {
+			t.Fatal("Couldn't read config from environment var")
+		}
 
-	cfg.TeamSettings.SiteName = "Mattermost"
-	*cfg.ServiceSettings.SiteURL = ""
-	*cfg.ServiceSettings.EnableCommands = true
-	*cfg.ServiceSettings.ReadTimeout = 300
-	SaveConfig(cfgPath, cfg)
+		os.Unsetenv("MM_TEAMSETTINGS_SITENAME")
+		os.Unsetenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT")
 
-	cfg, _, err = LoadConfig("config.json")
-	require.Nil(t, err)
+		cfg, err = ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
 
-	if cfg.TeamSettings.SiteName != "Mattermost" {
-		t.Fatal("should have been reset")
-	}
+		if cfg.TeamSettings.SiteName != "Mattermost" {
+			t.Fatal("should have been reset")
+		}
+	})
+
+	t.Run("boolean setting", func(t *testing.T) {
+		os.Setenv("MM_SERVICESETTINGS_ENABLECOMMANDS", "false")
+		defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECOMMANDS")
+
+		cfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		if *cfg.ServiceSettings.EnableCommands {
+			t.Fatal("Couldn't read config from environment var")
+		}
+	})
+
+	t.Run("integer setting", func(t *testing.T) {
+		os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
+		defer os.Unsetenv("MM_SERVICESETTINGS_READTIMEOUT")
+
+		cfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		if *cfg.ServiceSettings.ReadTimeout != 400 {
+			t.Fatal("Couldn't read config from environment var")
+		}
+	})
+
+	t.Run("setting missing from config.json", func(t *testing.T) {
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "https://example.com")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		cfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		if *cfg.ServiceSettings.SiteURL != "https://example.com" {
+			t.Fatal("Couldn't read config from environment var")
+		}
+	})
 }
 
 func TestValidateLocales(t *testing.T) {
