@@ -42,7 +42,7 @@ func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hint
 			if result.Err != nil {
 				transaction.Rollback()
 			} else if err := transaction.Commit(); err != nil {
-				result.Err = model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save_role.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlSchemeStore.SchemeSave", "store.sql_scheme.save_scheme.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	} else {

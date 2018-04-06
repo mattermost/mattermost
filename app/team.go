@@ -198,7 +198,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 				member.SchemeUser = true
 			default:
 				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
-				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
 		}
 	}

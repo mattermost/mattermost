@@ -6691,6 +6691,86 @@
     "translation": "Unable to get role"
   },
   {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
+  },
+  {
+    "id": "store.sql_channel.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme"
+  },
+  {
+    "id": "store.sql_team.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme"
+  },
+  {
+    "id": "store.sql_role.save.open_transaction.app_error",
+    "translation": "Failed to open the transaction to save the role"
+  },
+  {
+    "id": "store.sql_role.save_role.commit_transaction.app_error",
+    "translation": "Failed to commit the transaction to save the role"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "The provided role is invalid"
+  },
+  {
+    "id": "store.sql_role.delete.update.app_error",
+    "translation": "Unable to delete the role"
+  },
+  {
+    "id": "store.sql_scheme.save.open_transaction.app_error",
+    "translation": "Failed to open the transaction to save the scheme"
+  },
+  {
+    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
+    "translation": "Failed to commit the transaction to save the scheme"
+  },
+  {
+    "id": "store.sql_scheme.save.invalid_scheme.app_error",
+    "translation": "The provided scheme is invalid"
+  },
+  {
+    "id": "store.sql_scheme.save.update.app_error",
+    "translation": "Unable to update the scheme"
+  },
+  {
+    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
+    "translation": "Unable to retrieve the default scheme roles"
+  },
+  {
+    "id": "store.sql_scheme.save.insert.app_error",
+    "translation": "Unable to create the scheme"
+  },
+  {
+    "id": "store.sql_scheme.get.app_error",
+    "translation": "Unable to get the scheme"
+  },
+  {
+    "id": "store.sql_scheme.team_count.app_error",
+    "translation": "Unable to count the number of teams using this scheme"
+  },
+  {
+    "id": "store.sql_scheme.delete.scheme_in_use.app_error",
+    "translation": "Unable to delete the scheme as it in use by 1 or more teams or channels"
+  },
+  {
+    "id": "store.sql_scheme.channel_count.app_error",
+    "translation": "Unable to count the number of channels using this scheme"
+  },
+  {
+    "id": "store.sql_scheme.delete.role_update.app_error",
+    "translation": "Unable to delete the roles belonging to this scheme"
+  },
+  {
+    "id": "store.sql_scheme.delete.update.app_error",
+    "translation": "Unable to delete the scheme"
+  },
+  {
     "id": "store.sql_role.get_by_names.app_error",
     "translation": "Unable to get roles"
   },
