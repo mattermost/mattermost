@@ -124,10 +124,15 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.UpdateChannel(channel)
 }
 
-func (api *PluginAPI) AddChannelMember(channel *model.Channel, userId string) (*model.ChannelMember, *model.AppError) {
+func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	// For now, don't allow overriding these via the plugin API.
 	userRequestorId := ""
 	postRootId := ""
+
+	channel, err := api.GetChannel(channelId)
+	if err != nil {
+		return nil, err
+	}
 
 	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
 }

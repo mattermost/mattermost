@@ -128,8 +128,8 @@ func TestAPI(t *testing.T) {
 		assert.Equal(t, testChannel, channel)
 		assert.Nil(t, err)
 
-		api.On("AddChannelMember", testChannel, "theuserid").Return(testChannelMember, nil).Once()
-		member, err := remote.AddChannelMember(testChannel, "theuserid")
+		api.On("AddChannelMember", testChannel.Id, "theuserid").Return(testChannelMember, nil).Once()
+		member, err := remote.AddChannelMember(testChannel.Id, "theuserid")
 		assert.Equal(t, testChannelMember, member)
 		assert.Nil(t, err)
 

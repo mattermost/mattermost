@@ -223,10 +223,10 @@ func (m *API) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	return channelOut, err
 }
 
-func (m *API) AddChannelMember(channel *model.Channel, userId string) (*model.ChannelMember, *model.AppError) {
-	ret := m.Called(channel, userId)
-	if f, ok := ret.Get(0).(func(_ *model.Channel, _ string) (*model.ChannelMember, *model.AppError)); ok {
-		return f(channel, userId)
+func (m *API) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+	ret := m.Called(channelId, userId)
+	if f, ok := ret.Get(0).(func(_, _ string) (*model.ChannelMember, *model.AppError)); ok {
+		return f(channelId, userId)
 	}
 	member, _ := ret.Get(0).(*model.ChannelMember)
 	err, _ := ret.Get(1).(*model.AppError)

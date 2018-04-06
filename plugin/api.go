@@ -78,7 +78,7 @@ type API interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
-	AddChannelMember(channel *model.Channel, userId string) (*model.ChannelMember, *model.AppError)
+	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
 	// GetChannelMember gets a channel membership for a user.
 	GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
