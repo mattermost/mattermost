@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -212,15 +213,8 @@ func (w *ConfigWatcher) Close() {
 
 // ReadConfig reads and parses the given configuration.
 func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, error) {
-	v := viper.New()
+	v := newViper(allowEnvironmentOverrides)
 
-	if allowEnvironmentOverrides {
-		v.SetEnvPrefix("mm")
-		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-		v.AutomaticEnv()
-	}
-
-	v.SetConfigType("json")
 	if err := v.ReadConfig(r); err != nil {
 		return nil, err
 	}
@@ -234,6 +228,89 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, err
 		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
 	}
 	return &config, unmarshalErr
+}
+
+func newViper(allowEnvironmentOverrides bool) *viper.Viper {
+	v := viper.New()
+
+	v.SetConfigType("json")
+
+	if allowEnvironmentOverrides {
+		v.SetEnvPrefix("mm")
+		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+		v.AutomaticEnv()
+	}
+
+	// Set zeroed defaults for all the config settings so that Viper knows what environment variables
+	// it needs to be looking for. The correct defaults will later be applied using Config.SetDefaults.
+	defaults := flattenStructToMap(structToMap(reflect.TypeOf(model.Config{})))
+
+	for key, value := range defaults {
+		v.SetDefault(key, value)
+	}
+
+	return v
+}
+
+// Converts a struct type into a nested map with keys matching the struct's fields and values
+// matching the zeroed value of the corresponding field.
+func structToMap(t reflect.Type) map[string]interface{} {
+	if t.Kind() != reflect.Struct {
+		// Should never hit this, but this will prevent a panic if that does happen somehow
+		return nil
+	}
+
+	out := make(map[string]interface{})
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		var value interface{}
+
+		switch field.Type.Kind() {
+		case reflect.Struct:
+			value = structToMap(field.Type)
+		case reflect.Ptr:
+			value = nil
+		default:
+			value = reflect.Zero(field.Type).Interface()
+		}
+
+		out[field.Name] = value
+	}
+
+	return out
+}
+
+// Flattens a nested map so that the result is a single map with keys corresponding to the
+// path through the original map. For example,
+// {
+//     "a": {
+//         "b": 1
+//     },
+//     "c": "sea"
+// }
+// would flatten to
+// {
+//     "a.b": 1,
+//     "c": "sea"
+// }
+func flattenStructToMap(in map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{})
+
+	for key, value := range in {
+		if valueAsMap, ok := value.(map[string]interface{}); ok {
+			sub := flattenStructToMap(valueAsMap)
+
+			for subKey, subValue := range sub {
+				out[key+"."+subKey] = subValue
+			}
+		} else {
+			out[key] = value
+		}
+	}
+
+	return out
 }
 
 // ReadConfigFile reads and parses the configuration at the given file path.
