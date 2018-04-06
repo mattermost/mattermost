@@ -89,23 +89,19 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 	var roles []string
 	var explicitRoles []string
 
-	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
-	// them from ExplicitRoles field.
-	// FIXME: Why aren't we filtering out admin roles here?
+	// Identify any system-wide scheme derived roles that are in "Roles" field due to not yet being migrated,
+	// and exclude them from ExplicitRoles field.
+	schemeUser := db.SchemeUser
+	schemeAdmin := db.SchemeAdmin
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
-		if db.ChannelSchemeDefaultUserRole.Valid && db.ChannelSchemeDefaultUserRole.String != "" {
-			if role == db.ChannelSchemeDefaultUserRole.String {
-				// We have an implicit role via channel scheme.
-				isImplicit = true
-			}
-		} else if db.TeamSchemeDefaultUserRole.Valid && db.TeamSchemeDefaultUserRole.String != "" {
-			if role == db.TeamSchemeDefaultUserRole.String {
-				// We have an implicit role via team scheme.
-				isImplicit = true
-			}
-		} else if role == model.CHANNEL_USER_ROLE_ID {
+		if role == model.CHANNEL_USER_ROLE_ID {
+			// We have an implicit role via the system scheme. Override the "schemeUser" field to true.
+			schemeUser = true
+			isImplicit = true
+		} else if role == model.CHANNEL_ADMIN_ROLE_ID {
 			// We have an implicit role via the system scheme.
+			schemeAdmin = true
 			isImplicit = true
 		}
 
@@ -157,8 +153,8 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		MentionCount:  db.MentionCount,
 		NotifyProps:   db.NotifyProps,
 		LastUpdateAt:  db.LastUpdateAt,
-		SchemeAdmin:   db.SchemeAdmin,
-		SchemeUser:    db.SchemeUser,
+		SchemeAdmin:   schemeAdmin,
+		SchemeUser:    schemeUser,
 		ExplicitRoles: strings.Join(explicitRoles, " "),
 	}
 }
