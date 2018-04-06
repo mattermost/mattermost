@@ -124,8 +124,33 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.UpdateChannel(channel)
 }
 
+func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+	// For now, don't allow overriding these via the plugin API.
+	userRequestorId := ""
+	postRootId := ""
+
+	channel, err := api.GetChannel(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
+}
+
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	return api.app.GetChannelMember(channelId, userId)
+}
+
+func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
+	return api.app.UpdateChannelMemberRoles(channelId, userId, newRoles)
+}
+
+func (api *PluginAPI) UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+	return api.app.UpdateChannelMemberNotifyProps(notifications, channelId, userId)
+}
+
+func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppError {
+	return api.app.LeaveChannel(channelId, userId)
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {

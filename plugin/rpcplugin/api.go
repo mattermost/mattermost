@@ -163,7 +163,29 @@ type APIGetGroupChannelArgs struct {
 	UserIds []string
 }
 
+type APIAddChannelMemberArgs struct {
+	ChannelId string
+	UserId    string
+}
+
 type APIGetChannelMemberArgs struct {
+	ChannelId string
+	UserId    string
+}
+
+type APIUpdateChannelMemberRolesArgs struct {
+	ChannelId string
+	UserId    string
+	NewRoles  string
+}
+
+type APIUpdateChannelMemberNotificationsArgs struct {
+	ChannelId     string
+	UserId        string
+	Notifications map[string]string
+}
+
+type APIDeleteChannelMemberArgs struct {
 	ChannelId string
 	UserId    string
 }
@@ -239,11 +261,46 @@ func (api *LocalAPI) UpdateChannel(args *model.Channel, reply *APIChannelReply) 
 	return nil
 }
 
+func (api *LocalAPI) AddChannelMember(args *APIAddChannelMemberArgs, reply *APIChannelMemberReply) error {
+	member, err := api.api.AddChannelMember(args.ChannelId, args.UserId)
+	*reply = APIChannelMemberReply{
+		ChannelMember: member,
+		Error:         err,
+	}
+	return nil
+}
+
 func (api *LocalAPI) GetChannelMember(args *APIGetChannelMemberArgs, reply *APIChannelMemberReply) error {
 	member, err := api.api.GetChannelMember(args.ChannelId, args.UserId)
 	*reply = APIChannelMemberReply{
 		ChannelMember: member,
 		Error:         err,
+	}
+	return nil
+}
+
+func (api *LocalAPI) UpdateChannelMemberRoles(args *APIUpdateChannelMemberRolesArgs, reply *APIChannelMemberReply) error {
+	member, err := api.api.UpdateChannelMemberRoles(args.ChannelId, args.UserId, args.NewRoles)
+	*reply = APIChannelMemberReply{
+		ChannelMember: member,
+		Error:         err,
+	}
+	return nil
+}
+
+func (api *LocalAPI) UpdateChannelMemberNotifications(args *APIUpdateChannelMemberNotificationsArgs, reply *APIChannelMemberReply) error {
+	member, err := api.api.UpdateChannelMemberNotifications(args.ChannelId, args.UserId, args.Notifications)
+	*reply = APIChannelMemberReply{
+		ChannelMember: member,
+		Error:         err,
+	}
+	return nil
+}
+
+func (api *LocalAPI) DeleteChannelMember(args *APIDeleteChannelMemberArgs, reply *APIErrorReply) error {
+	err := api.api.DeleteChannelMember(args.ChannelId, args.UserId)
+	*reply = APIErrorReply{
+		Error: err,
 	}
 	return nil
 }
@@ -520,6 +577,17 @@ func (api *RemoteAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return reply.Channel, reply.Error
 }
 
+func (api *RemoteAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+	var reply APIChannelMemberReply
+	if err := api.client.Call("LocalAPI.AddChannelMember", &APIAddChannelMemberArgs{
+		ChannelId: channelId,
+		UserId:    userId,
+	}, &reply); err != nil {
+		return nil, model.NewAppError("RemoteAPI.AddChannelMember", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.ChannelMember, reply.Error
+}
+
 func (api *RemoteAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	var reply APIChannelMemberReply
 	if err := api.client.Call("LocalAPI.GetChannelMember", &APIGetChannelMemberArgs{
@@ -529,6 +597,41 @@ func (api *RemoteAPI) GetChannelMember(channelId, userId string) (*model.Channel
 		return nil, model.NewAppError("RemoteAPI.GetChannelMember", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 	return reply.ChannelMember, reply.Error
+}
+
+func (api *RemoteAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
+	var reply APIChannelMemberReply
+	if err := api.client.Call("LocalAPI.UpdateChannelMemberRoles", &APIUpdateChannelMemberRolesArgs{
+		ChannelId: channelId,
+		UserId:    userId,
+		NewRoles:  newRoles,
+	}, &reply); err != nil {
+		return nil, model.NewAppError("RemoteAPI.UpdateChannelMemberRoles", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.ChannelMember, reply.Error
+}
+
+func (api *RemoteAPI) UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+	var reply APIChannelMemberReply
+	if err := api.client.Call("LocalAPI.UpdateChannelMemberNotifications", &APIUpdateChannelMemberNotificationsArgs{
+		ChannelId:     channelId,
+		UserId:        userId,
+		Notifications: notifications,
+	}, &reply); err != nil {
+		return nil, model.NewAppError("RemoteAPI.UpdateChannelMemberNotifications", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.ChannelMember, reply.Error
+}
+
+func (api *RemoteAPI) DeleteChannelMember(channelId, userId string) *model.AppError {
+	var reply APIErrorReply
+	if err := api.client.Call("LocalAPI.DeleteChannelMember", &APIDeleteChannelMemberArgs{
+		ChannelId: channelId,
+		UserId:    userId,
+	}, &reply); err != nil {
+		return model.NewAppError("RemoteAPI.DeleteChannelMember", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.Error
 }
 
 func (api *RemoteAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
