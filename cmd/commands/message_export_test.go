@@ -57,7 +57,7 @@ func writeTempConfig(t *testing.T, isMessageExportEnabled bool) string {
 	require.NoError(t, err)
 
 	utils.TranslationsPreInit()
-	config, _, appErr := utils.LoadConfig("config.json")
+	config, _, _, appErr := utils.LoadConfig("config.json")
 	require.Nil(t, appErr)
 	config.MessageExportSettings.EnableExport = model.NewBool(isMessageExportEnabled)
 	configPath := filepath.Join(dir, "foo.json")
