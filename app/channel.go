@@ -652,8 +652,10 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 	}
 
 	var userRequestor *model.User
-	if userRequestor, err = a.GetUser(userRequestorId); err != nil {
-		return nil, err
+	if userRequestorId != "" {
+		if userRequestor, err = a.GetUser(userRequestorId); err != nil {
+			return nil, err
+		}
 	}
 
 	cm, err := a.AddUserToChannel(user, channel)
@@ -661,7 +663,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		return nil, err
 	}
 
-	if userId == userRequestorId {
+	if userRequestorId == "" || userId == userRequestorId {
 		a.postJoinChannelMessage(user, channel)
 	} else {
 		a.Go(func() {
@@ -669,7 +671,9 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		})
 	}
 
-	a.UpdateChannelLastViewedAt([]string{channel.Id}, userRequestor.Id)
+	if userRequestor != nil {
+		a.UpdateChannelLastViewedAt([]string{channel.Id}, userRequestor.Id)
+	}
 
 	return cm, nil
 }
