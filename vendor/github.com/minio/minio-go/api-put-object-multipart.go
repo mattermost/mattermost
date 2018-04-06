@@ -260,13 +260,13 @@ func (c Client) uploadPart(ctx context.Context, bucketName, objectName, uploadID
 
 	// Set encryption headers, if any.
 	customHeader := make(http.Header)
-	for k, v := range metadata {
-		if len(v) > 0 {
-			if strings.HasPrefix(strings.ToLower(k), serverEncryptionKeyPrefix) {
-				customHeader.Set(k, v)
-			}
-		}
-	}
+	// for k, v := range metadata {
+	// 	if len(v) > 0 {
+	// 		if strings.HasPrefix(strings.ToLower(k), serverEncryptionKeyPrefix) {
+	// 			customHeader.Set(k, v)
+	// 		}
+	// 	}
+	// }
 
 	reqMetadata := requestMetadata{
 		bucketName:       bucketName,
