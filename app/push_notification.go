@@ -14,8 +14,8 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-const PUSH_NOTIFICATION_HUB_WORKERS = 10
-const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 5000
+const PUSH_NOTIFICATION_HUB_WORKERS = 1000
+const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
 
 type PushNotificationsHub struct {
 	Channels []chan PushNotification
