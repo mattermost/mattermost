@@ -26,6 +26,7 @@ type Role struct {
 	DeleteAt      int64
 	Permissions   string
 	SchemeManaged bool
+	BuiltIn       bool
 }
 
 func NewRoleFromModel(role *model.Role) *Role {
@@ -49,6 +50,7 @@ func NewRoleFromModel(role *model.Role) *Role {
 		DeleteAt:      role.DeleteAt,
 		Permissions:   permissions,
 		SchemeManaged: role.SchemeManaged,
+		BuiltIn:       role.BuiltIn,
 	}
 }
 
@@ -63,6 +65,7 @@ func (role Role) ToModel() *model.Role {
 		DeleteAt:      role.DeleteAt,
 		Permissions:   strings.Fields(role.Permissions),
 		SchemeManaged: role.SchemeManaged,
+		BuiltIn:       role.BuiltIn,
 	}
 }
 

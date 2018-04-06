@@ -141,17 +141,31 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 	a.Publish(message)
 }
 
+func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, *model.AppError) {
+	var team *model.Team
+	var err *model.AppError
+
+	if team, err = a.GetTeam(teamId); err != nil {
+		return "", "", err
+	}
+
+	if len(team.SchemeId) != 0 {
+		if scheme, err := a.GetScheme(team.SchemeId); err != nil {
+			return "", "", err
+		} else {
+			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+		}
+	}
+
+	return model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID, nil
+}
+
 func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
 	var member *model.TeamMember
-	if result := <-a.Srv.Store.Team().GetTeamsForUser(userId); result.Err != nil {
+	if result := <-a.Srv.Store.Team().GetMember(teamId, userId); result.Err != nil {
 		return nil, result.Err
 	} else {
-		members := result.Data.([]*model.TeamMember)
-		for _, m := range members {
-			if m.TeamId == teamId {
-				member = m
-			}
-		}
+		member = result.Data.(*model.TeamMember)
 	}
 
 	if member == nil {
@@ -159,14 +173,42 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 		return nil, err
 	}
 
-	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+	schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForTeam(teamId)
+	if err != nil {
 		return nil, err
 	}
 
-	member.Roles = newRoles
+	var newExplicitRoles []string
+	member.SchemeUser = false
+	member.SchemeAdmin = false
+
+	for _, roleName := range strings.Fields(newRoles) {
+		if role, err := a.GetRoleByName(roleName); err != nil {
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		} else if !role.SchemeManaged {
+			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
+			newExplicitRoles = append(newExplicitRoles, roleName)
+		} else {
+			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
+			switch roleName {
+			case schemeAdminRole:
+				member.SchemeAdmin = true
+			case schemeUserRole:
+				member.SchemeUser = true
+			default:
+				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
+				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+			}
+		}
+	}
+
+	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
 	if result := <-a.Srv.Store.Team().UpdateMember(member); result.Err != nil {
 		return nil, result.Err
+	} else {
+		member = result.Data.(*model.TeamMember)
 	}
 
 	a.ClearSessionCacheForUser(userId)
@@ -292,13 +334,13 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 // 3. a pointer to an AppError if something went wrong.
 func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMember, bool, *model.AppError) {
 	tm := &model.TeamMember{
-		TeamId: team.Id,
-		UserId: user.Id,
-		Roles:  model.TEAM_USER_ROLE_ID,
+		TeamId:     team.Id,
+		UserId:     user.Id,
+		SchemeUser: true,
 	}
 
 	if team.Email == user.Email {
-		tm.Roles = model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID
+		tm.SchemeAdmin = true
 	}
 
 	if etmr := <-a.Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {

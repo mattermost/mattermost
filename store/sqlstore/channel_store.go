@@ -91,6 +91,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 
 	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
 	// them from ExplicitRoles field.
+	// FIXME: Why aren't we filtering out admin roles here?
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
 		if db.ChannelSchemeDefaultUserRole.Valid && db.ChannelSchemeDefaultUserRole.String != "" {

@@ -509,6 +509,8 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 
 	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {
 		return nil, result.Err
+	} else {
+		member = result.Data.(*model.ChannelMember)
 	}
 
 	a.InvalidateCacheForUser(userId)

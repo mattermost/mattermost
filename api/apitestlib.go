@@ -245,28 +245,36 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID}
-	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+	if tmr := <-me.App.Srv.Store.Team().GetMember(team.Id, user.Id); tmr.Err == nil {
+		tm := tmr.Data.(*model.TeamMember)
+		tm.SchemeAdmin = true
+		if sr := <-me.App.Srv.Store.Team().UpdateMember(tm); sr.Err != nil {
+			utils.EnableDebugLogForTest()
+			panic(sr.Err)
+		}
+	} else {
 		utils.EnableDebugLogForTest()
-		l4g.Error(tmr.Err.Error())
-		l4g.Close()
-		time.Sleep(time.Second)
 		panic(tmr.Err)
 	}
+
 	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID}
-	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+	if tmr := <-me.App.Srv.Store.Team().GetMember(team.Id, user.Id); tmr.Err == nil {
+		tm := tmr.Data.(*model.TeamMember)
+		tm.SchemeAdmin = false
+		if sr := <-me.App.Srv.Store.Team().UpdateMember(tm); sr.Err != nil {
+			utils.EnableDebugLogForTest()
+			panic(sr.Err)
+		}
+	} else {
 		utils.EnableDebugLogForTest()
-		l4g.Error(tmr.Err.Error())
-		l4g.Close()
-		time.Sleep(time.Second)
 		panic(tmr.Err)
 	}
+
 	utils.EnableDebugLogForTest()
 }
 
