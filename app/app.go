@@ -218,6 +218,7 @@ func (a *App) Shutdown() {
 
 	a.StopServer()
 	a.HubStop()
+	a.StopPushNotificationsHubWorkers()
 
 	a.ShutDownPlugins()
 	a.WaitForGoroutines()
@@ -236,7 +237,6 @@ func (a *App) Shutdown() {
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 
 	a.DisableConfigWatch()
-	a.StopPushNotificationsHubWorkers()
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
