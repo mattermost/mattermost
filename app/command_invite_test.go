@@ -1,4 +1,4 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package app
@@ -32,7 +32,8 @@ func TestInviteProvider(t *testing.T) {
 	}
 
 	userAndWrongChannel := "@" + th.BasicUser2.Username + " wrongchannel1"
-	userAndChannel := "@" + th.BasicUser2.Username + " ~" + channel.Name
+	userAndChannel := "@" + th.BasicUser2.Username + " ~" + channel.Name + " "
+	userAndDisplayChannel := "@" + th.BasicUser2.Username + " ~" + channel.DisplayName + " "
 	userAndPrivateChannel := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
 	userAndDMChannel := "@" + basicUser3.Username + " ~" + dmChannel.Name
 
@@ -57,6 +58,11 @@ func TestInviteProvider(t *testing.T) {
 			msg:      userAndChannel,
 		},
 		{
+			desc:     "try to add a user to a direct channel",
+			expected: "api.command_invite.directchannel.app_error",
+			msg:      userAndDMChannel,
+		},
+		{
 			desc:     "Try to add a user to a invalid channel",
 			expected: "api.command_invite.channel.error",
 			msg:      userAndWrongChannel,
@@ -67,9 +73,9 @@ func TestInviteProvider(t *testing.T) {
 			msg:      userAndPrivateChannel,
 		},
 		{
-			desc:     "Try to add a user to the same private channel",
-			expected: "api.command_invite.user_already_in_channel.app_error",
-			msg:      userAndPrivateChannel,
+			desc:     "Using display channel name which is different form Channel name",
+			expected: "api.command_invite.channel.error",
+			msg:      userAndDisplayChannel,
 		},
 		{
 			desc:     "Invalid user to current channel",
@@ -83,7 +89,7 @@ func TestInviteProvider(t *testing.T) {
 		},
 		{
 			desc:     "try to add a user which is not part of the team",
-			expected: "api.command_invite.fail_get_userchannel.app_error",
+			expected: "api.command_invite.fail.app_error",
 			msg:      basicUser4.Username,
 		},
 		{

@@ -1,4 +1,4 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package app
@@ -59,10 +59,10 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	var err *model.AppError
 	// User set a channel to add the invited user
 	if len(splitMessage) > 1 && splitMessage[1] != "" {
-		targetChannelName := strings.TrimPrefix(splitMessage[1], "~")
+		targetChannelName := strings.TrimPrefix(strings.TrimSpace(splitMessage[1]), "~")
+
 		if channelToJoin, err = a.GetChannelByName(targetChannelName, args.TeamId); err != nil {
-			l4g.Error(err.Error())
-			return &model.CommandResponse{Text: args.T("api.command_invite.channel.error", map[string]interface{}{"Channel": splitMessage[1]}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_invite.channel.error", map[string]interface{}{"Channel": targetChannelName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	} else {
 		channelToJoin, err = a.GetChannel(args.ChannelId)
@@ -77,18 +77,16 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	}
 
 	// Check if user is already in the channel
-	userChannels, err := a.GetChannelsForUser(args.TeamId, userProfile.Id)
-	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_invite.fail_get_userchannel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	_, err = a.GetChannelMember(channelToJoin.Id, userProfile.Id)
+	if err == nil {
+		return &model.CommandResponse{Text: args.T("api.command_invite.user_already_in_channel.app_error", map[string]interface{}{"User": userProfile.Username}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	for _, channel := range *userChannels {
-		if channel.Id == channelToJoin.Id {
-			return &model.CommandResponse{Text: args.T("api.command_invite.user_already_in_channel.app_error", map[string]interface{}{"User": userProfile.Username}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-		}
+	if channelToJoin.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+		return &model.CommandResponse{Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{"User": userProfile.Username, "Channel": channelToJoin.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if channelToJoin.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_READ_CHANNEL) {
+	if channelToJoin.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
 		return &model.CommandResponse{Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{"User": userProfile.Username, "Channel": channelToJoin.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
