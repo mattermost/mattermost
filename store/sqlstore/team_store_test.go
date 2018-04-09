@@ -65,8 +65,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 		assert.Equal(t, db.UserId, m.UserId)
 		assert.Equal(t, "custom_role team_user team_admin", m.Roles)
 		assert.Equal(t, db.DeleteAt, m.DeleteAt)
-		assert.Equal(t, db.SchemeUser.Valid, m.SchemeUser)
-		assert.Equal(t, db.SchemeAdmin.Valid, m.SchemeAdmin)
+		assert.Equal(t, db.SchemeUser.Bool, m.SchemeUser)
+		assert.Equal(t, db.SchemeAdmin.Bool, m.SchemeAdmin)
 		assert.Equal(t, db.Roles, m.ExplicitRoles)
 	})
 

@@ -47,8 +47,8 @@ type channelMember struct {
 	MentionCount int64
 	NotifyProps  model.StringMap
 	LastUpdateAt int64
-	SchemeUser   bool
-	SchemeAdmin  bool
+	SchemeUser   sql.NullBool
+	SchemeAdmin  sql.NullBool
 }
 
 func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
@@ -61,8 +61,8 @@ func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
 		MentionCount: cm.MentionCount,
 		NotifyProps:  cm.NotifyProps,
 		LastUpdateAt: cm.LastUpdateAt,
-		SchemeUser:   cm.SchemeUser,
-		SchemeAdmin:  cm.SchemeAdmin,
+		SchemeUser:   sql.NullBool{Valid: true, Bool: cm.SchemeUser},
+		SchemeAdmin:  sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
 	}
 }
 
@@ -75,8 +75,8 @@ type channelMemberWithSchemeRoles struct {
 	MentionCount                  int64
 	NotifyProps                   model.StringMap
 	LastUpdateAt                  int64
-	SchemeUser                    bool
-	SchemeAdmin                   bool
+	SchemeUser                    sql.NullBool
+	SchemeAdmin                   sql.NullBool
 	TeamSchemeDefaultUserRole     sql.NullString
 	TeamSchemeDefaultAdminRole    sql.NullString
 	ChannelSchemeDefaultUserRole  sql.NullString
@@ -91,8 +91,8 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 
 	// Identify any system-wide scheme derived roles that are in "Roles" field due to not yet being migrated,
 	// and exclude them from ExplicitRoles field.
-	schemeUser := db.SchemeUser
-	schemeAdmin := db.SchemeAdmin
+	schemeUser := db.SchemeUser.Valid && db.SchemeUser.Bool
+	schemeAdmin := db.SchemeAdmin.Valid && db.SchemeAdmin.Bool
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
 		if role == model.CHANNEL_USER_ROLE_ID {
@@ -114,7 +114,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
 	// them to the Roles field for backwards compatability reasons.
 	var schemeImpliedRoles []string
-	if db.SchemeUser {
+	if db.SchemeUser.Valid && db.SchemeUser.Bool {
 		if db.ChannelSchemeDefaultUserRole.Valid && db.ChannelSchemeDefaultUserRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.ChannelSchemeDefaultUserRole.String)
 		} else if db.TeamSchemeDefaultUserRole.Valid && db.TeamSchemeDefaultUserRole.String != "" {
@@ -123,7 +123,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_USER_ROLE_ID)
 		}
 	}
-	if db.SchemeAdmin {
+	if db.SchemeAdmin.Valid && db.SchemeAdmin.Bool {
 		if db.ChannelSchemeDefaultAdminRole.Valid && db.ChannelSchemeDefaultAdminRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.ChannelSchemeDefaultAdminRole.String)
 		} else if db.TeamSchemeDefaultAdminRole.Valid && db.TeamSchemeDefaultAdminRole.String != "" {
@@ -172,8 +172,8 @@ func (db channelMemberWithSchemeRolesList) ToModel() *model.ChannelMembers {
 type allChannelMember struct {
 	ChannelId                     string
 	Roles                         string
-	SchemeUser                    bool
-	SchemeAdmin                   bool
+	SchemeUser                    sql.NullBool
+	SchemeAdmin                   sql.NullBool
 	TeamSchemeDefaultUserRole     sql.NullString
 	TeamSchemeDefaultAdminRole    sql.NullString
 	ChannelSchemeDefaultUserRole  sql.NullString
@@ -188,7 +188,7 @@ func (db allChannelMember) Process() (string, string) {
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
 	// them to the Roles field for backwards compatability reasons.
 	var schemeImpliedRoles []string
-	if db.SchemeUser {
+	if db.SchemeUser.Valid && db.SchemeUser.Bool {
 		if db.ChannelSchemeDefaultUserRole.Valid && db.ChannelSchemeDefaultUserRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.ChannelSchemeDefaultUserRole.String)
 		} else if db.TeamSchemeDefaultUserRole.Valid && db.TeamSchemeDefaultUserRole.String != "" {
@@ -197,7 +197,7 @@ func (db allChannelMember) Process() (string, string) {
 			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_USER_ROLE_ID)
 		}
 	}
-	if db.SchemeAdmin {
+	if db.SchemeAdmin.Valid && db.SchemeAdmin.Bool {
 		if db.ChannelSchemeDefaultAdminRole.Valid && db.ChannelSchemeDefaultAdminRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.ChannelSchemeDefaultAdminRole.String)
 		} else if db.TeamSchemeDefaultAdminRole.Valid && db.TeamSchemeDefaultAdminRole.String != "" {

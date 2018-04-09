@@ -38,18 +38,20 @@ func testNewChannelMemberFromModel(t *testing.T) {
 		ExplicitRoles: "custom_role",
 	}
 
-	cm := NewChannelMemberFromModel(&m)
+	db := NewChannelMemberFromModel(&m)
 
-	assert.Equal(t, m.ChannelId, cm.ChannelId)
-	assert.Equal(t, m.UserId, cm.UserId)
-	assert.Equal(t, m.LastViewedAt, cm.LastViewedAt)
-	assert.Equal(t, m.MsgCount, cm.MsgCount)
-	assert.Equal(t, m.MentionCount, cm.MentionCount)
-	assert.Equal(t, m.NotifyProps, cm.NotifyProps)
-	assert.Equal(t, m.LastUpdateAt, cm.LastUpdateAt)
-	assert.Equal(t, m.SchemeUser, cm.SchemeUser)
-	assert.Equal(t, m.SchemeAdmin, cm.SchemeAdmin)
-	assert.Equal(t, m.ExplicitRoles, cm.Roles)
+	assert.Equal(t, m.ChannelId, db.ChannelId)
+	assert.Equal(t, m.UserId, db.UserId)
+	assert.Equal(t, m.LastViewedAt, db.LastViewedAt)
+	assert.Equal(t, m.MsgCount, db.MsgCount)
+	assert.Equal(t, m.MentionCount, db.MentionCount)
+	assert.Equal(t, m.NotifyProps, db.NotifyProps)
+	assert.Equal(t, m.LastUpdateAt, db.LastUpdateAt)
+	assert.Equal(t, true, db.SchemeUser.Valid)
+	assert.Equal(t, true, db.SchemeAdmin.Valid)
+	assert.Equal(t, m.SchemeUser, db.SchemeUser.Bool)
+	assert.Equal(t, m.SchemeAdmin, db.SchemeAdmin.Bool)
+	assert.Equal(t, m.ExplicitRoles, db.Roles)
 }
 
 func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
@@ -64,35 +66,35 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 			MentionCount:                  1,
 			NotifyProps:                   model.StringMap{"key": "value"},
 			LastUpdateAt:                  54321,
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			ChannelSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
 
-		cm := db.ToModel()
+		m := db.ToModel()
 
-		assert.Equal(t, db.ChannelId, cm.ChannelId)
-		assert.Equal(t, db.UserId, cm.UserId)
-		assert.Equal(t, "custom_role channel_user channel_admin", cm.Roles)
-		assert.Equal(t, db.LastViewedAt, cm.LastViewedAt)
-		assert.Equal(t, db.MsgCount, cm.MsgCount)
-		assert.Equal(t, db.MentionCount, cm.MentionCount)
-		assert.Equal(t, db.NotifyProps, cm.NotifyProps)
-		assert.Equal(t, db.LastUpdateAt, cm.LastUpdateAt)
-		assert.Equal(t, db.SchemeUser, cm.SchemeUser)
-		assert.Equal(t, db.SchemeAdmin, cm.SchemeAdmin)
-		assert.Equal(t, db.Roles, cm.ExplicitRoles)
+		assert.Equal(t, db.ChannelId, m.ChannelId)
+		assert.Equal(t, db.UserId, m.UserId)
+		assert.Equal(t, "custom_role channel_user channel_admin", m.Roles)
+		assert.Equal(t, db.LastViewedAt, m.LastViewedAt)
+		assert.Equal(t, db.MsgCount, m.MsgCount)
+		assert.Equal(t, db.MentionCount, m.MentionCount)
+		assert.Equal(t, db.NotifyProps, m.NotifyProps)
+		assert.Equal(t, db.LastUpdateAt, m.LastUpdateAt)
+		assert.Equal(t, db.SchemeUser.Bool, m.SchemeUser)
+		assert.Equal(t, db.SchemeAdmin.Bool, m.SchemeAdmin)
+		assert.Equal(t, db.Roles, m.ExplicitRoles)
 	})
 
 	// Example data *before* the Phase 2 migration has taken place.
 	t.Run("Unmigrated_NoScheme_User", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "channel_user",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -110,8 +112,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_Admin", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "channel_admin channel_user",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -129,8 +131,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_CustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -148,8 +150,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_UserAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "channel_user custom_role",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -167,8 +169,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_AdminAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "channel_user channel_admin custom_role",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -186,8 +188,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_NoRoles", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -206,8 +208,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_User", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -225,8 +227,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_Admin", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -244,8 +246,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_CustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -263,8 +265,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_UserAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -282,8 +284,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_AdminAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -301,8 +303,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_NoRoles", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -321,8 +323,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_ChannelScheme_User", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -340,8 +342,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_ChannelScheme_Admin", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -359,8 +361,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_ChannelScheme_CustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -378,8 +380,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_ChannelScheme_UserAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -397,8 +399,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_ChannelScheme_AdminAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -416,8 +418,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_ChannelScheme_NoRoles", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -436,8 +438,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_User", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -455,8 +457,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_Admin", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -474,8 +476,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_CustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -493,8 +495,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_UserAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -512,8 +514,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_AdminAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -531,8 +533,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_NoRoles", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -551,8 +553,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamAndChannelScheme_User", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -570,8 +572,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamAndChannelScheme_Admin", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -589,8 +591,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamAndChannelScheme_CustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -608,8 +610,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamAndChannelScheme_UserAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -627,8 +629,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamAndChannelScheme_AdminAndCustomRole", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "custom_role",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -646,8 +648,8 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamAndChannelScheme_NoRoles", func(t *testing.T) {
 		db := channelMemberWithSchemeRoles{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -667,8 +669,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("Unmigrated_User", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "channel_user",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -683,8 +685,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("Unmigrated_Admin", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "channel_user channel_admin",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -699,8 +701,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("Unmigrated_Neither", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -715,8 +717,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("Unmigrated_Custom", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "custom",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -731,8 +733,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedNoScheme_User", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -747,8 +749,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedNoScheme_Admin", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -763,8 +765,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedNoScheme_Neither", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -779,8 +781,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedChannelScheme_User", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -795,8 +797,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedChannelScheme_Admin", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -811,8 +813,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedChannelScheme_Neither", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -827,8 +829,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedTeamScheme_User", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -843,8 +845,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedTeamScheme_Admin", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -859,8 +861,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedTeamScheme_Neither", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},
@@ -875,8 +877,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedTeamAndChannelScheme_User", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -891,8 +893,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedTeamAndChannelScheme_Admin", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    true,
-			SchemeAdmin:                   true,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -907,8 +909,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("MigratedTeamAndChannelScheme_Neither", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "",
-			SchemeUser:                    false,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: true, String: "tscheme_channeluser"},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: true, String: "tscheme_channeladmin"},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "cscheme_user"},
@@ -923,8 +925,8 @@ func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("DeduplicationCheck", func(t *testing.T) {
 		db := allChannelMember{
 			Roles:                         "channel_user",
-			SchemeUser:                    true,
-			SchemeAdmin:                   false,
+			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                   sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:     sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole:    sql.NullString{Valid: false},
 			ChannelSchemeDefaultUserRole:  sql.NullString{Valid: false},

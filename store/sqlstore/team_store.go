@@ -61,7 +61,7 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
 	// them from ExplicitRoles field.
 	schemeUser := db.SchemeUser.Valid && db.SchemeUser.Bool
-	schemeAdmin := db.SchemeUser.Valid && db.SchemeAdmin.Bool
+	schemeAdmin := db.SchemeAdmin.Valid && db.SchemeAdmin.Bool
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
 		if role == model.TEAM_USER_ROLE_ID {
@@ -90,7 +90,7 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_USER_ROLE_ID)
 		}
 	}
-	if db.SchemeUser.Bool && db.SchemeAdmin.Bool {
+	if db.SchemeAdmin.Valid && db.SchemeAdmin.Bool {
 		if db.TeamSchemeDefaultAdminRole.Valid && db.TeamSchemeDefaultAdminRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultAdminRole.String)
 		} else {
