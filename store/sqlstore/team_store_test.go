@@ -38,8 +38,10 @@ func testNewTeamMemberFromModel(t *testing.T) {
 	assert.Equal(t, m.TeamId, db.TeamId)
 	assert.Equal(t, m.UserId, db.UserId)
 	assert.Equal(t, m.DeleteAt, db.DeleteAt)
-	assert.Equal(t, m.SchemeUser, db.SchemeUser)
-	assert.Equal(t, m.SchemeAdmin, db.SchemeAdmin)
+	assert.Equal(t, true, db.SchemeUser.Valid)
+	assert.Equal(t, true, db.SchemeAdmin.Valid)
+	assert.Equal(t, m.SchemeUser, db.SchemeUser.Bool)
+	assert.Equal(t, m.SchemeAdmin, db.SchemeAdmin.Bool)
 	assert.Equal(t, m.ExplicitRoles, db.Roles)
 }
 
@@ -51,8 +53,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 			UserId:                     model.NewId(),
 			Roles:                      "custom_role",
 			DeleteAt:                   12345,
-			SchemeUser:                 true,
-			SchemeAdmin:                true,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -63,8 +65,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 		assert.Equal(t, db.UserId, m.UserId)
 		assert.Equal(t, "custom_role team_user team_admin", m.Roles)
 		assert.Equal(t, db.DeleteAt, m.DeleteAt)
-		assert.Equal(t, db.SchemeUser, m.SchemeUser)
-		assert.Equal(t, db.SchemeAdmin, m.SchemeAdmin)
+		assert.Equal(t, db.SchemeUser.Valid, m.SchemeUser)
+		assert.Equal(t, db.SchemeAdmin.Valid, m.SchemeAdmin)
 		assert.Equal(t, db.Roles, m.ExplicitRoles)
 	})
 
@@ -72,8 +74,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_User", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "team_user",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -89,8 +91,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_Admin", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "team_user team_admin",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -106,8 +108,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_CustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "custom_role",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -123,8 +125,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_UserAndCustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "team_user custom_role",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -140,8 +142,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_AdminAndCustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "team_user team_admin custom_role",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -157,8 +159,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Unmigrated_NoScheme_NoRoles", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: false, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: false, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -175,8 +177,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_User", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "",
-			SchemeUser:                 true,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -192,8 +194,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_Admin", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "",
-			SchemeUser:                 true,
-			SchemeAdmin:                true,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -209,8 +211,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_CustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "custom_role",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -226,8 +228,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_UserAndCustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "custom_role",
-			SchemeUser:                 true,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -243,8 +245,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_AdminAndCustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "custom_role",
-			SchemeUser:                 true,
-			SchemeAdmin:                true,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -260,8 +262,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_NoScheme_NoRoles", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: false},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: false},
 		}
@@ -278,8 +280,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_User", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "",
-			SchemeUser:                 true,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "tscheme_user"},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: true, String: "tscheme_admin"},
 		}
@@ -295,8 +297,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_Admin", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "",
-			SchemeUser:                 true,
-			SchemeAdmin:                true,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "tscheme_user"},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: true, String: "tscheme_admin"},
 		}
@@ -312,8 +314,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_CustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "custom_role",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "tscheme_user"},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: true, String: "tscheme_admin"},
 		}
@@ -329,8 +331,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_UserAndCustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "custom_role",
-			SchemeUser:                 true,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "tscheme_user"},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: true, String: "tscheme_admin"},
 		}
@@ -346,8 +348,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_AdminAndCustomRole", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "custom_role",
-			SchemeUser:                 true,
-			SchemeAdmin:                true,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: true},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: true},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "tscheme_user"},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: true, String: "tscheme_admin"},
 		}
@@ -363,8 +365,8 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 	t.Run("Migrated_TeamScheme_NoRoles", func(t *testing.T) {
 		db := teamMemberWithSchemeRoles{
 			Roles:                      "",
-			SchemeUser:                 false,
-			SchemeAdmin:                false,
+			SchemeUser:                 sql.NullBool{Valid: true, Bool: false},
+			SchemeAdmin:                sql.NullBool{Valid: true, Bool: false},
 			TeamSchemeDefaultUserRole:  sql.NullString{Valid: true, String: "tscheme_user"},
 			TeamSchemeDefaultAdminRole: sql.NullString{Valid: true, String: "tscheme_admin"},
 		}

@@ -26,8 +26,8 @@ type teamMember struct {
 	UserId      string
 	Roles       string
 	DeleteAt    int64
-	SchemeUser  bool
-	SchemeAdmin bool
+	SchemeUser  sql.NullBool
+	SchemeAdmin sql.NullBool
 }
 
 func NewTeamMemberFromModel(tm *model.TeamMember) *teamMember {
@@ -36,8 +36,8 @@ func NewTeamMemberFromModel(tm *model.TeamMember) *teamMember {
 		UserId:      tm.UserId,
 		Roles:       tm.ExplicitRoles,
 		DeleteAt:    tm.DeleteAt,
-		SchemeUser:  tm.SchemeUser,
-		SchemeAdmin: tm.SchemeAdmin,
+		SchemeUser:  sql.NullBool{Valid: true, Bool: tm.SchemeUser},
+		SchemeAdmin: sql.NullBool{Valid: true, Bool: tm.SchemeAdmin},
 	}
 }
 
@@ -46,8 +46,8 @@ type teamMemberWithSchemeRoles struct {
 	UserId                     string
 	Roles                      string
 	DeleteAt                   int64
-	SchemeUser                 bool
-	SchemeAdmin                bool
+	SchemeUser                 sql.NullBool
+	SchemeAdmin                sql.NullBool
 	TeamSchemeDefaultUserRole  sql.NullString
 	TeamSchemeDefaultAdminRole sql.NullString
 }
@@ -60,8 +60,8 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 
 	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
 	// them from ExplicitRoles field.
-	schemeUser := db.SchemeUser
-	schemeAdmin := db.SchemeAdmin
+	schemeUser := db.SchemeUser.Valid && db.SchemeUser.Bool
+	schemeAdmin := db.SchemeUser.Valid && db.SchemeAdmin.Bool
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
 		if role == model.TEAM_USER_ROLE_ID {
@@ -83,14 +83,14 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
 	// them to the Roles field for backwards compatibility reasons.
 	var schemeImpliedRoles []string
-	if db.SchemeUser {
+	if db.SchemeUser.Valid && db.SchemeUser.Bool {
 		if db.TeamSchemeDefaultUserRole.Valid && db.TeamSchemeDefaultUserRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultUserRole.String)
 		} else {
 			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_USER_ROLE_ID)
 		}
 	}
-	if db.SchemeAdmin {
+	if db.SchemeUser.Bool && db.SchemeAdmin.Bool {
 		if db.TeamSchemeDefaultAdminRole.Valid && db.TeamSchemeDefaultAdminRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultAdminRole.String)
 		} else {
