@@ -32,9 +32,7 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
-package:
-	@ echo Packaging mattermost
-
+package-common:
 	@# Remove any old files
 	rm -Rf $(DIST_ROOT)
 
@@ -71,9 +69,7 @@ endif
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
-	@# ----- PLATFORM SPECIFIC -----
-
-	@# Make osx package
+package-osx: package-common
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
@@ -85,7 +81,7 @@ endif
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/platform
 
-	@# Make windows package
+package-windows: package-common
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	cp $(GOPATH)/bin/platform.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
@@ -97,7 +93,7 @@ endif
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/platform.exe
 
-	@# Make linux package
+package-linux: package-common
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
@@ -108,3 +104,5 @@ endif
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
 	@# Don't clean up native package so dev machines will have an unzipped package available
 	@#rm -f $(DIST_PATH)/bin/platform
+
+package: package-linux package-windows package-osx
