@@ -109,15 +109,15 @@
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Bucket is required"
+    "translation": "需要 S3 儲存貯體"
   },
   {
     "id": "api.admin.test_s3.missing_s3_endpoint",
-    "translation": "S3 Endpoint is required"
+    "translation": "需要 S3 端點"
   },
   {
     "id": "api.admin.test_s3.missing_s3_region",
-    "translation": "S3 Region is required"
+    "translation": "需要 S3 區域"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -333,15 +333,15 @@
   },
   {
     "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "Failed to post channel conversion to private message"
+    "translation": "將頻道對話發送至私人傳訊時失敗。"
   },
   {
     "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "Failed to retrieve user while converting the channel from public to private"
+    "translation": "將頻道從公開轉換成私人時無法擷取使用者"
   },
   {
     "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s converted the channel from public to private"
+    "translation": "%s 已將頻道從公開轉換成私人"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[頻道名稱]"
+    "translation": "~[頻道]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -900,35 +900,35 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+    "translation": "對當前或指定的[頻道]關閉桌面、郵件及推播通知。"
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[頻道]"
   },
   {
     "id": "api.command_mute.name",
-    "translation": "mute"
+    "translation": "靜音"
   },
   {
     "id": "api.command_mute.success_mute",
-    "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
+    "translation": "直到頻道靜音關閉為止，將不會收到來自{{.Channel}}的通知。"
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
-    "translation": "You will not receive notifications for this channel until channel mute is turned off."
+    "translation": "直到頻道靜音關閉為止，將不會收到來自此頻道的通知。"
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} is no longer muted."
+    "translation": "{{.Channel}}不再靜音"
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
-    "translation": "This channel is no longer muted."
+    "translation": "此頻道不再靜音"
   },
   {
     "id": "api.command_offline.desc",
@@ -1697,20 +1697,12 @@
     "translation": "multipart/form 要求缺少檔案"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "將他們加入此私人頻道"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "將他們加入頻道"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "提到了 @{{.Usernames}} 跟 @{{.LastUsername}} 但他們不在此頻道。要{{.Phrase}}？他們將能看到全部的訊息紀錄。"
+    "translation": "無法傳送通知給 @{{.Usernames}} 與 @{{.LastUsername}}，因為他們並未加入此頻道。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "提到了 @{{.Username}} 但他們不在此頻道。要{{.Phrase}}？他們將能看到全部的訊息紀錄。"
+    "translation": "無法傳送通知給未加入此頻道的 @{{.Username}}。"
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -1992,7 +1984,7 @@
   },
   {
     "id": "api.roles.patch_roles.license.error",
-    "translation": "Your current license does not support advanced permissions."
+    "translation": "目前授權不支援進階權限。"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -2004,11 +1996,11 @@
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
-    "translation": "Must enable Forward80To443 when using LetsEncrypt"
+    "translation": "使用 LetsEncrypt 時必須啟用 Forward80To443 "
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+    "translation": "當在監聽通訊埠 %s 時無法從 80 轉發至 443：如果正在使用代理伺服器請停用 Forward80To443 "
   },
   {
     "id": "api.server.start_server.listening.info",
@@ -2404,19 +2396,19 @@
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Could not decode team icon"
+    "translation": "無法解碼團隊標誌"
   },
   {
     "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata"
+    "translation": "無法解碼團隊標誌資料"
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Could not encode team icon"
+    "translation": "無法編碼團隊標誌"
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "取得團隊時發生錯誤"
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
@@ -2432,15 +2424,15 @@
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
-    "translation": "無法上傳檔案。尚未設定圖片儲存位置。"
+    "translation": "無法上傳團隊標誌。尚未設定圖片儲存位置。"
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
-    "translation": "無法上傳圖片檔案。檔案太大。"
+    "translation": "無法上傳團隊標誌。檔案太大。"
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "Could not save team icon"
+    "translation": "無法儲存團隊標誌"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3756,7 +3748,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "當在啟用叢集且使用 ReadOnlyConfig  時，必須手動更新 config.json 檔案當中的模組設定"
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3820,7 +3812,7 @@
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
-    "translation": "The provided role does not exist"
+    "translation": "提供的角色不存在"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3828,15 +3820,15 @@
   },
   {
     "id": "app.timezones.failed_deserialize.app_error",
-    "translation": "Failed to deserialize Timezone config file={{.Filename}}, err={{.Error}}"
+    "translation": "無法還原序列化時區設定 檔案={{.Filename}}，錯誤={{.Error}}"
   },
   {
     "id": "app.timezones.load_config.app_error",
-    "translation": "Timezone config file does not exists file={{.Filename}}"
+    "translation": "時區設定檔不存在 檔案={{.Filename}}"
   },
   {
     "id": "app.timezones.read_config.app_error",
-    "translation": "Failed to read Timezone config file={{.Filename}}, err={{.Error}}"
+    "translation": "無法讀取時區設定 檔案={{.Filename}}，錯誤={{.Error}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4596,7 +4588,7 @@
   },
   {
     "id": "model.channel_member.is_valid.mute_value.app_error",
-    "translation": "Invalid muting value"
+    "translation": "無效的靜音值"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -5052,23 +5044,23 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "訊息匯出工作的 ExportFormat 為 'globalrelay' 但缺少 GlobalRelaySettings "
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+    "translation": "訊息匯出工作 GlobalRelaySettings。CustomerType 必須為 'A9' 或 'A10'"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "訊息匯出工作的 GlobalRelayEmailAddress 必須為 'actiance' 或 'globalrelay'"
+    "translation": "訊息匯出工作 GlobalRelaySettings。EmailAddress 必須為有效的郵件地址"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+    "translation": "訊息匯出工作 GlobalRelaySettings。SmtpPassword 必須有值"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
+    "translation": "訊息匯出工作 GlobalRelaySettings。SmtpUsername 必須有值"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
@@ -6500,15 +6492,15 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "無法判定最大支援的訊息大小"
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d characters (%d bytes)"
+    "translation": "Post.Message 支援最多 %d 字元 (%d 位元)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
-    "translation": "No implementation found to determine the maximum supported post size"
+    "translation": "找不到實作以判定最大支援的訊息大小"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6640,27 +6632,27 @@
   },
   {
     "id": "store.sql_role.get.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法取得角色"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法取得角色"
   },
   {
     "id": "store.sql_role.get_by_names.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法取得角色"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Unable to save new role"
+    "translation": "無法儲存新角色"
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "The role was not valid"
+    "translation": "該角色無效"
   },
   {
     "id": "store.sql_role.save.update.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法更新角色"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
