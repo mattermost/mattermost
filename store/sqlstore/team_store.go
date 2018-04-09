@@ -60,19 +60,17 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 
 	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
 	// them from ExplicitRoles field.
+	schemeUser := db.SchemeUser
+	schemeAdmin := db.SchemeAdmin
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
-		if db.TeamSchemeDefaultUserRole.Valid && role == db.TeamSchemeDefaultUserRole.String {
-			// We have an implicit role via team scheme.
+		if role == model.TEAM_USER_ROLE_ID {
+			// We have an implicit role via the system scheme. Override the "schemeUser" field to true.
+			schemeUser = true
 			isImplicit = true
-		} else if !db.TeamSchemeDefaultUserRole.Valid && role == model.TEAM_USER_ROLE_ID {
+		} else if role == model.TEAM_ADMIN_ROLE_ID {
 			// We have an implicit role via the system scheme.
-			isImplicit = true
-		} else if db.TeamSchemeDefaultAdminRole.Valid && role == db.TeamSchemeDefaultAdminRole.String {
-			// We have an implicit role via team scheme.
-			isImplicit = true
-		} else if !db.TeamSchemeDefaultAdminRole.Valid && role == model.TEAM_ADMIN_ROLE_ID {
-			// We have an implicit role via the system scheme.
+			schemeAdmin = true
 			isImplicit = true
 		}
 
@@ -116,8 +114,8 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 		UserId:        db.UserId,
 		Roles:         strings.Join(roles, " "),
 		DeleteAt:      db.DeleteAt,
-		SchemeUser:    db.SchemeUser,
-		SchemeAdmin:   db.SchemeAdmin,
+		SchemeUser:    schemeUser,
+		SchemeAdmin:   schemeAdmin,
 		ExplicitRoles: strings.Join(explicitRoles, " "),
 	}
 	return tm
