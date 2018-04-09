@@ -181,4 +181,3 @@ func (wsc *WebSocketClient) GetStatusesByIds(userIds []string) {
 	}
 	wsc.SendMessage("get_statuses_by_ids", data)
 }
-
