@@ -29,12 +29,12 @@ type WebSocketClient struct {
 // NewWebSocketClient constructs a new WebSocket client with convenience
 // methods for talking to the server.
 func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
-	return NewWebSocketClientWithDialer(url, authToken, websocket.DefaultDialer)
+	return NewWebSocketClientWithDialer(websocket.DefaultDialer, url, authToken)
 }
 
-// NewWebSocketClientWithDialer constructs a new WebSocket client with convienence
+// NewWebSocketClientWithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer.
-func NewWebSocketClientWithDialer(url, authToken string, dialer *websocket.Dialer) (*WebSocketClient, *AppError) {
+func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
 	conn, _, err := dialer.Dial(url+API_URL_SUFFIX_V3+"/users/websocket", nil)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -60,12 +60,12 @@ func NewWebSocketClientWithDialer(url, authToken string, dialer *websocket.Diale
 // NewWebSocketClient4 constructs a new WebSocket client with convenience
 // methods for talking to the server. Uses the v4 endpoint.
 func NewWebSocketClient4(url, authToken string) (*WebSocketClient, *AppError) {
-	return NewWebSocketClient4WithDialer(url, authToken, websocket.DefaultDialer)
+	return NewWebSocketClient4WithDialer(websocket.DefaultDialer, url, authToken)
 }
 
-// NewWebSocketClient4WithDialer constructs a new WebSocket client with convienence
+// NewWebSocketClient4WithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer. Uses the v4 endpoint.
-func NewWebSocketClient4WithDialer(url, authToken string, dialer *websocket.Dialer) (*WebSocketClient, *AppError) {
+func NewWebSocketClient4WithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
 	conn, _, err := dialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient4", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
