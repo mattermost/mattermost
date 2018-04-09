@@ -108,6 +108,6 @@ endif
 package: package-linux package-windows package-osx
 	tar -xzf $(DIST_PATH)-$(BUILD_TYPE_NAME)-$(shell $(GO) env GOOS)-amd64.tar.gz \
 		--wildcards "*/bin/platform*" --to-stdout > $(DIST_PATH)/bin/platform
-ifeq($(BUILDER_GOOS_GOARCH), "windows_amd64")
+ifeq ($(BUILDER_GOOS_GOARCH), "windows_amd64")
 	mv $(DIST_PATH)/bin/platform $(DIST_PATH)/bin/platform.exe
 endif
