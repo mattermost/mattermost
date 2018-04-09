@@ -188,7 +188,7 @@ func NewConfigWatcher(cfgFileName string, f func()) (*ConfigWatcher, error) {
 					if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
 						l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
 
-						if _, configReadErr := ReadConfigFile(cfgFileName, true); configReadErr == nil {
+						if _, _, configReadErr := ReadConfigFile(cfgFileName, true); configReadErr == nil {
 							f()
 						} else {
 							l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
@@ -212,11 +212,11 @@ func (w *ConfigWatcher) Close() {
 }
 
 // ReadConfig reads and parses the given configuration.
-func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, error) {
+func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map[string]interface{}, error) {
 	v := newViper(allowEnvironmentOverrides)
 
 	if err := v.ReadConfig(r); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var config model.Config
@@ -227,7 +227,15 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, err
 		config.PluginSettings = model.PluginSettings{}
 		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
 	}
-	return &config, unmarshalErr
+
+	envConfig := v.EnvSettings()
+
+	var envErr error
+	if envConfig, envErr = fixEnvSettingsCase(envConfig); envErr != nil {
+		return nil, nil, envErr
+	}
+
+	return &config, envConfig, unmarshalErr
 }
 
 func newViper(allowEnvironmentOverrides bool) *viper.Viper {
@@ -254,13 +262,19 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 
 // Converts a struct type into a nested map with keys matching the struct's fields and values
 // matching the zeroed value of the corresponding field.
-func structToMap(t reflect.Type) map[string]interface{} {
+func structToMap(t reflect.Type) (out map[string]interface{}) {
+	defer func() {
+		if r := recover(); r != nil {
+			l4g.Error("Panicked in structToMap. This should never happen. %v", r)
+		}
+	}()
+
 	if t.Kind() != reflect.Struct {
 		// Should never hit this, but this will prevent a panic if that does happen somehow
 		return nil
 	}
 
-	out := make(map[string]interface{})
+	out = map[string]interface{}{}
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -279,7 +293,7 @@ func structToMap(t reflect.Type) map[string]interface{} {
 		out[field.Name] = value
 	}
 
-	return out
+	return
 }
 
 // Flattens a nested map so that the result is a single map with keys corresponding to the
@@ -313,11 +327,51 @@ func flattenStructToMap(in map[string]interface{}) map[string]interface{} {
 	return out
 }
 
+// Fixes the case of the environment variables sent back from Viper since Viper stores
+// everything as lower case.
+func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			l4g.Error("Panicked in fixEnvSettingsCase. This should never happen. %v", r)
+			out = in
+		}
+	}()
+
+	var fixCase func(map[string]interface{}, reflect.Type) map[string]interface{}
+	fixCase = func(in map[string]interface{}, t reflect.Type) map[string]interface{} {
+		if t.Kind() != reflect.Struct {
+			// Should never hit this, but this will prevent a panic if that does happen somehow
+			return nil
+		}
+
+		out := make(map[string]interface{}, len(in))
+
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+
+			key := field.Name
+			if value, ok := in[strings.ToLower(key)]; ok {
+				if valueAsMap, ok := value.(map[string]interface{}); ok {
+					out[key] = fixCase(valueAsMap, field.Type)
+				} else {
+					out[key] = value
+				}
+			}
+		}
+
+		return out
+	}
+
+	out = fixCase(in, reflect.TypeOf(model.Config{}))
+
+	return
+}
+
 // ReadConfigFile reads and parses the configuration at the given file path.
-func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config, error) {
+func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config, map[string]interface{}, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer f.Close()
 	return ReadConfig(f, allowEnvironmentOverrides)
@@ -352,22 +406,24 @@ func EnsureConfigFile(fileName string) (string, error) {
 // LoadConfig will try to search around for the corresponding config file.  It will search
 // /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
 // fileName.
-func LoadConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
+func LoadConfig(fileName string) (*model.Config, string, map[string]interface{}, *model.AppError) {
+	var configPath string
+
 	if fileName != filepath.Base(fileName) {
 		configPath = fileName
 	} else {
 		if path, err := EnsureConfigFile(fileName); err != nil {
-			appErr = model.NewAppError("LoadConfig", "utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-			return
+			appErr := model.NewAppError("LoadConfig", "utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
+			return nil, "", nil, appErr
 		} else {
 			configPath = path
 		}
 	}
 
-	config, err := ReadConfigFile(configPath, true)
+	config, envConfig, err := ReadConfigFile(configPath, true)
 	if err != nil {
-		appErr = model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-		return
+		appErr := model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
+		return nil, "", nil, appErr
 	}
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
@@ -376,7 +432,7 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		return nil, "", err
+		return nil, "", nil, err
 	}
 
 	if needSave {
@@ -398,7 +454,7 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 		}
 	}
 
-	return config, configPath, nil
+	return config, configPath, envConfig, nil
 }
 
 func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {

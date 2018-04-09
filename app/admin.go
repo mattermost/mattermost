@@ -156,6 +156,10 @@ func (a *App) GetConfig() *model.Config {
 	return cfg
 }
 
+func (a *App) GetEnvironmentConfig() map[string]interface{} {
+	return a.EnvironmentConfig()
+}
+
 func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
 	oldCfg := a.Config()
 	cfg.SetDefaults()
