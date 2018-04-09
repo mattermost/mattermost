@@ -18,7 +18,7 @@ import (
 
 func TestConfig(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	InitTranslations(cfg.LocalizationSettings)
 }
@@ -67,7 +67,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_TEAMSETTINGS_SITENAME", "From Environment")
 		os.Setenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT", "Custom Brand")
 
-		cfg, err := ReadConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		if cfg.TeamSettings.SiteName != "From Environment" {
@@ -78,14 +78,32 @@ func TestConfigFromEnviroVars(t *testing.T) {
 			t.Fatal("Couldn't read config from environment var")
 		}
 
+		if teamSettings, ok := envCfg["TeamSettings"]; !ok {
+			t.Fatal("TeamSettings is missing from envConfig")
+		} else if teamSettingsAsMap, ok := teamSettings.(map[string]interface{}); !ok {
+			t.Fatal("TeamSettings is not a map in envConfig")
+		} else {
+			if siteNameInEnv, ok := teamSettingsAsMap["SiteName"].(bool); !ok || !siteNameInEnv {
+				t.Fatal("SiteName should be in envConfig")
+			}
+
+			if customBrandTextInEnv, ok := teamSettingsAsMap["CustomBrandText"].(bool); !ok || !customBrandTextInEnv {
+				t.Fatal("SiteName should be in envConfig")
+			}
+		}
+
 		os.Unsetenv("MM_TEAMSETTINGS_SITENAME")
 		os.Unsetenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT")
 
-		cfg, err = ReadConfig(strings.NewReader(config), true)
+		cfg, envCfg, err = ReadConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		if cfg.TeamSettings.SiteName != "Mattermost" {
 			t.Fatal("should have been reset")
+		}
+
+		if _, ok := envCfg["TeamSettings"]; ok {
+			t.Fatal("TeamSettings should be missing from envConfig")
 		}
 	})
 
@@ -93,11 +111,21 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_ENABLECOMMANDS", "false")
 		defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECOMMANDS")
 
-		cfg, err := ReadConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		if *cfg.ServiceSettings.EnableCommands {
 			t.Fatal("Couldn't read config from environment var")
+		}
+
+		if serviceSettings, ok := envCfg["ServiceSettings"]; !ok {
+			t.Fatal("ServiceSettings is missing from envConfig")
+		} else if serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{}); !ok {
+			t.Fatal("ServiceSettings is not a map in envConfig")
+		} else {
+			if enableCommandsInEnv, ok := serviceSettingsAsMap["EnableCommands"].(bool); !ok || !enableCommandsInEnv {
+				t.Fatal("EnableCommands should be in envConfig")
+			}
 		}
 	})
 
@@ -105,11 +133,21 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
 		defer os.Unsetenv("MM_SERVICESETTINGS_READTIMEOUT")
 
-		cfg, err := ReadConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		if *cfg.ServiceSettings.ReadTimeout != 400 {
 			t.Fatal("Couldn't read config from environment var")
+		}
+
+		if serviceSettings, ok := envCfg["ServiceSettings"]; !ok {
+			t.Fatal("ServiceSettings is missing from envConfig")
+		} else if serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{}); !ok {
+			t.Fatal("ServiceSettings is not a map in envConfig")
+		} else {
+			if readTimeoutInEnv, ok := serviceSettingsAsMap["ReadTimeout"].(bool); !ok || !readTimeoutInEnv {
+				t.Fatal("ReadTimeout should be in envConfig")
+			}
 		}
 	})
 
@@ -117,18 +155,28 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "https://example.com")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		cfg, err := ReadConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		if *cfg.ServiceSettings.SiteURL != "https://example.com" {
 			t.Fatal("Couldn't read config from environment var")
+		}
+
+		if serviceSettings, ok := envCfg["ServiceSettings"]; !ok {
+			t.Fatal("ServiceSettings is missing from envConfig")
+		} else if serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{}); !ok {
+			t.Fatal("ServiceSettings is not a map in envConfig")
+		} else {
+			if siteURLInEnv, ok := serviceSettingsAsMap["SiteURL"].(bool); !ok || !siteURLInEnv {
+				t.Fatal("SiteURL should be in envConfig")
+			}
 		}
 	})
 }
 
 func TestValidateLocales(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
 	*cfg.LocalizationSettings.DefaultServerLocale = "en"
@@ -326,18 +374,6 @@ func TestGetClientConfig(t *testing.T) {
 			}
 		})
 	}
-
-}
-
-func TestReadConfig(t *testing.T) {
-	config, err := ReadConfig(strings.NewReader(`{
-		"ServiceSettings": {
-			"SiteURL": "http://foo.bar"
-		}
-	}`), false)
-	require.NoError(t, err)
-
-	assert.Equal(t, "http://foo.bar", *config.ServiceSettings.SiteURL)
 }
 
 func sToP(s string) *string {

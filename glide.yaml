@@ -49,6 +49,8 @@ import:
   version: 2.1.1
 - package: github.com/spf13/cobra
 - package: github.com/spf13/viper
+  vcs: git
+  repo: https://github.com/hmhealey/viper.git
 - package: github.com/stretchr/testify
   version: v1.2.1
   subpackages:

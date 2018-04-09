@@ -161,6 +161,70 @@ func TestUpdateConfig(t *testing.T) {
 	})
 }
 
+func TestGetEnvironmentConfig(t *testing.T) {
+	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
+	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
+	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	t.Run("as system admin", func(t *testing.T) {
+		SystemAdminClient := th.SystemAdminClient
+
+		envConfig, resp := SystemAdminClient.GetEnvironmentConfig()
+		CheckNoError(t, resp)
+
+		if serviceSettings, ok := envConfig["ServiceSettings"]; !ok {
+			t.Fatal("should've returned ServiceSettings")
+		} else if serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{}); !ok {
+			t.Fatal("should've returned ServiceSettings as a map")
+		} else {
+			if siteURL, ok := serviceSettingsAsMap["SiteURL"]; !ok {
+				t.Fatal("should've returned ServiceSettings.SiteURL")
+			} else if siteURLAsBool, ok := siteURL.(bool); !ok {
+				t.Fatal("should've returned ServiceSettings.SiteURL as a boolean")
+			} else if !siteURLAsBool {
+				t.Fatal("should've returned ServiceSettings.SiteURL as true")
+			}
+
+			if enableCustomEmoji, ok := serviceSettingsAsMap["EnableCustomEmoji"]; !ok {
+				t.Fatal("should've returned ServiceSettings.EnableCustomEmoji")
+			} else if enableCustomEmojiAsBool, ok := enableCustomEmoji.(bool); !ok {
+				t.Fatal("should've returned ServiceSettings.EnableCustomEmoji as a boolean")
+			} else if !enableCustomEmojiAsBool {
+				t.Fatal("should've returned ServiceSettings.EnableCustomEmoji as true")
+			}
+		}
+
+		if _, ok := envConfig["TeamSettings"]; ok {
+			t.Fatal("should not have returned TeamSettings")
+		}
+	})
+
+	t.Run("as team admin", func(t *testing.T) {
+		TeamAdminClient := th.CreateClient()
+		th.LoginTeamAdminWithClient(TeamAdminClient)
+
+		_, resp := TeamAdminClient.GetEnvironmentConfig()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as regular user", func(t *testing.T) {
+		Client := th.Client
+
+		_, resp := Client.GetEnvironmentConfig()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as not-regular user", func(t *testing.T) {
+		Client := th.CreateClient()
+
+		_, resp := Client.GetEnvironmentConfig()
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
 func TestGetOldClientConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
