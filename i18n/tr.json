@@ -333,15 +333,15 @@
   },
   {
     "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "Failed to post channel conversion to private message"
+    "translation": "Kanal sohbeti özel ileti olarak gönderilemedi"
   },
   {
     "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "Failed to retrieve user while converting the channel from public to private"
+    "translation": "Herkese açık kanal, özel kanala dönüştürülürken kullanıcı alınamadı"
   },
   {
     "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s converted the channel from public to private"
+    "translation": "%s herkese açık kanalı özel kanala dönüştürdü"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[kanal-adı]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -900,35 +900,35 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+    "translation": "Geçerli kanal ya da belirtilen [channel] için masaüstü, e-posta ve anlık bildirimlerini kapatır."
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [channel handle](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_mute.name",
-    "translation": "mute"
+    "translation": "bildirimleri kapat"
   },
   {
     "id": "api.command_mute.success_mute",
-    "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
+    "translation": "Bildirimleri açana kadar {{.Channel}} kanalından bildirim almayacaksınız."
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
-    "translation": "You will not receive notifications for this channel until channel mute is turned off."
+    "translation": "Bildirimleri açana kadar bu kanaldan bildirim almayacaksınız."
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} is no longer muted."
+    "translation": "{{.Channel}} bildirimleri açık."
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
-    "translation": "This channel is no longer muted."
+    "translation": "Bu kanalın bildirimleri açık."
   },
   {
     "id": "api.command_offline.desc",
@@ -1697,20 +1697,12 @@
     "translation": "Multipart/form isteğindeki dosya eksik"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "kullanıcıları bu özel kanala ekle"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "kullanıcıları kanala ekle"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} ve @{{.LastUsername}} anıldı ancak kanalda değiller. {{.Phrase}} ister misiniz? Eklenen kullanıcılar tüm ileti geçmişini görebilirler."
+    "translation": "@{{.Usernames}} ve @{{.LastUsername}} anıldı, ancak bu kanalın üyesi olmadıklarından bildirimleri almayacaklar."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} anıldı ancak kanalda değil. {{.Phrase}} ister misiniz? Eklenen kullanıcı tüm ileti geçmişini görebilir."
+    "translation": "@{{.Username}} anıldı, ancak bu kanalın üyesi olmadıklarından bildirimleri almayacaklar."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -1992,7 +1984,7 @@
   },
   {
     "id": "api.roles.patch_roles.license.error",
-    "translation": "Your current license does not support advanced permissions."
+    "translation": "Geçerli lisansınız gelişmiş özellikleri kullanmanıza izin vermiyor."
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -3820,7 +3812,7 @@
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
-    "translation": "The provided role does not exist"
+    "translation": "Belirtilen rol bulunamadı"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -4596,7 +4588,7 @@
   },
   {
     "id": "model.channel_member.is_valid.mute_value.app_error",
-    "translation": "Invalid muting value"
+    "translation": "Bildirim kapatma değeri geçersiz"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -6500,15 +6492,15 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "Desteklenen en büyük ileti boyutu belirlenemedi"
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d characters (%d bytes)"
+    "translation": "Post.Message en çok %d karakteri (%d bayt) destekliyor"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
-    "translation": "No implementation found to determine the maximum supported post size"
+    "translation": "Desteklenen en büyük ileti boyutunu belirlemek için bir uygulama bulunamadı"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6640,27 +6632,27 @@
   },
   {
     "id": "store.sql_role.get.app_error",
-    "translation": "İleti alınamadı"
+    "translation": "Rol alınamadı"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
-    "translation": "İleti alınamadı"
+    "translation": "Rol alınamadı"
   },
   {
     "id": "store.sql_role.get_by_names.app_error",
-    "translation": "İleti alınamadı"
+    "translation": "Roller alınamadı"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Unable to save new role"
+    "translation": "Yeni rol kaydedilemedi"
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "The role was not valid"
+    "translation": "Rol geçersiz"
   },
   {
     "id": "store.sql_role.save.update.app_error",
-    "translation": "İleti alınamadı"
+    "translation": "Rol güncellenemedi"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

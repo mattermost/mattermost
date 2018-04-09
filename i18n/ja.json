@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "チャンネル変更を非公開メッセージとして投稿できませんでした"
+    "translation": "チャンネル変更について非公開メッセージとして投稿できませんでした"
   },
   {
     "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[チャンネル名]"
+    "translation": "~[チャンネル]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -900,15 +900,15 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "現在のチャンネルか指定された [チャンネル] のデスクトップ、電子メール、プッシュ通知をオフにします"
+    "translation": "現在のチャンネル、もしくは指定された [チャンネル] のデスクトップ、電子メール、プッシュ通知をオフにします"
   },
   {
     "id": "api.command_mute.error",
-    "translation": "チャンネル {{.Channel}} が見つかりませんでした。"
+    "translation": "チャンネル {{.Channel}} が見つかりませんでした。チャンネルの指定には[チャンネルのハンドル名](https://about.mattermost.com/default-channel-handle-documentation)を使用してください"
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[チャンネル]"
+    "translation": "~[チャンネル]"
   },
   {
     "id": "api.command_mute.name",
@@ -1697,20 +1697,12 @@
     "translation": "multipart/formリクエストにファイルが存在しません"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "彼らを非公開チャンネルに追加する"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "彼らをチャンネルに追加する"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} と @{{.LastUsername}} についての投稿が行われましたが、彼らはチャンネルにいません。{{.Phrase}}しますか? 彼らは全てのメッセージ履歴にアクセスできるようになります。"
+    "translation": "@{{.Usernames}}と@{{.LastUsername}}についての投稿が行われましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} についての投稿が行われましたが、彼らはチャンネルにいません。{{.Phrase}}しますか?彼らは全てのメッセージにアクセスできるようになります。"
+    "translation": "@{{.Usernames}}についての投稿が行われましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.create_post.attach_files.error",
