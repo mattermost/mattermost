@@ -102,7 +102,12 @@ else
 endif
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
-	@# Don't clean up native package so dev machines will have an unzipped package available
-	@#rm -f $(DIST_PATH)/bin/platform
+	@# Cleanup
+	rm -f $(DIST_PATH)/bin/platform
 
 package: package-linux package-windows package-osx
+	tar -xzf $(DIST_PATH)-$(BUILD_TYPE_NAME)-$(shell $(GO) env GOOS)-amd64.tar.gz \
+		--wildcards "*/bin/platform*" --to-stdout > $(DIST_PATH)/bin/platform
+ifeq($(BUILDER_GOOS_GOARCH), "windows_amd64")
+	mv $(DIST_PATH)/bin/platform $(DIST_PATH)/bin/platform.exe
+endif
