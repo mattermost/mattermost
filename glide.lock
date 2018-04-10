@@ -1,5 +1,5 @@
-hash: 287b82849f1c7303ee3eb29c9d0879d404469f7df2ba9b37828e55b0320ef11f
-updated: 2018-03-21T13:01:34.996412416+01:00
+hash: 7d775d1a082e77da96bee605ebea97ba0230e270f7169fade50f64e5fe7842cb
+updated: 2018-04-05T18:31:48.282177324+02:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -117,6 +117,8 @@ imports:
   version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a
 - name: github.com/mattermost/html2text
   version: d47a5532a7bc36ad7b2b8ec3eebe24e975154f94
+- name: github.com/mattermost/minio-go
+  version: e30d3b9eaff9a3fbfa74cda4c56cb22bec264ffa
 - name: github.com/mattermost/rsc
   version: bbaefb05eaa0389ea712340066837c8ce4d287f9
   subpackages:
@@ -130,7 +132,8 @@ imports:
 - name: github.com/miekg/dns
   version: 5364553f1ee9cddc7ac8b62dce148309c386695b
 - name: github.com/minio/minio-go
-  version: 706c81d3ee2a18cdd8239faf544de8a066e7e261
+  version: e30d3b9eaff9a3fbfa74cda4c56cb22bec264ffa
+  repo: https://github.com/mattermost/minio-go.git
   subpackages:
   - pkg/credentials
   - pkg/encrypt
