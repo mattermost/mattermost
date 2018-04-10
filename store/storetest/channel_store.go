@@ -2214,7 +2214,7 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		DisplayName: "Name",
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
-		SchemeId:    s1.Id,
+		SchemeId:    &s1.Id,
 	}
 
 	c2 := &model.Channel{
@@ -2222,7 +2222,7 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		DisplayName: "Name",
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
-		SchemeId:    s1.Id,
+		SchemeId:    &s1.Id,
 	}
 
 	c3 := &model.Channel{

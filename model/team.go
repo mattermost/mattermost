@@ -40,7 +40,7 @@ type Team struct {
 	InviteId           string `json:"invite_id"`
 	AllowOpenInvite    bool   `json:"allow_open_invite"`
 	LastTeamIconUpdate int64  `json:"last_team_icon_update,omitempty"`
-	SchemeId           string `json:"scheme_id"`
+	SchemeId           *string `json:"scheme_id"`
 }
 
 type TeamPatch struct {

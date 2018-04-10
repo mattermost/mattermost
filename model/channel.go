@@ -46,7 +46,7 @@ type Channel struct {
 	TotalMsgCount int64  `json:"total_msg_count"`
 	ExtraUpdateAt int64  `json:"extra_update_at"`
 	CreatorId     string `json:"creator_id"`
-	SchemeId      string `json:"scheme_id"`
+	SchemeId      *string `json:"scheme_id"`
 }
 
 type ChannelPatch struct {

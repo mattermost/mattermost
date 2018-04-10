@@ -149,8 +149,8 @@ func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, *model.AppEr
 		return "", "", err
 	}
 
-	if len(team.SchemeId) != 0 {
-		if scheme, err := a.GetScheme(team.SchemeId); err != nil {
+	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
+		if scheme, err := a.GetScheme(*team.SchemeId); err != nil {
 			return "", "", err
 		} else {
 			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil

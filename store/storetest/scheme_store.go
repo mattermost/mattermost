@@ -268,7 +268,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Email:       model.NewId() + "@nowhere.com",
 		Type:        model.TEAM_OPEN,
-		SchemeId:    d4.Id,
+		SchemeId:    &d4.Id,
 	}
 	tres4 := <-ss.Team().Save(t4)
 	assert.Nil(t, tres4.Err)
@@ -292,7 +292,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
-		SchemeId:    d5.Id,
+		SchemeId:    &d5.Id,
 	}
 	cres5 := <-ss.Channel().Save(c5, -1)
 	assert.Nil(t, cres5.Err)

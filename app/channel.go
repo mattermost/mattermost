@@ -443,8 +443,8 @@ func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, *model
 		return "", "", err
 	}
 
-	if len(channel.SchemeId) != 0 {
-		if scheme, err := a.GetScheme(channel.SchemeId); err != nil {
+	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+		if scheme, err := a.GetScheme(*channel.SchemeId); err != nil {
 			return "", "", err
 		} else {
 			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
@@ -457,8 +457,8 @@ func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, *model
 		return "", "", err
 	}
 
-	if len(team.SchemeId) != 0 {
-		if scheme, err := a.GetScheme(team.SchemeId); err != nil {
+	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
+		if scheme, err := a.GetScheme(*team.SchemeId); err != nil {
 			return "", "", err
 		} else {
 			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil

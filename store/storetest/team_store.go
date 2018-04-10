@@ -1058,7 +1058,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Email:       model.NewId() + "@nowhere.com",
 		Type:        model.TEAM_OPEN,
-		SchemeId:    s1.Id,
+		SchemeId:    &s1.Id,
 	}
 
 	t2 := &model.Team{
@@ -1066,7 +1066,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Email:       model.NewId() + "@nowhere.com",
 		Type:        model.TEAM_OPEN,
-		SchemeId:    s1.Id,
+		SchemeId:    &s1.Id,
 	}
 
 	t3 := &model.Team{
