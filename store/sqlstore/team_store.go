@@ -122,7 +122,7 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 }
 
 func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
-	var tms []*model.TeamMember
+	tms := make([]*model.TeamMember, 0)
 
 	for _, tm := range db {
 		tms = append(tms, tm.ToModel())
