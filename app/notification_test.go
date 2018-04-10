@@ -234,6 +234,12 @@ func TestGetExplicitMentions(t *testing.T) {
 				OtherPotentialMentions: []string{"potential"},
 			},
 		},
+		"PotentialOutOfChannelUserWithPeriod": {
+			Message: "this is an message for @potential.user",
+			Expected: &ExplicitMentions{
+				OtherPotentialMentions: []string{"potential.user"},
+			},
+		},
 		"InlineCode": {
 			Message:  "`this shouldn't mention @channel at all`",
 			Keywords: map[string][]string{},
