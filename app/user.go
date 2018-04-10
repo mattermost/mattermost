@@ -34,7 +34,9 @@ import (
 const (
 	TOKEN_TYPE_PASSWORD_RECOVERY  = "password_recovery"
 	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
-	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60 // 1 hour
+	TOKEN_TYPE_TEAM_INVITATION    = "team_invitation"
+	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60      // 1 hour
+	TEAM_INVITATION_EXPIRY_TIME   = 1000 * 60 * 60 * 48 // 48 hours
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
@@ -49,8 +51,18 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	if t, err := strconv.ParseInt(props["time"], 10, 64); err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+	result := <-a.Srv.Store.Token().GetByToken(props["token"])
+	if result.Err != nil {
+		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	}
+
+	token := result.Data.(*model.Token)
+	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
 		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	teamId := props["id"]
@@ -76,6 +88,10 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 	}
 
 	a.AddDirectChannels(team.Id, ruser)
+
+	if err := a.DeleteToken(token); err != nil {
+		return nil, err
+	}
 
 	return ruser, nil
 }

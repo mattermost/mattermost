@@ -21,6 +21,10 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+const (
+	OAUTH_EXPIRY_TIME = 1000 * 60 * 60 * 48 // 48 hours
+)
+
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	if result := <-a.Srv.Store.Team().Save(team); result.Err != nil {
 		return nil, result.Err
@@ -223,8 +227,17 @@ func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*mod
 		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	t, timeErr := strconv.ParseInt(props["time"], 10, 64)
-	if timeErr != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+	result := <-a.Srv.Store.Token().GetByToken(props["token"])
+	if result.Err != nil {
+		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	}
+
+	token := result.Data.(*model.Token)
+	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
 		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -246,6 +259,10 @@ func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*mod
 	}
 
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {
+		return nil, err
+	}
+
+	if err := a.DeleteToken(token); err != nil {
 		return nil, err
 	}
 
@@ -886,7 +903,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		}
 
 		t, err := strconv.ParseInt(props["time"], 10, 64)
-		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+		if err != nil || model.GetMillis()-t > OAUTH_EXPIRY_TIME {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
