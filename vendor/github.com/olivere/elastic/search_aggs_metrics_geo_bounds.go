@@ -6,7 +6,7 @@ package elastic
 
 // GeoBoundsAggregation is a metric aggregation that computes the
 // bounding box containing all geo_point values for a field.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-metrics-geobounds-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-metrics-geobounds-aggregation.html
 type GeoBoundsAggregation struct {
 	field           string
 	script          *Script

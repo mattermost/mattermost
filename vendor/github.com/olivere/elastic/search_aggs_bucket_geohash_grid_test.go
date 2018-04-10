@@ -23,6 +23,24 @@ func TestGeoHashGridAggregation(t *testing.T) {
 	}
 }
 
+func TestGeoHashGridAggregation_PrecisionAsString(t *testing.T) {
+	agg := NewGeoHashGridAggregation().Field("location").Precision("2km")
+	src, err := agg.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("Marshalling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"geohash_grid":{"field":"location","precision":"2km"}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
 func TestGeoHashGridAggregationWithMetaData(t *testing.T) {
 	agg := NewGeoHashGridAggregation().Field("location").Precision(5)
 	agg = agg.Meta(map[string]interface{}{"name": "Oliver"})

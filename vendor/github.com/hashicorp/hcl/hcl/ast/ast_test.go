@@ -137,7 +137,7 @@ func TestWalkEquality(t *testing.T) {
 	}
 
 	if len(newNode.Items) != 2 {
-		t.Error("expected newNode length 2, got: %d", len(newNode.Items))
+		t.Errorf("expected newNode length 2, got: %d", len(newNode.Items))
 	}
 
 	expected := []string{
@@ -147,7 +147,7 @@ func TestWalkEquality(t *testing.T) {
 
 	for i, item := range newNode.Items {
 		if len(item.Keys) != 1 {
-			t.Error("expected keys newNode length 1, got: %d", len(item.Keys))
+			t.Errorf("expected keys newNode length 1, got: %d", len(item.Keys))
 		}
 
 		if item.Keys[0].Token.Text != expected[i] {

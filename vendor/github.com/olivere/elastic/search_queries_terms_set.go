@@ -12,7 +12,7 @@ package elastic
 // minimum should match script.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.1/query-dsl-terms-set-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-terms-set-query.html
 type TermsSetQuery struct {
 	name                     string
 	values                   []interface{}

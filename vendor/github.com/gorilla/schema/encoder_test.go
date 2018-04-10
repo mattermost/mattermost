@@ -415,6 +415,5 @@ func TestRegisterEncoderCustomArrayType(t *testing.T) {
 		})
 
 		encoder.Encode(s, vals)
-		t.Log(vals)
 	}
 }

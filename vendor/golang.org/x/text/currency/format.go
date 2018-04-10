@@ -9,9 +9,8 @@ import (
 	"io"
 	"sort"
 
-	"golang.org/x/text/internal"
 	"golang.org/x/text/internal/format"
-	"golang.org/x/text/language"
+	"golang.org/x/text/internal/language/compact"
 )
 
 // Amount is an amount-currency unit pair.
@@ -59,9 +58,9 @@ type formattedValue struct {
 // Format implements fmt.Formatter. It accepts format.State for
 // language-specific rendering.
 func (v formattedValue) Format(s fmt.State, verb rune) {
-	var lang int
+	var lang compact.ID
 	if state, ok := s.(format.State); ok {
-		lang, _ = language.CompactIndex(state.Language())
+		lang, _ = compact.RegionalID(compact.Tag(state.Language()))
 	}
 
 	// Get the options. Use DefaultFormat if not present.
@@ -138,7 +137,7 @@ type options struct {
 	currency Unit
 	kind     Kind
 
-	symbol func(compactIndex int, c Unit) string
+	symbol func(compactIndex compact.ID, c Unit) string
 }
 
 func (o *options) format(amount interface{}) formattedValue {
@@ -177,9 +176,9 @@ func formISO(x interface{}) formattedValue    { return optISO.format(x) }
 func formSymbol(x interface{}) formattedValue { return optSymbol.format(x) }
 func formNarrow(x interface{}) formattedValue { return optNarrow.format(x) }
 
-func lookupISO(x int, c Unit) string    { return c.String() }
-func lookupSymbol(x int, c Unit) string { return normalSymbol.lookup(x, c) }
-func lookupNarrow(x int, c Unit) string { return narrowSymbol.lookup(x, c) }
+func lookupISO(x compact.ID, c Unit) string    { return c.String() }
+func lookupSymbol(x compact.ID, c Unit) string { return normalSymbol.lookup(x, c) }
+func lookupNarrow(x compact.ID, c Unit) string { return narrowSymbol.lookup(x, c) }
 
 type symbolIndex struct {
 	index []uint16 // position corresponds with compact index of language.
@@ -191,7 +190,7 @@ var (
 	narrowSymbol = symbolIndex{narrowLangIndex, narrowSymIndex}
 )
 
-func (x *symbolIndex) lookup(lang int, c Unit) string {
+func (x *symbolIndex) lookup(lang compact.ID, c Unit) string {
 	for {
 		index := x.data[x.index[lang]:x.index[lang+1]]
 		i := sort.Search(len(index), func(i int) bool {
@@ -209,7 +208,7 @@ func (x *symbolIndex) lookup(lang int, c Unit) string {
 		if lang == 0 {
 			break
 		}
-		lang = int(internal.Parent[lang])
+		lang = lang.Parent()
 	}
 	return c.String()
 }

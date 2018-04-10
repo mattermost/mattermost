@@ -20,7 +20,7 @@ import (
 // optimization information, data "wasted" on deletes, and so on.
 //
 // Find further documentation at
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.1/indices-segments.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-segments.html.
 type IndicesSegmentsService struct {
 	client             *Client
 	pretty             bool

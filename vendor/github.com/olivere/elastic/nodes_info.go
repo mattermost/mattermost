@@ -16,7 +16,7 @@ import (
 
 // NodesInfoService allows to retrieve one or more or all of the
 // cluster nodes information.
-// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.0/cluster-nodes-info.html.
+// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.2/cluster-nodes-info.html.
 type NodesInfoService struct {
 	client       *Client
 	pretty       bool
@@ -136,6 +136,7 @@ type NodesInfoResponse struct {
 	Nodes       map[string]*NodesInfoNode `json:"nodes"`
 }
 
+// NodesInfoNode represents information about a node in the cluster.
 type NodesInfoNode struct {
 	// Name of the node, e.g. "Mister Fear"
 	Name string `json:"name"`
@@ -147,15 +148,21 @@ type NodesInfoNode struct {
 	IP string `json:"ip"`
 	// Version is the Elasticsearch version running on the node, e.g. "1.4.3"
 	Version string `json:"version"`
-	// Build is the Elasticsearch build, e.g. "36a29a7"
-	Build string `json:"build"`
-	// HTTPAddress, e.g. "127.0.0.1:9200"
-	HTTPAddress string `json:"http_address"`
-	// HTTPSAddress, e.g. "127.0.0.1:9200"
-	HTTPSAddress string `json:"https_address"`
+	// BuildHash is the Elasticsearch build bash, e.g. "36a29a7"
+	BuildHash string `json:"build_hash"`
+
+	// TotalIndexingBuffer represents the total heap allowed to be used to
+	// hold recently indexed documents before they must be written to disk.
+	TotalIndexingBuffer int64 `json:"total_indexing_buffer"` // e.g. 16gb
+	// TotalIndexingBufferInBytes is the same as TotalIndexingBuffer, but
+	// expressed in bytes.
+	TotalIndexingBufferInBytes int64 `json:"total_indexing_buffer_in_bytes"`
+
+	// Roles of the node, e.g. [master, ingest, data]
+	Roles []string `json:"roles"`
 
 	// Attributes of the node.
-	Attributes map[string]interface{} `json:"attributes"`
+	Attributes map[string]string `json:"attributes"`
 
 	// Settings of the node, e.g. paths and pidfile.
 	Settings map[string]interface{} `json:"settings"`
@@ -173,9 +180,6 @@ type NodesInfoNode struct {
 	ThreadPool *NodesInfoNodeThreadPool `json:"thread_pool"`
 
 	// Network information.
-	Network *NodesInfoNodeNetwork `json:"network"`
-
-	// Network information.
 	Transport *NodesInfoNodeTransport `json:"transport"`
 
 	// HTTP information.
@@ -183,120 +187,141 @@ type NodesInfoNode struct {
 
 	// Plugins information.
 	Plugins []*NodesInfoNodePlugin `json:"plugins"`
+
+	// Modules information.
+	Modules []*NodesInfoNodeModule `json:"modules"`
+
+	// Ingest information.
+	Ingest *NodesInfoNodeIngest `json:"ingest"`
 }
 
+// HasRole returns true if the node fulfills the given role.
+func (n *NodesInfoNode) HasRole(role string) bool {
+	for _, r := range n.Roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
+}
+
+// IsMaster returns true if the node is a master node.
+func (n *NodesInfoNode) IsMaster() bool {
+	return n.HasRole("master")
+}
+
+// IsData returns true if the node is a data node.
+func (n *NodesInfoNode) IsData() bool {
+	return n.HasRole("data")
+}
+
+// IsIngest returns true if the node is an ingest node.
+func (n *NodesInfoNode) IsIngest() bool {
+	return n.HasRole("ingest")
+}
+
+// NodesInfoNodeOS represents OS-specific details about a node.
 type NodesInfoNodeOS struct {
 	RefreshInterval         string `json:"refresh_interval"`           // e.g. 1s
 	RefreshIntervalInMillis int    `json:"refresh_interval_in_millis"` // e.g. 1000
+	Name                    string `json:"name"`                       // e.g. Linux
+	Arch                    string `json:"arch"`                       // e.g. amd64
+	Version                 string `json:"version"`                    // e.g. 4.9.87-linuxkit-aufs
 	AvailableProcessors     int    `json:"available_processors"`       // e.g. 4
-
-	// CPU information
-	CPU struct {
-		Vendor           string `json:"vendor"`              // e.g. Intel
-		Model            string `json:"model"`               // e.g. iMac15,1
-		MHz              int    `json:"mhz"`                 // e.g. 3500
-		TotalCores       int    `json:"total_cores"`         // e.g. 4
-		TotalSockets     int    `json:"total_sockets"`       // e.g. 4
-		CoresPerSocket   int    `json:"cores_per_socket"`    // e.g. 16
-		CacheSizeInBytes int    `json:"cache_size_in_bytes"` // e.g. 256
-	} `json:"cpu"`
-
-	// Mem information
-	Mem struct {
-		Total        string `json:"total"`          // e.g. 16gb
-		TotalInBytes int    `json:"total_in_bytes"` // e.g. 17179869184
-	} `json:"mem"`
-
-	// Swap information
-	Swap struct {
-		Total        string `json:"total"`          // e.g. 1gb
-		TotalInBytes int    `json:"total_in_bytes"` // e.g. 1073741824
-	} `json:"swap"`
+	AllocatedProcessors     int    `json:"allocated_processors"`       // e.g. 4
 }
 
+// NodesInfoNodeProcess represents process-related information.
 type NodesInfoNodeProcess struct {
 	RefreshInterval         string `json:"refresh_interval"`           // e.g. 1s
-	RefreshIntervalInMillis int    `json:"refresh_interval_in_millis"` // e.g. 1000
+	RefreshIntervalInMillis int64  `json:"refresh_interval_in_millis"` // e.g. 1000
 	ID                      int    `json:"id"`                         // process id, e.g. 87079
-	MaxFileDescriptors      int    `json:"max_file_descriptors"`       // e.g. 32768
 	Mlockall                bool   `json:"mlockall"`                   // e.g. false
 }
 
+// NodesInfoNodeJVM represents JVM-related information.
 type NodesInfoNodeJVM struct {
-	PID               int       `json:"pid"`        // process id, e.g. 87079
-	Version           string    `json:"version"`    // e.g. "1.8.0_25"
-	VMName            string    `json:"vm_name"`    // e.g. "Java HotSpot(TM) 64-Bit Server VM"
-	VMVersion         string    `json:"vm_version"` // e.g. "25.25-b02"
-	VMVendor          string    `json:"vm_vendor"`  // e.g. "Oracle Corporation"
-	StartTime         time.Time `json:"start_time"` // e.g. "2015-01-03T15:18:30.982Z"
-	StartTimeInMillis int64     `json:"start_time_in_millis"`
+	PID               int       `json:"pid"`                  // process id, e.g. 87079
+	Version           string    `json:"version"`              // e.g. "1.8.0_161"
+	VMName            string    `json:"vm_name"`              // e.g. "OpenJDK 64-Bit Server VM"
+	VMVersion         string    `json:"vm_version"`           // e.g. "25.161-b14"
+	VMVendor          string    `json:"vm_vendor"`            // e.g. "Oracle Corporation"
+	StartTime         time.Time `json:"start_time"`           // e.g. "2018-03-30T11:06:36.644Z"
+	StartTimeInMillis int64     `json:"start_time_in_millis"` // e.g. 1522407996644
 
 	// Mem information
 	Mem struct {
-		HeapInit           string `json:"heap_init"` // e.g. 1gb
-		HeapInitInBytes    int    `json:"heap_init_in_bytes"`
-		HeapMax            string `json:"heap_max"` // e.g. 4gb
-		HeapMaxInBytes     int    `json:"heap_max_in_bytes"`
-		NonHeapInit        string `json:"non_heap_init"` // e.g. 2.4mb
-		NonHeapInitInBytes int    `json:"non_heap_init_in_bytes"`
-		NonHeapMax         string `json:"non_heap_max"` // e.g. 0b
-		NonHeapMaxInBytes  int    `json:"non_heap_max_in_bytes"`
-		DirectMax          string `json:"direct_max"` // e.g. 4gb
-		DirectMaxInBytes   int    `json:"direct_max_in_bytes"`
+		HeapInit           string `json:"heap_init"`              // e.g. "1gb"
+		HeapInitInBytes    int    `json:"heap_init_in_bytes"`     // e.g. 1073741824
+		HeapMax            string `json:"heap_max"`               // e.g. "1007.3mb"
+		HeapMaxInBytes     int    `json:"heap_max_in_bytes"`      // e.g. 1056309248
+		NonHeapInit        string `json:"non_heap_init"`          // e.g. "2.4mb"
+		NonHeapInitInBytes int    `json:"non_heap_init_in_bytes"` // e.g. 2555904
+		NonHeapMax         string `json:"non_heap_max"`           // e.g. "0b"
+		NonHeapMaxInBytes  int    `json:"non_heap_max_in_bytes"`  // e.g. 0
+		DirectMax          string `json:"direct_max"`             // e.g. "1007.3mb"
+		DirectMaxInBytes   int    `json:"direct_max_in_bytes"`    // e.g. 1056309248
 	} `json:"mem"`
 
-	GCCollectors []string `json:"gc_collectors"` // e.g. ["ParNew"]
-	MemoryPools  []string `json:"memory_pools"`  // e.g. ["Code Cache", "Metaspace"]
+	GCCollectors []string `json:"gc_collectors"` // e.g. ["ParNew", "ConcurrentMarkSweep"]
+	MemoryPools  []string `json:"memory_pools"`  // e.g. ["Code Cache", "Metaspace", "Compressed Class Space", "Par Eden Space", "Par Survivor Space", "CMS Old Gen"]
+
+	// UsingCompressedOrdinaryObjectPointers should be a bool, but is a
+	// string in 6.2.3. We use an interface{} for now so that it won't break
+	// when this will be fixed in later versions of Elasticsearch.
+	UsingCompressedOrdinaryObjectPointers interface{} `json:"using_compressed_ordinary_object_pointers"`
+
+	InputArguments []string `json:"input_arguments"` // e.g. ["-Xms1g", "-Xmx1g" ...]
 }
 
+// NodesInfoNodeThreadPool represents information about the thread pool.
 type NodesInfoNodeThreadPool struct {
-	Percolate  *NodesInfoNodeThreadPoolSection `json:"percolate"`
-	Bench      *NodesInfoNodeThreadPoolSection `json:"bench"`
-	Listener   *NodesInfoNodeThreadPoolSection `json:"listener"`
-	Index      *NodesInfoNodeThreadPoolSection `json:"index"`
-	Refresh    *NodesInfoNodeThreadPoolSection `json:"refresh"`
-	Suggest    *NodesInfoNodeThreadPoolSection `json:"suggest"`
-	Generic    *NodesInfoNodeThreadPoolSection `json:"generic"`
-	Warmer     *NodesInfoNodeThreadPoolSection `json:"warmer"`
-	Search     *NodesInfoNodeThreadPoolSection `json:"search"`
-	Flush      *NodesInfoNodeThreadPoolSection `json:"flush"`
-	Optimize   *NodesInfoNodeThreadPoolSection `json:"optimize"`
-	Management *NodesInfoNodeThreadPoolSection `json:"management"`
-	Get        *NodesInfoNodeThreadPoolSection `json:"get"`
-	Merge      *NodesInfoNodeThreadPoolSection `json:"merge"`
-	Bulk       *NodesInfoNodeThreadPoolSection `json:"bulk"`
-	Snapshot   *NodesInfoNodeThreadPoolSection `json:"snapshot"`
+	ForceMerge        *NodesInfoNodeThreadPoolSection `json:"force_merge"`
+	FetchShardStarted *NodesInfoNodeThreadPoolSection `json:"fetch_shard_started"`
+	Listener          *NodesInfoNodeThreadPoolSection `json:"listener"`
+	Index             *NodesInfoNodeThreadPoolSection `json:"index"`
+	Refresh           *NodesInfoNodeThreadPoolSection `json:"refresh"`
+	Generic           *NodesInfoNodeThreadPoolSection `json:"generic"`
+	Warmer            *NodesInfoNodeThreadPoolSection `json:"warmer"`
+	Search            *NodesInfoNodeThreadPoolSection `json:"search"`
+	Flush             *NodesInfoNodeThreadPoolSection `json:"flush"`
+	FetchShardStore   *NodesInfoNodeThreadPoolSection `json:"fetch_shard_store"`
+	Management        *NodesInfoNodeThreadPoolSection `json:"management"`
+	Get               *NodesInfoNodeThreadPoolSection `json:"get"`
+	Bulk              *NodesInfoNodeThreadPoolSection `json:"bulk"`
+	Snapshot          *NodesInfoNodeThreadPoolSection `json:"snapshot"`
+
+	Percolate *NodesInfoNodeThreadPoolSection `json:"percolate"` // check
+	Bench     *NodesInfoNodeThreadPoolSection `json:"bench"`     // check
+	Suggest   *NodesInfoNodeThreadPoolSection `json:"suggest"`   // deprecated
+	Optimize  *NodesInfoNodeThreadPoolSection `json:"optimize"`  // deprecated
+	Merge     *NodesInfoNodeThreadPoolSection `json:"merge"`     // deprecated
 }
 
+// NodesInfoNodeThreadPoolSection represents information about a certain
+// type of thread pool, e.g. for indexing or searching.
 type NodesInfoNodeThreadPoolSection struct {
-	Type      string      `json:"type"`       // e.g. fixed
+	Type      string      `json:"type"`       // e.g. fixed, scaling, or fixed_auto_queue_size
 	Min       int         `json:"min"`        // e.g. 4
 	Max       int         `json:"max"`        // e.g. 4
 	KeepAlive string      `json:"keep_alive"` // e.g. "5m"
 	QueueSize interface{} `json:"queue_size"` // e.g. "1k" or -1
 }
 
-type NodesInfoNodeNetwork struct {
-	RefreshInterval         string `json:"refresh_interval"`           // e.g. 1s
-	RefreshIntervalInMillis int    `json:"refresh_interval_in_millis"` // e.g. 1000
-	PrimaryInterface        struct {
-		Address    string `json:"address"`     // e.g. 192.168.1.2
-		Name       string `json:"name"`        // e.g. en0
-		MACAddress string `json:"mac_address"` // e.g. 11:22:33:44:55:66
-	} `json:"primary_interface"`
-}
-
+// NodesInfoNodeTransport represents transport-related information.
 type NodesInfoNodeTransport struct {
 	BoundAddress   []string                                  `json:"bound_address"`
 	PublishAddress string                                    `json:"publish_address"`
 	Profiles       map[string]*NodesInfoNodeTransportProfile `json:"profiles"`
 }
 
+// NodesInfoNodeTransportProfile represents a transport profile.
 type NodesInfoNodeTransportProfile struct {
 	BoundAddress   []string `json:"bound_address"`
 	PublishAddress string   `json:"publish_address"`
 }
 
+// NodesInfoNodeHTTP represents HTTP-related information.
 type NodesInfoNodeHTTP struct {
 	BoundAddress            []string `json:"bound_address"`      // e.g. ["127.0.0.1:9200", "[fe80::1]:9200", "[::1]:9200"]
 	PublishAddress          string   `json:"publish_address"`    // e.g. "127.0.0.1:9300"
@@ -304,10 +329,38 @@ type NodesInfoNodeHTTP struct {
 	MaxContentLengthInBytes int64    `json:"max_content_length_in_bytes"`
 }
 
+// NodesInfoNodePlugin represents information about a plugin.
 type NodesInfoNodePlugin struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Site        bool   `json:"site"`
-	JVM         bool   `json:"jvm"`
-	URL         string `json:"url"` // e.g. /_plugin/dummy/
+	Name                 string   `json:"name"`    // e.g. "ingest-geoip"
+	Version              string   `json:"version"` // e.g. "6.2.3"
+	ElasticsearchVersion string   `json:"elasticsearch_version"`
+	JavaVersion          string   `json:"java_version"`
+	Description          string   `json:"description"` // e.g. "Ingest processor ..."
+	Classname            string   `json:"classname"`   // e.g. "org.elasticsearch.ingest.geoip.IngestGeoIpPlugin"
+	ExtendedPlugins      []string `json:"extended_plugins"`
+	HasNativeController  bool     `json:"has_native_controller"`
+	RequiresKeystore     bool     `json:"requires_keystore"`
+}
+
+// NodesInfoNodeModule represents information about a module.
+type NodesInfoNodeModule struct {
+	Name                 string   `json:"name"`    // e.g. "ingest-geoip"
+	Version              string   `json:"version"` // e.g. "6.2.3"
+	ElasticsearchVersion string   `json:"elasticsearch_version"`
+	JavaVersion          string   `json:"java_version"`
+	Description          string   `json:"description"` // e.g. "Ingest processor ..."
+	Classname            string   `json:"classname"`   // e.g. "org.elasticsearch.ingest.geoip.IngestGeoIpPlugin"
+	ExtendedPlugins      []string `json:"extended_plugins"`
+	HasNativeController  bool     `json:"has_native_controller"`
+	RequiresKeystore     bool     `json:"requires_keystore"`
+}
+
+// NodesInfoNodeIngest represents information about the ingester.
+type NodesInfoNodeIngest struct {
+	Processors []*NodesInfoNodeIngestProcessorInfo `json:"processors"`
+}
+
+// NodesInfoNodeIngestProcessorInfo represents ingest processor info.
+type NodesInfoNodeIngestProcessorInfo struct {
+	Type string `json:"type"` // e.g. append, convert, date etc.
 }

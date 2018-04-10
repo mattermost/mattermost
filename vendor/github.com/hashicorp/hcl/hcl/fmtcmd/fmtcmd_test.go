@@ -46,7 +46,7 @@ func TestIsValidFile(t *testing.T) {
 		}
 
 		if res := isValidFile(file, fixtureExtensions); res != tc.Expected {
-			t.Errorf("want: %b, got: %b", tc.Expected, res)
+			t.Errorf("want: %t, got: %t", tc.Expected, res)
 		}
 	}
 }
@@ -86,7 +86,7 @@ func TestRunMultiplePaths(t *testing.T) {
 		t.Errorf("unexpected error: %s", err)
 	}
 	if stdout.String() != expectedOut.String() {
-		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut, stdout)
+		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut.String(), stdout.String())
 	}
 }
 
@@ -132,7 +132,7 @@ func TestRunSubDirectories(t *testing.T) {
 		t.Errorf("unexpected error: %s", err)
 	}
 	if stdout.String() != expectedOut.String() {
-		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut, stdout)
+		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut.String(), stdout.String())
 	}
 }
 
@@ -161,7 +161,7 @@ func TestRunStdin(t *testing.T) {
 		t.Errorf("unexpected error: %s", err)
 	}
 	if !bytes.Equal(stdout.Bytes(), expectedOut.Bytes()) {
-		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut, stdout)
+		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut.String(), stdout.String())
 	}
 }
 
@@ -242,7 +242,7 @@ func TestRunNoOptions(t *testing.T) {
 		t.Errorf("unexpected error: %s", err)
 	}
 	if stdout.String() != expectedOut.String() {
-		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut, stdout)
+		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut.String(), stdout.String())
 	}
 }
 
@@ -274,7 +274,7 @@ func TestRunList(t *testing.T) {
 		t.Errorf("unexpected error: %s", err)
 	}
 	if stdout.String() != expectedOut.String() {
-		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut, stdout)
+		t.Errorf("stdout want:\n%s\ngot:\n%s", expectedOut.String(), stdout.String())
 	}
 }
 

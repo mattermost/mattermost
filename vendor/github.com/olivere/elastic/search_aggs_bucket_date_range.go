@@ -15,7 +15,7 @@ import (
 // date format by which the from and to response fields will be returned.
 // Note that this aggregration includes the from value and excludes the to
 // value for each range.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-daterange-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-daterange-aggregation.html
 type DateRangeAggregation struct {
 	field           string
 	script          *Script

@@ -14,7 +14,7 @@ import (
 
 // IndicesCreateService creates a new index.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-create-index.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-create-index.html
 // for details.
 type IndicesCreateService struct {
 	client        *Client

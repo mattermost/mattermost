@@ -12,7 +12,7 @@ package elastic
 // or use one of the shortcuts e.g. NewMatchPhraseQuery(...).
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-match-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-match-query.html
 type MatchQuery struct {
 	name                string
 	text                interface{}

@@ -8,7 +8,7 @@ package elastic
 // a constant score equal to the query boost for every document in the filter.
 //
 // For more details, see:
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-constant-score-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-constant-score-query.html
 type ConstantScoreQuery struct {
 	filter Query
 	boost  *float64

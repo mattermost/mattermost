@@ -8,7 +8,7 @@ package elastic
 // in parent documents that have child docs matching the query.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-has-child-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-has-child-query.html
 type HasChildQuery struct {
 	query              Query
 	childType          string

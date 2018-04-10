@@ -10,25 +10,24 @@ package elastic
 // histogram must have min_doc_count set to 0 (default for histogram aggregations).
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-derivative-aggregation.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-derivative-aggregation.html
 type DerivativeAggregation struct {
 	format    string
 	gapPolicy string
 	unit      string
 
-	subAggregations map[string]Aggregation
-	meta            map[string]interface{}
-	bucketsPaths    []string
+	meta         map[string]interface{}
+	bucketsPaths []string
 }
 
 // NewDerivativeAggregation creates and initializes a new DerivativeAggregation.
 func NewDerivativeAggregation() *DerivativeAggregation {
 	return &DerivativeAggregation{
-		subAggregations: make(map[string]Aggregation),
-		bucketsPaths:    make([]string, 0),
+		bucketsPaths: make([]string, 0),
 	}
 }
 
+// Format to use on the output of this aggregation.
 func (a *DerivativeAggregation) Format(format string) *DerivativeAggregation {
 	a.format = format
 	return a
@@ -60,12 +59,6 @@ func (a *DerivativeAggregation) Unit(unit string) *DerivativeAggregation {
 	return a
 }
 
-// SubAggregation adds a sub-aggregation to this aggregation.
-func (a *DerivativeAggregation) SubAggregation(name string, subAggregation Aggregation) *DerivativeAggregation {
-	a.subAggregations[name] = subAggregation
-	return a
-}
-
 // Meta sets the meta data to be included in the aggregation response.
 func (a *DerivativeAggregation) Meta(metaData map[string]interface{}) *DerivativeAggregation {
 	a.meta = metaData
@@ -78,6 +71,7 @@ func (a *DerivativeAggregation) BucketsPath(bucketsPaths ...string) *DerivativeA
 	return a
 }
 
+// Source returns the a JSON-serializable interface.
 func (a *DerivativeAggregation) Source() (interface{}, error) {
 	source := make(map[string]interface{})
 	params := make(map[string]interface{})
@@ -100,19 +94,6 @@ func (a *DerivativeAggregation) Source() (interface{}, error) {
 		params["buckets_path"] = a.bucketsPaths[0]
 	default:
 		params["buckets_path"] = a.bucketsPaths
-	}
-
-	// AggregationBuilder (SubAggregations)
-	if len(a.subAggregations) > 0 {
-		aggsMap := make(map[string]interface{})
-		source["aggregations"] = aggsMap
-		for name, aggregate := range a.subAggregations {
-			src, err := aggregate.Source()
-			if err != nil {
-				return nil, err
-			}
-			aggsMap[name] = src
-		}
 	}
 
 	// Add Meta data if available

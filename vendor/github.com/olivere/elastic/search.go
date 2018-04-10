@@ -60,7 +60,7 @@ func (s *SearchService) Source(source interface{}) *SearchService {
 
 // FilterPath allows reducing the response, a mechanism known as
 // response filtering and described here:
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/common-options.html#common-options-response-filtering.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/common-options.html#common-options-response-filtering.
 func (s *SearchService) FilterPath(filterPath ...string) *SearchService {
 	s.filterPath = append(s.filterPath, filterPath...)
 	return s
@@ -110,9 +110,16 @@ func (s *SearchService) TimeoutInMillis(timeoutInMillis int) *SearchService {
 	return s
 }
 
+// TerminateAfter specifies the maximum number of documents to collect for
+// each shard, upon reaching which the query execution will terminate early.
+func (s *SearchService) TerminateAfter(terminateAfter int) *SearchService {
+	s.searchSource = s.searchSource.TerminateAfter(terminateAfter)
+	return s
+}
+
 // SearchType sets the search operation type. Valid values are:
 // "dfs_query_then_fetch" and "query_then_fetch".
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-search-type.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-request-search-type.html
 // for details.
 func (s *SearchService) SearchType(searchType string) *SearchService {
 	s.searchType = searchType
@@ -277,7 +284,7 @@ func (s *SearchService) TrackScores(trackScores bool) *SearchService {
 // SearchAfter allows a different form of pagination by using a live cursor,
 // using the results of the previous page to help the retrieval of the next.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-search-after.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-request-search-after.html
 func (s *SearchService) SearchAfter(sortValues ...interface{}) *SearchService {
 	s.searchSource = s.searchSource.SearchAfter(sortValues...)
 	return s
@@ -489,7 +496,7 @@ type SearchHitInnerHits struct {
 }
 
 // SearchExplanation explains how the score for a hit was computed.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-explain.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-request-explain.html.
 type SearchExplanation struct {
 	Value       float64             `json:"value"`             // e.g. 1.0
 	Description string              `json:"description"`       // e.g. "boost" or "ConstantScore(*:*), product of:"
@@ -499,11 +506,11 @@ type SearchExplanation struct {
 // Suggest
 
 // SearchSuggest is a map of suggestions.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-suggesters.html.
 type SearchSuggest map[string][]SearchSuggestion
 
 // SearchSuggestion is a single search suggestion.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-suggesters.html.
 type SearchSuggestion struct {
 	Text    string                   `json:"text"`
 	Offset  int                      `json:"offset"`
@@ -512,7 +519,7 @@ type SearchSuggestion struct {
 }
 
 // SearchSuggestionOption is an option of a SearchSuggestion.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-suggesters.html.
 type SearchSuggestionOption struct {
 	Text         string           `json:"text"`
 	Index        string           `json:"_index"`
@@ -575,6 +582,6 @@ type ProfileResult struct {
 // Highlighting
 
 // SearchHitHighlight is the highlight information of a search hit.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-highlighting.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-request-highlighting.html
 // for a general discussion of highlighting.
 type SearchHitHighlight map[string][]string

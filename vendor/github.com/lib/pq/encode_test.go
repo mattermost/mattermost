@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"strings"
+	"regexp"
 	"testing"
 	"time"
 
@@ -304,24 +304,27 @@ func TestInfinityTimestamp(t *testing.T) {
 	var err error
 	var resultT time.Time
 
-	expectedErrorStrPrefix := `sql: Scan error on column index 0: unsupported`
+	expectedErrorStrRegexp := regexp.MustCompile(
+		`^sql: Scan error on column index 0(, name "timestamp(tz)?"|): unsupported`)
+
 	type testCases []struct {
-		Query                string
-		Param                string
-		ExpectedErrStrPrefix string
-		ExpectedVal          interface{}
+		Query                  string
+		Param                  string
+		ExpectedErrorStrRegexp *regexp.Regexp
+		ExpectedVal            interface{}
 	}
 	tc := testCases{
-		{"SELECT $1::timestamp", "-infinity", expectedErrorStrPrefix, "-infinity"},
-		{"SELECT $1::timestamptz", "-infinity", expectedErrorStrPrefix, "-infinity"},
-		{"SELECT $1::timestamp", "infinity", expectedErrorStrPrefix, "infinity"},
-		{"SELECT $1::timestamptz", "infinity", expectedErrorStrPrefix, "infinity"},
+		{"SELECT $1::timestamp", "-infinity", expectedErrorStrRegexp, "-infinity"},
+		{"SELECT $1::timestamptz", "-infinity", expectedErrorStrRegexp, "-infinity"},
+		{"SELECT $1::timestamp", "infinity", expectedErrorStrRegexp, "infinity"},
+		{"SELECT $1::timestamptz", "infinity", expectedErrorStrRegexp, "infinity"},
 	}
 	// try to assert []byte to time.Time
 	for _, q := range tc {
 		err = db.QueryRow(q.Query, q.Param).Scan(&resultT)
-		if !strings.HasPrefix(err.Error(), q.ExpectedErrStrPrefix) {
-			t.Errorf("Scanning -/+infinity, expected error to have prefix %q, got %q", q.ExpectedErrStrPrefix, err)
+		if !q.ExpectedErrorStrRegexp.MatchString(err.Error()) {
+			t.Errorf("Scanning -/+infinity, expected error to match regexp %q, got %q",
+				q.ExpectedErrorStrRegexp, err)
 		}
 	}
 	// yield []byte

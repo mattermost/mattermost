@@ -14,7 +14,7 @@ import (
 )
 
 // IndicesGetTemplateService returns an index template.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-templates.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-templates.html.
 type IndicesGetTemplateService struct {
 	client       *Client
 	pretty       bool

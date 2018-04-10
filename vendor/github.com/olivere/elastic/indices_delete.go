@@ -15,7 +15,7 @@ import (
 
 // IndicesDeleteService allows to delete existing indices.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-delete-index.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-delete-index.html
 // for details.
 type IndicesDeleteService struct {
 	client        *Client

@@ -677,15 +677,15 @@ func TestSockAddr_IPv4Addr(t *testing.T) {
 			}
 
 			if v := sockaddr.IsRFC(1918, ipv4); v != test.z21_IsRFC1918 {
-				t.Errorf("[%d] Expected IsRFC(1918, %+q) to be %+q, received %+q", idx, test.z00_input, test.z21_IsRFC1918, v)
+				t.Errorf("[%d] Expected IsRFC(1918, %+q) to be %t, received %t", idx, test.z00_input, test.z21_IsRFC1918, v)
 			}
 
 			if v := sockaddr.IsRFC(6598, ipv4); v != test.z22_IsRFC6598 {
-				t.Errorf("[%d] Expected IsRFC(6598, %+q) to be %+q, received %+q", idx, test.z00_input, test.z22_IsRFC6598, v)
+				t.Errorf("[%d] Expected IsRFC(6598, %+q) to be %t, received %t", idx, test.z00_input, test.z22_IsRFC6598, v)
 			}
 
 			if v := sockaddr.IsRFC(6890, ipv4); v != test.z23_IsRFC6890 {
-				t.Errorf("[%d] Expected IsRFC(6890, %+q) to be %+q, received %+q", idx, test.z00_input, test.z23_IsRFC6890, v)
+				t.Errorf("[%d] Expected IsRFC(6890, %+q) to be %t, received %t", idx, test.z00_input, test.z23_IsRFC6890, v)
 			}
 		})
 	}

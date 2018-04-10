@@ -1,10 +1,25 @@
 #!/usr/bin/env bash
+
 # Purpose: plain text tar format
 # Limitations: - only suitable for text files, directories, and symlinks
 #              - stores only filename, content, and mode
 #              - not designed for untrusted input
-
+#
 # Note: must work with bash version 3.2 (macOS)
+
+# Copyright 2017 Roger Luethi
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 set -o errexit -o nounset
 
@@ -13,6 +28,55 @@ export LC_ALL=C
 
 path=""
 CMD=""
+ARG_STRING="$*"
+
+#------------------------------------------------------------------------------
+# Not all sed implementations can work on null bytes. In order to make ttar
+# work out of the box on macOS, use Python as a stream editor.
+
+USE_PYTHON=0
+
+PYTHON_CREATE_FILTER=$(cat << 'PCF'
+#!/usr/bin/env python
+
+import re
+import sys
+
+for line in sys.stdin:
+    line = re.sub(r'EOF', r'\EOF', line)
+    line = re.sub(r'NULLBYTE', r'\NULLBYTE', line)
+    line = re.sub('\x00', r'NULLBYTE', line)
+    sys.stdout.write(line)
+PCF
+)
+
+PYTHON_EXTRACT_FILTER=$(cat << 'PEF'
+#!/usr/bin/env python
+
+import re
+import sys
+
+for line in sys.stdin:
+    line = re.sub(r'(?<!\\)NULLBYTE', '\x00', line)
+    line = re.sub(r'\\NULLBYTE', 'NULLBYTE', line)
+    line = re.sub(r'([^\\])EOF', r'\1', line)
+    line = re.sub(r'\\EOF', 'EOF', line)
+    sys.stdout.write(line)
+PEF
+)
+
+function test_environment {
+    if [[ "$(echo "a" | sed 's/a/\x0/' | wc -c)" -ne 2 ]]; then
+        echo "WARNING sed unable to handle null bytes, using Python (slow)."
+        if ! which python >/dev/null; then
+            echo "ERROR Python not found. Aborting."
+            exit 2
+        fi
+        USE_PYTHON=1
+    fi
+}
+
+#------------------------------------------------------------------------------
 
 function usage {
     bname=$(basename "$0")
@@ -23,6 +87,7 @@ Usage:   $bname [-C <DIR>] -c -f <ARCHIVE> <FILE...> (create archive)
 
 Options:
          -C <DIR>                                    (change directory)
+         -v                                          (verbose)
 
 Example: Change to sysfs directory, create ttar file from fixtures directory
          $bname -C sysfs -c -f sysfs/fixtures.ttar fixtures/
@@ -44,6 +109,8 @@ function set_cmd {
     fi
     CMD=$1
 }
+
+unset VERBOSE
 
 while getopts :cf:htxvC: opt; do
     case $opt in
@@ -142,8 +209,37 @@ function extract {
     fi
     while IFS= read -r line; do
         line_no=$(( line_no + 1 ))
+        local eof_without_newline
         if [ "$size" -gt 0 ]; then
-            echo "$line" >> "$path"
+            if [[ "$line" =~ [^\\]EOF ]]; then
+                # An EOF not preceeded by a backslash indicates that the line
+                # does not end with a newline
+                eof_without_newline=1
+            else
+                eof_without_newline=0
+            fi
+            # Replace NULLBYTE with null byte if at beginning of line
+            # Replace NULLBYTE with null byte unless preceeded by backslash
+            # Remove one backslash in front of NULLBYTE (if any)
+            # Remove EOF unless preceeded by backslash
+            # Remove one backslash in front of EOF
+            if [ $USE_PYTHON -eq 1 ]; then
+                echo -n "$line" | python -c "$PYTHON_EXTRACT_FILTER" >> "$path"
+            else
+                # The repeated pattern makes up for sed's lack of negative
+                # lookbehind assertions (for consecutive null bytes).
+                echo -n "$line" | \
+                    sed -e 's/^NULLBYTE/\x0/g;
+                            s/\([^\\]\)NULLBYTE/\1\x0/g;
+                            s/\([^\\]\)NULLBYTE/\1\x0/g;
+                            s/\\NULLBYTE/NULLBYTE/g;
+                            s/\([^\\]\)EOF/\1/g;
+                            s/\\EOF/EOF/g;
+                    ' >> "$path"
+            fi
+            if [[ "$eof_without_newline" -eq 0 ]]; then
+                echo >> "$path"
+            fi
             size=$(( size - 1 ))
             continue
         fi
@@ -187,11 +283,14 @@ function get_mode {
     local mfile=$1
     if [ -z "${STAT_OPTION:-}" ]; then
         if stat -c '%a' "$mfile" >/dev/null 2>&1; then
+            # GNU stat
             STAT_OPTION='-c'
             STAT_FORMAT='%a'
         else
+            # BSD stat
             STAT_OPTION='-f'
-            STAT_FORMAT='%A'
+            # Octal output, user/group/other (omit file type, sticky bit)
+            STAT_FORMAT='%OLp'
         fi
     fi
     stat "${STAT_OPTION}" "${STAT_FORMAT}" "$mfile"
@@ -200,6 +299,7 @@ function get_mode {
 function _create {
     shopt -s nullglob
     local mode
+    local eof_without_newline
     while (( "$#" )); do
         file=$1
         if [ -L "$file" ]; then
@@ -223,8 +323,30 @@ function _create {
         elif [ -f "$file" ]; then
             echo "Path: $file"
             lines=$(wc -l "$file"|awk '{print $1}')
+            eof_without_newline=0
+            if [[ "$(wc -c "$file"|awk '{print $1}')" -gt 0 ]] && \
+                    [[ "$(tail -c 1 "$file" | wc -l)" -eq 0 ]]; then
+                eof_without_newline=1
+                lines=$((lines+1))
+            fi
             echo "Lines: $lines"
-            cat "$file"
+            # Add backslash in front of EOF
+            # Add backslash in front of NULLBYTE
+            # Replace null byte with NULLBYTE
+            if [ $USE_PYTHON -eq 1 ]; then
+                < "$file" python -c "$PYTHON_CREATE_FILTER"
+            else
+                < "$file" \
+                    sed 's/EOF/\\EOF/g;
+                         s/NULLBYTE/\\NULLBYTE/g;
+                         s/\x0/NULLBYTE/g;
+                    '
+            fi
+            if [[ "$eof_without_newline" -eq 1 ]]; then
+                # Finish line with EOF to indicate that the original line did
+                # not end with a linefeed
+                echo "EOF"
+            fi
             mode=$(get_mode "$file")
             echo "Mode: $mode"
             vecho "$mode $file"
@@ -249,8 +371,11 @@ function create {
         rm "$ttar_file"
     fi
     exec > "$ttar_file"
+    echo "# Archive created by ttar $ARG_STRING"
     _create "$@"
 }
+
+test_environment
 
 if [ -n "${CDIR:-}" ]; then
     if [[ "$ARCHIVE" != /* ]]; then

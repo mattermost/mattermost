@@ -8,7 +8,7 @@ package elastic
 // giving them all a _score of 1.0.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-match-all-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-match-all-query.html
 type MatchAllQuery struct {
 	boost     *float64
 	queryName string

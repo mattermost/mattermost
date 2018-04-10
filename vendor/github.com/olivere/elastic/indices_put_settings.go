@@ -17,7 +17,7 @@ import (
 // real time.
 //
 // See the documentation at
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-update-settings.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-update-settings.html.
 type IndicesPutSettingsService struct {
 	client            *Client
 	pretty            bool

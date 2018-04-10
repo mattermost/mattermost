@@ -16,7 +16,7 @@ import (
 // DeleteService allows to delete a typed JSON document from a specified
 // index based on its id.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-delete.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-delete.html
 // for details.
 type DeleteService struct {
 	client              *Client
@@ -99,6 +99,9 @@ func (s *DeleteService) Parent(parent string) *DeleteService {
 }
 
 // Refresh the index after performing the operation.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-refresh.html
+// for details.
 func (s *DeleteService) Refresh(refresh string) *DeleteService {
 	s.refresh = refresh
 	return s

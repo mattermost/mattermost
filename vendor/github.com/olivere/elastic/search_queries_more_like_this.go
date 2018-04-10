@@ -13,7 +13,7 @@ import "errors"
 // how the terms should be selected and how the query is formed.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-mlt-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-mlt-query.html
 type MoreLikeThisQuery struct {
 	fields                 []string
 	docs                   []*MoreLikeThisQueryItem

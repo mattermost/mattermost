@@ -14,7 +14,7 @@ import (
 )
 
 // DeleteByQueryService deletes documents that match a query.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-delete-by-query.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-delete-by-query.html.
 type DeleteByQueryService struct {
 	client                 *Client
 	index                  []string
@@ -240,6 +240,9 @@ func (s *DeleteByQueryService) Query(query Query) *DeleteByQueryService {
 }
 
 // Refresh indicates whether the effected indexes should be refreshed.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-refresh.html
+// for details.
 func (s *DeleteByQueryService) Refresh(refresh string) *DeleteByQueryService {
 	s.refresh = refresh
 	return s

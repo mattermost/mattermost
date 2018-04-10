@@ -16,7 +16,7 @@ import (
 
 // IndicesExistsTypeService checks if one or more types exist in one or more indices.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-types-exists.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-types-exists.html
 // for details.
 type IndicesExistsTypeService struct {
 	client            *Client

@@ -59,7 +59,35 @@ func TestNdots(t *testing.T) {
 			t.Errorf("Ndots not properly parsed: (Expected: %d / Was: %d)", ndotsVariants[data], cc.Ndots)
 		}
 	}
+}
 
+func TestClientConfigFromReaderAttempts(t *testing.T) {
+	testCases := []struct {
+		data     string
+		expected int
+	}{
+		{data: "options attempts:0", expected: 1},
+		{data: "options attempts:1", expected: 1},
+		{data: "options attempts:15", expected: 15},
+		{data: "options attempts:16", expected: 16},
+		{data: "options attempts:-1", expected: 1},
+		{data: "options attempt:", expected: 2},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(strings.Replace(test.data, ":", " ", -1), func(t *testing.T) {
+			t.Parallel()
+
+			cc, err := ClientConfigFromReader(strings.NewReader(test.data))
+			if err != nil {
+				t.Errorf("error parsing resolv.conf: %v", err)
+			}
+			if cc.Attempts != test.expected {
+				t.Errorf("A attempts not properly parsed: (Expected: %d / Was: %d)", test.expected, cc.Attempts)
+			}
+		})
+	}
 }
 
 func TestReadFromFile(t *testing.T) {

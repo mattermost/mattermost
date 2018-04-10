@@ -12,7 +12,7 @@ import (
 // MultiMatchQuery builds on the MatchQuery to allow multi-field queries.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-multi-match-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-multi-match-query.html
 type MultiMatchQuery struct {
 	text               interface{}
 	fields             []string

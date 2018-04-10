@@ -6,7 +6,7 @@ package elastic
 
 // SignificantTermsAggregation is an aggregation that returns interesting
 // or unusual occurrences of terms in a set.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-significantterms-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-significantterms-aggregation.html
 type SignificantTermsAggregation struct {
 	field           string
 	subAggregations map[string]Aggregation
@@ -166,7 +166,7 @@ type SignificanceHeuristic interface {
 // ChiSquareSignificanceHeuristic implements Chi square as described
 // in "Information Retrieval", Manning et al., Chapter 13.5.2.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-significantterms-aggregation.html#_chi_square
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-significantterms-aggregation.html#_chi_square
 // for details.
 type ChiSquareSignificanceHeuristic struct {
 	backgroundIsSuperset *bool
@@ -216,7 +216,7 @@ func (sh *ChiSquareSignificanceHeuristic) Source() (interface{}, error) {
 // as described in "The Google Similarity Distance", Cilibrasi and Vitanyi,
 // 2007.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-significantterms-aggregation.html#_google_normalized_distance
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-significantterms-aggregation.html#_google_normalized_distance
 // for details.
 type GNDSignificanceHeuristic struct {
 	backgroundIsSuperset *bool
@@ -252,7 +252,7 @@ func (sh *GNDSignificanceHeuristic) Source() (interface{}, error) {
 // -- JLH Score --
 
 // JLHScoreSignificanceHeuristic implements the JLH score as described in
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-significantterms-aggregation.html#_jlh_score.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-significantterms-aggregation.html#_jlh_score.
 type JLHScoreSignificanceHeuristic struct{}
 
 // NewJLHScoreSignificanceHeuristic initializes a new JLHScoreSignificanceHeuristic.
@@ -276,7 +276,7 @@ func (sh *JLHScoreSignificanceHeuristic) Source() (interface{}, error) {
 // MutualInformationSignificanceHeuristic implements Mutual information
 // as described in "Information Retrieval", Manning et al., Chapter 13.5.1.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-significantterms-aggregation.html#_mutual_information
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-significantterms-aggregation.html#_mutual_information
 // for details.
 type MutualInformationSignificanceHeuristic struct {
 	backgroundIsSuperset *bool
@@ -324,7 +324,7 @@ func (sh *MutualInformationSignificanceHeuristic) Source() (interface{}, error) 
 // -- Percentage Score --
 
 // PercentageScoreSignificanceHeuristic implements the algorithm described
-// in https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-significantterms-aggregation.html#_percentage.
+// in https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-significantterms-aggregation.html#_percentage.
 type PercentageScoreSignificanceHeuristic struct{}
 
 // NewPercentageScoreSignificanceHeuristic initializes a new instance of
@@ -347,7 +347,7 @@ func (sh *PercentageScoreSignificanceHeuristic) Source() (interface{}, error) {
 // -- Script --
 
 // ScriptSignificanceHeuristic implements a scripted significance heuristic.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-significantterms-aggregation.html#_scripted
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-significantterms-aggregation.html#_scripted
 // for details.
 type ScriptSignificanceHeuristic struct {
 	script *Script
@@ -368,7 +368,7 @@ func (sh *ScriptSignificanceHeuristic) Name() string {
 // parameters are available in the script: `_subset_freq`, `_superset_freq`,
 // `_subset_size`, and `_superset_size`.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-significantterms-aggregation.html#_scripted
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-significantterms-aggregation.html#_scripted
 // for details.
 func (sh *ScriptSignificanceHeuristic) Script(script *Script) *ScriptSignificanceHeuristic {
 	sh.script = script

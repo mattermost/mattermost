@@ -14,7 +14,7 @@ import (
 )
 
 // IndicesStatsService provides stats on various metrics of one or more
-// indices. See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-stats.html.
+// indices. See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-stats.html.
 type IndicesStatsService struct {
 	client           *Client
 	pretty           bool

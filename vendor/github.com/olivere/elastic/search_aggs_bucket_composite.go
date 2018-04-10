@@ -7,7 +7,7 @@ package elastic
 // CompositeAggregation is a multi-bucket values source based aggregation
 // that can be used to calculate unique composite values from source documents.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-aggregations-bucket-composite-aggregation.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-composite-aggregation.html
 // for details.
 type CompositeAggregation struct {
 	after           map[string]interface{}
@@ -129,7 +129,7 @@ func (a *CompositeAggregation) Source() (interface{}, error) {
 // need to implement.
 //
 // The different implementations are described in
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-aggregations-bucket-composite-aggregation.html#_values_source_2.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-composite-aggregation.html#_values_source_2.
 type CompositeAggregationValuesSource interface {
 	Source() (interface{}, error)
 }
@@ -139,7 +139,7 @@ type CompositeAggregationValuesSource interface {
 // CompositeAggregationTermsValuesSource is a source for the CompositeAggregation that handles terms
 // it works very similar to a terms aggregation with slightly different syntax
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-aggregations-bucket-composite-aggregation.html#_terms
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-composite-aggregation.html#_terms
 // for details.
 type CompositeAggregationTermsValuesSource struct {
 	name      string
@@ -249,7 +249,7 @@ func (a *CompositeAggregationTermsValuesSource) Source() (interface{}, error) {
 // CompositeAggregationHistogramValuesSource is a source for the CompositeAggregation that handles histograms
 // it works very similar to a terms histogram with slightly different syntax
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-aggregations-bucket-composite-aggregation.html#_histogram
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-composite-aggregation.html#_histogram
 // for details.
 type CompositeAggregationHistogramValuesSource struct {
 	name      string
@@ -370,7 +370,7 @@ func (a *CompositeAggregationHistogramValuesSource) Source() (interface{}, error
 // CompositeAggregationDateHistogramValuesSource is a source for the CompositeAggregation that handles date histograms
 // it works very similar to a date histogram aggregation with slightly different syntax
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-aggregations-bucket-composite-aggregation.html#_date_histogram
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-composite-aggregation.html#_date_histogram
 // for details.
 type CompositeAggregationDateHistogramValuesSource struct {
 	name      string

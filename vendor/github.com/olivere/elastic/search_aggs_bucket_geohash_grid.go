@@ -2,7 +2,7 @@ package elastic
 
 type GeoHashGridAggregation struct {
 	field           string
-	precision       int
+	precision       interface{}
 	size            int
 	shardSize       int
 	subAggregations map[string]Aggregation
@@ -12,7 +12,6 @@ type GeoHashGridAggregation struct {
 func NewGeoHashGridAggregation() *GeoHashGridAggregation {
 	return &GeoHashGridAggregation{
 		subAggregations: make(map[string]Aggregation),
-		precision:       -1,
 		size:            -1,
 		shardSize:       -1,
 	}
@@ -23,7 +22,10 @@ func (a *GeoHashGridAggregation) Field(field string) *GeoHashGridAggregation {
 	return a
 }
 
-func (a *GeoHashGridAggregation) Precision(precision int) *GeoHashGridAggregation {
+// Precision accepts the level as int value between 1 and 12 or Distance Units like "2km", "5mi" as described at
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/common-options.html#distance-units and
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-geohashgrid-aggregation.html
+func (a *GeoHashGridAggregation) Precision(precision interface{}) *GeoHashGridAggregation {
 	a.precision = precision
 	return a
 }
@@ -69,7 +71,7 @@ func (a *GeoHashGridAggregation) Source() (interface{}, error) {
 		opts["field"] = a.field
 	}
 
-	if a.precision != -1 {
+	if a.precision != nil {
 		opts["precision"] = a.precision
 	}
 

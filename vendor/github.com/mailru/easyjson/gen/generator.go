@@ -284,7 +284,11 @@ func (g *Generator) getType(t reflect.Type) string {
 			lines := make([]string, 0, nf)
 			for i := 0; i < nf; i++ {
 				f := t.Field(i)
-				line := f.Name + " " + g.getType(f.Type)
+				var line string
+				if !f.Anonymous {
+					line = f.Name + " "
+				} // else the field is anonymous (an embedded type)
+				line += g.getType(f.Type)
 				t := f.Tag
 				if t != "" {
 					line += " " + escapeTag(t)

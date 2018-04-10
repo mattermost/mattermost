@@ -10,7 +10,7 @@ package elastic
 // root parent doc (or parent nested mapping).
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-nested-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-nested-query.html
 type NestedQuery struct {
 	query          Query
 	path           string

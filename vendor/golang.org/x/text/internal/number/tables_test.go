@@ -11,8 +11,9 @@ import (
 	"testing"
 
 	"golang.org/x/text/internal/gen"
+	"golang.org/x/text/internal/language"
+	"golang.org/x/text/internal/language/compact"
 	"golang.org/x/text/internal/testtext"
-	"golang.org/x/text/language"
 	"golang.org/x/text/unicode/cldr"
 )
 
@@ -74,7 +75,7 @@ func TestSymbols(t *testing.T) {
 		if ldml.Numbers == nil {
 			continue
 		}
-		langIndex, ok := language.CompactIndex(language.MustParse(lang))
+		langIndex, ok := compact.FromTag(language.MustParse(lang))
 		if !ok {
 			t.Fatalf("No compact index for language %s", lang)
 		}

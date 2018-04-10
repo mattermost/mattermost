@@ -1326,9 +1326,8 @@ func TestNewIPAddr(t *testing.T) {
 			continue
 		}
 
-		ipStr := ip.String()
-		if ipStr != test.output {
-			t.Errorf("Expected %q to match %q", test.input, test.output, ipStr)
+		if ip.String() != test.output {
+			t.Errorf("Expected %q to match %q", ip.String(), test.output)
 		}
 
 	}
@@ -1964,7 +1963,7 @@ func TestSortIfBy(t *testing.T) {
 
 	for i, test := range tests {
 		if test.name == "" {
-			t.Fatalf("test %i needs a name", i)
+			t.Fatalf("test %d needs a name", i)
 		}
 
 		t.Run(test.name, func(t *testing.T) {

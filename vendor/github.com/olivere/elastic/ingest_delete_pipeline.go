@@ -14,7 +14,7 @@ import (
 )
 
 // IngestDeletePipelineService deletes pipelines by ID.
-// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.0/delete-pipeline-api.html.
+// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.2/delete-pipeline-api.html.
 type IngestDeletePipelineService struct {
 	client        *Client
 	pretty        bool

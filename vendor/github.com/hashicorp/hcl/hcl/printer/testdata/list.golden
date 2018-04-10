@@ -2,11 +2,14 @@ foo = ["fatih", "arslan"]
 
 foo = ["bar", "qaz"]
 
-foo = ["zeynep",
+foo = [
+  "zeynep",
   "arslan",
 ]
 
-foo = ["fatih", "zeynep",
+foo = [
+  "fatih",
+  "zeynep",
   "arslan",
 ]
 

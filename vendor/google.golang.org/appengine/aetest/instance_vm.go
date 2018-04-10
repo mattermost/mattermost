@@ -212,7 +212,9 @@ func (i *instance) startChild() (err error) {
 	if err != nil {
 		return err
 	}
-	stderr = io.TeeReader(stderr, os.Stderr)
+	if !(i.opts != nil && i.opts.SuppressDevAppServerLog) {
+		stderr = io.TeeReader(stderr, os.Stderr)
+	}
 	if err = i.child.Start(); err != nil {
 		return err
 	}

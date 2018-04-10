@@ -90,6 +90,7 @@ func TestAggs(t *testing.T) {
 	cardinalityAgg := NewCardinalityAggregation().Field("user")
 	significantTermsAgg := NewSignificantTermsAggregation().Field("message")
 	samplerAgg := NewSamplerAggregation().SubAggregation("tagged_with", NewTermsAggregation().Field("tags"))
+	diversifiedSamplerAgg := NewDiversifiedSamplerAggregation().Field("user").SubAggregation("tagged_with", NewSignificantTermsAggregation().Field("tags"))
 	retweetsRangeAgg := NewRangeAggregation().Field("retweets").Lt(10).Between(10, 100).Gt(100)
 	retweetsKeyedRangeAgg := NewRangeAggregation().Field("retweets").Keyed(true).Lt(10).Between(10, 100).Gt(100)
 	dateRangeAgg := NewDateRangeAggregation().Field("created").Lt("2012-01-01").Between("2012-01-01", "2013-01-01").Gt("2013-01-01")
@@ -109,6 +110,7 @@ func TestAggs(t *testing.T) {
 		NewCompositeAggregationHistogramValuesSource("composite_retweets", 1).Field("retweets"),
 		NewCompositeAggregationDateHistogramValuesSource("composite_created", "1m").Field("created"),
 	)
+	geoCentroidAgg := NewGeoCentroidAggregation().Field("location")
 
 	// Run query
 	builder := client.Search().Index(testIndexName).Query(all).Pretty(true)
@@ -128,6 +130,7 @@ func TestAggs(t *testing.T) {
 	builder = builder.Aggregation("usersCardinality", cardinalityAgg)
 	builder = builder.Aggregation("significantTerms", significantTermsAgg)
 	builder = builder.Aggregation("sample", samplerAgg)
+	builder = builder.Aggregation("diversified_sampler", diversifiedSamplerAgg)
 	builder = builder.Aggregation("retweetsRange", retweetsRangeAgg)
 	builder = builder.Aggregation("retweetsKeyedRange", retweetsKeyedRangeAgg)
 	builder = builder.Aggregation("dateRange", dateRangeAgg)
@@ -139,6 +142,7 @@ func TestAggs(t *testing.T) {
 	builder = builder.Aggregation("top-tags", topTagsAgg)
 	builder = builder.Aggregation("viewport", geoBoundsAgg)
 	builder = builder.Aggregation("geohashed", geoHashAgg)
+	builder = builder.Aggregation("centroid", geoCentroidAgg)
 	// Unnamed filters
 	countByUserAgg := NewFiltersAggregation().
 		Filters(NewTermQuery("user", "olivere"), NewTermQuery("user", "sandrae"))
@@ -148,6 +152,11 @@ func TestAggs(t *testing.T) {
 		FilterWithName("olivere", NewTermQuery("user", "olivere")).
 		FilterWithName("sandrae", NewTermQuery("user", "sandrae"))
 	builder = builder.Aggregation("countByUser2", countByUserAgg2)
+	// AdjacencyMatrix
+	adjacencyMatrixAgg := NewAdjacencyMatrixAggregation().
+		Filters("groupA", NewTermQuery("user", "olivere")).
+		Filters("groupB", NewTermQuery("user", "sandrae"))
+	builder = builder.Aggregation("interactions", adjacencyMatrixAgg)
 	// AvgBucket
 	dateHisto := NewDateHistogramAggregation().Field("created").Interval("year")
 	dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
@@ -619,6 +628,25 @@ func TestAggs(t *testing.T) {
 		t.Fatalf("expected sub aggregation %q; got: %v", "tagged_with", sub)
 	}
 
+	// diversified_sampler
+	diversifiedSamplerAggRes, found := agg.DiversifiedSampler("diversified_sampler")
+	if !found {
+		t.Errorf("expected %v; got: %v", true, found)
+	}
+	if diversifiedSamplerAggRes == nil {
+		t.Fatalf("expected != nil; got: nil")
+	}
+	if diversifiedSamplerAggRes.DocCount != 2 {
+		t.Errorf("expected %v; got: %v", 2, diversifiedSamplerAggRes.DocCount)
+	}
+	subAgg, found := samplerAggRes.Aggregations["tagged_with"]
+	if !found {
+		t.Fatalf("expected sub aggregation %q", "tagged_with")
+	}
+	if subAgg == nil {
+		t.Fatalf("expected sub aggregation %q; got: %v", "tagged_with", subAgg)
+	}
+
 	// retweetsRange
 	rangeAggRes, found := agg.Range("retweetsRange")
 	if !found {
@@ -922,6 +950,15 @@ func TestAggs(t *testing.T) {
 		t.Fatalf("expected != nil; got: nil")
 	}
 
+	// geo_centroid
+	geoCentroidRes, found := agg.GeoCentroid("centroid")
+	if !found {
+		t.Errorf("expected %v; got: %v", true, found)
+	}
+	if geoCentroidRes == nil {
+		t.Fatalf("expected != nil; got: nil")
+	}
+
 	// Filters agg "countByUser" (unnamed)
 	countByUserAggRes, found := agg.Filters("countByUser")
 	if !found {
@@ -976,6 +1013,24 @@ func TestAggs(t *testing.T) {
 	}
 	if b.DocCount != 1 {
 		t.Errorf("expected %d; got: %d", 1, b.DocCount)
+	}
+
+	// AdjacencyMatrix agg "adjacencyMatrixAgg" (named)
+	adjacencyMatrixAggRes, found := agg.AdjacencyMatrix("interactions")
+	if !found {
+		t.Errorf("expected %v; got: %v", true, found)
+	}
+	if adjacencyMatrixAggRes == nil {
+		t.Fatalf("expected != nil; got: nil")
+	}
+	if len(adjacencyMatrixAggRes.Buckets) != 2 {
+		t.Fatalf("expected %d; got: %d", 2, len(adjacencyMatrixAggRes.Buckets))
+	}
+	if adjacencyMatrixAggRes.Buckets[0].DocCount != 2 {
+		t.Errorf("expected %d; got: %d", 2, adjacencyMatrixAggRes.Buckets[0].DocCount)
+	}
+	if adjacencyMatrixAggRes.Buckets[1].DocCount != 1 {
+		t.Errorf("expected %d; got: %d", 1, adjacencyMatrixAggRes.Buckets[1].DocCount)
 	}
 
 	compositeAggRes, found := agg.Composite("composite")
@@ -1912,6 +1967,71 @@ func TestAggsBucketFiltersWithNamedBuckets(t *testing.T) {
 	}
 }
 
+func TestAggsBucketAdjacencyMatrix(t *testing.T) {
+	s := `{
+	"interactions": {
+		"buckets": [
+			{
+				"key": "grpA",
+				"doc_count": 2,
+				"monthly": {
+					"buckets": []
+				}
+			},
+			{
+				"key": "grpA&grpB",
+				"doc_count": 1,
+				"monthly": {
+					"buckets": []
+				}
+			}
+		]
+	}
+}`
+
+	aggs := new(Aggregations)
+	err := json.Unmarshal([]byte(s), &aggs)
+	if err != nil {
+		t.Fatalf("expected no error decoding; got: %v", err)
+	}
+
+	agg, found := aggs.AdjacencyMatrix("interactions")
+	if !found {
+		t.Fatalf("expected aggregation to be found; got: %v", found)
+	}
+	if agg == nil {
+		t.Fatalf("expected aggregation != nil; got: %v", agg)
+	}
+	if agg.Buckets == nil {
+		t.Fatalf("expected aggregation buckets != %v; got: %v", nil, agg.Buckets)
+	}
+	if len(agg.Buckets) != 2 {
+		t.Fatalf("expected %d buckets; got: %d", 2, len(agg.Buckets))
+	}
+
+	if agg.Buckets[0].DocCount != 2 {
+		t.Fatalf("expected DocCount = %d; got: %d", 2, agg.Buckets[0].DocCount)
+	}
+	subAgg, found := agg.Buckets[0].Histogram("monthly")
+	if !found {
+		t.Fatalf("expected sub aggregation to be found; got: %v", found)
+	}
+	if subAgg == nil {
+		t.Fatalf("expected sub aggregation != %v; got: %v", nil, subAgg)
+	}
+
+	if agg.Buckets[1].DocCount != 1 {
+		t.Fatalf("expected DocCount = %d; got: %d", 1, agg.Buckets[1].DocCount)
+	}
+	subAgg, found = agg.Buckets[1].Histogram("monthly")
+	if !found {
+		t.Fatalf("expected sub aggregation to be found; got: %v", found)
+	}
+	if subAgg == nil {
+		t.Fatalf("expected sub aggregation != %v; got: %v", nil, subAgg)
+	}
+}
+
 func TestAggsBucketMissing(t *testing.T) {
 	s := `{
 	"products_without_a_price" : {
@@ -2259,6 +2379,49 @@ func TestAggsBucketSampler(t *testing.T) {
 	}
 
 	agg, found := aggs.Sampler("sample")
+	if !found {
+		t.Fatalf("expected aggregation to be found; got: %v", found)
+	}
+	if agg == nil {
+		t.Fatalf("expected aggregation != nil; got: %v", agg)
+	}
+	if agg.DocCount != 1000 {
+		t.Fatalf("expected aggregation DocCount != %d; got: %d", 1000, agg.DocCount)
+	}
+	sub, found := agg.Aggregations["keywords"]
+	if !found {
+		t.Fatalf("expected sub aggregation %q", "keywords")
+	}
+	if sub == nil {
+		t.Fatalf("expected sub aggregation %q; got: %v", "keywords", sub)
+	}
+}
+
+func TestAggsBucketDiversifiedSampler(t *testing.T) {
+	s := `{
+	"diversified_sampler" : {
+    "doc_count": 1000,
+    "keywords": {
+    	"doc_count": 1000,
+	    "buckets" : [
+	      {
+	        "key": "bend",
+	        "doc_count": 58,
+	        "score": 37.982536582524276,
+	        "bg_count": 103
+	      }
+	    ]
+    }
+	}
+}`
+
+	aggs := new(Aggregations)
+	err := json.Unmarshal([]byte(s), &aggs)
+	if err != nil {
+		t.Fatalf("expected no error decoding; got: %v", err)
+	}
+
+	agg, found := aggs.DiversifiedSampler("diversified_sampler")
 	if !found {
 		t.Fatalf("expected aggregation to be found; got: %v", found)
 	}
@@ -2716,6 +2879,41 @@ func TestAggsBucketGeoHash(t *testing.T) {
 	}
 	if agg.Buckets[1].DocCount != 3198 {
 		t.Errorf("expected doc count %d; got: %d", 3198, agg.Buckets[1].DocCount)
+	}
+}
+
+func TestAggsMetricsGeoCentroid(t *testing.T) {
+	s := `{
+  "centroid": {
+    "location": {
+		"lat": 80.45,
+		"lon": -160.22
+    },
+	"count": 6
+  }
+}`
+
+	aggs := new(Aggregations)
+	err := json.Unmarshal([]byte(s), &aggs)
+	if err != nil {
+		t.Fatalf("expected no error decoding; got: %v", err)
+	}
+
+	agg, found := aggs.GeoCentroid("centroid")
+	if !found {
+		t.Fatalf("expected aggregation to be found; got: %v", found)
+	}
+	if agg == nil {
+		t.Fatalf("expected aggregation != nil; got: %v", agg)
+	}
+	if agg.Location.Latitude != float64(80.45) {
+		t.Fatalf("expected Location.Latitude != %v; got: %v", float64(80.45), agg.Location.Latitude)
+	}
+	if agg.Location.Longitude != float64(-160.22) {
+		t.Fatalf("expected Location.Longitude != %v; got: %v", float64(-160.22), agg.Location.Longitude)
+	}
+	if agg.Count != int(6) {
+		t.Fatalf("expected Count != %v; got: %v", int(6), agg.Count)
 	}
 }
 

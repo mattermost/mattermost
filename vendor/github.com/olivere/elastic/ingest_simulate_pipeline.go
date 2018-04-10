@@ -17,7 +17,7 @@ import (
 // documents provided in the body of the request.
 //
 // The API is documented at
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/simulate-pipeline-api.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/simulate-pipeline-api.html.
 type IngestSimulatePipelineService struct {
 	client     *Client
 	pretty     bool

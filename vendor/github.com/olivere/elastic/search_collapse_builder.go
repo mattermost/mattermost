@@ -5,7 +5,7 @@
 package elastic
 
 // CollapseBuilder enables field collapsing on a search request.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-collapse.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-request-collapse.html
 // for details.
 type CollapseBuilder struct {
 	field                      string

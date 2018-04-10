@@ -259,6 +259,9 @@ func (s *UpdateByQueryService) Query(query Query) *UpdateByQueryService {
 }
 
 // Refresh indicates whether the effected indexes should be refreshed.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-refresh.html
+// for details.
 func (s *UpdateByQueryService) Refresh(refresh string) *UpdateByQueryService {
 	s.refresh = refresh
 	return s

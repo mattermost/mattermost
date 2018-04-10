@@ -90,31 +90,49 @@ func TestAPIs(t *testing.T) {
 
 	client := &apiTestClient{T: t}
 
-	queryAPI := &httpAPI{
+	promAPI := &httpAPI{
 		client: client,
 	}
 
 	doQuery := func(q string, ts time.Time) func() (interface{}, error) {
 		return func() (interface{}, error) {
-			return queryAPI.Query(context.Background(), q, ts)
+			return promAPI.Query(context.Background(), q, ts)
 		}
 	}
 
 	doQueryRange := func(q string, rng Range) func() (interface{}, error) {
 		return func() (interface{}, error) {
-			return queryAPI.QueryRange(context.Background(), q, rng)
+			return promAPI.QueryRange(context.Background(), q, rng)
 		}
 	}
 
 	doLabelValues := func(label string) func() (interface{}, error) {
 		return func() (interface{}, error) {
-			return queryAPI.LabelValues(context.Background(), label)
+			return promAPI.LabelValues(context.Background(), label)
 		}
 	}
 
 	doSeries := func(matcher string, startTime time.Time, endTime time.Time) func() (interface{}, error) {
 		return func() (interface{}, error) {
-			return queryAPI.Series(context.Background(), []string{matcher}, startTime, endTime)
+			return promAPI.Series(context.Background(), []string{matcher}, startTime, endTime)
+		}
+	}
+
+	doSnapshot := func(skipHead bool) func() (interface{}, error) {
+		return func() (interface{}, error) {
+			return promAPI.Snapshot(context.Background(), skipHead)
+		}
+	}
+
+	doCleanTombstones := func() func() (interface{}, error) {
+		return func() (interface{}, error) {
+			return nil, promAPI.CleanTombstones(context.Background())
+		}
+	}
+
+	doDeleteSeries := func(matcher string, startTime time.Time, endTime time.Time) func() (interface{}, error) {
+		return func() (interface{}, error) {
+			return nil, promAPI.DeleteSeries(context.Background(), []string{matcher}, startTime, endTime)
 		}
 	}
 
@@ -217,6 +235,73 @@ func TestAPIs(t *testing.T) {
 			inErr:     fmt.Errorf("some error"),
 			reqMethod: "GET",
 			reqPath:   "/api/v1/series",
+			reqParam: url.Values{
+				"match": []string{"up"},
+				"start": []string{testTime.Add(-time.Minute).Format(time.RFC3339Nano)},
+				"end":   []string{testTime.Format(time.RFC3339Nano)},
+			},
+			err: fmt.Errorf("some error"),
+		},
+
+		{
+			do: doSnapshot(true),
+			inRes: map[string]string{
+				"name": "20171210T211224Z-2be650b6d019eb54",
+			},
+			reqMethod: "POST",
+			reqPath:   "/api/v1/admin/tsdb/snapshot",
+			reqParam: url.Values{
+				"skip_head": []string{"true"},
+			},
+			res: SnapshotResult{
+				Name: "20171210T211224Z-2be650b6d019eb54",
+			},
+		},
+
+		{
+			do:        doSnapshot(true),
+			inErr:     fmt.Errorf("some error"),
+			reqMethod: "POST",
+			reqPath:   "/api/v1/admin/tsdb/snapshot",
+			err:       fmt.Errorf("some error"),
+		},
+
+		{
+			do:        doCleanTombstones(),
+			reqMethod: "POST",
+			reqPath:   "/api/v1/admin/tsdb/clean_tombstones",
+		},
+
+		{
+			do:        doCleanTombstones(),
+			inErr:     fmt.Errorf("some error"),
+			reqMethod: "POST",
+			reqPath:   "/api/v1/admin/tsdb/clean_tombstones",
+			err:       fmt.Errorf("some error"),
+		},
+
+		{
+			do: doDeleteSeries("up", testTime.Add(-time.Minute), testTime),
+			inRes: []map[string]string{
+				{
+					"__name__": "up",
+					"job":      "prometheus",
+					"instance": "localhost:9090"},
+			},
+			reqMethod: "POST",
+			reqPath:   "/api/v1/admin/tsdb/delete_series",
+			reqParam: url.Values{
+				"match": []string{"up"},
+				"start": []string{testTime.Add(-time.Minute).Format(time.RFC3339Nano)},
+				"end":   []string{testTime.Format(time.RFC3339Nano)},
+			},
+		},
+
+		{
+			do:        doDeleteSeries("up", testTime.Add(-time.Minute), testTime),
+			inErr:     fmt.Errorf("some error"),
+			reqMethod: "POST",
+			reqPath:   "/api/v1/admin/tsdb/delete_series",
 			reqParam: url.Values{
 				"match": []string{"up"},
 				"start": []string{testTime.Add(-time.Minute).Format(time.RFC3339Nano)},

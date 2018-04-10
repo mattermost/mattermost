@@ -10,7 +10,7 @@ package elastic
 // increment for any additional matching subqueries.
 //
 // For more details, see:
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-dis-max-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-dis-max-query.html
 type DisMaxQuery struct {
 	queries    []Query
 	boost      *float64

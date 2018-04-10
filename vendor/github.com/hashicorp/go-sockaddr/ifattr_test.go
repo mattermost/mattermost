@@ -106,7 +106,7 @@ func testSockAddrAttr(t *testing.T, sai interface{}) {
 				t.Errorf("Unable to fetch attr name %q from %v / %v + %+q", attrTest.name, v, v.Type(), val)
 			}
 		default:
-			t.Fatal("unsupported type %T %v", sai, sai)
+			t.Fatalf("unsupported type %T %v", sai, sai)
 		}
 	}
 }

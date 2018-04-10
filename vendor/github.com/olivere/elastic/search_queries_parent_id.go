@@ -8,7 +8,7 @@ package elastic
 // particular parent. Given the following mapping definition.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-parent-id-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-parent-id-query.html
 type ParentIdQuery struct {
 	typ            string
 	id             string
