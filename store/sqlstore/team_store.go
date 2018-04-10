@@ -437,6 +437,19 @@ func (s SqlTeamStore) AnalyticsTeamCount() store.StoreChannel {
 	})
 }
 
+var TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
+	SELECT
+		TeamMembers.*,
+		TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
+		TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole
+	FROM 
+		TeamMembers
+	LEFT JOIN
+		Teams ON TeamMembers.TeamId = Teams.Id
+	LEFT JOIN
+		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id 
+`
+
 func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if result.Err = member.IsValid(); result.Err != nil {
@@ -475,20 +488,7 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) 
 			}
 		} else {
 			var retrievedMember teamMemberWithSchemeRoles
-			if err := s.GetMaster().SelectOne(&retrievedMember, `
-			SELECT
-				TeamMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole
-			FROM 
-				TeamMembers
-			LEFT JOIN
-				Teams ON TeamMembers.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE 
-				TeamMembers.TeamId = :TeamId 
-				AND TeamMembers.UserId = :UserId`, map[string]interface{}{"TeamId": dbMember.TeamId, "UserId": dbMember.UserId}); err != nil {
+			if err := s.GetMaster().SelectOne(&retrievedMember, TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE TeamMembers.TeamId = :TeamId AND TeamMembers.UserId = :UserId", map[string]interface{}{"TeamId": dbMember.TeamId, "UserId": dbMember.UserId}); err != nil {
 				if err == sql.ErrNoRows {
 					result.Err = model.NewAppError("SqlTeamStore.SaveMember", "store.sql_team.get_member.missing.app_error", nil, "team_id="+dbMember.TeamId+"user_id="+dbMember.UserId+","+err.Error(), http.StatusNotFound)
 				} else {
@@ -513,20 +513,7 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel 
 			result.Err = model.NewAppError("SqlTeamStore.UpdateMember", "store.sql_team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			var retrievedMember teamMemberWithSchemeRoles
-			if err := s.GetMaster().SelectOne(&retrievedMember, `
-			SELECT
-				TeamMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole
-			FROM 
-				TeamMembers
-			LEFT JOIN
-				Teams ON TeamMembers.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE 
-				TeamMembers.TeamId = :TeamId 
-				AND TeamMembers.UserId = :UserId`, map[string]interface{}{"TeamId": member.TeamId, "UserId": member.UserId}); err != nil {
+			if err := s.GetMaster().SelectOne(&retrievedMember, TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE TeamMembers.TeamId = :TeamId AND TeamMembers.UserId = :UserId", map[string]interface{}{"TeamId": member.TeamId, "UserId": member.UserId}); err != nil {
 				if err == sql.ErrNoRows {
 					result.Err = model.NewAppError("SqlTeamStore.UpdateMember", "store.sql_team.get_member.missing.app_error", nil, "team_id="+member.TeamId+"user_id="+member.UserId+","+err.Error(), http.StatusNotFound)
 				} else {
@@ -542,19 +529,7 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel 
 func (s SqlTeamStore) GetMember(teamId string, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var dbMember teamMemberWithSchemeRoles
-		err := s.GetReplica().SelectOne(&dbMember, `SELECT
-			TeamMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole
-			FROM
-				TeamMembers
-			LEFT JOIN
-				Teams ON TeamMembers.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE
-				TeamMembers.TeamId = :TeamId
-				AND TeamMembers.UserId = :UserId`, map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		err := s.GetReplica().SelectOne(&dbMember, TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE TeamMembers.TeamId = :TeamId AND TeamMembers.UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 		if err != nil {
 			if err == sql.ErrNoRows {
 				result.Err = model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusNotFound)
@@ -570,23 +545,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) store.StoreChannel
 func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var dbMembers teamMemberWithSchemeRolesList
-		_, err := s.GetReplica().Select(&dbMembers, `SELECT
-			TeamMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole
-			FROM
-				TeamMembers
-			LEFT JOIN
-				Teams ON TeamMembers.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE
-				TeamMembers.TeamId = :TeamId
-				AND TeamMembers.DeleteAt = 0
-			LIMIT 
-				:Limit
-			OFFSET 
-				:Offset`, map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset})
+		_, err := s.GetReplica().Select(&dbMembers, TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE TeamMembers.TeamId = :TeamId AND TeamMembers.DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset})
 		if err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
 		} else {
@@ -653,20 +612,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string) store.Sto
 
 		props["TeamId"] = teamId
 
-		if _, err := s.GetReplica().Select(&dbMembers, `SELECT
-			TeamMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole
-			FROM
-				TeamMembers
-			LEFT JOIN
-				Teams ON TeamMembers.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE
-				TeamMembers.TeamId = :TeamId
-				AND TeamMembers.UserId IN (`+idQuery+`)
-				AND TeamMembers.DeleteAt = 0`, props); err != nil {
+		if _, err := s.GetReplica().Select(&dbMembers, TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE TeamMembers.TeamId = :TeamId AND TeamMembers.UserId IN ("+idQuery+") AND TeamMembers.DeleteAt = 0", props); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = dbMembers.ToModel()
@@ -677,18 +623,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string) store.Sto
 func (s SqlTeamStore) GetTeamsForUser(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var dbMembers teamMemberWithSchemeRolesList
-		_, err := s.GetReplica().Select(&dbMembers, `SELECT
-			TeamMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole
-			FROM
-				TeamMembers
-			LEFT JOIN
-				Teams ON TeamMembers.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE
-				TeamMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
+		_, err := s.GetReplica().Select(&dbMembers, TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE TeamMembers.UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
 		} else {

@@ -928,6 +928,25 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int) store.
 	})
 }
 
+var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
+	SELECT
+		ChannelMembers.*,
+		TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
+		TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
+		ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
+		ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
+	FROM 
+		ChannelMembers
+	INNER JOIN 
+		Channels ON ChannelMembers.ChannelId = Channels.Id
+	LEFT JOIN
+		Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
+	LEFT JOIN
+		Teams ON Channels.TeamId = Teams.Id
+	LEFT JOIN
+		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id 
+`
+
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		// Grab the channel we are saving this member to
@@ -976,26 +995,7 @@ func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *mode
 		}
 	} else {
 		var retrievedMember channelMemberWithSchemeRoles
-		if err := transaction.SelectOne(&retrievedMember, `
-			SELECT
-				ChannelMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-			FROM 
-				ChannelMembers
-			INNER JOIN 
-				Channels ON ChannelMembers.ChannelId = Channels.Id
-			LEFT JOIN
-				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-			LEFT JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE 
-				ChannelMembers.ChannelId = :ChannelId 
-				AND ChannelMembers.UserId = :UserId`, map[string]interface{}{"ChannelId": dbMember.ChannelId, "UserId": dbMember.UserId}); err != nil {
+		if err := transaction.SelectOne(&retrievedMember, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": dbMember.ChannelId, "UserId": dbMember.UserId}); err != nil {
 			if err == sql.ErrNoRows {
 				result.Err = model.NewAppError("SqlChannelStore.GetMember", store.MISSING_CHANNEL_MEMBER_ERROR, nil, "channel_id="+dbMember.ChannelId+"user_id="+dbMember.UserId+","+err.Error(), http.StatusNotFound)
 			} else {
@@ -1022,26 +1022,7 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) store.StoreCh
 		} else {
 			var dbMember channelMemberWithSchemeRoles
 
-			if err := s.GetReplica().SelectOne(&dbMember, `
-			SELECT
-				ChannelMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-			FROM 
-				ChannelMembers
-			INNER JOIN 
-				Channels ON ChannelMembers.ChannelId = Channels.Id
-			LEFT JOIN
-				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-			LEFT JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE 
-				ChannelMembers.ChannelId = :ChannelId 
-				AND ChannelMembers.UserId = :UserId`, map[string]interface{}{"ChannelId": member.ChannelId, "UserId": member.UserId}); err != nil {
+			if err := s.GetReplica().SelectOne(&dbMember, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": member.ChannelId, "UserId": member.UserId}); err != nil {
 				if err == sql.ErrNoRows {
 					result.Err = model.NewAppError("SqlChannelStore.GetMember", store.MISSING_CHANNEL_MEMBER_ERROR, nil, "channel_id="+member.ChannelId+"user_id="+member.UserId+","+err.Error(), http.StatusNotFound)
 				} else {
@@ -1057,27 +1038,7 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) store.StoreCh
 func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var dbMembers channelMemberWithSchemeRolesList
-		_, err := s.GetReplica().Select(&dbMembers, `
-			SELECT
-				ChannelMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-			FROM 
-				ChannelMembers
-			INNER JOIN 
-				Channels ON ChannelMembers.ChannelId = Channels.Id
-			LEFT JOIN
-				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-			LEFT JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE
-				ChannelId = :ChannelId 
-			LIMIT :Limit
-			OFFSET :Offset`, map[string]interface{}{"ChannelId": channelId, "Limit": limit, "Offset": offset})
+		_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelId = :ChannelId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Limit": limit, "Offset": offset})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMembers", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+err.Error(), http.StatusInternalServerError)
 		} else {
@@ -1090,26 +1051,7 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) store.StoreC
 	return store.Do(func(result *store.StoreResult) {
 		var dbMember channelMemberWithSchemeRoles
 
-		if err := s.GetReplica().SelectOne(&dbMember, `
-			SELECT
-				ChannelMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-			FROM 
-				ChannelMembers
-			INNER JOIN 
-				Channels ON ChannelMembers.ChannelId = Channels.Id
-			LEFT JOIN
-				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-			LEFT JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE 
-				ChannelMembers.ChannelId = :ChannelId 
-				AND ChannelMembers.UserId = :UserId`, map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
+		if err := s.GetReplica().SelectOne(&dbMember, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
 			if err == sql.ErrNoRows {
 				result.Err = model.NewAppError("SqlChannelStore.GetMember", store.MISSING_CHANNEL_MEMBER_ERROR, nil, "channel_id="+channelId+"user_id="+userId+","+err.Error(), http.StatusNotFound)
 			} else {
@@ -1566,28 +1508,7 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType st
 func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var dbMembers channelMemberWithSchemeRolesList
-		_, err := s.GetReplica().Select(&dbMembers, `
-            SELECT
-				ChannelMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-			FROM 
-				ChannelMembers
-			INNER JOIN 
-				Channels ON ChannelMembers.ChannelId = Channels.Id
-				AND (Channels.TeamId = :TeamId OR Channels.TeamId = '')
-                AND Channels.DeleteAt = 0
-			LEFT JOIN
-				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-			LEFT JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE
-				ChannelMembers.UserId = :UserId
-		`, map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMembersForUser", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
@@ -1799,26 +1720,7 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) sto
 
 		props["ChannelId"] = channelId
 
-		if _, err := s.GetReplica().Select(&dbMembers, `
-            SELECT
-				ChannelMembers.*,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-			FROM 
-				ChannelMembers
-			INNER JOIN 
-				Channels ON ChannelMembers.ChannelId = Channels.Id
-			LEFT JOIN
-				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-			LEFT JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-            WHERE 
-                ChannelMembers.ChannelId = :ChannelId 
-                AND ChannelMembers.UserId IN (`+idQuery+`)`, props); err != nil {
+		if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN ("+idQuery+")", props); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMembersByIds", "store.sql_channel.get_members_by_ids.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = dbMembers.ToModel()
