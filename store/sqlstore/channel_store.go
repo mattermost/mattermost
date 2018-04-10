@@ -1609,7 +1609,7 @@ func (s SqlChannelStore) buildFulltextClause(term string) (fulltextClause, fullt
 	// Copy the terms as we will need to prepare them differently for each search type.
 	fulltextTerm = term
 
-	searchColumns := "Name, DisplayName"
+	searchColumns := "Name, DisplayName, Purpose"
 
 	// These chars must be treated as spaces in the fulltext query.
 	for _, c := range spaceFulltextSearchChar {
