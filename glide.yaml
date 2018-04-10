@@ -31,7 +31,8 @@ import:
   subpackages:
   - qr
 - package: github.com/minio/minio-go
-  version: 4.0.7
+  repo: https://github.com/mattermost/minio-go.git
+  version: 4.0.7.1
   subpackages:
   - pkg/credentials
 - package: github.com/nicksnyder/go-i18n

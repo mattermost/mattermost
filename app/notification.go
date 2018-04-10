@@ -897,7 +897,9 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 				continue
 			}
 
-			if strings.ContainsAny(word, ".-:") {
+			if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+				ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, word[1:])
+			} else if strings.ContainsAny(word, ".-:") {
 				// This word contains a character that may be the end of a sentence, so split further
 				splitWords := strings.FieldsFunc(word, func(c rune) bool {
 					return c == '.' || c == '-' || c == ':'
@@ -908,15 +910,9 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 						continue
 					}
 					if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-						username := splitWord[1:]
-						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, username)
+						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, splitWord[1:])
 					}
 				}
-			}
-
-			if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-				username := word[1:]
-				ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, username)
 			}
 		}
 	}
