@@ -420,13 +420,13 @@ func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 	sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
 	//	saveSchemaVersion(sqlStore, VERSION_4_10_0)
-	sqlStore.CreateColumnIfNotExists("Teams", "SchemeId", "varchar(26)", "varchar(26)", "")
-	sqlStore.CreateColumnIfNotExists("Channels", "SchemeId", "varchar(26)", "varchar(26)", "")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "SchemeId", "varchar(26)", "varchar(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "SchemeId", "varchar(26)", "varchar(26)")
 
-	sqlStore.CreateColumnIfNotExists("TeamMembers", "SchemeUser", "boolean", "boolean", "NULL")
-	sqlStore.CreateColumnIfNotExists("TeamMembers", "SchemeAdmin", "boolean", "boolean", "NULL")
-	sqlStore.CreateColumnIfNotExists("ChannelMembers", "SchemeUser", "boolean", "boolean", "NULL")
-	sqlStore.CreateColumnIfNotExists("ChannelMembers", "SchemeAdmin", "boolean", "boolean", "NULL")
+	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeUser", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeAdmin", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeUser", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
 
 	sqlStore.CreateColumnIfNotExists("Roles", "BuiltIn", "boolean", "boolean", "0")
 	sqlStore.GetMaster().Exec("UPDATE Roles SET BuiltIn=true")

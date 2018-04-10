@@ -464,6 +464,40 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 	}
 }
 
+func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
+
+	if ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
+
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType)
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_COLUMN_POSTGRES)
+		}
+
+		return true
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
+		}
+
+		return true
+
+	} else {
+		l4g.Critical(utils.T("store.sql.create_column_missing_driver.critical"))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_CREATE_COLUMN_MISSING)
+		return false
+	}
+}
+
 func (ss *SqlSupplier) RemoveColumnIfExists(tableName string, columnName string) bool {
 
 	if !ss.DoesColumnExist(tableName, columnName) {
