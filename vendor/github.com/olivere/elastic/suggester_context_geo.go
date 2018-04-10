@@ -7,7 +7,7 @@ package elastic
 // -- SuggesterGeoMapping --
 
 // SuggesterGeoMapping provides a mapping for a geolocation context in a suggester.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/suggester-context.html#_geo_location_mapping.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/suggester-context.html#_geo_location_mapping.
 type SuggesterGeoMapping struct {
 	name             string
 	defaultLocations []*GeoPoint
@@ -80,7 +80,7 @@ func (q *SuggesterGeoMapping) Source() (interface{}, error) {
 // -- SuggesterGeoQuery --
 
 // SuggesterGeoQuery provides querying a geolocation context in a suggester.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/suggester-context.html#_geo_location_query
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/suggester-context.html#_geo_location_query
 type SuggesterGeoQuery struct {
 	name      string
 	location  *GeoPoint

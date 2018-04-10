@@ -14,7 +14,7 @@ import (
 )
 
 // ClusterStatsService is documented at
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/cluster-stats.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/cluster-stats.html.
 type ClusterStatsService struct {
 	client       *Client
 	pretty       bool

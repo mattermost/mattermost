@@ -5,6 +5,7 @@ package pq
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"io"
@@ -156,7 +157,7 @@ func benchMockQuery(b *testing.B, c *conn, query string) {
 		b.Fatal(err)
 	}
 	defer stmt.Close()
-	rows, err := stmt.Query(nil)
+	rows, err := stmt.(driver.StmtQueryContext).QueryContext(context.Background(), nil)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -266,7 +267,7 @@ func BenchmarkMockPreparedSelectSeries(b *testing.B) {
 }
 
 func benchPreparedMockQuery(b *testing.B, c *conn, stmt driver.Stmt) {
-	rows, err := stmt.Query(nil)
+	rows, err := stmt.(driver.StmtQueryContext).QueryContext(context.Background(), nil)
 	if err != nil {
 		b.Fatal(err)
 	}

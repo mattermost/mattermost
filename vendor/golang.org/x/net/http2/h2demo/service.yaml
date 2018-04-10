@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: h2demo
 spec:
+  externalTrafficPolicy: Local
   ports:
     - port: 80
       targetPort: 80

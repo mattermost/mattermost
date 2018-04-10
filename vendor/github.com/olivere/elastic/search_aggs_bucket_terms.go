@@ -6,7 +6,8 @@ package elastic
 
 // TermsAggregation is a multi-bucket value source based aggregation
 // where buckets are dynamically built - one per unique value.
-// See: http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html
+//
+// See: http://www.elasticsearch.org/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-terms-aggregation.html
 type TermsAggregation struct {
 	field           string
 	script          *Script

@@ -7,7 +7,7 @@ package elastic
 // -- SuggesterCategoryMapping --
 
 // SuggesterCategoryMapping provides a mapping for a category context in a suggester.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/suggester-context.html#_category_mapping.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/suggester-context.html#_category_mapping.
 type SuggesterCategoryMapping struct {
 	name          string
 	fieldName     string
@@ -59,7 +59,7 @@ func (q *SuggesterCategoryMapping) Source() (interface{}, error) {
 // -- SuggesterCategoryQuery --
 
 // SuggesterCategoryQuery provides querying a category context in a suggester.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/suggester-context.html#_category_query.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/suggester-context.html#_category_query.
 type SuggesterCategoryQuery struct {
 	name   string
 	values map[string]*int

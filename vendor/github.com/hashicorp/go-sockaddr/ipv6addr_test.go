@@ -33,7 +33,7 @@ func newIPv6BigInt(t *testing.T, ipv6Str string) *big.Int {
 	addrStr := strings.Join(strings.Split(ipv6Str, ":"), "")
 	_, ok := addr.SetString(addrStr, 16)
 	if !ok {
-		t.Fatal("Unable to create an IPv6Addr from string %+q", ipv6Str)
+		t.Fatalf("Unable to create an IPv6Addr from string %+q", ipv6Str)
 	}
 
 	return addr

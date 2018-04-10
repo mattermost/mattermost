@@ -106,8 +106,12 @@ func hostPortNoPort(u *url.URL) (hostPort, hostNoPort string) {
 
 // DefaultDialer is a dialer with all fields set to the default values.
 var DefaultDialer = &Dialer{
-	Proxy: http.ProxyFromEnvironment,
+	Proxy:            http.ProxyFromEnvironment,
+	HandshakeTimeout: 45 * time.Second,
 }
+
+// nilDialer is dialer to use when receiver is nil.
+var nilDialer Dialer = *DefaultDialer
 
 // Dial creates a new client connection. Use requestHeader to specify the
 // origin (Origin), subprotocols (Sec-WebSocket-Protocol) and cookies (Cookie).
@@ -121,9 +125,7 @@ var DefaultDialer = &Dialer{
 func (d *Dialer) Dial(urlStr string, requestHeader http.Header) (*Conn, *http.Response, error) {
 
 	if d == nil {
-		d = &Dialer{
-			Proxy: http.ProxyFromEnvironment,
-		}
+		d = &nilDialer
 	}
 
 	challengeKey, err := generateChallengeKey()
@@ -191,6 +193,8 @@ func (d *Dialer) Dial(urlStr string, requestHeader http.Header) (*Conn, *http.Re
 			k == "Sec-Websocket-Extensions" ||
 			(k == "Sec-Websocket-Protocol" && len(d.Subprotocols) > 0):
 			return nil, nil, errors.New("websocket: duplicate header not allowed: " + k)
+		case k == "Sec-Websocket-Protocol":
+			req.Header["Sec-WebSocket-Protocol"] = vs
 		default:
 			req.Header[k] = vs
 		}

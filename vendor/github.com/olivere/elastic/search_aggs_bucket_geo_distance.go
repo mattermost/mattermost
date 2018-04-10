@@ -11,7 +11,7 @@ package elastic
 // the origin point and determines the buckets it belongs to based on
 // the ranges (a document belongs to a bucket if the distance between the
 // document and the origin falls within the distance range of the bucket).
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-geodistance-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-geodistance-aggregation.html
 type GeoDistanceAggregation struct {
 	field           string
 	unit            string

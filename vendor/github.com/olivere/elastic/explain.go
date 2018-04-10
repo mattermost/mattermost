@@ -15,7 +15,7 @@ import (
 
 // ExplainService computes a score explanation for a query and
 // a specific document.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-explain.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-explain.html.
 type ExplainService struct {
 	client                 *Client
 	pretty                 bool

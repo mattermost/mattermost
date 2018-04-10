@@ -7,7 +7,7 @@ package elastic
 // TypeQuery filters documents matching the provided document / mapping type.
 //
 // For details, see:
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-type-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-type-query.html
 type TypeQuery struct {
 	typ string
 }

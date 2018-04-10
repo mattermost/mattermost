@@ -189,8 +189,8 @@ func parseFixedPoint(t *testing.T, s string) (val, scale int) {
 
 func BenchmarkPluralSimpleCases(b *testing.B) {
 	p := Cardinal
-	en, _ := language.CompactIndex(language.English)
-	zh, _ := language.CompactIndex(language.Chinese)
+	en := tagToID(language.English)
+	zh := tagToID(language.Chinese)
 	for i := 0; i < b.N; i++ {
 		matchPlural(p, en, 0, 0, 0)  // 0
 		matchPlural(p, en, 1, 0, 0)  // 1
@@ -203,8 +203,8 @@ func BenchmarkPluralSimpleCases(b *testing.B) {
 
 func BenchmarkPluralComplexCases(b *testing.B) {
 	p := Cardinal
-	ar, _ := language.CompactIndex(language.Arabic)
-	lv, _ := language.CompactIndex(language.Latvian)
+	ar := tagToID(language.Arabic)
+	lv := tagToID(language.Latvian)
 	for i := 0; i < b.N; i++ {
 		matchPlural(p, lv, 0, 19, 2)    // 0.19
 		matchPlural(p, lv, 11, 0, 3)    // 11.000

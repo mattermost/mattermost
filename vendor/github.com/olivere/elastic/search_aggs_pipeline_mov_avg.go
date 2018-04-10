@@ -8,7 +8,7 @@ package elastic
 // across the data and emit the average value of that window.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-movavg-aggregation.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-movavg-aggregation.html
 type MovAvgAggregation struct {
 	format    string
 	gapPolicy string
@@ -17,19 +17,18 @@ type MovAvgAggregation struct {
 	predict   *int
 	minimize  *bool
 
-	subAggregations map[string]Aggregation
-	meta            map[string]interface{}
-	bucketsPaths    []string
+	meta         map[string]interface{}
+	bucketsPaths []string
 }
 
 // NewMovAvgAggregation creates and initializes a new MovAvgAggregation.
 func NewMovAvgAggregation() *MovAvgAggregation {
 	return &MovAvgAggregation{
-		subAggregations: make(map[string]Aggregation),
-		bucketsPaths:    make([]string, 0),
+		bucketsPaths: make([]string, 0),
 	}
 }
 
+// Format to use on the output of this aggregation.
 func (a *MovAvgAggregation) Format(format string) *MovAvgAggregation {
 	a.format = format
 	return a
@@ -85,12 +84,6 @@ func (a *MovAvgAggregation) Minimize(minimize bool) *MovAvgAggregation {
 	return a
 }
 
-// SubAggregation adds a sub-aggregation to this aggregation.
-func (a *MovAvgAggregation) SubAggregation(name string, subAggregation Aggregation) *MovAvgAggregation {
-	a.subAggregations[name] = subAggregation
-	return a
-}
-
 // Meta sets the meta data to be included in the aggregation response.
 func (a *MovAvgAggregation) Meta(metaData map[string]interface{}) *MovAvgAggregation {
 	a.meta = metaData
@@ -103,6 +96,7 @@ func (a *MovAvgAggregation) BucketsPath(bucketsPaths ...string) *MovAvgAggregati
 	return a
 }
 
+// Source returns the a JSON-serializable interface.
 func (a *MovAvgAggregation) Source() (interface{}, error) {
 	source := make(map[string]interface{})
 	params := make(map[string]interface{})
@@ -140,19 +134,6 @@ func (a *MovAvgAggregation) Source() (interface{}, error) {
 		params["buckets_path"] = a.bucketsPaths
 	}
 
-	// AggregationBuilder (SubAggregations)
-	if len(a.subAggregations) > 0 {
-		aggsMap := make(map[string]interface{})
-		source["aggregations"] = aggsMap
-		for name, aggregate := range a.subAggregations {
-			src, err := aggregate.Source()
-			if err != nil {
-				return nil, err
-			}
-			aggsMap[name] = src
-		}
-	}
-
 	// Add Meta data if available
 	if len(a.meta) > 0 {
 		source["meta"] = a.meta
@@ -162,7 +143,7 @@ func (a *MovAvgAggregation) Source() (interface{}, error) {
 }
 
 // -- Models for moving averages --
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-movavg-aggregation.html#_models
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-movavg-aggregation.html#_models
 
 // MovAvgModel specifies the model to use with the MovAvgAggregation.
 type MovAvgModel interface {
@@ -175,7 +156,7 @@ type MovAvgModel interface {
 // EWMAMovAvgModel calculates an exponentially weighted moving average.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-movavg-aggregation.html#_ewma_exponentially_weighted
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-movavg-aggregation.html#_ewma_exponentially_weighted
 type EWMAMovAvgModel struct {
 	alpha *float64
 }
@@ -213,7 +194,7 @@ func (m *EWMAMovAvgModel) Settings() map[string]interface{} {
 // HoltLinearMovAvgModel calculates a doubly exponential weighted moving average.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-movavg-aggregation.html#_holt_linear
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-movavg-aggregation.html#_holt_linear
 type HoltLinearMovAvgModel struct {
 	alpha *float64
 	beta  *float64
@@ -262,7 +243,7 @@ func (m *HoltLinearMovAvgModel) Settings() map[string]interface{} {
 // HoltWintersMovAvgModel calculates a triple exponential weighted moving average.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-movavg-aggregation.html#_holt_winters
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-movavg-aggregation.html#_holt_winters
 type HoltWintersMovAvgModel struct {
 	alpha           *float64
 	beta            *float64
@@ -349,7 +330,7 @@ func (m *HoltWintersMovAvgModel) Settings() map[string]interface{} {
 // by position in collection.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-movavg-aggregation.html#_linear
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-movavg-aggregation.html#_linear
 type LinearMovAvgModel struct {
 }
 
@@ -373,7 +354,7 @@ func (m *LinearMovAvgModel) Settings() map[string]interface{} {
 // SimpleMovAvgModel calculates a simple unweighted (arithmetic) moving average.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-movavg-aggregation.html#_simple
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-movavg-aggregation.html#_simple
 type SimpleMovAvgModel struct {
 }
 

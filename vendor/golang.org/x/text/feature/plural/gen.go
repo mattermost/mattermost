@@ -63,9 +63,9 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/text/internal"
 	"golang.org/x/text/internal/gen"
-	"golang.org/x/text/language"
+	"golang.org/x/text/internal/language"
+	"golang.org/x/text/internal/language/compact"
 	"golang.org/x/text/unicode/cldr"
 )
 
@@ -198,7 +198,7 @@ func genPlurals(w *gen.CodeWriter, data *cldr.CLDR) {
 
 		rules := []pluralCheck{}
 		index := []byte{0}
-		langMap := map[int]byte{0: 0} // From compact language index to index
+		langMap := map[compact.ID]byte{0: 0}
 
 		for _, pRules := range plurals.PluralRules {
 			// Parse the rules.
@@ -251,7 +251,7 @@ func genPlurals(w *gen.CodeWriter, data *cldr.CLDR) {
 				if strings.TrimSpace(loc) == "" {
 					continue
 				}
-				lang, ok := language.CompactIndex(language.MustParse(loc))
+				lang, ok := compact.FromTag(language.MustParse(loc))
 				if !ok {
 					log.Printf("No compact index for locale %q", loc)
 				}
@@ -261,13 +261,25 @@ func genPlurals(w *gen.CodeWriter, data *cldr.CLDR) {
 		}
 		w.WriteVar(plurals.Type+"Rules", rules)
 		w.WriteVar(plurals.Type+"Index", index)
-		// Expand the values.
-		langToIndex := make([]byte, language.NumCompactTags)
+		// Expand the values: first by using the parent relationship.
+		langToIndex := make([]byte, compact.NumCompactTags)
 		for i := range langToIndex {
-			for p := i; ; p = int(internal.Parent[p]) {
+			for p := compact.ID(i); ; p = p.Parent() {
 				if x, ok := langMap[p]; ok {
 					langToIndex[i] = x
 					break
+				}
+			}
+		}
+		// Now expand by including entries with identical languages for which
+		// one isn't set.
+		for i, v := range langToIndex {
+			if v == 0 {
+				id, _ := compact.FromTag(language.Tag{
+					LangID: compact.ID(i).Tag().LangID,
+				})
+				if p := langToIndex[id]; p != 0 {
+					langToIndex[i] = p
 				}
 			}
 		}

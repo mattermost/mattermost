@@ -11,7 +11,7 @@ package elastic
 // used in conjunction with other single-value aggregations.
 // For example, when computing the avg one might be interested in the
 // number of values the average is computed over.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-metrics-valuecount-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-metrics-valuecount-aggregation.html
 type ValueCountAggregation struct {
 	field           string
 	script          *Script

@@ -1,48 +1,142 @@
 package mapstructure
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
-// GH-1
+// GH-1, GH-10, GH-96
 func TestDecode_NilValue(t *testing.T) {
-	input := map[string]interface{}{
-		"vfoo":   nil,
-		"vother": nil,
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		in         interface{}
+		target     interface{}
+		out        interface{}
+		metaKeys   []string
+		metaUnused []string
+	}{
+		{
+			"all nil",
+			&map[string]interface{}{
+				"vfoo":   nil,
+				"vother": nil,
+			},
+			&Map{Vfoo: "foo", Vother: map[string]string{"foo": "bar"}},
+			&Map{Vfoo: "", Vother: nil},
+			[]string{"Vfoo", "Vother"},
+			[]string{},
+		},
+		{
+			"partial nil",
+			&map[string]interface{}{
+				"vfoo":   "baz",
+				"vother": nil,
+			},
+			&Map{Vfoo: "foo", Vother: map[string]string{"foo": "bar"}},
+			&Map{Vfoo: "baz", Vother: nil},
+			[]string{"Vfoo", "Vother"},
+			[]string{},
+		},
+		{
+			"partial decode",
+			&map[string]interface{}{
+				"vother": nil,
+			},
+			&Map{Vfoo: "foo", Vother: map[string]string{"foo": "bar"}},
+			&Map{Vfoo: "foo", Vother: nil},
+			[]string{"Vother"},
+			[]string{},
+		},
+		{
+			"unused values",
+			&map[string]interface{}{
+				"vbar":   "bar",
+				"vfoo":   nil,
+				"vother": nil,
+			},
+			&Map{Vfoo: "foo", Vother: map[string]string{"foo": "bar"}},
+			&Map{Vfoo: "", Vother: nil},
+			[]string{"Vfoo", "Vother"},
+			[]string{"vbar"},
+		},
+		{
+			"map interface all nil",
+			&map[interface{}]interface{}{
+				"vfoo":   nil,
+				"vother": nil,
+			},
+			&Map{Vfoo: "foo", Vother: map[string]string{"foo": "bar"}},
+			&Map{Vfoo: "", Vother: nil},
+			[]string{"Vfoo", "Vother"},
+			[]string{},
+		},
+		{
+			"map interface partial nil",
+			&map[interface{}]interface{}{
+				"vfoo":   "baz",
+				"vother": nil,
+			},
+			&Map{Vfoo: "foo", Vother: map[string]string{"foo": "bar"}},
+			&Map{Vfoo: "baz", Vother: nil},
+			[]string{"Vfoo", "Vother"},
+			[]string{},
+		},
+		{
+			"map interface partial decode",
+			&map[interface{}]interface{}{
+				"vother": nil,
+			},
+			&Map{Vfoo: "foo", Vother: map[string]string{"foo": "bar"}},
+			&Map{Vfoo: "foo", Vother: nil},
+			[]string{"Vother"},
+			[]string{},
+		},
+		{
+			"map interface unused values",
+			&map[interface{}]interface{}{
+				"vbar":   "bar",
+				"vfoo":   nil,
+				"vother": nil,
+			},
+			&Map{Vfoo: "foo", Vother: map[string]string{"foo": "bar"}},
+			&Map{Vfoo: "", Vother: nil},
+			[]string{"Vfoo", "Vother"},
+			[]string{"vbar"},
+		},
 	}
 
-	var result Map
-	err := Decode(input, &result)
-	if err != nil {
-		t.Fatalf("should not error: %s", err)
-	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &DecoderConfig{
+				Metadata:   new(Metadata),
+				Result:     tc.target,
+				ZeroFields: true,
+			}
 
-	if result.Vfoo != "" {
-		t.Fatalf("value should be default: %s", result.Vfoo)
-	}
+			decoder, err := NewDecoder(config)
+			if err != nil {
+				t.Fatalf("should not error: %s", err)
+			}
 
-	if result.Vother != nil {
-		t.Fatalf("Vother should be nil: %s", result.Vother)
-	}
-}
+			err = decoder.Decode(tc.in)
+			if err != nil {
+				t.Fatalf("should not error: %s", err)
+			}
 
-// GH-10
-func TestDecode_mapInterfaceInterface(t *testing.T) {
-	input := map[interface{}]interface{}{
-		"vfoo":   nil,
-		"vother": nil,
-	}
+			if !reflect.DeepEqual(tc.out, tc.target) {
+				t.Fatalf("%q: TestDecode_NilValue() expected: %#v, got: %#v", tc.name, tc.out, tc.target)
+			}
 
-	var result Map
-	err := Decode(input, &result)
-	if err != nil {
-		t.Fatalf("should not error: %s", err)
-	}
+			if !reflect.DeepEqual(tc.metaKeys, config.Metadata.Keys) {
+				t.Fatalf("%q: Metadata.Keys mismatch expected: %#v, got: %#v", tc.name, tc.metaKeys, config.Metadata.Keys)
+			}
 
-	if result.Vfoo != "" {
-		t.Fatalf("value should be default: %s", result.Vfoo)
-	}
-
-	if result.Vother != nil {
-		t.Fatalf("Vother should be nil: %s", result.Vother)
+			if !reflect.DeepEqual(tc.metaUnused, config.Metadata.Unused) {
+				t.Fatalf("%q: Metadata.Unused mismatch expected: %#v, got: %#v", tc.name, tc.metaUnused, config.Metadata.Unused)
+			}
+		})
 	}
 }
 

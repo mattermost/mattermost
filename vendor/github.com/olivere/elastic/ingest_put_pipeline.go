@@ -16,7 +16,7 @@ import (
 // IngestPutPipelineService adds pipelines and updates existing pipelines in
 // the cluster.
 //
-// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.0/put-pipeline-api.html.
+// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.2/put-pipeline-api.html.
 type IngestPutPipelineService struct {
 	client        *Client
 	pretty        bool

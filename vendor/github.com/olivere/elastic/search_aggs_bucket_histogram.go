@@ -8,7 +8,7 @@ package elastic
 // that can be applied on numeric values extracted from the documents.
 // It dynamically builds fixed size (a.k.a. interval) buckets over the
 // values.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-histogram-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-histogram-aggregation.html
 type HistogramAggregation struct {
 	field           string
 	script          *Script

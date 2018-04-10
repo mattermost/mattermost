@@ -34,10 +34,13 @@ const (
 
 	apiPrefix = "/api/v1"
 
-	epQuery       = apiPrefix + "/query"
-	epQueryRange  = apiPrefix + "/query_range"
-	epLabelValues = apiPrefix + "/label/:name/values"
-	epSeries      = apiPrefix + "/series"
+	epQuery           = apiPrefix + "/query"
+	epQueryRange      = apiPrefix + "/query_range"
+	epLabelValues     = apiPrefix + "/label/:name/values"
+	epSeries          = apiPrefix + "/series"
+	epSnapshot        = apiPrefix + "/admin/tsdb/snapshot"
+	epDeleteSeries    = apiPrefix + "/admin/tsdb/delete_series"
+	epCleanTombstones = apiPrefix + "/admin/tsdb/clean_tombstones"
 )
 
 // ErrorType models the different API error types.
@@ -80,6 +83,13 @@ type API interface {
 	LabelValues(ctx context.Context, label string) (model.LabelValues, error)
 	// Series finds series by label matchers.
 	Series(ctx context.Context, matches []string, startTime time.Time, endTime time.Time) ([]model.LabelSet, error)
+	// Snapshot creates a snapshot of all current data into snapshots/<datetime>-<rand>
+	// under the TSDB's data directory and returns the directory as response.
+	Snapshot(ctx context.Context, skipHead bool) (SnapshotResult, error)
+	// DeleteSeries deletes data for a selection of series in a time range.
+	DeleteSeries(ctx context.Context, matches []string, startTime time.Time, endTime time.Time) error
+	// CleanTombstones removes the deleted data from disk and cleans up the existing tombstones.
+	CleanTombstones(ctx context.Context) error
 }
 
 // queryResult contains result data for a query.
@@ -89,6 +99,11 @@ type queryResult struct {
 
 	// The decoded value.
 	v model.Value
+}
+
+// SnapshotResult contains result data for a snapshot.
+type SnapshotResult struct {
+	Name string
 }
 
 func (qr *queryResult) UnmarshalJSON(b []byte) error {
@@ -146,7 +161,7 @@ func (h *httpAPI) Query(ctx context.Context, query string, ts time.Time) (model.
 
 	u.RawQuery = q.Encode()
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +194,7 @@ func (h *httpAPI) QueryRange(ctx context.Context, query string, r Range) (model.
 
 	u.RawQuery = q.Encode()
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +238,7 @@ func (h *httpAPI) Series(ctx context.Context, matches []string, startTime time.T
 
 	u.RawQuery = q.Encode()
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -236,6 +251,63 @@ func (h *httpAPI) Series(ctx context.Context, matches []string, startTime time.T
 	var mset []model.LabelSet
 	err = json.Unmarshal(body, &mset)
 	return mset, err
+}
+
+func (h *httpAPI) Snapshot(ctx context.Context, skipHead bool) (SnapshotResult, error) {
+	u := h.client.URL(epSnapshot, nil)
+	q := u.Query()
+
+	q.Set("skip_head", strconv.FormatBool(skipHead))
+
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
+	if err != nil {
+		return SnapshotResult{}, err
+	}
+
+	_, body, err := h.client.Do(ctx, req)
+	if err != nil {
+		return SnapshotResult{}, err
+	}
+
+	var res SnapshotResult
+	err = json.Unmarshal(body, &res)
+	return res, err
+}
+
+func (h *httpAPI) DeleteSeries(ctx context.Context, matches []string, startTime time.Time, endTime time.Time) error {
+	u := h.client.URL(epDeleteSeries, nil)
+	q := u.Query()
+
+	for _, m := range matches {
+		q.Add("match[]", m)
+	}
+
+	q.Set("start", startTime.Format(time.RFC3339Nano))
+	q.Set("end", endTime.Format(time.RFC3339Nano))
+
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = h.client.Do(ctx, req)
+	return err
+}
+
+func (h *httpAPI) CleanTombstones(ctx context.Context) error {
+	u := h.client.URL(epCleanTombstones, nil)
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = h.client.Do(ctx, req)
+	return err
 }
 
 // apiClient wraps a regular client and processes successful API responses.

@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"mime"
 	"net"
 	"net/http"
 	"strconv"
@@ -28,9 +29,10 @@ const (
 	// The examples seem to indicate that it is.
 	DefaultQValue = 1.0
 
-	// DefaultMinSize defines the minimum size to reach to enable compression.
-	// It's 512 bytes.
-	DefaultMinSize = 512
+	// 1500 bytes is the MTU size for the internet since that is the largest size allowed at the network layer.
+	// If you take a file that is 1300 bytes and compress it to 800 bytes, it’s still transmitted in that same 1500 byte packet regardless, so you’ve gained nothing.
+	// That being the case, you should restrict the gzip compression to files with a size greater than a single packet, 1400 bytes (1.4KB) is a safe value.
+	DefaultMinSize = 1400
 )
 
 // gzipWriterPools stores a sync.Pool for each compression level for reuse of
@@ -81,7 +83,7 @@ type GzipResponseWriter struct {
 	minSize int    // Specifed the minimum response size to gzip. If the response length is bigger than this value, it is compressed.
 	buf     []byte // Holds the first part of the write before reaching the minSize or the end of the write.
 
-	contentTypes []string // Only compress if the response is one of these content-types. All are accepted if empty.
+	contentTypes []parsedContentType // Only compress if the response is one of these content-types. All are accepted if empty.
 }
 
 type GzipResponseWriterWithCloseNotify struct {
@@ -295,11 +297,40 @@ func GzipHandlerWithOpts(opts ...option) (func(http.Handler) http.Handler, error
 	}, nil
 }
 
+// Parsed representation of one of the inputs to ContentTypes.
+// See https://golang.org/pkg/mime/#ParseMediaType
+type parsedContentType struct {
+	mediaType string
+	params    map[string]string
+}
+
+// equals returns whether this content type matches another content type.
+func (pct parsedContentType) equals(mediaType string, params map[string]string) bool {
+	if pct.mediaType != mediaType {
+		return false
+	}
+	// if pct has no params, don't care about other's params
+	if len(pct.params) == 0 {
+		return true
+	}
+
+	// if pct has any params, they must be identical to other's.
+	if len(pct.params) != len(params) {
+		return false
+	}
+	for k, v := range pct.params {
+		if w, ok := params[k]; !ok || v != w {
+			return false
+		}
+	}
+	return true
+}
+
 // Used for functional configuration.
 type config struct {
 	minSize      int
 	level        int
-	contentTypes []string
+	contentTypes []parsedContentType
 }
 
 func (c *config) validate() error {
@@ -328,11 +359,32 @@ func CompressionLevel(level int) option {
 	}
 }
 
+// ContentTypes specifies a list of content types to compare
+// the Content-Type header to before compressing. If none
+// match, the response will be returned as-is.
+//
+// Content types are compared in a case-insensitive, whitespace-ignored
+// manner.
+//
+// A MIME type without any other directive will match a content type
+// that has the same MIME type, regardless of that content type's other
+// directives. I.e., "text/html" will match both "text/html" and
+// "text/html; charset=utf-8".
+//
+// A MIME type with any other directive will only match a content type
+// that has the same MIME type and other directives. I.e.,
+// "text/html; charset=utf-8" will only match "text/html; charset=utf-8".
+//
+// By default, responses are gzipped regardless of
+// Content-Type.
 func ContentTypes(types []string) option {
 	return func(c *config) {
-		c.contentTypes = []string{}
+		c.contentTypes = []parsedContentType{}
 		for _, v := range types {
-			c.contentTypes = append(c.contentTypes, strings.ToLower(v))
+			mediaType, params, err := mime.ParseMediaType(v)
+			if err == nil {
+				c.contentTypes = append(c.contentTypes, parsedContentType{mediaType, params})
+			}
 		}
 	}
 }
@@ -353,15 +405,20 @@ func acceptsGzip(r *http.Request) bool {
 }
 
 // returns true if we've been configured to compress the specific content type.
-func handleContentType(contentTypes []string, w http.ResponseWriter) bool {
+func handleContentType(contentTypes []parsedContentType, w http.ResponseWriter) bool {
 	// If contentTypes is empty we handle all content types.
 	if len(contentTypes) == 0 {
 		return true
 	}
 
-	ct := strings.ToLower(w.Header().Get(contentType))
+	ct := w.Header().Get(contentType)
+	mediaType, params, err := mime.ParseMediaType(ct)
+	if err != nil {
+		return false
+	}
+
 	for _, c := range contentTypes {
-		if c == ct {
+		if c.equals(mediaType, params) {
 			return true
 		}
 	}

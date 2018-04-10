@@ -14,7 +14,7 @@ import (
 // will be checked against each bucket range and "bucket" the
 // relevant/matching document. Note that this aggregration includes the
 // from value and excludes the to value for each range.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-range-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-range-aggregation.html
 type RangeAggregation struct {
 	field           string
 	script          *Script

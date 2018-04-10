@@ -254,7 +254,7 @@ collected metric's label constname is not utf8: "\xff"
 			},
 			out: output{
 				headers: map[string]string{
-					"Content-Type": `text/plain; version=0.0.4`,
+					"Content-Type": `text/plain; version=0.0.4; charset=utf-8`,
 				},
 				body: []byte{},
 			},
@@ -265,7 +265,7 @@ collected metric's label constname is not utf8: "\xff"
 			},
 			out: output{
 				headers: map[string]string{
-					"Content-Type": `text/plain; version=0.0.4`,
+					"Content-Type": `text/plain; version=0.0.4; charset=utf-8`,
 				},
 				body: []byte{},
 			},
@@ -276,7 +276,7 @@ collected metric's label constname is not utf8: "\xff"
 			},
 			out: output{
 				headers: map[string]string{
-					"Content-Type": `text/plain; version=0.0.4`,
+					"Content-Type": `text/plain; version=0.0.4; charset=utf-8`,
 				},
 				body: []byte{},
 			},
@@ -298,7 +298,7 @@ collected metric's label constname is not utf8: "\xff"
 			},
 			out: output{
 				headers: map[string]string{
-					"Content-Type": `text/plain; version=0.0.4`,
+					"Content-Type": `text/plain; version=0.0.4; charset=utf-8`,
 				},
 				body: expectedMetricFamilyAsText,
 			},
@@ -322,7 +322,7 @@ collected metric's label constname is not utf8: "\xff"
 			},
 			out: output{
 				headers: map[string]string{
-					"Content-Type": `text/plain; version=0.0.4`,
+					"Content-Type": `text/plain; version=0.0.4; charset=utf-8`,
 				},
 				body: externalMetricFamilyAsText,
 			},
@@ -365,7 +365,7 @@ collected metric's label constname is not utf8: "\xff"
 			},
 			out: output{
 				headers: map[string]string{
-					"Content-Type": `text/plain; version=0.0.4`,
+					"Content-Type": `text/plain; version=0.0.4; charset=utf-8`,
 				},
 				body: []byte{},
 			},
@@ -376,7 +376,7 @@ collected metric's label constname is not utf8: "\xff"
 			},
 			out: output{
 				headers: map[string]string{
-					"Content-Type": `text/plain; version=0.0.4`,
+					"Content-Type": `text/plain; version=0.0.4; charset=utf-8`,
 				},
 				body: expectedMetricFamilyAsText,
 			},
@@ -388,7 +388,7 @@ collected metric's label constname is not utf8: "\xff"
 			},
 			out: output{
 				headers: map[string]string{
-					"Content-Type": `text/plain; version=0.0.4`,
+					"Content-Type": `text/plain; version=0.0.4; charset=utf-8`,
 				},
 				body: bytes.Join(
 					[][]byte{

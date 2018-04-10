@@ -9,7 +9,7 @@ import "errors"
 // ScriptQuery allows to define scripts as filters.
 //
 // For details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-script-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-script-query.html
 type ScriptQuery struct {
 	script    *Script
 	queryName string

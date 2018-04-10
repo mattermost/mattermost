@@ -8,7 +8,7 @@ package elastic
 // in the inverted index.
 //
 // For details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-term-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-term-query.html
 type TermQuery struct {
 	name      string
 	value     interface{}

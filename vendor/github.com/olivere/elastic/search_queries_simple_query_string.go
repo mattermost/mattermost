@@ -15,7 +15,7 @@ import (
 // and discards invalid parts of the query.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-simple-query-string-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-simple-query-string-query.html
 type SimpleQueryStringQuery struct {
 	queryText              string
 	analyzer               string

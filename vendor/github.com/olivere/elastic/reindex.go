@@ -11,7 +11,7 @@ import (
 )
 
 // ReindexService is a method to copy documents from one index to another.
-// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-reindex.html.
+// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-reindex.html.
 type ReindexService struct {
 	client              *Client
 	pretty              bool
@@ -60,6 +60,9 @@ func (s *ReindexService) Slices(slices int) *ReindexService {
 
 // Refresh indicates whether Elasticsearch should refresh the effected indexes
 // immediately.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-refresh.html
+// for details.
 func (s *ReindexService) Refresh(refresh string) *ReindexService {
 	s.refresh = refresh
 	return s
@@ -411,27 +414,27 @@ func (r *ReindexSource) Query(query Query) *ReindexSource {
 }
 
 // Sort adds a sort order.
-func (s *ReindexSource) Sort(field string, ascending bool) *ReindexSource {
-	s.sorts = append(s.sorts, SortInfo{Field: field, Ascending: ascending})
-	return s
+func (r *ReindexSource) Sort(field string, ascending bool) *ReindexSource {
+	r.sorts = append(r.sorts, SortInfo{Field: field, Ascending: ascending})
+	return r
 }
 
 // SortWithInfo adds a sort order.
-func (s *ReindexSource) SortWithInfo(info SortInfo) *ReindexSource {
-	s.sorts = append(s.sorts, info)
-	return s
+func (r *ReindexSource) SortWithInfo(info SortInfo) *ReindexSource {
+	r.sorts = append(r.sorts, info)
+	return r
 }
 
 // SortBy adds a sort order.
-func (s *ReindexSource) SortBy(sorter ...Sorter) *ReindexSource {
-	s.sorters = append(s.sorters, sorter...)
-	return s
+func (r *ReindexSource) SortBy(sorter ...Sorter) *ReindexSource {
+	r.sorters = append(r.sorters, sorter...)
+	return r
 }
 
 // RemoteInfo sets up reindexing from a remote cluster.
-func (s *ReindexSource) RemoteInfo(ri *ReindexRemoteInfo) *ReindexSource {
-	s.remoteInfo = ri
-	return s
+func (r *ReindexSource) RemoteInfo(ri *ReindexRemoteInfo) *ReindexSource {
+	r.remoteInfo = ri
+	return r
 }
 
 // Source returns a serializable JSON request for the request.
@@ -588,7 +591,7 @@ func (ri *ReindexRemoteInfo) Source() (interface{}, error) {
 // ReindexDestination is the destination of a Reindex API call.
 // It is basically the meta data of a BulkIndexRequest.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-reindex.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-reindex.html
 // fsourcer details.
 type ReindexDestination struct {
 	index       string
@@ -647,7 +650,7 @@ func (r *ReindexDestination) Parent(parent string) *ReindexDestination {
 
 // OpType specifies if this request should follow create-only or upsert
 // behavior. This follows the OpType of the standard document index API.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-index_.html#operation-type
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-index_.html#operation-type
 // for details.
 func (r *ReindexDestination) OpType(opType string) *ReindexDestination {
 	r.opType = opType

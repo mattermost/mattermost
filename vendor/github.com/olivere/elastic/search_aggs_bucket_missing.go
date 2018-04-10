@@ -11,7 +11,7 @@ package elastic
 // conjunction with other field data bucket aggregators (such as ranges)
 // to return information for all the documents that could not be placed
 // in any of the other buckets due to missing field data values.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-missing-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-missing-aggregation.html
 type MissingAggregation struct {
 	field           string
 	subAggregations map[string]Aggregation

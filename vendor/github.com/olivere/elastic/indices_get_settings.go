@@ -16,7 +16,7 @@ import (
 // IndicesGetSettingsService allows to retrieve settings of one
 // or more indices.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-get-settings.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-get-settings.html
 // for more details.
 type IndicesGetSettingsService struct {
 	client            *Client

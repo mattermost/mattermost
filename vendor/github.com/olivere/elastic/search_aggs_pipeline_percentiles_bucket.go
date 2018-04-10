@@ -10,22 +10,19 @@ package elastic
 // be a multi-bucket aggregation.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-percentiles-bucket-aggregation.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-percentiles-bucket-aggregation.html
 type PercentilesBucketAggregation struct {
 	format       string
 	gapPolicy    string
 	percents     []float64
 	bucketsPaths []string
 
-	subAggregations map[string]Aggregation
-	meta            map[string]interface{}
+	meta map[string]interface{}
 }
 
 // NewPercentilesBucketAggregation creates and initializes a new PercentilesBucketAggregation.
 func NewPercentilesBucketAggregation() *PercentilesBucketAggregation {
-	return &PercentilesBucketAggregation{
-		subAggregations: make(map[string]Aggregation),
-	}
+	return &PercentilesBucketAggregation{}
 }
 
 // Format to apply the output value of this aggregation.
@@ -59,12 +56,6 @@ func (p *PercentilesBucketAggregation) GapSkip() *PercentilesBucketAggregation {
 	return p
 }
 
-// SubAggregation adds a sub-aggregation to this aggregation.
-func (p *PercentilesBucketAggregation) SubAggregation(name string, subAggregation Aggregation) *PercentilesBucketAggregation {
-	p.subAggregations[name] = subAggregation
-	return p
-}
-
 // Meta sets the meta data to be included in the aggregation response.
 func (p *PercentilesBucketAggregation) Meta(metaData map[string]interface{}) *PercentilesBucketAggregation {
 	p.meta = metaData
@@ -77,6 +68,7 @@ func (p *PercentilesBucketAggregation) BucketsPath(bucketsPaths ...string) *Perc
 	return p
 }
 
+// Source returns the a JSON-serializable interface.
 func (p *PercentilesBucketAggregation) Source() (interface{}, error) {
 	source := make(map[string]interface{})
 	params := make(map[string]interface{})
@@ -101,19 +93,6 @@ func (p *PercentilesBucketAggregation) Source() (interface{}, error) {
 	// Add percents
 	if len(p.percents) > 0 {
 		params["percents"] = p.percents
-	}
-
-	// AggregationBuilder (SubAggregations)
-	if len(p.subAggregations) > 0 {
-		aggsMap := make(map[string]interface{})
-		source["aggregations"] = aggsMap
-		for name, aggregate := range p.subAggregations {
-			src, err := aggregate.Source()
-			if err != nil {
-				return nil, err
-			}
-			aggsMap[name] = src
-		}
 	}
 
 	// Add Meta data if available

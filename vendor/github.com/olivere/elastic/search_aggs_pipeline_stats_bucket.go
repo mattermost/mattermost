@@ -10,24 +10,23 @@ package elastic
 // be a multi-bucket aggregation.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-stats-bucket-aggregation.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-stats-bucket-aggregation.html
 type StatsBucketAggregation struct {
 	format    string
 	gapPolicy string
 
-	subAggregations map[string]Aggregation
-	meta            map[string]interface{}
-	bucketsPaths    []string
+	meta         map[string]interface{}
+	bucketsPaths []string
 }
 
 // NewStatsBucketAggregation creates and initializes a new StatsBucketAggregation.
 func NewStatsBucketAggregation() *StatsBucketAggregation {
 	return &StatsBucketAggregation{
-		subAggregations: make(map[string]Aggregation),
-		bucketsPaths:    make([]string, 0),
+		bucketsPaths: make([]string, 0),
 	}
 }
 
+// Format to use on the output of this aggregation.
 func (s *StatsBucketAggregation) Format(format string) *StatsBucketAggregation {
 	s.format = format
 	return s
@@ -52,12 +51,6 @@ func (s *StatsBucketAggregation) GapSkip() *StatsBucketAggregation {
 	return s
 }
 
-// SubAggregation adds a sub-aggregation to this aggregation.
-func (s *StatsBucketAggregation) SubAggregation(name string, subAggregation Aggregation) *StatsBucketAggregation {
-	s.subAggregations[name] = subAggregation
-	return s
-}
-
 // Meta sets the meta data to be included in the aggregation response.
 func (s *StatsBucketAggregation) Meta(metaData map[string]interface{}) *StatsBucketAggregation {
 	s.meta = metaData
@@ -70,6 +63,7 @@ func (s *StatsBucketAggregation) BucketsPath(bucketsPaths ...string) *StatsBucke
 	return s
 }
 
+// Source returns the a JSON-serializable interface.
 func (s *StatsBucketAggregation) Source() (interface{}, error) {
 	source := make(map[string]interface{})
 	params := make(map[string]interface{})
@@ -89,19 +83,6 @@ func (s *StatsBucketAggregation) Source() (interface{}, error) {
 		params["buckets_path"] = s.bucketsPaths[0]
 	default:
 		params["buckets_path"] = s.bucketsPaths
-	}
-
-	// AggregationBuilder (SubAggregations)
-	if len(s.subAggregations) > 0 {
-		aggsMap := make(map[string]interface{})
-		source["aggregations"] = aggsMap
-		for name, aggregate := range s.subAggregations {
-			src, err := aggregate.Source()
-			if err != nil {
-				return nil, err
-			}
-			aggsMap[name] = src
-		}
 	}
 
 	// Add Meta data if available

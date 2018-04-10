@@ -13,7 +13,7 @@ type SuggesterContextQuery interface {
 }
 
 // ContextSuggester is a fast suggester for e.g. type-ahead completion that supports filtering and boosting based on contexts.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/suggester-context.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/suggester-context.html
 // for more details.
 type ContextSuggester struct {
 	Suggester

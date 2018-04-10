@@ -17,7 +17,7 @@ import (
 // existing index is considered to be too large or too old.
 //
 // It is documented at
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-rollover-index.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-rollover-index.html.
 type IndicesRolloverService struct {
 	client              *Client
 	pretty              bool

@@ -16,7 +16,7 @@ import (
 
 // IndicesExistsService checks if an index or indices exist or not.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-exists.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-exists.html
 // for details.
 type IndicesExistsService struct {
 	client            *Client

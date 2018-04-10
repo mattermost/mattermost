@@ -13,7 +13,7 @@
 // The speedup of sliced scrolling can be significant but is very
 // dependent on the specific use case.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-scroll.html#sliced-scroll
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-request-scroll.html#sliced-scroll
 // for details on sliced scrolling in Elasticsearch.
 //
 // Example

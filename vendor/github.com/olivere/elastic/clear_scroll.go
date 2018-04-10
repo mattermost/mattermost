@@ -12,7 +12,7 @@ import (
 
 // ClearScrollService clears one or more scroll contexts by their ids.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-scroll.html#_clear_scroll_api
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-request-scroll.html#_clear_scroll_api
 // for details.
 type ClearScrollService struct {
 	client   *Client

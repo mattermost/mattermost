@@ -8,7 +8,7 @@ package elastic
 // the search execution context. This context is defined by the indices
 // and the document types you’re searching on, but is not influenced
 // by the search query itself.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-global-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-global-aggregation.html
 type GlobalAggregation struct {
 	subAggregations map[string]Aggregation
 	meta            map[string]interface{}

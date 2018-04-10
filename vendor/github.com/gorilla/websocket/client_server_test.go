@@ -72,18 +72,18 @@ func newTLSServer(t *testing.T) *cstServer {
 func (t cstHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != cstPath {
 		t.Logf("path=%v, want %v", r.URL.Path, cstPath)
-		http.Error(w, "bad path", 400)
+		http.Error(w, "bad path", http.StatusBadRequest)
 		return
 	}
 	if r.URL.RawQuery != cstRawQuery {
 		t.Logf("query=%v, want %v", r.URL.RawQuery, cstRawQuery)
-		http.Error(w, "bad path", 400)
+		http.Error(w, "bad path", http.StatusBadRequest)
 		return
 	}
 	subprotos := Subprotocols(r)
 	if !reflect.DeepEqual(subprotos, cstDialer.Subprotocols) {
 		t.Logf("subprotols=%v, want %v", subprotos, cstDialer.Subprotocols)
-		http.Error(w, "bad protocol", 400)
+		http.Error(w, "bad protocol", http.StatusBadRequest)
 		return
 	}
 	ws, err := cstUpgrader.Upgrade(w, r, http.Header{"Set-Cookie": {"sessionID=1234"}})
@@ -160,13 +160,13 @@ func TestProxyDial(t *testing.T) {
 		func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == "CONNECT" {
 				connect = true
-				w.WriteHeader(200)
+				w.WriteHeader(http.StatusOK)
 				return
 			}
 
 			if !connect {
 				t.Log("connect not received")
-				http.Error(w, "connect not received", 405)
+				http.Error(w, "connect not received", http.StatusMethodNotAllowed)
 				return
 			}
 			origHandler.ServeHTTP(w, r)
@@ -200,13 +200,13 @@ func TestProxyAuthorizationDial(t *testing.T) {
 			expectedProxyAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte("username:password"))
 			if r.Method == "CONNECT" && proxyAuth == expectedProxyAuth {
 				connect = true
-				w.WriteHeader(200)
+				w.WriteHeader(http.StatusOK)
 				return
 			}
 
 			if !connect {
 				t.Log("connect with proxy authorization not received")
-				http.Error(w, "connect with proxy authorization not received", 405)
+				http.Error(w, "connect with proxy authorization not received", http.StatusMethodNotAllowed)
 				return
 			}
 			origHandler.ServeHTTP(w, r)

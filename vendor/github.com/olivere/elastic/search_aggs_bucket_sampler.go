@@ -9,7 +9,7 @@ package elastic
 // Optionally, diversity settings can be used to limit the number of matches
 // that share a common value such as an "author".
 //
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-sampler-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-sampler-aggregation.html
 type SamplerAggregation struct {
 	subAggregations map[string]Aggregation
 	meta            map[string]interface{}

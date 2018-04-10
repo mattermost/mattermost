@@ -1675,26 +1675,6 @@ func (v *Viper) AllSettings() map[string]interface{} {
 	return m
 }
 
-// EnvSettings returns a map[string]interface{} containing all settings set
-// through environment variables.
-func EnvSettings() map[string]interface{} { return v.EnvSettings() }
-func (v *Viper) EnvSettings() map[string]interface{} {
-	m := map[string]interface{}{}
-	// start from the list of keys, and construct the map one value at a time
-	for _, k := range v.AllKeys() {
-		value := v.getEnv(v.mergeWithEnvPrefix(k))
-		if value == "" {
-			continue
-		}
-		path := strings.Split(k, v.keyDelim)
-		lastKey := strings.ToLower(path[len(path)-1])
-		deepestMap := deepSearch(m, path[0:len(path)-1])
-		// set innermost value
-		deepestMap[lastKey] = true
-	}
-	return m
-}
-
 // SetFs sets the filesystem to use to read configuration.
 func SetFs(fs afero.Fs) { v.SetFs(fs) }
 func (v *Viper) SetFs(fs afero.Fs) {

@@ -1,6 +1,7 @@
 package pq
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
@@ -1263,8 +1264,8 @@ func TestParseComplete(t *testing.T) {
 
 // Test interface conformance.
 var (
-	_ driver.Execer  = (*conn)(nil)
-	_ driver.Queryer = (*conn)(nil)
+	_ driver.ExecerContext  = (*conn)(nil)
+	_ driver.QueryerContext = (*conn)(nil)
 )
 
 func TestNullAfterNonNull(t *testing.T) {
@@ -1609,10 +1610,10 @@ func TestRowsResultTag(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer conn.Close()
-	q := conn.(driver.Queryer)
+	q := conn.(driver.QueryerContext)
 
 	for _, test := range tests {
-		if rows, err := q.Query(test.query, nil); err != nil {
+		if rows, err := q.QueryContext(context.Background(), test.query, nil); err != nil {
 			t.Fatalf("%s: %s", test.query, err)
 		} else {
 			r := rows.(ResultTag)

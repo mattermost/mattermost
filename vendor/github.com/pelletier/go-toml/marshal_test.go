@@ -775,7 +775,7 @@ func TestMarshalArrayOnePerLine(t *testing.T) {
   B = [
     1,
     2,
-    3
+    3,
   ]
   C = [1]
 `)

@@ -8,6 +8,7 @@ func TestCopyOnWrite(t *testing.T) {
 	base := NewOsFs()
 	roBase := NewReadOnlyFs(base)
 	ufs := NewCopyOnWriteFs(roBase, NewMemMapFs())
+
 	fs = ufs
 	err = fs.MkdirAll("nonexistent/directory/", 0744)
 	if err != nil {

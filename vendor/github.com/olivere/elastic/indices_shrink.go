@@ -17,7 +17,7 @@ import (
 // new index with fewer primary shards.
 //
 // For further details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-shrink-index.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-shrink-index.html.
 type IndicesShrinkService struct {
 	client              *Client
 	pretty              bool

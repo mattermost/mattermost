@@ -10,7 +10,7 @@ import "errors"
 // a bounding box.
 //
 // For more details, see:
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-geo-bounding-box-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-geo-bounding-box-query.html
 type GeoBoundingBoxQuery struct {
 	name      string
 	top       *float64

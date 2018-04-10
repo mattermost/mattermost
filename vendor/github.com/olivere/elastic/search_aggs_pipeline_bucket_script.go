@@ -10,13 +10,12 @@ package elastic
 // numeric and the script must return a numeric value.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-bucket-script-aggregation.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-pipeline-bucket-script-aggregation.html
 type BucketScriptAggregation struct {
 	format    string
 	gapPolicy string
 	script    *Script
 
-	subAggregations map[string]Aggregation
 	meta            map[string]interface{}
 	bucketsPathsMap map[string]string
 }
@@ -24,11 +23,11 @@ type BucketScriptAggregation struct {
 // NewBucketScriptAggregation creates and initializes a new BucketScriptAggregation.
 func NewBucketScriptAggregation() *BucketScriptAggregation {
 	return &BucketScriptAggregation{
-		subAggregations: make(map[string]Aggregation),
 		bucketsPathsMap: make(map[string]string),
 	}
 }
 
+// Format to use on the output of this aggregation.
 func (a *BucketScriptAggregation) Format(format string) *BucketScriptAggregation {
 	a.format = format
 	return a
@@ -59,12 +58,6 @@ func (a *BucketScriptAggregation) Script(script *Script) *BucketScriptAggregatio
 	return a
 }
 
-// SubAggregation adds a sub-aggregation to this aggregation.
-func (a *BucketScriptAggregation) SubAggregation(name string, subAggregation Aggregation) *BucketScriptAggregation {
-	a.subAggregations[name] = subAggregation
-	return a
-}
-
 // Meta sets the meta data to be included in the aggregation response.
 func (a *BucketScriptAggregation) Meta(metaData map[string]interface{}) *BucketScriptAggregation {
 	a.meta = metaData
@@ -86,6 +79,7 @@ func (a *BucketScriptAggregation) AddBucketsPath(name, path string) *BucketScrip
 	return a
 }
 
+// Source returns the a JSON-serializable interface.
 func (a *BucketScriptAggregation) Source() (interface{}, error) {
 	source := make(map[string]interface{})
 	params := make(map[string]interface{})
@@ -108,19 +102,6 @@ func (a *BucketScriptAggregation) Source() (interface{}, error) {
 	// Add buckets paths
 	if len(a.bucketsPathsMap) > 0 {
 		params["buckets_path"] = a.bucketsPathsMap
-	}
-
-	// AggregationBuilder (SubAggregations)
-	if len(a.subAggregations) > 0 {
-		aggsMap := make(map[string]interface{})
-		source["aggregations"] = aggsMap
-		for name, aggregate := range a.subAggregations {
-			src, err := aggregate.Source()
-			if err != nil {
-				return nil, err
-			}
-			aggsMap[name] = src
-		}
 	}
 
 	// Add Meta data if available

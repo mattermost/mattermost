@@ -16,7 +16,7 @@ import (
 
 // BulkDeleteRequest is a request to remove a document from Elasticsearch.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-bulk.html
 // for details.
 type BulkDeleteRequest struct {
 	BulkableRequest
@@ -128,7 +128,7 @@ func (r *BulkDeleteRequest) String() string {
 
 // Source returns the on-wire representation of the delete request,
 // split into an action-and-meta-data line and an (optional) source line.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-bulk.html
 // for details.
 func (r *BulkDeleteRequest) Source() ([]string, error) {
 	if r.source != nil {

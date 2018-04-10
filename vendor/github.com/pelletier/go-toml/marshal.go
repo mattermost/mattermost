@@ -187,7 +187,7 @@ func (e *Encoder) QuoteMapKeys(v bool) *Encoder {
 //   A = [
 //     1,
 //     2,
-//     3
+//     3,
 //   ]
 func (e *Encoder) ArraysWithOneElementPerLine(v bool) *Encoder {
 	e.arraysOneElementPerLine = v

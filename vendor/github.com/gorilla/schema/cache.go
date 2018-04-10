@@ -63,7 +63,7 @@ func (c *cache) parsePath(p string, t reflect.Type) ([]pathPart, error) {
 		}
 		// Valid field. Append index.
 		path = append(path, field.name)
-		if field.ss {
+		if field.isSliceOfStructs && (!field.unmarshalerInfo.IsValid || (field.unmarshalerInfo.IsValid && field.unmarshalerInfo.IsSliceElement)) {
 			// Parse a special case: slices of structs.
 			// i+1 must be the slice index.
 			//
@@ -142,7 +142,7 @@ func (c *cache) create(t reflect.Type, info *structInfo) *structInfo {
 				c.create(ft, info)
 				for _, fi := range info.fields[bef:len(info.fields)] {
 					// exclude required check because duplicated to embedded field
-					fi.required = false
+					fi.isRequired = false
 				}
 			}
 		}
@@ -162,6 +162,7 @@ func (c *cache) createField(field reflect.StructField, info *structInfo) {
 	// First let's get the basic type.
 	isSlice, isStruct := false, false
 	ft := field.Type
+	m := isTextUnmarshaler(reflect.Zero(ft))
 	if ft.Kind() == reflect.Ptr {
 		ft = ft.Elem()
 	}
@@ -185,12 +186,13 @@ func (c *cache) createField(field reflect.StructField, info *structInfo) {
 	}
 
 	info.fields = append(info.fields, &fieldInfo{
-		typ:      field.Type,
-		name:     field.Name,
-		ss:       isSlice && isStruct,
-		alias:    alias,
-		anon:     field.Anonymous,
-		required: options.Contains("required"),
+		typ:              field.Type,
+		name:             field.Name,
+		alias:            alias,
+		unmarshalerInfo:  m,
+		isSliceOfStructs: isSlice && isStruct,
+		isAnonymous:      field.Anonymous,
+		isRequired:       options.Contains("required"),
 	})
 }
 
@@ -215,12 +217,18 @@ func (i *structInfo) get(alias string) *fieldInfo {
 }
 
 type fieldInfo struct {
-	typ      reflect.Type
-	name     string // field name in the struct.
-	ss       bool   // true if this is a slice of structs.
-	alias    string
-	anon     bool // is an embedded field
-	required bool // tag option
+	typ reflect.Type
+	// name is the field name in the struct.
+	name  string
+	alias string
+	// unmarshalerInfo contains information regarding the
+	// encoding.TextUnmarshaler implementation of the field type.
+	unmarshalerInfo unmarshaler
+	// isSliceOfStructs indicates if the field type is a slice of structs.
+	isSliceOfStructs bool
+	// isAnonymous indicates whether the field is embedded in the struct.
+	isAnonymous bool
+	isRequired  bool
 }
 
 type pathPart struct {

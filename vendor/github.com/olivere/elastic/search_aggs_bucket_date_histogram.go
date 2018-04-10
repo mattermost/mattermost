@@ -6,7 +6,7 @@ package elastic
 
 // DateHistogramAggregation is a multi-bucket aggregation similar to the
 // histogram except it can only be applied on date values.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-datehistogram-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-aggregations-bucket-datehistogram-aggregation.html
 type DateHistogramAggregation struct {
 	field           string
 	script          *Script

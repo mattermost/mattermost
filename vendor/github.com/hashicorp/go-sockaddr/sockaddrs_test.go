@@ -93,10 +93,10 @@ func TestSockAddr_SockAddrs_AscAddress(t *testing.T) {
 			sas := convertToSockAddrs(t, test.sortedAddrs)
 			sortedIPv4Addrs, nonIPv4Addrs := sas.FilterByType(sockaddr.TypeIPv4)
 			if l := len(sortedIPv4Addrs); l != test.numIPv4Inputs {
-				t.Fatal("[%d] Missing IPv4Addrs: expected %d, received %d", idx, test.numIPv4Inputs, l)
+				t.Fatalf("[%d] Missing IPv4Addrs: expected %d, received %d", idx, test.numIPv4Inputs, l)
 			}
 			if len(nonIPv4Addrs) != test.numIPv6Inputs+test.numUnixInputs {
-				t.Fatal("[%d] Non-IPv4 Address in input", idx)
+				t.Fatalf("[%d] Non-IPv4 Address in input", idx)
 			}
 
 			// Copy inputAddrs so we can manipulate it. wtb const.

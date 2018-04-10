@@ -16,7 +16,7 @@ import (
 // IndicesGetFieldMappingService retrieves the mapping definitions for the fields in an index
 //  or index/type.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-get-field-mapping.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-get-field-mapping.html
 // for details.
 type IndicesGetFieldMappingService struct {
 	client            *Client

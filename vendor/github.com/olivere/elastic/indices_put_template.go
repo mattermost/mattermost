@@ -13,7 +13,7 @@ import (
 )
 
 // IndicesPutTemplateService creates or updates index mappings.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-templates.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-templates.html.
 type IndicesPutTemplateService struct {
 	client        *Client
 	pretty        bool

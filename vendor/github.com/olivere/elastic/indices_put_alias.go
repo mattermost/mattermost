@@ -192,7 +192,7 @@ func (a *AliasRemoveAction) Source() (interface{}, error) {
 // -- Service --
 
 // AliasService enables users to add or remove an alias.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-aliases.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-aliases.html
 // for details.
 type AliasService struct {
 	client  *Client

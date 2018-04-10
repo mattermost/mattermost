@@ -16,7 +16,7 @@ import (
 
 // FieldCapsService allows retrieving the capabilities of fields among multiple indices.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-field-caps.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-field-caps.html
 // for details
 type FieldCapsService struct {
 	client            *Client

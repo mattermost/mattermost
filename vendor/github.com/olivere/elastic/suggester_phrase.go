@@ -7,7 +7,7 @@ package elastic
 // PhraseSuggester provides an API to access word alternatives
 // on a per token basis within a certain string distance.
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters-phrase.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-suggesters-phrase.html.
 type PhraseSuggester struct {
 	Suggester
 	name           string
@@ -312,7 +312,7 @@ type SmoothingModel interface {
 }
 
 // StupidBackoffSmoothingModel implements a stupid backoff smoothing model.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters-phrase.html#_smoothing_models
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-suggesters-phrase.html#_smoothing_models
 // for details about smoothing models.
 type StupidBackoffSmoothingModel struct {
 	discount float64
@@ -337,7 +337,7 @@ func (sm *StupidBackoffSmoothingModel) Source() (interface{}, error) {
 // --
 
 // LaplaceSmoothingModel implements a laplace smoothing model.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters-phrase.html#_smoothing_models
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-suggesters-phrase.html#_smoothing_models
 // for details about smoothing models.
 type LaplaceSmoothingModel struct {
 	alpha float64
@@ -363,7 +363,7 @@ func (sm *LaplaceSmoothingModel) Source() (interface{}, error) {
 
 // LinearInterpolationSmoothingModel implements a linear interpolation
 // smoothing model.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters-phrase.html#_smoothing_models
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-suggesters-phrase.html#_smoothing_models
 // for details about smoothing models.
 type LinearInterpolationSmoothingModel struct {
 	trigramLamda  float64
@@ -399,7 +399,7 @@ type CandidateGenerator interface {
 }
 
 // DirectCandidateGenerator implements a direct candidate generator.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters-phrase.html#_smoothing_models
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/search-suggesters-phrase.html#_smoothing_models
 // for details about smoothing models.
 type DirectCandidateGenerator struct {
 	field          string

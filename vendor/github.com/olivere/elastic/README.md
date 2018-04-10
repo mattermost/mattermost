@@ -1,6 +1,6 @@
 # Elastic
 
-**This is a development branch that is actively being worked on. DO NOT USE IN PRODUCTION!**
+**This is a development branch that is actively being worked on. DO NOT USE IN PRODUCTION! If you want to use stable versions of Elastic, please use a dependency manager like [dep](https://github.com/golang/dep).**
 
 Elastic is an [Elasticsearch](http://www.elasticsearch.org/) client for the
 [Go](http://www.golang.org/) programming language.
@@ -10,6 +10,8 @@ Elastic is an [Elasticsearch](http://www.elasticsearch.org/) client for the
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/olivere/elastic/master/LICENSE)
 
 See the [wiki](https://github.com/olivere/elastic/wiki) for additional information about Elastic.
+
+<a href="https://www.buymeacoffee.com/Bjd96U8fm" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 
 ## Releases
@@ -50,7 +52,7 @@ import "github.com/olivere/elastic"
 
 Elastic 6.0 targets Elasticsearch 6.x which was [released on 14th November 2017](https://www.elastic.co/blog/elasticsearch-6-0-0-released).
 
-Notice that there are will be a lot of [breaking changes in Elasticsearch 6.0](https://www.elastic.co/guide/en/elasticsearch/reference/6.0/breaking-changes-6.0.html)
+Notice that there are will be a lot of [breaking changes in Elasticsearch 6.0](https://www.elastic.co/guide/en/elasticsearch/reference/6.2/breaking-changes-6.0.html)
 and we used this as an opportunity to [clean up and refactor Elastic](https://github.com/olivere/elastic/blob/release-branch.v6/CHANGELOG-6.0.md)
 as we did in the transition from earlier versions of Elastic.
 
@@ -98,8 +100,8 @@ Having said that, there have been no big API changes that required you
 to rewrite your application big time. More often than not it's renaming APIs
 and adding/removing features so that Elastic is in sync with Elasticsearch.
 
-Elastic has been used in production with the following Elasticsearch versions:
-0.90, 1.0-1.7, and 2.0-2.4.1. Furthermore, we use [Travis CI](https://travis-ci.org/)
+Elastic has been used in production starting with Elasticsearch 0.90 up to recent 6.x
+versions. Furthermore, we use [Travis CI](https://travis-ci.org/)
 to test Elastic with the most recent versions of Elasticsearch and Go.
 See the [.travis.yml](https://github.com/olivere/elastic/blob/master/.travis.yml)
 file for the exact matrix and [Travis](https://travis-ci.org/olivere/elastic)
@@ -122,9 +124,17 @@ creating a client, creating an index, adding a document, executing a search etc.
 
 An example is available [here](https://olivere.github.io/elastic/).
 
-Here's a [link to a complete working example for v3](https://gist.github.com/olivere/114347ff9d9cfdca7bdc0ecea8b82263).
+Here's a [link to a complete working example for v6](https://gist.github.com/olivere/e4a376b4783c0914e44ea4f745ce2ebf).
 
-See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
+Here are a few tips on how to get used to Elastic:
+
+1. Head over to the [Wiki](/olivere/elastic/wiki) for detailed information and
+   topics like e.g. [how to add a middleware](/olivere/elastic/wiki/HttpTransport)
+   or how to [connect to AWS](/olivere/elastic/wiki/Using-with-AWS-Elasticsearch-Service).
+2. If you are unsure how to implement something, read the tests (all `_test.go` files).
+   They not only serve as a guard against changes, but also as a reference.
+3. The [recipes](https://github.com/olivere/elastic/tree/release-branch.v6/recipes)
+   contains small examples on how to implement something, e.g. bulk indexing, scrolling etc.
 
 
 ## API Status
@@ -148,7 +158,7 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
 - [x] Search
 - [x] Search Template
 - [ ] Multi Search Template
-- [ ] Search Shards API
+- [x] Search Shards API
 - [x] Suggesters
   - [x] Term Suggester
   - [x] Phrase Suggester
@@ -156,7 +166,7 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Context Suggester
 - [x] Multi Search API
 - [x] Count API
-- [ ] Validate API
+- [x] Validate API
 - [x] Explain API
 - [x] Profile API
 - [x] Field Capabilities API
@@ -168,7 +178,7 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Cardinality
   - [x] Extended Stats
   - [x] Geo Bounds
-  - [ ] Geo Centroid
+  - [x] Geo Centroid
   - [x] Max
   - [x] Min
   - [x] Percentiles
@@ -179,11 +189,11 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Top Hits
   - [x] Value Count
 - Bucket Aggregations
-  - [ ] Adjacency Matrix
+  - [x] Adjacency Matrix
   - [x] Children
   - [x] Date Histogram
   - [x] Date Range
-  - [ ] Diversified Sampler
+  - [x] Diversified Sampler
   - [x] Filter
   - [x] Filters
   - [x] Geo Distance
@@ -213,7 +223,7 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Cumulative Sum
   - [x] Bucket Script
   - [x] Bucket Selector
-  - [ ] Bucket Sort
+  - [x] Bucket Sort
   - [x] Serial Differencing
 - [x] Matrix Aggregations
   - [x] Matrix Stats

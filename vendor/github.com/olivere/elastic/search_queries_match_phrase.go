@@ -8,7 +8,7 @@ package elastic
 // the analyzed text.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-match-query-phrase.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-match-query-phrase.html
 type MatchPhraseQuery struct {
 	name      string
 	value     interface{}

@@ -5,6 +5,7 @@ package dns
 import (
 	"bytes"
 	"net"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -74,6 +75,14 @@ func TestSetUDPSocketOptions(t *testing.T) {
 }
 
 func TestParseDstFromOOB(t *testing.T) {
+	if runtime.GOARCH != "amd64" {
+		// The cmsghdr struct differs in the width (32/64-bit) of
+		// lengths and the struct padding between architectures.
+		// The data below was only written with amd64 in mind, and
+		// thus the test must be skipped on other architectures.
+		t.Skip("skipping test on unsupported architecture")
+	}
+
 	// dst is :ffff:100.100.100.100
 	oob := []byte{36, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 100, 100, 100, 100, 2, 0, 0, 0}
 	dst := parseDstFromOOB(oob)
@@ -106,6 +115,11 @@ func TestParseDstFromOOB(t *testing.T) {
 }
 
 func TestCorrectSource(t *testing.T) {
+	if runtime.GOARCH != "amd64" {
+		// See comment above in TestParseDstFromOOB.
+		t.Skip("skipping test on unsupported architecture")
+	}
+
 	// dst is :ffff:100.100.100.100 which should be counted as IPv4
 	oob := []byte{36, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 100, 100, 100, 100, 2, 0, 0, 0}
 	soob := correctSource(oob)

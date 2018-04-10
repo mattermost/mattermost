@@ -52,7 +52,7 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 //       foo = any.unpack(Foo.class);
 //     }
 //
-//  Example 3: Pack and unpack a message in Python.
+// Example 3: Pack and unpack a message in Python.
 //
 //     foo = Foo(...)
 //     any = Any()
@@ -62,7 +62,7 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 //       any.Unpack(foo)
 //       ...
 //
-//  Example 4: Pack and unpack a message in Go
+// Example 4: Pack and unpack a message in Go
 //
 //      foo := &pb.Foo{...}
 //      any, err := ptypes.MarshalAny(foo)
@@ -80,7 +80,7 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 //
 //
 // JSON
-// ====
+//
 // The JSON representation of an `Any` value uses the regular
 // representation of the deserialized, embedded message, with an
 // additional field `@type` which contains the type URL. Example:

@@ -1,0 +1,37 @@
+{
+  "Vendor": false,
+  "Deadline": "2m",
+  "Sort": ["linter", "severity", "path", "line"],
+  "DisableAll": true,
+  "Enable": [
+    "deadcode",
+    "dupl",
+    "gocyclo",
+    "gofmt",
+    "goimports",
+    "golint",
+    "gosimple",
+    "ineffassign",
+    "interfacer",
+    "lll",
+    "megacheck",
+    "misspell",
+    "nakedret",
+    "structcheck",
+    "unconvert",
+    "unparam",
+    "unused",
+    "varcheck",
+    "vet"
+  ],
+  "EnableGC": true,
+  "WarnUnmatchedDirective": true,
+  "Cyclo": 24,
+  "LineLength": 200,
+  "Exclude": [
+    "generator",
+    "spec",
+    "tmp",
+    ".*_easyjson.go"
+  ]
+}

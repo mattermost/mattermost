@@ -16,7 +16,7 @@ import (
 // a docs array with all the fetched documents, each element similar
 // in structure to a document provided by the Get API.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-multi-get.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-multi-get.html
 // for details.
 type MgetService struct {
 	client       *Client
@@ -45,6 +45,9 @@ func (s *MgetService) Preference(preference string) *MgetService {
 }
 
 // Refresh the shard containing the document before performing the operation.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/docs-refresh.html
+// for details.
 func (s *MgetService) Refresh(refresh string) *MgetService {
 	s.refresh = refresh
 	return s

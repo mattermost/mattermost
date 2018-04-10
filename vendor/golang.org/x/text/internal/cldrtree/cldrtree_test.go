@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"golang.org/x/text/internal/gen"
+	"golang.org/x/text/internal/language/compact"
 	"golang.org/x/text/language"
 	"golang.org/x/text/unicode/cldr"
 )
@@ -277,7 +278,7 @@ func TestBuild(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			tag, _ := language.CompactIndex(language.MustParse(tc.locale))
+			tag, _ := compact.RegionalID(compact.Tag(language.MustParse(tc.locale)))
 			s := tc.tree.lookup(tag, tc.isFeature, tc.path...)
 			if s != tc.result {
 				t.Errorf("got %q; want %q", s, tc.result)

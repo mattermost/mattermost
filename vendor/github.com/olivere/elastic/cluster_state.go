@@ -15,7 +15,7 @@ import (
 
 // ClusterStateService allows to get a comprehensive state information of the whole cluster.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/cluster-state.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/cluster-state.html
 // for details.
 type ClusterStateService struct {
 	client            *Client

@@ -183,44 +183,44 @@ func (t *TestCase) monitor() {
 }
 
 func (t *TestCase) setup() error {
-	var errorlogger *log.Logger
+	var options []elastic.ClientOptionFunc
+
 	if t.errorlogfile != "" {
 		f, err := os.OpenFile(t.errorlogfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
 		if err != nil {
 			return err
 		}
-		errorlogger = log.New(f, "", log.Ltime|log.Lmicroseconds|log.Lshortfile)
+		logger := log.New(f, "", log.Ltime|log.Lmicroseconds|log.Lshortfile)
+		options = append(options, elastic.SetErrorLog(logger))
 	}
 
-	var infologger *log.Logger
 	if t.infologfile != "" {
 		f, err := os.OpenFile(t.infologfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
 		if err != nil {
 			return err
 		}
-		infologger = log.New(f, "", log.LstdFlags)
+		logger := log.New(f, "", log.LstdFlags)
+		options = append(options, elastic.SetInfoLog(logger))
 	}
 
 	// Trace request and response details like this
-	var tracelogger *log.Logger
 	if t.tracelogfile != "" {
 		f, err := os.OpenFile(t.tracelogfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0664)
 		if err != nil {
 			return err
 		}
-		tracelogger = log.New(f, "", log.LstdFlags)
+		logger := log.New(f, "", log.LstdFlags)
+		options = append(options, elastic.SetTraceLog(logger))
 	}
 
-	client, err := elastic.NewClient(
-		elastic.SetURL(t.nodes...),
-		elastic.SetErrorLog(errorlogger),
-		elastic.SetInfoLog(infologger),
-		elastic.SetTraceLog(tracelogger),
-		elastic.SetMaxRetries(t.maxRetries),
-		elastic.SetSniff(t.sniff),
-		elastic.SetSnifferInterval(t.snifferInterval),
-		elastic.SetHealthcheck(t.healthcheck),
-		elastic.SetHealthcheckInterval(t.healthcheckInterval))
+	options = append(options, elastic.SetURL(t.nodes...))
+	options = append(options, elastic.SetMaxRetries(t.maxRetries))
+	options = append(options, elastic.SetSniff(t.sniff))
+	options = append(options, elastic.SetSnifferInterval(t.snifferInterval))
+	options = append(options, elastic.SetHealthcheck(t.healthcheck))
+	options = append(options, elastic.SetHealthcheckInterval(t.healthcheckInterval))
+
+	client, err := elastic.NewClient(options...)
 	if err != nil {
 		// Handle error
 		return err

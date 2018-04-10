@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/text/internal/cldrtree"
 	"golang.org/x/text/internal/gen"
+	"golang.org/x/text/internal/language/compact"
 	"golang.org/x/text/internal/testtext"
 	"golang.org/x/text/language"
 	"golang.org/x/text/unicode/cldr"
@@ -36,7 +37,7 @@ func TestTables(t *testing.T) {
 		if ldml.Dates == nil {
 			continue
 		}
-		tag, _ := language.CompactIndex(language.MustParse(lang))
+		tag, _ := compact.RegionalID(compact.Tag(language.MustParse(lang)))
 
 		test := func(want cldrtree.Element, path ...string) {
 			if count > 30 {

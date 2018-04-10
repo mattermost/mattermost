@@ -91,12 +91,10 @@ func tomlValueStringRepresentation(v interface{}, indent string, arraysOneElemen
 
 			stringBuffer.WriteString("[\n")
 
-			for i, value := range values {
+			for _, value := range values {
 				stringBuffer.WriteString(valueIndent)
 				stringBuffer.WriteString(value)
-				if i != len(values)-1 {
-					stringBuffer.WriteString(`,`)
-				}
+				stringBuffer.WriteString(`,`)
 				stringBuffer.WriteString("\n")
 			}
 

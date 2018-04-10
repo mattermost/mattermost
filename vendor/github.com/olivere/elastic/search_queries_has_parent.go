@@ -11,7 +11,7 @@ package elastic
 // same manner as has_child query.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-has-parent-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-has-parent-query.html
 type HasParentQuery struct {
 	query      Query
 	parentType string

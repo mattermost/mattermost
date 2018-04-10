@@ -14,7 +14,7 @@ import (
 )
 
 // IngestGetPipelineService returns pipelines based on ID.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/get-pipeline-api.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/get-pipeline-api.html
 // for documentation.
 type IngestGetPipelineService struct {
 	client        *Client

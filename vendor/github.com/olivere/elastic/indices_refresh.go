@@ -14,7 +14,7 @@ import (
 )
 
 // RefreshService explicitly refreshes one or more indices.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-refresh.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/indices-refresh.html.
 type RefreshService struct {
 	client *Client
 	index  []string

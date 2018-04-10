@@ -8,7 +8,7 @@ package elastic
 // prefix matches on the last term in the text.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-match-query-phrase-prefix.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-match-query-phrase-prefix.html
 type MatchPhrasePrefixQuery struct {
 	name          string
 	value         interface{}

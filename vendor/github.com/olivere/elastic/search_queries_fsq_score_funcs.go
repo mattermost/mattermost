@@ -18,7 +18,7 @@ type ScoreFunction interface {
 // -- Exponential Decay --
 
 // ExponentialDecayFunction builds an exponential decay score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html
 // for details.
 type ExponentialDecayFunction struct {
 	fieldName      string
@@ -75,7 +75,7 @@ func (fn *ExponentialDecayFunction) Offset(offset interface{}) *ExponentialDecay
 }
 
 // Weight adjusts the score of the score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_using_function_score
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_using_function_score
 // for details.
 func (fn *ExponentialDecayFunction) Weight(weight float64) *ExponentialDecayFunction {
 	fn.weight = &weight
@@ -120,7 +120,7 @@ func (fn *ExponentialDecayFunction) Source() (interface{}, error) {
 // -- Gauss Decay --
 
 // GaussDecayFunction builds a gauss decay score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html
 // for details.
 type GaussDecayFunction struct {
 	fieldName      string
@@ -177,7 +177,7 @@ func (fn *GaussDecayFunction) Offset(offset interface{}) *GaussDecayFunction {
 }
 
 // Weight adjusts the score of the score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_using_function_score
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_using_function_score
 // for details.
 func (fn *GaussDecayFunction) Weight(weight float64) *GaussDecayFunction {
 	fn.weight = &weight
@@ -223,7 +223,7 @@ func (fn *GaussDecayFunction) Source() (interface{}, error) {
 // -- Linear Decay --
 
 // LinearDecayFunction builds a linear decay score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html
 // for details.
 type LinearDecayFunction struct {
 	fieldName      string
@@ -280,7 +280,7 @@ func (fn *LinearDecayFunction) Offset(offset interface{}) *LinearDecayFunction {
 }
 
 // Weight adjusts the score of the score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_using_function_score
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_using_function_score
 // for details.
 func (fn *LinearDecayFunction) Weight(weight float64) *LinearDecayFunction {
 	fn.weight = &weight
@@ -336,7 +336,7 @@ func (fn *LinearDecayFunction) Source() (interface{}, error) {
 // compute or influence the score of documents that match with the inner
 // query or filter.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_script_score
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_script_score
 // for details.
 type ScriptFunction struct {
 	script *Script
@@ -363,7 +363,7 @@ func (fn *ScriptFunction) Script(script *Script) *ScriptFunction {
 }
 
 // Weight adjusts the score of the score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_using_function_score
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_using_function_score
 // for details.
 func (fn *ScriptFunction) Weight(weight float64) *ScriptFunction {
 	fn.weight = &weight
@@ -394,7 +394,7 @@ func (fn *ScriptFunction) Source() (interface{}, error) {
 
 // FieldValueFactorFunction is a function score function that allows you
 // to use a field from a document to influence the score.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_field_value_factor.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_field_value_factor.
 type FieldValueFactorFunction struct {
 	field    string
 	factor   *float64
@@ -435,7 +435,7 @@ func (fn *FieldValueFactorFunction) Modifier(modifier string) *FieldValueFactorF
 }
 
 // Weight adjusts the score of the score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_using_function_score
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_using_function_score
 // for details.
 func (fn *FieldValueFactorFunction) Weight(weight float64) *FieldValueFactorFunction {
 	fn.weight = &weight
@@ -477,7 +477,7 @@ func (fn *FieldValueFactorFunction) Source() (interface{}, error) {
 
 // WeightFactorFunction builds a weight factor function that multiplies
 // the weight to the score.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_weight
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_weight
 // for details.
 type WeightFactorFunction struct {
 	weight float64
@@ -495,7 +495,7 @@ func (fn *WeightFactorFunction) Name() string {
 }
 
 // Weight adjusts the score of the score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_using_function_score
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_using_function_score
 // for details.
 func (fn *WeightFactorFunction) Weight(weight float64) *WeightFactorFunction {
 	fn.weight = weight
@@ -517,9 +517,10 @@ func (fn *WeightFactorFunction) Source() (interface{}, error) {
 // -- Random --
 
 // RandomFunction builds a random score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_random
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_random
 // for details.
 type RandomFunction struct {
+	field  string
 	seed   interface{}
 	weight *float64
 }
@@ -535,15 +536,26 @@ func (fn *RandomFunction) Name() string {
 	return "random_score"
 }
 
-// Seed is documented in 1.6 as a numeric value. However, in the source code
-// of the Java client, it also accepts strings. So we accept both here, too.
+// Field is the field to be used for random number generation.
+// This parameter is compulsory when a Seed is set and ignored
+// otherwise. Note that documents that have the same value for a
+// field will get the same score.
+func (fn *RandomFunction) Field(field string) *RandomFunction {
+	fn.field = field
+	return fn
+}
+
+// Seed sets the seed based on which the random number will be generated.
+// Using the same seed is guaranteed to generate the same random number for a specific doc.
+// Seed must be an integer, e.g. int or int64. It is specified as an interface{}
+// here for compatibility with older versions (which also accepted strings).
 func (fn *RandomFunction) Seed(seed interface{}) *RandomFunction {
 	fn.seed = seed
 	return fn
 }
 
 // Weight adjusts the score of the score function.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-function-score-query.html#_using_function_score
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-function-score-query.html#_using_function_score
 // for details.
 func (fn *RandomFunction) Weight(weight float64) *RandomFunction {
 	fn.weight = &weight
@@ -559,6 +571,9 @@ func (fn *RandomFunction) GetWeight() *float64 {
 // Source returns the serializable JSON data of this score function.
 func (fn *RandomFunction) Source() (interface{}, error) {
 	source := make(map[string]interface{})
+	if fn.field != "" {
+		source["field"] = fn.field
+	}
 	if fn.seed != nil {
 		source["seed"] = fn.seed
 	}

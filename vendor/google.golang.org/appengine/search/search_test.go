@@ -194,7 +194,7 @@ func TestLoadFieldList(t *testing.T) {
 func TestLangFields(t *testing.T) {
 	fl := &FieldList{
 		{Name: "Foo", Value: "I am English", Language: "en"},
-		{Name: "Bar", Value: "私は日本人だ", Language: "jp"},
+		{Name: "Bar", Value: "私は日本人だ", Language: "ja"},
 	}
 	var got FieldList
 	doc, err := saveDoc(fl)

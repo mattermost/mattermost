@@ -147,3 +147,30 @@ func lineAt(text []byte, offs int) []byte {
 	}
 	return text[offs:i]
 }
+
+// TestFormatParsable ensures that the output of Format() is can be parsed again.
+func TestFormatValidOutput(t *testing.T) {
+	cases := []string{
+		"#\x00",
+		"#\ue123t",
+		"x=//\n0y=<<_\n_\n",
+		"y=[1,//\n]",
+		"Y=<<4\n4/\n\n\n/4/@=4/\n\n\n/4000000004\r\r\n00004\n",
+		"x=<<_\n_\r\r\n_\n",
+		"X=<<-\n\r\r\n",
+	}
+
+	for _, c := range cases {
+		f, err := Format([]byte(c))
+		if err != nil {
+			// ignore these failures, not all inputs are valid HCL.
+			t.Logf("Format(%q) = %v", c, err)
+			continue
+		}
+
+		if _, err := parser.Parse(f); err != nil {
+			t.Errorf("Format(%q) = %q; Parse(%q) = %v", c, f, f, err)
+			continue
+		}
+	}
+}
