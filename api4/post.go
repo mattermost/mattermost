@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitPost() {
@@ -298,7 +299,28 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	posts, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
+	searchParams := model.ParseSearchParams(terms)
+
+	// If user does not have read_channel pernmission on the system or team context, change search params
+	// to only permit results from channels with channel-context read_channel permission.
+	if !c.App.HasTeamOrSystemContextPermission(c.Params.TeamId, c.Session.UserId, model.PERMISSION_READ_CHANNEL) {
+
+		// Get the list of channels to which user has read_channel permission.
+		channelsWithReadPermission, err := c.App.ChannelsWithChannelContextPermission(c.Session.UserId, model.PERMISSION_READ_CHANNEL.Id)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		// Update search params
+		searchParams, err = searchParamsAdjustedForPermissions(searchParams, c.Params.TeamId, channelsWithReadPermission)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	}
+
+	posts, err := c.App.SearchPostsInTeam(searchParams, c.Session.UserId, c.Params.TeamId, isOrSearch)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
@@ -314,6 +336,37 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+}
+
+func searchParamsAdjustedForPermissions(searchParams []*model.SearchParams, teamID string, channelsWithReadPermission *model.ChannelList) ([]*model.SearchParams, *model.AppError) {
+	// Collect the channel names for the given team.
+	var channelNames []string
+	for _, channel := range *channelsWithReadPermission {
+		if channel.TeamId == teamID {
+			channelNames = append(channelNames, channel.Name)
+		}
+	}
+
+	// Get the intersect of:
+	// * channals user has permission to read, and
+	// * channels user scoped to using 'in:channel-name' search parameters.
+	var intersectChannelNames []string
+	for _, searchParam := range searchParams {
+		if len(searchParam.InChannels) > 0 {
+			intersectChannelNames = utils.StringArrayIntersection(searchParam.InChannels, channelNames)
+		} else {
+			intersectChannelNames = channelNames
+		}
+		searchParam.InChannels = intersectChannelNames
+	}
+
+	// If intersect of channels is empty clear the search params
+	// because there are no channels user can read (for give search).
+	if len(intersectChannelNames) == 0 {
+		searchParams = model.ParseSearchParams("")
+	}
+
+	return searchParams, nil
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {

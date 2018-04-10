@@ -214,3 +214,7 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 
 	return false
 }
+
+func (a *App) HasTeamOrSystemContextPermission(teamID string, userID string, permission *model.Permission) bool {
+	return (a.HasPermissionToTeam(userID, teamID, permission) || a.HasPermissionTo(userID, permission))
+}

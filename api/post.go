@@ -473,7 +473,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	posts, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.TeamId, isOrSearch)
+	posts, err := c.App.SearchPostsInTeam(model.ParseSearchParams(terms), c.Session.UserId, c.TeamId, isOrSearch)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics

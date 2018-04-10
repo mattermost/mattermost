@@ -161,6 +161,7 @@ type ChannelStore interface {
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
+	ChannelsWithChannelContextPermission(userID, permissionName string) StoreChannel
 	ClearCaches()
 }
 

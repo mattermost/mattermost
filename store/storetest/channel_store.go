@@ -49,6 +49,7 @@ func TestChannelStore(t *testing.T, ss store.Store) {
 	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
 	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
 	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
+	t.Run("ChannelsWithChannelContextPermission", func(t *testing.T) { testChannelStoreChannelsWithChannelContextPermission(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -2185,4 +2186,137 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
 	channel.Id = ""
 	result = <-ss.Channel().Save(channel, 1)
 	assert.Nil(t, result.Err)
+}
+
+func testChannelStoreChannelsWithChannelContextPermission(t *testing.T, ss store.Store) {
+	teamID := model.NewId()
+
+	p1 := model.PERMISSION_READ_CHANNEL.Id
+	p2 := model.PERMISSION_ADD_REACTION.Id
+
+	// Roles
+	r1 := &model.Role{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Permissions: []string{p1},
+	}
+	store.Must(ss.Role().Save(r1))
+	r2 := &model.Role{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Permissions: []string{p2},
+	}
+	store.Must(ss.Role().Save(r2))
+
+	// Users
+	u1 := &model.User{
+		Email: model.NewId(),
+	}
+	store.Must(ss.User().Save(u1))
+	u2 := &model.User{
+		Email: model.NewId(),
+	}
+	store.Must(ss.User().Save(u2))
+
+	// Permission 1, user 1
+	c1 := model.Channel{
+		TeamId:      teamID,
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	store.Must(ss.Channel().Save(&c1, -1))
+	cmo1 := model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u1.Id,
+		Roles:       r1.Name,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	store.Must(ss.Channel().SaveMember(&cmo1))
+
+	// Permission 2, user 1
+	c2 := model.Channel{
+		TeamId:      teamID,
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	store.Must(ss.Channel().Save(&c2, -1))
+	cmo2 := model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u1.Id,
+		Roles:       r2.Name,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	store.Must(ss.Channel().SaveMember(&cmo2))
+
+	// Permission 1, user 2
+	c3 := model.Channel{
+		TeamId:      teamID,
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	store.Must(ss.Channel().Save(&c3, -1))
+	cmo3 := model.ChannelMember{
+		ChannelId:   c3.Id,
+		UserId:      u2.Id,
+		Roles:       r1.Name,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	store.Must(ss.Channel().SaveMember(&cmo3))
+
+	// Permission 1, user 1
+	// (another one, just to ensure multiple results get returned)
+	c4 := model.Channel{
+		TeamId:      teamID,
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	store.Must(ss.Channel().Save(&c4, -1))
+	cmo4 := model.ChannelMember{
+		ChannelId:   c4.Id,
+		UserId:      u1.Id,
+		Roles:       r1.Name,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	store.Must(ss.Channel().SaveMember(&cmo4))
+
+	// Search for user 1, permission 1
+	result := <-ss.Channel().ChannelsWithChannelContextPermission(u1.Id, p1)
+	if result.Err != nil {
+		t.Fatalf(result.Err.Error())
+	}
+	channels := result.Data.(*model.ChannelList)
+	assert.Len(t, *channels, 2)
+	returnedChannelIDs := []string{(*channels)[0].Id, (*channels)[1].Id}
+	expectedChannelIDs := []string{c1.Id, c4.Id}
+	assert.Subset(t, returnedChannelIDs, expectedChannelIDs)
+
+	// Search for user 1, permission 2
+	result = <-ss.Channel().ChannelsWithChannelContextPermission(u1.Id, p2)
+	if result.Err != nil {
+		t.Fatalf(result.Err.Error())
+	}
+	channels = result.Data.(*model.ChannelList)
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, c2.Id, (*channels)[0].Id)
+
+	// Search for user 2, permission 1
+	result = <-ss.Channel().ChannelsWithChannelContextPermission(u2.Id, p1)
+	if result.Err != nil {
+		t.Fatalf(result.Err.Error())
+	}
+	channels = result.Data.(*model.ChannelList)
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, c3.Id, (*channels)[0].Id)
+
+	// Search for user 2, permission 2
+	result = <-ss.Channel().ChannelsWithChannelContextPermission(u2.Id, p2)
+	if result.Err != nil {
+		t.Fatalf(result.Err.Error())
+	}
+	channels = result.Data.(*model.ChannelList)
+	assert.Len(t, *channels, 0)
 }

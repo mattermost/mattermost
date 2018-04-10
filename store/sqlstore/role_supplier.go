@@ -79,7 +79,7 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 	result := store.NewSupplierResult()
 
 	// Check the role is valid before proceeding.
-	if !role.IsValidWithoutId() {
+	if !role.IsValidForCreate() {
 		result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
 		return result
 	}

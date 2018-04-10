@@ -124,10 +124,10 @@ func (role *Role) IsValid() bool {
 		return false
 	}
 
-	return role.IsValidWithoutId()
+	return role.IsValidForCreate()
 }
 
-func (role *Role) IsValidWithoutId() bool {
+func (role *Role) IsValidForCreate() bool {
 	if !IsValidRoleName(role.Name) {
 		return false
 	}
