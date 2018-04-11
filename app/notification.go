@@ -842,15 +842,15 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 	checkForMention := func(word string) bool {
 		isMention := false
 
-		if word == "@here" {
+		if strings.ToLower(word) == "@here" {
 			ret.HereMentioned = true
 		}
 
-		if word == "@channel" {
+		if strings.ToLower(word) == "@channel" {
 			ret.ChannelMentioned = true
 		}
 
-		if word == "@all" {
+		if strings.ToLower(word) == "@all" {
 			ret.AllMentioned = true
 		}
 
