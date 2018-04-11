@@ -48,7 +48,7 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 	props := model.MapFromJson(strings.NewReader(data))
 
 	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	result := <-a.Srv.Store.Token().GetByToken(props["token"])
@@ -58,7 +58,7 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 
 	token := result.Data.(*model.Token)
 	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
