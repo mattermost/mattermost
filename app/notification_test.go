@@ -186,8 +186,30 @@ func TestGetExplicitMentions(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
+		"CapitalizedChannel": {
+			Message:  "this is an message for @cHaNNeL",
+			Keywords: map[string][]string{"@channel": {id1, id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+				ChannelMentioned: true,
+			},
+		},
 		"All": {
 			Message:  "this is an message for @all",
+			Keywords: map[string][]string{"@all": {id1, id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+				AllMentioned: true,
+			},
+		},
+		"CapitalizedAll": {
+			Message:  "this is an message for @ALL",
 			Keywords: map[string][]string{"@all": {id1, id2}},
 			Expected: &ExplicitMentions{
 				MentionedUserIds: map[string]bool{
@@ -439,6 +461,8 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		"?@here?":   true,
 		"`@here`":   false, // This case shouldn't mention since it's a code block
 		"~@here~":   true,
+		"@HERE":     true,
+		"@hERe":     true,
 	}
 
 	for message, shouldMention := range cases {
