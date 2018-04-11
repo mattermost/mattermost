@@ -7328,11 +7328,15 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Notification From Address setting is missing or invalid."
+    "translation": "Error setting from address"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
     "translation": "Failed to write email message"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "utils.mail.send_mail.msg_data.app_error",
@@ -7344,7 +7348,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Notification To Address setting is missing or invalid."
+    "translation": "Error setting to address"
   },
   {
     "id": "utils.mail.test.configured.error",
