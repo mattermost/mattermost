@@ -9,6 +9,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestConfigDefaults(t *testing.T) {
+	t.Parallel()
+
+	c := Config{}
+
+	// Sanity check
+	require.False(t, checkNowhereNil(t, "config", c))
+
+	c.SetDefaults()
+	require.True(t, checkNowhereNil(t, "config", c))
+}
+
 func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
