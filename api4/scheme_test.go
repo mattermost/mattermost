@@ -163,6 +163,61 @@ func TestGetScheme(t *testing.T) {
 	CheckNoError(t, r6)
 }
 
+func TestGetSchemes(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	// Basic test of creating a team scheme.
+	scheme1 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+
+	scheme2 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+
+	_, r1 := th.SystemAdminClient.CreateScheme(scheme1)
+	CheckNoError(t, r1)
+	_, r2 := th.SystemAdminClient.CreateScheme(scheme2)
+	CheckNoError(t, r2)
+
+	l3, r3 := th.SystemAdminClient.GetSchemes("", 0, 100)
+	CheckNoError(t, r3)
+
+	assert.NotZero(t, len(l3))
+
+	l4, r4 := th.SystemAdminClient.GetSchemes("team", 0, 100)
+	CheckNoError(t, r4)
+
+	for _, s := range l4 {
+		assert.Equal(t, "team", s.Scope)
+	}
+
+	l5, r5 := th.SystemAdminClient.GetSchemes("channel", 0, 100)
+	CheckNoError(t, r5)
+
+	for _, s := range l5 {
+		assert.Equal(t, "channel", s.Scope)
+	}
+
+	_, r6 := th.SystemAdminClient.GetSchemes("asdf", 0, 100)
+	CheckBadRequestStatus(t, r6)
+
+	th.Client.Logout()
+	_, r7 := th.Client.GetSchemes("", 0, 100)
+	CheckUnauthorizedStatus(t, r7)
+
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+	_, r8 := th.Client.GetSchemes("", 0, 100)
+	CheckForbiddenStatus(t, r8)
+}
+
 func TestPatchScheme(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
@@ -289,7 +344,7 @@ func TestDeleteScheme(t *testing.T) {
 			DisplayName: model.NewId(),
 			Email:       model.NewId() + "@nowhere.com",
 			Type:        model.TEAM_OPEN,
-			SchemeId:    s1.Id,
+			SchemeId:    &s1.Id,
 		})
 		assert.Nil(t, res.Err)
 		team := res.Data.(*model.Team)
@@ -313,7 +368,8 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role4.DeleteAt)
 
 		// Change the team using it to a different scheme.
-		team.SchemeId = ""
+		emptyString := ""
+		team.SchemeId = &emptyString
 		res = <-th.App.Srv.Store.Team().Update(team)
 
 		// Delete the Scheme.
@@ -364,7 +420,7 @@ func TestDeleteScheme(t *testing.T) {
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Type:        model.CHANNEL_OPEN,
-			SchemeId:    s1.Id,
+			SchemeId:    &s1.Id,
 		}, -1)
 		assert.Nil(t, res.Err)
 		channel := res.Data.(*model.Channel)
@@ -382,7 +438,8 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role4.DeleteAt)
 
 		// Change the team using it to a different scheme.
-		channel.SchemeId = ""
+		emptyString := ""
+		channel.SchemeId = &emptyString
 		res = <-th.App.Srv.Store.Channel().Update(channel)
 
 		// Delete the Scheme.

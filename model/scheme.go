@@ -49,6 +49,20 @@ func SchemeFromJson(data io.Reader) *Scheme {
 	return scheme
 }
 
+func SchemesToJson(schemes []*Scheme) string {
+	b, _ := json.Marshal(schemes)
+	return string(b)
+}
+
+func SchemesFromJson(data io.Reader) []*Scheme {
+	var schemes []*Scheme
+	if err := json.NewDecoder(data).Decode(&schemes); err == nil {
+		return schemes
+	} else {
+		return nil
+	}
+}
+
 func (scheme *Scheme) IsValid() bool {
 	if len(scheme.Id) != 26 {
 		return false

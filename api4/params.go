@@ -48,6 +48,7 @@ type ApiParams struct {
 	RoleId         string
 	RoleName       string
 	SchemeId       string
+	Scope          string
 	Page           int
 	PerPage        int
 	LogsPerPage    int
@@ -171,6 +172,8 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 	if val, ok := props["scheme_id"]; ok {
 		params.SchemeId = val
 	}
+
+	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
 		params.Page = PAGE_DEFAULT

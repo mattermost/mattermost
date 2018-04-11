@@ -13,6 +13,18 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 	}
 }
 
+func (a *App) GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError) {
+	return a.GetSchemes(scope, page*perPage, perPage)
+}
+
+func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+	if result := <-a.Srv.Store.Scheme().GetAllPage(scope, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Scheme), nil
+	}
+}
+
 func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err

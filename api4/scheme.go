@@ -10,6 +10,7 @@ import (
 )
 
 func (api *API) InitScheme() {
+	api.BaseRoutes.Schemes.Handle("", api.ApiSessionRequired(getSchemes)).Methods("GET")
 	api.BaseRoutes.Schemes.Handle("", api.ApiSessionRequired(createScheme)).Methods("POST")
 	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteScheme)).Methods("DELETE")
 	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getScheme)).Methods("GET")
@@ -54,6 +55,30 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Write([]byte(scheme.ToJson()))
+	}
+}
+
+func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	scope := c.Params.Scope
+	if len(scope) > 0 && !(scope == model.SCHEME_SCOPE_TEAM || scope == model.SCHEME_SCOPE_CHANNEL) {
+		c.SetInvalidParam("scope")
+		return
+	}
+
+	if schemes, err := c.App.GetSchemesPage(c.Params.Scope, c.Params.Page, c.Params.PerPage); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.SchemesToJson(schemes)))
 	}
 }
 

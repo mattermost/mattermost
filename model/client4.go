@@ -3450,6 +3450,16 @@ func (c *Client4) GetScheme(id string) (*Scheme, *Response) {
 	}
 }
 
+// Get all schemes, sorted with the most recently created first, optionally filtered by scope.
+func (c *Client4) GetSchemes(scope string, page int, perPage int) ([]*Scheme, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemesRoute()+fmt.Sprintf("?scope=%v&page=%v&per_page=%v", scope, page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemesFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // DeleteScheme deletes a single scheme by ID.
 func (c *Client4) DeleteScheme(id string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetSchemeRoute(id)); err != nil {

@@ -45,6 +45,22 @@ func (_m *SchemeStore) Get(schemeId string) store.StoreChannel {
 	return r0
 }
 
+// GetAllPage provides a mock function with given fields: scope, offset, limit
+func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(scope, offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(scope, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: scheme
 func (_m *SchemeStore) Save(scheme *model.Scheme) store.StoreChannel {
 	ret := _m.Called(scheme)
