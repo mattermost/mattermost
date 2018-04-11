@@ -40,7 +40,7 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	var noChannelErr *model.AppError
 
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
-		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": args.ChannelId}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	channelName := ""
