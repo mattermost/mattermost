@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,6 +16,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("", api.ApiSessionRequired(createPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(getPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(deletePost)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ephemeral", api.ApiSessionRequired(createEphemeralPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/thread", api.ApiSessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.ApiSessionRequired(getFileInfosForPost)).Methods("GET")
 	api.BaseRoutes.PostsForChannel.Handle("", api.ApiSessionRequired(getPostsForChannel)).Methods("GET")
@@ -64,6 +66,34 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 	c.App.UpdateLastActivityAtIfNeeded(c.Session)
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+}
+
+func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	ephRequest := model.PostEphemeral{}
+
+	json.NewDecoder(r.Body).Decode(&ephRequest)
+	if ephRequest.UserID == "" {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	if ephRequest.Post == nil {
+		c.SetInvalidParam("post")
+		return
+	}
+
+	ephRequest.Post.UserId = c.Session.UserId
+	ephRequest.Post.CreateAt = model.GetMillis()
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_POST_EPHEMERAL) {
+		c.SetPermissionError(model.PERMISSION_CREATE_POST_EPHEMERAL)
+		return
+	}
+
+	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
