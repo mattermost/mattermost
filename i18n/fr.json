@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[nom-canal]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -904,11 +904,11 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_mute.name",
@@ -1697,20 +1697,12 @@
     "translation": "Fichier manquant dans la requête multipart/form"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "ajouter à ce canal privé"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "ajouter à ce canal"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} et @{{.LastUsername}} ont été mentionnés, mais ils ne sont pas dans ce canal. Voulez-vous les {{.Phrase}} ? Ils auront alors accès à tout l'historique de messages pour ce canal."
+    "translation": "{{.Usernames}} et {{.LastUsername}} ont été mentionnés, mais, ne faisant pas partie de ce canal, ils ne recevront pas de notifications."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} a été mentionné mais il n'est pas dans ce canal. Voulez-vous l'{{.Phrase}} ? Il aura alors accès à tout l'historique de messages pour ce canal."
+    "translation": "{{.Username}} a été mentionné(e), mais, ne faisant pas partie de ce canal, ne recevra pas de notification."
   },
   {
     "id": "api.post.create_post.attach_files.error",

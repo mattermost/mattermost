@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[nome-canal]"
+    "translation": "~[canal]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -900,35 +900,35 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+    "translation": "Desativa a área de trabalho, e-mail e envio notificações para o canal atual ou o [canal] especificado."
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "Não foi possível encontrar o canal {{.Channel}}. Por favor use o [identificador de canal](https://about.mattermost.com/default-channel-handle-documentation) para identificar os canais."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[canal]"
   },
   {
     "id": "api.command_mute.name",
-    "translation": "mute"
+    "translation": "mudo"
   },
   {
     "id": "api.command_mute.success_mute",
-    "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
+    "translation": "Você não irá receber notificações de {{.Channel}} até que o mudo do canal seja desativado."
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
-    "translation": "You will not receive notifications for this channel until channel mute is turned off."
+    "translation": "Você não irá receber notificações deste canal até que o mudo do canal seja desativado."
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} is no longer muted."
+    "translation": "{{.Channel}} não está mais silenciado."
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
-    "translation": "This channel is no longer muted."
+    "translation": "Este canal não está mais silenciado."
   },
   {
     "id": "api.command_offline.desc",
@@ -1697,20 +1697,12 @@
     "translation": "Arquivo faltando na requisição multipart/form"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "adicione-os ao canal privado"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "adicione-os ao canal"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} e @{{.LastUsername}} foram mencionados mas não estão no canal. Você gostaria que {{.Phrase}}? Eles terão acesso o histórico de mensagens."
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} foram mencionados, mas eles não receberam notificação porque eles não pertencem a este canal."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} foi mencionado mas não está no canal. Você gostaria de {{.Phrase}}? Ele terá acesso a todo o histórico de mensagens."
+    "translation": "@{{.Username}} foi mencionado, mas eles não receberam uma notificação porque eles não pertencem a este canal."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -3756,7 +3748,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "A configuração de plugin no seu arquivo config.json deve ser atualizada manualmente quando usando ReadOnlyConfig ativo no cluster."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3828,15 +3820,15 @@
   },
   {
     "id": "app.timezones.failed_deserialize.app_error",
-    "translation": "Failed to deserialize Timezone config file={{.Filename}}, err={{.Error}}"
+    "translation": "Falha ao desserializar configuração do Fuso horário arquivo={{.Filename}}, erro={{.Error}}"
   },
   {
     "id": "app.timezones.load_config.app_error",
-    "translation": "Timezone config file does not exists file={{.Filename}}"
+    "translation": "Configuração do fuso horário não existe arquivo={{.Filename}}"
   },
   {
     "id": "app.timezones.read_config.app_error",
-    "translation": "Failed to read Timezone config file={{.Filename}}, err={{.Error}}"
+    "translation": "Falha ao ler a configuração de Fuso horário arquivo={{.Filename}}, erro={{.Error}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4596,7 +4588,7 @@
   },
   {
     "id": "model.channel_member.is_valid.mute_value.app_error",
-    "translation": "Invalid muting value"
+    "translation": "Valor de muting inválido"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -5052,11 +5044,11 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "Tarefa de exportação de mensagem está definido ExportFormat para 'globalrelay', mas estão faltando GlobalRelaySettings"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+    "translation": "Exportação de mensagem GlobalRelaySettings.CustomerType deve ser definido como 'A9' ou 'A10'"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -5064,11 +5056,11 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+    "translation": "Tarefa de exportação de mensagem GlobalRelaySettings.SmtpPassword deve ser definido"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
+    "translation": "Tarefa de exportação de mensagem GlobalRelaySettings.SmtpUsername deve ser definido"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
@@ -6500,15 +6492,15 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "Não foi possível determinar o tamanho máximo de postagem suportado"
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d characters (%d bytes)"
+    "translation": "Post.Message suporta no máximo %d caracteres (%d bytes)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
-    "translation": "No implementation found to determine the maximum supported post size"
+    "translation": "Nenhuma implementação encontrada para determinar o tamanho máximo de postagem suportado"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -6640,19 +6632,19 @@
   },
   {
     "id": "store.sql_role.get.app_error",
-    "translation": "Não foi possível obter o post"
+    "translation": "Não foi possível obter a função"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
-    "translation": "Não foi possível obter o post"
+    "translation": "Não foi possível obter a função"
   },
   {
     "id": "store.sql_role.get_by_names.app_error",
-    "translation": "Não foi possível obter o post"
+    "translation": "Não foi possível obter as funções"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Unable to save new role"
+    "translation": "Não foi possível salvar a função"
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
@@ -6660,7 +6652,7 @@
   },
   {
     "id": "store.sql_role.save.update.app_error",
-    "translation": "Não foi possível obter o post"
+    "translation": "Não foi possível atualizar a função"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
