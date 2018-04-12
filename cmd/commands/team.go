@@ -232,11 +232,11 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	result := <-a.Srv.Store.Team().GetAll()
-	if result.Err != nil {
-		return result.Err
+	teams, err2 := a.GetAllTeams()
+	if err2 != nil {
+		return err2
 	}
-	teams := result.Data.([]*model.Team)
+
 	for _, team := range teams {
 		cmd.CommandPrettyPrintln(team.Name)
 	}
