@@ -12,13 +12,16 @@ import (
 func TestConfigDefaults(t *testing.T) {
 	t.Parallel()
 
-	c := Config{}
+	t.Run("somewhere nil when uninitialized", func(t *testing.T) {
+		c := Config{}
+		require.False(t, checkNowhereNil(t, "config", c))
+	})
 
-	// Sanity check
-	require.False(t, checkNowhereNil(t, "config", c))
-
-	c.SetDefaults()
-	require.True(t, checkNowhereNil(t, "config", c))
+	t.Run("nowhere nil when initialized", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.True(t, checkNowhereNil(t, "config", c))
+	})
 }
 
 func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
