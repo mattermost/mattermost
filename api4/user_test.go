@@ -834,6 +834,9 @@ func TestGetProfileImage(t *testing.T) {
 	_, resp = Client.GetProfileImage("junk", "")
 	CheckBadRequestStatus(t, resp)
 
+	_, resp = Client.GetProfileImage(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
+
 	Client.Logout()
 	_, resp = Client.GetProfileImage(user.Id, "")
 	CheckUnauthorizedStatus(t, resp)
