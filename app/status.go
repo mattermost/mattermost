@@ -303,6 +303,32 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
 	return nil
 }
 
+func (a *App) SetStatusOutOfOffice(userId string) {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	status, err := a.GetStatus(userId)
+
+	if err != nil {
+		status = &model.Status{UserId: userId, Status: model.STATUS_OUT_OF_OFFICE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	}
+
+	status.Status = model.STATUS_OUT_OF_OFFICE
+	status.Manual = true
+
+	a.AddStatusCache(status)
+
+	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+	}
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
+	event.Add("status", model.STATUS_OUT_OF_OFFICE)
+	event.Add("user_id", status.UserId)
+	a.Publish(event)
+}
+
 func GetStatusFromCache(userId string) *model.Status {
 	if result, ok := statusCache.Get(userId); ok {
 		status := result.(*model.Status)
