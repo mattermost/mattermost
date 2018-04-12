@@ -52,6 +52,14 @@ Permanently deletes a team along with all related information including posts fr
 	RunE:    deleteTeamsCmdF,
 }
 
+var ListTeamsCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "List all teams.",
+	Long:    `List all teams on the server.`,
+	Example: "  team list",
+	RunE:    listTeamsCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -65,6 +73,7 @@ func init() {
 		RemoveUsersCmd,
 		AddUsersCmd,
 		DeleteTeamsCmd,
+		ListTeamsCmd,
 	)
 	cmd.RootCmd.AddCommand(TeamCmd)
 }
@@ -215,4 +224,22 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 
 func deleteTeam(a *app.App, team *model.Team) *model.AppError {
 	return a.PermanentDeleteTeam(team)
+}
+
+func listTeamsCmdF(command *cobra.Command, args []string) error {
+	a, err := cmd.InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+
+	result := <-a.Srv.Store.Team().GetAll()
+	if result.Err != nil {
+		return result.Err
+	}
+	teams := result.Data.([]*model.Team)
+	for _, team := range teams {
+		cmd.CommandPrettyPrintln(team.Name)
+	}
+
+	return nil
 }
