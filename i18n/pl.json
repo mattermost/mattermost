@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[channel-name]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -904,11 +904,11 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_mute.name",
@@ -1697,20 +1697,12 @@
     "translation": "Brakujący plik w żądaniu multipart/form"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "dodaj ich do tego prywatnego kanału"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "dodaj ich do kanału"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} oraz @{{.LastUsername}} zostali wspomnieni, ale nie było ich na kanale. Czy chcesz {{.Phrase}}? Będą mieć dostęp do całej historii wiadomości."
+    "translation": "Wymieniono użytkowników {{.Usernames}} oraz {{.LastUsername}} ale nie otrzymali powiadomień ponieważ nie należą do tego kanału."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} został wspomniany, ale nie było go na kanale. Czy chcesz {{.Phrase}}? Będzie mieć dostęp do całej historii wiadomości."
+    "translation": "Wspomniano o użytkowniku {{.Username}}, ale nie otrzymał powiadomienia ponieważ nie należy do tego kanału."
   },
   {
     "id": "api.post.create_post.attach_files.error",

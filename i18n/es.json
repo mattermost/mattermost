@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[nombre del canal]"
+    "translation": "~[canal]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -900,15 +900,15 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+    "translation": "Apaga las notificaciones de escritorio, correo electrónico y push para el canal actual o el [canal] especificado."
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "No se encontró el canal {{.Channel}}. Por favor utiliza el [identificador del canal](https://about.mattermost.com/default-channel-handle-documentation) para identificar los canales."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[canal]"
   },
   {
     "id": "api.command_mute.name",
@@ -916,19 +916,19 @@
   },
   {
     "id": "api.command_mute.success_mute",
-    "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
+    "translation": "No recibirás notificaciones para {{.Channel}} mientras el canal es silenciado."
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
-    "translation": "You will not receive notifications for this channel until channel mute is turned off."
+    "translation": "No recibirás notificaciones para este canal mientras el canal es silenciado."
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} is no longer muted."
+    "translation": "{{.Channel}} ya no está siendo silenciado."
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
-    "translation": "This channel is no longer muted."
+    "translation": "Este canal ya no está siendo silenciado."
   },
   {
     "id": "api.command_offline.desc",
@@ -1697,20 +1697,12 @@
     "translation": "Falta el archivo en la solicitud multipart/form"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "agregalos al canal privado"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "agregalos al canal"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} fueron mencionados pero no son parte del canal. ¿Quisieras {{.Phrase}}? Tendrán acceso a todo el historial de mensajes."
+    "translation": "@{{.Usernames}} y {{.LastUsername}} fueron mencionados, pero no recibieron notificaciones porque no pertenecen a este canal."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} fue mencionado pero no es parte del canal. ¿Quisieras {{.Phrase}}? Tendrá acceso a todo el historial de mensajes."
+    "translation": "@{{.Username}} fue mencionado, pero no recibió una notificación porque no pertenece a este canal."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -4596,7 +4588,7 @@
   },
   {
     "id": "model.channel_member.is_valid.mute_value.app_error",
-    "translation": "Invalid muting value"
+    "translation": "Valor de silenciado no válido"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -6504,7 +6496,7 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d characters (%d bytes)"
+    "translation": "Post.Message soporta un máximo de %d carácteres (%d bytes)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",

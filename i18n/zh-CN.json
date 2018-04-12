@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[频道名称]"
+    "translation": "[频道]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -904,7 +904,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "无法找到频道 {{.Channel}}。"
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
   },
   {
     "id": "api.command_mute.hint",
@@ -1697,20 +1697,12 @@
     "translation": "multipart/form 请求缺少文件"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "添加他们到此私有频道"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "添加他们到频道"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} 以及 @{{.LastUsername}} 被提及到但他们并不在频道里。您想要{{.Phrase}}吗？他们将可以访问所有消息历史。"
+    "translation": "{{.Usernames}}和{{.LastUsername}}被提到了，但是他们不会收到通知，因为他们不在这个频道。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Usernames}} 被提及到但他们并不在频道里。您想要{{.Phrase}}吗？他们将可以访问所有消息历史。"
+    "translation": "{{.Username}}被提到了，但是他因不在此频道而不会收到通知。"
   },
   {
     "id": "api.post.create_post.attach_files.error",
