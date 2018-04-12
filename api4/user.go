@@ -589,8 +589,13 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ouser, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
 	if c.Session.IsOAuth && patch.Email != nil {
-		ouser, err := c.App.GetUser(c.Params.UserId)
 		if err != nil {
 			c.Err = err
 			return
@@ -607,6 +612,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
+		c.App.SetAutoResponderStatus(ruser, ouser.NotifyProps)
 		c.LogAudit("")
 		w.Write([]byte(ruser.ToJson()))
 	}

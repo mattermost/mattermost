@@ -25,6 +25,7 @@ const (
 	POST_LEAVE_CHANNEL          = "system_leave_channel"
 	POST_JOIN_TEAM              = "system_join_team"
 	POST_LEAVE_TEAM             = "system_leave_team"
+	POST_AUTO_RESPONDER         = "system_auto_responder"
 	POST_ADD_REMOVE             = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL         = "system_add_to_channel"
 	POST_REMOVE_FROM_CHANNEL    = "system_remove_from_channel"
@@ -194,6 +195,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	case
 		POST_DEFAULT,
 		POST_JOIN_LEAVE,
+		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,
 		POST_JOIN_CHANNEL,
 		POST_LEAVE_CHANNEL,
