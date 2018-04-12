@@ -84,6 +84,30 @@ func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 	}
 }
 
+func (a *App) GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError) {
+	return a.GetTeamsForScheme(scheme, page*perPage, perPage)
+}
+
+func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]*model.Team, *model.AppError) {
+	if result := <-a.Srv.Store.Team().GetTeamsByScheme(scheme.Id, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Team), nil
+	}
+}
+
+func (a *App) GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError) {
+	return a.GetChannelsForScheme(scheme, page*perPage, perPage)
+}
+
+func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError) {
+	if result := <-a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(model.ChannelList), nil
+	}
+}
+
 func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 	// TODO: Actually check the Phase 2 migration has completed before permitting these actions.
 

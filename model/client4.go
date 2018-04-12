@@ -3480,6 +3480,26 @@ func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response
 	}
 }
 
+// Get the teams using this scheme, sorted alphabetically by display name.
+func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/teams?page=%v&per_page=%v", page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Get the channels using this scheme, sorted alphabetically by display name.
+func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (ChannelList, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return *ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Plugin Section
 
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.

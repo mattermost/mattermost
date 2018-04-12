@@ -169,7 +169,6 @@ func TestGetSchemes(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense(""))
 
-	// Basic test of creating a team scheme.
 	scheme1 := &model.Scheme{
 		Name:        model.NewId(),
 		Description: model.NewId(),
@@ -216,6 +215,180 @@ func TestGetSchemes(t *testing.T) {
 	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
 	_, r8 := th.Client.GetSchemes("", 0, 100)
 	CheckForbiddenStatus(t, r8)
+}
+
+func TestGetTeamsForScheme(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	scheme1 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	scheme1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
+	CheckNoError(t, r1)
+
+	team1 := &model.Team{
+		Name:        GenerateTestUsername(),
+		DisplayName: "A Test Team",
+		Type:        model.TEAM_OPEN,
+	}
+
+	result1 := <-th.App.Srv.Store.Team().Save(team1)
+	assert.Nil(t, result1.Err)
+	team1 = result1.Data.(*model.Team)
+
+	l2, r2 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
+	CheckNoError(t, r2)
+	assert.Zero(t, len(l2))
+
+	team1.SchemeId = &scheme1.Id
+	result2 := <-th.App.Srv.Store.Team().Update(team1)
+	assert.Nil(t, result2.Err)
+	team1 = result2.Data.(*model.Team)
+
+	l3, r3 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
+	CheckNoError(t, r3)
+	assert.Len(t, l3, 1)
+	assert.Equal(t, team1.Id, l3[0].Id)
+
+	team2 := &model.Team{
+		Name:        GenerateTestUsername(),
+		DisplayName: "B Test Team",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &scheme1.Id,
+	}
+	result3 := <-th.App.Srv.Store.Team().Save(team2)
+	assert.Nil(t, result3.Err)
+	team2 = result3.Data.(*model.Team)
+
+	l4, r4 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
+	CheckNoError(t, r4)
+	assert.Len(t, l4, 2)
+	assert.Equal(t, team1.Id, l4[0].Id)
+	assert.Equal(t, team2.Id, l4[1].Id)
+
+	l5, r5 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 1, 1)
+	CheckNoError(t, r5)
+	assert.Len(t, l5, 1)
+	assert.Equal(t, team2.Id, l5[0].Id)
+
+	// Check various error cases.
+	_, ri1 := th.SystemAdminClient.GetTeamsForScheme(model.NewId(), 0, 100)
+	CheckNotFoundStatus(t, ri1)
+
+	_, ri2 := th.SystemAdminClient.GetTeamsForScheme("", 0, 100)
+	CheckBadRequestStatus(t, ri2)
+
+	th.Client.Logout()
+	_, ri3 := th.Client.GetTeamsForScheme(model.NewId(), 0, 100)
+	CheckUnauthorizedStatus(t, ri3)
+
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+	_, ri4 := th.Client.GetTeamsForScheme(model.NewId(), 0, 100)
+	CheckForbiddenStatus(t, ri4)
+
+	scheme2 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	scheme2, rs2 := th.SystemAdminClient.CreateScheme(scheme2)
+	CheckNoError(t, rs2)
+
+	_, ri5 := th.SystemAdminClient.GetTeamsForScheme(scheme2.Id, 0, 100)
+	CheckBadRequestStatus(t, ri5)
+}
+
+func TestGetChannelsForScheme(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	scheme1 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	scheme1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
+	CheckNoError(t, r1)
+
+	channel1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "A Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+
+	result1 := <-th.App.Srv.Store.Channel().Save(channel1, 1000000)
+	assert.Nil(t, result1.Err)
+	channel1 = result1.Data.(*model.Channel)
+
+	l2, r2 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
+	CheckNoError(t, r2)
+	assert.Zero(t, len(l2))
+
+	channel1.SchemeId = &scheme1.Id
+	result2 := <-th.App.Srv.Store.Channel().Update(channel1)
+	assert.Nil(t, result2.Err)
+	channel1 = result2.Data.(*model.Channel)
+
+	l3, r3 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
+	CheckNoError(t, r3)
+	assert.Len(t, l3, 1)
+	assert.Equal(t, channel1.Id, l3[0].Id)
+
+	channel2 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "B Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &scheme1.Id,
+	}
+	result3 := <-th.App.Srv.Store.Channel().Save(channel2, 1000000)
+	assert.Nil(t, result3.Err)
+	channel2 = result3.Data.(*model.Channel)
+
+	l4, r4 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
+	CheckNoError(t, r4)
+	assert.Len(t, l4, 2)
+	assert.Equal(t, channel1.Id, l4[0].Id)
+	assert.Equal(t, channel2.Id, l4[1].Id)
+
+	l5, r5 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 1, 1)
+	CheckNoError(t, r5)
+	assert.Len(t, l5, 1)
+	assert.Equal(t, channel2.Id, l5[0].Id)
+
+	// Check various error cases.
+	_, ri1 := th.SystemAdminClient.GetChannelsForScheme(model.NewId(), 0, 100)
+	CheckNotFoundStatus(t, ri1)
+
+	_, ri2 := th.SystemAdminClient.GetChannelsForScheme("", 0, 100)
+	CheckBadRequestStatus(t, ri2)
+
+	th.Client.Logout()
+	_, ri3 := th.Client.GetChannelsForScheme(model.NewId(), 0, 100)
+	CheckUnauthorizedStatus(t, ri3)
+
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+	_, ri4 := th.Client.GetChannelsForScheme(model.NewId(), 0, 100)
+	CheckForbiddenStatus(t, ri4)
+
+	scheme2 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	scheme2, rs2 := th.SystemAdminClient.CreateScheme(scheme2)
+	CheckNoError(t, rs2)
+
+	_, ri5 := th.SystemAdminClient.GetChannelsForScheme(scheme2.Id, 0, 100)
+	CheckBadRequestStatus(t, ri5)
 }
 
 func TestPatchScheme(t *testing.T) {

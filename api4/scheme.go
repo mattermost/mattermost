@@ -15,6 +15,8 @@ func (api *API) InitScheme() {
 	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteScheme)).Methods("DELETE")
 	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getScheme)).Methods("GET")
 	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/patch", api.ApiSessionRequired(patchScheme)).Methods("PUT")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/teams", api.ApiSessionRequiredTrustRequester(getTeamsForScheme)).Methods("GET")
+	api.BaseRoutes.Schemes.Handle("/{scheme_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequiredTrustRequester(getChannelsForScheme)).Methods("GET")
 }
 
 func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -79,6 +81,66 @@ func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Write([]byte(model.SchemesToJson(schemes)))
+	}
+}
+
+func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireSchemeId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	scheme, err := c.App.GetScheme(c.Params.SchemeId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if scheme.Scope != model.SCHEME_SCOPE_TEAM {
+		c.Err = model.NewAppError("Api4.GetTeamsForScheme", "api.scheme.get_teams_for_scheme.scope.error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if teams, err := c.App.GetTeamsForSchemePage(scheme, c.Params.Page, c.Params.PerPage); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.TeamListToJson(teams)))
+	}
+}
+
+func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireSchemeId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	scheme, err := c.App.GetScheme(c.Params.SchemeId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if scheme.Scope != model.SCHEME_SCOPE_CHANNEL {
+		c.Err = model.NewAppError("Api4.GetChannelsForScheme", "api.scheme.get_channels_for_scheme.scope.error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if channels, err := c.App.GetChannelsForSchemePage(scheme, c.Params.Page, c.Params.PerPage); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(channels.ToJson()))
 	}
 }
 
