@@ -465,6 +465,7 @@ func TestNowhereNil(t *testing.T) {
 		{
 			"nil slice",
 			nilSlice,
+			// A nil slice is observably the same as an empty slice, so allow it.
 			true,
 		},
 		{
