@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/api"
@@ -76,5 +77,22 @@ func TestLeaveTeam(t *testing.T) {
 		if len(teamMembers) > 0 {
 			t.Fatal("Shouldn't be in team")
 		}
+	}
+}
+
+func TestListTeams(t *testing.T) {
+	th := api.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	cmd.CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	output := cmd.CheckCommand(t, "team", "list", th.BasicTeam.Name, th.BasicUser.Email)
+
+	if !strings.Contains(string(output), name) {
+		t.Fatal("should have the created team")
 	}
 }
