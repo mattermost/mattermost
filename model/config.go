@@ -1710,8 +1710,8 @@ func (s *MessageExportSettings) SetDefaults() {
 
 	if s.GlobalRelaySettings == nil {
 		s.GlobalRelaySettings = &GlobalRelayMessageExportSettings{}
-		s.GlobalRelaySettings.SetDefaults()
 	}
+	s.GlobalRelaySettings.SetDefaults()
 }
 
 type DisplaySettings struct {
