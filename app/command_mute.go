@@ -40,7 +40,7 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	var noChannelErr *model.AppError
 
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
-		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_mute.no_channel.error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	channelName := ""
@@ -63,6 +63,9 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	}
 
 	channelMember := a.ToggleMuteChannel(channel.Id, args.UserId)
+	if channelMember == nil {
+		return &model.CommandResponse{Text: args.T("api.command_mute.not_member.error", map[string]interface{}{"Channel": channelName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
 
 	// Invalidate cache to allow cache lookups while sending notifications
 	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channel.Id)

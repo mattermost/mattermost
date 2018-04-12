@@ -1491,7 +1491,13 @@ func (a *App) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.
 }
 
 func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelMember {
-	member := (<-a.Srv.Store.Channel().GetMember(channelId, userId)).Data.(*model.ChannelMember)
+	result := <-a.Srv.Store.Channel().GetMember(channelId, userId)
+
+	if result.Err != nil {
+		return nil
+	}
+
+	member := result.Data.(*model.ChannelMember)
 
 	if member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_ALL
