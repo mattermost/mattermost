@@ -31,7 +31,7 @@ var RemoveChannelUsersCmd = &cobra.Command{
 	Use:     "remove [channel] [users]",
 	Short:   "Remove users from channel",
 	Long:    "Remove some users from channel",
-	Example: "  channel remove mychannel user@example.com username",
+	Example: "  channel remove myteam:mychannel user@example.com username",
 	RunE:    removeChannelUsersCmdF,
 }
 
@@ -39,7 +39,7 @@ var AddChannelUsersCmd = &cobra.Command{
 	Use:     "add [channel] [users]",
 	Short:   "Add users to channel",
 	Long:    "Add some users to channel",
-	Example: "  channel add mychannel user@example.com username",
+	Example: "  channel add myteam:mychannel user@example.com username",
 	RunE:    addChannelUsersCmdF,
 }
 
