@@ -3095,6 +3095,10 @@
     "translation": "Could not parse multipart form"
   },
   {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "Unable to get profile image, user not found."
+  },
+  {
     "id": "api.user.upload_profile_user.storage.app_error",
     "translation": "Unable to upload file. Image storage is not configured."
   },

@@ -199,7 +199,8 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if len(users) == 0 {
-			c.Err = err
+			c.Err = model.NewAppError("getProfileImage", "api.user.get_profile_image.not_found.app_error", nil, "", http.StatusNotFound)
+			return
 		}
 
 		user := users[0]
