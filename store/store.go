@@ -152,7 +152,6 @@ type ChannelStore interface {
 	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
-	ExtraUpdateByUser(userId string, time int64) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	AutocompleteInTeam(teamId string, term string) StoreChannel
 	SearchInTeam(teamId string, term string) StoreChannel
