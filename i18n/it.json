@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[nome-del-canale]"
+    "translation": "~[canale]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -904,11 +904,11 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Impossibile trovare il canale {{.Channel}}."
+    "translation": "Impossibile trovare il canale {{.Channel}}. Usare [channel handle](https://about.mattermost.com/default-channel-handle-documentation) per identificare i canali."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[canale]"
+    "translation": "~[canale]"
   },
   {
     "id": "api.command_mute.name",
@@ -1697,20 +1697,12 @@
     "translation": "File mancante nella richiesta multipart/form"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "aggiungili al canale privato"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "aggiungili al canale"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} e @{{.LastUsername}} sono stati citati ma non sono nel canale. Vuoi {{.Phrase}}? Avranno accesso allo storico dei messaggi."
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} sono stati citati, ma non riceveranno notifiche in quanto non appartengono più a questo canale."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} è stato citato ma non è nel canale. Vuoi {{.Phrase}}? Avrà accesso allo storico dei messaggi."
+    "translation": "@{{.Username}} è stato citato, ma non riceverà notifiche in quanto non appartiene più a questo canale."
   },
   {
     "id": "api.post.create_post.attach_files.error",

@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[채널 이름]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -904,15 +904,15 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_mute.name",
-    "translation": "mute"
+    "translation": "음소거"
   },
   {
     "id": "api.command_mute.success_mute",
@@ -980,7 +980,7 @@
   },
   {
     "id": "api.command_remove.name",
-    "translation": "remove"
+    "translation": "제거"
   },
   {
     "id": "api.command_remove.permission.app_error",
@@ -1697,20 +1697,12 @@
     "translation": "Missing file in multipart/form request"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "비공개 채널에 사용자 추가하기"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "공개 채널에 사용자 추가하기"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "{{.Usernames}}, {{.LastUsername}} 이 멘션되었으나, 그들은 이 채널에 속하지 않기 때문에 알림을 받지 못했습니다."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "{{.Username}}이 멘션되었으나, 그는 이 채널에 속하지 않기 때문에 알림을 받지 못했습니다."
   },
   {
     "id": "api.post.create_post.attach_files.error",
