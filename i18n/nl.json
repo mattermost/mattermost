@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[kanaal-naam]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -904,11 +904,11 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_mute.name",
@@ -1697,20 +1697,12 @@
     "translation": "Missing file in multipart/form request"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "add them to this private channel"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "add them to the channel"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "{{.Usernames}} en {{.LastUsername}} zijn genoemd, maar ze hebben geen notificatie gekregen, omdat ze niet deelnemen aan dit kanaal."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "{{.Username}} zijn genoemd, maar ze hebben geen notificatie gekregen, omdat ze niet deelnemen aan dit kanaal."
   },
   {
     "id": "api.post.create_post.attach_files.error",
