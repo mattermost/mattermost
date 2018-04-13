@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -16,6 +17,30 @@ var openGraphDataCache = utils.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
 
 func (api *API) InitOpenGraph() {
 	api.BaseRoutes.OpenGraph.Handle("", api.ApiSessionRequired(getOpenGraphMetadata)).Methods("POST")
+
+	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
+	api.App.AddConfigListener(func(before, after *model.Config) {
+		if (before.ServiceSettings.ImageProxyType != after.ServiceSettings.ImageProxyType) ||
+			(before.ServiceSettings.ImageProxyURL != after.ServiceSettings.ImageProxyType) {
+			openGraphDataCache.Purge()
+		}
+	})
+}
+
+func OpenGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxyURL func(string) string) *opengraph.OpenGraph {
+	for _, image := range ogdata.Images {
+		var url string
+		if image.SecureURL != "" {
+			url = image.SecureURL
+		} else {
+			url = image.URL
+		}
+
+		image.URL = ""
+		image.SecureURL = toProxyURL(url)
+	}
+
+	return ogdata
 }
 
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -40,6 +65,11 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	og := c.App.GetOpenGraphMetadata(url)
+
+	// If image proxy enabled modify open graph data to feed though proxy
+	if toProxyURL := c.App.ImageProxyAdder(); toProxyURL != nil {
+		og = OpenGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
+	}
 
 	ogJSON, err := og.ToJSON()
 	openGraphDataCache.AddWithExpiresInSecs(props["url"], ogJSON, 3600) // Cache would expire after 1 hour
