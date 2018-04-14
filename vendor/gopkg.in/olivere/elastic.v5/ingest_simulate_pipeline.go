@@ -10,14 +10,14 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IngestSimulatePipelineService executes a specific pipeline against the set of
 // documents provided in the body of the request.
 //
 // The API is documented at
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/simulate-pipeline-api.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/simulate-pipeline-api.html.
 type IngestSimulatePipelineService struct {
 	client     *Client
 	pretty     bool
@@ -85,7 +85,7 @@ func (s *IngestSimulatePipelineService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.verbose != nil {
 		params.Set("verbose", fmt.Sprintf("%v", *s.verbose))
@@ -127,12 +127,7 @@ func (s *IngestSimulatePipelineService) Do(ctx context.Context) (*IngestSimulate
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,7 @@ import (
 
 // BulkUpdateRequest is a request to update a document in Elasticsearch.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for details.
 type BulkUpdateRequest struct {
 	BulkableRequest
@@ -45,15 +45,14 @@ type bulkUpdateRequestCommand map[string]bulkUpdateRequestCommandOp
 
 //easyjson:json
 type bulkUpdateRequestCommandOp struct {
-	Index  string `json:"_index,omitempty"`
-	Type   string `json:"_type,omitempty"`
-	Id     string `json:"_id,omitempty"`
-	Parent string `json:"parent,omitempty"`
-	// RetryOnConflict is "_retry_on_conflict" for 6.0 and "retry_on_conflict" for 6.1+.
-	RetryOnConflict *int   `json:"retry_on_conflict,omitempty"`
-	Routing         string `json:"routing,omitempty"`
-	Version         int64  `json:"version,omitempty"`
-	VersionType     string `json:"version_type,omitempty"`
+	Id              string `json:"_id,omitempty"`
+	Index           string `json:"_index,omitempty"`
+	Type            string `json:"_type,omitempty"`
+	Parent          string `json:"_parent,omitempty"`
+	RetryOnConflict *int   `json:"_retry_on_conflict,omitempty"`
+	Routing         string `json:"_routing,omitempty"`
+	Version         int64  `json:"_version,omitempty"`
+	VersionType     string `json:"_version_type,omitempty"`
 }
 
 //easyjson:json
@@ -61,9 +60,9 @@ type bulkUpdateRequestCommandData struct {
 	DetectNoop     *bool       `json:"detect_noop,omitempty"`
 	Doc            interface{} `json:"doc,omitempty"`
 	DocAsUpsert    *bool       `json:"doc_as_upsert,omitempty"`
+	Upsert         interface{} `json:"upsert,omitempty"`
 	Script         interface{} `json:"script,omitempty"`
 	ScriptedUpsert *bool       `json:"scripted_upsert,omitempty"`
-	Upsert         interface{} `json:"upsert,omitempty"`
 	Source         *bool       `json:"_source,omitempty"`
 }
 
@@ -120,8 +119,8 @@ func (r *BulkUpdateRequest) Parent(parent string) *BulkUpdateRequest {
 }
 
 // Script specifies an update script.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-bulk.html#bulk-update
-// and https://www.elastic.co/guide/en/elasticsearch/reference/6.0/modules-scripting.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html#bulk-update
+// and https://www.elastic.co/guide/en/elasticsearch/reference/5.2/modules-scripting.html
 // for details.
 func (r *BulkUpdateRequest) Script(script *Script) *BulkUpdateRequest {
 	r.script = script
@@ -132,7 +131,7 @@ func (r *BulkUpdateRequest) Script(script *Script) *BulkUpdateRequest {
 // ScripedUpsert specifies if your script will run regardless of
 // whether the document exists or not.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-update.html#_literal_scripted_upsert_literal
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-update.html#_literal_scripted_upsert_literal
 func (r *BulkUpdateRequest) ScriptedUpsert(upsert bool) *BulkUpdateRequest {
 	r.scriptedUpsert = &upsert
 	r.source = nil
@@ -155,7 +154,7 @@ func (r *BulkUpdateRequest) Version(version int64) *BulkUpdateRequest {
 }
 
 // VersionType can be "internal" (default), "external", "external_gte",
-// or "external_gt".
+// "external_gt", or "force".
 func (r *BulkUpdateRequest) VersionType(versionType string) *BulkUpdateRequest {
 	r.versionType = versionType
 	r.source = nil
@@ -172,7 +171,7 @@ func (r *BulkUpdateRequest) Doc(doc interface{}) *BulkUpdateRequest {
 // DocAsUpsert indicates whether the contents of Doc should be used as
 // the Upsert value.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-update.html#_literal_doc_as_upsert_literal
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-update.html#_literal_doc_as_upsert_literal
 // for details.
 func (r *BulkUpdateRequest) DocAsUpsert(docAsUpsert bool) *BulkUpdateRequest {
 	r.docAsUpsert = &docAsUpsert
@@ -218,7 +217,7 @@ func (r *BulkUpdateRequest) String() string {
 
 // Source returns the on-wire representation of the update request,
 // split into an action-and-meta-data line and an (optional) source line.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for details.
 func (r *BulkUpdateRequest) Source() ([]string, error) {
 	// { "update" : { "_index" : "test", "_type" : "type1", "_id" : "1", ... } }

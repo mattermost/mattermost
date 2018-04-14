@@ -1,17 +1,13 @@
 language: go
-
-sudo: false
-
 go:
-  - 1.2
-  - 1.7
-  - 1.8
-  - 1.9
+  - "1.7.x"
+  - "1.8.x"
+  - "1.9.x"
+  - "1.10.x"
 
 before_install:
-  - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
 
 script:
-  - go test -v -covermode=count -coverprofile=coverage.out
-  - $HOME/gopath/bin/goveralls -service=travis-ci -coverprofile=coverage.out 
+  - go test -v -race -cover
+  - $GOPATH/bin/goveralls -service=travis-ci

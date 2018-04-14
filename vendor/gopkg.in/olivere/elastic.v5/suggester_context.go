@@ -13,7 +13,7 @@ type SuggesterContextQuery interface {
 }
 
 // ContextSuggester is a fast suggester for e.g. type-ahead completion that supports filtering and boosting based on contexts.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/suggester-context.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/current/suggester-context.html
 // for more details.
 type ContextSuggester struct {
 	Suggester
@@ -94,7 +94,7 @@ func (q *ContextSuggester) Source(includeName bool) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		suggester["contexts"] = src
+		suggester["context"] = src
 	default:
 		ctxq := make(map[string]interface{})
 		for _, query := range q.contextQueries {

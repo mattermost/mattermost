@@ -9,12 +9,12 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesCreateService creates a new index.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-create-index.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-create-index.html
 // for details.
 type IndicesCreateService struct {
 	client        *Client
@@ -91,7 +91,7 @@ func (b *IndicesCreateService) Do(ctx context.Context) (*IndicesCreateResult, er
 
 	params := make(url.Values)
 	if b.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if b.masterTimeout != "" {
 		params.Set("master_timeout", b.masterTimeout)
@@ -109,12 +109,7 @@ func (b *IndicesCreateService) Do(ctx context.Context) (*IndicesCreateResult, er
 	}
 
 	// Get response
-	res, err := b.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := b.client.PerformRequest(ctx, "PUT", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +125,6 @@ func (b *IndicesCreateService) Do(ctx context.Context) (*IndicesCreateResult, er
 
 // IndicesCreateResult is the outcome of creating a new index.
 type IndicesCreateResult struct {
-	Acknowledged       bool   `json:"acknowledged"`
-	ShardsAcknowledged bool   `json:"shards_acknowledged"`
-	Index              string `json:"index,omitempty"`
+	Acknowledged       bool `json:"acknowledged"`
+	ShardsAcknowledged bool `json:"shards_acknowledged"`
 }

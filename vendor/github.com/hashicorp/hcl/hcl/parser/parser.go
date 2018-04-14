@@ -205,6 +205,12 @@ func (p *Parser) objectItem() (*ast.ObjectItem, error) {
 		}
 	}
 
+	// key=#comment
+	// val
+	if p.lineComment != nil {
+		o.LineComment, p.lineComment = p.lineComment, nil
+	}
+
 	// do a look-ahead for line comment
 	p.scan()
 	if len(keys) > 0 && o.Val.Pos().Line == keys[0].Pos().Line && p.lineComment != nil {

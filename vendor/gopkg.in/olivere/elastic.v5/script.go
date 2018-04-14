@@ -9,7 +9,7 @@ import "errors"
 // Script holds all the paramaters necessary to compile or find in cache
 // and then execute a script.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/modules-scripting.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/modules-scripting.html
 // for details of scripting.
 type Script struct {
 	script string
@@ -22,19 +22,24 @@ type Script struct {
 func NewScript(script string) *Script {
 	return &Script{
 		script: script,
-		typ:    "inline",
+		typ:    "", // default type is "inline"
 		params: make(map[string]interface{}),
 	}
 }
 
-// NewScriptInline creates and initializes a new inline script, i.e. code.
+// NewScriptInline creates and initializes a new Script of type "inline".
 func NewScriptInline(script string) *Script {
 	return NewScript(script).Type("inline")
 }
 
-// NewScriptStored creates and initializes a new stored script.
-func NewScriptStored(script string) *Script {
+// NewScriptId creates and initializes a new Script of type "id".
+func NewScriptId(script string) *Script {
 	return NewScript(script).Type("id")
+}
+
+// NewScriptFile creates and initializes a new Script of type "file".
+func NewScriptFile(script string) *Script {
+	return NewScript(script).Type("file")
 }
 
 // Script is either the cache key of the script to be compiled/executed
@@ -46,7 +51,7 @@ func (s *Script) Script(script string) *Script {
 	return s
 }
 
-// Type sets the type of script: "inline" or "id".
+// Type sets the type of script: "inline", "id", or "file".
 func (s *Script) Type(typ string) *Script {
 	s.typ = typ
 	return s
@@ -55,7 +60,7 @@ func (s *Script) Type(typ string) *Script {
 // Lang sets the language of the script. Permitted values are "groovy",
 // "expression", "mustache", "mvel" (default), "javascript", "python".
 // To use certain languages, you need to configure your server and/or
-// add plugins. See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/modules-scripting.html
+// add plugins. See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/modules-scripting.html
 // for details.
 func (s *Script) Lang(lang string) *Script {
 	s.lang = lang
@@ -79,22 +84,26 @@ func (s *Script) Params(params map[string]interface{}) *Script {
 
 // Source returns the JSON serializable data for this Script.
 func (s *Script) Source() (interface{}, error) {
-	if s.typ == "" && s.lang == "" && len(s.params) == 0 {
-		return s.script, nil
-	}
 	source := make(map[string]interface{})
-	// Beginning with 6.0, the type can only be "source" or "id"
+
+	// In 5.5 and earlier, the type can "inline", "id", or "file".
+	// In 5.6+, the type can be "source", "id", or "file".
+	// So we use "inline" here to keep compatibility with 5.5 and earlier.
+	// Notice that this will trigger a deprecation warning in 5.6.
 	if s.typ == "" || s.typ == "inline" {
-		source["source"] = s.script
+		source["inline"] = s.script
 	} else {
-		source["id"] = s.script
+		// "id" or "file"
+		source[s.typ] = s.script
 	}
+
 	if s.lang != "" {
 		source["lang"] = s.lang
 	}
 	if len(s.params) > 0 {
 		source["params"] = s.params
 	}
+
 	return source, nil
 }
 

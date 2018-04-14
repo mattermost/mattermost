@@ -9,7 +9,7 @@ import "errors"
 // -- Sorter --
 
 // Sorter is an interface for sorting strategies, e.g. ScoreSort or FieldSort.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-sort.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-sort.html.
 type Sorter interface {
 	Source() (interface{}, error)
 }
@@ -27,7 +27,6 @@ type SortInfo struct {
 	SortMode       string
 	NestedFilter   Query
 	NestedPath     string
-	NestedSort     *NestedSort // available in 6.1 or later
 }
 
 func (info SortInfo) Source() (interface{}, error) {
@@ -59,13 +58,6 @@ func (info SortInfo) Source() (interface{}, error) {
 	if info.NestedPath != "" {
 		prop["nested_path"] = info.NestedPath
 	}
-	if info.NestedSort != nil {
-		src, err := info.NestedSort.Source()
-		if err != nil {
-			return nil, err
-		}
-		prop["nested"] = src
-	}
 	source := make(map[string]interface{})
 	source[info.Field] = prop
 	return source, nil
@@ -74,7 +66,7 @@ func (info SortInfo) Source() (interface{}, error) {
 // -- SortByDoc --
 
 // SortByDoc sorts by the "_doc" field, as described in
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-scroll.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-scroll.html.
 //
 // Example:
 //   ss := elastic.NewSearchSource()
@@ -144,7 +136,6 @@ type FieldSort struct {
 	sortMode     *string
 	nestedFilter Query
 	nestedPath   *string
-	nestedSort   *NestedSort
 }
 
 // NewFieldSort creates a new FieldSort.
@@ -216,13 +207,6 @@ func (s *FieldSort) NestedPath(nestedPath string) *FieldSort {
 	return s
 }
 
-// NestedSort is available starting with 6.1 and will replace NestedFilter
-// and NestedPath.
-func (s *FieldSort) NestedSort(nestedSort *NestedSort) *FieldSort {
-	s.nestedSort = nestedSort
-	return s
-}
-
 // Source returns the JSON-serializable data.
 func (s *FieldSort) Source() (interface{}, error) {
 	source := make(map[string]interface{})
@@ -252,20 +236,13 @@ func (s *FieldSort) Source() (interface{}, error) {
 	if s.nestedPath != nil {
 		x["nested_path"] = *s.nestedPath
 	}
-	if s.nestedSort != nil {
-		src, err := s.nestedSort.Source()
-		if err != nil {
-			return nil, err
-		}
-		x["nested"] = src
-	}
 	return source, nil
 }
 
 // -- GeoDistanceSort --
 
 // GeoDistanceSort allows for sorting by geographic distance.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-sort.html#_geo_distance_sorting.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-sort.html#_geo_distance_sorting.
 type GeoDistanceSort struct {
 	Sorter
 	fieldName    string
@@ -277,7 +254,6 @@ type GeoDistanceSort struct {
 	sortMode     *string
 	nestedFilter Query
 	nestedPath   *string
-	nestedSort   *NestedSort
 }
 
 // NewGeoDistanceSort creates a new sorter for geo distances.
@@ -331,7 +307,7 @@ func (s *GeoDistanceSort) GeoHashes(geohashes ...string) *GeoDistanceSort {
 }
 
 // Unit specifies the distance unit to use. It defaults to km.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/common-options.html#distance-units
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/common-options.html#distance-units
 // for details.
 func (s *GeoDistanceSort) Unit(unit string) *GeoDistanceSort {
 	s.unit = unit
@@ -344,7 +320,7 @@ func (s *GeoDistanceSort) GeoDistance(geoDistance string) *GeoDistanceSort {
 }
 
 // DistanceType describes how to compute the distance, e.g. "arc" or "plane".
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-sort.html#geo-sorting
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-sort.html#geo-sorting
 // for details.
 func (s *GeoDistanceSort) DistanceType(distanceType string) *GeoDistanceSort {
 	s.distanceType = &distanceType
@@ -370,13 +346,6 @@ func (s *GeoDistanceSort) NestedFilter(nestedFilter Query) *GeoDistanceSort {
 // nested object.
 func (s *GeoDistanceSort) NestedPath(nestedPath string) *GeoDistanceSort {
 	s.nestedPath = &nestedPath
-	return s
-}
-
-// NestedSort is available starting with 6.1 and will replace NestedFilter
-// and NestedPath.
-func (s *GeoDistanceSort) NestedSort(nestedSort *NestedSort) *GeoDistanceSort {
-	s.nestedSort = nestedSort
 	return s
 }
 
@@ -421,20 +390,13 @@ func (s *GeoDistanceSort) Source() (interface{}, error) {
 	if s.nestedPath != nil {
 		x["nested_path"] = *s.nestedPath
 	}
-	if s.nestedSort != nil {
-		src, err := s.nestedSort.Source()
-		if err != nil {
-			return nil, err
-		}
-		x["nested"] = src
-	}
 	return source, nil
 }
 
 // -- ScriptSort --
 
 // ScriptSort sorts by a custom script. See
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/modules-scripting.html#modules-scripting
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.6/modules-scripting.html#modules-scripting
 // for details about scripting.
 type ScriptSort struct {
 	Sorter
@@ -444,7 +406,6 @@ type ScriptSort struct {
 	sortMode     *string
 	nestedFilter Query
 	nestedPath   *string
-	nestedSort   *NestedSort
 }
 
 // NewScriptSort creates and initializes a new ScriptSort.
@@ -503,13 +464,6 @@ func (s *ScriptSort) NestedPath(nestedPath string) *ScriptSort {
 	return s
 }
 
-// NestedSort is available starting with 6.1 and will replace NestedFilter
-// and NestedPath.
-func (s *ScriptSort) NestedSort(nestedSort *NestedSort) *ScriptSort {
-	s.nestedSort = nestedSort
-	return s
-}
-
 // Source returns the JSON-serializable data.
 func (s *ScriptSort) Source() (interface{}, error) {
 	if s.script == nil {
@@ -545,70 +499,5 @@ func (s *ScriptSort) Source() (interface{}, error) {
 	if s.nestedPath != nil {
 		x["nested_path"] = *s.nestedPath
 	}
-	if s.nestedSort != nil {
-		src, err := s.nestedSort.Source()
-		if err != nil {
-			return nil, err
-		}
-		x["nested"] = src
-	}
-	return source, nil
-}
-
-// -- NestedSort --
-
-// NestedSort is used for fields that are inside a nested object.
-// It takes a "path" argument and an optional nested filter that the
-// nested objects should match with in order to be taken into account
-// for sorting.
-//
-// NestedSort is available from 6.1 and replaces nestedFilter and nestedPath
-// in the other sorters.
-type NestedSort struct {
-	Sorter
-	path       string
-	filter     Query
-	nestedSort *NestedSort
-}
-
-// NewNestedSort creates a new NestedSort.
-func NewNestedSort(path string) *NestedSort {
-	return &NestedSort{path: path}
-}
-
-// Filter sets the filter.
-func (s *NestedSort) Filter(filter Query) *NestedSort {
-	s.filter = filter
-	return s
-}
-
-// NestedSort embeds another level of nested sorting.
-func (s *NestedSort) NestedSort(nestedSort *NestedSort) *NestedSort {
-	s.nestedSort = nestedSort
-	return s
-}
-
-// Source returns the JSON-serializable data.
-func (s *NestedSort) Source() (interface{}, error) {
-	source := make(map[string]interface{})
-
-	if s.path != "" {
-		source["path"] = s.path
-	}
-	if s.filter != nil {
-		src, err := s.filter.Source()
-		if err != nil {
-			return nil, err
-		}
-		source["filter"] = src
-	}
-	if s.nestedSort != nil {
-		src, err := s.nestedSort.Source()
-		if err != nil {
-			return nil, err
-		}
-		source["nested"] = src
-	}
-
 	return source, nil
 }

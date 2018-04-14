@@ -10,14 +10,14 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // Flush allows to flush one or more indices. The flush process of an index
 // basically frees memory from the index by flushing data to the index
 // storage and clearing the internal transaction log.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-flush.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-flush.html
 // for details.
 type IndicesFlushService struct {
 	client            *Client
@@ -110,7 +110,7 @@ func (s *IndicesFlushService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.force != nil {
 		params.Set("force", fmt.Sprintf("%v", *s.force))
@@ -149,11 +149,7 @@ func (s *IndicesFlushService) Do(ctx context.Context) (*IndicesFlushResponse, er
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

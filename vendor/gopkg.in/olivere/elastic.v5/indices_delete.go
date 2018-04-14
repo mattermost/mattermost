@@ -10,12 +10,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesDeleteService allows to delete existing indices.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-delete-index.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-delete-index.html
 // for details.
 type IndicesDeleteService struct {
 	client        *Client
@@ -71,7 +71,7 @@ func (s *IndicesDeleteService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.timeout != "" {
 		params.Set("timeout", s.timeout)
@@ -108,11 +108,7 @@ func (s *IndicesDeleteService) Do(ctx context.Context) (*IndicesDeleteResponse, 
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "DELETE",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "DELETE", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

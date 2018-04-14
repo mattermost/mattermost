@@ -784,7 +784,7 @@ func (l *Listener) listenerConnLoop() {
 		}
 		l.emitEvent(ListenerEventDisconnected, err)
 
-		time.Sleep(nextReconnect.Sub(time.Now()))
+		time.Sleep(time.Until(nextReconnect))
 	}
 }
 

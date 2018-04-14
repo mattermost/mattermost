@@ -10,11 +10,11 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // SnapshotCreateRepositoryService creates a snapshot repository.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/modules-snapshots.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.3/modules-snapshots.html
 // for details.
 type SnapshotCreateRepositoryService struct {
 	client        *Client
@@ -112,7 +112,7 @@ func (s *SnapshotCreateRepositoryService) buildURL() (string, url.Values, error)
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.masterTimeout != "" {
 		params.Set("master_timeout", s.masterTimeout)
@@ -179,12 +179,7 @@ func (s *SnapshotCreateRepositoryService) Do(ctx context.Context) (*SnapshotCrea
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "PUT", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +194,5 @@ func (s *SnapshotCreateRepositoryService) Do(ctx context.Context) (*SnapshotCrea
 
 // SnapshotCreateRepositoryResponse is the response of SnapshotCreateRepositoryService.Do.
 type SnapshotCreateRepositoryResponse struct {
-	Acknowledged       bool   `json:"acknowledged"`
-	ShardsAcknowledged bool   `json:"shards_acknowledged"`
-	Index              string `json:"index,omitempty"`
+	Acknowledged bool `json:"acknowledged"`
 }

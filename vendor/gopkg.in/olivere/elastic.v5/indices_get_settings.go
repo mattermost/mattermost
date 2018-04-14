@@ -10,13 +10,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesGetSettingsService allows to retrieve settings of one
 // or more indices.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-get-settings.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-get-settings.html
 // for more details.
 type IndicesGetSettingsService struct {
 	client            *Client
@@ -125,7 +125,7 @@ func (s *IndicesGetSettingsService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.ignoreUnavailable != nil {
 		params.Set("ignore_unavailable", fmt.Sprintf("%v", *s.ignoreUnavailable))
@@ -164,11 +164,7 @@ func (s *IndicesGetSettingsService) Do(ctx context.Context) (map[string]*Indices
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

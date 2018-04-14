@@ -7,7 +7,7 @@ package elastic
 // RangeQuery matches documents with fields that have terms within a certain range.
 //
 // For details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-range-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/query-dsl-range-query.html
 type RangeQuery struct {
 	name         string
 	from         interface{}
@@ -18,6 +18,7 @@ type RangeQuery struct {
 	boost        *float64
 	queryName    string
 	format       string
+	relation     string
 }
 
 // NewRangeQuery creates and initializes a new RangeQuery.
@@ -112,6 +113,13 @@ func (q *RangeQuery) Format(format string) *RangeQuery {
 	return q
 }
 
+// Relation is used for range fields. which can be one of
+// "within", "contains", "intersects" (default) and "disjoint".
+func (q *RangeQuery) Relation(relation string) *RangeQuery {
+	q.relation = relation
+	return q
+}
+
 // Source returns JSON for the query.
 func (q *RangeQuery) Source() (interface{}, error) {
 	source := make(map[string]interface{})
@@ -129,6 +137,9 @@ func (q *RangeQuery) Source() (interface{}, error) {
 	}
 	if q.format != "" {
 		params["format"] = q.format
+	}
+	if q.relation != "" {
+		params["relation"] = q.relation
 	}
 	if q.boost != nil {
 		params["boost"] = *q.boost

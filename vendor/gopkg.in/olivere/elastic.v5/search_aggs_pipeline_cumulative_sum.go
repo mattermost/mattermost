@@ -10,7 +10,7 @@ package elastic
 // histogram must have min_doc_count set to 0 (default for histogram aggregations).
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-cumulative-sum-aggregation.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-aggregations-pipeline-cumulative-sum-aggregation.html
 type CumulativeSumAggregation struct {
 	format string
 

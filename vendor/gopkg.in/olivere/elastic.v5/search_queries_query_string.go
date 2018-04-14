@@ -11,36 +11,39 @@ import (
 // QueryStringQuery uses the query parser in order to parse its content.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-query-string-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.6/query-dsl-query-string-query.html
 type QueryStringQuery struct {
-	queryString              string
-	defaultField             string
-	defaultOperator          string
-	analyzer                 string
-	quoteAnalyzer            string
-	quoteFieldSuffix         string
-	allowLeadingWildcard     *bool
-	lowercaseExpandedTerms   *bool // Deprecated: Decision is now made by the analyzer
-	enablePositionIncrements *bool
-	analyzeWildcard          *bool
-	locale                   string // Deprecated: Decision is now made by the analyzer
-	boost                    *float64
-	fuzziness                string
-	fuzzyPrefixLength        *int
-	fuzzyMaxExpansions       *int
-	fuzzyRewrite             string
-	phraseSlop               *int
-	fields                   []string
-	fieldBoosts              map[string]*float64
-	tieBreaker               *float64
-	rewrite                  string
-	minimumShouldMatch       string
-	lenient                  *bool
-	queryName                string
-	timeZone                 string
-	maxDeterminizedStates    *int
-	escape                   *bool
-	typ                      string
+	queryString               string
+	defaultField              string
+	defaultOperator           string
+	analyzer                  string
+	quoteAnalyzer             string
+	quoteFieldSuffix          string
+	autoGeneratePhraseQueries *bool
+	allowLeadingWildcard      *bool
+	lowercaseExpandedTerms    *bool
+	enablePositionIncrements  *bool
+	analyzeWildcard           *bool
+	locale                    string // Deprecated: Decision is now made by the analyzer.
+	boost                     *float64
+	fuzziness                 string
+	fuzzyPrefixLength         *int
+	fuzzyMaxExpansions        *int
+	fuzzyRewrite              string
+	phraseSlop                *int
+	fields                    []string
+	fieldBoosts               map[string]*float64
+	useDisMax                 *bool
+	tieBreaker                *float64
+	rewrite                   string
+	minimumShouldMatch        string
+	lenient                   *bool
+	queryName                 string
+	timeZone                  string
+	maxDeterminizedStates     *int
+	escape                    *bool
+	splitOnWhitespace         *bool
+	useAllFields              *bool
 }
 
 // NewQueryStringQuery creates and initializes a new QueryStringQuery.
@@ -66,10 +69,11 @@ func (q *QueryStringQuery) Field(field string) *QueryStringQuery {
 	return q
 }
 
-// Type sets how multiple fields should be combined to build textual part queries,
-// e.g. "best_fields".
-func (q *QueryStringQuery) Type(typ string) *QueryStringQuery {
-	q.typ = typ
+// AllFields tells the query string query to use all fields explicitly,
+// even if _all is enabled. If the "default_field" parameter or "fields"
+// are specified, they will be ignored.
+func (q *QueryStringQuery) AllFields(useAllFields bool) *QueryStringQuery {
+	q.useAllFields = &useAllFields
 	return q
 }
 
@@ -77,6 +81,14 @@ func (q *QueryStringQuery) Type(typ string) *QueryStringQuery {
 func (q *QueryStringQuery) FieldWithBoost(field string, boost float64) *QueryStringQuery {
 	q.fields = append(q.fields, field)
 	q.fieldBoosts[field] = &boost
+	return q
+}
+
+// UseDisMax specifies whether to combine queries using dis max or boolean
+// query when more zhan one field is used with the query string. Defaults
+// to dismax (true).
+func (q *QueryStringQuery) UseDisMax(useDisMax bool) *QueryStringQuery {
+	q.useDisMax = &useDisMax
 	return q
 }
 
@@ -117,6 +129,15 @@ func (q *QueryStringQuery) QuoteAnalyzer(quoteAnalyzer string) *QueryStringQuery
 	return q
 }
 
+// AutoGeneratePhraseQueries indicates whether or not phrase queries will
+// be automatically generated when the analyzer returns more then one term
+// from whitespace delimited text. Set to false if phrase queries should only
+// be generated when surrounded by double quotes.
+func (q *QueryStringQuery) AutoGeneratePhraseQueries(autoGeneratePhraseQueries bool) *QueryStringQuery {
+	q.autoGeneratePhraseQueries = &autoGeneratePhraseQueries
+	return q
+}
+
 // MaxDeterminizedState protects against too-difficult regular expression queries.
 func (q *QueryStringQuery) MaxDeterminizedState(maxDeterminizedStates int) *QueryStringQuery {
 	q.maxDeterminizedStates = &maxDeterminizedStates
@@ -132,8 +153,6 @@ func (q *QueryStringQuery) AllowLeadingWildcard(allowLeadingWildcard bool) *Quer
 
 // LowercaseExpandedTerms indicates whether terms of wildcard, prefix, fuzzy
 // and range queries are automatically lower-cased or not. Default is true.
-//
-// Deprecated: Decision is now made by the analyzer.
 func (q *QueryStringQuery) LowercaseExpandedTerms(lowercaseExpandedTerms bool) *QueryStringQuery {
 	q.lowercaseExpandedTerms = &lowercaseExpandedTerms
 	return q
@@ -245,6 +264,13 @@ func (q *QueryStringQuery) Escape(escape bool) *QueryStringQuery {
 	return q
 }
 
+// SplitOnWhitespace indicates whether query text should be split on whitespace
+// prior to analysis.
+func (q *QueryStringQuery) SplitOnWhitespace(splitOnWhitespace bool) *QueryStringQuery {
+	q.splitOnWhitespace = &splitOnWhitespace
+	return q
+}
+
 // Source returns JSON for the query.
 func (q *QueryStringQuery) Source() (interface{}, error) {
 	source := make(map[string]interface{})
@@ -276,6 +302,9 @@ func (q *QueryStringQuery) Source() (interface{}, error) {
 	if q.tieBreaker != nil {
 		query["tie_breaker"] = *q.tieBreaker
 	}
+	if q.useDisMax != nil {
+		query["use_dis_max"] = *q.useDisMax
+	}
 	if q.defaultOperator != "" {
 		query["default_operator"] = q.defaultOperator
 	}
@@ -284,6 +313,9 @@ func (q *QueryStringQuery) Source() (interface{}, error) {
 	}
 	if q.quoteAnalyzer != "" {
 		query["quote_analyzer"] = q.quoteAnalyzer
+	}
+	if q.autoGeneratePhraseQueries != nil {
+		query["auto_generate_phrase_queries"] = *q.autoGeneratePhraseQueries
 	}
 	if q.maxDeterminizedStates != nil {
 		query["max_determinized_states"] = *q.maxDeterminizedStates
@@ -342,8 +374,11 @@ func (q *QueryStringQuery) Source() (interface{}, error) {
 	if q.escape != nil {
 		query["escape"] = *q.escape
 	}
-	if q.typ != "" {
-		query["type"] = q.typ
+	if q.splitOnWhitespace != nil {
+		query["split_on_whitespace"] = *q.splitOnWhitespace
+	}
+	if q.useAllFields != nil {
+		query["all_fields"] = *q.useAllFields
 	}
 
 	return source, nil

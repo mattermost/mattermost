@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesGetTemplateService returns an index template.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-templates.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-templates.html.
 type IndicesGetTemplateService struct {
 	client       *Client
 	pretty       bool
@@ -75,7 +75,7 @@ func (s *IndicesGetTemplateService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.flatSettings != nil {
 		params.Set("flat_settings", fmt.Sprintf("%v", *s.flatSettings))
@@ -105,11 +105,7 @@ func (s *IndicesGetTemplateService) Do(ctx context.Context) (map[string]*Indices
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

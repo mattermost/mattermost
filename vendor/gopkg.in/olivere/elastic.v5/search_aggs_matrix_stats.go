@@ -5,7 +5,7 @@
 package elastic
 
 // MatrixMatrixStatsAggregation ...
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-metrics-stats-aggregation.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.3/search-aggregations-metrics-stats-aggregation.html
 // for details.
 type MatrixStatsAggregation struct {
 	fields          []string

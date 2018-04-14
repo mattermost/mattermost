@@ -9,10 +9,10 @@ import "errors"
 // PercolatorQuery can be used to match queries stored in an index.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-percolate-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.x/query-dsl-percolate-query.html
 type PercolatorQuery struct {
 	field                     string
-	documentType              string // deprecated
+	documentType              string
 	document                  interface{}
 	indexedDocumentIndex      string
 	indexedDocumentType       string
@@ -32,7 +32,6 @@ func (q *PercolatorQuery) Field(field string) *PercolatorQuery {
 	return q
 }
 
-// Deprecated: DocumentType is deprecated as of 6.0.
 func (q *PercolatorQuery) DocumentType(typ string) *PercolatorQuery {
 	q.documentType = typ
 	return q
@@ -78,6 +77,9 @@ func (q *PercolatorQuery) Source() (interface{}, error) {
 	if len(q.field) == 0 {
 		return nil, errors.New("elastic: Field is required in PercolatorQuery")
 	}
+	if len(q.documentType) == 0 {
+		return nil, errors.New("elastic: DocumentType is required in PercolatorQuery")
+	}
 	if q.document == nil {
 		return nil, errors.New("elastic: Document is required in PercolatorQuery")
 	}
@@ -89,9 +91,7 @@ func (q *PercolatorQuery) Source() (interface{}, error) {
 	params := make(map[string]interface{})
 	source["percolate"] = params
 	params["field"] = q.field
-	if q.documentType != "" {
-		params["document_type"] = q.documentType
-	}
+	params["document_type"] = q.documentType
 	params["document"] = q.document
 	if len(q.indexedDocumentIndex) > 0 {
 		params["index"] = q.indexedDocumentIndex

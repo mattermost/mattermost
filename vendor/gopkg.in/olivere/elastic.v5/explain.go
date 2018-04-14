@@ -10,12 +10,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // ExplainService computes a score explanation for a query and
 // a specific document.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-explain.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-explain.html.
 type ExplainService struct {
 	client                 *Client
 	pretty                 bool
@@ -208,7 +208,7 @@ func (s *ExplainService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if len(s.xSource) > 0 {
 		params.Set("_source", strings.Join(s.xSource, ","))
@@ -298,12 +298,7 @@ func (s *ExplainService) Do(ctx context.Context) (*ExplainResponse, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, body)
 	if err != nil {
 		return nil, err
 	}
