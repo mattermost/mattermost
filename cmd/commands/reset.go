@@ -29,6 +29,7 @@ func resetCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {

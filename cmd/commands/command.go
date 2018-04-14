@@ -36,6 +36,7 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Enter the destination team and at least one comamnd to move.")
