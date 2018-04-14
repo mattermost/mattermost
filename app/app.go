@@ -125,7 +125,14 @@ func New(options ...Option) (outApp *App, outErr error) {
 		}
 	}
 	model.AppErrorInit(utils.T)
+
+	// The first time we load config, clear any existing filters to allow the configuration
+	// changes to take effect. This is safe only because no one else is logging at this point.
+	l4g.Close()
+
 	if err := app.LoadConfig(app.configFile); err != nil {
+		// Re-initialize the default logger as we bail out.
+		l4g.Global = l4g.NewDefaultLogger(l4g.DEBUG)
 		return nil, err
 	}
 	app.EnableConfigWatch()
