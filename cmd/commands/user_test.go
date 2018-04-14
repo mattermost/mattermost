@@ -9,7 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUserWithTeam(t *testing.T) {
@@ -80,31 +79,4 @@ func TestMakeUserActiveAndInactive(t *testing.T) {
 
 	// activate the inactive user
 	cmd.CheckCommand(t, "user", "activate", th.BasicUser.Email)
-}
-
-func TestChangeUserEmail(t *testing.T) {
-	th := api.Setup().InitBasic()
-	defer th.TearDown()
-
-	newEmail := model.NewId() + "@mattermost-test.com"
-
-	cmd.CheckCommand(t, "user", "email", th.BasicUser.Username, newEmail)
-	if result := <-th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email); result.Err == nil {
-		t.Fatal("should've updated to the new email")
-	}
-	if result := <-th.App.Srv.Store.User().GetByEmail(newEmail); result.Err != nil {
-		t.Fatal()
-	} else {
-		user := result.Data.(*model.User)
-		if user.Email != newEmail {
-			t.Fatal("should've updated to the new email")
-		}
-	}
-
-	// should fail because using an invalid email
-	require.Error(t, cmd.RunCommand(t, "user", "email", th.BasicUser.Username, "wrong$email.com"))
-
-	// should fail because user not found
-	require.Error(t, cmd.RunCommand(t, "user", "email", "invalidUser", newEmail))
-
 }
