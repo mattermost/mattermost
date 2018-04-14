@@ -133,17 +133,17 @@ func SlackParsePosts(data io.Reader) ([]SlackPost, error) {
 	return posts, nil
 }
 
-func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map[string]*model.User {
+func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *bytes.Buffer) map[string]*model.User {
 	// Log header
-	log.WriteString(utils.T("api.slackimport.slack_add_users.created"))
-	log.WriteString("===============\r\n\r\n")
+	importerLog.WriteString(utils.T("api.slackimport.slack_add_users.created"))
+	importerLog.WriteString("===============\r\n\r\n")
 
 	addedUsers := make(map[string]*model.User)
 
 	// Need the team
 	var team *model.Team
 	if result := <-a.Srv.Store.Team().Get(teamId); result.Err != nil {
-		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
+		importerLog.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return addedUsers
 	} else {
 		team = result.Data.(*model.Team)
@@ -155,7 +155,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Bu
 		email := sUser.Profile.Email
 		if email == "" {
 			email = sUser.Username + "@example.com"
-			log.WriteString(utils.T("api.slackimport.slack_add_users.missing_email_address", map[string]interface{}{"Email": email, "Username": sUser.Username}))
+			importerLog.WriteString(utils.T("api.slackimport.slack_add_users.missing_email_address", map[string]interface{}{"Email": email, "Username": sUser.Username}))
 			l4g.Warn(utils.T("api.slackimport.slack_add_users.missing_email_address.warn", map[string]interface{}{"Email": email, "Username": sUser.Username}))
 		}
 
@@ -166,9 +166,9 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Bu
 			existingUser := result.Data.(*model.User)
 			addedUsers[sUser.Id] = existingUser
 			if err := a.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
-				log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
+				importerLog.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
 			} else {
-				log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
+				importerLog.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
 			}
 			continue
 		}
@@ -183,9 +183,9 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Bu
 
 		if mUser := a.OldImportUser(team, &newUser); mUser != nil {
 			addedUsers[sUser.Id] = mUser
-			log.WriteString(utils.T("api.slackimport.slack_add_users.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
+			importerLog.WriteString(utils.T("api.slackimport.slack_add_users.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
 		} else {
-			log.WriteString(utils.T("api.slackimport.slack_add_users.unable_import", map[string]interface{}{"Username": sUser.Username}))
+			importerLog.WriteString(utils.T("api.slackimport.slack_add_users.unable_import", map[string]interface{}{"Username": sUser.Username}))
 		}
 	}
 
@@ -461,10 +461,10 @@ func SlackSanitiseChannelProperties(channel model.Channel) model.Channel {
 	return channel
 }
 
-func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, log *bytes.Buffer) map[string]*model.Channel {
+func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
-	log.WriteString(utils.T("api.slackimport.slack_add_channels.added"))
-	log.WriteString("=================\r\n\r\n")
+	importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.added"))
+	importerLog.WriteString("=================\r\n\r\n")
 
 	addedChannels := make(map[string]*model.Channel)
 	for _, sChannel := range slackchannels {
@@ -482,7 +482,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 		if result := <-a.Srv.Store.Channel().GetByName(teamId, sChannel.Name, true); result.Err == nil {
 			// The channel already exists as an active channel. Merge with the existing one.
 			mChannel = result.Data.(*model.Channel)
-			log.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
+			importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
 		} else if result := <-a.Srv.Store.Channel().GetDeletedByName(teamId, sChannel.Name); result.Err == nil {
 			// The channel already exists but has been deleted. Generate a random string for the handle instead.
 			newChannel.Name = model.NewId()
@@ -494,13 +494,13 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 			mChannel = a.OldImportChannel(&newChannel)
 			if mChannel == nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_channels.import_failed.warn"), newChannel.DisplayName)
-				log.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
+				importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
 				continue
 			}
 		}
 
-		a.addSlackUsersToChannel(sChannel.Members, users, mChannel, log)
-		log.WriteString(newChannel.DisplayName + "\r\n")
+		a.addSlackUsersToChannel(sChannel.Members, users, mChannel, importerLog)
+		importerLog.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
 		a.SlackAddPosts(teamId, mChannel, posts[sChannel.Name], users, uploads, botUser)
 	}

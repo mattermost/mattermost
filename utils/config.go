@@ -30,7 +30,7 @@ const (
 	LOG_FILENAME    = "mattermost.log"
 )
 
-var originalDisableDebugLvl l4g.Level = l4g.DEBUG
+//var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 
 // FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
 // relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
@@ -65,16 +65,16 @@ func FindDir(dir string) (string, bool) {
 }
 
 func DisableDebugLogForTest() {
-	if l4g.Global["stdout"] != nil {
+	/*if l4g.Global["stdout"] != nil {
 		originalDisableDebugLvl = l4g.Global["stdout"].Level
 		l4g.Global["stdout"].Level = l4g.ERROR
-	}
+	}*/
 }
 
 func EnableDebugLogForTest() {
-	if l4g.Global["stdout"] != nil {
+	/*if l4g.Global["stdout"] != nil {
 		l4g.Global["stdout"].Level = originalDisableDebugLvl
-	}
+	}*/
 }
 
 func ConfigureCmdLineLog() {
@@ -92,43 +92,44 @@ func ConfigureCmdLineLog() {
 // TODO: this code initializes console and file logging. It will eventually be replaced by JSON logging in logger/logger.go
 // See PLT-3893 for more information
 func ConfigureLog(s *model.LogSettings) {
-	if _, alreadySet := l4g.Global["stdout"]; !alreadySet && s.EnableConsole {
-		level := l4g.DEBUG
-		if s.ConsoleLevel == "INFO" {
-			level = l4g.INFO
-		} else if s.ConsoleLevel == "WARN" {
-			level = l4g.WARNING
-		} else if s.ConsoleLevel == "ERROR" {
-			level = l4g.ERROR
+	/*
+		if _, alreadySet := l4g.Global["stdout"]; !alreadySet && s.EnableConsole {
+			level := l4g.DEBUG
+			if s.ConsoleLevel == "INFO" {
+				level = l4g.INFO
+			} else if s.ConsoleLevel == "WARN" {
+				level = l4g.WARNING
+			} else if s.ConsoleLevel == "ERROR" {
+				level = l4g.ERROR
+			}
+
+			lw := l4g.NewConsoleLogWriter()
+			lw.SetFormat("[%D %T] [%L] %M")
+			l4g.AddFilter("stdout", level, lw)
 		}
 
-		lw := l4g.NewConsoleLogWriter()
-		lw.SetFormat("[%D %T] [%L] %M")
-		l4g.AddFilter("stdout", level, lw)
-	}
+		if _, alreadySet := l4g.Global["file"]; !alreadySet && s.EnableFile {
+			var fileFormat = s.FileFormat
 
-	if _, alreadySet := l4g.Global["file"]; !alreadySet && s.EnableFile {
-		var fileFormat = s.FileFormat
+				if fileFormat == "" {
+					fileFormat = "[%D %T] [%L] %M"
+				}
 
-		if fileFormat == "" {
-			fileFormat = "[%D %T] [%L] %M"
-		}
+				level := l4g.DEBUG
+				if s.FileLevel == "INFO" {
+					level = l4g.INFO
+				} else if s.FileLevel == "WARN" {
+					level = l4g.WARNING
+				} else if s.FileLevel == "ERROR" {
+					level = l4g.ERROR
+				}
 
-		level := l4g.DEBUG
-		if s.FileLevel == "INFO" {
-			level = l4g.INFO
-		} else if s.FileLevel == "WARN" {
-			level = l4g.WARNING
-		} else if s.FileLevel == "ERROR" {
-			level = l4g.ERROR
-		}
-
-		flw := l4g.NewFileLogWriter(GetLogFileLocation(s.FileLocation), false)
-		flw.SetFormat(fileFormat)
-		flw.SetRotate(true)
-		flw.SetRotateLines(LOG_ROTATE_SIZE)
-		l4g.AddFilter("file", level, flw)
-	}
+				flw := l4g.NewFileLogWriter(GetLogFileLocation(s.FileLocation), false)
+				flw.SetFormat(fileFormat)
+				flw.SetRotate(true)
+				flw.SetRotateLines(LOG_ROTATE_SIZE)
+				l4g.AddFilter("file", level, flw)
+			}*/
 }
 
 func GetLogFileLocation(fileLocation string) string {
