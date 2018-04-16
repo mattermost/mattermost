@@ -530,13 +530,13 @@ func (c *Client4) CreateUser(user *User) (*User, *Response) {
 	}
 }
 
-// CreateUserWithHash creates a user in the system based on the provided user struct and hash created.
-func (c *Client4) CreateUserWithHash(user *User, hash, data string) (*User, *Response) {
+// CreateUserWithToken creates a user in the system based on the provided user struct and tokenId created.
+func (c *Client4) CreateUserWithToken(user *User, tokenId, data string) (*User, *Response) {
 	var query string
-	if hash != "" && data != "" {
-		query = fmt.Sprintf("?d=%v&h=%v", url.QueryEscape(data), hash)
+	if tokenId != "" && data != "" {
+		query = fmt.Sprintf("?d=%v&h=%v", url.QueryEscape(data), tokenId)
 	} else {
-		err := NewAppError("MissingHashOrData", "api.user.create_user.missing_hash_or_data.app_error", nil, "", http.StatusBadRequest)
+		err := NewAppError("MissingHashOrData", "api.user.create_user.missing_token_or_data.app_error", nil, "", http.StatusBadRequest)
 		return nil, &Response{StatusCode: err.StatusCode, Error: err}
 	}
 	if r, err := c.DoApiPost(c.GetUsersRoute()+query, user.ToJson()); err != nil {
@@ -545,6 +545,12 @@ func (c *Client4) CreateUserWithHash(user *User, hash, data string) (*User, *Res
 		defer closeBody(r)
 		return UserFromJson(r.Body), BuildResponse(r)
 	}
+}
+
+// CreateUserWithHash creates a user in the system based on the provided user struct and hash created.
+// Maintained for backward compatibility
+func (c *Client4) CreateUserWithHash(user *User, hash, data string) (*User, *Response) {
+	return c.CreateUserWithToken(user, hash, data)
 }
 
 // CreateUserWithInviteId creates a user in the system based on the provided invited id.

@@ -80,7 +80,7 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
-func TestCreateUserWithHash(t *testing.T) {
+func TestCreateUserWithToken(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
@@ -98,7 +98,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		data := model.MapToJson(props)
 
-		ruser, resp := Client.CreateUserWithHash(&user, token.Token, data)
+		ruser, resp := Client.CreateUserWithToken(&user, token.Token, data)
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
 
@@ -130,13 +130,13 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		data := model.MapToJson(props)
 
-		_, resp := Client.CreateUserWithHash(&user, "", data)
+		_, resp := Client.CreateUserWithToken(&user, "", data)
 		CheckBadRequestStatus(t, resp)
-		CheckErrorMessage(t, resp, "api.user.create_user.missing_hash_or_data.app_error")
+		CheckErrorMessage(t, resp, "api.user.create_user.missing_token_or_data.app_error")
 
-		_, resp = Client.CreateUserWithHash(&user, token.Token, "")
+		_, resp = Client.CreateUserWithToken(&user, token.Token, "")
 		CheckBadRequestStatus(t, resp)
-		CheckErrorMessage(t, resp, "api.user.create_user.missing_hash_or_data.app_error")
+		CheckErrorMessage(t, resp, "api.user.create_user.missing_token_or_data.app_error")
 	})
 
 	t.Run("HashExpired", func(t *testing.T) {
@@ -157,7 +157,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		data := model.MapToJson(props)
 
-		_, resp := Client.CreateUserWithHash(&user, token.Token, data)
+		_, resp := Client.CreateUserWithToken(&user, token.Token, data)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_expired.app_error")
 	})
@@ -170,7 +170,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		data := model.MapToJson(props)
 
-		_, resp := Client.CreateUserWithHash(&user, "wrong", data)
+		_, resp := Client.CreateUserWithToken(&user, "wrong", data)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_invalid.app_error")
 	})
@@ -192,7 +192,7 @@ func TestCreateUserWithHash(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = false })
 
-		_, resp := Client.CreateUserWithHash(&user, token.Token, data)
+		_, resp := Client.CreateUserWithToken(&user, token.Token, data)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
@@ -215,7 +215,7 @@ func TestCreateUserWithHash(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
-		ruser, resp := Client.CreateUserWithHash(&user, token.Token, data)
+		ruser, resp := Client.CreateUserWithToken(&user, token.Token, data)
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
 

@@ -40,24 +40,24 @@ const (
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
-func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithToken(user *model.User, tokenId string, data string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Token().GetByToken(hash)
+	result := <-a.Srv.Store.Token().GetByToken(tokenId)
 	if result.Err != nil {
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
 	token := result.Data.(*model.Token)
 	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
 		a.DeleteToken(token)
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))

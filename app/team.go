@@ -220,8 +220,8 @@ func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppE
 	}
 }
 
-func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Token().GetByToken(hash)
+func (a *App) AddUserToTeamByToken(userId string, tokenId string, data string) (*model.Team, *model.AppError) {
+	result := <-a.Srv.Store.Token().GetByToken(tokenId)
 	if result.Err != nil {
 		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
@@ -524,11 +524,11 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 	return members, nil
 }
 
-func (a *App) AddTeamMemberByHash(userId, hash, data string) (*model.TeamMember, *model.AppError) {
+func (a *App) AddTeamMemberByToken(userId, tokenId, data string) (*model.TeamMember, *model.AppError) {
 	var team *model.Team
 	var err *model.AppError
 
-	if team, err = a.AddUserToTeamByHash(userId, hash, data); err != nil {
+	if team, err = a.AddUserToTeamByToken(userId, tokenId, data); err != nil {
 		return nil, err
 	}
 

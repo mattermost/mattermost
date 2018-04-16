@@ -73,15 +73,15 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash := r.URL.Query().Get("h")
+	tokenId := r.URL.Query().Get("h")
 	inviteId := r.URL.Query().Get("iid")
 
 	// No permission check required
 
 	var ruser *model.User
 	var err *model.AppError
-	if len(hash) > 0 {
-		ruser, err = c.App.CreateUserWithHash(user, hash, r.URL.Query().Get("d"))
+	if len(tokenId) > 0 {
+		ruser, err = c.App.CreateUserWithToken(user, tokenId, r.URL.Query().Get("d"))
 	} else if len(inviteId) > 0 {
 		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
 	} else if c.IsSystemAdmin() {
