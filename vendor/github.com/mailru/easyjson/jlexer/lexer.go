@@ -997,6 +997,22 @@ func (r *Lexer) Float32() float32 {
 	return float32(n)
 }
 
+func (r *Lexer) Float32Str() float32 {
+	s, b := r.unsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	n, err := strconv.ParseFloat(s, 32)
+	if err != nil {
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
+			Reason: err.Error(),
+			Data:   string(b),
+		})
+	}
+	return float32(n)
+}
+
 func (r *Lexer) Float64() float64 {
 	s := r.number()
 	if !r.Ok() {
@@ -1009,6 +1025,22 @@ func (r *Lexer) Float64() float64 {
 			Offset: r.start,
 			Reason: err.Error(),
 			Data:   s,
+		})
+	}
+	return n
+}
+
+func (r *Lexer) Float64Str() float64 {
+	s, b := r.unsafeString()
+	if !r.Ok() {
+		return 0
+	}
+	n, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		r.addNonfatalError(&LexerError{
+			Offset: r.start,
+			Reason: err.Error(),
+			Data:   string(b),
 		})
 	}
 	return n
@@ -1056,7 +1088,7 @@ func (r *Lexer) JsonNumber() json.Number {
 	}
 	if !r.Ok() {
 		r.errInvalidToken("json.Number")
-		return json.Number("0")
+		return json.Number("")
 	}
 
 	switch r.token.kind {
@@ -1064,9 +1096,12 @@ func (r *Lexer) JsonNumber() json.Number {
 		return json.Number(r.String())
 	case tokenNumber:
 		return json.Number(r.Raw())
+	case tokenNull:
+		r.Null()
+		return json.Number("")
 	default:
 		r.errSyntax()
-		return json.Number("0")
+		return json.Number("")
 	}
 }
 

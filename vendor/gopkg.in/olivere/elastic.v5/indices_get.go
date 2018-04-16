@@ -10,12 +10,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesGetService retrieves information about one or more indices.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-get-index.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-get-index.html
 // for more details.
 type IndicesGetService struct {
 	client            *Client
@@ -131,7 +131,7 @@ func (s *IndicesGetService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.expandWildcards != "" {
 		params.Set("expand_wildcards", s.expandWildcards)
@@ -180,11 +180,7 @@ func (s *IndicesGetService) Do(ctx context.Context) (map[string]*IndicesGetRespo
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

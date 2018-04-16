@@ -7,16 +7,17 @@ package elastic
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"net/http"
+
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // DeleteService allows to delete a typed JSON document from a specified
 // index based on its id.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-delete.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-delete.html
 // for details.
 type DeleteService struct {
 	client              *Client
@@ -125,7 +126,7 @@ func (s *DeleteService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.refresh != "" {
 		params.Set("refresh", s.refresh)
@@ -185,12 +186,7 @@ func (s *DeleteService) Do(ctx context.Context) (*DeleteResponse, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method:       "DELETE",
-		Path:         path,
-		Params:       params,
-		IgnoreErrors: []int{http.StatusNotFound},
-	})
+	res, err := s.client.PerformRequest(ctx, "DELETE", path, params, nil, http.StatusNotFound)
 	if err != nil {
 		return nil, err
 	}
@@ -223,4 +219,5 @@ type DeleteResponse struct {
 	PrimaryTerm   int64       `json:"_primary_term,omitempty"`
 	Status        int         `json:"status,omitempty"`
 	ForcedRefresh bool        `json:"forced_refresh,omitempty"`
+	Found         bool        `json:"found,omitempty"`
 }

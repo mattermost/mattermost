@@ -14,17 +14,23 @@ func sliceParser(rd *proto.Reader, n int64) (interface{}, error) {
 	vals := make([]interface{}, 0, n)
 	for i := int64(0); i < n; i++ {
 		v, err := rd.ReadReply(sliceParser)
-		if err == Nil {
-			vals = append(vals, nil)
-		} else if err != nil {
-			return nil, err
-		} else {
-			switch vv := v.(type) {
-			case []byte:
-				vals = append(vals, string(vv))
-			default:
-				vals = append(vals, v)
+		if err != nil {
+			if err == Nil {
+				vals = append(vals, nil)
+				continue
 			}
+			if err, ok := err.(proto.RedisError); ok {
+				vals = append(vals, err)
+				continue
+			}
+			return nil, err
+		}
+
+		switch v := v.(type) {
+		case []byte:
+			vals = append(vals, string(v))
+		default:
+			vals = append(vals, v)
 		}
 	}
 	return vals, nil

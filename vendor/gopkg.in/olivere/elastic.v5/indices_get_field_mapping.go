@@ -10,13 +10,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesGetFieldMappingService retrieves the mapping definitions for the fields in an index
 //  or index/type.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-get-field-mapping.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-get-field-mapping.html
 // for details.
 type IndicesGetFieldMappingService struct {
 	client            *Client
@@ -131,7 +131,7 @@ func (s *IndicesGetFieldMappingService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.ignoreUnavailable != nil {
 		params.Set("ignore_unavailable", fmt.Sprintf("%v", *s.ignoreUnavailable))
@@ -170,11 +170,7 @@ func (s *IndicesGetFieldMappingService) Do(ctx context.Context) (map[string]inte
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

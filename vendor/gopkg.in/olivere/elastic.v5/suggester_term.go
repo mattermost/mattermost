@@ -6,7 +6,7 @@ package elastic
 
 // TermSuggester suggests terms based on edit distance.
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-suggesters-term.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-suggesters-term.html.
 type TermSuggester struct {
 	Suggester
 	name           string
@@ -178,7 +178,7 @@ func (q *TermSuggester) Source(includeName bool) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		suggester["contexts"] = src
+		suggester["context"] = src
 	default:
 		ctxq := make([]interface{}, len(q.contextQueries))
 		for i, query := range q.contextQueries {
@@ -188,7 +188,7 @@ func (q *TermSuggester) Source(includeName bool) (interface{}, error) {
 			}
 			ctxq[i] = src
 		}
-		suggester["contexts"] = ctxq
+		suggester["context"] = ctxq
 	}
 
 	// Specific to term suggester

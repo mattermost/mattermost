@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/go-redis/redis/internal"
+	"github.com/go-redis/redis/internal/util"
 )
 
 func Scan(b []byte, v interface{}) error {
@@ -13,80 +13,80 @@ func Scan(b []byte, v interface{}) error {
 	case nil:
 		return fmt.Errorf("redis: Scan(nil)")
 	case *string:
-		*v = internal.BytesToString(b)
+		*v = util.BytesToString(b)
 		return nil
 	case *[]byte:
 		*v = b
 		return nil
 	case *int:
 		var err error
-		*v, err = atoi(b)
+		*v, err = util.Atoi(b)
 		return err
 	case *int8:
-		n, err := parseInt(b, 10, 8)
+		n, err := util.ParseInt(b, 10, 8)
 		if err != nil {
 			return err
 		}
 		*v = int8(n)
 		return nil
 	case *int16:
-		n, err := parseInt(b, 10, 16)
+		n, err := util.ParseInt(b, 10, 16)
 		if err != nil {
 			return err
 		}
 		*v = int16(n)
 		return nil
 	case *int32:
-		n, err := parseInt(b, 10, 32)
+		n, err := util.ParseInt(b, 10, 32)
 		if err != nil {
 			return err
 		}
 		*v = int32(n)
 		return nil
 	case *int64:
-		n, err := parseInt(b, 10, 64)
+		n, err := util.ParseInt(b, 10, 64)
 		if err != nil {
 			return err
 		}
 		*v = n
 		return nil
 	case *uint:
-		n, err := parseUint(b, 10, 64)
+		n, err := util.ParseUint(b, 10, 64)
 		if err != nil {
 			return err
 		}
 		*v = uint(n)
 		return nil
 	case *uint8:
-		n, err := parseUint(b, 10, 8)
+		n, err := util.ParseUint(b, 10, 8)
 		if err != nil {
 			return err
 		}
 		*v = uint8(n)
 		return nil
 	case *uint16:
-		n, err := parseUint(b, 10, 16)
+		n, err := util.ParseUint(b, 10, 16)
 		if err != nil {
 			return err
 		}
 		*v = uint16(n)
 		return nil
 	case *uint32:
-		n, err := parseUint(b, 10, 32)
+		n, err := util.ParseUint(b, 10, 32)
 		if err != nil {
 			return err
 		}
 		*v = uint32(n)
 		return nil
 	case *uint64:
-		n, err := parseUint(b, 10, 64)
+		n, err := util.ParseUint(b, 10, 64)
 		if err != nil {
 			return err
 		}
 		*v = n
 		return nil
 	case *float32:
-		n, err := parseFloat(b, 32)
+		n, err := util.ParseFloat(b, 32)
 		if err != nil {
 			return err
 		}
@@ -94,7 +94,7 @@ func Scan(b []byte, v interface{}) error {
 		return err
 	case *float64:
 		var err error
-		*v, err = parseFloat(b, 64)
+		*v, err = util.ParseFloat(b, 64)
 		return err
 	case *bool:
 		*v = len(b) == 1 && b[0] == '1'
@@ -120,7 +120,7 @@ func ScanSlice(data []string, slice interface{}) error {
 		return fmt.Errorf("redis: ScanSlice(non-slice %T)", slice)
 	}
 
-	next := internal.MakeSliceNextElemFunc(v)
+	next := makeSliceNextElemFunc(v)
 	for i, s := range data {
 		elem := next()
 		if err := Scan([]byte(s), elem.Addr().Interface()); err != nil {
@@ -130,4 +130,37 @@ func ScanSlice(data []string, slice interface{}) error {
 	}
 
 	return nil
+}
+
+func makeSliceNextElemFunc(v reflect.Value) func() reflect.Value {
+	elemType := v.Type().Elem()
+
+	if elemType.Kind() == reflect.Ptr {
+		elemType = elemType.Elem()
+		return func() reflect.Value {
+			if v.Len() < v.Cap() {
+				v.Set(v.Slice(0, v.Len()+1))
+				elem := v.Index(v.Len() - 1)
+				if elem.IsNil() {
+					elem.Set(reflect.New(elemType))
+				}
+				return elem.Elem()
+			}
+
+			elem := reflect.New(elemType)
+			v.Set(reflect.Append(v, elem))
+			return elem.Elem()
+		}
+	}
+
+	zero := reflect.Zero(elemType)
+	return func() reflect.Value {
+		if v.Len() < v.Cap() {
+			v.Set(v.Slice(0, v.Len()+1))
+			return v.Index(v.Len() - 1)
+		}
+
+		v.Set(reflect.Append(v, zero))
+		return v.Index(v.Len() - 1)
+	}
 }

@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // RefreshService explicitly refreshes one or more indices.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-refresh.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/indices-refresh.html.
 type RefreshService struct {
 	client *Client
 	index  []string
@@ -73,11 +73,7 @@ func (s *RefreshService) Do(ctx context.Context) (*RefreshResult, error) {
 	}
 
 	// Get response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

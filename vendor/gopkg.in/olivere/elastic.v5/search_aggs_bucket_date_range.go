@@ -15,7 +15,7 @@ import (
 // date format by which the from and to response fields will be returned.
 // Note that this aggregration includes the from value and excludes the to
 // value for each range.
-// See: https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-bucket-daterange-aggregation.html
+// See: https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-aggregations-bucket-daterange-aggregation.html
 type DateRangeAggregation struct {
 	field           string
 	script          *Script
@@ -23,7 +23,6 @@ type DateRangeAggregation struct {
 	meta            map[string]interface{}
 	keyed           *bool
 	unmapped        *bool
-	timeZone        string
 	format          string
 	entries         []DateRangeAggregationEntry
 }
@@ -69,11 +68,6 @@ func (a *DateRangeAggregation) Keyed(keyed bool) *DateRangeAggregation {
 
 func (a *DateRangeAggregation) Unmapped(unmapped bool) *DateRangeAggregation {
 	a.unmapped = &unmapped
-	return a
-}
-
-func (a *DateRangeAggregation) TimeZone(timeZone string) *DateRangeAggregation {
-	a.timeZone = timeZone
 	return a
 }
 
@@ -183,9 +177,6 @@ func (a *DateRangeAggregation) Source() (interface{}, error) {
 	}
 	if a.unmapped != nil {
 		opts["unmapped"] = *a.unmapped
-	}
-	if a.timeZone != "" {
-		opts["time_zone"] = a.timeZone
 	}
 	if a.format != "" {
 		opts["format"] = a.format

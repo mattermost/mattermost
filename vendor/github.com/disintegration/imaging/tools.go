@@ -58,10 +58,20 @@ func anchorPt(b image.Rectangle, w, h int, anchor Anchor) image.Point {
 // Crop cuts out a rectangular region with the specified bounds
 // from the image and returns the cropped image.
 func Crop(img image.Image, rect image.Rectangle) *image.NRGBA {
-	src := toNRGBA(img)
-	srcRect := rect.Sub(img.Bounds().Min)
-	sub := src.SubImage(srcRect)
-	return Clone(sub) // New image Bounds().Min point will be (0, 0)
+	r := rect.Intersect(img.Bounds()).Sub(img.Bounds().Min)
+	if r.Empty() {
+		return &image.NRGBA{}
+	}
+	src := newScanner(img)
+	dst := image.NewNRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
+	rowSize := r.Dx() * 4
+	parallel(r.Min.Y, r.Max.Y, func(ys <-chan int) {
+		for y := range ys {
+			i := (y - r.Min.Y) * dst.Stride
+			src.scan(r.Min.X, y, r.Max.X, y+1, dst.Pix[i:i+rowSize])
+		}
+	})
+	return dst
 }
 
 // CropAnchor cuts out a rectangular region with the specified size
@@ -82,34 +92,25 @@ func CropCenter(img image.Image, width, height int) *image.NRGBA {
 
 // Paste pastes the img image to the background image at the specified position and returns the combined image.
 func Paste(background, img image.Image, pos image.Point) *image.NRGBA {
-	src := toNRGBA(img)
-	dst := Clone(background)                    // cloned image bounds start at (0, 0)
-	startPt := pos.Sub(background.Bounds().Min) // so we should translate start point
-	endPt := startPt.Add(src.Bounds().Size())
-	pasteBounds := image.Rectangle{startPt, endPt}
-
-	if dst.Bounds().Overlaps(pasteBounds) {
-		intersectBounds := dst.Bounds().Intersect(pasteBounds)
-
-		rowSize := intersectBounds.Dx() * 4
-		numRows := intersectBounds.Dy()
-
-		srcStartX := intersectBounds.Min.X - pasteBounds.Min.X
-		srcStartY := intersectBounds.Min.Y - pasteBounds.Min.Y
-
-		i0 := dst.PixOffset(intersectBounds.Min.X, intersectBounds.Min.Y)
-		j0 := src.PixOffset(srcStartX, srcStartY)
-
-		di := dst.Stride
-		dj := src.Stride
-
-		for row := 0; row < numRows; row++ {
-			copy(dst.Pix[i0:i0+rowSize], src.Pix[j0:j0+rowSize])
-			i0 += di
-			j0 += dj
-		}
+	dst := Clone(background)
+	pos = pos.Sub(background.Bounds().Min)
+	pasteRect := image.Rectangle{Min: pos, Max: pos.Add(img.Bounds().Size())}
+	interRect := pasteRect.Intersect(dst.Bounds())
+	if interRect.Empty() {
+		return dst
 	}
-
+	src := newScanner(img)
+	parallel(interRect.Min.Y, interRect.Max.Y, func(ys <-chan int) {
+		for y := range ys {
+			x1 := interRect.Min.X - pasteRect.Min.X
+			x2 := interRect.Max.X - pasteRect.Min.X
+			y1 := y - pasteRect.Min.Y
+			y2 := y1 + 1
+			i1 := y*dst.Stride + interRect.Min.X*4
+			i2 := i1 + interRect.Dx()*4
+			src.scan(x1, y1, x2, y2, dst.Pix[i1:i2])
+		}
+	})
 	return dst
 }
 
@@ -136,49 +137,59 @@ func PasteCenter(background, img image.Image) *image.NRGBA {
 //
 // Usage examples:
 //
-//	// draw the sprite over the background at position (50, 50)
+//	// Draw spriteImage over backgroundImage at the given position (x=50, y=50).
 //	dstImage := imaging.Overlay(backgroundImage, spriteImage, image.Pt(50, 50), 1.0)
 //
-//	// blend two opaque images of the same size
+//	// Blend two opaque images of the same size.
 //	dstImage := imaging.Overlay(imageOne, imageTwo, image.Pt(0, 0), 0.5)
 //
 func Overlay(background, img image.Image, pos image.Point, opacity float64) *image.NRGBA {
-	opacity = math.Min(math.Max(opacity, 0.0), 1.0) // check: 0.0 <= opacity <= 1.0
-
-	src := toNRGBA(img)
-	dst := Clone(background)                    // cloned image bounds start at (0, 0)
-	startPt := pos.Sub(background.Bounds().Min) // so we should translate start point
-	endPt := startPt.Add(src.Bounds().Size())
-	pasteBounds := image.Rectangle{startPt, endPt}
-
-	if dst.Bounds().Overlaps(pasteBounds) {
-		intersectBounds := dst.Bounds().Intersect(pasteBounds)
-
-		for y := intersectBounds.Min.Y; y < intersectBounds.Max.Y; y++ {
-			for x := intersectBounds.Min.X; x < intersectBounds.Max.X; x++ {
-				i := y*dst.Stride + x*4
-
-				srcX := x - pasteBounds.Min.X
-				srcY := y - pasteBounds.Min.Y
-				j := srcY*src.Stride + srcX*4
-
+	opacity = math.Min(math.Max(opacity, 0.0), 1.0) // Ensure 0.0 <= opacity <= 1.0.
+	dst := Clone(background)
+	pos = pos.Sub(background.Bounds().Min)
+	pasteRect := image.Rectangle{Min: pos, Max: pos.Add(img.Bounds().Size())}
+	interRect := pasteRect.Intersect(dst.Bounds())
+	if interRect.Empty() {
+		return dst
+	}
+	src := newScanner(img)
+	parallel(interRect.Min.Y, interRect.Max.Y, func(ys <-chan int) {
+		scanLine := make([]uint8, interRect.Dx()*4)
+		for y := range ys {
+			x1 := interRect.Min.X - pasteRect.Min.X
+			x2 := interRect.Max.X - pasteRect.Min.X
+			y1 := y - pasteRect.Min.Y
+			y2 := y1 + 1
+			src.scan(x1, y1, x2, y2, scanLine)
+			i := y*dst.Stride + interRect.Min.X*4
+			j := 0
+			for x := interRect.Min.X; x < interRect.Max.X; x++ {
+				r1 := float64(dst.Pix[i+0])
+				g1 := float64(dst.Pix[i+1])
+				b1 := float64(dst.Pix[i+2])
 				a1 := float64(dst.Pix[i+3])
-				a2 := float64(src.Pix[j+3])
 
-				coef2 := opacity * a2 / 255.0
-				coef1 := (1 - coef2) * a1 / 255.0
+				r2 := float64(scanLine[j+0])
+				g2 := float64(scanLine[j+1])
+				b2 := float64(scanLine[j+2])
+				a2 := float64(scanLine[j+3])
+
+				coef2 := opacity * a2 / 255
+				coef1 := (1 - coef2) * a1 / 255
 				coefSum := coef1 + coef2
 				coef1 /= coefSum
 				coef2 /= coefSum
 
-				dst.Pix[i+0] = uint8(float64(dst.Pix[i+0])*coef1 + float64(src.Pix[j+0])*coef2)
-				dst.Pix[i+1] = uint8(float64(dst.Pix[i+1])*coef1 + float64(src.Pix[j+1])*coef2)
-				dst.Pix[i+2] = uint8(float64(dst.Pix[i+2])*coef1 + float64(src.Pix[j+2])*coef2)
-				dst.Pix[i+3] = uint8(math.Min(a1+a2*opacity*(255.0-a1)/255.0, 255.0))
+				dst.Pix[i+0] = uint8(r1*coef1 + r2*coef2)
+				dst.Pix[i+1] = uint8(g1*coef1 + g2*coef2)
+				dst.Pix[i+2] = uint8(b1*coef1 + b2*coef2)
+				dst.Pix[i+3] = uint8(math.Min(a1+a2*opacity*(255-a1)/255, 255))
+
+				i += 4
+				j += 4
 			}
 		}
-	}
-
+	})
 	return dst
 }
 

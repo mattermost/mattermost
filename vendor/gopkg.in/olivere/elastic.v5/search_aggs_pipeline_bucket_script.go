@@ -10,7 +10,7 @@ package elastic
 // numeric and the script must return a numeric value.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-bucket-script-aggregation.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-aggregations-pipeline-bucket-script-aggregation.html
 type BucketScriptAggregation struct {
 	format    string
 	gapPolicy string

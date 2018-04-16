@@ -1,6 +1,0 @@
-*.a
-_*
-output/
-.DS_Store
-*.test
-*.swp

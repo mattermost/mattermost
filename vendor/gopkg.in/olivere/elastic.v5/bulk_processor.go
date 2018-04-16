@@ -122,7 +122,7 @@ func (s *BulkProcessorService) Stats(wantStats bool) *BulkProcessorService {
 	return s
 }
 
-// Backoff sets the backoff strategy to use for errors.
+// Backoff sets the backoff strategy to use for errors
 func (s *BulkProcessorService) Backoff(backoff Backoff) *BulkProcessorService {
 	s.backoff = backoff
 	return s
@@ -462,7 +462,6 @@ func (w *bulkWorker) work(ctx context.Context) {
 					err = w.commit(ctx)
 				}
 			}
-
 		case <-w.flushC:
 			// Commit outstanding requests
 			if w.service.NumberOfActions() > 0 {

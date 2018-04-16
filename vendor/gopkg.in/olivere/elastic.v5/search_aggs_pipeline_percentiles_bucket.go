@@ -10,7 +10,7 @@ package elastic
 // be a multi-bucket aggregation.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-aggregations-pipeline-percentiles-bucket-aggregation.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-pipeline-percentiles-bucket-aggregation.html
 type PercentilesBucketAggregation struct {
 	format       string
 	gapPolicy    string

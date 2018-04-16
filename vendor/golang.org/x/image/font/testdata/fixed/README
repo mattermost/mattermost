@@ -1,9 +1,0 @@
-These font files were copied from the Plan 9 Port's font/fixed directory. The
-README in that directory states that: "These fonts are converted from the BDFs
-in the XFree86 distribution. They were all marked as public domain."
-
-The Plan 9 Port is at https://github.com/9fans/plan9port and the copy was made
-from commit a78b1841 (2015-08-18).
-
-The unicode.7x13.font file also refers to a ../shinonome directory, but this
-testdata does not include those subfont files.

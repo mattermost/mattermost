@@ -18,15 +18,13 @@ import (
 	// Enterprise Deps
 	_ "github.com/dgryski/dgoogauth"
 	_ "github.com/go-ldap/ldap"
+	_ "github.com/hako/durafmt"
 	_ "github.com/hashicorp/memberlist"
 	_ "github.com/mattermost/rsc/qr"
 	_ "github.com/prometheus/client_golang/prometheus"
 	_ "github.com/prometheus/client_golang/prometheus/promhttp"
 	_ "github.com/tylerb/graceful"
 	_ "gopkg.in/olivere/elastic.v5"
-
-	// Temp imports for new dependencies
-	_ "github.com/gorilla/schema"
 )
 
 func main() {

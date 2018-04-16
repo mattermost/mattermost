@@ -3,15 +3,18 @@
 package log4go
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"time"
 )
 
 // This log writer sends output to a file
 type FileLogWriter struct {
-	rec chan *LogRecord
-	rot chan bool
+	rec  chan *LogRecord
+	rot  chan bool
+	done chan bool
 
 	// The opened file
 	filename string
@@ -47,6 +50,7 @@ func (w *FileLogWriter) LogWrite(rec *LogRecord) {
 
 func (w *FileLogWriter) Close() {
 	close(w.rec)
+	<-w.done
 }
 
 // NewFileLogWriter creates a new LogWriter which writes to the given file and
@@ -62,6 +66,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 	w := &FileLogWriter{
 		rec:       make(chan *LogRecord, LogBufferLength),
 		rot:       make(chan bool),
+		done:      make(chan bool),
 		filename:  fname,
 		format:    "[%D %T] [%L] (%S) %M",
 		rotate:    rotate,
@@ -81,6 +86,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 				w.file.Sync()
 				w.file.Close()
 			}
+			close(w.done)
 		}()
 
 		for {
@@ -173,7 +179,22 @@ func (w *FileLogWriter) intRotate() error {
 		}
 	}
 
-	// Open the log file
+	lineCount := 0
+	byteCount := 0
+
+	// If the file exists, open for reading and set our line/byte counts
+	// On failure, just assume the file doesn't exist
+	if fd, err := os.OpenFile(w.filename, os.O_RDONLY, 0440); err == nil {
+		lineCount, _ = lineCounter(fd)
+
+		fi, err := fd.Stat()
+		if err == nil {
+			byteCount = int(fi.Size())
+		}
+
+		fd.Close()
+	}
+
 	fd, err := os.OpenFile(w.filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0660)
 	if err != nil {
 		return err
@@ -187,10 +208,30 @@ func (w *FileLogWriter) intRotate() error {
 	w.daily_opendate = now.Day()
 
 	// initialize rotation values
-	w.maxlines_curlines = 0
-	w.maxsize_cursize = 0
+	w.maxlines_curlines = lineCount
+	w.maxsize_cursize = byteCount
 
 	return nil
+}
+
+// Taken from https://stackoverflow.com/a/24563853
+func lineCounter(r io.Reader) (int, error) {
+	buf := make([]byte, 32*1024)
+	count := 0
+	lineSep := []byte{'\n'}
+
+	for {
+		c, err := r.Read(buf)
+		count += bytes.Count(buf[:c], lineSep)
+
+		switch {
+		case err == io.EOF:
+			return count, nil
+
+		case err != nil:
+			return count, err
+		}
+	}
 }
 
 // Set the logging format (chainable).  Must be called before the first log

@@ -11,11 +11,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // SnapshotGetRepositoryService reads a snapshot repository.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/modules-snapshots.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.3/modules-snapshots.html
 // for details.
 type SnapshotGetRepositoryService struct {
 	client        *Client
@@ -76,7 +76,7 @@ func (s *SnapshotGetRepositoryService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.local != nil {
 		params.Set("local", fmt.Sprintf("%v", *s.local))
@@ -106,11 +106,7 @@ func (s *SnapshotGetRepositoryService) Do(ctx context.Context) (SnapshotGetRepos
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

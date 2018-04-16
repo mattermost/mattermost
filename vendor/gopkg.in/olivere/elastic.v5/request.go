@@ -6,6 +6,7 @@ package elastic
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -34,13 +35,21 @@ func (r *Request) SetBasicAuth(username, password string) {
 	((*http.Request)(r)).SetBasicAuth(username, password)
 }
 
-// SetBody encodes the body in the request.
-func (r *Request) SetBody(body interface{}) error {
+// SetBody encodes the body in the request. Optionally, it performs GZIP compression.
+func (r *Request) SetBody(body interface{}, gzipCompress bool) error {
 	switch b := body.(type) {
 	case string:
-		return r.setBodyString(b)
+		if gzipCompress {
+			return r.setBodyGzip(b)
+		} else {
+			return r.setBodyString(b)
+		}
 	default:
-		return r.setBodyJson(body)
+		if gzipCompress {
+			return r.setBodyGzip(body)
+		} else {
+			return r.setBodyJson(body)
+		}
 	}
 }
 
@@ -58,6 +67,42 @@ func (r *Request) setBodyJson(data interface{}) error {
 // setBodyString encodes the body as a string.
 func (r *Request) setBodyString(body string) error {
 	return r.setBodyReader(strings.NewReader(body))
+}
+
+// setBodyGzip gzip's the body. It accepts both strings and structs as body.
+// The latter will be encoded via json.Marshal.
+func (r *Request) setBodyGzip(body interface{}) error {
+	switch b := body.(type) {
+	case string:
+		buf := new(bytes.Buffer)
+		w := gzip.NewWriter(buf)
+		if _, err := w.Write([]byte(b)); err != nil {
+			return err
+		}
+		if err := w.Close(); err != nil {
+			return err
+		}
+		r.Header.Add("Content-Encoding", "gzip")
+		r.Header.Add("Vary", "Accept-Encoding")
+		return r.setBodyReader(bytes.NewReader(buf.Bytes()))
+	default:
+		data, err := json.Marshal(b)
+		if err != nil {
+			return err
+		}
+		buf := new(bytes.Buffer)
+		w := gzip.NewWriter(buf)
+		if _, err := w.Write(data); err != nil {
+			return err
+		}
+		if err := w.Close(); err != nil {
+			return err
+		}
+		r.Header.Add("Content-Encoding", "gzip")
+		r.Header.Add("Vary", "Accept-Encoding")
+		r.Header.Set("Content-Type", "application/json")
+		return r.setBodyReader(bytes.NewReader(buf.Bytes()))
+	}
 }
 
 // setBodyReader writes the body from an io.Reader.

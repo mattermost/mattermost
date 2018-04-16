@@ -243,7 +243,7 @@ func (u *Upgrader) Upgrade(w http.ResponseWriter, r *http.Request, responseHeade
 // of the same origin policy check is:
 //
 //	if req.Header.Get("Origin") != "http://"+req.Host {
-//		http.Error(w, "Origin not allowed", 403)
+//		http.Error(w, "Origin not allowed", http.StatusForbidden)
 //		return
 //	}
 //
