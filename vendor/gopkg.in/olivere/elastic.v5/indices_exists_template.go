@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesExistsTemplateService checks if a given template exists.
@@ -62,7 +62,7 @@ func (s *IndicesExistsTemplateService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.local != nil {
 		params.Set("local", fmt.Sprintf("%v", *s.local))
@@ -96,12 +96,7 @@ func (s *IndicesExistsTemplateService) Do(ctx context.Context) (bool, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method:       "HEAD",
-		Path:         path,
-		Params:       params,
-		IgnoreErrors: []int{404},
-	})
+	res, err := s.client.PerformRequest(ctx, "HEAD", path, params, nil, 404)
 	if err != nil {
 		return false, err
 	}

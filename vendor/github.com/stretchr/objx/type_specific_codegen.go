@@ -276,28 +276,13 @@ func (v *Value) MustObjxMap() Map {
 // ObjxMapSlice gets the value as a [](Map), returns the optionalDefault
 // value or nil if the value is not a [](Map).
 func (v *Value) ObjxMapSlice(optionalDefault ...[](Map)) [](Map) {
-	if s, ok := v.data.([]Map); ok {
+	if s, ok := v.data.([](Map)); ok {
 		return s
 	}
-	s, ok := v.data.([]interface{})
-	if !ok {
-		if len(optionalDefault) == 1 {
-			return optionalDefault[0]
-		} else {
-			return nil
-		}
+	if len(optionalDefault) == 1 {
+		return optionalDefault[0]
 	}
-
-	result := make([]Map, len(s))
-	for i := range s {
-		switch s[i].(type) {
-		case Map:
-			result[i] = s[i].(Map)
-		default:
-			return nil
-		}
-	}
-	return result
+	return nil
 }
 
 // MustObjxMapSlice gets the value as a [](Map).

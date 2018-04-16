@@ -71,17 +71,15 @@ func (w *WriteBuffer) append(val interface{}) error {
 		} else {
 			w.AppendString("0")
 		}
-	default:
-		if bm, ok := val.(encoding.BinaryMarshaler); ok {
-			bb, err := bm.MarshalBinary()
-			if err != nil {
-				return err
-			}
-			w.AppendBytes(bb)
-		} else {
-			return fmt.Errorf(
-				"redis: can't marshal %T (consider implementing encoding.BinaryMarshaler)", val)
+	case encoding.BinaryMarshaler:
+		b, err := v.MarshalBinary()
+		if err != nil {
+			return err
 		}
+		w.AppendBytes(b)
+	default:
+		return fmt.Errorf(
+			"redis: can't marshal %T (consider implementing encoding.BinaryMarshaler)", val)
 	}
 	return nil
 }

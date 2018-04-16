@@ -10,7 +10,7 @@ import (
 type scripter interface {
 	Eval(script string, keys []string, args ...interface{}) *Cmd
 	EvalSha(sha1 string, keys []string, args ...interface{}) *Cmd
-	ScriptExists(scripts ...string) *BoolSliceCmd
+	ScriptExists(hashes ...string) *BoolSliceCmd
 	ScriptLoad(script string) *StringCmd
 }
 
@@ -40,7 +40,7 @@ func (s *Script) Load(c scripter) *StringCmd {
 }
 
 func (s *Script) Exists(c scripter) *BoolSliceCmd {
-	return c.ScriptExists(s.src)
+	return c.ScriptExists(s.hash)
 }
 
 func (s *Script) Eval(c scripter, keys []string, args ...interface{}) *Cmd {

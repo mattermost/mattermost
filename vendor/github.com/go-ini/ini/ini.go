@@ -32,7 +32,7 @@ const (
 
 	// Maximum allowed depth when recursively substituing variable names.
 	_DEPTH_VALUES = 99
-	_VERSION      = "1.32.1"
+	_VERSION      = "1.35.0"
 )
 
 // Version returns current package version literal.
@@ -52,6 +52,9 @@ var (
 	// Indicate whether to align "=" sign with spaces to produce pretty output
 	// or reduce all possible spaces for compact format.
 	PrettyFormat = true
+
+	// Place spaces around "=" sign even when PrettyFormat is false
+	PrettyEqual = false
 
 	// Explicitly write DEFAULT section header
 	DefaultHeader = false

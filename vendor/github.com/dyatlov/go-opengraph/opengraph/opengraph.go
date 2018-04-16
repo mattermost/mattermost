@@ -131,7 +131,6 @@ func (og *OpenGraph) ProcessHTML(buffer io.Reader) error {
 			og.ProcessMeta(m)
 		}
 	}
-	return nil
 }
 
 // ProcessMeta processes meta attributes and adds them to Open Graph structure if they are suitable for that
@@ -248,7 +247,7 @@ func (og *OpenGraph) processArticleMeta(metaAttrs map[string]string) {
 		if err == nil {
 			og.Article.ExpirationTime = &t
 		}
-	case "article:secttion":
+	case "article:section":
 		og.Article.Section = metaAttrs["content"]
 	case "article:tag":
 		og.Article.Tags = append(og.Article.Tags, metaAttrs["content"])

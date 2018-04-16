@@ -86,7 +86,7 @@ func (s *PingService) Do(ctx context.Context) (*PingResult, int, error) {
 		params.Set("timeout", s.timeout)
 	}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if len(params) > 0 {
 		url_ += "?" + params.Encode()

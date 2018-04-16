@@ -14,17 +14,17 @@ import (
 
 // MultiSearch executes one or more searches in one roundtrip.
 type MultiSearchService struct {
-	client                *Client
-	requests              []*SearchRequest
-	indices               []string
-	pretty                bool
+	client     *Client
+	requests   []*SearchRequest
+	indices    []string
+	pretty     bool
 	maxConcurrentRequests *int
 	preFilterShardSize    *int
 }
 
 func NewMultiSearchService(client *Client) *MultiSearchService {
 	builder := &MultiSearchService{
-		client: client,
+		client:   client,
 	}
 	return builder
 }
@@ -92,12 +92,7 @@ func (s *MultiSearchService) Do(ctx context.Context) (*MultiSearchResult, error)
 	body := strings.Join(lines, "\n") + "\n" // add trailing \n
 
 	// Get response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, body)
 	if err != nil {
 		return nil, err
 	}

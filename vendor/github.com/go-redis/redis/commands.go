@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"errors"
 	"io"
 	"time"
 
@@ -38,6 +39,22 @@ func formatSec(dur time.Duration) int64 {
 	return int64(dur / time.Second)
 }
 
+func appendArgs(dst, src []interface{}) []interface{} {
+	if len(src) == 1 {
+		if ss, ok := src[0].([]string); ok {
+			for _, s := range ss {
+				dst = append(dst, s)
+			}
+			return dst
+		}
+	}
+
+	for _, v := range src {
+		dst = append(dst, v)
+	}
+	return dst
+}
+
 type Cmdable interface {
 	Pipeline() Pipeliner
 	Pipelined(fn func(Pipeliner) error) ([]Cmder, error)
@@ -70,8 +87,10 @@ type Cmdable interface {
 	RenameNX(key, newkey string) *BoolCmd
 	Restore(key string, ttl time.Duration, value string) *StatusCmd
 	RestoreReplace(key string, ttl time.Duration, value string) *StatusCmd
-	Sort(key string, sort Sort) *StringSliceCmd
-	SortInterfaces(key string, sort Sort) *SliceCmd
+	Sort(key string, sort *Sort) *StringSliceCmd
+	SortStore(key, store string, sort *Sort) *IntCmd
+	SortInterfaces(key string, sort *Sort) *SliceCmd
+	Touch(keys ...string) *IntCmd
 	TTL(key string) *DurationCmd
 	Type(key string) *StatusCmd
 	Scan(cursor uint64, match string, count int64) *ScanCmd
@@ -195,6 +214,7 @@ type Cmdable interface {
 	ConfigGet(parameter string) *SliceCmd
 	ConfigResetStat() *StatusCmd
 	ConfigSet(parameter, value string) *StatusCmd
+	ConfigRewrite() *StatusCmd
 	DBSize() *IntCmd
 	FlushAll() *StatusCmd
 	FlushAllAsync() *StatusCmd
@@ -210,7 +230,7 @@ type Cmdable interface {
 	Time() *TimeCmd
 	Eval(script string, keys []string, args ...interface{}) *Cmd
 	EvalSha(sha1 string, keys []string, args ...interface{}) *Cmd
-	ScriptExists(scripts ...string) *BoolSliceCmd
+	ScriptExists(hashes ...string) *BoolSliceCmd
 	ScriptFlush() *StatusCmd
 	ScriptKill() *StatusCmd
 	ScriptLoad(script string) *StringCmd
@@ -252,6 +272,7 @@ type StatefulCmdable interface {
 	Cmdable
 	Auth(password string) *StatusCmd
 	Select(index int) *StatusCmd
+	SwapDB(index1, index2 int) *StatusCmd
 	ClientSetName(name string) *BoolCmd
 	ReadOnly() *StatusCmd
 	ReadWrite() *StatusCmd
@@ -312,6 +333,12 @@ func (c *cmdable) Quit() *StatusCmd {
 
 func (c *statefulCmdable) Select(index int) *StatusCmd {
 	cmd := NewStatusCmd("select", index)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *statefulCmdable) SwapDB(index1, index2 int) *StatusCmd {
+	cmd := NewStatusCmd("swapdb", index1, index2)
 	c.process(cmd)
 	return cmd
 }
@@ -484,11 +511,10 @@ func (c *cmdable) RestoreReplace(key string, ttl time.Duration, value string) *S
 
 type Sort struct {
 	By            string
-	Offset, Count float64
+	Offset, Count int64
 	Get           []string
 	Order         string
-	IsAlpha       bool
-	Store         string
+	Alpha         bool
 }
 
 func (sort *Sort) args(key string) []interface{} {
@@ -505,23 +531,41 @@ func (sort *Sort) args(key string) []interface{} {
 	if sort.Order != "" {
 		args = append(args, sort.Order)
 	}
-	if sort.IsAlpha {
+	if sort.Alpha {
 		args = append(args, "alpha")
-	}
-	if sort.Store != "" {
-		args = append(args, "store", sort.Store)
 	}
 	return args
 }
 
-func (c *cmdable) Sort(key string, sort Sort) *StringSliceCmd {
+func (c *cmdable) Sort(key string, sort *Sort) *StringSliceCmd {
 	cmd := NewStringSliceCmd(sort.args(key)...)
 	c.process(cmd)
 	return cmd
 }
 
-func (c *cmdable) SortInterfaces(key string, sort Sort) *SliceCmd {
+func (c *cmdable) SortStore(key, store string, sort *Sort) *IntCmd {
+	args := sort.args(key)
+	if store != "" {
+		args = append(args, "store", store)
+	}
+	cmd := NewIntCmd(args...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) SortInterfaces(key string, sort *Sort) *SliceCmd {
 	cmd := NewSliceCmd(sort.args(key)...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) Touch(keys ...string) *IntCmd {
+	args := make([]interface{}, len(keys)+1)
+	args[0] = "touch"
+	for i, key := range keys {
+		args[i+1] = key
+	}
+	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
 }
@@ -732,22 +776,18 @@ func (c *cmdable) MGet(keys ...string) *SliceCmd {
 }
 
 func (c *cmdable) MSet(pairs ...interface{}) *StatusCmd {
-	args := make([]interface{}, 1+len(pairs))
+	args := make([]interface{}, 1, 1+len(pairs))
 	args[0] = "mset"
-	for i, pair := range pairs {
-		args[1+i] = pair
-	}
+	args = appendArgs(args, pairs)
 	cmd := NewStatusCmd(args...)
 	c.process(cmd)
 	return cmd
 }
 
 func (c *cmdable) MSetNX(pairs ...interface{}) *BoolCmd {
-	args := make([]interface{}, 1+len(pairs))
+	args := make([]interface{}, 1, 1+len(pairs))
 	args[0] = "msetnx"
-	for i, pair := range pairs {
-		args[1+i] = pair
-	}
+	args = appendArgs(args, pairs)
 	cmd := NewBoolCmd(args...)
 	c.process(cmd)
 	return cmd
@@ -1012,12 +1052,10 @@ func (c *cmdable) LPop(key string) *StringCmd {
 }
 
 func (c *cmdable) LPush(key string, values ...interface{}) *IntCmd {
-	args := make([]interface{}, 2+len(values))
+	args := make([]interface{}, 2, 2+len(values))
 	args[0] = "lpush"
 	args[1] = key
-	for i, value := range values {
-		args[2+i] = value
-	}
+	args = appendArgs(args, values)
 	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
@@ -1076,12 +1114,10 @@ func (c *cmdable) RPopLPush(source, destination string) *StringCmd {
 }
 
 func (c *cmdable) RPush(key string, values ...interface{}) *IntCmd {
-	args := make([]interface{}, 2+len(values))
+	args := make([]interface{}, 2, 2+len(values))
 	args[0] = "rpush"
 	args[1] = key
-	for i, value := range values {
-		args[2+i] = value
-	}
+	args = appendArgs(args, values)
 	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
@@ -1096,12 +1132,10 @@ func (c *cmdable) RPushX(key string, value interface{}) *IntCmd {
 //------------------------------------------------------------------------------
 
 func (c *cmdable) SAdd(key string, members ...interface{}) *IntCmd {
-	args := make([]interface{}, 2+len(members))
+	args := make([]interface{}, 2, 2+len(members))
 	args[0] = "sadd"
 	args[1] = key
-	for i, member := range members {
-		args[2+i] = member
-	}
+	args = appendArgs(args, members)
 	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
@@ -1214,12 +1248,10 @@ func (c *cmdable) SRandMemberN(key string, count int64) *StringSliceCmd {
 }
 
 func (c *cmdable) SRem(key string, members ...interface{}) *IntCmd {
-	args := make([]interface{}, 2+len(members))
+	args := make([]interface{}, 2, 2+len(members))
 	args[0] = "srem"
 	args[1] = key
-	for i, member := range members {
-		args[2+i] = member
-	}
+	args = appendArgs(args, members)
 	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
@@ -1479,12 +1511,10 @@ func (c *cmdable) ZRank(key, member string) *IntCmd {
 }
 
 func (c *cmdable) ZRem(key string, members ...interface{}) *IntCmd {
-	args := make([]interface{}, 2+len(members))
+	args := make([]interface{}, 2, 2+len(members))
 	args[0] = "zrem"
 	args[1] = key
-	for i, member := range members {
-		args[2+i] = member
-	}
+	args = appendArgs(args, members)
 	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
@@ -1600,12 +1630,10 @@ func (c *cmdable) ZUnionStore(dest string, store ZStore, keys ...string) *IntCmd
 //------------------------------------------------------------------------------
 
 func (c *cmdable) PFAdd(key string, els ...interface{}) *IntCmd {
-	args := make([]interface{}, 2+len(els))
+	args := make([]interface{}, 2, 2+len(els))
 	args[0] = "pfadd"
 	args[1] = key
-	for i, el := range els {
-		args[2+i] = el
-	}
+	args = appendArgs(args, els)
 	cmd := NewIntCmd(args...)
 	c.process(cmd)
 	return cmd
@@ -1698,6 +1726,12 @@ func (c *cmdable) ConfigSet(parameter, value string) *StatusCmd {
 	return cmd
 }
 
+func (c *cmdable) ConfigRewrite() *StatusCmd {
+	cmd := NewStatusCmd("config", "rewrite")
+	c.process(cmd)
+	return cmd
+}
+
 // Deperecated. Use DBSize instead.
 func (c *cmdable) DbSize() *IntCmd {
 	return c.DBSize()
@@ -1776,7 +1810,7 @@ func (c *cmdable) shutdown(modifier string) *StatusCmd {
 		}
 	} else {
 		// Server did not quit. String reply contains the reason.
-		cmd.err = internal.RedisError(cmd.val)
+		cmd.err = errors.New(cmd.val)
 		cmd.val = ""
 	}
 	return cmd
@@ -1817,45 +1851,39 @@ func (c *cmdable) Time() *TimeCmd {
 //------------------------------------------------------------------------------
 
 func (c *cmdable) Eval(script string, keys []string, args ...interface{}) *Cmd {
-	cmdArgs := make([]interface{}, 3+len(keys)+len(args))
+	cmdArgs := make([]interface{}, 3+len(keys), 3+len(keys)+len(args))
 	cmdArgs[0] = "eval"
 	cmdArgs[1] = script
 	cmdArgs[2] = len(keys)
 	for i, key := range keys {
 		cmdArgs[3+i] = key
 	}
-	pos := 3 + len(keys)
-	for i, arg := range args {
-		cmdArgs[pos+i] = arg
-	}
+	cmdArgs = appendArgs(cmdArgs, args)
 	cmd := NewCmd(cmdArgs...)
 	c.process(cmd)
 	return cmd
 }
 
 func (c *cmdable) EvalSha(sha1 string, keys []string, args ...interface{}) *Cmd {
-	cmdArgs := make([]interface{}, 3+len(keys)+len(args))
+	cmdArgs := make([]interface{}, 3+len(keys), 3+len(keys)+len(args))
 	cmdArgs[0] = "evalsha"
 	cmdArgs[1] = sha1
 	cmdArgs[2] = len(keys)
 	for i, key := range keys {
 		cmdArgs[3+i] = key
 	}
-	pos := 3 + len(keys)
-	for i, arg := range args {
-		cmdArgs[pos+i] = arg
-	}
+	cmdArgs = appendArgs(cmdArgs, args)
 	cmd := NewCmd(cmdArgs...)
 	c.process(cmd)
 	return cmd
 }
 
-func (c *cmdable) ScriptExists(scripts ...string) *BoolSliceCmd {
-	args := make([]interface{}, 2+len(scripts))
+func (c *cmdable) ScriptExists(hashes ...string) *BoolSliceCmd {
+	args := make([]interface{}, 2+len(hashes))
 	args[0] = "script"
 	args[1] = "exists"
-	for i, script := range scripts {
-		args[2+i] = script
+	for i, hash := range hashes {
+		args[2+i] = hash
 	}
 	cmd := NewBoolSliceCmd(args...)
 	c.process(cmd)

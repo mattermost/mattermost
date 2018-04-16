@@ -370,7 +370,7 @@ func (c *Conn) writeFatal(err error) error {
 	return err
 }
 
-func (c *Conn) write(frameType int, deadline time.Time, bufs ...[]byte) error {
+func (c *Conn) write(frameType int, deadline time.Time, buf0, buf1 []byte) error {
 	<-c.mu
 	defer func() { c.mu <- true }()
 
@@ -382,15 +382,14 @@ func (c *Conn) write(frameType int, deadline time.Time, bufs ...[]byte) error {
 	}
 
 	c.conn.SetWriteDeadline(deadline)
-	for _, buf := range bufs {
-		if len(buf) > 0 {
-			_, err := c.conn.Write(buf)
-			if err != nil {
-				return c.writeFatal(err)
-			}
-		}
+	if len(buf1) == 0 {
+		_, err = c.conn.Write(buf0)
+	} else {
+		err = c.writeBufs(buf0, buf1)
 	}
-
+	if err != nil {
+		return c.writeFatal(err)
+	}
 	if frameType == CloseMessage {
 		c.writeFatal(ErrCloseSent)
 	}

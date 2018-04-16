@@ -10,14 +10,14 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesPutSettingsService changes specific index level settings in
 // real time.
 //
 // See the documentation at
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-update-settings.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-update-settings.html.
 type IndicesPutSettingsService struct {
 	client            *Client
 	pretty            bool
@@ -118,7 +118,7 @@ func (s *IndicesPutSettingsService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.allowNoIndices != nil {
 		params.Set("allow_no_indices", fmt.Sprintf("%v", *s.allowNoIndices))
@@ -165,12 +165,7 @@ func (s *IndicesPutSettingsService) Do(ctx context.Context) (*IndicesPutSettings
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "PUT", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +180,5 @@ func (s *IndicesPutSettingsService) Do(ctx context.Context) (*IndicesPutSettings
 
 // IndicesPutSettingsResponse is the response of IndicesPutSettingsService.Do.
 type IndicesPutSettingsResponse struct {
-	Acknowledged       bool   `json:"acknowledged"`
-	ShardsAcknowledged bool   `json:"shards_acknowledged"`
-	Index              string `json:"index,omitempty"`
+	Acknowledged bool `json:"acknowledged"`
 }

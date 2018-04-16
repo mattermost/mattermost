@@ -151,6 +151,7 @@ const (
 	CFLUSH                            = 0xf
 	CLOCAL                            = 0x8000
 	CREAD                             = 0x800
+	CRTSCTS                           = 0x10000
 	CS5                               = 0x0
 	CS6                               = 0x100
 	CS7                               = 0x200

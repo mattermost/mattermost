@@ -1,9 +1,0 @@
-Usage: sockaddr [--version] [--help] <command> [<args>]
-
-Available commands are:
-    dump            Parses input as an IP or interface name(s) and dumps various information
-    eval            Evaluates a sockaddr template
-    rfc             Test to see if an IP is part of a known RFC
-    tech-support    Dumps diagnostic information about a platform's network
-    version         Prints the sockaddr version
-
