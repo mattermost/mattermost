@@ -333,15 +333,15 @@
   },
   {
     "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "Failed to post channel conversion to private message"
+    "translation": "发送频道对话到私信失败"
   },
   {
     "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "Failed to retrieve user while converting the channel from public to private"
+    "translation": "将频道从公开转换成私有时获取用户失败。"
   },
   {
     "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s converted the channel from public to private"
+    "translation": "%s 已将频道从公开转换为私有"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -796,7 +796,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[频道]"
+    "translation": "~[频道]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -900,15 +900,15 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+    "translation": "关闭当前频道或指定[频道]的桌面、邮件以及推送通知。"
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "无法找到频道 {{.Channel}}。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation)  以分辨频道。"
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[频道]"
+    "translation": "~[频道]"
   },
   {
     "id": "api.command_mute.name",
@@ -1698,11 +1698,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}}和{{.LastUsername}}被提到了，但是他们不会收到通知，因为他们不在这个频道。"
+    "translation": "@{{.Usernames}} 与 @{{.LastUsername}} 被提到了，但是他们因不在这个频道而不会收到通知。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}}被提到了，但是他因不在此频道而不会收到通知。"
+    "translation": "@{{.Username}} 被提到了，但是他因不在此频道而不会收到通知。"
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -2216,7 +2216,7 @@
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack 导入：频道 {{.ChannelName}} 的 Handle 过长。导入时会被截断。"
+    "translation": "Slack 导入：频道 {{.ChannelName}} 的识别过长。导入时会被截断。"
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
@@ -2392,7 +2392,7 @@
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "请求中图片为空"
+    "translation": "请求中 'image' 为空"
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -2400,7 +2400,7 @@
   },
   {
     "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata"
+    "translation": "无法解码团队图标元数据"
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -3748,7 +3748,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "当机群开启并使用 ReadOnlyConfig 时，config.json 文件中的插件设置必须手动上传。"
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3820,7 +3820,7 @@
   },
   {
     "id": "app.timezones.failed_deserialize.app_error",
-    "translation": "读取时区配置文件失败 file={{.Filename}}, err={{.Error}}"
+    "translation": "反序列化区配置文件失败 file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.timezones.load_config.app_error",
@@ -5044,7 +5044,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "消息导出任务 ExportFormat 为 'globalrelay'，但缺少 GlobalRelaySettings"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -6496,7 +6496,7 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d characters (%d bytes)"
+    "translation": "Post.Message 最多支持 %d 字符 (%d 字节)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
