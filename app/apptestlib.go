@@ -218,6 +218,20 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 	return channel
 }
 
+func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	var channel *model.Channel
+	if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+		l4g.Error(err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return channel
+}
+
 func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	id := model.NewId()
 
