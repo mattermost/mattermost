@@ -283,6 +283,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 
 			if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
 				l4g.Error(utils.T("api.team.invite_members.send.error"), result.Err)
+				continue
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
