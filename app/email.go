@@ -270,21 +270,21 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": siteURL + "/" + team.Name})
 
-			token := model.NewToken(TOKEN_TYPE_TEAM_INVITATION, "")
+			token := model.NewToken(
+				TOKEN_TYPE_TEAM_INVITATION,
+				model.MapToJson(map[string]string{"team": team.Id, "email": invite}),
+			)
 
 			props := make(map[string]string)
 			props["email"] = invite
-			props["id"] = team.Id
 			props["display_name"] = team.DisplayName
 			props["name"] = team.Name
-			props["token"] = token.Token
 			data := model.MapToJson(props)
 
 			if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
 				l4g.Error(utils.T("api.team.invite_members.send.error"), result.Err)
 			}
-			hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt))
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(hash))
+			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if !a.Config().EmailSettings.SendEmailNotifications {
 				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])

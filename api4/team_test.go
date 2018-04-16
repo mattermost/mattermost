@@ -1365,16 +1365,17 @@ func TestAddTeamMember(t *testing.T) {
 	// by hash and data
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	token := model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	token := model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"team": team.Id}),
+	)
 	<-th.App.Srv.Store.Token().Save(token)
 	dataObject := make(map[string]string)
 	dataObject["id"] = team.Id
-	dataObject["token"] = token.Token
 
 	data := model.MapToJson(dataObject)
-	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, data, "")
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1400,30 +1401,30 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("should have not returned team member")
 	}
 
-	_, resp = Client.AddTeamMemberFromInvite(hashed, "junk", "")
+	_, resp = Client.AddTeamMemberFromInvite(token.Token, "junk", "")
 	CheckBadRequestStatus(t, resp)
 
 	// expired data of more than 50 hours
 	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	<-th.App.Srv.Store.Token().Save(token)
-	dataObject["token"] = token.Token
 	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, data, "")
 	CheckBadRequestStatus(t, resp)
 	th.App.DeleteToken(token)
 
 	// invalid team id
-	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	testId := GenerateTestId()
+	token = model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"team": testId}),
+	)
 	<-th.App.Srv.Store.Token().Save(token)
-	dataObject["token"] = token.Token
-	dataObject["id"] = GenerateTestId()
+	dataObject["id"] = testId
 	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, data, "")
 	CheckNotFoundStatus(t, resp)
 	th.App.DeleteToken(token)
 

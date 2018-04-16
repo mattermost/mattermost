@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"testing"
@@ -13,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -89,18 +87,18 @@ func TestCreateUserWithHash(t *testing.T) {
 
 	t.Run("CreateWithHashHappyPath", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
-		token := model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			app.TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+		)
 		<-th.App.Srv.Store.Token().Save(token)
 		props := make(map[string]string)
 		props["email"] = user.Email
-		props["id"] = th.BasicTeam.Id
 		props["display_name"] = th.BasicTeam.DisplayName
 		props["name"] = th.BasicTeam.Name
-		props["token"] = token.Token
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
-		ruser, resp := Client.CreateUserWithHash(&user, hash, data)
+		ruser, resp := Client.CreateUserWithHash(&user, token.Token, data)
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
 
@@ -120,23 +118,23 @@ func TestCreateUserWithHash(t *testing.T) {
 
 	t.Run("NoHashAndNoData", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
-		token := model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			app.TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 		props := make(map[string]string)
 		props["email"] = user.Email
-		props["id"] = th.BasicTeam.Id
 		props["display_name"] = th.BasicTeam.DisplayName
 		props["name"] = th.BasicTeam.Name
-		props["token"] = token.Token
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
 		_, resp := Client.CreateUserWithHash(&user, "", data)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.missing_hash_or_data.app_error")
 
-		_, resp = Client.CreateUserWithHash(&user, hash, "")
+		_, resp = Client.CreateUserWithHash(&user, token.Token, "")
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.missing_hash_or_data.app_error")
 	})
@@ -145,40 +143,34 @@ func TestCreateUserWithHash(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		timeNow := time.Now()
 		past49Hours := timeNow.Add(-49*time.Hour).UnixNano() / int64(time.Millisecond)
-		token := model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			app.TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+		)
 		token.CreateAt = past49Hours
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 
 		props := make(map[string]string)
 		props["email"] = user.Email
-		props["id"] = th.BasicTeam.Id
 		props["display_name"] = th.BasicTeam.DisplayName
 		props["name"] = th.BasicTeam.Name
-		props["token"] = token.Token
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
-		_, resp := Client.CreateUserWithHash(&user, hash, data)
+		_, resp := Client.CreateUserWithHash(&user, token.Token, data)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_expired.app_error")
 	})
 
 	t.Run("WrongHash", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
-		token := model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
-		<-th.App.Srv.Store.Token().Save(token)
-		defer th.App.DeleteToken(token)
 		props := make(map[string]string)
 		props["email"] = user.Email
-		props["id"] = th.BasicTeam.Id
 		props["display_name"] = th.BasicTeam.DisplayName
 		props["name"] = th.BasicTeam.Name
-		props["token"] = token.Token
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, "WrongHash"))
 
-		_, resp := Client.CreateUserWithHash(&user, hash, data)
+		_, resp := Client.CreateUserWithHash(&user, "wrong", data)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_invalid.app_error")
 	})
@@ -186,21 +178,21 @@ func TestCreateUserWithHash(t *testing.T) {
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
-		token := model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			app.TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 		props := make(map[string]string)
 		props["email"] = user.Email
-		props["id"] = th.BasicTeam.Id
 		props["display_name"] = th.BasicTeam.DisplayName
 		props["name"] = th.BasicTeam.Name
-		props["token"] = token.Token
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = false })
 
-		_, resp := Client.CreateUserWithHash(&user, hash, data)
+		_, resp := Client.CreateUserWithHash(&user, token.Token, data)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
@@ -210,20 +202,20 @@ func TestCreateUserWithHash(t *testing.T) {
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
-		token := model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			app.TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+		)
 		<-th.App.Srv.Store.Token().Save(token)
 		props := make(map[string]string)
 		props["email"] = user.Email
-		props["id"] = th.BasicTeam.Id
 		props["display_name"] = th.BasicTeam.DisplayName
 		props["name"] = th.BasicTeam.Name
-		props["token"] = token.Token
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
-		ruser, resp := Client.CreateUserWithHash(&user, hash, data)
+		ruser, resp := Client.CreateUserWithHash(&user, token.Token, data)
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
 

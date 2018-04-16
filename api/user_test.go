@@ -5,7 +5,6 @@ package api
 
 import (
 	"bytes"
-	"fmt"
 	"image"
 	"image/color"
 	"io"
@@ -176,17 +175,17 @@ func TestLogin(t *testing.T) {
 		t.Fatal("Should have errored, signed up without hashed email")
 	}
 
-	token := model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	token := model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"team": rteam2.Data.(*model.Team).Id, "email": user2.Email}),
+	)
 	<-th.App.Srv.Store.Token().Save(token)
 	props := make(map[string]string)
 	props["email"] = user2.Email
-	props["id"] = rteam2.Data.(*model.Team).Id
 	props["display_name"] = rteam2.Data.(*model.Team).DisplayName
-	props["token"] = token.Token
 	data := model.MapToJson(props)
-	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
-	ruser2, err := Client.CreateUserFromSignup(&user2, data, hash)
+	ruser2, err := Client.CreateUserFromSignup(&user2, data, token.Token)
 	if err != nil {
 		t.Fatal(err)
 	}

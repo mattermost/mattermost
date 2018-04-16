@@ -221,13 +221,7 @@ func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppE
 }
 
 func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
-	props := model.MapFromJson(strings.NewReader(data))
-
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
-		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	result := <-a.Srv.Store.Token().GetByToken(props["token"])
+	result := <-a.Srv.Store.Token().GetByToken(hash)
 	if result.Err != nil {
 		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
@@ -238,10 +232,13 @@ func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*mod
 	}
 
 	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+		a.DeleteToken(token)
 		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	tchan := a.Srv.Store.Team().Get(props["id"])
+	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+
+	tchan := a.Srv.Store.Team().Get(tokenData["team"])
 	uchan := a.Srv.Store.User().Get(userId)
 
 	var team *model.Team

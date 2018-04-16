@@ -45,13 +45,7 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 		return nil, err
 	}
 
-	props := model.MapFromJson(strings.NewReader(data))
-
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	result := <-a.Srv.Store.Token().GetByToken(props["token"])
+	result := <-a.Srv.Store.Token().GetByToken(hash)
 	if result.Err != nil {
 		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
@@ -62,19 +56,20 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 	}
 
 	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+		a.DeleteToken(token)
 		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	teamId := props["id"]
+	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
 	var team *model.Team
-	if result := <-a.Srv.Store.Team().Get(teamId); result.Err != nil {
+	if result := <-a.Srv.Store.Team().Get(tokenData["team"]); result.Err != nil {
 		return nil, result.Err
 	} else {
 		team = result.Data.(*model.Team)
 	}
 
-	user.Email = props["email"]
+	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
 	var ruser *model.User

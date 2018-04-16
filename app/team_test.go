@@ -4,12 +4,10 @@
 package app
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -114,71 +112,74 @@ func TestAddUserToTeamByHash(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(&user)
 
-	t.Run("invalid signature", func(t *testing.T) {
-		if _, err := th.App.AddUserToTeamByHash(ruser.Id, "123", "123"); err == nil {
-			t.Fatal("Should fail on bad signature")
-		}
-	})
-
 	t.Run("invalid token", func(t *testing.T) {
-		data := model.MapToJson(map[string]string{"token": "123", "id": th.BasicTeam.Id})
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-		if _, err := th.App.AddUserToTeamByHash(ruser.Id, hash, data); err == nil {
+		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id})
+		if _, err := th.App.AddUserToTeamByHash(ruser.Id, "123", data); err == nil {
 			t.Fatal("Should fail on unexisting token")
 		}
 	})
 
 	t.Run("invalid token type", func(t *testing.T) {
-		token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, "")
+		token := model.NewToken(
+			TOKEN_TYPE_VERIFY_EMAIL,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id}),
+		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		data := model.MapToJson(map[string]string{"token": token.Token, "id": th.BasicTeam.Id})
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-		if _, err := th.App.AddUserToTeamByHash(ruser.Id, hash, data); err == nil {
+		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id})
+		if _, err := th.App.AddUserToTeamByHash(ruser.Id, token.Token, data); err == nil {
 			t.Fatal("Should fail on bad token type")
 		}
 	})
 
 	t.Run("expired token", func(t *testing.T) {
-		token := model.NewToken(TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id}),
+		)
 		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		data := model.MapToJson(map[string]string{"token": token.Token, "id": th.BasicTeam.Id})
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-		if _, err := th.App.AddUserToTeamByHash(ruser.Id, hash, data); err == nil {
+		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id})
+		if _, err := th.App.AddUserToTeamByHash(ruser.Id, token.Token, data); err == nil {
 			t.Fatal("Should fail on expired token")
 		}
 	})
 
 	t.Run("invalid team id", func(t *testing.T) {
-		token := model.NewToken(TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": model.NewId()}),
+		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		data := model.MapToJson(map[string]string{"token": token.Token, "id": model.NewId()})
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-		if _, err := th.App.AddUserToTeamByHash(ruser.Id, hash, data); err == nil {
+		data := model.MapToJson(map[string]string{"id": model.NewId()})
+		if _, err := th.App.AddUserToTeamByHash(ruser.Id, token.Token, data); err == nil {
 			t.Fatal("Should fail on bad team id")
 		}
 	})
 
 	t.Run("invalid user id", func(t *testing.T) {
-		token := model.NewToken(TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id}),
+		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		data := model.MapToJson(map[string]string{"token": token.Token, "id": th.BasicTeam.Id})
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-		if _, err := th.App.AddUserToTeamByHash(model.NewId(), hash, data); err == nil {
+		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id})
+		if _, err := th.App.AddUserToTeamByHash(model.NewId(), token.Token, data); err == nil {
 			t.Fatal("Should fail on bad user id")
 		}
 	})
 
 	t.Run("valid request", func(t *testing.T) {
-		token := model.NewToken(TOKEN_TYPE_TEAM_INVITATION, "")
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"team": th.BasicTeam.Id}),
+		)
 		<-th.App.Srv.Store.Token().Save(token)
-		data := model.MapToJson(map[string]string{"token": token.Token, "id": th.BasicTeam.Id})
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-		if _, err := th.App.AddUserToTeamByHash(ruser.Id, hash, data); err != nil {
+		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id})
+		if _, err := th.App.AddUserToTeamByHash(ruser.Id, token.Token, data); err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
 		}
