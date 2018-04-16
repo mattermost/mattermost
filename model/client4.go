@@ -1859,6 +1859,16 @@ func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Re
 	}
 }
 
+// UpdateChannelMemberSchemeRoles will update the scheme-derived roles on a channel for a user.
+func (c *Client4) UpdateChannelMemberSchemeRoles(channelId string, userId string, schemeRoles *SchemeRoles) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/schemeRoles", schemeRoles.ToJson()); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // UpdateChannelNotifyProps will update the notification properties on a channel for a user.
 func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[string]string) (bool, *Response) {
 	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/notify_props", MapToJson(props)); err != nil {
