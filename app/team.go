@@ -237,6 +237,33 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 	return member, nil
 }
 
+func (a *App) UpdateTeamMemberSchemeRoles(teamId string, userId string, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
+	member, err := a.GetTeamMember(teamId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	member.SchemeAdmin = isSchemeAdmin
+	member.SchemeUser = isSchemeUser
+
+	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
+	if err = a.IsPhase2MigrationCompleted(); err != nil {
+		member.ExplicitRoles = RemoveRoles([]string{model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID}, member.ExplicitRoles)
+	}
+
+	if result := <-a.Srv.Store.Team().UpdateMember(member); result.Err != nil {
+		return nil, result.Err
+	} else {
+		member = result.Data.(*model.TeamMember)
+	}
+
+	a.ClearSessionCacheForUser(userId)
+
+	a.sendUpdatedMemberRoleEvent(userId, member)
+
+	return member, nil
+}
+
 func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", userId, nil)
 	message.Add("member", member.ToJson())
