@@ -35,6 +35,7 @@ func messageExportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if !*a.Config().MessageExportSettings.EnableExport {
 		return errors.New("ERROR: The message export feature is not enabled")

@@ -34,6 +34,7 @@ func ldapSyncCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if ldapI := a.Ldap; ldapI != nil {
 		job, err := ldapI.StartSynchronizeJob(true)
