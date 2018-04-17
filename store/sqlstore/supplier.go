@@ -59,6 +59,8 @@ const (
 	EXIT_REMOVE_INDEX_MYSQL          = 122
 	EXIT_REMOVE_INDEX_MISSING        = 123
 	EXIT_REMOVE_TABLE                = 134
+	EXIT_CREATE_INDEX_SQLITE         = 135
+	EXIT_REMOVE_INDEX_SQLITE         = 136
 )
 
 type SqlSupplierOldStores struct {
@@ -185,7 +187,7 @@ func (s *SqlSupplier) Next() store.LayeredStoreSupplier {
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
-		l4g.Critical(utils.T("store.sql.open_conn.critical"), err)
+		l4g.Critical("Failed to open SQL connection to err:%v", err.Error())
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DB_OPEN)
 	}
@@ -217,7 +219,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 
 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
 
-	if *settings.DriverName == "sqlite3" {
+	if *settings.DriverName == model.DATABASE_DRIVER_SQLITE {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}, QueryTimeout: connectionTimeout}
 	} else if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
@@ -239,19 +241,14 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 func (s *SqlSupplier) initConnection() {
 	s.master = setupConnection("master", *s.settings.DataSource, s.settings)
 
-	if len(s.settings.DataSourceReplicas) == 0 {
-		s.replicas = make([]*gorp.DbMap, 1)
-		s.replicas[0] = s.master
-	} else {
+	if len(s.settings.DataSourceReplicas) > 0 {
 		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
 		for i, replica := range s.settings.DataSourceReplicas {
 			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
 		}
 	}
 
-	if len(s.settings.DataSourceSearchReplicas) == 0 {
-		s.searchReplicas = s.replicas
-	} else {
+	if len(s.settings.DataSourceSearchReplicas) > 0 {
 		s.searchReplicas = make([]*gorp.DbMap, len(s.settings.DataSourceSearchReplicas))
 		for i, replica := range s.settings.DataSourceSearchReplicas {
 			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, s.settings)
@@ -273,11 +270,19 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
+	if len(ss.settings.DataSourceSearchReplicas) == 0 {
+		return ss.GetReplica()
+	}
+
 	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
 	return ss.searchReplicas[rrNum]
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
+	if len(ss.settings.DataSourceReplicas) == 0 {
+		return ss.GetMaster()
+	}
+
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
 	return ss.replicas[rrNum]
 }
@@ -287,7 +292,6 @@ func (ss *SqlSupplier) TotalMasterDbConnections() int {
 }
 
 func (ss *SqlSupplier) TotalReadDbConnections() int {
-
 	if len(ss.settings.DataSourceReplicas) == 0 {
 		return 0
 	}
@@ -598,8 +602,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_index.critical"), errExists)
-			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
+			l4g.Critical("Failed to create index %v, %v", errExists, err)
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 		}
@@ -623,9 +626,16 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
+			l4g.Critical("Failed to create index %v", err)
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
+		}
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		_, err := ss.GetMaster().ExecNoTimeout("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
+		if err != nil {
+			l4g.Critical("Failed to create index %v", err)
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_INDEX_SQLITE)
 		}
 	} else {
 		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
@@ -671,6 +681,13 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
+		}
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		_, err := ss.GetMaster().ExecNoTimeout("DROP INDEX IF EXISTS " + indexName)
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
+			time.Sleep(time.Second)
+			os.Exit(EXIT_REMOVE_INDEX_SQLITE)
 		}
 	} else {
 		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
