@@ -84,13 +84,15 @@ func ConfigureCmdLineLog() {
 	ConfigureLog(&ls)
 }
 
+// ConfigureLog enables and configures logging.
+//
+// Note that it is not currently possible to disable filters nor to modify previously enabled
+// filters, given the lack of concurrency guarantees from the underlying l4g library.
+//
 // TODO: this code initializes console and file logging. It will eventually be replaced by JSON logging in logger/logger.go
 // See PLT-3893 for more information
 func ConfigureLog(s *model.LogSettings) {
-
-	l4g.Close()
-
-	if s.EnableConsole {
+	if _, alreadySet := l4g.Global["stdout"]; !alreadySet && s.EnableConsole {
 		level := l4g.DEBUG
 		if s.ConsoleLevel == "INFO" {
 			level = l4g.INFO
@@ -105,8 +107,7 @@ func ConfigureLog(s *model.LogSettings) {
 		l4g.AddFilter("stdout", level, lw)
 	}
 
-	if s.EnableFile {
-
+	if _, alreadySet := l4g.Global["file"]; !alreadySet && s.EnableFile {
 		var fileFormat = s.FileFormat
 
 		if fileFormat == "" {
