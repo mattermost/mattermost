@@ -80,6 +80,11 @@ type Post struct {
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 }
 
+type PostEphemeral struct {
+	UserID string `json:"user_id"`
+	Post   *Post  `json:"post"`
+}
+
 type PostPatch struct {
 	IsPinned     *bool            `json:"is_pinned"`
 	Message      *string          `json:"message"`
@@ -430,6 +435,11 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 		copy.MessageSource = o.Message
 	}
 	return &copy
+}
+
+func (o *PostEphemeral) ToUnsanitizedJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced
