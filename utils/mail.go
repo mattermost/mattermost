@@ -230,7 +230,9 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subje
 func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend FileBackend, date time.Time) *model.AppError {
 	l4g.Debug(T("utils.mail.send_mail.sending.debug"), mimeTo, subject)
 
-	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
+	htmlBodyParsed := ReplaceTextWithEmoji(htmlBody)
+
+	htmlMessage := "\r\n<html><body>" + htmlBodyParsed + "</body></html>"
 
 	txtBody, err := html2text.FromString(htmlBody)
 	if err != nil {

@@ -11,6 +11,13 @@ import (
 	"image/jpeg"
 	"image/png"
 	"testing"
+
+	"regexp"
+	"strconv"
+	"strings"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func CreateTestGif(t *testing.T, width int, height int) []byte {
@@ -59,4 +66,30 @@ func CreateTestPng(t *testing.T, width int, height int) []byte {
 	}
 
 	return buffer.Bytes()
+}
+
+func GetEmoji(emoji string) string {
+	emojiVal, ok := model.SystemEmojis[strings.Trim(emoji, ":")]
+	if !ok {
+		return emoji
+	}
+
+	emojiToParse := strings.Split(emojiVal, "-")
+	parsedEmoji := ""
+	for _, val := range emojiToParse {
+		parsedVal, err := strconv.ParseInt(val, 16, 32)
+		if err != nil {
+			l4g.Error(err.Error())
+			return emoji
+		}
+		parsedEmoji = parsedEmoji + string(parsedVal)
+	}
+	return parsedEmoji
+}
+
+func ReplaceTextWithEmoji(text string) string {
+	regex := regexp.MustCompile("(:\\w+:)")
+	return regex.ReplaceAllStringFunc(text, func(word string) string {
+		return GetEmoji(word) + " "
+	})
 }
