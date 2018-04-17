@@ -1907,7 +1907,6 @@ func TestImportImportUser(t *testing.T) {
 	if channelMember, err := th.App.GetChannelMember(channel.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get channel member Desktop from database.")
 	} else if channelMember.Roles != "channel_user channel_admin" || channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] != model.USER_NOTIFY_MENTION || channelMember.NotifyProps[model.PUSH_NOTIFY_PROP] != model.USER_NOTIFY_MENTION || channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.USER_NOTIFY_MENTION {
-		t.Fatal(channelMember)
 		t.Fatalf("Channel member properties not as expected")
 	}
 
