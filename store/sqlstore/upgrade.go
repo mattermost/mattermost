@@ -87,7 +87,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 			os.Exit(EXIT_VERSION_SAVE_MISSING)
 		}
 
-		l4g.Info(utils.T("store.sql.schema_set.info"), model.CurrentVersion)
+		l4g.Info("The database schema has been set to version %v", model.CurrentVersion)
 	}
 
 	// If we're not on the current version then it's too old to be upgraded
@@ -414,6 +414,10 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 4.10.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_9_0, VERSION_4_10_0) {
+
+	sqlStore.RemoveIndexIfExists("Name_2", "Channels")
+	sqlStore.RemoveIndexIfExists("Name_2", "Emoji")
+	sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
 	//	saveSchemaVersion(sqlStore, VERSION_4_10_0)
 	//}

@@ -5803,10 +5803,6 @@
     "translation": "Failed to create column because of missing driver"
   },
   {
-    "id": "store.sql.create_index.critical",
-    "translation": "Failed to create index %v"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "Failed to create index because of missing driver"
   },
@@ -5831,10 +5827,6 @@
     "translation": "Failed to get max length of column %v"
   },
   {
-    "id": "store.sql.open_conn.critical",
-    "translation": "Failed to open SQL connection to err:%v"
-  },
-  {
     "id": "store.sql.open_conn.panic",
     "translation": "Failed to open SQL connection %v"
   },
@@ -5853,10 +5845,6 @@
   {
     "id": "store.sql.schema_out_of_date.warn",
     "translation": "The database schema version of %v appears to be out of date"
-  },
-  {
-    "id": "store.sql.schema_set.info",
-    "translation": "The database schema has been set to version %v"
   },
   {
     "id": "store.sql.schema_upgrade_attempt.warn",
@@ -6589,10 +6577,6 @@
   {
     "id": "store.sql_preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences"
-  },
-  {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "Deleting any unused pre-release features"
   },
   {
     "id": "store.sql_preference.get.app_error",
