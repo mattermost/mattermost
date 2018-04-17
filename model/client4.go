@@ -162,6 +162,10 @@ func (c *Client4) GetPostsRoute() string {
 	return fmt.Sprintf("/posts")
 }
 
+func (c *Client4) GetPostsEphemeralRoute() string {
+	return fmt.Sprintf("/posts/ephemeral")
+}
+
 func (c *Client4) GetConfigRoute() string {
 	return fmt.Sprintf("/config")
 }
@@ -1764,6 +1768,16 @@ func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList
 // CreatePost creates a post based on the provided post struct.
 func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
 	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToUnsanitizedJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// CreatePostEphemeral creates a ephemeral post based on the provided post struct which is send to the given user id
+func (c *Client4) CreatePostEphemeral(post *PostEphemeral) (*Post, *Response) {
+	if r, err := c.DoApiPost(c.GetPostsEphemeralRoute(), post.ToUnsanitizedJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

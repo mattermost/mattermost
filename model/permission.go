@@ -52,6 +52,7 @@ var PERMISSION_MANAGE_OAUTH *Permission
 var PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH *Permission
 var PERMISSION_CREATE_POST *Permission
 var PERMISSION_CREATE_POST_PUBLIC *Permission
+var PERMISSION_CREATE_POST_EPHEMERAL *Permission
 var PERMISSION_EDIT_POST *Permission
 var PERMISSION_EDIT_OTHERS_POSTS *Permission
 var PERMISSION_DELETE_POST *Permission
@@ -297,6 +298,12 @@ func initializePermissions() {
 		"authentication.permissions.create_post_public.description",
 		PERMISSION_SCOPE_CHANNEL,
 	}
+	PERMISSION_CREATE_POST_EPHEMERAL = &Permission{
+		"create_post_ephemeral",
+		"authentication.permissions.create_post_ephemeral.name",
+		"authentication.permissions.create_post_ephemeral.description",
+		PERMISSION_SCOPE_CHANNEL,
+	}
 	PERMISSION_EDIT_POST = &Permission{
 		"edit_post",
 		"authentication.permissions.edit_post.name",
@@ -419,6 +426,7 @@ func initializePermissions() {
 		PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH,
 		PERMISSION_CREATE_POST,
 		PERMISSION_CREATE_POST_PUBLIC,
+		PERMISSION_CREATE_POST_EPHEMERAL,
 		PERMISSION_EDIT_POST,
 		PERMISSION_EDIT_OTHERS_POSTS,
 		PERMISSION_DELETE_POST,
