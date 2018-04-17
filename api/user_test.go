@@ -177,7 +177,7 @@ func TestLogin(t *testing.T) {
 
 	token := model.NewToken(
 		app.TOKEN_TYPE_TEAM_INVITATION,
-		model.MapToJson(map[string]string{"team": rteam2.Data.(*model.Team).Id, "email": user2.Email}),
+		model.MapToJson(map[string]string{"teamId": rteam2.Data.(*model.Team).Id, "email": user2.Email}),
 	)
 	<-th.App.Srv.Store.Token().Save(token)
 	props := make(map[string]string)

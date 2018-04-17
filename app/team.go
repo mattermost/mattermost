@@ -223,22 +223,22 @@ func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppE
 func (a *App) AddUserToTeamByToken(userId string, tokenId string, data string) (*model.Team, *model.AppError) {
 	result := <-a.Srv.Store.Token().GetByToken(tokenId)
 	if result.Err != nil {
-		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
 	token := result.Data.(*model.Token)
 	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
-		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
 		a.DeleteToken(token)
-		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
-	tchan := a.Srv.Store.Team().Get(tokenData["team"])
+	tchan := a.Srv.Store.Team().Get(tokenData["teamId"])
 	uchan := a.Srv.Store.User().Get(userId)
 
 	var team *model.Team

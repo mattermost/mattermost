@@ -1367,7 +1367,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	token := model.NewToken(
 		app.TOKEN_TYPE_TEAM_INVITATION,
-		model.MapToJson(map[string]string{"team": team.Id}),
+		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
 	<-th.App.Srv.Store.Token().Save(token)
 	dataObject := make(map[string]string)
@@ -1418,7 +1418,7 @@ func TestAddTeamMember(t *testing.T) {
 	testId := GenerateTestId()
 	token = model.NewToken(
 		app.TOKEN_TYPE_TEAM_INVITATION,
-		model.MapToJson(map[string]string{"team": testId}),
+		model.MapToJson(map[string]string{"teamId": testId}),
 	)
 	<-th.App.Srv.Store.Token().Save(token)
 	dataObject["id"] = testId

@@ -63,7 +63,7 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string, data string)
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
 	var team *model.Team
-	if result := <-a.Srv.Store.Team().Get(tokenData["team"]); result.Err != nil {
+	if result := <-a.Srv.Store.Team().Get(tokenData["teamId"]); result.Err != nil {
 		return nil, result.Err
 	} else {
 		team = result.Data.(*model.Team)

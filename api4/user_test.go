@@ -89,7 +89,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		token := model.NewToken(
 			app.TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		props := make(map[string]string)
@@ -120,7 +120,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		token := model.NewToken(
 			app.TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
@@ -145,7 +145,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		past49Hours := timeNow.Add(-49*time.Hour).UnixNano() / int64(time.Millisecond)
 		token := model.NewToken(
 			app.TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = past49Hours
 		<-th.App.Srv.Store.Token().Save(token)
@@ -180,7 +180,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		token := model.NewToken(
 			app.TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
@@ -204,7 +204,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		token := model.NewToken(
 			app.TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		props := make(map[string]string)

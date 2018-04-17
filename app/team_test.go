@@ -122,7 +122,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	t.Run("invalid token type", func(t *testing.T) {
 		token := model.NewToken(
 			TOKEN_TYPE_VERIFY_EMAIL,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
@@ -135,7 +135,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	t.Run("expired token", func(t *testing.T) {
 		token := model.NewToken(
 			TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
 		<-th.App.Srv.Store.Token().Save(token)
@@ -149,7 +149,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	t.Run("invalid team id", func(t *testing.T) {
 		token := model.NewToken(
 			TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": model.NewId()}),
+			model.MapToJson(map[string]string{"teamId": model.NewId()}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
@@ -162,7 +162,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	t.Run("invalid user id", func(t *testing.T) {
 		token := model.NewToken(
 			TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
@@ -175,7 +175,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	t.Run("valid request", func(t *testing.T) {
 		token := model.NewToken(
 			TOKEN_TYPE_TEAM_INVITATION,
-			model.MapToJson(map[string]string{"team": th.BasicTeam.Id}),
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id})

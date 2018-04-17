@@ -272,7 +272,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 
 			token := model.NewToken(
 				TOKEN_TYPE_TEAM_INVITATION,
-				model.MapToJson(map[string]string{"team": team.Id, "email": invite}),
+				model.MapToJson(map[string]string{"teamId": team.Id, "email": invite}),
 			)
 
 			props := make(map[string]string)
