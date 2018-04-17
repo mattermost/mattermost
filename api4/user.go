@@ -508,7 +508,12 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		result, _ := c.App.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
+		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
@@ -517,11 +522,20 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		result, _ := c.App.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
+		result, err := c.App.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		autocomplete.Users = result.InTeam
 	} else {
 		// No permission check required
-		result, _ := c.App.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin())
+		result, err := c.App.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin())
+		if err != nil {
+			c.Err = err
+			return
+		}
 		autocomplete.Users = result
 	}
 
