@@ -12,12 +12,7 @@ import (
 )
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
-	if !a.RolesGrantPermission(session.GetUserRoles(), permission.Id) {
-		a.ClearSessionCacheForUser(session.UserId)
-		return false
-	}
-
-	return true
+	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
 /// DO NOT USE: LEGACY

@@ -66,15 +66,6 @@ var ResetUserPasswordCmd = &cobra.Command{
 	RunE:    resetUserPasswordCmdF,
 }
 
-var updateUserEmailCmd = &cobra.Command{
-	Use:   "email [user] [new email]",
-	Short: "Change email of the user",
-	Long:  "Change email of the user.",
-	Example: `  user email test user@example.com
-  user activate username`,
-	RunE: updateUserEmailCmdF,
-}
-
 var ResetUserMfaCmd = &cobra.Command{
 	Use:   "resetmfa [users]",
 	Short: "Turn off MFA",
@@ -238,7 +229,6 @@ Global Flags:
 		UserCreateCmd,
 		UserInviteCmd,
 		ResetUserPasswordCmd,
-		updateUserEmailCmd,
 		ResetUserMfaCmd,
 		DeleteUserCmd,
 		DeleteAllUsersCmd,
@@ -404,36 +394,6 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 
 	if result := <-a.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); result.Err != nil {
 		return result.Err
-	}
-
-	return nil
-}
-
-func updateUserEmailCmdF(command *cobra.Command, args []string) error {
-	a, err := cmd.InitDBCommandContextCobra(command)
-	if err != nil {
-		return err
-	}
-
-	newEmail := args[1]
-
-	if !model.IsValidEmail(newEmail) {
-		return errors.New("Invalid email: '" + newEmail + "'")
-	}
-
-	if len(args) != 2 {
-		return errors.New("Expected two arguments. See help text for details.")
-	}
-
-	user := getUserFromUserArg(a, args[0])
-	if user == nil {
-		return errors.New("Unable to find user '" + args[0] + "'")
-	}
-
-	user.Email = newEmail
-	_, errUpdate := a.UpdateUser(user, true)
-	if err != nil {
-		return errUpdate
 	}
 
 	return nil
