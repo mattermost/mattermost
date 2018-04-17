@@ -85,3 +85,14 @@ func (s SqlSystemStore) GetByName(name string) store.StoreChannel {
 		result.Data = &system
 	})
 }
+
+func (s SqlSystemStore) PermanentDeleteByName(name string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var system model.System
+		if _, err := s.GetReplica().Exec("DELETE FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+			result.Err = model.NewAppError("SqlSystemStore.PermanentDeleteByName", "store.sql_system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError)
+		}
+
+		result.Data = &system
+	})
+}

@@ -61,6 +61,22 @@ func (_m *RoleStore) GetByNames(names []string) store.StoreChannel {
 	return r0
 }
 
+// PermanentDeleteAll provides a mock function with given fields:
+func (_m *RoleStore) PermanentDeleteAll() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: role
 func (_m *RoleStore) Save(role *model.Role) store.StoreChannel {
 	ret := _m.Called(role)
