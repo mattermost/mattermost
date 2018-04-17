@@ -63,20 +63,20 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		return false
 	}
 
+	if !IsValidRoleName(scheme.DefaultChannelAdminRole) {
+		return false
+	}
+
+	if !IsValidRoleName(scheme.DefaultChannelUserRole) {
+		return false
+	}
+
 	if scheme.Scope == SCHEME_SCOPE_TEAM {
 		if !IsValidRoleName(scheme.DefaultTeamAdminRole) {
 			return false
 		}
 
 		if !IsValidRoleName(scheme.DefaultTeamUserRole) {
-			return false
-		}
-
-		if !IsValidRoleName(scheme.DefaultChannelAdminRole) {
-			return false
-		}
-
-		if !IsValidRoleName(scheme.DefaultChannelUserRole) {
 			return false
 		}
 	}
@@ -87,14 +87,6 @@ func (scheme *Scheme) IsValidForCreate() bool {
 		}
 
 		if len(scheme.DefaultTeamUserRole) != 0 {
-			return false
-		}
-
-		if !IsValidRoleName(scheme.DefaultChannelAdminRole) {
-			return false
-		}
-
-		if !IsValidRoleName(scheme.DefaultChannelUserRole) {
 			return false
 		}
 	}

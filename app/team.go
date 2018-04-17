@@ -153,7 +153,7 @@ func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, *model.AppEr
 		if scheme, err := a.GetScheme(*team.SchemeId); err != nil {
 			return "", "", err
 		} else {
-			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+			return scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole, nil
 		}
 	}
 
