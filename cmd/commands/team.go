@@ -83,6 +83,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	name, errn := command.Flags().GetString("name")
 	if errn != nil || name == "" {
@@ -119,6 +120,7 @@ func removeUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
@@ -152,6 +154,7 @@ func addUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
@@ -185,6 +188,7 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Not enough arguments.")
@@ -231,6 +235,7 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	teams, err2 := a.GetAllTeams()
 	if err2 != nil {

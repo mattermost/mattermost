@@ -1043,9 +1043,11 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 				})
 
 				if a.Config().EmailSettings.RequireEmailVerification {
-					if err := a.SendEmailVerification(rusers[0]); err != nil {
-						l4g.Error(err.Error())
-					}
+					a.Go(func() {
+						if err := a.SendEmailVerification(rusers[0]); err != nil {
+							l4g.Error(err.Error())
+						}
+					})
 				}
 			}
 

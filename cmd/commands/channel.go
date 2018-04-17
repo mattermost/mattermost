@@ -136,6 +136,7 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	name, errn := command.Flags().GetString("name")
 	if errn != nil || name == "" {
@@ -185,6 +186,7 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
@@ -218,6 +220,7 @@ func addChannelUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
@@ -251,6 +254,7 @@ func archiveChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel to archive.")
@@ -275,6 +279,7 @@ func deleteChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel to delete.")
@@ -315,6 +320,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Enter the destination team and at least one channel to move.")
@@ -389,6 +395,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one team.")
@@ -423,6 +430,7 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel.")
@@ -447,6 +455,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	if len(args) != 1 {
 		return errors.New("Enter at one channel to modify.")
