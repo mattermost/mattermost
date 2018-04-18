@@ -178,7 +178,7 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 func (s *SqlSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	if _, err := s.GetMaster().Exec("DELETE from Roles"); err != nil {
+	if _, err := s.GetMaster().Exec("DELETE FROM Roles"); err != nil {
 		result.Err = model.NewAppError("SqlRoleStore.PermanentDeleteAll", "store.sql_role.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
