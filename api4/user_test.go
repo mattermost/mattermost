@@ -85,20 +85,15 @@ func TestCreateUserWithToken(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	t.Run("CreateWithHashHappyPath", func(t *testing.T) {
+	t.Run("CreateWithTokenHappyPath", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		token := model.NewToken(
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
-		props := make(map[string]string)
-		props["email"] = user.Email
-		props["display_name"] = th.BasicTeam.DisplayName
-		props["name"] = th.BasicTeam.Name
-		data := model.MapToJson(props)
 
-		ruser, resp := Client.CreateUserWithToken(&user, token.Token, data)
+		ruser, resp := Client.CreateUserWithToken(&user, token.Token)
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
 
@@ -126,7 +121,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		}
 	})
 
-	t.Run("NoHashAndNoData", func(t *testing.T) {
+	t.Run("NoToken", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		token := model.NewToken(
 			app.TOKEN_TYPE_TEAM_INVITATION,
@@ -134,22 +129,13 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		props := make(map[string]string)
-		props["email"] = user.Email
-		props["display_name"] = th.BasicTeam.DisplayName
-		props["name"] = th.BasicTeam.Name
-		data := model.MapToJson(props)
 
-		_, resp := Client.CreateUserWithToken(&user, "", data)
+		_, resp := Client.CreateUserWithToken(&user, "")
 		CheckBadRequestStatus(t, resp)
-		CheckErrorMessage(t, resp, "api.user.create_user.missing_token_or_data.app_error")
-
-		_, resp = Client.CreateUserWithToken(&user, token.Token, "")
-		CheckBadRequestStatus(t, resp)
-		CheckErrorMessage(t, resp, "api.user.create_user.missing_token_or_data.app_error")
+		CheckErrorMessage(t, resp, "api.user.create_user.missing_token.app_error")
 	})
 
-	t.Run("HashExpired", func(t *testing.T) {
+	t.Run("TokenExpired", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		timeNow := time.Now()
 		past49Hours := timeNow.Add(-49*time.Hour).UnixNano() / int64(time.Millisecond)
@@ -161,26 +147,15 @@ func TestCreateUserWithToken(t *testing.T) {
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 
-		props := make(map[string]string)
-		props["email"] = user.Email
-		props["display_name"] = th.BasicTeam.DisplayName
-		props["name"] = th.BasicTeam.Name
-		data := model.MapToJson(props)
-
-		_, resp := Client.CreateUserWithToken(&user, token.Token, data)
+		_, resp := Client.CreateUserWithToken(&user, token.Token)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_expired.app_error")
 	})
 
-	t.Run("WrongHash", func(t *testing.T) {
+	t.Run("WrongToken", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
-		props := make(map[string]string)
-		props["email"] = user.Email
-		props["display_name"] = th.BasicTeam.DisplayName
-		props["name"] = th.BasicTeam.Name
-		data := model.MapToJson(props)
 
-		_, resp := Client.CreateUserWithToken(&user, "wrong", data)
+		_, resp := Client.CreateUserWithToken(&user, "wrong")
 		CheckBadRequestStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_invalid.app_error")
 	})
@@ -194,15 +169,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		props := make(map[string]string)
-		props["email"] = user.Email
-		props["display_name"] = th.BasicTeam.DisplayName
-		props["name"] = th.BasicTeam.Name
-		data := model.MapToJson(props)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = false })
 
-		_, resp := Client.CreateUserWithToken(&user, token.Token, data)
+		_, resp := Client.CreateUserWithToken(&user, token.Token)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
@@ -217,15 +187,10 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
-		props := make(map[string]string)
-		props["email"] = user.Email
-		props["display_name"] = th.BasicTeam.DisplayName
-		props["name"] = th.BasicTeam.Name
-		data := model.MapToJson(props)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
-		ruser, resp := Client.CreateUserWithToken(&user, token.Token, data)
+		ruser, resp := Client.CreateUserWithToken(&user, token.Token)
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
 

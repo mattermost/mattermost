@@ -82,7 +82,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		ruser, err = c.App.CreateUserWithToken(user, tokenId, r.URL.Query().Get("d"))
+		ruser, err = c.App.CreateUserWithToken(user, tokenId)
 	} else if len(inviteId) > 0 {
 		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
 	} else {

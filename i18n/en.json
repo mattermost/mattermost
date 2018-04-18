@@ -2851,8 +2851,8 @@
     "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
   },
   {
-    "id": "api.user.create_user.missing_token_or_data.app_error",
-    "translation": "Missing Token or URL query data."
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "Missing Token."
   },
   {
     "id": "api.user.create_user.missing_invite_id.app_error",

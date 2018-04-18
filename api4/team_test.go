@@ -1362,7 +1362,7 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
-	// by token and data
+	// by token
 	Client.Login(otherUser.Email, otherUser.Password)
 
 	token := model.NewToken(
@@ -1370,14 +1370,8 @@ func TestAddTeamMember(t *testing.T) {
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
 	<-th.App.Srv.Store.Token().Save(token)
-	dataObject := make(map[string]string)
-	dataObject["email"] = otherUser.Email
-	dataObject["display_name"] = team.DisplayName
-	dataObject["name"] = team.Name
 
-	data := model.MapToJson(dataObject)
-
-	tm, resp = Client.AddTeamMemberFromInvite(token.Token, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1396,23 +1390,19 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("The token must be deleted after be used")
 	}
 
-	tm, resp = Client.AddTeamMemberFromInvite("junk", data, "")
+	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
 
-	_, resp = Client.AddTeamMemberFromInvite(token.Token, "junk", "")
-	CheckBadRequestStatus(t, resp)
-
-	// expired data of more than 50 hours
+	// expired token of more than 50 hours
 	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	<-th.App.Srv.Store.Token().Save(token)
-	data = model.MapToJson(dataObject)
 
-	tm, resp = Client.AddTeamMemberFromInvite(token.Token, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
 	th.App.DeleteToken(token)
 
@@ -1423,19 +1413,15 @@ func TestAddTeamMember(t *testing.T) {
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
 	<-th.App.Srv.Store.Token().Save(token)
-	dataObject["email"] = otherUser.Email
-	dataObject["display_name"] = team.DisplayName
-	dataObject["name"] = team.Name
-	data = model.MapToJson(dataObject)
 
-	tm, resp = Client.AddTeamMemberFromInvite(token.Token, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
 	th.App.DeleteToken(token)
 
 	// by invite_id
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	tm, resp = Client.AddTeamMemberFromInvite("", "", team.InviteId)
+	tm, resp = Client.AddTeamMemberFromInvite("", team.InviteId)
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1450,7 +1436,7 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMemberFromInvite("", "", "junk")
+	tm, resp = Client.AddTeamMemberFromInvite("", "junk")
 	CheckNotFoundStatus(t, resp)
 
 	if tm != nil {

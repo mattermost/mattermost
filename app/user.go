@@ -40,7 +40,7 @@ const (
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
-func (a *App) CreateUserWithToken(user *model.User, tokenId string, data string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}

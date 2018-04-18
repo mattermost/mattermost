@@ -436,8 +436,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 
 	t.Run("invalid token", func(t *testing.T) {
-		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id, "email": user.Email})
-		if _, err := th.App.CreateUserWithToken(&user, "123", data); err == nil {
+		if _, err := th.App.CreateUserWithToken(&user, "123"); err == nil {
 			t.Fatal("Should fail on unexisting token")
 		}
 	})
@@ -449,8 +448,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id, "email": user.Email})
-		if _, err := th.App.CreateUserWithToken(&user, token.Token, data); err == nil {
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
 			t.Fatal("Should fail on bad token type")
 		}
 	})
@@ -463,8 +461,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id, "email": user.Email})
-		if _, err := th.App.CreateUserWithToken(&user, token.Token, data); err == nil {
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
 			t.Fatal("Should fail on expired token")
 		}
 	})
@@ -476,8 +473,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
-		data := model.MapToJson(map[string]string{"id": model.NewId(), "email": user.Email})
-		if _, err := th.App.CreateUserWithToken(&user, token.Token, data); err == nil {
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
 			t.Fatal("Should fail on bad team id")
 		}
 	})
@@ -489,8 +485,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
-		data := model.MapToJson(map[string]string{"id": th.BasicTeam.Id, "email": invitationEmail})
-		newUser, err := th.App.CreateUserWithToken(&user, token.Token, data)
+		newUser, err := th.App.CreateUserWithToken(&user, token.Token)
 		if err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")

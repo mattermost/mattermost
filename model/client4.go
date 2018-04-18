@@ -530,13 +530,13 @@ func (c *Client4) CreateUser(user *User) (*User, *Response) {
 	}
 }
 
-// CreateUserWithToken creates a user in the system based on the provided user struct and tokenId created.
-func (c *Client4) CreateUserWithToken(user *User, tokenId, data string) (*User, *Response) {
+// CreateUserWithToken creates a user in the system based on the provided tokenId.
+func (c *Client4) CreateUserWithToken(user *User, tokenId string) (*User, *Response) {
 	var query string
-	if tokenId != "" && data != "" {
-		query = fmt.Sprintf("?d=%v&t=%v", url.QueryEscape(data), tokenId)
+	if tokenId != "" {
+		query = fmt.Sprintf("?t=%v", tokenId)
 	} else {
-		err := NewAppError("MissingHashOrData", "api.user.create_user.missing_token_or_data.app_error", nil, "", http.StatusBadRequest)
+		err := NewAppError("MissingHashOrData", "api.user.create_user.missing_token.app_error", nil, "", http.StatusBadRequest)
 		return nil, &Response{StatusCode: err.StatusCode, Error: err}
 	}
 	if r, err := c.DoApiPost(c.GetUsersRoute()+query, user.ToJson()); err != nil {
@@ -1341,15 +1341,15 @@ func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response) 
 
 // AddTeamMemberFromInvite adds a user to a team and return a team member using an invite id
 // or an invite token/data pair.
-func (c *Client4) AddTeamMemberFromInvite(token, data, inviteId string) (*TeamMember, *Response) {
+func (c *Client4) AddTeamMemberFromInvite(token, inviteId string) (*TeamMember, *Response) {
 	var query string
 
 	if inviteId != "" {
 		query += fmt.Sprintf("?invite_id=%v", inviteId)
 	}
 
-	if token != "" && data != "" {
-		query += fmt.Sprintf("?token=%v&data=%v", token, data)
+	if token != "" {
+		query += fmt.Sprintf("?token=%v", token)
 	}
 
 	if r, err := c.DoApiPost(c.GetTeamsRoute()+"/members/invite"+query, ""); err != nil {
