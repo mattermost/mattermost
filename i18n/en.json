@@ -740,13 +740,6 @@
     "translation": "@[username1],@[username2] 'message'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "We couldn't find the user: {{.Users}}",
-      "other": "We couldn't find the users: {{.Users}}"
-    }
-  },
-  {
     "id": "api.command_groupmsg.invalid_users.app_error",
     "translation": "We couldn't find the users: %s"
   },
@@ -1219,26 +1212,12 @@
     "translation": "Unable to find sender of post for batched email notification"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.body_text",
-    "translation": {
-      "one": "You have a new notification.",
-      "other": "You have {{.Count}} new notifications."
-    }
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
     "translation": "Unable to find display preferences of recipient for batched email notification"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.send.app_error",
     "translation": "Failed to send batched email notification to %v: %v"
-  },
-  {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
-    }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
@@ -1825,22 +1804,8 @@
     "translation": "Action integration error"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} file sent: {{.Filenames}}",
-      "other": "{{.Count}} files sent: {{.Filenames}}"
-    }
-  },
-  {
     "id": "api.post.get_message_for_notification.get_files.error",
     "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} image sent: {{.Filenames}}",
-      "other": "{{.Count}} images sent: {{.Filenames}}"
-    }
   },
   {
     "id": "api.post.get_out_of_channel_mentions.regex.error",
@@ -2156,7 +2121,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "Slack Import: Unable to attach the file to the post as the latter has no \"file\" section present in Slack export."
+    "translation": "Slack Import: Unable to attach the file to the post as the latter has no file section present in Slack export."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
