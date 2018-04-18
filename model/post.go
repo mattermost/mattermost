@@ -49,6 +49,7 @@ const (
 	POST_PROPS_MAX_USER_RUNES   = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
 	POST_CUSTOM_TYPE_PREFIX     = "custom_"
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
+	POST_PROPS_ADDED_USER_ID    = "addedUserId"
 )
 
 type Post struct {

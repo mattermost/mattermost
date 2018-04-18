@@ -1140,10 +1140,10 @@ func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, c
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{
-			"userId":        user.Id,
-			"username":      user.Username,
-			"addedUserId":   addedUser.Id,
-			"addedUsername": addedUser.Username,
+			"userId":                       user.Id,
+			"username":                     user.Username,
+			model.POST_PROPS_ADDED_USER_ID: addedUser.Id,
+			"addedUsername":                addedUser.Username,
 		},
 	}
 
@@ -1162,10 +1162,10 @@ func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, chan
 		UserId:    user.Id,
 		RootId:    postRootId,
 		Props: model.StringInterface{
-			"userId":        user.Id,
-			"username":      user.Username,
-			"addedUserId":   addedUser.Id,
-			"addedUsername": addedUser.Username,
+			"userId":                       user.Id,
+			"username":                     user.Username,
+			model.POST_PROPS_ADDED_USER_ID: addedUser.Id,
+			"addedUsername":                addedUser.Username,
 		},
 	}
 
