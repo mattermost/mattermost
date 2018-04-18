@@ -6563,6 +6563,14 @@
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry"
+  },
+  {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles"
+  },
+  {
     "id": "store.sql_post.search.warn",
     "translation": "Query error searching posts: %v"
   },

@@ -68,3 +68,10 @@ func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []str
 
 	return result
 }
+
+func (s *LocalCacheSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	defer s.roleCache.Purge()
+	defer s.doClearCacheCluster(s.roleCache)
+
+	return s.Next().RolePermanentDeleteAll(ctx, hints...)
+}
