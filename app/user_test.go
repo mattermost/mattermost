@@ -428,3 +428,73 @@ func TestGetUsersByStatus(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateUserWithToken(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+
+	t.Run("invalid token", func(t *testing.T) {
+		if _, err := th.App.CreateUserWithToken(&user, "123"); err == nil {
+			t.Fatal("Should fail on unexisting token")
+		}
+	})
+
+	t.Run("invalid token type", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_VERIFY_EMAIL,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+			t.Fatal("Should fail on bad token type")
+		}
+	})
+
+	t.Run("expired token", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+		)
+		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+			t.Fatal("Should fail on expired token")
+		}
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": model.NewId(), "email": user.Email}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+			t.Fatal("Should fail on bad team id")
+		}
+	})
+
+	t.Run("valid request", func(t *testing.T) {
+		invitationEmail := model.NewId() + "other-email@test.com"
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		newUser, err := th.App.CreateUserWithToken(&user, token.Token)
+		if err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+		if newUser.Email != invitationEmail {
+			t.Fatal("The user email must be the invitation one")
+		}
+		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+			t.Fatal("The token must be deleted after be used")
+		}
+	})
+}

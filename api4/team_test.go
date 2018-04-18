@@ -13,6 +13,7 @@ import (
 
 	"encoding/base64"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
@@ -1361,17 +1362,16 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
-	// by hash and data
+	// by token
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	dataObject := make(map[string]string)
-	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis())
-	dataObject["id"] = team.Id
+	token := model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"teamId": team.Id}),
+	)
+	<-th.App.Srv.Store.Token().Save(token)
 
-	data := model.MapToJson(dataObject)
-	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1386,36 +1386,42 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMemberFromInvite("junk", data, "")
+	if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+		t.Fatal("The token must be deleted after be used")
+	}
+
+	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
 
-	_, resp = Client.AddTeamMemberFromInvite(hashed, "junk", "")
-	CheckBadRequestStatus(t, resp)
+	// expired token of more than 50 hours
+	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	token.CreateAt = model.GetMillis() - 1000*60*60*50
+	<-th.App.Srv.Store.Token().Save(token)
 
-	// expired data of more than 50 hours
-	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
-	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
+	th.App.DeleteToken(token)
 
 	// invalid team id
-	dataObject["id"] = GenerateTestId()
-	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+	testId := GenerateTestId()
+	token = model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"teamId": testId}),
+	)
+	<-th.App.Srv.Store.Token().Save(token)
 
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
-	CheckBadRequestStatus(t, resp)
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
+	CheckNotFoundStatus(t, resp)
+	th.App.DeleteToken(token)
 
 	// by invite_id
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	tm, resp = Client.AddTeamMemberFromInvite("", "", team.InviteId)
+	tm, resp = Client.AddTeamMemberFromInvite("", team.InviteId)
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1430,7 +1436,7 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMemberFromInvite("", "", "junk")
+	tm, resp = Client.AddTeamMemberFromInvite("", "junk")
 	CheckNotFoundStatus(t, resp)
 
 	if tm != nil {

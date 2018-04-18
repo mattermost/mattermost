@@ -34,35 +34,42 @@ import (
 const (
 	TOKEN_TYPE_PASSWORD_RECOVERY  = "password_recovery"
 	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
-	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60 // 1 hour
+	TOKEN_TYPE_TEAM_INVITATION    = "team_invitation"
+	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60      // 1 hour
+	TEAM_INVITATION_EXPIRY_TIME   = 1000 * 60 * 60 * 48 // 48 hours
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
-func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
-	props := model.MapFromJson(strings.NewReader(data))
-
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusInternalServerError)
+	result := <-a.Srv.Store.Token().GetByToken(tokenId)
+	if result.Err != nil {
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
-	if t, err := strconv.ParseInt(props["time"], 10, 64); err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusInternalServerError)
+	token := result.Data.(*model.Token)
+	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	teamId := props["id"]
+	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+		a.DeleteToken(token)
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
 	var team *model.Team
-	if result := <-a.Srv.Store.Team().Get(teamId); result.Err != nil {
+	if result := <-a.Srv.Store.Team().Get(tokenData["teamId"]); result.Err != nil {
 		return nil, result.Err
 	} else {
 		team = result.Data.(*model.Team)
 	}
 
-	user.Email = props["email"]
+	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
 	var ruser *model.User
@@ -76,6 +83,10 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 	}
 
 	a.AddDirectChannels(team.Id, ruser)
+
+	if err := a.DeleteToken(token); err != nil {
+		return nil, err
+	}
 
 	return ruser, nil
 }

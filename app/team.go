@@ -11,7 +11,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -216,19 +215,25 @@ func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppE
 	}
 }
 
-func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
-	props := model.MapFromJson(strings.NewReader(data))
-
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
-		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
+func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError) {
+	result := <-a.Srv.Store.Token().GetByToken(tokenId)
+	if result.Err != nil {
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
-	t, timeErr := strconv.ParseInt(props["time"], 10, 64)
-	if timeErr != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
+	token := result.Data.(*model.Token)
+	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	tchan := a.Srv.Store.Team().Get(props["id"])
+	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+		a.DeleteToken(token)
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+
+	tchan := a.Srv.Store.Team().Get(tokenData["teamId"])
 	uchan := a.Srv.Store.User().Get(userId)
 
 	var team *model.Team
@@ -246,6 +251,10 @@ func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*mod
 	}
 
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {
+		return nil, err
+	}
+
+	if err := a.DeleteToken(token); err != nil {
 		return nil, err
 	}
 
@@ -510,11 +519,11 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 	return members, nil
 }
 
-func (a *App) AddTeamMemberByHash(userId, hash, data string) (*model.TeamMember, *model.AppError) {
+func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *model.AppError) {
 	var team *model.Team
 	var err *model.AppError
 
-	if team, err = a.AddUserToTeamByHash(userId, hash, data); err != nil {
+	if team, err = a.AddUserToTeamByToken(userId, tokenId); err != nil {
 		return nil, err
 	}
 
@@ -874,23 +883,28 @@ func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 }
 
 func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
-	hash := query.Get("h")
+	tokenId := query.Get("t")
 	inviteId := query.Get("id")
 
-	if len(hash) > 0 {
-		data := query.Get("d")
-		props := model.MapFromJson(strings.NewReader(data))
-
-		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
+	if len(tokenId) > 0 {
+		result := <-a.Srv.Store.Token().GetByToken(tokenId)
+		if result.Err != nil {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		t, err := strconv.ParseInt(props["time"], 10, 64)
-		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+		token := result.Data.(*model.Token)
+		if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+			a.DeleteToken(token)
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		return props["id"], nil
+		tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+
+		return tokenData["teamId"], nil
 	} else if len(inviteId) > 0 {
 		if result := <-a.Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
 			// soft fail, so we still create user but don't auto-join team

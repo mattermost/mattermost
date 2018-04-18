@@ -182,15 +182,14 @@ func removeUserFromTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := model.MapFromJson(r.Body)
-	hash := params["hash"]
-	data := params["data"]
+	tokenId := params["token"]
 	inviteId := params["invite_id"]
 
 	var team *model.Team
 	var err *model.AppError
 
-	if len(hash) > 0 {
-		team, err = c.App.AddUserToTeamByHash(c.Session.UserId, hash, data)
+	if len(tokenId) > 0 {
+		team, err = c.App.AddUserToTeamByToken(c.Session.UserId, tokenId)
 	} else if len(inviteId) > 0 {
 		team, err = c.App.AddUserToTeamByInviteId(inviteId, c.Session.UserId)
 	} else {
