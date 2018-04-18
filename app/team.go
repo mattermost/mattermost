@@ -11,7 +11,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -19,10 +18,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-)
-
-const (
-	OAUTH_EXPIRY_TIME = 1000 * 60 * 60 * 48 // 48 hours
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -888,23 +883,28 @@ func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 }
 
 func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
-	hash := query.Get("h")
+	tokenId := query.Get("t")
 	inviteId := query.Get("id")
 
-	if len(hash) > 0 {
-		data := query.Get("d")
-		props := model.MapFromJson(strings.NewReader(data))
-
-		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
+	if len(tokenId) > 0 {
+		result := <-a.Srv.Store.Token().GetByToken(tokenId)
+		if result.Err != nil {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		t, err := strconv.ParseInt(props["time"], 10, 64)
-		if err != nil || model.GetMillis()-t > OAUTH_EXPIRY_TIME {
+		token := result.Data.(*model.Token)
+		if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+			a.DeleteToken(token)
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		return props["id"], nil
+		tokenData := model.MapFromJson(strings.NewReader(token.Extra))
+
+		return tokenData["teamId"], nil
 	} else if len(inviteId) > 0 {
 		if result := <-a.Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
 			// soft fail, so we still create user but don't auto-join team

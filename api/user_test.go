@@ -194,7 +194,7 @@ func TestLogin(t *testing.T) {
 	}
 
 	if _, err := Client.Login(ruser2.Data.(*model.User).Email, user2.Password); err != nil {
-		t.Fatal("From verified hash")
+		t.Fatal("From verified token")
 	}
 
 	Client.AuthToken = authToken

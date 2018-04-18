@@ -534,7 +534,7 @@ func (c *Client4) CreateUser(user *User) (*User, *Response) {
 func (c *Client4) CreateUserWithToken(user *User, tokenId, data string) (*User, *Response) {
 	var query string
 	if tokenId != "" && data != "" {
-		query = fmt.Sprintf("?d=%v&h=%v", url.QueryEscape(data), tokenId)
+		query = fmt.Sprintf("?d=%v&t=%v", url.QueryEscape(data), tokenId)
 	} else {
 		err := NewAppError("MissingHashOrData", "api.user.create_user.missing_token_or_data.app_error", nil, "", http.StatusBadRequest)
 		return nil, &Response{StatusCode: err.StatusCode, Error: err}
@@ -545,12 +545,6 @@ func (c *Client4) CreateUserWithToken(user *User, tokenId, data string) (*User, 
 		defer closeBody(r)
 		return UserFromJson(r.Body), BuildResponse(r)
 	}
-}
-
-// CreateUserWithHash creates a user in the system based on the provided user struct and hash created.
-// Maintained for backward compatibility
-func (c *Client4) CreateUserWithHash(user *User, hash, data string) (*User, *Response) {
-	return c.CreateUserWithToken(user, hash, data)
 }
 
 // CreateUserWithInviteId creates a user in the system based on the provided invited id.
@@ -1346,16 +1340,16 @@ func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response) 
 }
 
 // AddTeamMemberFromInvite adds a user to a team and return a team member using an invite id
-// or an invite hash/data pair.
-func (c *Client4) AddTeamMemberFromInvite(hash, dataToHash, inviteId string) (*TeamMember, *Response) {
+// or an invite token/data pair.
+func (c *Client4) AddTeamMemberFromInvite(token, data, inviteId string) (*TeamMember, *Response) {
 	var query string
 
 	if inviteId != "" {
 		query += fmt.Sprintf("?invite_id=%v", inviteId)
 	}
 
-	if hash != "" && dataToHash != "" {
-		query += fmt.Sprintf("?hash=%v&data=%v", hash, dataToHash)
+	if token != "" && data != "" {
+		query += fmt.Sprintf("?token=%v&data=%v", token, data)
 	}
 
 	if r, err := c.DoApiPost(c.GetTeamsRoute()+"/members/invite"+query, ""); err != nil {

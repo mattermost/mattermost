@@ -376,7 +376,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
-	tokenId := r.URL.Query().Get("hash")
+	tokenId := r.URL.Query().Get("token")
 	data := r.URL.Query().Get("data")
 	inviteId := r.URL.Query().Get("invite_id")
 

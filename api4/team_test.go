@@ -1362,7 +1362,7 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
-	// by hash and data
+	// by token and data
 	Client.Login(otherUser.Email, otherUser.Password)
 
 	token := model.NewToken(
@@ -1371,7 +1371,9 @@ func TestAddTeamMember(t *testing.T) {
 	)
 	<-th.App.Srv.Store.Token().Save(token)
 	dataObject := make(map[string]string)
-	dataObject["id"] = team.Id
+	dataObject["email"] = otherUser.Email
+	dataObject["display_name"] = team.DisplayName
+	dataObject["name"] = team.Name
 
 	data := model.MapToJson(dataObject)
 
@@ -1421,7 +1423,9 @@ func TestAddTeamMember(t *testing.T) {
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
 	<-th.App.Srv.Store.Token().Save(token)
-	dataObject["id"] = testId
+	dataObject["email"] = otherUser.Email
+	dataObject["display_name"] = team.DisplayName
+	dataObject["name"] = team.Name
 	data = model.MapToJson(dataObject)
 
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, data, "")

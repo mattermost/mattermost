@@ -114,6 +114,16 @@ func TestCreateUserWithToken(t *testing.T) {
 		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
 			t.Fatal("The token must be deleted after be used")
 		}
+
+		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+			t.Fatal("The token must be deleted after be used")
+		}
+
+		if teams, err := th.App.GetTeamsForUser(ruser.Id); err != nil || len(teams) == 0 {
+			t.Fatal("The user must have teams")
+		} else if teams[0].Id != th.BasicTeam.Id {
+			t.Fatal("The user joined team must be the team provided.")
+		}
 	})
 
 	t.Run("NoHashAndNoData", func(t *testing.T) {

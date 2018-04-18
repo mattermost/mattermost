@@ -182,7 +182,7 @@ func removeUserFromTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := model.MapFromJson(r.Body)
-	tokenId := params["hash"]
+	tokenId := params["token"]
 	data := params["data"]
 	inviteId := params["invite_id"]
 

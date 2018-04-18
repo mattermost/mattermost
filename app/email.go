@@ -285,7 +285,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 				l4g.Error(utils.T("api.team.invite_members.send.error"), result.Err)
 				continue
 			}
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
+			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if !a.Config().EmailSettings.SendEmailNotifications {
 				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])

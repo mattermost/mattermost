@@ -73,7 +73,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenId := r.URL.Query().Get("h")
+	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
 
 	// No permission check required
