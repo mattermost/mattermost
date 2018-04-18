@@ -61,6 +61,10 @@
   name = "github.com/segmentio/analytics-go"
   version = "2.1.1"
 
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/net"
+
 [prune]
   go-tests = true
   unused-packages = true
