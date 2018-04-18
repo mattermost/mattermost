@@ -1,17 +1,13 @@
 package mlog
 
+import (
+	"go.uber.org/zap/zapcore"
+)
+
 var globalLogger *Logger
 
-func initGlobalLogger() {
-	globalLogger = NewLogger(&LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleLevel:  "debug",
-		ConsoleJson:   true,
-	})
-}
-
-func init() {
-	initGlobalLogger()
+func InitGlobalLogger(logger *Logger) {
+	globalLogger = logger
 	Debug = globalLogger.Debug
 	Info = globalLogger.Info
 	Warn = globalLogger.Warn
@@ -20,6 +16,16 @@ func init() {
 }
 
 type LogFunc func(string, ...Field)
+
+// DON'T USE THIS Modify the level on the app logger
+func GloballyDisableDebugLogForTest() {
+	globalLogger.consoleLevel.SetLevel(zapcore.ErrorLevel)
+}
+
+// DON'T USE THIS Modify the level on the app logger
+func GloballyEnableDebugLogForTest() {
+	globalLogger.consoleLevel.SetLevel(zapcore.DebugLevel)
+}
 
 var Debug LogFunc
 var Info LogFunc

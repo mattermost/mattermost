@@ -633,6 +633,12 @@
   version = "2.0.0"
 
 [[projects]]
+  name = "gopkg.in/natefinch/lumberjack.v2"
+  packages = ["."]
+  revision = "a96e63847dc3c67d17befa69c303767e2f84e54f"
+  version = "v2.1"
+
+[[projects]]
   name = "gopkg.in/olivere/elastic.v5"
   packages = [
     ".",
@@ -660,6 +666,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d42e064e32dd5cf2ab859e0abf3c6805172ad5158ee97045c5c50d3a6a13502a"
+  inputs-digest = "597d17c8879e8e17811d25ce2149bf28591fd1520cccc8724c8bd3b8c410f40e"
   solver-name = "gps-cdcl"
   solver-version = 1

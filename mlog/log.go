@@ -5,6 +5,7 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const (
@@ -36,27 +37,54 @@ type LoggerConfiguration struct {
 }
 
 type Logger struct {
-	zap   *zap.Logger
-	level zap.AtomicLevel
+	zap          *zap.Logger
+	consoleLevel zap.AtomicLevel
+	fileLevel    zap.AtomicLevel
+}
+
+func getZapLevel(level string) zapcore.Level {
+	switch level {
+	case LevelInfo:
+		return zapcore.InfoLevel
+	case LevelWarn:
+		return zapcore.WarnLevel
+	case LevelDebug:
+		return zapcore.DebugLevel
+	case LevelError:
+		return zapcore.ErrorLevel
+	default:
+		return zapcore.InfoLevel
+	}
 }
 
 func NewLogger(config *LoggerConfiguration) *Logger {
 	cores := []zapcore.Core{}
 	logger := &Logger{
-		level: zap.NewAtomicLevel(),
+		consoleLevel: zap.NewAtomicLevelAt(getZapLevel(config.ConsoleLevel)),
+		fileLevel:    zap.NewAtomicLevelAt(getZapLevel(config.FileLevel)),
 	}
 
 	encoderConfig := zap.NewProductionEncoderConfig()
+	var encoder zapcore.Encoder
+	if config.ConsoleJson {
+		encoder = zapcore.NewJSONEncoder(encoderConfig)
+	} else {
+		encoder = zapcore.NewConsoleEncoder(encoderConfig)
+	}
 
 	if config.EnableConsole {
 		writer := zapcore.Lock(os.Stdout)
-		var encoder zapcore.Encoder
-		if config.ConsoleJson {
-			encoder = zapcore.NewJSONEncoder(encoderConfig)
-		} else {
-			encoder = zapcore.NewConsoleEncoder(encoderConfig)
-		}
-		core := zapcore.NewCore(encoder, writer, logger.level)
+		core := zapcore.NewCore(encoder, writer, logger.consoleLevel)
+		cores = append(cores, core)
+	}
+
+	if config.EnableFile {
+		writer := zapcore.AddSync(&lumberjack.Logger{
+			Filename: config.FileLocation,
+			MaxSize:  100,
+			Compress: true,
+		})
+		core := zapcore.NewCore(encoder, writer, logger.fileLevel)
 		cores = append(cores, core)
 	}
 
@@ -65,6 +93,15 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	logger.zap = zap.New(combinedCore)
 
 	return logger
+}
+
+func (l *Logger) ChangeLevels(config *LoggerConfiguration) {
+	l.consoleLevel.SetLevel(getZapLevel(config.ConsoleLevel))
+	l.fileLevel.SetLevel(getZapLevel(config.FileLevel))
+}
+
+func (l *Logger) SetConsoleLevel(level string) {
+	l.consoleLevel.SetLevel(getZapLevel(level))
 }
 
 func (l *Logger) With(fields ...Field) {

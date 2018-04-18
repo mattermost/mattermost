@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	"github.com/mattermost/mattermost-server/jobs"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 	"github.com/mattermost/mattermost-server/store"
@@ -34,6 +35,8 @@ type App struct {
 	goroutineExitSignal chan struct{}
 
 	Srv *Server
+
+	Log *mlog.Logger
 
 	PluginEnv              *pluginenv.Environment
 	PluginConfigListenerId string
@@ -77,6 +80,7 @@ type App struct {
 	sessionCache         *utils.Cache
 	configListenerId     string
 	licenseListenerId    string
+	logListenerId        string
 	disableConfigWatch   bool
 	configWatcher        *utils.ConfigWatcher
 	asymmetricSigningKey *ecdsa.PrivateKey
@@ -127,15 +131,19 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	// The first time we load config, clear any existing filters to allow the configuration
-	// changes to take effect. This is safe only because no one else is logging at this point.
-	l4g.Close()
-
 	if err := app.LoadConfig(app.configFile); err != nil {
-		// Re-initialize the default logger as we bail out.
-		l4g.Global = l4g.NewDefaultLogger(l4g.DEBUG)
 		return nil, err
 	}
+
+	// Initalize logging
+	app.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&app.Config().LogSettings))
+	// Use this app logger as the global logger (eventually remove all instances of global logging)
+	mlog.InitGlobalLogger(app.Log)
+
+	app.logListenerId = app.AddConfigListener(func(_, after *model.Config) {
+		app.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
+	})
+
 	app.EnableConfigWatch()
 
 	app.LoadTimezones()
@@ -229,6 +237,7 @@ func (a *App) Shutdown() {
 
 	a.RemoveConfigListener(a.configListenerId)
 	a.RemoveLicenseListener(a.licenseListenerId)
+	a.RemoveLicenseListener(a.logListenerId)
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 
 	a.DisableConfigWatch()

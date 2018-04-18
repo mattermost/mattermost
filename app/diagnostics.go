@@ -299,10 +299,11 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
 		"enable_console":           cfg.LogSettings.EnableConsole,
 		"console_level":            cfg.LogSettings.ConsoleLevel,
+		"console_json":             *cfg.LogSettings.ConsoleJson,
 		"enable_file":              cfg.LogSettings.EnableFile,
 		"file_level":               cfg.LogSettings.FileLevel,
+		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
-		"isdefault_file_format":    isDefault(cfg.LogSettings.FileFormat, ""),
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 	})
 
