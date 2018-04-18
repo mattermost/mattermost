@@ -12,10 +12,17 @@ func initGlobalLogger() {
 
 func init() {
 	initGlobalLogger()
+	Debug = globalLogger.Debug
+	Info = globalLogger.Info
+	Warn = globalLogger.Warn
+	Error = globalLogger.Error
+	Critical = globalLogger.Critical
 }
 
-var Debug = globalLogger.Debug
-var Info = globalLogger.Info
-var Warn = globalLogger.Warn
-var Error = globalLogger.Error
-var Critical = globalLogger.Critical
+type LogFunc func(string, ...Field)
+
+var Debug LogFunc
+var Info LogFunc
+var Warn LogFunc
+var Error LogFunc
+var Critical LogFunc

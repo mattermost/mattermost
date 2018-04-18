@@ -42,7 +42,9 @@ type Logger struct {
 
 func NewLogger(config *LoggerConfiguration) *Logger {
 	cores := []zapcore.Core{}
-	logger := &Logger{}
+	logger := &Logger{
+		level: zap.NewAtomicLevel(),
+	}
 
 	encoderConfig := zap.NewProductionEncoderConfig()
 
