@@ -25,9 +25,10 @@ const (
 	IMAGE_DRIVER_LOCAL = "local"
 	IMAGE_DRIVER_S3    = "amazons3"
 
-	DATABASE_DRIVER_SQLITE   = "sqlite3"
-	DATABASE_DRIVER_MYSQL    = "mysql"
-	DATABASE_DRIVER_POSTGRES = "postgres"
+	DATABASE_DRIVER_SQLITE    = "sqlite3"
+	DATABASE_DRIVER_MYSQL     = "mysql"
+	DATABASE_DRIVER_COCKROACH = "cockroach"
+	DATABASE_DRIVER_POSTGRES  = "postgres"
 
 	MINIO_ACCESS_KEY = "minioaccesskey"
 	MINIO_SECRET_KEY = "miniosecretkey"
@@ -2141,7 +2142,7 @@ func (ss *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(*ss.DriverName == DATABASE_DRIVER_MYSQL || *ss.DriverName == DATABASE_DRIVER_POSTGRES) {
+	if !(*ss.DriverName == DATABASE_DRIVER_MYSQL || *ss.DriverName == DATABASE_DRIVER_POSTGRES || *ss.DriverName == DATABASE_DRIVER_COCKROACH) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_driver.app_error", nil, "", http.StatusBadRequest)
 	}
 

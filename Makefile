@@ -120,6 +120,17 @@ start-docker: ## Starts the docker containers for local development.
 		docker start mattermost-postgres > /dev/null; \
 	fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-cockroachdb) -eq 0 ]; then \
+		echo starting mattermost-cockroachdb; \
+		docker run --name mattermost-cockroachdb --hostname=mattermost-cockroachdb -p 26257:26257 -p 8080:8080 -d cockroachdb/cockroach:v2.0.0 start --insecure; \
+		docker exec -it mattermost-cockroachdb ./cockroach sql --insecure -e 'CREATE DATABASE mattermost_test'; \
+		docker exec -it mattermost-cockroachdb ./cockroach sql --insecure -e 'CREATE USER mmuser'; \
+		docker exec -it mattermost-cockroachdb ./cockroach sql --insecure -e 'GRANT ALL ON DATABASE mattermost_test TO mmuser'; \
+	elif [ $(shell docker ps | grep -ci mattermost-cockroachdb) -eq 0 ]; then \
+		echo restarting mattermost-cockroachdb; \
+		docker start mattermost-cockroachdb > /dev/null; \
+	fi
+
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 0 ]; then \
 		echo starting mattermost-inbucket; \
 		docker run --name mattermost-inbucket -p 9000:10080 -p 2500:10025 -d jhillyerd/inbucket:release-1.2.0 > /dev/null; \
@@ -188,6 +199,11 @@ stop-docker: ## Stops the docker containers for local development.
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 1 ]; then \
 		echo stopping mattermost-postgres; \
+		docker stop mattermost-postgres > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-cockroachdb) -eq 1 ]; then \
+		echo stopping mattermost-cockroachdb; \
 		docker stop mattermost-postgres > /dev/null; \
 	fi
 

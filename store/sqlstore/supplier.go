@@ -33,35 +33,36 @@ const (
 )
 
 const (
-	EXIT_CREATE_TABLE                = 100
-	EXIT_DB_OPEN                     = 101
-	EXIT_PING                        = 102
-	EXIT_NO_DRIVER                   = 103
-	EXIT_TABLE_EXISTS                = 104
-	EXIT_TABLE_EXISTS_MYSQL          = 105
-	EXIT_COLUMN_EXISTS               = 106
-	EXIT_DOES_COLUMN_EXISTS_POSTGRES = 107
-	EXIT_DOES_COLUMN_EXISTS_MYSQL    = 108
-	EXIT_DOES_COLUMN_EXISTS_MISSING  = 109
-	EXIT_CREATE_COLUMN_POSTGRES      = 110
-	EXIT_CREATE_COLUMN_MYSQL         = 111
-	EXIT_CREATE_COLUMN_MISSING       = 112
-	EXIT_REMOVE_COLUMN               = 113
-	EXIT_RENAME_COLUMN               = 114
-	EXIT_MAX_COLUMN                  = 115
-	EXIT_ALTER_COLUMN                = 116
-	EXIT_CREATE_INDEX_POSTGRES       = 117
-	EXIT_CREATE_INDEX_MYSQL          = 118
-	EXIT_CREATE_INDEX_FULL_MYSQL     = 119
-	EXIT_CREATE_INDEX_MISSING        = 120
-	EXIT_REMOVE_INDEX_POSTGRES       = 121
-	EXIT_REMOVE_INDEX_MYSQL          = 122
-	EXIT_REMOVE_INDEX_MISSING        = 123
-	EXIT_REMOVE_TABLE                = 134
-	EXIT_CREATE_INDEX_SQLITE         = 135
-	EXIT_REMOVE_INDEX_SQLITE         = 136
-	EXIT_TABLE_EXISTS_SQLITE         = 137
-	EXIT_DOES_COLUMN_EXISTS_SQLITE   = 138
+	EXIT_CREATE_TABLE                 = 100
+	EXIT_DB_OPEN                      = 101
+	EXIT_PING                         = 102
+	EXIT_NO_DRIVER                    = 103
+	EXIT_TABLE_EXISTS                 = 104
+	EXIT_TABLE_EXISTS_MYSQL           = 105
+	EXIT_COLUMN_EXISTS                = 106
+	EXIT_DOES_COLUMN_EXISTS_POSTGRES  = 107
+	EXIT_DOES_COLUMN_EXISTS_MYSQL     = 108
+	EXIT_DOES_COLUMN_EXISTS_MISSING   = 109
+	EXIT_CREATE_COLUMN_POSTGRES       = 110
+	EXIT_CREATE_COLUMN_MYSQL          = 111
+	EXIT_CREATE_COLUMN_MISSING        = 112
+	EXIT_REMOVE_COLUMN                = 113
+	EXIT_RENAME_COLUMN                = 114
+	EXIT_MAX_COLUMN                   = 115
+	EXIT_ALTER_COLUMN                 = 116
+	EXIT_CREATE_INDEX_POSTGRES        = 117
+	EXIT_CREATE_INDEX_MYSQL           = 118
+	EXIT_CREATE_INDEX_FULL_MYSQL      = 119
+	EXIT_CREATE_INDEX_MISSING         = 120
+	EXIT_REMOVE_INDEX_POSTGRES        = 121
+	EXIT_REMOVE_INDEX_MYSQL           = 122
+	EXIT_REMOVE_INDEX_MISSING         = 123
+	EXIT_REMOVE_TABLE                 = 134
+	EXIT_CREATE_INDEX_SQLITE          = 135
+	EXIT_REMOVE_INDEX_SQLITE          = 136
+	EXIT_TABLE_EXISTS_SQLITE          = 137
+	EXIT_DOES_COLUMN_EXISTS_SQLITE    = 138
+	EXIT_DOES_COLUMN_EXISTS_COCKROACH = 139
 )
 
 type SqlSupplierOldStores struct {
@@ -189,7 +190,11 @@ func (s *SqlSupplier) Next() store.LayeredStoreSupplier {
 }
 
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
-	db, err := dbsql.Open(*settings.DriverName, dataSource)
+	driver := *settings.DriverName
+	if driver == model.DATABASE_DRIVER_COCKROACH {
+		driver = model.DATABASE_DRIVER_POSTGRES
+	}
+	db, err := dbsql.Open(driver, dataSource)
 	if err != nil {
 		mlog.Critical(fmt.Sprintf("Failed to open SQL connection to err:%v", err.Error()))
 		time.Sleep(time.Second)
@@ -228,6 +233,8 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	} else if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
 	} else if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
+	} else if *settings.DriverName == model.DATABASE_DRIVER_COCKROACH {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
 	} else {
 		mlog.Critical("Failed to create dialect specific driver")
@@ -368,7 +375,26 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT
+		    COUNT(0) AS table_exists
+			FROM
+			    information_schema.TABLES
+			WHERE
+			    table_schema = current_database()
+			        AND table_name = $1
+		    `,
+			tableName,
+		)
 
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_TABLE_EXISTS)
+		}
+
+		return count > 0
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
@@ -452,6 +478,28 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		}
 
 		return count > 0
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT
+		    COUNT(0) AS column_exists
+		FROM
+		    information_schema.columns
+		WHERE
+		    table_schema = current_database()
+		        AND table_name = $1
+		        AND column_name = $2`,
+			tableName,
+			columnName,
+		)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_DOES_COLUMN_EXISTS_COCKROACH)
+		}
+
+		return count > 0
 
 	} else {
 		mlog.Critical("Failed to check if column exists because of missing driver")
@@ -477,7 +525,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 
 		return true
 
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
@@ -566,7 +614,7 @@ func (ss *SqlSupplier) RenameColumnIfExists(tableName string, oldColumnName stri
 	}
 
 	var err error
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
@@ -588,7 +636,7 @@ func (ss *SqlSupplier) GetMaxLengthOfColumnIfExists(tableName string, columnName
 
 	var result string
 	var err error
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		result, err = ss.GetMaster().SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
@@ -609,7 +657,7 @@ func (ss *SqlSupplier) AlterColumnTypeIfExists(tableName string, columnName stri
 	}
 
 	var err error
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
@@ -697,7 +745,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err := ss.GetMaster().ExecNoTimeout("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
 			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
@@ -735,6 +783,24 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
 			mlog.Critical(fmt.Sprintf("Failed to check index %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
+		}
+
+		if count <= 0 {
+			return false
+		}
+
+		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName + " ON " + tableName)
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
+		}
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = current_database() and table_name = $1 AND index_name = $2", tableName, indexName)
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
