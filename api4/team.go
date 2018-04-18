@@ -376,15 +376,14 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
-	hash := r.URL.Query().Get("hash")
-	data := r.URL.Query().Get("data")
+	tokenId := r.URL.Query().Get("token")
 	inviteId := r.URL.Query().Get("invite_id")
 
 	var member *model.TeamMember
 	var err *model.AppError
 
-	if len(hash) > 0 && len(data) > 0 {
-		member, err = c.App.AddTeamMemberByHash(c.Session.UserId, hash, data)
+	if len(tokenId) > 0 {
+		member, err = c.App.AddTeamMemberByToken(c.Session.UserId, tokenId)
 	} else if len(inviteId) > 0 {
 		member, err = c.App.AddTeamMemberByInviteId(inviteId, c.Session.UserId)
 	} else {
