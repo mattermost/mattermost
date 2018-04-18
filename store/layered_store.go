@@ -252,3 +252,9 @@ func (s *LayeredRoleStore) GetByNames(names []string) StoreChannel {
 		return supplier.RoleGetByNames(s.TmpContext, names)
 	})
 }
+
+func (s *LayeredRoleStore) PermanentDeleteAll() StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.RolePermanentDeleteAll(s.TmpContext)
+	})
+}

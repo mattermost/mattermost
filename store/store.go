@@ -322,6 +322,7 @@ type SystemStore interface {
 	Update(system *model.System) StoreChannel
 	Get() StoreChannel
 	GetByName(name string) StoreChannel
+	PermanentDeleteByName(name string) StoreChannel
 }
 
 type WebhookStore interface {
@@ -476,4 +477,5 @@ type RoleStore interface {
 	Get(roleId string) StoreChannel
 	GetByName(name string) StoreChannel
 	GetByNames(names []string) StoreChannel
+	PermanentDeleteAll() StoreChannel
 }
