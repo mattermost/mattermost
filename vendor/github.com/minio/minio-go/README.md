@@ -130,7 +130,6 @@ The full API Reference is available here.
 ### API Reference : Bucket policy Operations
 * [`SetBucketPolicy`](https://docs.minio.io/docs/golang-client-api-reference#SetBucketPolicy)
 * [`GetBucketPolicy`](https://docs.minio.io/docs/golang-client-api-reference#GetBucketPolicy)
-* [`ListBucketPolicies`](https://docs.minio.io/docs/golang-client-api-reference#ListBucketPolicies)
 
 ### API Reference : Bucket notification Operations
 * [`SetBucketNotification`](https://docs.minio.io/docs/golang-client-api-reference#SetBucketNotification)
@@ -155,10 +154,6 @@ The full API Reference is available here.
 * [`RemoveObject`](https://docs.minio.io/docs/golang-client-api-reference#RemoveObject)
 * [`RemoveObjects`](https://docs.minio.io/docs/golang-client-api-reference#RemoveObjects)
 * [`RemoveIncompleteUpload`](https://docs.minio.io/docs/golang-client-api-reference#RemoveIncompleteUpload)
-
-### API Reference: Encrypted Object Operations
-* [`GetEncryptedObject`](https://docs.minio.io/docs/golang-client-api-reference#GetEncryptedObject)
-* [`PutEncryptedObject`](https://docs.minio.io/docs/golang-client-api-reference#PutEncryptedObject)
 
 ### API Reference : Presigned Operations
 * [`PresignedGetObject`](https://docs.minio.io/docs/golang-client-api-reference#PresignedGetObject)

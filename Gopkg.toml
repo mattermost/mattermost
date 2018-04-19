@@ -47,8 +47,7 @@
 # To use our fork
 [[constraint]]
   name = "github.com/minio/minio-go"
-  source = "https://github.com/mattermost/minio-go.git"
-  version = "4.0.7.1"
+  version = "6.0.0"
 
 # Fork for adding our own method to viper EnvSettings
 [[constraint]]
