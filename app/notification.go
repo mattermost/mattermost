@@ -89,6 +89,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		keywords := a.GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE)
 
 		m := GetExplicitMentions(post.Message, keywords)
+
+		// Add an implicit mention when a user is added to a channel
+		// even if the user has set 'username mentions' to false in account settings.
+		if post.Type == model.POST_ADD_TO_CHANNEL {
+			val := post.Props[model.POST_PROPS_ADDED_USER_ID]
+			if val != nil {
+				uid := val.(string)
+				m.MentionedUserIds[uid] = true
+			}
+		}
+
 		mentionedUserIds, hereNotification, channelNotification, allNotification = m.MentionedUserIds, m.HereMentioned, m.ChannelMentioned, m.AllMentioned
 
 		// get users that have comment thread mentions enabled
