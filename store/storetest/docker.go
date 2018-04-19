@@ -74,6 +74,28 @@ func NewPostgreSQLContainer() (*RunningContainer, *model.SqlSettings, error) {
 	return container, databaseSettings("postgres", "postgres://mmuser:mostest@127.0.0.1:"+port+"?sslmode=disable"), nil
 }
 
+func NewCockroachDBContainer() (*RunningContainer, *model.SqlSettings, error) {
+	container, err := runContainer([]string{
+		"cockroachdb/cockroach:v2.0.0",
+		"start",
+		"--store=type=mem,size=90%",
+		"--insecure",
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	l4g.Info("Waiting for cockroachdb connectivity")
+	port := container.NetworkSettings.Ports["26257/tcp"][0].HostPort
+	if err := waitForPort(port); err != nil {
+		container.Stop()
+		return nil, nil, err
+	}
+	_, _ = exec.Command("docker", "exec", "-it", container.Id, "./cockroach", "sql", "--insecure", "-e", "'CREATE DATABASE mmtest'").Output()
+	_, _ = exec.Command("docker", "exec", "-it", container.Id, "./cockroach", "sql", "--insecure", "-e", "'CREATE USER mmuser'").Output()
+	_, _ = exec.Command("docker", "exec", "-it", container.Id, "./cockroach", "sql", "--insecure", "-e", "'GRANT ALL ON DATABASE mmtest TO mmuser'").Output()
+	return container, databaseSettings("cockroach", "postgres://mmuser@127.0.0.1:"+port+"/mmtest?sslmode=disable"), nil
+}
+
 func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	settings := &model.SqlSettings{
 		DriverName:                  &driver,
