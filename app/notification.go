@@ -179,6 +179,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	if a.Config().EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
+			if profileMap[id] == nil {
+				continue
+			}
+
 			userAllowsEmails := profileMap[id].NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
 			if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
 				if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
@@ -279,6 +283,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	if sendPushNotifications {
 		for _, id := range mentionedUsersList {
+			if profileMap[id] == nil {
+				continue
+			}
+
 			var status *model.Status
 			var err *model.AppError
 			if status, err = a.GetStatus(id); err != nil {
@@ -291,6 +299,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		for _, id := range allActivityPushUserIds {
+			if profileMap[id] == nil {
+				continue
+			}
+
 			if _, ok := mentionedUserIds[id]; !ok {
 				var status *model.Status
 				var err *model.AppError
