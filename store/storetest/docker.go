@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -90,9 +91,11 @@ func NewCockroachDBContainer() (*RunningContainer, *model.SqlSettings, error) {
 		container.Stop()
 		return nil, nil, err
 	}
-	_, _ = exec.Command("docker", "exec", "-it", container.Id, "./cockroach", "sql", "--insecure", "-e", "'CREATE DATABASE mmtest'").Output()
-	_, _ = exec.Command("docker", "exec", "-it", container.Id, "./cockroach", "sql", "--insecure", "-e", "'CREATE USER mmuser'").Output()
-	_, _ = exec.Command("docker", "exec", "-it", container.Id, "./cockroach", "sql", "--insecure", "-e", "'GRANT ALL ON DATABASE mmtest TO mmuser'").Output()
+	db, err := dbsql.Open("postgres", "postgres://root@127.0.0.1:"+port+"?sslmode=disable")
+	defer db.Close()
+	db.Exec("CREATE DATABASE mmtest")
+	db.Exec("CREATE USER mmuser")
+	db.Exec("GRANT ALL ON DATABASE mmtest TO mmuser")
 	return container, databaseSettings("cockroach", "postgres://mmuser@127.0.0.1:"+port+"/mmtest?sslmode=disable"), nil
 }
 
