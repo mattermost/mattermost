@@ -23,6 +23,8 @@ func TestSendNotifications(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
+		Type:      model.POST_ADD_TO_CHANNEL,
+		Props:     map[string]interface{}{model.POST_PROPS_ADDED_USER_ID: "junk"},
 	}, true)
 
 	if err != nil {
