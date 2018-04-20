@@ -299,6 +299,22 @@ func (_m *Store) Role() store.RoleStore {
 	return r0
 }
 
+// Scheme provides a mock function with given fields:
+func (_m *Store) Scheme() store.SchemeStore {
+	ret := _m.Called()
+
+	var r0 store.SchemeStore
+	if rf, ok := ret.Get(0).(func() store.SchemeStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SchemeStore)
+		}
+	}
+
+	return r0
+}
+
 // Session provides a mock function with given fields:
 func (_m *Store) Session() store.SessionStore {
 	ret := _m.Called()

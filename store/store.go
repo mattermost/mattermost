@@ -62,6 +62,7 @@ type Store interface {
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
 	Role() RoleStore
+	Scheme() SchemeStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
@@ -105,6 +106,7 @@ type TeamStore interface {
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) StoreChannel
+	GetTeamsByScheme(schemeId string, offset int, limit int) StoreChannel
 }
 
 type ChannelStore interface {
@@ -162,6 +164,7 @@ type ChannelStore interface {
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
 	ClearCaches()
+	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -477,5 +480,12 @@ type RoleStore interface {
 	Get(roleId string) StoreChannel
 	GetByName(name string) StoreChannel
 	GetByNames(names []string) StoreChannel
+	Delete(roldId string) StoreChannel
 	PermanentDeleteAll() StoreChannel
+}
+
+type SchemeStore interface {
+	Save(scheme *model.Scheme) StoreChannel
+	Get(schemeId string) StoreChannel
+	Delete(schemeId string) StoreChannel
 }
