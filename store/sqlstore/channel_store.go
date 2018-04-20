@@ -1123,7 +1123,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.St
 				Teams ON Channels.TeamId = Teams.Id
 			LEFT JOIN
 				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-            WHERE
+			WHERE
 				ChannelMembers.UserId = :UserId
 				AND Posts.Id = :PostId`, map[string]interface{}{"UserId": userId, "PostId": postId}); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMemberForPost", "store.sql_channel.get_member_for_post.app_error", nil, "postId="+postId+", err="+err.Error(), http.StatusInternalServerError)
@@ -1172,8 +1172,8 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 			LEFT JOIN
 				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 			WHERE
-                Channels.DeleteAt = 0
-                AND ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
+				Channels.DeleteAt = 0
+				AND ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
