@@ -22,6 +22,7 @@ const (
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER                         = "inv_user"
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER                      = "clear_session_user"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES                        = "inv_roles"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES                      = "inv_schemes"
 
 	CLUSTER_SEND_BEST_EFFORT = "best_effort"
 	CLUSTER_SEND_RELIABLE    = "reliable"

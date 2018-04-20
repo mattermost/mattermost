@@ -84,6 +84,21 @@ func (s *RedisSupplier) RoleGetByNames(ctx context.Context, roleNames []string, 
 	return result
 }
 
+func (s *RedisSupplier) RoleDelete(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().RoleGet(ctx, roleId, hints...)
+
+	if result.Err == nil {
+		role := result.Data.(*model.Role)
+		key := buildRedisKeyForRoleName(role.Name)
+
+		if err := s.client.Del(key).Err(); err != nil {
+			l4g.Error("Redis failed to remove key " + key + " Error: " + err.Error())
+		}
+	}
+
+	return result
+}
+
 func (s *RedisSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	defer func() {
 		if keys, err := s.client.Keys("roles:*").Result(); err != nil {

@@ -1672,7 +1672,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// user 1 (team admin) tries to demote system admin (not member of a team)
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
@@ -1698,7 +1698,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// user 1 (team admin) tries to promote a random user
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TEAM_ADMIN)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "junk")

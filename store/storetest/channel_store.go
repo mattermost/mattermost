@@ -16,6 +16,8 @@ import (
 )
 
 func TestChannelStore(t *testing.T, ss store.Store) {
+	createDefaultRoles(t, ss)
+
 	t.Run("Save", func(t *testing.T) { testChannelStoreSave(t, ss) })
 	t.Run("SaveDirectChannel", func(t *testing.T) { testChannelStoreSaveDirectChannel(t, ss) })
 	t.Run("CreateDirectChannel", func(t *testing.T) { testChannelStoreCreateDirectChannel(t, ss) })
@@ -49,6 +51,8 @@ func TestChannelStore(t *testing.T, ss store.Store) {
 	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
 	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
 	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
+	t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, ss) })
+
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -2185,4 +2189,68 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
 	channel.Id = ""
 	result = <-ss.Channel().Save(channel, 1)
 	assert.Nil(t, result.Err)
+}
+
+func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
+	// Create some schemes.
+	s1 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+
+	s2 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+
+	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+
+	// Create and save some teams.
+	c1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &s1.Id,
+	}
+
+	c2 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &s1.Id,
+	}
+
+	c3 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+
+	c1 = (<-ss.Channel().Save(c1, 100)).Data.(*model.Channel)
+	c2 = (<-ss.Channel().Save(c2, 100)).Data.(*model.Channel)
+	c3 = (<-ss.Channel().Save(c3, 100)).Data.(*model.Channel)
+
+	// Get the channels by a valid Scheme ID.
+	res1 := <-ss.Channel().GetChannelsByScheme(s1.Id, 0, 100)
+	assert.Nil(t, res1.Err)
+	d1 := res1.Data.([]*model.Channel)
+	assert.Len(t, d1, 2)
+
+	// Get the channels by a valid Scheme ID where there aren't any matching Channel.
+	res2 := <-ss.Channel().GetChannelsByScheme(s2.Id, 0, 100)
+	assert.Nil(t, res2.Err)
+	d2 := res2.Data.([]*model.Channel)
+	assert.Len(t, d2, 0)
+
+	// Get the channels by an invalid Scheme ID.
+	res3 := <-ss.Channel().GetChannelsByScheme(model.NewId(), 0, 100)
+	assert.Nil(t, res3.Err)
+	d3 := res3.Data.([]*model.Channel)
+	assert.Len(t, d3, 0)
 }

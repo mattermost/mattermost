@@ -199,6 +199,10 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 	}
 
 	for _, role := range roles {
+		if role.DeleteAt != 0 {
+			continue
+		}
+
 		permissions := role.Permissions
 		for _, permission := range permissions {
 			if permission == permissionId {
