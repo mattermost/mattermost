@@ -728,14 +728,8 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	}
 	defer consumeAndClose(res)
 
-	var body io.Reader = res.Body
 	contentType := res.Header.Get("Content-Type")
-	r, err := charset.NewReader(body, contentType)
-	if err != nil {
-		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata force-encoding failed for contentType=%v with err=%v", contentType, err.Error()))
-	} else {
-		body = r
-	}
+	body := forceHTMLEncodingToUTF8(res.Body, contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
 		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error()))
@@ -744,6 +738,15 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	makeOpenGraphURLsAbsolute(og, requestURL)
 
 	return og
+}
+
+func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
+	r, err := charset.NewReader(body, contentType)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("forceHTMLEncodingToUTF8 failed to convert for contentType=%v with err=%v", contentType, err.Error()))
+		return body
+	}
+	return r
 }
 
 func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
