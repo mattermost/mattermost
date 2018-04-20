@@ -148,6 +148,14 @@ func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+func CopyStringMap(originalMap map[string]string) map[string]string {
+	copyMap := make(map[string]string)
+	for k, v := range originalMap {
+		copyMap[k] = v
+	}
+	return copyMap
+}
+
 // MapToJson converts a map to a json string
 func MapToJson(objmap map[string]string) string {
 	b, _ := json.Marshal(objmap)

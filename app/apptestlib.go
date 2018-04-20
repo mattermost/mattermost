@@ -31,6 +31,8 @@ type TestHelper struct {
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
 
+	SystemAdminUser *model.User
+
 	tempConfigPath string
 	tempWorkspace  string
 	pluginHooks    map[string]plugin.Hooks
@@ -139,6 +141,14 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicChannel = me.CreateChannel(me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicChannel)
+
+	return me
+}
+
+func (me *TestHelper) InitSystemAdmin() *TestHelper {
+	me.SystemAdminUser = me.CreateUser()
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
 
 	return me
 }
