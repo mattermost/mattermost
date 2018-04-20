@@ -1491,6 +1491,16 @@ func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel,
 	}
 }
 
+// ConvertChannelToPrivate converts public to private channel.
+func (c *Client4) ConvertChannelToPrivate(channelId string) (*Channel, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/convert", ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
 func (c *Client4) RestoreChannel(channelId string) (*Channel, *Response) {
 	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/restore", ""); err != nil {
