@@ -400,7 +400,7 @@ func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1"
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true"
 		}
 
@@ -424,7 +424,7 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) store.StoreCh
 	return store.Do(func(result *store.StoreResult) {
 		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
 		}
 

@@ -65,6 +65,8 @@ const (
 	EXIT_DOES_COLUMN_EXISTS_COCKROACH = 139
 )
 
+// TODO: Add COCKROACH errors
+
 type SqlSupplierOldStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
@@ -382,7 +384,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 			FROM
 			    information_schema.TABLES
 			WHERE
-			    table_schema = current_database()
+			    table_catalog = current_database()
 			        AND table_name = $1
 		    `,
 			tableName,
@@ -486,7 +488,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		FROM
 		    information_schema.columns
 		WHERE
-		    table_schema = current_database()
+		    table_catalog = current_database()
 		        AND table_name = $1
 		        AND column_name = $2`,
 			tableName,
@@ -640,6 +642,8 @@ func (ss *SqlSupplier) GetMaxLengthOfColumnIfExists(tableName string, columnName
 		result, err = ss.GetMaster().SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
 	}
 
 	if err != nil {
@@ -745,6 +749,27 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE table_catalog = current_database() and table_name = $1 AND index_name = $2", tableName, indexName)
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_INDEX_MYSQL)
+		}
+
+		if count > 0 {
+			return false
+		}
+
+		// Ignore fullTextIndex, not supported on cockroachdb
+
+		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
+		if err != nil {
+			l4g.Critical("Failed to create index %v", err)
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
+		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err := ss.GetMaster().ExecNoTimeout("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
@@ -798,7 +823,7 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = current_database() and table_name = $1 AND index_name = $2", tableName, indexName)
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE table_catalog = current_database() and table_name = $1 AND index_name = $2", tableName, indexName)
 		if err != nil {
 			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
 			time.Sleep(time.Second)
