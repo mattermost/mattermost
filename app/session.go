@@ -63,7 +63,13 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		var err *model.AppError
 		session, err = a.createSessionForUserAccessToken(token)
 		if err != nil {
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, err.Error(), http.StatusUnauthorized)
+			detailedError := ""
+			statusCode := http.StatusUnauthorized
+			if err.Id != "app.user_access_token.invalid_or_missing" {
+				detailedError = err.Error()
+				statusCode = err.StatusCode
+			}
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, detailedError, statusCode)
 		}
 	}
 
