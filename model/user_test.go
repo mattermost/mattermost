@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPasswordHash(t *testing.T) {
@@ -20,6 +22,36 @@ func TestPasswordHash(t *testing.T) {
 	if ComparePassword(hash, "Test2") {
 		t.Fatal("Passwords should not have matched")
 	}
+}
+
+func TestUserDeepCopy(t *testing.T) {
+	id := NewId()
+	authData := "authdata"
+	mapKey := "key"
+	mapValue := "key"
+
+	user := &User{Id: id, AuthData: NewString(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
+	user.Props[mapKey] = mapValue
+	user.NotifyProps[mapKey] = mapValue
+	user.Timezone[mapKey] = mapValue
+
+	copyUser := user.DeepCopy()
+	copyUser.Id = "someid"
+	*copyUser.AuthData = "changed"
+	copyUser.Props[mapKey] = "changed"
+	copyUser.NotifyProps[mapKey] = "changed"
+	copyUser.Timezone[mapKey] = "changed"
+
+	assert.Equal(t, id, user.Id)
+	assert.Equal(t, authData, *user.AuthData)
+	assert.Equal(t, mapValue, user.Props[mapKey])
+	assert.Equal(t, mapValue, user.NotifyProps[mapKey])
+	assert.Equal(t, mapValue, user.Timezone[mapKey])
+
+	user = &User{Id: id}
+	copyUser = user.DeepCopy()
+
+	assert.Equal(t, id, user.Id)
 }
 
 func TestUserJson(t *testing.T) {

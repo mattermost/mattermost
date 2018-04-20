@@ -287,6 +287,28 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		return false
 	}
 
+	// If the event contains sanitized data, only send to users that don't have permission to
+	// see sensitive data. Prevents admin clients from receiving events with bad data
+	var hasReadPrivateDataPermission *bool
+	if msg.Broadcast.ContainsSanitizedData {
+		hasReadPrivateDataPermission = model.NewBool(webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
+
+		if *hasReadPrivateDataPermission {
+			return false
+		}
+	}
+
+	// If the event contains sensitive data, only send to users with permission to see it
+	if msg.Broadcast.ContainsSensitiveData {
+		if hasReadPrivateDataPermission == nil {
+			hasReadPrivateDataPermission = model.NewBool(webCon.App.RolesGrantPermission(webCon.GetSession().GetUserRoles(), model.PERMISSION_MANAGE_SYSTEM.Id))
+		}
+
+		if !*hasReadPrivateDataPermission {
+			return false
+		}
+	}
+
 	// If the event is destined to a specific user
 	if len(msg.Broadcast.UserId) > 0 {
 		if webCon.UserId == msg.Broadcast.UserId {
