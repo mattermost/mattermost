@@ -527,10 +527,20 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 
 		return true
 
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
+		}
+
+		return true
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD COLUMN IF NOT EXISTS " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
