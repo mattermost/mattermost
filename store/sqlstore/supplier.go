@@ -764,7 +764,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		// Ignore fullTextIndex, not supported on cockroachdb
 
-		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
+		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + " INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
 			l4g.Critical("Failed to create index %v", err)
 			time.Sleep(time.Second)

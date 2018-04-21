@@ -38,7 +38,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) store.StoreChann
 			return
 		}
 
-		if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES || ps.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 			// Unfortunately PostgreSQL pre-9.5 does not have an atomic upsert, so we use
 			// separate update and insert queries to accomplish our upsert
 			if rowsAffected, err := ps.GetMaster().Update(kv); err != nil {

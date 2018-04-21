@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cockroachdb/cockroach-go/crdb"
 	"github.com/mattermost/gorp"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -319,15 +321,21 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 			return
 		}
 
-		*result = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-		if result.Err != nil {
-			transaction.Rollback()
-			return
-		}
+		if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+			crdb.ExecuteInTx(context.Background(), transaction, func() error {
+				*result = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+				return nil
+			})
+		} else {
+			*result = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+			if result.Err != nil {
+				transaction.Rollback()
+				return
+			}
 
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
+			if err := transaction.Commit(); err != nil {
+				result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	})
 }
@@ -1418,6 +1426,17 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 			        UserId = :UserId
 			        AND (` + updateIdQuery + `)`
 		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			updateQuery = `UPDATE
+				ChannelMembers
+			SET
+			    MentionCount = 0,
+			    MsgCount = CASE ChannelId ` + msgCountQuery + ` END,
+			    LastViewedAt = CASE ChannelId ` + lastViewedQuery + ` END,
+			    LastUpdateAt = CASE ChannelId ` + lastViewedQuery + ` END
+			WHERE
+			        UserId = :UserId
+			        AND (` + updateIdQuery + `)`
+		} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 			updateQuery = `UPDATE
 				ChannelMembers
 			SET

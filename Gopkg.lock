@@ -27,6 +27,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/cockroachdb/cockroach-go"
+  packages = ["crdb"]
+  revision = "59c0560478b705bf9bd12f9252224a0fad7c87df"
+
+[[projects]]
+  branch = "master"
   name = "github.com/corpix/uarand"
   packages = ["."]
   revision = "2b8494104d86337cdd41d0a49cbed8e4583c0ab4"

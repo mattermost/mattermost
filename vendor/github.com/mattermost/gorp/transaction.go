@@ -66,6 +66,15 @@ func (t *Transaction) Exec(query string, args ...interface{}) (sql.Result, error
 	return exec(t, query, true, args...)
 }
 
+// Exec has the same behavior as DbMap.Exec(), but runs in a transaction.
+func (t *Transaction) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	if t.dbmap.logger != nil {
+		now := time.Now()
+		defer t.dbmap.trace(now, query, args...)
+	}
+	return execContext(ctx, t, query, true, args...)
+}
+
 // ExecNoTimeout has the same behavior as DbMap.ExecNoTimeout(), but runs in a transaction.
 func (t *Transaction) ExecNoTimeout(query string, args ...interface{}) (sql.Result, error) {
 	if t.dbmap.logger != nil {

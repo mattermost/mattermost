@@ -178,6 +178,27 @@ func exec(e SqlExecutor, query string, doTimeout bool, args ...interface{}) (sql
 	return executor.ExecContext(ctx, query, args...)
 }
 
+func execContext(ctx context.Context, e SqlExecutor, query string, doTimeout bool, args ...interface{}) (sql.Result, error) {
+	var dbMap *DbMap
+	var executor executor
+	switch m := e.(type) {
+	case *DbMap:
+		executor = m.Db
+		dbMap = m
+	case *Transaction:
+		executor = m.tx
+		dbMap = m.dbmap
+	}
+
+	if len(args) == 1 {
+		query, args = maybeExpandNamedQuery(dbMap, query, args)
+	}
+
+	newCtx, cancel := context.WithTimeout(ctx, dbMap.QueryTimeout)
+	defer cancel()
+	return executor.ExecContext(newCtx, query, args...)
+}
+
 // maybeExpandNamedQuery checks the given arg to see if it's eligible to be used
 // as input to a named query.  If so, it rewrites the query to use
 // dialect-dependent bindvars and instantiates the corresponding slice of
