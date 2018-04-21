@@ -83,6 +83,8 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *gorp.T
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = :Id"
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.Id = :Id"
+	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = "DELETE FROM Sessions s WHERE Token IN (SELECT Token FROM UserAccessTokens Id = :Id)"
 	}
 
 	if _, err := transaction.Exec(query, map[string]interface{}{"Id": tokenId}); err != nil {
@@ -135,6 +137,8 @@ func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *gorp
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.UserId = :UserId"
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.UserId = :UserId"
+	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = "DELETE FROM Sessions s WHERE Token IN (SELECT Token FROM UserAccessTokens UserId = :UserId)"
 	}
 
 	if _, err := transaction.Exec(query, map[string]interface{}{"UserId": userId}); err != nil {
@@ -273,6 +277,8 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *gorp
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = :Id"
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.Id = :Id"
+	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = "DELETE FROM Sessions s WHERE Token IN (SELECT Token FROM UserAccessTokens Id = :Id)"
 	}
 
 	if _, err := transaction.Exec(query, map[string]interface{}{"Id": tokenId}); err != nil {

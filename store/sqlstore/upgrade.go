@@ -163,7 +163,7 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 			}
 
 			// increase size of Value column of Preferences table to match the size of the ThemeProps column
-			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES || sqlStore.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
 					themeMigrationFailed(err)
 				}
