@@ -954,6 +954,23 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 				terms = strings.Join(splitTerms, " ")
 			}
+		} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+			searchClause := "AND ("
+			for _, term := range strings.Fields(terms) {
+				searchClause += fmt.Sprintf("%s ILIKE '%%%s%%' OR ", searchType, term)
+			}
+			searchClause = searchClause[:len(searchClause)-4]
+			searchClause += ")"
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+
+			if !params.OrTerms {
+				splitTerms := strings.Fields(terms)
+				for i, t := range strings.Fields(terms) {
+					splitTerms[i] = "+" + t
+				}
+
+				terms = strings.Join(splitTerms, " ")
+			}
 		}
 
 		queryParams["Terms"] = terms
