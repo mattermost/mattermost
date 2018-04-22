@@ -1729,6 +1729,16 @@ func (s SqlChannelStore) buildFulltextClause(term string) (fulltextClause, fullt
 		fulltextTerm = strings.Join(splitTerm, " ")
 
 		fulltextClause = fmt.Sprintf("MATCH(%s) AGAINST (:FulltextTerm IN BOOLEAN MODE)", searchColumns)
+	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		fulltextClause = "("
+		for _, term := range strings.Fields(fulltextTerm) {
+			fulltextClause += fmt.Sprintf("%s ILIKE '%% %s %%' OR ", searchColumns, term)
+			fulltextClause += fmt.Sprintf("%s ILIKE '%% %s' OR ", searchColumns, term)
+			fulltextClause += fmt.Sprintf("%s ILIKE '%s %%' OR ", searchColumns, term)
+			fulltextClause += fmt.Sprintf("%s ILIKE '%s' OR ", searchColumns, term)
+		}
+		fulltextClause = fulltextClause[:len(fulltextClause)-4]
+		fulltextClause += ")"
 	}
 
 	return

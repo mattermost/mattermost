@@ -957,7 +957,10 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 		} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 			searchClause := "AND ("
 			for _, term := range strings.Fields(terms) {
-				searchClause += fmt.Sprintf("%s ILIKE '%%%s%%' OR ", searchType, term)
+				searchClause += fmt.Sprintf("%s ILIKE '%% %s %%' OR ", searchType, term)
+				searchClause += fmt.Sprintf("%s ILIKE '%% %s' OR ", searchType, term)
+				searchClause += fmt.Sprintf("%s ILIKE '%s %%' OR ", searchType, term)
+				searchClause += fmt.Sprintf("%s ILIKE '%s' OR ", searchType, term)
 			}
 			searchClause = searchClause[:len(searchClause)-4]
 			searchClause += ")"
