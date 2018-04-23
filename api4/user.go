@@ -955,8 +955,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			if len(certPem) == 0 || len(certEmail) == 0 {
 				c.Err = model.NewAppError("ClientSideCertMissing", "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate", nil, "", http.StatusBadRequest)
 				return
-			} else {
+			} else if *c.App.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
 				loginId = certEmail
+				password = "certificate"
 			}
 		}
 	}

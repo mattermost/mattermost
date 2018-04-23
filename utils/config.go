@@ -644,6 +644,10 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["SamlLoginButtonColor"] = *c.SamlSettings.LoginButtonColor
 			props["SamlLoginButtonBorderColor"] = *c.SamlSettings.LoginButtonBorderColor
 			props["SamlLoginButtonTextColor"] = *c.SamlSettings.LoginButtonTextColor
+
+			// do this under the correct licensed feature
+			props["ExperimentalClientSideCertEnable"] = strconv.FormatBool(*c.ExperimentalSettings.ClientSideCertEnable)
+			props["ExperimentalClientSideCertCheck"] = *c.ExperimentalSettings.ClientSideCertCheck
 		}
 
 		if *license.Features.Cluster {
