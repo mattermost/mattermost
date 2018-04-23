@@ -730,20 +730,7 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	defer consumeAndClose(res)
 
 	contentType := res.Header.Get("Content-Type")
-
-	var isUTF8 bool
-	if _, params, err := mime.ParseMediaType(contentType); err == nil {
-		if charset, ok := params["charset"]; ok {
-			isUTF8 = strings.EqualFold(charset, "utf-8")
-		}
-	}
-
-	var body io.Reader
-	if isUTF8 {
-		body = res.Body
-	} else {
-		body = forceHTMLEncodingToUTF8(res.Body, contentType)
-	}
+	body := forceHTMLEncodingToUTF8(res.Body, contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
 		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error()))
@@ -755,6 +742,16 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 }
 
 func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
+	var isUTF8 bool
+	if _, params, err := mime.ParseMediaType(contentType); err == nil {
+		if charset, ok := params["charset"]; ok {
+			isUTF8 = strings.EqualFold(charset, "utf-8")
+		}
+	}
+	if isUTF8 {
+		return body
+	}
+
 	r, err := charset.NewReader(body, contentType)
 	if err != nil {
 		mlog.Error(fmt.Sprintf("forceHTMLEncodingToUTF8 failed to convert for contentType=%v with err=%v", contentType, err.Error()))
