@@ -27,6 +27,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(getChannel)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(updateChannel)).Methods("PUT")
 	api.BaseRoutes.Channel.Handle("/patch", api.ApiSessionRequired(patchChannel)).Methods("PUT")
+	api.BaseRoutes.Channel.Handle("/convert", api.ApiSessionRequired(convertChannelToPrivate)).Methods("POST")
 	api.BaseRoutes.Channel.Handle("/restore", api.ApiSessionRequired(restoreChannel)).Methods("POST")
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(deleteChannel)).Methods("DELETE")
 	api.BaseRoutes.Channel.Handle("/stats", api.ApiSessionRequired(getChannelStats)).Methods("GET")
@@ -119,7 +120,6 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	oldChannel.Purpose = channel.Purpose
 
 	oldChannelDisplayName := oldChannel.DisplayName
-	oldChannelType := oldChannel.Type
 
 	if len(channel.DisplayName) > 0 {
 		oldChannel.DisplayName = channel.DisplayName
@@ -143,14 +143,48 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if oldChannelType == model.CHANNEL_OPEN && channel.Type == model.CHANNEL_PRIVATE {
-			if err := c.App.PostConvertChannelToPrivate(c.Session.UserId, channel); err != nil {
-				l4g.Error(err.Error())
-			}
-		}
-
 		c.LogAudit("name=" + channel.Name)
 		w.Write([]byte(oldChannel.ToJson()))
+	}
+}
+
+func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	oldPublicChannel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	} else if oldPublicChannel.Type == model.CHANNEL_PRIVATE {
+		c.Err = model.NewAppError("convertChannelToPrivate", "api.channel.convert_channel_to_private.private_channel_error", nil, "", http.StatusBadRequest)
+		return
+	} else if oldPublicChannel.Name == model.DEFAULT_CHANNEL {
+		c.Err = model.NewAppError("convertChannelToPrivate", "api.channel.convert_channel_to_private.default_channel_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	var user *model.User
+	if user, err = c.App.GetUser(c.Session.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	oldPublicChannel.Type = model.CHANNEL_PRIVATE
+
+	if rchannel, err := c.App.UpdateChannelPrivacy(oldPublicChannel, user); err != nil {
+		c.Err = err
+		return
+	} else {
+		c.LogAudit("name=" + rchannel.Name)
+		w.Write([]byte(rchannel.ToJson()))
 	}
 }
 
