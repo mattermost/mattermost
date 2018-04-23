@@ -171,6 +171,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			esInterface.IndexPost(rpost, channel.TeamId)
 		})
 	}
+	if a.Bleve != nil {
+		a.Go(func() {
+			a.Bleve.IndexPost(rpost, channel.TeamId)
+		})
+	}
 
 	if a.Metrics != nil {
 		a.Metrics.IncrementPostCreate()
@@ -384,6 +389,15 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 				}
 			})
 		}
+		if a.Bleve != nil {
+			a.Go(func() {
+				if rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
+					l4g.Error("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id)
+				} else {
+					a.Bleve.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
+				}
+			})
+		}
 
 		a.sendUpdatedPostEvent(rpost)
 
@@ -567,6 +581,11 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 				esInterface.DeletePost(post)
 			})
 		}
+		if a.Bleve != nil {
+			a.Go(func() {
+				a.Bleve.DeletePost(post)
+			})
+		}
 
 		a.InvalidateCacheForChannelPosts(post.ChannelId)
 
@@ -595,7 +614,8 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := a.Elasticsearch
-	if license := a.License(); esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {
+	license := a.License()
+	if a.Bleve != nil || (esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch) {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {
@@ -636,9 +656,17 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			return nil, err
 		}
 
-		postIds, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList)
-		if err != nil {
-			return nil, err
+		var postIds []string
+		if esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {
+			postIds, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			postIds, err := a.Bleve.SearchPosts(userChannels, finalParamsList)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		// Get the posts

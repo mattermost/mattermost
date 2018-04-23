@@ -146,6 +146,8 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
 	ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS           = 30
 
+	BLEVE_SETTINGS_DEFAULT_FILENAME = ""
+
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
@@ -1560,6 +1562,16 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	}
 }
 
+type BleveSettings struct {
+	Filename *string
+}
+
+func (s *BleveSettings) SetDefaults() {
+	if s.Filename == nil {
+		s.Filename = NewString(BLEVE_SETTINGS_DEFAULT_FILENAME)
+	}
+}
+
 type DataRetentionSettings struct {
 	EnableMessageDeletion *bool
 	EnableFileDeletion    *bool
@@ -1769,6 +1781,7 @@ type Config struct {
 	AnalyticsSettings     AnalyticsSettings
 	WebrtcSettings        WebrtcSettings
 	ElasticsearchSettings ElasticsearchSettings
+	BleveSettings         BleveSettings
 	DataRetentionSettings DataRetentionSettings
 	MessageExportSettings MessageExportSettings
 	JobSettings           JobSettings
@@ -1837,6 +1850,7 @@ func (o *Config) SetDefaults() {
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
+	o.BleveSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
@@ -1902,6 +1916,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.ElasticsearchSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.BleveSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -2229,6 +2247,14 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 	}
 
 	return nil
+}
+
+func (ess *BleveSettings) isValid() *AppError {
+	if *ess.EnableIndexing {
+		if len(*ess.Filename) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
 }
 
 func (drs *DataRetentionSettings) isValid() *AppError {

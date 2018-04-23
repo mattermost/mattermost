@@ -57,6 +57,7 @@ type App struct {
 	Metrics          einterfaces.MetricsInterface
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
+	Bleve            einterfaces.ElasticsearchInterface
 
 	config          atomic.Value
 	envConfig       map[string]interface{}

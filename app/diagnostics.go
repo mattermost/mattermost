@@ -41,6 +41,7 @@ const (
 	TRACK_CONFIG_ANALYTICS      = "config_analytics"
 	TRACK_CONFIG_ANNOUNCEMENT   = "config_announcement"
 	TRACK_CONFIG_ELASTICSEARCH  = "config_elasticsearch"
+	TRACK_CONFIG_BLEVE          = "config_bleve"
 	TRACK_CONFIG_PLUGIN         = "config_plugin"
 	TRACK_CONFIG_DATA_RETENTION = "config_data_retention"
 	TRACK_CONFIG_MESSAGE_EXPORT = "config_message_export"
@@ -488,6 +489,10 @@ func (a *App) trackConfig() {
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
 		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_BLEVE, map[string]interface{}{
+		"isdefault_filename": isDefault(*cfg.BleveSettings.Filename, model.BLEVE_SETTINGS_DEFAULT_FILENAME),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
