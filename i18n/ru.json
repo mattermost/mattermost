@@ -216,6 +216,14 @@
     "translation": "Канал преобразован в приватный."
   },
   {
+    "id": "api.channel.convert_channel_to_private.default_channel_error",
+    "translation": "This default channel cannot be converted into a private channel."
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.private_channel_error",
+    "translation": "The channel requested to convert is already a private channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Нужно использовать createDirectChannel из API для создания канала личных сообщений"
   },
@@ -330,18 +338,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v покинул канал."
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "Failed to post channel conversion to private message"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "Failed to retrieve user while converting the channel from public to private"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s converted the channel from public to private"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -787,6 +783,54 @@
     "translation": "помощь"
   },
   {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Ошибка получения текущего канала."
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Invite a user to a channel"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "Вы не можете удалить кого-либо из канала прямого сообщения."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Во время присоединения к каналу произошла ошибка."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[username] ~[channel]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Missing Username and Channel."
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "Не удалось найти пользователя"
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "invite"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} added to {{.Channel}} channel."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} is already in the channel."
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "Присоединиться к отрытому каналу"
   },
@@ -913,6 +957,14 @@
   {
     "id": "api.command_mute.name",
     "translation": "mute"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Could not mute channel {{.Channel}} as you are not a member."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2795,12 +2847,12 @@
     "translation": "Возникла проблема при присоединении к каналам по умолчанию user_id=%s, team_id=%s, err=%v"
   },
   {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Missing Hash or URL query data."
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "Отсутствует Invite Id."
+  },
+  {
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "Missing Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2849,6 +2901,10 @@
   {
     "id": "api.user.get_me.getting.error",
     "translation": "Ошибка при получении профиля пользователя для id=%v, принудительный выход"
+  },
+  {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "Unable to get profile image, user not found."
   },
   {
     "id": "api.user.init.debug",
@@ -3241,6 +3297,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Недопустимый параметр {{.Name}}"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -5743,10 +5803,6 @@
     "translation": "Не удалось создать колонку по причине отсутствующего драйвера"
   },
   {
-    "id": "store.sql.create_index.critical",
-    "translation": "Не удалось создать индекс %v"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "Не удалось создать индекс из-за отсутствия драйвера"
   },
@@ -5771,10 +5827,6 @@
     "translation": "Не удалось получить максимальную длину колонки %v"
   },
   {
-    "id": "store.sql.open_conn.critical",
-    "translation": "Не удалось открыть SQL соединение с err:%v"
-  },
-  {
     "id": "store.sql.open_conn.panic",
     "translation": "Не удалось открыть SQL соединение %v"
   },
@@ -5793,10 +5845,6 @@
   {
     "id": "store.sql.schema_out_of_date.warn",
     "translation": "Похоже, версия схемы базы данных %v устарела."
-  },
-  {
-    "id": "store.sql.schema_set.info",
-    "translation": "Для схемы базы данных установлена версия %v"
   },
   {
     "id": "store.sql.schema_upgrade_attempt.warn",
@@ -6531,10 +6579,6 @@
     "translation": "Возникла ошибка при удалении настроек"
   },
   {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "Удаление всех неиспользуемых пред-релизных функций"
-  },
-  {
     "id": "store.sql_preference.get.app_error",
     "translation": "Возникла ошибка при поиске настроек"
   },
@@ -6641,6 +6685,10 @@
   {
     "id": "store.sql_role.get_by_names.app_error",
     "translation": "Не удалось получить post"
+  },
+  {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6757,6 +6805,10 @@
   {
     "id": "store.sql_system.get_version.app_error",
     "translation": "Не удалось получить версию базы данных"
+  },
+  {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7328,7 +7380,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Notification From Address setting is missing or invalid."
+    "translation": "Error setting \"From Address\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7344,7 +7396,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Notification To Address setting is missing or invalid."
+    "translation": "Error setting \"To Address\""
   },
   {
     "id": "utils.mail.test.configured.error",
