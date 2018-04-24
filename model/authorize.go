@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -115,7 +117,7 @@ func (ad *AuthData) PreSave() {
 }
 
 func (ad *AuthData) ToJson() string {
-	b, _ := json.Marshal(ad)
+	b, _ := jsoniter.Marshal(ad)
 	return string(b)
 }
 
@@ -126,7 +128,7 @@ func AuthDataFromJson(data io.Reader) *AuthData {
 }
 
 func (ar *AuthorizeRequest) ToJson() string {
-	b, _ := json.Marshal(ar)
+	b, _ := jsoniter.Marshal(ar)
 	return string(b)
 }
 

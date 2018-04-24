@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"encoding/json"
 	"image"
 	"image/color"
 	"math/rand"
@@ -13,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -278,7 +278,7 @@ func getUserFromDB(a *App, id string, t *testing.T) *model.User {
 func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byte {
 	var payload []byte
 	var err error
-	if payload, err = json.Marshal(gitlabUser); err != nil {
+	if payload, err = jsoniter.Marshal(gitlabUser); err != nil {
 		t.Fatal("Serialization of gitlab user to json failed")
 	}
 

@@ -6,12 +6,14 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type ChannelList []*Channel
 
 func (o *ChannelList) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	if b, err := jsoniter.Marshal(o); err != nil {
 		return "[]"
 	} else {
 		return string(b)

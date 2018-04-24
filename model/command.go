@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -38,7 +40,7 @@ type Command struct {
 }
 
 func (o *Command) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -49,7 +51,7 @@ func CommandFromJson(data io.Reader) *Command {
 }
 
 func CommandListToJson(l []*Command) string {
-	b, _ := json.Marshal(l)
+	b, _ := jsoniter.Marshal(l)
 	return string(b)
 }
 

@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type ChannelView struct {
@@ -14,7 +16,7 @@ type ChannelView struct {
 }
 
 func (o *ChannelView) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -30,7 +32,7 @@ type ChannelViewResponse struct {
 }
 
 func (o *ChannelViewResponse) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

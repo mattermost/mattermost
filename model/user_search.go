@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type UserSearch struct {
@@ -20,7 +22,7 @@ type UserSearch struct {
 
 // ToJson convert a User to a json string
 func (u *UserSearch) ToJson() string {
-	b, _ := json.Marshal(u)
+	b, _ := jsoniter.Marshal(u)
 	return string(b)
 }
 

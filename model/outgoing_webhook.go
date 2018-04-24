@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/json-iterator/go"
 )
 
 type OutgoingWebhook struct {
@@ -58,7 +60,7 @@ type OutgoingWebhookResponse struct {
 const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
 
 func (o *OutgoingWebhookPayload) ToJSON() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -81,7 +83,7 @@ func (o *OutgoingWebhookPayload) ToFormValues() string {
 }
 
 func (o *OutgoingWebhook) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -92,7 +94,7 @@ func OutgoingWebhookFromJson(data io.Reader) *OutgoingWebhook {
 }
 
 func OutgoingWebhookListToJson(l []*OutgoingWebhook) string {
-	b, _ := json.Marshal(l)
+	b, _ := jsoniter.Marshal(l)
 	return string(b)
 }
 
@@ -103,7 +105,7 @@ func OutgoingWebhookListFromJson(data io.Reader) []*OutgoingWebhook {
 }
 
 func (o *OutgoingWebhookResponse) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

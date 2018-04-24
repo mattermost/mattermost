@@ -5,11 +5,11 @@ package rpcplugin
 
 import (
 	"encoding/gob"
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/rpc"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -24,7 +24,7 @@ func (api *LocalAPI) LoadPluginConfiguration(args struct{}, reply *[]byte) error
 	if err := api.api.LoadPluginConfiguration(&config); err != nil {
 		return err
 	}
-	b, err := json.Marshal(config)
+	b, err := jsoniter.Marshal(config)
 	if err != nil {
 		return err
 	}
@@ -406,7 +406,7 @@ func (api *RemoteAPI) LoadPluginConfiguration(dest interface{}) error {
 	if err := api.client.Call("LocalAPI.LoadPluginConfiguration", struct{}{}, &config); err != nil {
 		return err
 	}
-	return json.Unmarshal(config, dest)
+	return jsoniter.Unmarshal(config, dest)
 }
 
 func (api *RemoteAPI) RegisterCommand(command *model.Command) error {

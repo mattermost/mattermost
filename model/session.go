@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"strings"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -56,7 +58,7 @@ func (me *Session) DeepCopy() *Session {
 }
 
 func (me *Session) ToJson() string {
-	b, _ := json.Marshal(me)
+	b, _ := jsoniter.Marshal(me)
 	return string(b)
 }
 
@@ -136,7 +138,7 @@ func (me *Session) GetUserRoles() []string {
 }
 
 func SessionsToJson(o []*Session) string {
-	if b, err := json.Marshal(o); err != nil {
+	if b, err := jsoniter.Marshal(o); err != nil {
 		return "[]"
 	} else {
 		return string(b)

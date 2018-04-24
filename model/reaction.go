@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+
+	"github.com/json-iterator/go"
 )
 
 type Reaction struct {
@@ -18,7 +20,7 @@ type Reaction struct {
 }
 
 func (o *Reaction) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -33,7 +35,7 @@ func ReactionFromJson(data io.Reader) *Reaction {
 }
 
 func ReactionsToJson(o []*Reaction) string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

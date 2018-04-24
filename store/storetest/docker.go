@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -12,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/mlog"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -106,7 +107,7 @@ func runContainer(args []string) (*RunningContainer, error) {
 		return nil, err
 	}
 	var containers []Container
-	if err := json.Unmarshal(out, &containers); err != nil {
+	if err := jsoniter.Unmarshal(out, &containers); err != nil {
 		exec.Command("docker", "rm", "-f", id).Run()
 		return nil, err
 	}

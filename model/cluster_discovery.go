@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -113,7 +115,7 @@ func (o *ClusterDiscovery) IsValid() *AppError {
 }
 
 func (o *ClusterDiscovery) ToJson() string {
-	b, err := json.Marshal(o)
+	b, err := jsoniter.Marshal(o)
 	if err != nil {
 		return ""
 	}

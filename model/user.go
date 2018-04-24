@@ -12,6 +12,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/json-iterator/go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -333,17 +334,17 @@ func (u *User) Patch(patch *UserPatch) {
 
 // ToJson convert a User to a json string
 func (u *User) ToJson() string {
-	b, _ := json.Marshal(u)
+	b, _ := jsoniter.Marshal(u)
 	return string(b)
 }
 
 func (u *UserPatch) ToJson() string {
-	b, _ := json.Marshal(u)
+	b, _ := jsoniter.Marshal(u)
 	return string(b)
 }
 
 func (u *UserAuth) ToJson() string {
-	b, _ := json.Marshal(u)
+	b, _ := jsoniter.Marshal(u)
 	return string(b)
 }
 
@@ -518,7 +519,7 @@ func UserAuthFromJson(data io.Reader) *UserAuth {
 }
 
 func UserMapToJson(u map[string]*User) string {
-	b, _ := json.Marshal(u)
+	b, _ := jsoniter.Marshal(u)
 	return string(b)
 }
 
@@ -529,7 +530,7 @@ func UserMapFromJson(data io.Reader) map[string]*User {
 }
 
 func UserListToJson(u []*User) string {
-	b, _ := json.Marshal(u)
+	b, _ := jsoniter.Marshal(u)
 	return string(b)
 }
 

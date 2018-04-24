@@ -4,7 +4,6 @@
 package rpcplugintest
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -166,7 +166,7 @@ func testSupervisor_PluginCrash(t *testing.T, sp SupervisorProviderFunc) {
 	var api plugintest.API
 	shouldExit := true
 	api.On("LoadPluginConfiguration", mock.MatchedBy(func(x interface{}) bool { return true })).Return(func(dest interface{}) error {
-		err := json.Unmarshal([]byte(fmt.Sprintf(`{"ShouldExit": %v}`, shouldExit)), dest)
+		err := jsoniter.Unmarshal([]byte(fmt.Sprintf(`{"ShouldExit": %v}`, shouldExit)), dest)
 		shouldExit = false
 		return err
 	})

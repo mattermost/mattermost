@@ -4,9 +4,10 @@
 package model
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/json-iterator/go"
 )
 
 func TestStatus(t *testing.T) {
@@ -36,7 +37,7 @@ func TestStatusListToJson(t *testing.T) {
 	jsonStatuses := StatusListToJson(statuses)
 
 	var dat []map[string]interface{}
-	if err := json.Unmarshal([]byte(jsonStatuses), &dat); err != nil {
+	if err := jsoniter.Unmarshal([]byte(jsonStatuses), &dat); err != nil {
 		panic(err)
 	}
 
@@ -56,7 +57,7 @@ func TestStatusListFromJson(t *testing.T) {
     		 [{"user_id":"k39fowpzhfffjxeaw8ecyrygme","status":"online","manual":true,"last_activity_at":0},{"user_id":"e9f1bbg8wfno7b3k7yk79bbwfy","status":"offline","manual":true,"last_activity_at":0}]
     	`
 	var dat []map[string]interface{}
-	if err := json.Unmarshal([]byte(jsonStream), &dat); err != nil {
+	if err := jsoniter.Unmarshal([]byte(jsonStream), &dat); err != nil {
 		panic(err)
 	}
 

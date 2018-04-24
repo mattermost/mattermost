@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -131,13 +132,13 @@ func (wsc *WebSocketClient) Listen() {
 			}
 
 			var event WebSocketEvent
-			if err := json.Unmarshal(rawMsg, &event); err == nil && event.IsValid() {
+			if err := jsoniter.Unmarshal(rawMsg, &event); err == nil && event.IsValid() {
 				wsc.EventChannel <- &event
 				continue
 			}
 
 			var response WebSocketResponse
-			if err := json.Unmarshal(rawMsg, &response); err == nil && response.IsValid() {
+			if err := jsoniter.Unmarshal(rawMsg, &response); err == nil && response.IsValid() {
 				wsc.ResponseChannel <- &response
 				continue
 			}

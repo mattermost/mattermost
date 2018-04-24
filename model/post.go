@@ -12,6 +12,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
@@ -132,12 +133,12 @@ type PostActionIntegrationResponse struct {
 func (o *Post) ToJson() string {
 	copy := *o
 	copy.StripActionIntegrations()
-	b, _ := json.Marshal(&copy)
+	b, _ := jsoniter.Marshal(&copy)
 	return string(b)
 }
 
 func (o *Post) ToUnsanitizedJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -323,7 +324,7 @@ func (p *Post) Patch(patch *PostPatch) {
 }
 
 func (o *PostPatch) ToJson() string {
-	b, err := json.Marshal(o)
+	b, err := jsoniter.Marshal(o)
 	if err != nil {
 		return ""
 	}
@@ -359,7 +360,7 @@ func (o *Post) ChannelMentions() (names []string) {
 }
 
 func (r *PostActionIntegrationRequest) ToJson() string {
-	b, _ := json.Marshal(r)
+	b, _ := jsoniter.Marshal(r)
 	return string(b)
 }
 
@@ -370,9 +371,9 @@ func (o *Post) Attachments() []*SlackAttachment {
 	var ret []*SlackAttachment
 	if attachments, ok := o.Props["attachments"].([]interface{}); ok {
 		for _, attachment := range attachments {
-			if enc, err := json.Marshal(attachment); err == nil {
+			if enc, err := jsoniter.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
-				if json.Unmarshal(enc, &decoded) == nil {
+				if jsoniter.Unmarshal(enc, &decoded) == nil {
 					ret = append(ret, &decoded)
 				}
 			}
@@ -439,7 +440,7 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 }
 
 func (o *PostEphemeral) ToUnsanitizedJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

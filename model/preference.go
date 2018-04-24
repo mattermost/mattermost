@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -47,7 +49,7 @@ type Preference struct {
 }
 
 func (o *Preference) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -106,7 +108,7 @@ func (o *Preference) PreUpdate() {
 			}
 		}
 
-		if b, err := json.Marshal(props); err == nil {
+		if b, err := jsoniter.Marshal(props); err == nil {
 			o.Value = string(b)
 		}
 	}

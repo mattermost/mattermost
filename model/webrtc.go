@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type WebrtcInfoResponse struct {
@@ -28,7 +30,7 @@ func GatewayResponseFromJson(data io.Reader) *GatewayResponse {
 }
 
 func (o *WebrtcInfoResponse) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

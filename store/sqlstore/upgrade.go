@@ -4,13 +4,14 @@
 package sqlstore
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/mlog"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -400,7 +401,7 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_4_8_1, VERSION_4_9_0) {
 		sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
 		defaultTimezone := model.DefaultUserTimezone()
-		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
+		defaultTimezoneValue, err := jsoniter.Marshal(defaultTimezone)
 		if err != nil {
 			mlog.Critical(fmt.Sprint(err))
 		}

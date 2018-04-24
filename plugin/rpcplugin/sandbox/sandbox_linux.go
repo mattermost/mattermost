@@ -6,7 +6,6 @@ package sandbox
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,6 +15,7 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"golang.org/x/sys/unix"
 
@@ -28,7 +28,7 @@ func init() {
 	}
 
 	var config Configuration
-	if err := json.Unmarshal([]byte(os.Args[1]), &config); err != nil {
+	if err := jsoniter.Unmarshal([]byte(os.Args[1]), &config); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
@@ -328,7 +328,7 @@ type process struct {
 }
 
 func newProcess(ctx context.Context, config *Configuration, path string) (pOut rpcplugin.Process, rwcOut io.ReadWriteCloser, errOut error) {
-	configJSON, err := json.Marshal(config)
+	configJSON, err := jsoniter.Marshal(config)
 	if err != nil {
 		return nil, nil, err
 	}

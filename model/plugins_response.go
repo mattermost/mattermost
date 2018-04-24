@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type PluginInfo struct {
@@ -19,7 +21,7 @@ type PluginsResponse struct {
 }
 
 func (m *PluginsResponse) ToJson() string {
-	b, _ := json.Marshal(m)
+	b, _ := jsoniter.Marshal(m)
 	return string(b)
 }
 

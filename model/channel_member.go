@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -41,7 +43,7 @@ type ChannelMember struct {
 type ChannelMembers []ChannelMember
 
 func (o *ChannelMembers) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	if b, err := jsoniter.Marshal(o); err != nil {
 		return "[]"
 	} else {
 		return string(b)
@@ -49,7 +51,7 @@ func (o *ChannelMembers) ToJson() string {
 }
 
 func (o *ChannelUnread) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -66,7 +68,7 @@ func ChannelUnreadFromJson(data io.Reader) *ChannelUnread {
 }
 
 func (o *ChannelMember) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

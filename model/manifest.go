@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/json-iterator/go"
 	"gopkg.in/yaml.v2"
 )
 
@@ -133,12 +134,12 @@ type ManifestWebapp struct {
 }
 
 func (m *Manifest) ToJson() string {
-	b, _ := json.Marshal(m)
+	b, _ := jsoniter.Marshal(m)
 	return string(b)
 }
 
 func ManifestListToJson(m []*Manifest) string {
-	b, _ := json.Marshal(m)
+	b, _ := jsoniter.Marshal(m)
 	return string(b)
 }
 

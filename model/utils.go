@@ -23,6 +23,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/json-iterator/go"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
 )
@@ -81,7 +82,7 @@ func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
 }
 
 func (er *AppError) ToJson() string {
-	b, _ := json.Marshal(er)
+	b, _ := jsoniter.Marshal(er)
 	return string(b)
 }
 
@@ -158,13 +159,13 @@ func CopyStringMap(originalMap map[string]string) map[string]string {
 
 // MapToJson converts a map to a json string
 func MapToJson(objmap map[string]string) string {
-	b, _ := json.Marshal(objmap)
+	b, _ := jsoniter.Marshal(objmap)
 	return string(b)
 }
 
 // MapToJson converts a map to a json string
 func MapBoolToJson(objmap map[string]bool) string {
-	b, _ := json.Marshal(objmap)
+	b, _ := jsoniter.Marshal(objmap)
 	return string(b)
 }
 
@@ -193,7 +194,7 @@ func MapBoolFromJson(data io.Reader) map[string]bool {
 }
 
 func ArrayToJson(objmap []string) string {
-	b, _ := json.Marshal(objmap)
+	b, _ := jsoniter.Marshal(objmap)
 	return string(b)
 }
 
@@ -226,7 +227,7 @@ func ArrayFromInterface(data interface{}) []string {
 }
 
 func StringInterfaceToJson(objmap map[string]interface{}) string {
-	b, _ := json.Marshal(objmap)
+	b, _ := jsoniter.Marshal(objmap)
 	return string(b)
 }
 
@@ -242,7 +243,7 @@ func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
 }
 
 func StringToJson(s string) string {
-	b, _ := json.Marshal(s)
+	b, _ := jsoniter.Marshal(s)
 	return string(b)
 }
 

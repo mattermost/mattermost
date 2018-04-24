@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -26,7 +28,7 @@ type SamlCertificateStatus struct {
 }
 
 func (s *SamlCertificateStatus) ToJson() string {
-	b, _ := json.Marshal(s)
+	b, _ := jsoniter.Marshal(s)
 	return string(b)
 }
 

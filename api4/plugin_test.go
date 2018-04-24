@@ -5,12 +5,12 @@ package api4
 
 import (
 	"bytes"
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
@@ -31,9 +31,9 @@ func TestPlugin(t *testing.T) {
 
 	enablePlugins := *th.App.Config().PluginSettings.Enable
 	enableUploadPlugins := *th.App.Config().PluginSettings.EnableUploads
-	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
+	statesJson, _ := jsoniter.Marshal(th.App.Config().PluginSettings.PluginStates)
 	states := map[string]*model.PluginState{}
-	json.Unmarshal(statesJson, &states)
+	jsoniter.Unmarshal(statesJson, &states)
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = enablePlugins

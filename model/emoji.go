@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -62,7 +64,7 @@ func (emoji *Emoji) PreSave() {
 }
 
 func (emoji *Emoji) ToJson() string {
-	b, _ := json.Marshal(emoji)
+	b, _ := jsoniter.Marshal(emoji)
 	return string(b)
 }
 
@@ -73,7 +75,7 @@ func EmojiFromJson(data io.Reader) *Emoji {
 }
 
 func EmojiListToJson(emojiList []*Emoji) string {
-	b, _ := json.Marshal(emojiList)
+	b, _ := jsoniter.Marshal(emojiList)
 	return string(b)
 }
 

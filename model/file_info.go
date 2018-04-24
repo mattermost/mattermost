@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/json-iterator/go"
 )
 
 type FileInfo struct {
@@ -35,7 +37,7 @@ type FileInfo struct {
 }
 
 func (info *FileInfo) ToJson() string {
-	b, _ := json.Marshal(info)
+	b, _ := jsoniter.Marshal(info)
 	return string(b)
 }
 
@@ -51,7 +53,7 @@ func FileInfoFromJson(data io.Reader) *FileInfo {
 }
 
 func FileInfosToJson(infos []*FileInfo) string {
-	b, _ := json.Marshal(infos)
+	b, _ := jsoniter.Marshal(infos)
 	return string(b)
 }
 

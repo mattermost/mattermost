@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/json-iterator/go"
 )
 
 type TeamMember struct {
@@ -24,12 +26,12 @@ type TeamUnread struct {
 }
 
 func (o *TeamMember) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
 func (o *TeamUnread) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -46,7 +48,7 @@ func TeamUnreadFromJson(data io.Reader) *TeamUnread {
 }
 
 func TeamMembersToJson(o []*TeamMember) string {
-	if b, err := json.Marshal(o); err != nil {
+	if b, err := jsoniter.Marshal(o); err != nil {
 		return "[]"
 	} else {
 		return string(b)
@@ -60,7 +62,7 @@ func TeamMembersFromJson(data io.Reader) []*TeamMember {
 }
 
 func TeamsUnreadToJson(o []*TeamUnread) string {
-	if b, err := json.Marshal(o); err != nil {
+	if b, err := jsoniter.Marshal(o); err != nil {
 		return "[]"
 	} else {
 		return string(b)
