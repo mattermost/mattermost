@@ -2,7 +2,7 @@
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-# Build Flags
+# Build Flagsw
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
