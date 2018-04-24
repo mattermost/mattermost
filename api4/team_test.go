@@ -2015,3 +2015,67 @@ func TestGetTeamIcon(t *testing.T) {
 	_, resp = Client.GetTeamIcon(team.Id, "")
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestUpdateTeamScheme(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team, _ = th.SystemAdminClient.CreateTeam(team)
+
+	teamScheme := &model.Scheme{
+		Name:        "Name",
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme, _ = th.SystemAdminClient.CreateScheme(teamScheme)
+	channelScheme := &model.Scheme{
+		Name:        "Name",
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme, _ = th.SystemAdminClient.CreateScheme(channelScheme)
+
+	// Test the setup/base case.
+	_, resp := th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckNoError(t, resp)
+
+	// Test various invalid team and scheme id combinations.
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme("x", teamScheme.Id)
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme("x", "x")
+	CheckBadRequestStatus(t, resp)
+
+	// Test that permissions are required.
+	_, resp = th.Client.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// Test that a license is requried.
+	th.App.SetLicense(nil)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckNotImplementedStatus(t, resp)
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	// Test an invalid scheme scope.
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
+	fmt.Printf("resp: %+v\n", resp)
+	CheckBadRequestStatus(t, resp)
+
+	// Test that an unauthenticated user gets rejected.
+	th.SystemAdminClient.Logout()
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckUnauthorizedStatus(t, resp)
+}
