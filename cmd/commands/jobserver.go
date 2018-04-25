@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/spf13/cobra"
@@ -37,7 +36,6 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 	if err != nil {
 		panic(err.Error())
 	}
-	defer l4g.Close()
 	defer a.Shutdown()
 
 	a.LoadLicense()

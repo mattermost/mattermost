@@ -9,13 +9,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/alecthomas/log4go"
-  packages = ["."]
-  revision = "9c17fbb2767ccbdda78584f28d545c44a4b29c4f"
-  source = "https://github.com/mattermost/log4go.git"
-
-[[projects]]
-  branch = "master"
   name = "github.com/armon/go-metrics"
   packages = ["."]
   revision = "783273d703149aaeb9897cf58613d5af48861c25"
@@ -666,6 +659,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "597d17c8879e8e17811d25ce2149bf28591fd1520cccc8724c8bd3b8c410f40e"
+  inputs-digest = "4f92b22eac4e8efa0aa098a6b1f1599ab087160296bd5fb74a9fad5366bbe1bc"
   solver-name = "gps-cdcl"
   solver-version = 1

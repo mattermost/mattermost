@@ -24,13 +24,6 @@
 #   go-tests = true
 #   unused-packages = true
 
-
-# To use our own fork
-[[constraint]]
-  name = "github.com/alecthomas/log4go"
-  branch = "master"
-  source = "https://github.com/mattermost/log4go.git"
-
 # To keep us on latest since maintainer stopped releasing versions
 [[constraint]]
   name = "github.com/go-sql-driver/mysql"
