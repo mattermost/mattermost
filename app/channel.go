@@ -354,6 +354,23 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	}
 }
 
+func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+	var oldChannel *model.Channel
+	var err *model.AppError
+	if oldChannel, err = a.GetChannel(channel.Id); err != nil {
+		return nil, err
+	}
+
+	oldChannel.SchemeId = channel.SchemeId
+
+	newChannel, err := a.UpdateChannel(oldChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return newChannel, nil
+}
+
 func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
 	if channel, err := a.UpdateChannel(oldChannel); err != nil {
 		return channel, err

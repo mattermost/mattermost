@@ -326,6 +326,14 @@ func (c *Client4) GetTimezonesRoute() string {
 	return fmt.Sprintf(c.GetSystemRoute() + "/timezones")
 }
 
+func (c *Client4) GetChannelSchemeRoute(channelId string) string {
+	return fmt.Sprintf(c.GetChannelsRoute()+"/%v/schemes", channelId)
+}
+
+func (c *Client4) GetTeamSchemeRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/schemes", teamId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -3499,6 +3507,81 @@ func (c *Client4) ActivatePlugin(id string) (bool, *Response) {
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) DeactivatePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/deactivate", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// SetTeamIcon sets team icon of the team
+func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("image", "teamIcon.png"); err != nil {
+		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
+		// set to http.StatusForbidden(403)
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetTeamRoute(teamId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
+	} else {
+		defer closeBody(rp)
+
+		if rp.StatusCode >= 300 {
+			return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
+		} else {
+			return CheckStatusOK(rp), BuildResponse(rp)
+		}
+	}
+}
+
+// GetTeamIcon gets the team icon of the team
+func (c *Client4) GetTeamIcon(teamId, etag string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamRoute(teamId)+"/image", etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+
+		if data, err := ioutil.ReadAll(r.Body); err != nil {
+			return nil, BuildErrorResponse(r, NewAppError("GetTeamIcon", "model.client.get_team_icon.app_error", nil, err.Error(), r.StatusCode))
+		} else {
+			return data, BuildResponse(r)
+		}
+	}
+}
+
+// UpdateChannelScheme will update a channel's scheme.
+func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (bool, *Response) {
+	sip := &SchemeIDPatch{SchemeID: &schemeId}
+	if r, err := c.DoApiPut(c.GetChannelSchemeRoute(channelId), sip.ToJson()); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateTeamScheme will update a team's scheme.
+func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (bool, *Response) {
+	sip := &SchemeIDPatch{SchemeID: &schemeId}
+	if r, err := c.DoApiPut(c.GetTeamSchemeRoute(teamId), sip.ToJson()); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
