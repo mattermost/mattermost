@@ -137,6 +137,10 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 	// Initalize logging
 	app.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&app.Config().LogSettings))
+
+	// Redirect default golang logger to this logger
+	mlog.RedirectStdLog(app.Log)
+
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(app.Log)
 

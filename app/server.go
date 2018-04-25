@@ -21,6 +21,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -117,6 +118,7 @@ func (a *App) StartServer() error {
 		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
 		ReadTimeout:  time.Duration(*a.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*a.Config().ServiceSettings.WriteTimeout) * time.Second,
+		ErrorLog:     a.Log.StdLog(mlog.String("source", "httpserver")),
 	}
 
 	addr := *a.Config().ServiceSettings.ListenAddress
@@ -158,7 +160,12 @@ func (a *App) StartServer() error {
 			httpListenAddress := net.JoinHostPort(host, "http")
 
 			if *a.Config().ServiceSettings.UseLetsEncrypt {
-				go http.ListenAndServe(httpListenAddress, m.HTTPHandler(nil))
+				server := &http.Server{
+					Addr:     httpListenAddress,
+					Handler:  m.HTTPHandler(nil),
+					ErrorLog: a.Log.StdLog(mlog.String("source", "le_forwarder_server")),
+				}
+				go server.ListenAndServe()
 			} else {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
@@ -168,7 +175,11 @@ func (a *App) StartServer() error {
 					}
 					defer redirectListener.Close()
 
-					http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
+					server := &http.Server{
+						Handler:  handler,
+						ErrorLog: a.Log.StdLog(mlog.String("source", "forwarder_server")),
+					}
+					server.Serve(redirectListener)
 				}()
 			}
 		}

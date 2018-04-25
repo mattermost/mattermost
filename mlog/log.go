@@ -1,6 +1,7 @@
 package mlog
 
 import (
+	"log"
 	"os"
 
 	"go.uber.org/zap"
@@ -69,6 +70,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	if config.ConsoleJson {
 		encoder = zapcore.NewJSONEncoder(encoderConfig)
 	} else {
+		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 		encoder = zapcore.NewConsoleEncoder(encoderConfig)
 	}
 
@@ -107,7 +109,14 @@ func (l *Logger) SetConsoleLevel(level string) {
 	l.consoleLevel.SetLevel(getZapLevel(level))
 }
 
-func (l *Logger) With(fields ...Field) {
+func (l *Logger) With(fields ...Field) *Logger {
+	newlogger := *l
+	newlogger.zap = newlogger.zap.With(fields...)
+	return &newlogger
+}
+
+func (l *Logger) StdLog(fields ...Field) *log.Logger {
+	return zap.NewStdLog(l.With(fields...).zap)
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {

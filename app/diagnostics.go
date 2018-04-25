@@ -5,11 +5,10 @@ package app
 
 import (
 	"encoding/json"
-	"log"
-	"os"
 	"runtime"
 	"sync/atomic"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/segmentio/analytics-go"
 )
@@ -69,12 +68,12 @@ func (a *App) SendDailyDiagnostics() {
 func (a *App) initDiagnostics(endpoint string) {
 	if client == nil {
 		client = analytics.New(SEGMENT_KEY)
+		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
 		// For testing
 		if endpoint != "" {
 			client.Endpoint = endpoint
 			client.Verbose = true
 			client.Size = 1
-			client.Logger = log.New(os.Stdout, "segment ", log.LstdFlags)
 		}
 		client.Identify(&analytics.Identify{
 			UserId: a.DiagnosticId(),

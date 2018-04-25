@@ -1,6 +1,7 @@
 package mlog
 
 import (
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -13,6 +14,10 @@ func InitGlobalLogger(logger *Logger) {
 	Warn = globalLogger.Warn
 	Error = globalLogger.Error
 	Critical = globalLogger.Critical
+}
+
+func RedirectStdLog(logger *Logger) {
+	zap.RedirectStdLogAt(logger.zap.With(zap.String("source", "stdlog")), zapcore.ErrorLevel)
 }
 
 type LogFunc func(string, ...Field)
