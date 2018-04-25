@@ -963,7 +963,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.License() == nil {
-		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.team.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -979,7 +979,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if scheme.Scope != model.SCHEME_SCOPE_CHANNEL {
-		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.team.update_channel_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
 		return
 	}
 
