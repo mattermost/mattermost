@@ -17,6 +17,15 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 	utils.TranslationsPreInit()
 
+	// Setup a global logger to catch tests logging outside of app context
+	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
+	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	}))
+
 	// In the case where a dev just wants to run a single test, it's faster to just use the default
 	// store.
 	if filter := flag.Lookup("test.run").Value.String(); filter != "" && filter != "." {
