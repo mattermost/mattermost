@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/jsonutils"
 )
 
 const (
@@ -214,9 +216,19 @@ func (w *ConfigWatcher) Close() {
 
 // ReadConfig reads and parses the given configuration.
 func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map[string]interface{}, error) {
-	v := newViper(allowEnvironmentOverrides)
+	// Pre-flight check the syntax of the configuration file to improve error messaging.
+	configData, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, nil, err
+	} else {
+		var rawConfig interface{}
+		if err := json.Unmarshal(configData, &rawConfig); err != nil {
+			return nil, nil, jsonutils.HumanizeJsonError(configData, err)
+		}
+	}
 
-	if err := v.ReadConfig(r); err != nil {
+	v := newViper(allowEnvironmentOverrides)
+	if err := v.ReadConfig(bytes.NewReader(configData)); err != nil {
 		return nil, nil, err
 	}
 
