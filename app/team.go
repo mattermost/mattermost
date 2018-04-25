@@ -126,8 +126,6 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 		return nil, result.Err
 	}
 
-	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
-
 	return oldTeam, nil
 }
 
