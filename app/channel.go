@@ -361,6 +361,8 @@ func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *mode
 		return nil, err
 	}
 
+	a.InvalidateCacheForChannel(channel)
+
 	oldChannel.SchemeId = channel.SchemeId
 
 	if result := <-a.Srv.Store.Channel().Update(oldChannel); result.Err != nil {
