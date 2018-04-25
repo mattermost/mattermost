@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -16,11 +17,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 // Import Data Models
@@ -715,10 +714,10 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	if data.ProfileImage != nil {
 		file, err := os.Open(*data.ProfileImage)
 		if err != nil {
-			l4g.Error(utils.T("api.import.import_user.profile_image.error"), err)
+			mlog.Error(fmt.Sprint("api.import.import_user.profile_image.error FIXME: NOT FOUND IN TRANSLATIONS FILE", err))
 		}
 		if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
-			l4g.Error(utils.T("api.import.import_user.profile_image.error"), err)
+			mlog.Error(fmt.Sprint("api.import.import_user.profile_image.error FIXME: NOT FOUND IN TRANSLATIONS FILE", err))
 		}
 	}
 
@@ -1654,12 +1653,12 @@ func (a *App) OldImportPost(post *model.Post) {
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
-			l4g.Debug(utils.T("api.import.import_post.saving.debug"), post.UserId, post.Message)
+			mlog.Debug(fmt.Sprintf("Error saving post. user=%v, message=%v", post.UserId, post.Message))
 		}
 
 		for _, fileId := range post.FileIds {
 			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
-				l4g.Error(utils.T("api.import.import_post.attach_files.error"), post.Id, post.FileIds, result.Err)
+				mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, result.Err), mlog.String("postid", post.Id))
 			}
 		}
 
@@ -1675,17 +1674,17 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	user.Roles = model.SYSTEM_USER_ROLE_ID
 
 	if result := <-a.Srv.Store.User().Save(user); result.Err != nil {
-		l4g.Error(utils.T("api.import.import_user.saving.error"), result.Err)
+		mlog.Error(fmt.Sprintf("Error saving user. err=%v", result.Err))
 		return nil
 	} else {
 		ruser := result.Data.(*model.User)
 
 		if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
-			l4g.Error(utils.T("api.import.import_user.set_email.error"), cresult.Err)
+			mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
 		}
 
 		if err := a.JoinUserToTeam(team, user, ""); err != nil {
-			l4g.Error(utils.T("api.import.import_user.join_team.error"), err)
+			mlog.Error(fmt.Sprintf("Failed to join team when importing err=%v", err))
 		}
 
 		return ruser

@@ -9,10 +9,10 @@ import (
 	"os"
 	"testing"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 	// In the case where a dev just wants to run a single test, it's faster to just use the default
 	// store.
 	if filter := flag.Lookup("test.run").Value.String(); filter != "" && filter != "." {
-		l4g.Info("-test.run used, not creating temporary containers")
+		mlog.Info("-test.run used, not creating temporary containers")
 		os.Exit(m.Run())
 	}
 

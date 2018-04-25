@@ -12,8 +12,8 @@ import (
 	"strings"
 	"sync"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -947,7 +947,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 		_, err := s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
 		if err != nil {
-			l4g.Warn(utils.T("store.sql_post.search.warn"), err.Error())
+			mlog.Warn(fmt.Sprintf("Query error searching posts: %v", err.Error()))
 			// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 		} else {
 			for _, p := range posts {
@@ -1147,7 +1147,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 		_, err := s.GetReplica().Select(&posts, query, params)
 
 		if err != nil {
-			l4g.Error(err)
+			mlog.Error(fmt.Sprint(err))
 			result.Err = model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
 		} else {
 			result.Data = posts
@@ -1247,7 +1247,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 				table_name = 'posts'
 			AND	column_name = 'message'
 		`); err != nil {
-			l4g.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
+			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		// The Post.Message column in MySQL has historically been TEXT, with a maximum
@@ -1263,10 +1263,10 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			AND	column_name = 'Message'
 			LIMIT 0, 1
 		`); err != nil {
-			l4g.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
+			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else {
-		l4g.Warn(utils.T("store.sql_post.query_max_post_size.unrecognized_driver"))
+		mlog.Warn("No implementation found to determine the maximum supported post size")
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
@@ -1279,7 +1279,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
 	}
 
-	l4g.Info(utils.T("store.sql_post.query_max_post_size.max_post_size_bytes"), maxPostSize, maxPostSizeBytes)
+	mlog.Info(fmt.Sprintf("Post.Message supports at most %d characters (%d bytes)", maxPostSize, maxPostSizeBytes))
 
 	return maxPostSize
 }

@@ -8,7 +8,7 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -17,7 +17,7 @@ const (
 )
 
 func (api *API) InitPlugin() {
-	l4g.Debug("EXPERIMENTAL: Initializing plugin api")
+	mlog.Debug("EXPERIMENTAL: Initializing plugin api")
 
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(uploadPlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")

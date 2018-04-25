@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -392,7 +392,7 @@ func TestGetLogs(t *testing.T) {
 	Client := th.Client
 
 	for i := 0; i < 20; i++ {
-		l4g.Info(i)
+		mlog.Info(fmt.Sprint(i))
 	}
 
 	logs, resp := th.SystemAdminClient.GetLogs(0, 10)

@@ -11,12 +11,11 @@ import (
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitUser() {
@@ -245,7 +244,7 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err := c.App.GetUser(c.Session.UserId); err != nil {
 		c.Err = err
 		c.RemoveSessionCookie(w, r)
-		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
+		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", c.Session.UserId), mlog.String("userid", c.Session.UserId))
 		return
 	} else if c.HandleEtag(user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
 		return
@@ -1042,12 +1041,12 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		var user *model.User
 		var err *model.AppError
 		if user, err = c.App.GetUser(c.Session.UserId); err != nil {
-			l4g.Warn(err.Error())
+			mlog.Warn(err.Error())
 			return
 		}
 
 		if err := c.App.SendMfaChangeEmail(user.Email, activate, user.Locale, c.App.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 
@@ -1171,7 +1170,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			if len(teamId) > 0 {
 				c.App.Go(func() {
 					if err := c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
-						l4g.Error(err.Error())
+						mlog.Error(err.Error())
 					} else {
 						c.App.AddDirectChannels(teamId, user)
 					}
@@ -1185,7 +1184,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 			c.App.Go(func() {
 				if err := c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
-					l4g.Error(err.Error())
+					mlog.Error(err.Error())
 				}
 			})
 		}

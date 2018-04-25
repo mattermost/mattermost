@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
@@ -177,10 +177,10 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		if !err {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		} else {
-			l4g.Info("Testing environment created")
+			mlog.Info("Testing environment created")
 			for i := 0; i < len(environment.Teams); i++ {
-				l4g.Info("Team Created: " + environment.Teams[i].Name)
-				l4g.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
+				mlog.Info("Team Created: " + environment.Teams[i].Name)
+				mlog.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
 			}
 		}
 	} else {

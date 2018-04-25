@@ -4,13 +4,13 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitChannel() {
@@ -203,7 +203,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		if oldChannelDisplayName != channel.DisplayName {
 			if err := c.App.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
-				l4g.Error(err.Error())
+				mlog.Error(err.Error())
 			}
 		}
 		c.LogAudit("name=" + channel.Name)
@@ -251,7 +251,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if err := c.App.PostUpdateChannelHeaderMessage(c.Session.UserId, channel, oldChannelHeader, channelHeader); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
 		w.Write([]byte(channel.ToJson()))
@@ -297,7 +297,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if err := c.App.PostUpdateChannelPurposeMessage(c.Session.UserId, channel, oldChannelPurpose, channelPurpose); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
 		w.Write([]byte(channel.ToJson()))
@@ -318,7 +318,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 			if _, err := c.App.GetUser(c.Session.UserId); err != nil {
 				c.Err = err
 				c.RemoveSessionCookie(w, r)
-				l4g.Error(utils.T("api.channel.get_channels.error"), c.Session.UserId)
+				mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", c.Session.UserId), mlog.String("userid", c.Session.UserId))
 				return
 			}
 		}

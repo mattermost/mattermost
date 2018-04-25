@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -51,8 +50,8 @@ type RecoveryLogger struct {
 }
 
 func (rl *RecoveryLogger) Println(i ...interface{}) {
-	l4g.Error("Please check the std error output for the stack trace")
-	l4g.Error(i)
+	mlog.Error("Please check the std error output for the stack trace")
+	mlog.Error(fmt.Sprint(i))
 }
 
 type CorsWrapper struct {
@@ -98,12 +97,12 @@ func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) StartServer() error {
-	l4g.Info(utils.T("api.server.start_server.starting.info"))
+	mlog.Info("Starting Server...")
 
 	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.Router}
 
 	if *a.Config().RateLimitSettings.Enable {
-		l4g.Info(utils.T("api.server.start_server.rate.info"))
+		mlog.Info("RateLimiter is enabled")
 
 		rateLimiter, err := NewRateLimiter(&a.Config().RateLimitSettings)
 		if err != nil {
@@ -137,7 +136,7 @@ func (a *App) StartServer() error {
 	}
 	a.Srv.ListenAddr = listener.Addr().(*net.TCPAddr)
 
-	l4g.Info(utils.T("api.server.start_server.listening.info"), listener.Addr().String())
+	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
 
 	// Migration from old let's encrypt library
 	if *a.Config().ServiceSettings.UseLetsEncrypt {
@@ -153,7 +152,7 @@ func (a *App) StartServer() error {
 
 	if *a.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
-			l4g.Error("Unable to setup forwarding: " + err.Error())
+			mlog.Error("Unable to setup forwarding: " + err.Error())
 		} else if port != "443" {
 			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
@@ -170,7 +169,7 @@ func (a *App) StartServer() error {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
-						l4g.Error("Unable to setup forwarding: " + err.Error())
+						mlog.Error("Unable to setup forwarding: " + err.Error())
 						return
 					}
 					defer redirectListener.Close()
@@ -208,7 +207,7 @@ func (a *App) StartServer() error {
 			err = a.Srv.Server.Serve(listener)
 		}
 		if err != nil && err != http.ErrServerClosed {
-			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
+			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
 			time.Sleep(time.Second)
 		}
 		close(a.Srv.didFinishListen)
@@ -224,7 +223,7 @@ func (a *App) StopServer() {
 		didShutdown := false
 		for a.Srv.didFinishListen != nil && !didShutdown {
 			if err := a.Srv.Server.Shutdown(ctx); err != nil {
-				l4g.Warn(err.Error())
+				mlog.Warn(err.Error())
 			}
 			timer := time.NewTimer(time.Millisecond * 50)
 			select {

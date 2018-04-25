@@ -5,6 +5,7 @@ package app
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"html/template"
 	"net"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
@@ -178,7 +178,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	})
 	app.regenerateClientConfig()
 
-	l4g.Info(utils.T("api.server.new_server.init.info"))
+	mlog.Info("Server is initializing...")
 
 	app.initEnterprise()
 
@@ -189,7 +189,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		l4g.Error(utils.T("api.api.init.parsing_templates.error"), err)
+		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
 	} else {
 		app.htmlTemplateWatcher = htmlTemplateWatcher
 	}
@@ -222,7 +222,7 @@ func (a *App) configOrLicenseListener() {
 func (a *App) Shutdown() {
 	appCount--
 
-	l4g.Info(utils.T("api.server.stop_server.stopping.info"))
+	mlog.Info("Stopping Server...")
 
 	a.StopServer()
 	a.HubStop()
@@ -242,7 +242,7 @@ func (a *App) Shutdown() {
 	a.RemoveConfigListener(a.configListenerId)
 	a.RemoveLicenseListener(a.licenseListenerId)
 	a.RemoveLicenseListener(a.logListenerId)
-	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
+	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()
 }
@@ -512,7 +512,7 @@ func (a *App) HTTPClient(trustURLs bool) *http.Client {
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 
-	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
+	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
 	utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
 }
@@ -524,7 +524,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		return
 	}
 
-	l4g.Info("Migrating roles to database.")
+	mlog.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
 	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), a.License() != nil)
 
@@ -534,8 +534,8 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
 			// If this failed for reasons other than the role already existing, don't mark the migration as done.
 			if result2 := <-a.Srv.Store.Role().GetByName(role.Name); result2.Err != nil {
-				l4g.Critical("Failed to migrate role to database.")
-				l4g.Critical(result.Err)
+				mlog.Critical("Failed to migrate role to database.")
+				mlog.Critical(fmt.Sprint(result.Err))
 				allSucceeded = false
 			} else {
 				// If the role already existed, check it is the same and update if not.
@@ -547,8 +547,8 @@ func (a *App) DoAdvancedPermissionsMigration() {
 					role.Id = fetchedRole.Id
 					if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
 						// Role is not the same, but failed to update.
-						l4g.Critical("Failed to migrate role to database.")
-						l4g.Critical(result.Err)
+						mlog.Critical("Failed to migrate role to database.")
+						mlog.Critical(fmt.Sprint(result.Err))
 						allSucceeded = false
 					}
 				}
@@ -566,7 +566,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 	}
 
 	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
-		l4g.Critical("Failed to mark advanced permissions migration as completed.")
-		l4g.Critical(result.Err)
+		mlog.Critical("Failed to mark advanced permissions migration as completed.")
+		mlog.Critical(fmt.Sprint(result.Err))
 	}
 }

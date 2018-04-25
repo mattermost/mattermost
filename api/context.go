@@ -11,11 +11,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -101,7 +101,7 @@ type handler struct {
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	l4g.Debug("%v", r.URL.Path)
+	mlog.Debug(fmt.Sprintf("%v", r.URL.Path))
 
 	c := &Context{}
 	c.App = h.app
@@ -146,7 +146,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session, err := c.App.GetSession(token)
 
 		if err != nil {
-			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
+			mlog.Error(fmt.Sprintf("Invalid session err=%v", err.Error()))
 			c.RemoveSessionCookie(w, r)
 			if h.requireUser || h.requireSystemAdmin {
 				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
@@ -268,14 +268,14 @@ func (c *Context) LogError(err *model.AppError) {
 	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 || err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else if err.Id != "api.post.create_post.town_square_read_only" {
-		l4g.Error(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
+		mlog.Error(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("userid", c.Session.UserId))
 	}
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
-	l4g.Debug(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
+	mlog.Debug(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
+		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("userid", c.Session.UserId))
 }
 
 func (c *Context) UserRequired() {
@@ -387,7 +387,7 @@ func (c *Context) GetTeamURL() string {
 	if !c.teamURLValid {
 		c.SetTeamURLFromSession()
 		if !c.teamURLValid {
-			l4g.Debug(utils.T("api.context.invalid_team_url.debug"))
+			mlog.Debug("Team URL accessed when not valid. Team URL should not be used in API functions or those that are team independent")
 		}
 	}
 	return c.teamURL
@@ -424,7 +424,7 @@ func IsApiCall(r *http.Request) bool {
 func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 
-	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
+	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
 	if IsApiCall(r) {
 		w.WriteHeader(err.StatusCode)

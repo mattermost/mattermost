@@ -4,8 +4,9 @@
 package app
 
 import (
-	l4g "github.com/alecthomas/log4go"
+	"fmt"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -208,7 +209,7 @@ func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
 		}
 
 		if result := <-schan; result.Err != nil {
-			l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+			mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("userid", userId))
 		}
 	}
 
@@ -292,7 +293,7 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
 	a.AddStatusCache(status)
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), status.UserId, result.Err)
+		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", status.UserId, result.Err))
 	}
 
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
@@ -320,7 +321,7 @@ func (a *App) SetStatusOutOfOffice(userId string) {
 	a.AddStatusCache(status)
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("userid", userId))
 	}
 
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)

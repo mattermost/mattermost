@@ -14,7 +14,6 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -141,17 +140,17 @@ func NewConfigWatcher(cfgFileName string, f func()) (*ConfigWatcher, error) {
 				// we only care about the config file
 				if filepath.Clean(event.Name) == configFile {
 					if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-						l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
+						mlog.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
 
 						if _, _, configReadErr := ReadConfigFile(cfgFileName, true); configReadErr == nil {
 							f()
 						} else {
-							l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
+							mlog.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
 						}
 					}
 				}
 			case err := <-watcher.Errors:
-				l4g.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", cfgFileName, err.Error()))
+				mlog.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", cfgFileName, err.Error()))
 			case <-ret.close:
 				return
 			}
@@ -220,7 +219,7 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 func structToMap(t reflect.Type) (out map[string]interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
-			l4g.Error("Panicked in structToMap. This should never happen. %v", r)
+			mlog.Error(fmt.Sprintf("Panicked in structToMap. This should never happen. %v", r))
 		}
 	}()
 
@@ -287,7 +286,7 @@ func flattenStructToMap(in map[string]interface{}) map[string]interface{} {
 func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			l4g.Error("Panicked in fixEnvSettingsCase. This should never happen. %v", r)
+			mlog.Error(fmt.Sprintf("Panicked in fixEnvSettingsCase. This should never happen. %v", r))
 			out = in
 		}
 	}()
@@ -392,13 +391,13 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 
 	if needSave {
 		if err := SaveConfig(configPath, config); err != nil {
-			l4g.Warn(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
 	if err := ValidateLocales(config); err != nil {
 		if err := SaveConfig(configPath, config); err != nil {
-			l4g.Warn(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
