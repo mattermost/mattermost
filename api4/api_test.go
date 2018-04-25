@@ -15,6 +15,16 @@ import (
 
 func TestMain(m *testing.M) {
 	flag.Parse()
+
+	// Setup a global logger to catch tests logging outside of app context
+	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
+	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	}))
+
 	utils.TranslationsPreInit()
 
 	// In the case where a dev just wants to run a single test, it's faster to just use the default
