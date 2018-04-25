@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mime"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -742,16 +741,6 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 }
 
 func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
-	var isUTF8 bool
-	if _, params, err := mime.ParseMediaType(contentType); err == nil {
-		if charset, ok := params["charset"]; ok {
-			isUTF8 = strings.EqualFold(charset, "utf-8")
-		}
-	}
-	if isUTF8 {
-		return body
-	}
-
 	r, err := charset.NewReader(body, contentType)
 	if err != nil {
 		mlog.Error(fmt.Sprintf("forceHTMLEncodingToUTF8 failed to convert for contentType=%v with err=%v", contentType, err.Error()))
