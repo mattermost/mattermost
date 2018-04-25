@@ -6,32 +6,51 @@ package jsonutils
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/pkg/errors"
 )
 
+type HumanizedJsonError struct {
+	Err       error
+	Line      int
+	Character int
+}
+
+func (e *HumanizedJsonError) Error() string {
+	return e.Err.Error()
+}
+
 // HumanizeJsonError extracts error offsets and annotates the error with useful context
 func HumanizeJsonError(data []byte, err error) error {
 	if syntaxError, ok := err.(*json.SyntaxError); ok {
-		return errors.Wrap(syntaxError, describeOffset(data, syntaxError.Offset))
+		return NewHumanizedJsonError(syntaxError, data, syntaxError.Offset)
 	} else if unmarshalError, ok := err.(*json.UnmarshalTypeError); ok {
-		return errors.Wrap(unmarshalError, describeOffset(data, unmarshalError.Offset))
+		return NewHumanizedJsonError(unmarshalError, data, unmarshalError.Offset)
 	} else {
 		return err
 	}
 }
 
-func describeOffset(data []byte, offset int64) string {
+func NewHumanizedJsonError(err error, data []byte, offset int64) *HumanizedJsonError {
+	if err == nil {
+		return nil
+	}
+
 	if offset < 0 || offset > int64(len(data)) {
-		return fmt.Sprintf("invalid offset %d", offset)
+		return &HumanizedJsonError{
+			Err: errors.Wrapf(err, "invalid offset %d", offset),
+		}
 	}
 
 	lineSep := []byte{'\n'}
 
-	line := bytes.Count(data[:offset], lineSep)
-	lastLineOffset := int64(bytes.LastIndex(data[:offset], lineSep))
-	character := offset - (lastLineOffset + 1)
+	line := bytes.Count(data[:offset], lineSep) + 1
+	lastLineOffset := bytes.LastIndex(data[:offset], lineSep)
+	character := int(offset) - (lastLineOffset + 1) + 1
 
-	return fmt.Sprintf("parsing error at line %d, character %d", line+1, character+1)
+	return &HumanizedJsonError{
+		Line:      line,
+		Character: character,
+		Err:       errors.Wrapf(err, "parsing error at line %d, character %d", line, character),
+	}
 }

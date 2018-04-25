@@ -38,69 +38,6 @@ func TestHumanizeJsonError(t *testing.T) {
 			"test",
 		},
 		{
-			"syntax error, offset -1, before start of string",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: -1,
-			},
-			"invalid offset -1: ",
-		},
-		{
-			"syntax error, offset 0, start of string",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 0,
-			},
-			"parsing error at line 1, character 1: ",
-		},
-		{
-			"syntax error, offset 5, end of line 1",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 5,
-			},
-			"parsing error at line 1, character 6: ",
-		},
-		{
-			"syntax error, offset 6, new line at end end of line 1",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 6,
-			},
-			"parsing error at line 1, character 7: ",
-		},
-		{
-			"syntax error, offset 7, start of line 2",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 7,
-			},
-			"parsing error at line 2, character 1: ",
-		},
-		{
-			"syntax error, offset 12, end of line 2",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 12,
-			},
-			"parsing error at line 2, character 6: ",
-		},
-		{
-			"syntax error, offset 13, newline at end of line 2",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 13,
-			},
-			"parsing error at line 2, character 7: ",
-		},
-		{
 			"syntax error, offset 17, middle of line 3",
 			[]byte("line 1\nline 2\nline 3"),
 			&json.SyntaxError{
@@ -108,54 +45,6 @@ func TestHumanizeJsonError(t *testing.T) {
 				Offset: 17,
 			},
 			"parsing error at line 3, character 4: ",
-		},
-		{
-			"syntax error, offset 19, end of string",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 19,
-			},
-			"parsing error at line 3, character 6: ",
-		},
-		{
-			"syntax error, offset 20, offset = length of string",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 20,
-			},
-			"parsing error at line 3, character 7: ",
-		},
-		{
-			"syntax error, offset 21, offset = length of string, after newline",
-			[]byte("line 1\nline 2\nline 3\n"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 21,
-			},
-			"parsing error at line 4, character 1: ",
-		},
-		{
-			"syntax error, offset 21, offset > length of string",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.SyntaxError{
-				// msg can't be set
-				Offset: 21,
-			},
-			"invalid offset 21: ",
-		},
-		{
-			"unmarshal type error, offset 0, start of string",
-			[]byte("line 1\nline 2\nline 3"),
-			&json.UnmarshalTypeError{
-				Value:  "bool",
-				Type:   reflect.TypeOf(testType{}),
-				Offset: 0,
-				Struct: "struct",
-				Field:  "field",
-			},
-			"parsing error at line 1, character 1: json: cannot unmarshal bool into Go struct field struct.field of type jsonutils_test.testType",
 		},
 		{
 			"unmarshal type error, offset 17, middle of line 3",
@@ -180,6 +69,169 @@ func TestHumanizeJsonError(t *testing.T) {
 			} else {
 				assert.EqualError(t, actual, testCase.ExpectedErr)
 			}
+		})
+	}
+}
+
+func TestNewHumanizedJsonError(t *testing.T) {
+	t.Parallel()
+
+	type testType struct{}
+
+	testCases := []struct {
+		Description string
+		Data        []byte
+		Offset      int64
+		Err         error
+		Expected    *jsonutils.HumanizedJsonError
+	}{
+		{
+			"nil error",
+			[]byte{},
+			0,
+			nil,
+			nil,
+		},
+		{
+			"offset -1, before start of string",
+			[]byte("line 1\nline 2\nline 3"),
+			-1,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err: errors.Wrap(errors.New("message"), "invalid offset -1"),
+			},
+		},
+		{
+			"offset 0, start of string",
+			[]byte("line 1\nline 2\nline 3"),
+			0,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 1"),
+				Line:      1,
+				Character: 1,
+			},
+		},
+		{
+			"offset 5, end of line 1",
+			[]byte("line 1\nline 2\nline 3"),
+			5,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 6"),
+				Line:      1,
+				Character: 6,
+			},
+		},
+		{
+			"offset 6, new line at end end of line 1",
+			[]byte("line 1\nline 2\nline 3"),
+			6,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 7"),
+				Line:      1,
+				Character: 7,
+			},
+		},
+		{
+			"offset 7, start of line 2",
+			[]byte("line 1\nline 2\nline 3"),
+			7,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 1"),
+				Line:      2,
+				Character: 1,
+			},
+		},
+		{
+			"offset 12, end of line 2",
+			[]byte("line 1\nline 2\nline 3"),
+			12,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 6"),
+				Line:      2,
+				Character: 6,
+			},
+		},
+		{
+			"offset 13, newline at end of line 2",
+			[]byte("line 1\nline 2\nline 3"),
+			13,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 7"),
+				Line:      2,
+				Character: 7,
+			},
+		},
+		{
+			"offset 17, middle of line 3",
+			[]byte("line 1\nline 2\nline 3"),
+			17,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 4"),
+				Line:      3,
+				Character: 4,
+			},
+		},
+		{
+			"offset 19, end of string",
+			[]byte("line 1\nline 2\nline 3"),
+			19,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 6"),
+				Line:      3,
+				Character: 6,
+			},
+		},
+		{
+			"offset 20, offset = length of string",
+			[]byte("line 1\nline 2\nline 3"),
+			20,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 7"),
+				Line:      3,
+				Character: 7,
+			},
+		},
+		{
+			"offset 21, offset = length of string, after newline",
+			[]byte("line 1\nline 2\nline 3\n"),
+			21,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err:       errors.Wrap(errors.New("message"), "parsing error at line 4, character 1"),
+				Line:      4,
+				Character: 1,
+			},
+		},
+		{
+			"offset 21, offset > length of string",
+			[]byte("line 1\nline 2\nline 3"),
+			21,
+			errors.New("message"),
+			&jsonutils.HumanizedJsonError{
+				Err: errors.Wrap(errors.New("message"), "invalid offset 21"),
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			actual := jsonutils.NewHumanizedJsonError(testCase.Err, testCase.Data, testCase.Offset)
+			if testCase.Expected != nil && actual.Err != nil {
+				if assert.EqualValues(t, testCase.Expected.Err.Error(), actual.Err.Error()) {
+					actual.Err = testCase.Expected.Err
+				}
+			}
+			assert.Equal(t, testCase.Expected, actual)
 		})
 	}
 }
