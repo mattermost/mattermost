@@ -138,17 +138,3 @@ func (l *Logger) Error(message string, fields ...Field) {
 func (l *Logger) Critical(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
 }
-
-//func (l *Logger) Error(err MMError) {
-//l.zap.Error(err.
-//}
-
-/*{
-	mlog.Info("An error has occoured", mlog.Int64("instances", 56))
-
-	if err != nil {
-		return Wrap(err, "Unable to do the thing", mlog.Int64("thing", 5))
-	}
-
-	return mlog.NewGenericError("Unable to do the thing.", http.StatusBadRequest, mlog.Int64("oh ya", 5))
-}*/
