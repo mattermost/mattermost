@@ -497,6 +497,14 @@ func (u *User) IsSAMLUser() bool {
 	return u.AuthService == USER_AUTH_SERVICE_SAML
 }
 
+func (u *User) GetPreferredTimezone() string {
+	if u.Timezone["useAutomaticTimezone"] == "true" {
+		return u.Timezone["automaticTimezone"]
+	}
+
+	return u.Timezone["manualTimezone"]
+}
+
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
 	var user *User
