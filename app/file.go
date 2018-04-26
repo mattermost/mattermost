@@ -78,12 +78,12 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	return backend.MoveFile(oldPath, newPath)
 }
 
-func (a *App) WriteFile(f []byte, path string) *model.AppError {
+func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return backend.WriteFile(f, path)
+	return backend.WriteFile(fr, path)
 }
 
 func (a *App) RemoveFile(path string) *model.AppError {
@@ -121,7 +121,7 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 		return nil
 	} else {
 		var err *model.AppError
-		info, err = model.GetInfoForBytes(name, data)
+		info, err = model.GetInfoForBytes(name, bytes.NewReader(data))
 		if err != nil {
 			l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.info.app_error"), post.Id, filename, err)
 		}
@@ -281,7 +281,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 }
 
 func (a *App) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
-	files := make([]io.ReadCloser, len(fileHeaders))
+	files := make([]io.ReadSeeker, len(fileHeaders))
 	filenames := make([]string, len(fileHeaders))
 
 	for i, fileHeader := range fileHeaders {
@@ -303,7 +303,7 @@ func (a *App) UploadMultipartFiles(teamId string, channelId string, userId strin
 // Uploads some files to the given team and channel as the given user. files and filenames should have
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadSeeker, filenames []string, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -319,22 +319,19 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 
 	previewPathList := []string{}
 	thumbnailPathList := []string{}
-	imageDataList := [][]byte{}
+	imageDataList := []io.Reader{}
 
 	for i, file := range files {
-		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, file)
-		data := buf.Bytes()
-
-		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, filenames[i], data)
+		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, filenames[i], file)
 		if err != nil {
 			return nil, err
 		}
+		file.Seek(0, 0)
 
 		if info.PreviewPath != "" || info.ThumbnailPath != "" {
 			previewPathList = append(previewPathList, info.PreviewPath)
 			thumbnailPathList = append(thumbnailPathList, info.ThumbnailPath)
-			imageDataList = append(imageDataList, data)
+			imageDataList = append(imageDataList, file)
 		}
 
 		resStruct.FileInfos = append(resStruct.FileInfos, info)
@@ -349,16 +346,19 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 	return resStruct, nil
 }
 
-func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, file io.Reader) (*model.FileInfo, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamId := filepath.Base(rawTeamId)
 	channelId := filepath.Base(rawChannelId)
 	userId := filepath.Base(rawUserId)
 
-	info, err := model.GetInfoForBytes(filename, data)
+	info, err := model.GetInfoForBytes(filename, file)
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, err
+	}
+	if bio, ok := file.(io.Seeker); ok {
+		bio.Seek(0, 0)
 	}
 
 	info.Id = model.NewId()
@@ -379,7 +379,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
-	if err := a.WriteFile(data, info.Path); err != nil {
+	if info.Size, err = a.WriteFile(file, info.Path); err != nil {
 		return nil, err
 	}
 
@@ -390,7 +390,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 	return info, nil
 }
 
-func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
+func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string, fileData []io.Reader) {
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
@@ -411,9 +411,12 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg.Wait()
 }
 
-func prepareImage(fileData []byte) (*image.Image, int, int) {
+func prepareImage(fileData io.Reader) (*image.Image, int, int) {
 	// Decode image bytes into Image object
-	img, imgType, err := image.Decode(bytes.NewReader(fileData))
+	if bio, ok := fileData.(io.Seeker); ok {
+		bio.Seek(0, 0)
+	}
+	img, imgType, err := image.Decode(fileData)
 	if err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.decode.error"), err)
 		return nil, 0, 0
@@ -431,7 +434,7 @@ func prepareImage(fileData []byte) (*image.Image, int, int) {
 	}
 
 	// Flip the image to be upright
-	orientation, _ := getImageOrientation(bytes.NewReader(fileData))
+	orientation, _ := getImageOrientation(fileData)
 	img = makeImageUpright(img, orientation)
 
 	return &img, width, height
@@ -496,7 +499,7 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, widt
 		return
 	}
 
-	if err := a.WriteFile(buf.Bytes(), thumbnailPath); err != nil {
+	if _, err := a.WriteFile(buf, thumbnailPath); err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.upload_thumb.error"), thumbnailPath, err)
 		return
 	}
@@ -518,7 +521,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 		return
 	}
 
-	if err := a.WriteFile(buf.Bytes(), previewPath); err != nil {
+	if _, err := a.WriteFile(buf, previewPath); err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err)
 		return
 	}
