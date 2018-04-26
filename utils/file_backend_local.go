@@ -4,6 +4,8 @@
 package utils
 
 import (
+	"bytes"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -23,8 +25,8 @@ type LocalFileBackend struct {
 }
 
 func (b *LocalFileBackend) TestConnection() *model.AppError {
-	f := []byte("testingwrite")
-	if err := writeFileLocally(f, filepath.Join(b.directory, TEST_FILE_PATH)); err != nil {
+	f := bytes.NewReader([]byte("testingwrite"))
+	if _, err := writeFileLocally(f, filepath.Join(b.directory, TEST_FILE_PATH)); err != nil {
 		return model.NewAppError("TestFileConnection", "Don't have permissions to write to local path specified or other error.", nil, err.Error(), http.StatusInternalServerError)
 	}
 	os.Remove(filepath.Join(b.directory, TEST_FILE_PATH))
@@ -59,21 +61,23 @@ func (b *LocalFileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	return nil
 }
 
-func (b *LocalFileBackend) WriteFile(f []byte, path string) *model.AppError {
-	return writeFileLocally(f, filepath.Join(b.directory, path))
+func (b *LocalFileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+	return writeFileLocally(fr, filepath.Join(b.directory, path))
 }
 
-func writeFileLocally(f []byte, path string) *model.AppError {
+func writeFileLocally(fr io.Reader, path string) (int64, *model.AppError) {
 	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
 		directory, _ := filepath.Abs(filepath.Dir(path))
-		return model.NewAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error(), http.StatusInternalServerError)
 	}
-
-	if err := ioutil.WriteFile(path, f, 0644); err != nil {
-		return model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
+	fw, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err == nil {
+		if written, err := io.Copy(fw, fr); err == nil {
+			return written, nil
+		}
 	}
+	return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 
-	return nil
 }
 
 func (b *LocalFileBackend) RemoveFile(path string) *model.AppError {

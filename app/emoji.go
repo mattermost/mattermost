@@ -10,7 +10,6 @@ import (
 	"image/gif"
 	_ "image/jpeg"
 	"image/png"
-	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -80,45 +79,41 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 	}
 	defer file.Close()
 
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-
 	// make sure the file is an image and is within the required dimensions
-	if config, _, err := image.DecodeConfig(bytes.NewReader(buf.Bytes())); err != nil {
+	if config, _, err := image.DecodeConfig(file); err != nil {
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, "", http.StatusBadRequest)
 	} else if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
-		data := buf.Bytes()
 		newbuf := bytes.NewBuffer(nil)
-		if info, err := model.GetInfoForBytes(imageData.Filename, data); err != nil {
+		if info, err := model.GetInfoForBytes(imageData.Filename, file); err != nil {
 			return err
 		} else if info.MimeType == "image/gif" {
-			if gif_data, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
+			if gif_data, err := gif.DecodeAll(file); err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest)
 			} else {
 				resized_gif := resizeEmojiGif(gif_data)
 				if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
 					return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest)
 				}
-				if err := a.WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
+				if _, err := a.WriteFile(file, getEmojiImagePath(id)); err != nil {
 					return err
 				}
 			}
 		} else {
-			if img, _, err := image.Decode(bytes.NewReader(data)); err != nil {
+			if img, _, err := image.Decode(file); err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest)
 			} else {
 				resized_image := resizeEmoji(img, config.Width, config.Height)
 				if err := png.Encode(newbuf, resized_image); err != nil {
 					return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest)
 				}
-				if err := a.WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
+				if _, err := a.WriteFile(file, getEmojiImagePath(id)); err != nil {
 					return err
 				}
 			}
 		}
 	}
-
-	return a.WriteFile(buf.Bytes(), getEmojiImagePath(id))
+	_, apperr := a.WriteFile(file, getEmojiImagePath(id))
+	return apperr
 }
 
 func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
