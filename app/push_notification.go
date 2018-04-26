@@ -82,11 +82,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 
 		l4g.Debug("Sending push notification to device %v for user %v with msg of '%v'", tmpMessage.DeviceId, user.Id, msg.Message)
 
-		a.Go(func(session *model.Session) func() {
-			return func() {
-				a.sendToPushProxy(tmpMessage, session)
-			}
-		}(session))
+		a.sendToPushProxy(tmpMessage, session)
 
 		if a.Metrics != nil {
 			a.Metrics.IncrementPostSentPush()
