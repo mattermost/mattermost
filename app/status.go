@@ -209,7 +209,7 @@ func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
 		}
 
 		if result := <-schan; result.Err != nil {
-			mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("userid", userId))
+			mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
 		}
 	}
 
@@ -321,7 +321,7 @@ func (a *App) SetStatusOutOfOffice(userId string) {
 	a.AddStatusCache(status)
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("userid", userId))
+		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
 	}
 
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)

@@ -266,7 +266,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	// MUST be completed before push notifications send
 	for _, uchan := range updateMentionChans {
 		if result := <-uchan; result.Err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update mention count, post_id=%v channel_id=%v err=%v", post.Id, post.ChannelId, result.Err), mlog.String("postid", post.Id))
+			mlog.Warn(fmt.Sprintf("Failed to update mention count, post_id=%v channel_id=%v err=%v", post.Id, post.ChannelId, result.Err), mlog.String("post_id", post.Id))
 		}
 	}
 
@@ -330,7 +330,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		var infos []*model.FileInfo
 		if result := <-fchan; result.Err != nil {
-			mlog.Warn(fmt.Sprint("api.post.send_notifications.files.error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, result.Err), mlog.String("postid", post.Id))
+			mlog.Warn(fmt.Sprint("api.post.send_notifications.files.error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, result.Err), mlog.String("post_id", post.Id))
 		} else {
 			infos = result.Data.([]*model.FileInfo)
 		}
@@ -577,7 +577,7 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 	// extract the filenames from their paths and determine what type of files are attached
 	var infos []*model.FileInfo
 	if result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, true); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Encountered error when getting files for notification message, post_id=%v, err=%v", post.Id, result.Err), mlog.String("postid", post.Id))
+		mlog.Warn(fmt.Sprintf("Encountered error when getting files for notification message, post_id=%v, err=%v", post.Id, result.Err), mlog.String("post_id", post.Id))
 	} else {
 		infos = result.Data.([]*model.FileInfo)
 	}
@@ -617,7 +617,7 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	msg := model.PushNotification{}
 	if badge := <-a.Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
 		msg.Badge = 1
-		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, badge.Err), mlog.String("userid", user.Id))
+		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, badge.Err), mlog.String("user_id", user.Id))
 	} else {
 		msg.Badge = int(badge.Data.(int64))
 	}
@@ -651,7 +651,7 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 
-		mlog.Debug(fmt.Sprintf("Sending push notification to device %v for user %v with msg of '%v'", tmpMessage.DeviceId, user.Id, msg.Message), mlog.String("userid", user.Id))
+		mlog.Debug(fmt.Sprintf("Sending push notification to device %v for user %v with msg of '%v'", tmpMessage.DeviceId, user.Id, msg.Message), mlog.String("user_id", user.Id))
 
 		a.Go(func(session *model.Session) func() {
 			return func() {
@@ -739,7 +739,7 @@ func (a *App) ClearPushNotification(userId string, channelId string) {
 		msg.ContentAvailable = 0
 		if badge := <-a.Srv.Store.User().GetUnreadCount(userId); badge.Err != nil {
 			msg.Badge = 0
-			mlog.Error(fmt.Sprint("We could not get the unread message count for the user", userId, badge.Err), mlog.String("userid", userId))
+			mlog.Error(fmt.Sprint("We could not get the unread message count for the user", userId, badge.Err), mlog.String("user_id", userId))
 		} else {
 			msg.Badge = int(badge.Data.(int64))
 		}
@@ -762,7 +762,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 	request, _ := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
 	if resp, err := a.HTTPClient(true).Do(request); err != nil {
-		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("userid", session.UserId))
+		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
 	} else {
 		pushResponse := model.PushResponseFromJson(resp.Body)
 		if resp.Body != nil {
@@ -770,13 +770,13 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		}
 
 		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
-			mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("userid", session.UserId))
+			mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("user_id", session.UserId))
 			a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 			a.ClearSessionCacheForUser(session.UserId)
 		}
 
 		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
-			mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, pushResponse[model.PUSH_STATUS_ERROR_MSG]), mlog.String("userid", session.UserId))
+			mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, pushResponse[model.PUSH_STATUS_ERROR_MSG]), mlog.String("user_id", session.UserId))
 		}
 	}
 }

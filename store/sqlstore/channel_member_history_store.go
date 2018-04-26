@@ -61,7 +61,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", params, err.Error(), http.StatusInternalServerError)
 		} else if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
 			// there was no join event to update - this is best effort, so no need to raise an error
-			mlog.Warn(fmt.Sprintf("Channel join event for user %v and channel %v not found", userId, channelId), mlog.String("userid", userId))
+			mlog.Warn(fmt.Sprintf("Channel join event for user %v and channel %v not found", userId, channelId), mlog.String("user_id", userId))
 		}
 	})
 }

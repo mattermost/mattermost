@@ -244,7 +244,7 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err := c.App.GetUser(c.Session.UserId); err != nil {
 		c.Err = err
 		c.RemoveSessionCookie(w, r)
-		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", c.Session.UserId), mlog.String("userid", c.Session.UserId))
+		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", c.Session.UserId), mlog.String("user_id", c.Session.UserId))
 		return
 	} else if c.HandleEtag(user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
 		return

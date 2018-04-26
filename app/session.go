@@ -170,7 +170,7 @@ func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentS
 		sessions := result.Data.([]*model.Session)
 		for _, session := range sessions {
 			if session.DeviceId == deviceId && session.Id != currentSessionId {
-				mlog.Debug(fmt.Sprintf("Revoking sessionId=%v for userId=%v re-login with same device Id", session.Id, userId), mlog.String("userid", userId))
+				mlog.Debug(fmt.Sprintf("Revoking sessionId=%v for userId=%v re-login with same device Id", session.Id, userId), mlog.String("user_id", userId))
 				if err := a.RevokeSession(session); err != nil {
 					// Soft error so we still remove the other sessions
 					mlog.Error(err.Error())
@@ -232,7 +232,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if result := <-a.Srv.Store.Session().UpdateLastActivityAt(session.Id, now); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", session.UserId, session.Id, result.Err), mlog.String("userid", session.UserId))
+		mlog.Error(fmt.Sprintf("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", session.UserId, session.Id, result.Err), mlog.String("user_id", session.UserId))
 	}
 
 	session.LastActivityAt = now

@@ -269,13 +269,13 @@ func (c *Context) LogError(err *model.AppError) {
 		c.LogDebug(err)
 	} else if err.Id != "api.post.create_post.town_square_read_only" {
 		mlog.Error(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
-			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("userid", c.Session.UserId))
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
 	}
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
 	mlog.Debug(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("userid", c.Session.UserId))
+		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
 }
 
 func (c *Context) UserRequired() {

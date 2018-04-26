@@ -851,7 +851,7 @@ func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model
 	a.InvalidateCacheForUser(userId)
 
 	if user, err := a.GetUser(userId); err != nil {
-		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", userId), mlog.String("userid", userId))
+		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", userId), mlog.String("user_id", userId))
 	} else {
 		options := a.Config().GetSanitizeOptions()
 		user.SanitizeProfile(options)
@@ -1294,7 +1294,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 }
 
 func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
-	mlog.Warn(fmt.Sprintf("Attempting to permanently delete account %v id=%v", user.Email, user.Id), mlog.String("userid", user.Id))
+	mlog.Warn(fmt.Sprintf("Attempting to permanently delete account %v id=%v", user.Email, user.Id), mlog.String("user_id", user.Id))
 	if user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
 		mlog.Warn(fmt.Sprintf("You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", user.Email))
 	}
@@ -1351,7 +1351,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	mlog.Warn(fmt.Sprintf("Permanently deleted account %v id=%v", user.Email, user.Id), mlog.String("userid", user.Id))
+	mlog.Warn(fmt.Sprintf("Permanently deleted account %v id=%v", user.Email, user.Id), mlog.String("user_id", user.Id))
 
 	return nil
 }

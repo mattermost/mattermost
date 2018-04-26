@@ -514,7 +514,7 @@ func SlackConvertUserMentions(users []SlackUser, posts map[string][]SlackPost) m
 	for _, user := range users {
 		r, err := regexp.Compile("<@" + user.Id + `(\|` + user.Username + ")?>")
 		if err != nil {
-			mlog.Warn(fmt.Sprint("Slack Import: Unable to compile the @mention, matching regular expression for the Slack user {{.Username}} (id={{.UserID}}).", user.Id, user.Username), mlog.String("userid", user.Id))
+			mlog.Warn(fmt.Sprint("Slack Import: Unable to compile the @mention, matching regular expression for the Slack user {{.Username}} (id={{.UserID}}).", user.Id, user.Username), mlog.String("user_id", user.Id))
 			continue
 		}
 		regexes["@"+user.Username] = r

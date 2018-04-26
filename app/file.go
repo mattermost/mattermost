@@ -98,7 +98,7 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	// Find the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
 	split := strings.SplitN(filename, "/", 5)
 	if len(split) < 5 {
-		mlog.Error(fmt.Sprintf("Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v", post.Id, filename), mlog.String("postid", post.Id))
+		mlog.Error(fmt.Sprintf("Unable to decipher filename when migrating post to use FileInfos, post_id=%v, filename=%v", post.Id, filename), mlog.String("post_id", post.Id))
 		return nil
 	}
 
@@ -108,7 +108,7 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	name, _ := url.QueryUnescape(split[4])
 
 	if split[0] != "" || split[1] != post.ChannelId || split[2] != post.UserId || strings.Contains(split[4], "/") {
-		mlog.Warn(fmt.Sprintf("Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v", post.Id, post.ChannelId, post.UserId, filename), mlog.String("postid", post.Id))
+		mlog.Warn(fmt.Sprintf("Found an unusual filename when migrating post to use FileInfos, post_id=%v, channel_id=%v, user_id=%v, filename=%v", post.Id, post.ChannelId, post.UserId, filename), mlog.String("post_id", post.Id))
 	}
 
 	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamId, channelId, userId, oldId)
@@ -117,13 +117,13 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	// Open the file and populate the fields of the FileInfo
 	var info *model.FileInfo
 	if data, err := a.ReadFile(path); err != nil {
-		mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.file_not_found.error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, filename, path, err), mlog.String("postid", post.Id))
+		mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.file_not_found.error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, filename, path, err), mlog.String("post_id", post.Id))
 		return nil
 	} else {
 		var err *model.AppError
 		info, err = model.GetInfoForBytes(name, data)
 		if err != nil {
-			mlog.Warn(fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v", post.Id, filename, err), mlog.String("postid", post.Id))
+			mlog.Warn(fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v", post.Id, filename, err), mlog.String("post_id", post.Id))
 		}
 	}
 
@@ -151,7 +151,7 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
 	if result := <-a.Srv.Store.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v", post.Id, result.Err), mlog.String("postid", post.Id))
+		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfos, post_id=%v, err=%v", post.Id, result.Err), mlog.String("post_id", post.Id))
 	} else if teams := result.Data.([]*model.Team); len(teams) == 1 {
 		// The user has only one team so the post must've been sent from it
 		return teams[0].Id
@@ -173,7 +173,7 @@ var fileMigrationLock sync.Mutex
 // Creates and stores FileInfos for a post created before the FileInfos table existed.
 func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
-		mlog.Warn(fmt.Sprintf("Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v", post.Id), mlog.String("postid", post.Id))
+		mlog.Warn(fmt.Sprintf("Unable to migrate post to use FileInfos with an empty Filenames field, post_id=%v", post.Id), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 
@@ -184,7 +184,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	var channel *model.Channel
 	if result := <-cchan; result.Err != nil {
-		mlog.Error(fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v", post.Id, post.ChannelId, result.Err), mlog.String("postid", post.Id))
+		mlog.Error(fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, post_id=%v, channel_id=%v, err=%v", post.Id, post.ChannelId, result.Err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	} else {
 		channel = result.Data.(*model.Channel)
@@ -202,7 +202,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	// Create FileInfo objects for this post
 	infos := make([]*model.FileInfo, 0, len(filenames))
 	if teamId == "" {
-		mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.team_id.error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, filenames), mlog.String("postid", post.Id))
+		mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.team_id.error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, filenames), mlog.String("post_id", post.Id))
 	} else {
 		for _, filename := range filenames {
 			info := a.GetInfoForFilename(post, teamId, filename)
@@ -219,26 +219,26 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	defer fileMigrationLock.Unlock()
 
 	if result := <-a.Srv.Store.Post().Get(post.Id); result.Err != nil {
-		mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.get_post_again.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, result.Err), mlog.String("postid", post.Id))
+		mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.get_post_again.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, result.Err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	} else if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		if result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false); result.Err != nil {
-			mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.get_post_file_infos_again.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, result.Err), mlog.String("postid", post.Id))
+			mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.get_post_file_infos_again.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, result.Err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
 		} else {
-			mlog.Debug(fmt.Sprintf("Post already migrated to use FileInfos, post_id=%v", post.Id), mlog.String("postid", post.Id))
+			mlog.Debug(fmt.Sprintf("Post already migrated to use FileInfos, post_id=%v", post.Id), mlog.String("post_id", post.Id))
 			return result.Data.([]*model.FileInfo)
 		}
 	}
 
-	mlog.Debug(fmt.Sprintf("Migrating post to use FileInfos, post_id=%v", post.Id), mlog.String("postid", post.Id))
+	mlog.Debug(fmt.Sprintf("Migrating post to use FileInfos, post_id=%v", post.Id), mlog.String("post_id", post.Id))
 
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
 		if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
-			mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.save_file_info.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, info.Id, info.Path, result.Err), mlog.String("postid", post.Id))
+			mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.save_file_info.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, info.Id, info.Path, result.Err), mlog.String("post_id", post.Id))
 			continue
 		}
 
@@ -255,7 +255,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	// Update Posts to clear Filenames and set FileIds
 	if result := <-a.Srv.Store.Post().Update(newPost, post); result.Err != nil {
-		mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.save_post.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, newPost.FileIds, post.Filenames, result.Err), mlog.String("postid", post.Id))
+		mlog.Error(fmt.Sprint("api.file.migrate_filenames_to_file_infos.save_post.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", post.Id, newPost.FileIds, post.Filenames, result.Err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	} else {
 		return savedInfos
