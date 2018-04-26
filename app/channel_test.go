@@ -381,3 +381,21 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 		assert.Equal(t, user.Username, post.Props["username"])
 	}
 }
+
+func TestAppUpdateChannelScheme(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	mockID := model.NewString("x")
+	channel.SchemeId = mockID
+
+	updatedChannel, err := th.App.UpdateChannelScheme(channel)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updatedChannel.SchemeId != mockID {
+		t.Fatal("Wrong Channel SchemeId")
+	}
+}

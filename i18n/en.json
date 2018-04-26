@@ -6695,6 +6695,14 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
   },
   {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "License does not support updating a channel's scheme"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+  },
+  {
     "id": "store.sql_channel.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme"
   },
