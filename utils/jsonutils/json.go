@@ -21,7 +21,7 @@ func (e *HumanizedJsonError) Error() string {
 }
 
 // HumanizeJsonError extracts error offsets and annotates the error with useful context
-func HumanizeJsonError(data []byte, err error) error {
+func HumanizeJsonError(err error, data []byte) error {
 	if syntaxError, ok := err.(*json.SyntaxError); ok {
 		return NewHumanizedJsonError(syntaxError, data, syntaxError.Offset)
 	} else if unmarshalError, ok := err.(*json.UnmarshalTypeError); ok {

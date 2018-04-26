@@ -63,7 +63,7 @@ func TestHumanizeJsonError(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			actual := jsonutils.HumanizeJsonError(testCase.Data, testCase.Err)
+			actual := jsonutils.HumanizeJsonError(testCase.Err, testCase.Data)
 			if testCase.ExpectedErr == "" {
 				assert.NoError(t, actual)
 			} else {

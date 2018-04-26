@@ -223,7 +223,7 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map
 	} else {
 		var rawConfig interface{}
 		if err := json.Unmarshal(configData, &rawConfig); err != nil {
-			return nil, nil, jsonutils.HumanizeJsonError(configData, err)
+			return nil, nil, jsonutils.HumanizeJsonError(err, configData)
 		}
 	}
 
