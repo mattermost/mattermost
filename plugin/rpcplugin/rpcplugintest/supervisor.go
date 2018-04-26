@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,6 +32,7 @@ func TestSupervisorProvider(t *testing.T, sp SupervisorProviderFunc) {
 		"Supervisor_NonExistentExecutablePath": testSupervisor_NonExistentExecutablePath,
 		"Supervisor_StartTimeout":              testSupervisor_StartTimeout,
 		"Supervisor_PluginCrash":               testSupervisor_PluginCrash,
+		"Supervisor_PluginRepeatedlyCrash":     testSupervisor_PluginRepeatedlyCrash,
 	} {
 		t.Run(name, func(t *testing.T) { f(t, sp) })
 	}
@@ -186,5 +189,85 @@ func testSupervisor_PluginCrash(t *testing.T, sp SupervisorProviderFunc) {
 		time.Sleep(time.Millisecond * 100)
 	}
 	assert.True(t, recovered)
+	require.NoError(t, supervisor.Stop())
+}
+
+// Crashed plugins should be relaunched at most three times.
+func testSupervisor_PluginRepeatedlyCrash(t *testing.T, sp SupervisorProviderFunc) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	backend := filepath.Join(dir, "backend.exe")
+	CompileGo(t, `
+		package main
+
+		import (
+			"net/http"
+			"os"
+
+			"github.com/mattermost/mattermost-server/plugin/rpcplugin"
+		)
+
+		type MyPlugin struct {
+			crashing bool
+		}
+
+		func (p *MyPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				p.crashing = true
+				go func() {
+					os.Exit(1)
+				}()
+			}
+
+			if p.crashing {
+				w.WriteHeader(http.StatusInternalServerError)
+			} else {
+				w.WriteHeader(http.StatusOK)
+			}
+		}
+
+		func main() {
+			rpcplugin.Main(&MyPlugin{})
+		}
+	`, backend)
+
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+
+	var api plugintest.API
+	bundle := model.BundleInfoForPath(dir)
+	supervisor, err := sp(bundle)
+	require.NoError(t, err)
+	require.NoError(t, supervisor.Start(&api))
+
+	for attempt := 1; attempt <= 4; attempt++ {
+		// Verify that the plugin is operational
+		response := httptest.NewRecorder()
+		supervisor.Hooks().ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/plugins/id", nil))
+		require.Equal(t, http.StatusOK, response.Result().StatusCode)
+
+		// Crash the plugin
+		supervisor.Hooks().ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/plugins/id", nil))
+
+		// Wait for it to potentially recover
+		recovered := false
+		for i := 0; i < 125; i++ {
+			response := httptest.NewRecorder()
+			supervisor.Hooks().ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/plugins/id", nil))
+			if response.Result().StatusCode == http.StatusOK {
+				recovered = true
+				break
+			}
+
+			time.Sleep(time.Millisecond * 100)
+		}
+
+		if attempt < 4 {
+			require.True(t, recovered, "failed to recover after attempt %d", attempt)
+		} else {
+			require.False(t, recovered, "unexpectedly recovered after attempt %d", attempt)
+		}
+	}
 	require.NoError(t, supervisor.Stop())
 }
