@@ -4687,6 +4687,10 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Unable to parse incoming data"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "We encountered an error while connecting to the server"
   },

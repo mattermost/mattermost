@@ -917,17 +917,21 @@ func TestCommandWebhooks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if resp, _ := http.Post(Client.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString("{\"text\":\"this is a test\"}")); resp.StatusCode != http.StatusNotFound {
+	if resp, _ := http.Post(Client.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); resp.StatusCode != http.StatusNotFound {
 		t.Fatal("expected not-found for non-existent hook")
 	}
 
+	if resp, err := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"invalid`)); err != nil || resp.StatusCode != http.StatusBadRequest {
+		t.Fatal(err)
+	}
+
 	for i := 0; i < 5; i++ {
-		if resp, err := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString("{\"text\":\"this is a test\"}")); err != nil || resp.StatusCode != http.StatusOK {
+		if resp, err := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); err != nil || resp.StatusCode != http.StatusOK {
 			t.Fatal(err)
 		}
 	}
 
-	if resp, _ := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString("{\"text\":\"this is a test\"}")); resp.StatusCode != http.StatusBadRequest {
+	if resp, _ := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); resp.StatusCode != http.StatusBadRequest {
 		t.Fatal("expected error for sixth usage")
 	}
 }
