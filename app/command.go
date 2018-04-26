@@ -152,10 +152,25 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 }
 
 func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	parts := strings.Split(args.Command, " ")
+	parts := strings.Split(strings.TrimSpace(args.Command), " ")
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
+
+	//If parts[1] contains ~ then the user might want to define an override channel for custom slash commands
 	message := strings.Join(parts[1:], " ")
+	var overrideChannelname string
+	if len(parts) > 1 && strings.HasPrefix(parts[1], "~") {
+		overrideChannelname = strings.TrimPrefix(parts[1], "~")
+		message = strings.Join(parts[2:], " ")
+	}
+
+	if overrideChannelname != "" {
+		overrideChannel := a.checkOverrideChannel(overrideChannelname, args)
+		if overrideChannel != nil {
+			args.ChannelId = overrideChannel.Id
+		}
+	}
+
 	provider := GetCommandProvider(trigger)
 
 	if provider != nil {
@@ -263,6 +278,17 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	}
 
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
+}
+
+func (a *App) checkOverrideChannel(possibleChannel string, args *model.CommandArgs) *model.Channel {
+	//check if is a valid channel or it is part of the slash command from the user.
+	channel, err := a.GetChannelByName(possibleChannel, args.TeamId)
+	if err != nil {
+		l4g.Error(err.Error())
+		return nil
+	} else {
+		return channel
+	}
 }
 
 func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
