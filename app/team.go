@@ -113,6 +113,24 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return oldTeam, nil
 }
 
+func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
+	var oldTeam *model.Team
+	var err *model.AppError
+	if oldTeam, err = a.GetTeam(team.Id); err != nil {
+		return nil, err
+	}
+
+	oldTeam.SchemeId = team.SchemeId
+
+	if result := <-a.Srv.Store.Team().Update(oldTeam); result.Err != nil {
+		return nil, result.Err
+	}
+
+	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return oldTeam, nil
+}
+
 func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
 	team, err := a.GetTeam(teamId)
 	if err != nil {

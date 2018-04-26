@@ -20,6 +20,7 @@ const (
 func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(getAllTeams)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/schemes/{scheme_id:[A-Za-z0-9]+}", api.ApiSessionRequired(updateTeamScheme)).Methods("PUT")
 	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequired(searchTeams)).Methods("POST")
 	api.BaseRoutes.TeamsForUser.Handle("", api.ApiSessionRequired(getTeamsForUser)).Methods("GET")
 	api.BaseRoutes.TeamsForUser.Handle("/unread", api.ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
@@ -810,5 +811,54 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("")
+	ReturnStatusOK(w)
+}
+
+func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireSchemeId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.App.License() == nil {
+		c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	scheme, err := c.App.GetScheme(c.Params.SchemeId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if scheme.Scope != model.SCHEME_SCOPE_TEAM {
+		c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	team.SchemeId = &scheme.Id
+
+	_, err = c.App.UpdateTeamScheme(team)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	ReturnStatusOK(w)
 }

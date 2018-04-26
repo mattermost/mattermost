@@ -326,6 +326,10 @@ func (c *Client4) GetTimezonesRoute() string {
 	return fmt.Sprintf(c.GetSystemRoute() + "/timezones")
 }
 
+func (c *Client4) GetTeamSchemeRoute(teamId, schemeId string) string {
+	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/schemes/%v", teamId, schemeId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -3489,5 +3493,15 @@ func (c *Client4) GetTeamIcon(teamId, etag string) ([]byte, *Response) {
 		} else {
 			return data, BuildResponse(r)
 		}
+	}
+}
+
+// UpdateTeamScheme will update a team's scheme.
+func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamSchemeRoute(teamId, schemeId), ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
