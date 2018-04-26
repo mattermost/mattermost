@@ -73,45 +73,51 @@ func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *mod
 }
 
 func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
-	file, err := imageData.Open()
-	if err != nil {
+	file, e := imageData.Open()
+	if e != nil {
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.open.app_error", nil, "", http.StatusBadRequest)
 	}
 	defer file.Close()
 
 	// make sure the file is an image and is within the required dimensions
-	if config, _, err := image.DecodeConfig(file); err != nil {
+	config, _, e := image.DecodeConfig(file)
+	if e != nil {
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, "", http.StatusBadRequest)
-	} else if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
-		newbuf := bytes.NewBuffer(nil)
-		if info, err := model.GetInfoForBytes(imageData.Filename, file); err != nil {
+	}
+	if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
+		info, err := model.GetInfoForBytes(imageData.Filename, file)
+		if err != nil {
 			return err
-		} else if info.MimeType == "image/gif" {
-			if gif_data, err := gif.DecodeAll(file); err != nil {
+		}
+		newbuf := bytes.NewBuffer(nil)
+		file.Seek(0, 0)
+		if info.MimeType == "image/gif" {
+			gif_data, e := gif.DecodeAll(file)
+			if e != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest)
-			} else {
-				resized_gif := resizeEmojiGif(gif_data)
-				if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
-					return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest)
-				}
-				if _, err := a.WriteFile(file, getEmojiImagePath(id)); err != nil {
-					return err
-				}
 			}
+			resized_gif := resizeEmojiGif(gif_data)
+			if e := gif.EncodeAll(newbuf, resized_gif); e != nil {
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest)
+			}
+			file.Seek(0, 0)
+			_, err = a.WriteFile(file, getEmojiImagePath(id))
+			return err
 		} else {
-			if img, _, err := image.Decode(file); err != nil {
+			img, _, e := image.Decode(file)
+			if e != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest)
-			} else {
-				resized_image := resizeEmoji(img, config.Width, config.Height)
-				if err := png.Encode(newbuf, resized_image); err != nil {
-					return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest)
-				}
-				if _, err := a.WriteFile(file, getEmojiImagePath(id)); err != nil {
-					return err
-				}
 			}
+			resized_image := resizeEmoji(img, config.Width, config.Height)
+			if e = png.Encode(newbuf, resized_image); err != nil {
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest)
+			}
+			file.Seek(0, 0)
+			_, err := a.WriteFile(file, getEmojiImagePath(id))
+			return err
 		}
 	}
+	file.Seek(0, 0)
 	_, apperr := a.WriteFile(file, getEmojiImagePath(id))
 	return apperr
 }
