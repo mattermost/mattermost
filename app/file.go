@@ -123,13 +123,11 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 		var err *model.AppError
 		info, err = model.GetInfoForBytes(name, data)
 		if err != nil {
-			mlog.Warn(fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v", post.Id, filename, err), mlog.String(
-
-				// Generate a new ID because with the old system, you could very rarely get multiple posts referencing the same file
-				"postid", post.Id))
+			mlog.Warn(fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, post_id=%v, filename=%v, err=%v", post.Id, filename, err), mlog.String("postid", post.Id))
 		}
 	}
 
+	// Generate a new ID because with the old system, you could very rarely get multiple posts referencing the same file
 	info.Id = model.NewId()
 	info.CreatorId = post.UserId
 	info.PostId = post.Id

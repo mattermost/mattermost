@@ -241,7 +241,7 @@ func (a *App) Shutdown() {
 
 	a.RemoveConfigListener(a.configListenerId)
 	a.RemoveLicenseListener(a.licenseListenerId)
-	a.RemoveLicenseListener(a.logListenerId)
+	a.RemoveConfigListener(a.logListenerId)
 	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()
