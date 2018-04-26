@@ -65,17 +65,15 @@ func (a *App) initBuiltInPlugins() {
 	}
 }
 
-// ActivatePlugins will activate any plugins enabled in the config
-// and deactivate all other plugins.
-func (a *App) ActivatePlugins() {
+func (a *App) setPluginsActive(activate bool) {
 	if a.PluginEnv == nil {
-		mlog.Error("plugin env not initialized")
+		mlog.Error(fmt.Sprintf("Cannot setPluginsActive(%b): plugin env not initialized", activate))
 		return
 	}
 
 	plugins, err := a.PluginEnv.Plugins()
 	if err != nil {
-		mlog.Error("failed to activate plugins: " + err.Error())
+		mlog.Error(fmt.Sprintf("Cannot setPluginsActive(%b): %s", activate, err))
 		return
 	}
 
@@ -89,15 +87,14 @@ func (a *App) ActivatePlugins() {
 
 		active := a.PluginEnv.IsPluginActive(id)
 
-		if pluginState.Enable && !active {
+		if activate && pluginState.Enable && !active {
 			if err := a.activatePlugin(plugin.Manifest); err != nil {
-				mlog.Error(fmt.Sprintf("%v plugin enabled in config.json but failing to activate err=%v", plugin.Manifest.Id, err.DetailedError))
-				continue
+				mlog.Error(fmt.Sprintf("Plugin `%v` failed to activate err=%v", plugin.Manifest.Id, err.DetailedError))
 			}
 
-		} else if !pluginState.Enable && active {
+		} else if (!activate || !pluginState.Enable) && active {
 			if err := a.deactivatePlugin(plugin.Manifest); err != nil {
-				mlog.Error(err.Error())
+				mlog.Error(fmt.Sprintf("Plugin `%v` failed to deactivate err=%v", plugin.Manifest.Id, err.DetailedError))
 			}
 		}
 	}
@@ -114,7 +111,7 @@ func (a *App) activatePlugin(manifest *model.Manifest) *model.AppError {
 		a.Publish(message)
 	}
 
-	mlog.Info(fmt.Sprintf("Activated %v plugin", manifest.Id))
+	mlog.Info(fmt.Sprintf("Activated plugin `%v`", manifest.Id))
 	return nil
 }
 
@@ -131,7 +128,7 @@ func (a *App) deactivatePlugin(manifest *model.Manifest) *model.AppError {
 		a.Publish(message)
 	}
 
-	mlog.Info(fmt.Sprintf("Deactivated %v plugin", manifest.Id))
+	mlog.Info(fmt.Sprintf("Deactivated plugin %v", manifest.Id))
 	return nil
 }
 
@@ -430,21 +427,19 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 	}
 
 	a.RemoveConfigListener(a.PluginConfigListenerId)
-	a.PluginConfigListenerId = a.AddConfigListener(func(prevCfg, cfg *model.Config) {
+	a.PluginConfigListenerId = a.AddConfigListener(func(_, cfg *model.Config) {
 		if a.PluginEnv == nil {
 			return
 		}
 
-		if *prevCfg.PluginSettings.Enable && *cfg.PluginSettings.Enable {
-			a.ActivatePlugins()
-		}
+		a.setPluginsActive(*cfg.PluginSettings.Enable)
 
 		for _, err := range a.PluginEnv.Hooks().OnConfigurationChange() {
 			mlog.Error(err.Error())
 		}
 	})
 
-	a.ActivatePlugins()
+	a.setPluginsActive(true)
 }
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
