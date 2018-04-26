@@ -361,15 +361,14 @@ func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *mode
 		return nil, err
 	}
 
-	a.InvalidateCacheForChannel(channel)
-
 	oldChannel.SchemeId = channel.SchemeId
 
-	if result := <-a.Srv.Store.Channel().Update(oldChannel); result.Err != nil {
-		return nil, result.Err
+	newChannel, err := a.UpdateChannel(oldChannel)
+	if err != nil {
+		return nil, err
 	}
 
-	return oldChannel, nil
+	return newChannel, nil
 }
 
 func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
