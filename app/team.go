@@ -103,6 +103,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.AllowOpenInvite = team.AllowOpenInvite
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
+	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
 
 	if result := <-a.Srv.Store.Team().Update(oldTeam); result.Err != nil {
 		return nil, result.Err
