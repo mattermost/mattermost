@@ -61,6 +61,8 @@ const (
 	EXIT_REMOVE_TABLE                = 134
 	EXIT_CREATE_INDEX_SQLITE         = 135
 	EXIT_REMOVE_INDEX_SQLITE         = 136
+	EXIT_TABLE_EXISTS_SQLITE         = 137
+	EXIT_DOES_COLUMN_EXISTS_SQLITE   = 138
 )
 
 type SqlSupplierOldStores struct {
@@ -367,6 +369,20 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 
 		return count > 0
 
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
+			tableName,
+		)
+
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.table_exists.critical"), err)
+			time.Sleep(time.Second)
+			os.Exit(EXIT_TABLE_EXISTS_SQLITE)
+		}
+
+		return count > 0
+
 	} else {
 		l4g.Critical(utils.T("store.sql.column_exists_missing_driver.critical"))
 		time.Sleep(time.Second)
@@ -418,6 +434,21 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_MYSQL)
+		}
+
+		return count > 0
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT COUNT(*) FROM pragma_table_info(?) WHERE name=?`,
+			tableName,
+			columnName,
+		)
+
+		if err != nil {
+			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
+			time.Sleep(time.Second)
+			os.Exit(EXIT_DOES_COLUMN_EXISTS_SQLITE)
 		}
 
 		return count > 0

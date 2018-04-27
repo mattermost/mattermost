@@ -509,11 +509,15 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	response := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
-
-	err := c.App.HandleCommandWebhook(id, response)
+	response, err := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	appErr := c.App.HandleCommandWebhook(id, response)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
