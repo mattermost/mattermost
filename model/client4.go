@@ -327,11 +327,11 @@ func (c *Client4) GetTimezonesRoute() string {
 }
 
 func (c *Client4) GetChannelSchemeRoute(channelId string) string {
-	return fmt.Sprintf(c.GetChannelsRoute()+"/%v/schemes", channelId)
+	return fmt.Sprintf(c.GetChannelsRoute()+"/%v/scheme", channelId)
 }
 
 func (c *Client4) GetTeamSchemeRoute(teamId string) string {
-	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/schemes", teamId)
+	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/scheme", teamId)
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
