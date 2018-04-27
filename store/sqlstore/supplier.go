@@ -374,7 +374,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 		)
 
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.table_exists.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_TABLE_EXISTS_SQLITE)
 		}
@@ -444,7 +444,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		)
 
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_SQLITE)
 		}
