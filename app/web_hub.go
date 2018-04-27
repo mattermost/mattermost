@@ -378,6 +378,7 @@ func (h *Hub) Start() {
 				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
 			case webCon := <-h.unregister:
 				connections.Remove(webCon)
+				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
 
 				if len(webCon.UserId) == 0 {
 					continue
