@@ -504,7 +504,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, column
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_POSTGRES)
 		}
@@ -514,7 +514,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, column
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
@@ -522,7 +522,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, column
 		return true
 
 	} else {
-		l4g.Critical(utils.T("store.sql.create_column_missing_driver.critical"))
+		mlog.Critical("Failed to create column because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_COLUMN_MISSING)
 		return false
