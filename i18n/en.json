@@ -3847,8 +3847,8 @@
     "translation": "Unable to get active plugins"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "Plugin Id must be less than {{.Max}} characters."
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
   {
     "id": "app.plugin.install.app_error",

@@ -15,7 +15,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -31,10 +30,6 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 	"github.com/mattermost/mattermost-server/plugin/rpcplugin/sandbox"
-)
-
-const (
-	PLUGIN_MAX_ID_LENGTH = 190
 )
 
 var prepackagedPlugins map[string]func(string) ([]byte, error) = map[string]func(string) ([]byte, error){
@@ -171,8 +166,8 @@ func (a *App) installPlugin(pluginFile io.Reader, allowPrepackaged bool) (*model
 		return nil, model.NewAppError("installPlugin", "app.plugin.prepackaged.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(manifest.Id) > PLUGIN_MAX_ID_LENGTH {
-		return nil, model.NewAppError("installPlugin", "app.plugin.id_length.app_error", map[string]interface{}{"Max": PLUGIN_MAX_ID_LENGTH}, err.Error(), http.StatusBadRequest)
+	if !plugin.IsValidId(manifest.Id) {
+		return nil, model.NewAppError("installPlugin", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": plugin.MinIdLength, "Max": plugin.MaxIdLength, "Regex": plugin.ValidId.String()}, "", http.StatusBadRequest)
 	}
 
 	bundles, err := a.PluginEnv.Plugins()
