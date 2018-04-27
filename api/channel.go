@@ -650,7 +650,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.PostAddToChannelMessage(oUser, nUser, channel, "")
 	})
 
-	c.App.UpdateChannelLastViewedAt([]string{id}, oUser.Id)
+	c.App.MarkChannelsAsViewed([]string{id}, oUser.Id, !c.Session.IsMobileApp())
 	w.Write([]byte(cm.ToJson()))
 }
 

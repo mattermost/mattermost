@@ -928,9 +928,35 @@ func (us SqlUserStore) GetUnreadCount(userId string) store.StoreChannel {
 	})
 }
 
+func (us SqlUserStore) GetUnreadCountFromMaster(userId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if count, err := us.GetMaster().SelectInt(`
+		SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
+		FROM Channels c
+		INNER JOIN ChannelMembers cm
+		      ON cm.ChannelId = c.Id
+		      AND cm.UserId = :UserId
+		      AND c.DeleteAt = 0`, map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetMentionCount", "store.sql_user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = count
+		}
+	})
+}
+
 func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if count, err := us.GetReplica().SelectInt("SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = :ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetMentionCountForChannel", "store.sql_user.get_unread_count_for_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = count
+		}
+	})
+}
+
+func (us SqlUserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if count, err := us.GetReplica().SelectInt("SELECT SUM(c.TotalMsgCount - cm.MsgCount) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = :ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetMentionCountForChannel", "store.sql_user.get_unread_count_for_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = count

@@ -241,7 +241,9 @@ type UserStore interface {
 	AnalyticsUniqueUserCount(teamId string) StoreChannel
 	AnalyticsActiveCount(time int64) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
+	GetUnreadCountFromMaster(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
+	GetAnyUnreadPostCountForChannel(userId string, channelId string) StoreChannel
 	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int) StoreChannel
 	GetNewUsersForTeam(teamId string, offset, limit int) StoreChannel
 	Search(teamId string, term string, options map[string]bool) StoreChannel

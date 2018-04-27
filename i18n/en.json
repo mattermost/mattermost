@@ -1773,10 +1773,6 @@
     "translation": "Invalid ChannelId for RootId parameter"
   },
   {
-    "id": "api.post.create_post.last_viewed.error",
-    "translation": "Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v"
-  },
-  {
     "id": "api.post.create_post.parent_id.app_error",
     "translation": "Invalid ParentId parameter"
   },
@@ -1893,10 +1889,6 @@
   {
     "id": "api.post.send_notifications.user_id.debug",
     "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Clearing push notification to %v with channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
