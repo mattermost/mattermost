@@ -75,8 +75,8 @@ func writeFileLocally(fr io.Reader, path string) (int64, *model.AppError) {
 		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer fw.Close()
-	var written int64
-	if written, err = io.Copy(fw, fr); err != nil {
+	written, err := io.Copy(fw, fr)
+	if err != nil {
 		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return written, nil

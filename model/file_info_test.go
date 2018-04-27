@@ -85,8 +85,6 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect filename: %v", info.Name)
 	} else if info.Extension != "txt" {
 		t.Fatalf("Got incorrect extension: %v", info.Extension)
-	} else if info.Size != 1000 {
-		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if !strings.HasPrefix(info.MimeType, "text/plain") {
 		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
 	} else if info.Width != 0 {

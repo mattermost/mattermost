@@ -1704,7 +1704,6 @@ func (a *App) OldImportChannel(channel *model.Channel) *model.Channel {
 }
 
 func (a *App) OldImportFile(timestamp time.Time, file io.ReadCloser, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
-	var frs io.ReadSeeker
 	frs, ok := file.(io.ReadSeeker)
 	if !ok {
 		body, err := ioutil.ReadAll(file)
