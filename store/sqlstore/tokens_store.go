@@ -7,8 +7,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -70,9 +69,9 @@ func (s SqlTokenStore) GetByToken(tokenString string) store.StoreChannel {
 }
 
 func (s SqlTokenStore) Cleanup() {
-	l4g.Debug("Cleaning up token store.")
+	mlog.Debug("Cleaning up token store.")
 	deltime := model.GetMillis() - model.MAX_TOKEN_EXIPRY_TIME
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE CreateAt < :DelTime", map[string]interface{}{"DelTime": deltime}); err != nil {
-		l4g.Error("Unable to cleanup token store.")
+		mlog.Error("Unable to cleanup token store.")
 	}
 }

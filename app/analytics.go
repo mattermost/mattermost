@@ -4,7 +4,9 @@
 package app
 
 import (
-	l4g "github.com/alecthomas/log4go"
+	"fmt"
+
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -22,7 +24,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 	} else {
 		systemUserCount = r.Data.(int64)
 		if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
-			l4g.Debug("More than %v users on the system, intensive queries skipped", *a.Config().AnalyticsSettings.MaxUsersForStatistics)
+			mlog.Debug(fmt.Sprintf("More than %v users on the system, intensive queries skipped", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
 			skipIntensiveQueries = true
 		}
 	}

@@ -13,10 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -66,7 +64,7 @@ func (a *App) TotalWebsocketConnections() int {
 func (a *App) HubStart() {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
-	l4g.Info(utils.T("api.web_hub.start.starting.debug"), numberOfHubs)
+	mlog.Info(fmt.Sprintf("Starting %v websocket hubs", numberOfHubs))
 
 	a.Hubs = make([]*Hub, numberOfHubs)
 	a.HubsStopCheckingForDeadlock = make(chan bool, 1)
@@ -89,7 +87,7 @@ func (a *App) HubStart() {
 			case <-ticker.C:
 				for _, hub := range a.Hubs {
 					if len(hub.broadcast) >= DEADLOCK_WARN {
-						l4g.Error("Hub processing might be deadlock on hub %v goroutine %v with %v events in the buffer", hub.connectionIndex, hub.goroutineId, len(hub.broadcast))
+						mlog.Error(fmt.Sprintf("Hub processing might be deadlock on hub %v goroutine %v with %v events in the buffer", hub.connectionIndex, hub.goroutineId, len(hub.broadcast)))
 						buf := make([]byte, 1<<16)
 						runtime.Stack(buf, true)
 						output := fmt.Sprintf("%s", buf)
@@ -97,7 +95,7 @@ func (a *App) HubStart() {
 
 						for _, part := range splits {
 							if strings.Contains(part, fmt.Sprintf("%v", hub.goroutineId)) {
-								l4g.Error("Trace for possible deadlock goroutine %v", part)
+								mlog.Error(fmt.Sprintf("Trace for possible deadlock goroutine %v", part))
 							}
 						}
 					}
@@ -111,12 +109,12 @@ func (a *App) HubStart() {
 }
 
 func (a *App) HubStop() {
-	l4g.Info(utils.T("api.web_hub.start.stopping.debug"))
+	mlog.Info("stopping websocket hub connections")
 
 	select {
 	case a.HubsStopCheckingForDeadlock <- true:
 	default:
-		l4g.Warn("We appear to have already sent the stop checking for deadlocks command")
+		mlog.Warn("We appear to have already sent the stop checking for deadlocks command")
 	}
 
 	for _, hub := range a.Hubs {
@@ -367,7 +365,7 @@ func (h *Hub) Start() {
 
 	doStart = func() {
 		h.goroutineId = getGoroutineId()
-		l4g.Debug("Hub for index %v is starting with goroutine %v", h.connectionIndex, h.goroutineId)
+		mlog.Debug(fmt.Sprintf("Hub for index %v is starting with goroutine %v", h.connectionIndex, h.goroutineId))
 
 		connections := newHubConnectionIndex()
 
@@ -404,7 +402,7 @@ func (h *Hub) Start() {
 						select {
 						case webCon.Send <- msg:
 						default:
-							l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+							mlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
 							close(webCon.Send)
 							connections.Remove(webCon)
 						}
@@ -438,12 +436,12 @@ func (h *Hub) Start() {
 	doRecover = func() {
 		if !h.ExplicitStop {
 			if r := recover(); r != nil {
-				l4g.Error(fmt.Sprintf("Recovering from Hub panic. Panic was: %v", r))
+				mlog.Error(fmt.Sprintf("Recovering from Hub panic. Panic was: %v", r))
 			} else {
-				l4g.Error("Webhub stopped unexpectedly. Recovering.")
+				mlog.Error("Webhub stopped unexpectedly. Recovering.")
 			}
 
-			l4g.Error(string(debug.Stack()))
+			mlog.Error(string(debug.Stack()))
 
 			go doRecoverableStart()
 		}
