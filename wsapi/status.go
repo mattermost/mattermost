@@ -4,8 +4,7 @@
 package wsapi
 
 import (
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -22,7 +21,7 @@ func (api *API) getStatuses(req *model.WebSocketRequest) (map[string]interface{}
 func (api *API) getStatusesByIds(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var userIds []string
 	if userIds = model.ArrayFromInterface(req.Data["user_ids"]); len(userIds) == 0 {
-		l4g.Error(model.StringInterfaceToJson(req.Data))
+		mlog.Error(model.StringInterfaceToJson(req.Data))
 		return nil, NewInvalidWebSocketParamError(req.Action, "user_ids")
 	}
 

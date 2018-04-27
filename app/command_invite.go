@@ -4,9 +4,10 @@
 package app
 
 import (
+	"fmt"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -41,7 +42,7 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		return &model.CommandResponse{Text: args.T("api.command_invite.missing_message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	l4g.Debug(message)
+	mlog.Debug(fmt.Sprint(message))
 
 	splitMessage := strings.SplitN(message, " ", 2)
 	targetUsername := splitMessage[0]
@@ -49,7 +50,7 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 
 	var userProfile *model.User
 	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
-		l4g.Error(result.Err.Error())
+		mlog.Error(result.Err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_invite.missing_user.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		userProfile = result.Data.(*model.User)

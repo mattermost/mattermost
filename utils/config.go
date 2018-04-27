@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -23,6 +22,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils/jsonutils"
 )
@@ -31,8 +31,6 @@ const (
 	LOG_ROTATE_SIZE = 10000
 	LOG_FILENAME    = "mattermost.log"
 )
-
-var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 
 // FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
 // relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
@@ -66,71 +64,26 @@ func FindDir(dir string) (string, bool) {
 	return "./", false
 }
 
+func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
+	return &mlog.LoggerConfiguration{
+		EnableConsole: s.EnableConsole,
+		ConsoleJson:   *s.ConsoleJson,
+		ConsoleLevel:  strings.ToLower(s.ConsoleLevel),
+		EnableFile:    s.EnableFile,
+		FileJson:      *s.FileJson,
+		FileLevel:     strings.ToLower(s.FileLevel),
+		FileLocation:  GetLogFileLocation(s.FileLocation),
+	}
+}
+
+// DON'T USE THIS Modify the level on the app logger
 func DisableDebugLogForTest() {
-	if l4g.Global["stdout"] != nil {
-		originalDisableDebugLvl = l4g.Global["stdout"].Level
-		l4g.Global["stdout"].Level = l4g.ERROR
-	}
+	mlog.GloballyDisableDebugLogForTest()
 }
 
+// DON'T USE THIS Modify the level on the app logger
 func EnableDebugLogForTest() {
-	if l4g.Global["stdout"] != nil {
-		l4g.Global["stdout"].Level = originalDisableDebugLvl
-	}
-}
-
-func ConfigureCmdLineLog() {
-	ls := model.LogSettings{}
-	ls.EnableConsole = true
-	ls.ConsoleLevel = "WARN"
-	ConfigureLog(&ls)
-}
-
-// ConfigureLog enables and configures logging.
-//
-// Note that it is not currently possible to disable filters nor to modify previously enabled
-// filters, given the lack of concurrency guarantees from the underlying l4g library.
-//
-// TODO: this code initializes console and file logging. It will eventually be replaced by JSON logging in logger/logger.go
-// See PLT-3893 for more information
-func ConfigureLog(s *model.LogSettings) {
-	if _, alreadySet := l4g.Global["stdout"]; !alreadySet && s.EnableConsole {
-		level := l4g.DEBUG
-		if s.ConsoleLevel == "INFO" {
-			level = l4g.INFO
-		} else if s.ConsoleLevel == "WARN" {
-			level = l4g.WARNING
-		} else if s.ConsoleLevel == "ERROR" {
-			level = l4g.ERROR
-		}
-
-		lw := l4g.NewConsoleLogWriter()
-		lw.SetFormat("[%D %T] [%L] %M")
-		l4g.AddFilter("stdout", level, lw)
-	}
-
-	if _, alreadySet := l4g.Global["file"]; !alreadySet && s.EnableFile {
-		var fileFormat = s.FileFormat
-
-		if fileFormat == "" {
-			fileFormat = "[%D %T] [%L] %M"
-		}
-
-		level := l4g.DEBUG
-		if s.FileLevel == "INFO" {
-			level = l4g.INFO
-		} else if s.FileLevel == "WARN" {
-			level = l4g.WARNING
-		} else if s.FileLevel == "ERROR" {
-			level = l4g.ERROR
-		}
-
-		flw := l4g.NewFileLogWriter(GetLogFileLocation(s.FileLocation), false)
-		flw.SetFormat(fileFormat)
-		flw.SetRotate(true)
-		flw.SetRotateLines(LOG_ROTATE_SIZE)
-		l4g.AddFilter("file", level, flw)
-	}
+	mlog.GloballyEnableDebugLogForTest()
 }
 
 func GetLogFileLocation(fileLocation string) string {
@@ -189,17 +142,17 @@ func NewConfigWatcher(cfgFileName string, f func()) (*ConfigWatcher, error) {
 				// we only care about the config file
 				if filepath.Clean(event.Name) == configFile {
 					if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-						l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
+						mlog.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
 
 						if _, _, configReadErr := ReadConfigFile(cfgFileName, true); configReadErr == nil {
 							f()
 						} else {
-							l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
+							mlog.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
 						}
 					}
 				}
 			case err := <-watcher.Errors:
-				l4g.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", cfgFileName, err.Error()))
+				mlog.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", cfgFileName, err.Error()))
 			case <-ret.close:
 				return
 			}
@@ -278,7 +231,7 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 func structToMap(t reflect.Type) (out map[string]interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
-			l4g.Error("Panicked in structToMap. This should never happen. %v", r)
+			mlog.Error(fmt.Sprintf("Panicked in structToMap. This should never happen. %v", r))
 		}
 	}()
 
@@ -345,7 +298,7 @@ func flattenStructToMap(in map[string]interface{}) map[string]interface{} {
 func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			l4g.Error("Panicked in fixEnvSettingsCase. This should never happen. %v", r)
+			mlog.Error(fmt.Sprintf("Panicked in fixEnvSettingsCase. This should never happen. %v", r))
 			out = in
 		}
 	}()
@@ -450,13 +403,13 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 
 	if needSave {
 		if err := SaveConfig(configPath, config); err != nil {
-			l4g.Warn(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
 	if err := ValidateLocales(config); err != nil {
 		if err := SaveConfig(configPath, config); err != nil {
-			l4g.Warn(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 

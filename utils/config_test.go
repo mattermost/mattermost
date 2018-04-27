@@ -19,9 +19,8 @@ import (
 
 func TestConfig(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, _, err := LoadConfig("config.json")
+	_, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
-	InitTranslations(cfg.LocalizationSettings)
 }
 
 func TestReadConfig(t *testing.T) {

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/model"
@@ -644,7 +643,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 		if err := migrate.MigrateToSaml(fromAuth, matches, autoFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
-		l4g.Close()
+
 		cmd.CommandPrettyPrintln("Successfully migrated accounts.")
 	}
 

@@ -17,8 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -60,9 +59,6 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 	a.configFile = configPath
 
-	utils.ConfigureLog(&cfg.LogSettings)
-	l4g.Info("Using config file at %s", configPath)
-
 	a.config.Store(cfg)
 	a.envConfig = envConfig
 
@@ -101,7 +97,7 @@ func (a *App) EnableConfigWatch() {
 			a.ReloadConfig()
 		})
 		if err != nil {
-			l4g.Error(err)
+			mlog.Error(fmt.Sprint(err))
 		}
 		a.configWatcher = configWatcher
 	}
