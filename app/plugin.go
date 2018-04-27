@@ -42,7 +42,7 @@ func (a *App) initBuiltInPlugins() {
 		"ldapextras": &ldapextras.Plugin{},
 	}
 	for id, p := range plugins {
-		mlog.Debug("Initializing built-in plugin: " + id)
+		mlog.Debug("Initializing built-in plugin", mlog.String("plugin_id", id))
 		api := &BuiltInPluginAPI{
 			id:     id,
 			router: a.Srv.Router.PathPrefix("/plugins/" + id).Subrouter(),
@@ -68,7 +68,7 @@ func (a *App) setPluginsActive(activate bool) {
 
 	plugins, err := a.PluginEnv.Plugins()
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Cannot setPluginsActive(%b): %s", activate, err))
+		mlog.Error(fmt.Sprintf("Cannot setPluginsActive(%b)", activate), mlog.Err(err))
 		return
 	}
 
@@ -88,12 +88,12 @@ func (a *App) setPluginsActive(activate bool) {
 
 		if activate && pluginState.Enable && !active {
 			if err := a.activatePlugin(plugin.Manifest); err != nil {
-				mlog.Error(fmt.Sprintf("Plugin `%v` failed to activate err=%v", plugin.Manifest.Id, err.DetailedError))
+				mlog.Error(fmt.Sprintf("Plugin failed to activate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError)))
 			}
 
 		} else if (!activate || !pluginState.Enable) && active {
 			if err := a.deactivatePlugin(plugin.Manifest); err != nil {
-				mlog.Error(fmt.Sprintf("Plugin `%v` failed to deactivate err=%v", plugin.Manifest.Id, err.DetailedError))
+				mlog.Error(fmt.Sprintf("Plugin failed to deactivate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError)))
 			}
 		}
 	}
@@ -110,7 +110,7 @@ func (a *App) activatePlugin(manifest *model.Manifest) *model.AppError {
 		a.Publish(message)
 	}
 
-	mlog.Info(fmt.Sprintf("Activated plugin `%v`", manifest.Id))
+	mlog.Info("Activated plugin", mlog.String("plugin_id", manifest.Id))
 	return nil
 }
 
@@ -127,7 +127,7 @@ func (a *App) deactivatePlugin(manifest *model.Manifest) *model.AppError {
 		a.Publish(message)
 	}
 
-	mlog.Info(fmt.Sprintf("Deactivated plugin %v", manifest.Id))
+	mlog.Info("Deactivated plugin", mlog.String("plugin_id", manifest.Id))
 	return nil
 }
 
@@ -374,12 +374,12 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 	mlog.Info("Starting up plugins")
 
 	if err := os.Mkdir(pluginPath, 0744); err != nil && !os.IsExist(err) {
-		mlog.Error("failed to start up plugins: " + err.Error())
+		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
 
 	if err := os.Mkdir(webappPath, 0744); err != nil && !os.IsExist(err) {
-		mlog.Error("failed to start up plugins: " + err.Error())
+		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
 
@@ -401,15 +401,14 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 	if supervisorOverride != nil {
 		options = append(options, pluginenv.SupervisorProvider(supervisorOverride))
 	} else if err := sandbox.CheckSupport(); err != nil {
-		mlog.Warn(err.Error())
-		mlog.Warn("plugin sandboxing is not supported. plugins will run with the same access level as the server. See documentation to learn more: https://developers.mattermost.com/extend/plugins/security/")
+		mlog.Warn("plugin sandboxing is not supported. plugins will run with the same access level as the server. See documentation to learn more: https://developers.mattermost.com/extend/plugins/security/", mlog.Err(err))
 		options = append(options, pluginenv.SupervisorProvider(rpcplugin.SupervisorProvider))
 	} else {
 		options = append(options, pluginenv.SupervisorProvider(sandbox.SupervisorProvider))
 	}
 
 	if env, err := pluginenv.New(options...); err != nil {
-		mlog.Error("failed to start up plugins: " + err.Error())
+		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
 	} else {
 		a.PluginEnv = env
@@ -417,15 +416,15 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 
 	for id, asset := range prepackagedPlugins {
 		if tarball, err := asset("plugin.tar.gz"); err != nil {
-			mlog.Error("failed to install prepackaged plugin: " + err.Error())
+			mlog.Error("Failed to install prepackaged plugin", mlog.Err(err))
 		} else if tarball != nil {
 			a.removePlugin(id, true)
 			if _, err := a.installPlugin(bytes.NewReader(tarball), true); err != nil {
-				mlog.Error("failed to install prepackaged plugin: " + err.Error())
+				mlog.Error("Failed to install prepackaged plugin", mlog.Err(err))
 			}
 			if _, ok := a.Config().PluginSettings.PluginStates[id]; !ok && id != "zoom" {
 				if err := a.EnablePlugin(id); err != nil {
-					mlog.Error("failed to enable prepackaged plugin: " + err.Error())
+					mlog.Error("Failed to enable prepackaged plugin", mlog.Err(err))
 				}
 			}
 		}

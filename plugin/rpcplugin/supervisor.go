@@ -81,10 +81,10 @@ func (s *Supervisor) run(ctx context.Context, start chan<- error, api plugin.API
 		default:
 			start = nil
 			if i < MaxProcessRestarts {
-				mlog.Debug(fmt.Sprintf("Plugin `%s` terminated unexpectedly", s.pluginId))
+				mlog.Debug("Plugin terminated unexpectedly", mlog.String("plugin_id", s.pluginId))
 				time.Sleep(time.Duration((1 + i*i)) * time.Second)
 			} else {
-				mlog.Debug(fmt.Sprintf("Plugin `%s` terminated unexpectedly too many times", s.pluginId))
+				mlog.Debug("Plugin terminated unexpectedly too many times", mlog.String("plugin_id", s.pluginId), mlog.Int("max_process_restarts", MaxProcessRestarts))
 			}
 		}
 	}
@@ -92,7 +92,7 @@ func (s *Supervisor) run(ctx context.Context, start chan<- error, api plugin.API
 
 func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error, api plugin.API) error {
 	if start == nil {
-		mlog.Debug(fmt.Sprintf("Restarting plugin `%s`", s.pluginId))
+		mlog.Debug("Restarting plugin", mlog.String("plugin_id", s.pluginId))
 	}
 
 	p, ipc, err := s.newProcess(ctx)

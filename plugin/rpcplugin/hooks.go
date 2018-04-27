@@ -5,7 +5,6 @@ package rpcplugin
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -240,7 +239,7 @@ func (h *RemoteHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Request:              forwardedRequest,
 		RequestBodyStream:    requestBodyStream,
 	}, nil); err != nil {
-		mlog.Error(fmt.Sprintf("Plugin `%s` failed to ServeHTTP: %s", h.pluginId, err.Error()))
+		mlog.Error("Plugin failed to ServeHTTP", mlog.String("plugin_id", h.pluginId), mlog.Err(err))
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
 	}
 }
