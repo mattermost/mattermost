@@ -534,6 +534,28 @@ func TestGetAnalyticsOld(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetAnalyticsOld("", th.BasicTeam.Id)
 	CheckNoError(t, resp)
 
+	rows2, resp2 := th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	CheckNoError(t, resp2)
+	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
+	assert.Equal(t, float64(0), rows2[5].Value)
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rows2, resp2 = th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	CheckNoError(t, resp2)
+	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
+	assert.Equal(t, float64(1), rows2[5].Value)
+
+	WebSocketClient.Close()
+
+	rows2, resp2 = th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	CheckNoError(t, resp2)
+	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
+	assert.Equal(t, float64(0), rows2[5].Value)
+
 	Client.Logout()
 	_, resp = Client.GetAnalyticsOld("", th.BasicTeam.Id)
 	CheckUnauthorizedStatus(t, resp)
