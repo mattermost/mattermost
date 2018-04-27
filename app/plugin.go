@@ -112,7 +112,7 @@ func (a *App) activatePlugin(manifest *model.Manifest) *model.AppError {
 
 func (a *App) deactivatePlugin(manifest *model.Manifest) *model.AppError {
 	if err := a.PluginEnv.DeactivatePlugin(manifest.Id); err != nil {
-		return model.NewAppError("removePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("deactivatePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	a.UnregisterPluginCommands(manifest.Id)
@@ -251,9 +251,11 @@ func (a *App) removePlugin(id string, allowPrepackaged bool) *model.AppError {
 	}
 
 	var manifest *model.Manifest
+	var pluginPath string
 	for _, p := range plugins {
 		if p.Manifest.Id == id {
 			manifest = p.Manifest
+			pluginPath = filepath.Dir(p.ManifestPath)
 			break
 		}
 	}
@@ -269,7 +271,7 @@ func (a *App) removePlugin(id string, allowPrepackaged bool) *model.AppError {
 		}
 	}
 
-	err = os.RemoveAll(filepath.Join(a.PluginEnv.SearchPath(), id))
+	err = os.RemoveAll(pluginPath)
 	if err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
