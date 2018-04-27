@@ -9,9 +9,9 @@ import (
 
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/nicksnyder/go-i18n/i18n"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -282,17 +282,17 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 			data := model.MapToJson(props)
 
 			if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
-				l4g.Error(utils.T("api.team.invite_members.send.error"), result.Err)
+				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", result.Err))
 				continue
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if !a.Config().EmailSettings.SendEmailNotifications {
-				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
+				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
 			}
 
 			if err := a.SendMail(invite, subject, bodyPage.Render()); err != nil {
-				l4g.Error(utils.T("api.team.invite_members.send.error"), err)
+				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
 			}
 		}
 	}

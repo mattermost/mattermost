@@ -5,6 +5,7 @@ package commands
 
 import (
 	"errors"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/model"

@@ -4,11 +4,10 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-
-	l4g "github.com/alecthomas/log4go"
 )
 
 type AutoUserCreator struct {
@@ -75,7 +74,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 
 	result, err := cfg.client.CreateUserWithInvite(user, "", "", cfg.team.InviteId)
 	if err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 		return nil, false
 	}
 
@@ -83,7 +82,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 
 	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	if result := <-cfg.app.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(result.Err.Error())
+		mlog.Error(result.Err.Error())
 		return nil, false
 	}
 

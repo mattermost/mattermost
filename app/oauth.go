@@ -6,14 +6,15 @@ package app
 import (
 	"bytes"
 	b64 "encoding/base64"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -226,7 +227,7 @@ func (a *App) GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret
 			accessData = &model.AccessData{ClientId: clientId, UserId: user.Id, Token: session.Token, RefreshToken: model.NewId(), RedirectUri: redirectUri, ExpiresAt: session.ExpiresAt, Scope: authData.Scope}
 
 			if result := <-a.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
-				l4g.Error(result.Err)
+				mlog.Error(fmt.Sprint(result.Err))
 				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 			}
 
@@ -295,7 +296,7 @@ func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData
 	accessData.RefreshToken = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 	if result := <-a.Srv.Store.OAuth().UpdateAccessData(accessData); result.Err != nil {
-		l4g.Error(result.Err)
+		mlog.Error(fmt.Sprint(result.Err))
 		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 	}
 	accessRsp := &model.AccessResponse{
@@ -528,7 +529,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.ReadCloser, em
 
 	a.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 
@@ -774,7 +775,7 @@ func (a *App) SwitchOAuthToEmail(email, password, requesterId string) (string, *
 
 	a.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 

@@ -10,14 +10,14 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -36,12 +36,12 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
-		l4g.Error(T("utils.license.validate_license.decode.error"), err.Error())
+		mlog.Error(fmt.Sprintf("Encountered error decoding license, err=%v", err.Error()))
 		return false, ""
 	}
 
 	if len(decoded) <= 256 {
-		l4g.Error(T("utils.license.validate_license.not_long.error"))
+		mlog.Error("Signed license not long enough")
 		return false, ""
 	}
 
@@ -57,7 +57,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		l4g.Error(T("utils.license.validate_license.signing.error"), err.Error())
+		mlog.Error(fmt.Sprintf("Encountered error signing license, err=%v", err.Error()))
 		return false, ""
 	}
 
@@ -69,7 +69,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, d, signature)
 	if err != nil {
-		l4g.Error(T("utils.license.validate_license.invalid.error"), err.Error())
+		mlog.Error(fmt.Sprintf("Invalid signature, err=%v", err.Error()))
 		return false, ""
 	}
 
@@ -80,15 +80,15 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 	fileName := GetLicenseFileLocation(location)
 
 	if _, err := os.Stat(fileName); err != nil {
-		l4g.Debug("We could not find the license key in the database or on disk at %v", fileName)
+		mlog.Debug(fmt.Sprintf("We could not find the license key in the database or on disk at %v", fileName))
 		return nil, nil
 	}
 
-	l4g.Info("License key has not been uploaded.  Loading license key from disk at %v", fileName)
+	mlog.Info(fmt.Sprintf("License key has not been uploaded.  Loading license key from disk at %v", fileName))
 	licenseBytes := GetLicenseFileFromDisk(fileName)
 
 	if success, licenseStr := ValidateLicense(licenseBytes); !success {
-		l4g.Error("Found license key at %v but it appears to be invalid.", fileName)
+		mlog.Error(fmt.Sprintf("Found license key at %v but it appears to be invalid.", fileName))
 		return nil, nil
 	} else {
 		return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
@@ -98,14 +98,14 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 func GetLicenseFileFromDisk(fileName string) []byte {
 	file, err := os.Open(fileName)
 	if err != nil {
-		l4g.Error("Failed to open license key from disk at %v err=%v", fileName, err.Error())
+		mlog.Error(fmt.Sprintf("Failed to open license key from disk at %v err=%v", fileName, err.Error()))
 		return nil
 	}
 	defer file.Close()
 
 	licenseBytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		l4g.Error("Failed to read license key from disk at %v err=%v", fileName, err.Error())
+		mlog.Error(fmt.Sprintf("Failed to read license key from disk at %v err=%v", fileName, err.Error()))
 		return nil
 	}
 

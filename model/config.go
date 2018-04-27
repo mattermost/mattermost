@@ -585,9 +585,10 @@ func (s *SqlSettings) SetDefaults() {
 type LogSettings struct {
 	EnableConsole          bool
 	ConsoleLevel           string
+	ConsoleJson            *bool
 	EnableFile             bool
 	FileLevel              string
-	FileFormat             string
+	FileJson               *bool
 	FileLocation           string
 	EnableWebhookDebugging bool
 	EnableDiagnostics      *bool
@@ -596,6 +597,14 @@ type LogSettings struct {
 func (s *LogSettings) SetDefaults() {
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.ConsoleJson == nil {
+		s.ConsoleJson = NewBool(true)
+	}
+
+	if s.FileJson == nil {
+		s.FileJson = NewBool(true)
 	}
 }
 

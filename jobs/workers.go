@@ -6,7 +6,7 @@ package jobs
 import (
 	"sync"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -54,7 +54,7 @@ func (srv *JobServer) InitWorkers() *Workers {
 }
 
 func (workers *Workers) Start() *Workers {
-	l4g.Info("Starting workers")
+	mlog.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
 		if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
@@ -152,7 +152,7 @@ func (workers *Workers) Stop() *Workers {
 		workers.LdapSync.Stop()
 	}
 
-	l4g.Info("Stopped workers")
+	mlog.Info("Stopped workers")
 
 	return workers
 }

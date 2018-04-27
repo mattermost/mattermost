@@ -4,11 +4,12 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
@@ -243,7 +244,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 func Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 
-	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
+	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
 	w.WriteHeader(err.StatusCode)
 	err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'."

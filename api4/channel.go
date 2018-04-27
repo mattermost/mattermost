@@ -6,8 +6,7 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -139,7 +138,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		if oldChannelDisplayName != channel.DisplayName {
 			if err := c.App.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
-				l4g.Error(err.Error())
+				mlog.Error(err.Error())
 			}
 		}
 
