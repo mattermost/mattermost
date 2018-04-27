@@ -6,21 +6,20 @@ package store
 import (
 	"context"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func (s *RedisSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	if err := s.client.Del("reactions:" + reaction.PostId).Err(); err != nil {
-		l4g.Error("Redis failed to remove key reactions:" + reaction.PostId + " Error: " + err.Error())
+		mlog.Error("Redis failed to remove key reactions:" + reaction.PostId + " Error: " + err.Error())
 	}
 	return s.Next().ReactionSave(ctx, reaction, hints...)
 }
 
 func (s *RedisSupplier) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	if err := s.client.Del("reactions:" + reaction.PostId).Err(); err != nil {
-		l4g.Error("Redis failed to remove key reactions:" + reaction.PostId + " Error: " + err.Error())
+		mlog.Error("Redis failed to remove key reactions:" + reaction.PostId + " Error: " + err.Error())
 	}
 	return s.Next().ReactionDelete(ctx, reaction, hints...)
 }
@@ -34,13 +33,13 @@ func (s *RedisSupplier) ReactionGetForPost(ctx context.Context, postId string, h
 		return result
 	}
 	if err != nil {
-		l4g.Error("Redis encountered an error on read: " + err.Error())
+		mlog.Error("Redis encountered an error on read: " + err.Error())
 	}
 
 	result := s.Next().ReactionGetForPost(ctx, postId, hints...)
 
 	if err := s.save("reactions:"+postId, result.Data, REDIS_EXPIRY_TIME); err != nil {
-		l4g.Error("Redis encountered and error on write: " + err.Error())
+		mlog.Error("Redis encountered and error on write: " + err.Error())
 	}
 
 	return result

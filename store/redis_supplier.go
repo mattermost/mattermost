@@ -9,8 +9,8 @@ import (
 
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/go-redis/redis"
+	"github.com/mattermost/mattermost-server/mlog"
 )
 
 const REDIS_EXPIRY_TIME = 30 * time.Minute
@@ -45,7 +45,7 @@ func NewRedisSupplier() *RedisSupplier {
 	})
 
 	if _, err := supplier.client.Ping().Result(); err != nil {
-		l4g.Error("Unable to ping redis server: " + err.Error())
+		mlog.Error("Unable to ping redis server: " + err.Error())
 		return nil
 	}
 

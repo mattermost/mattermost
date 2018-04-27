@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
@@ -156,13 +156,13 @@ func (me *TestHelper) TearDown() {
 		options := map[string]bool{}
 		options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 		if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
-			l4g.Error("Error tearing down test users")
+			mlog.Error("Error tearing down test users")
 		} else {
 			users := result.Data.([]*model.User)
 
 			for _, u := range users {
 				if err := me.App.PermanentDeleteUser(u); err != nil {
-					l4g.Error(err.Error())
+					mlog.Error(err.Error())
 				}
 			}
 		}
@@ -171,13 +171,13 @@ func (me *TestHelper) TearDown() {
 	go func() {
 		defer wg.Done()
 		if result := <-me.App.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
-			l4g.Error("Error tearing down test teams")
+			mlog.Error("Error tearing down test teams")
 		} else {
 			teams := result.Data.([]*model.Team)
 
 			for _, t := range teams {
 				if err := me.App.PermanentDeleteTeam(t); err != nil {
-					l4g.Error(err.Error())
+					mlog.Error(err.Error())
 				}
 			}
 		}
@@ -186,7 +186,7 @@ func (me *TestHelper) TearDown() {
 	go func() {
 		defer wg.Done()
 		if result := <-me.App.Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
-			l4g.Error("Error tearing down test oauth apps")
+			mlog.Error("Error tearing down test oauth apps")
 		} else {
 			apps := result.Data.([]*model.OAuthApp)
 
@@ -450,8 +450,8 @@ func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 
 	_, err := me.App.UpdateActive(user, active)
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -464,8 +464,8 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 	err := me.App.JoinUserToTeam(team, user, "")
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -478,8 +478,8 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 
 	member, err := me.App.AddUserToChannel(user, channel)
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}

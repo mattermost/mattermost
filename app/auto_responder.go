@@ -4,8 +4,7 @@
 package app
 
 import (
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -28,7 +27,7 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, roo
 		}
 
 		if _, err := a.CreatePost(autoResponderPost, channel, false); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	}
 }

@@ -5,11 +5,12 @@ package api4
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"runtime"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -61,7 +62,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		rdata := map[string]string{}
 		rdata["status"] = "unhealthy"
 
-		l4g.Warn(utils.T("api.system.go_routines"), actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold)
+		mlog.Warn(fmt.Sprintf("The number of running goroutines is over the health threshold %v of %v", actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(model.MapToJson(rdata)))
@@ -229,7 +230,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		err.Where = "client"
 		c.LogError(err)
 	} else {
-		l4g.Debug(msg)
+		mlog.Debug(fmt.Sprint(msg))
 	}
 
 	m["message"] = msg

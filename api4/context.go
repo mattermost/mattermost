@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -90,7 +90,7 @@ type handler struct {
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	l4g.Debug("%v - %v", r.Method, r.URL.Path)
+	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
 
 	c := &Context{}
 	c.App = h.app
@@ -124,7 +124,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session, err := c.App.GetSession(token)
 
 		if err != nil {
-			l4g.Info(utils.T("api.context.invalid_session.error"), err.Error())
+			mlog.Info(fmt.Sprintf("Invalid session err=%v", err.Error()))
 			if err.StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.requireSession {
@@ -220,19 +220,19 @@ func (c *Context) LogError(err *model.AppError) {
 		err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
-		l4g.Error(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
+		mlog.Error(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
 	}
 }
 
 func (c *Context) LogInfo(err *model.AppError) {
-	l4g.Info(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
+	mlog.Info(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
+		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
-	l4g.Debug(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
+	mlog.Debug(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
+		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
 }
 
 func (c *Context) IsSystemAdmin() bool {

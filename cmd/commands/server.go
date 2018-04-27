@@ -4,18 +4,19 @@
 package commands
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/manualtesting"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/web"
@@ -61,7 +62,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 
 	a, err := app.New(options...)
 	if err != nil {
-		l4g.Critical(err.Error())
+		mlog.Critical(err.Error())
 		return err
 	}
 	defer a.Shutdown()
@@ -69,17 +70,17 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 	utils.TestConnection(a.Config())
 
 	pwd, _ := os.Getwd()
-	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
-	l4g.Info(utils.T("mattermost.entreprise_enabled"), model.BuildEnterpriseReady)
-	l4g.Info(utils.T("mattermost.working_dir"), pwd)
-	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(configFileLocation))
+	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
+	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
+	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
+	mlog.Info(fmt.Sprintf("Loaded config file from %v", utils.FindConfigFile(configFileLocation)))
 
 	backend, appErr := a.FileBackend()
 	if appErr == nil {
 		appErr = backend.TestConnection()
 	}
 	if appErr != nil {
-		l4g.Error("Problem with file storage settings: " + appErr.Error())
+		mlog.Error("Problem with file storage settings: " + appErr.Error())
 	}
 
 	if model.BuildEnterpriseReady == "true" {
@@ -99,7 +100,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 
 	serverErr := a.StartServer()
 	if serverErr != nil {
-		l4g.Critical(serverErr.Error())
+		mlog.Critical(serverErr.Error())
 		return serverErr
 	}
 
@@ -111,7 +112,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 	license := a.License()
 
 	if license == nil && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
-		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
+		mlog.Warn("More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
 		a.UpdateConfig(func(cfg *model.Config) {
 			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
 		})
@@ -171,7 +172,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 	if a.Elasticsearch != nil {
 		a.Go(func() {
 			if err := a.Elasticsearch.Start(); err != nil {
-				l4g.Error(err.Error())
+				mlog.Error(err.Error())
 			}
 		})
 	}
@@ -241,7 +242,7 @@ func runSessionCleanupJob(a *app.App) {
 
 func resetStatuses(a *app.App) {
 	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
-		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
+		mlog.Error(fmt.Sprint("mattermost.reset_status.error FIXME: NOT FOUND IN TRANSLATIONS FILE", result.Err.Error()))
 	}
 }
 
@@ -260,11 +261,11 @@ func notifyReady() {
 	// notify systemd that the server is ready.
 	systemdSocket := os.Getenv("NOTIFY_SOCKET")
 	if systemdSocket != "" {
-		l4g.Info("Sending systemd READY notification.")
+		mlog.Info("Sending systemd READY notification.")
 
 		err := sendSystemdReadyNotification(systemdSocket)
 		if err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	}
 }
