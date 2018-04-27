@@ -73,6 +73,10 @@ func (a *App) setPluginsActive(activate bool) {
 	}
 
 	for _, plugin := range plugins {
+		if plugin.Manifest == nil {
+			continue
+		}
+
 		id := plugin.Manifest.Id
 
 		pluginState := &model.PluginState{Enable: false}
@@ -176,7 +180,7 @@ func (a *App) installPlugin(pluginFile io.Reader, allowPrepackaged bool) (*model
 	}
 
 	for _, bundle := range bundles {
-		if bundle.Manifest.Id == manifest.Id {
+		if bundle.Manifest != nil && bundle.Manifest.Id == manifest.Id {
 			return nil, model.NewAppError("installPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -203,6 +207,10 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 
 	resp := &model.PluginsResponse{Active: []*model.PluginInfo{}, Inactive: []*model.PluginInfo{}}
 	for _, plugin := range plugins {
+		if plugin.Manifest == nil {
+			continue
+		}
+
 		info := &model.PluginInfo{
 			Manifest: *plugin.Manifest,
 		}
@@ -253,7 +261,7 @@ func (a *App) removePlugin(id string, allowPrepackaged bool) *model.AppError {
 	var manifest *model.Manifest
 	var pluginPath string
 	for _, p := range plugins {
-		if p.Manifest.Id == id {
+		if p.Manifest != nil && p.Manifest.Id == id {
 			manifest = p.Manifest
 			pluginPath = filepath.Dir(p.ManifestPath)
 			break
