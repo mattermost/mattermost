@@ -71,13 +71,15 @@ func writeFileLocally(fr io.Reader, path string) (int64, *model.AppError) {
 		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error(), http.StatusInternalServerError)
 	}
 	fw, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if err == nil {
-		if written, err := io.Copy(fw, fr); err == nil {
-			return written, nil
-		}
+	if err != nil {
+		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
-
+	defer fw.Close()
+	var written int64
+	if written, err = io.Copy(fw, fr); err != nil {
+		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return written, nil
 }
 
 func (b *LocalFileBackend) RemoveFile(path string) *model.AppError {

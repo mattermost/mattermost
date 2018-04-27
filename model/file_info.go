@@ -114,7 +114,6 @@ func (o *FileInfo) IsImage() bool {
 func GetInfoForBytes(name string, file io.Reader) (*FileInfo, *AppError) {
 	info := &FileInfo{
 		Name: name,
-		//Size: int64(len(data)),
 	}
 	var err *AppError
 	extension := strings.ToLower(filepath.Ext(name))
