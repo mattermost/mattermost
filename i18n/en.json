@@ -5771,10 +5771,6 @@
     "translation": "Closing SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Failed to check if column exists %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Failed to check if column exists because of missing driver"
   },
@@ -5861,10 +5857,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Failed to get data type for column %s from table %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Failed to check if table exists %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",
