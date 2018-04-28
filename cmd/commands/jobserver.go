@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/cmd"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/spf13/cobra"
 )
 
@@ -36,13 +36,12 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 	if err != nil {
 		panic(err.Error())
 	}
-	defer l4g.Close()
 	defer a.Shutdown()
 
 	a.LoadLicense()
 
 	// Run jobs
-	l4g.Info("Starting Mattermost job server")
+	mlog.Info("Starting Mattermost job server")
 	if !noJobs {
 		a.Jobs.StartWorkers()
 	}
@@ -55,10 +54,10 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 	<-signalChan
 
 	// Cleanup anything that isn't handled by a defer statement
-	l4g.Info("Stopping Mattermost job server")
+	mlog.Info("Stopping Mattermost job server")
 
 	a.Jobs.StopSchedulers()
 	a.Jobs.StopWorkers()
 
-	l4g.Info("Stopped Mattermost job server")
+	mlog.Info("Stopped Mattermost job server")
 }

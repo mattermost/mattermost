@@ -14,8 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	l4g "github.com/alecthomas/log4go"
 )
 
 var UsedApiV3 *int32 = new(int32)
@@ -210,7 +208,7 @@ func getCookie(name string, resp *http.Response) *http.Cookie {
 // Must is a convenience function used for testing.
 func (c *Client) Must(result *Result, err *AppError) *Result {
 	if err != nil {
-		l4g.Close()
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -221,7 +219,7 @@ func (c *Client) Must(result *Result, err *AppError) *Result {
 // MustGeneric is a convenience function used for testing.
 func (c *Client) MustGeneric(result interface{}, err *AppError) interface{} {
 	if err != nil {
-		l4g.Close()
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -831,8 +829,10 @@ func (c *Client) Command(channelId string, command string) (*Result, *AppError) 
 		return nil, err
 	} else {
 		defer closeBody(r)
+
+		response, _ := CommandResponseFromJson(r.Body)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), CommandResponseFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), response}, nil
 	}
 }
 

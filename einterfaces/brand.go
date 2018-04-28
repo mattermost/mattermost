@@ -4,8 +4,9 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/model"
 	"mime/multipart"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type BrandInterface interface {

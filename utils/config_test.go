@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,9 +19,21 @@ import (
 
 func TestConfig(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, _, err := LoadConfig("config.json")
+	_, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
-	InitTranslations(cfg.LocalizationSettings)
+}
+
+func TestReadConfig(t *testing.T) {
+	TranslationsPreInit()
+
+	_, _, err := ReadConfig(bytes.NewReader([]byte(``)), false)
+	require.EqualError(t, err, "parsing error at line 1, character 1: unexpected end of JSON input")
+
+	_, _, err = ReadConfig(bytes.NewReader([]byte(`
+		{
+			malformed
+	`)), false)
+	require.EqualError(t, err, "parsing error at line 3, character 5: invalid character 'm' looking for beginning of object key string")
 }
 
 func TestTimezoneConfig(t *testing.T) {

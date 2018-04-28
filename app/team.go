@@ -13,9 +13,9 @@ import (
 	"net/url"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -350,7 +350,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 
 	// Soft error if there is an issue joining the default channels
 	if err := a.JoinDefaultChannels(team.Id, user, channelRole, userRequestorId); err != nil {
-		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
+		mlog.Error(fmt.Sprintf("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", user.Id, team.Id, err), mlog.String("user_id", user.Id))
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
@@ -638,11 +638,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
 			if err := a.postLeaveTeamMessage(user, channel); err != nil {
-				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
 			}
 		} else {
 			if err := a.postRemoveFromTeamMessage(user, channel); err != nil {
-				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
 			}
 		}
 	}
@@ -908,7 +908,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	} else if len(inviteId) > 0 {
 		if result := <-a.Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
 			// soft fail, so we still create user but don't auto-join team
-			l4g.Error("%v", result.Err)
+			mlog.Error(fmt.Sprintf("%v", result.Err))
 		} else {
 			return result.Data.(*model.Team).Id, nil
 		}

@@ -6,9 +6,9 @@ package app
 import (
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -93,7 +93,7 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 
 	var userProfile *model.User
 	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
-		l4g.Error(result.Err.Error())
+		mlog.Error(result.Err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_remove.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		userProfile = result.Data.(*model.User)

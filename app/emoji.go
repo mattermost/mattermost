@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -13,13 +14,11 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"image/color/palette"
 
 	"github.com/disintegration/imaging"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -241,13 +240,13 @@ func imageToPaletted(img image.Image) *image.Paletted {
 
 func (a *App) deleteEmojiImage(id string) {
 	if err := a.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
-		l4g.Error("Failed to rename image when deleting emoji %v", id)
+		mlog.Error(fmt.Sprintf("Failed to rename image when deleting emoji %v", id))
 	}
 }
 
 func (a *App) deleteReactionsForEmoji(emojiName string) {
 	if result := <-a.Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); result.Err != nil {
-		l4g.Warn(utils.T("api.emoji.delete.delete_reactions.app_error"), emojiName)
-		l4g.Warn(result.Err)
+		mlog.Warn(fmt.Sprintf("Unable to delete reactions when deleting emoji with emoji name %v", emojiName))
+		mlog.Warn(fmt.Sprint(result.Err))
 	}
 }

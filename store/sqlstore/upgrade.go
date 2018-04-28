@@ -5,14 +5,13 @@ package sqlstore
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -82,17 +81,17 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	// so lets set it to the current version.
 	if sqlStore.GetCurrentSchemaVersion() == "" {
 		if result := <-sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
-			l4g.Critical(result.Err.Error())
+			mlog.Critical(result.Err.Error())
 			time.Sleep(time.Second)
 			os.Exit(EXIT_VERSION_SAVE_MISSING)
 		}
 
-		l4g.Info("The database schema has been set to version %v", model.CurrentVersion)
+		mlog.Info(fmt.Sprintf("The database schema has been set to version %v", model.CurrentVersion))
 	}
 
 	// If we're not on the current version then it's too old to be upgraded
 	if sqlStore.GetCurrentSchemaVersion() != model.CurrentVersion {
-		l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.GetCurrentSchemaVersion(), OLDEST_SUPPORTED_VERSION, model.CurrentVersion, OLDEST_SUPPORTED_VERSION)
+		mlog.Critical(fmt.Sprintf("Database schema version %v is no longer supported. This Mattermost server supports automatic upgrades from schema version %v through schema version %v. Downgrades are not supported. Please manually upgrade to at least version %v before continuing", sqlStore.GetCurrentSchemaVersion(), OLDEST_SUPPORTED_VERSION, model.CurrentVersion, OLDEST_SUPPORTED_VERSION))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_TOO_OLD)
 	}
@@ -100,18 +99,18 @@ func UpgradeDatabase(sqlStore SqlStore) {
 
 func saveSchemaVersion(sqlStore SqlStore, version string) {
 	if result := <-sqlStore.System().Update(&model.System{Name: "Version", Value: version}); result.Err != nil {
-		l4g.Critical(result.Err.Error())
+		mlog.Critical(result.Err.Error())
 		time.Sleep(time.Second)
 		os.Exit(EXIT_VERSION_SAVE)
 	}
 
-	l4g.Warn(utils.T("store.sql.upgraded.warn"), version)
+	mlog.Warn(fmt.Sprintf("The database schema has been upgraded to version %v", version))
 }
 
 func shouldPerformUpgrade(sqlStore SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
 	if sqlStore.GetCurrentSchemaVersion() == currentSchemaVersion {
-		l4g.Warn(utils.T("store.sql.schema_out_of_date.warn"), currentSchemaVersion)
-		l4g.Warn(utils.T("store.sql.schema_upgrade_attempt.warn"), expectedSchemaVersion)
+		mlog.Warn(fmt.Sprintf("The database schema version of %v appears to be out of date", currentSchemaVersion))
+		mlog.Warn(fmt.Sprintf("Attempting to upgrade the database schema version to %v", expectedSchemaVersion))
 
 		return true
 	}
@@ -135,7 +134,7 @@ func UpgradeDatabaseToVersion32(sqlStore SqlStore) {
 }
 
 func themeMigrationFailed(err error) {
-	l4g.Critical(utils.T("store.sql_user.migrate_theme.critical"), err)
+	mlog.Critical(fmt.Sprintf("Failed to migrate User.ThemeProps to Preferences table %v", err))
 	time.Sleep(time.Second)
 	os.Exit(EXIT_THEME_MIGRATION)
 }
@@ -403,7 +402,7 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 		defaultTimezone := model.DefaultUserTimezone()
 		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 		if err != nil {
-			l4g.Critical(err)
+			mlog.Critical(fmt.Sprint(err))
 		}
 		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(256)", "varchar(256)", string(defaultTimezoneValue))
 		sqlStore.RemoveIndexIfExists("idx_channels_displayname", "Channels")

@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -1177,7 +1177,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	err = c.App.SendEmailVerification(user)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 		ReturnStatusOK(w)
 		return
 	}

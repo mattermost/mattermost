@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -392,7 +392,7 @@ func TestGetLogs(t *testing.T) {
 	Client := th.Client
 
 	for i := 0; i < 20; i++ {
-		l4g.Info(i)
+		mlog.Info(fmt.Sprint(i))
 	}
 
 	logs, resp := th.SystemAdminClient.GetLogs(0, 10)
@@ -533,6 +533,28 @@ func TestGetAnalyticsOld(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetAnalyticsOld("", th.BasicTeam.Id)
 	CheckNoError(t, resp)
+
+	rows2, resp2 := th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	CheckNoError(t, resp2)
+	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
+	assert.Equal(t, float64(0), rows2[5].Value)
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rows2, resp2 = th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	CheckNoError(t, resp2)
+	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
+	assert.Equal(t, float64(1), rows2[5].Value)
+
+	WebSocketClient.Close()
+
+	rows2, resp2 = th.SystemAdminClient.GetAnalyticsOld("standard", "")
+	CheckNoError(t, resp2)
+	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
+	assert.Equal(t, float64(0), rows2[5].Value)
 
 	Client.Logout()
 	_, resp = Client.GetAnalyticsOld("", th.BasicTeam.Id)

@@ -7,8 +7,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -86,9 +85,9 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) store.StoreChannel 
 }
 
 func (s SqlCommandWebhookStore) Cleanup() {
-	l4g.Debug("Cleaning up command webhook store.")
+	mlog.Debug("Cleaning up command webhook store.")
 	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
 	if _, err := s.GetMaster().Exec("DELETE FROM CommandWebhooks WHERE CreateAt < :ExpTime", map[string]interface{}{"ExpTime": exptime}); err != nil {
-		l4g.Error("Unable to cleanup command webhook store.")
+		mlog.Error("Unable to cleanup command webhook store.")
 	}
 }
