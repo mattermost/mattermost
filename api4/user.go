@@ -725,6 +725,13 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 	} else {
 		c.LogAuditWithUserId(user.Id, fmt.Sprintf("active=%v", active))
+		c.App.Go(func() {
+			if !active {
+				if err = c.App.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
+					mlog.Error(err.Error())
+				}
+			}
+		})
 		ReturnStatusOK(w)
 	}
 }
