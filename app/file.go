@@ -122,7 +122,7 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	} else {
 		var err *model.AppError
 		info, err = model.GetInfoForBytes(name, bytes.NewReader(data))
-		info.Size = len(data)
+		info.Size = int64(len(data))
 		if err != nil {
 			l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.info.app_error"), post.Id, filename, err)
 		}
