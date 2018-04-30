@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -19,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+	"golang.org/x/net/html/charset"
 )
 
 var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
@@ -726,13 +728,25 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	}
 	defer consumeAndClose(res)
 
-	if err := og.ProcessHTML(res.Body); err != nil {
+	contentType := res.Header.Get("Content-Type")
+	body := forceHTMLEncodingToUTF8(res.Body, contentType)
+
+	if err := og.ProcessHTML(body); err != nil {
 		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error()))
 	}
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
 
 	return og
+}
+
+func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
+	r, err := charset.NewReader(body, contentType)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("forceHTMLEncodingToUTF8 failed to convert for contentType=%v with err=%v", contentType, err.Error()))
+		return body
+	}
+	return r
 }
 
 func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
