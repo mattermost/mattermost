@@ -2239,18 +2239,18 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	// Get the channels by a valid Scheme ID.
 	res1 := <-ss.Channel().GetChannelsByScheme(s1.Id, 0, 100)
 	assert.Nil(t, res1.Err)
-	d1 := res1.Data.([]*model.Channel)
+	d1 := res1.Data.(model.ChannelList)
 	assert.Len(t, d1, 2)
 
 	// Get the channels by a valid Scheme ID where there aren't any matching Channel.
 	res2 := <-ss.Channel().GetChannelsByScheme(s2.Id, 0, 100)
 	assert.Nil(t, res2.Err)
-	d2 := res2.Data.([]*model.Channel)
+	d2 := res2.Data.(model.ChannelList)
 	assert.Len(t, d2, 0)
 
 	// Get the channels by an invalid Scheme ID.
 	res3 := <-ss.Channel().GetChannelsByScheme(model.NewId(), 0, 100)
 	assert.Nil(t, res3.Err)
-	d3 := res3.Data.([]*model.Channel)
+	d3 := res3.Data.(model.ChannelList)
 	assert.Len(t, d3, 0)
 }
