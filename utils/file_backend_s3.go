@@ -13,6 +13,7 @@ import (
 
 	s3 "github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
+	"github.com/minio/minio-go/pkg/encrypt"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -105,7 +106,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	}
 
 	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
-	destination, err := s3.NewDestinationInfo(b.bucket, newPath, nil, s3CopyMetadata(b.encrypt))
+	destination, err := s3.NewDestinationInfo(b.bucket, newPath, encrypt.NewSSE(), nil)
 	if err != nil {
 		return model.NewAppError("copyFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -122,7 +123,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	}
 
 	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
-	destination, err := s3.NewDestinationInfo(b.bucket, newPath, nil, s3CopyMetadata(b.encrypt))
+	destination, err := s3.NewDestinationInfo(b.bucket, newPath, encrypt.NewSSE(), nil)
 	if err != nil {
 		return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -231,21 +232,14 @@ func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
-func s3PutOptions(encrypt bool, contentType string) s3.PutObjectOptions {
+func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 	options := s3.PutObjectOptions{}
-	if encrypt {
-		options.UserMetadata = make(map[string]string)
-		options.UserMetadata["x-amz-server-side-encryption"] = "AES256"
+	if encrypted {
+		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
 
 	return options
-}
-
-func s3CopyMetadata(encrypt bool) map[string]string {
-	metaData := make(map[string]string)
-	metaData["x-amz-server-side-encryption"] = "AES256"
-	return metaData
 }
 
 func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
