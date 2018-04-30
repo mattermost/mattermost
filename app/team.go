@@ -1026,10 +1026,9 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 	}
 
 	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, 0); result.Err != nil {
-		return model.NewAppError("SetTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+		return model.NewAppError("RemoveTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
-	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = 0
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
