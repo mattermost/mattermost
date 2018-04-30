@@ -2435,6 +2435,10 @@
     "translation": "Equipe permanentemente deletada %v id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "O usuário não parece ser parte desta equipe."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "Inscrição com e-mail na equipe está desativado."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4691,6 +4699,10 @@
     "translation": "Id do usuário inválido"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Não é possível processar os dados de entrada"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "Encontramos um erro enquanto conectava ao servidor"
   },
@@ -5771,10 +5783,6 @@
     "translation": "Fechando SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Falha ao verificar se a coluna existe %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Falha ao verificar se a couna existe devido a falta do driver"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Falha ao obter o tipo de dado da coluna %s para a tabela %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Falha ao verificar se a tabela existe %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",

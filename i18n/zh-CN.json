@@ -217,11 +217,11 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
+    "translation": "默认频道无法转换成私有频道。"
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
+    "translation": "请求转换的频道已经是私有频道。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2435,6 +2435,10 @@
     "translation": "永久删除团队 %v id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "此用户似乎不属于此团队。"
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "使用电子邮件注册团队被禁用。"
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4691,6 +4699,10 @@
     "translation": "无效用户 id"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "无法解析传入数据"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "在连接到服务器时，我们遇到了一个错误"
   },
@@ -5771,10 +5783,6 @@
     "translation": "关闭 SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "未能检查列是否存在 %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "未能检查因为缺少驱动程序列是否存在"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "未能获得列的数据类型 %s 从表 %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "未能检查表是否存在 %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",
