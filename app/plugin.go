@@ -62,13 +62,13 @@ func (a *App) initBuiltInPlugins() {
 
 func (a *App) setPluginsActive(activate bool) {
 	if a.PluginEnv == nil {
-		mlog.Error(fmt.Sprintf("Cannot setPluginsActive(%b): plugin env not initialized", activate))
+		mlog.Error(fmt.Sprintf("Cannot setPluginsActive(%t): plugin env not initialized", activate))
 		return
 	}
 
 	plugins, err := a.PluginEnv.Plugins()
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Cannot setPluginsActive(%b)", activate), mlog.Err(err))
+		mlog.Error(fmt.Sprintf("Cannot setPluginsActive(%t)", activate), mlog.Err(err))
 		return
 	}
 
@@ -88,12 +88,12 @@ func (a *App) setPluginsActive(activate bool) {
 
 		if activate && pluginState.Enable && !active {
 			if err := a.activatePlugin(plugin.Manifest); err != nil {
-				mlog.Error(fmt.Sprintf("Plugin failed to activate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError)))
+				mlog.Error("Plugin failed to activate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
 			}
 
 		} else if (!activate || !pluginState.Enable) && active {
 			if err := a.deactivatePlugin(plugin.Manifest); err != nil {
-				mlog.Error(fmt.Sprintf("Plugin failed to deactivate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError)))
+				mlog.Error("Plugin failed to deactivate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
 			}
 		}
 	}
