@@ -30,7 +30,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 	}
 
 	if name == "standard" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 10)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 11)
 		rows[0] = &model.AnalyticsRow{Name: "channel_open_count", Value: 0}
 		rows[1] = &model.AnalyticsRow{Name: "channel_private_count", Value: 0}
 		rows[2] = &model.AnalyticsRow{Name: "post_count", Value: 0}
@@ -41,13 +41,17 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		rows[7] = &model.AnalyticsRow{Name: "total_read_db_connections", Value: 0}
 		rows[8] = &model.AnalyticsRow{Name: "daily_active_users", Value: 0}
 		rows[9] = &model.AnalyticsRow{Name: "monthly_active_users", Value: 0}
+		rows[10] = &model.AnalyticsRow{Name: "inactive_user_count", Value: 0}
 
 		openChan := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
 		teamChan := a.Srv.Store.Team().AnalyticsTeamCount()
 
 		var userChan store.StoreChannel
-		if teamId != "" {
+		var userInactiveChan store.StoreChannel
+		if teamId == "" {
+			userInactiveChan = a.Srv.Store.User().AnalyticsGetInactiveUsersCount()
+		} else {
 			userChan = a.Srv.Store.User().AnalyticsUniqueUserCount(teamId)
 		}
 
@@ -88,6 +92,16 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 				return nil, r.Err
 			} else {
 				rows[3].Value = float64(r.Data.(int64))
+			}
+		}
+
+		if userInactiveChan == nil {
+			rows[10].Value = -1
+		} else {
+			if r := <-userInactiveChan; r.Err != nil {
+				return nil, r.Err
+			} else {
+				rows[10].Value = float64(r.Data.(int64))
 			}
 		}
 
