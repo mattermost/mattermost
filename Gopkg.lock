@@ -305,19 +305,17 @@
   version = "v1.0.5"
 
 [[projects]]
-  branch = "minio-temporary-fixes"
   name = "github.com/minio/minio-go"
   packages = [
     ".",
     "pkg/credentials",
     "pkg/encrypt",
-    "pkg/policy",
     "pkg/s3signer",
     "pkg/s3utils",
     "pkg/set"
   ]
-  revision = "e30d3b9eaff9a3fbfa74cda4c56cb22bec264ffa"
-  source = "https://github.com/mattermost/minio-go.git"
+  revision = "3d2d02921f0510e9d1f66ef77a265b8dddd36992"
+  version = "6.0.0"
 
 [[projects]]
   branch = "master"
@@ -535,7 +533,9 @@
   packages = [
     "acme",
     "acme/autocert",
+    "argon2",
     "bcrypt",
+    "blake2b",
     "blowfish",
     "ed25519",
     "ed25519/internal/edwards25519",
@@ -672,6 +672,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c9e6f408ca532c6d09084fcd86678986225e8810585cbc0476a586f1d1969066"
+  inputs-digest = "c013490f80045da81a8a416f68cdfb975f74b32b8affb7bdbed202ffc8e5ce8b"
   solver-name = "gps-cdcl"
   solver-version = 1
