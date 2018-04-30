@@ -2459,6 +2459,10 @@
     "translation": "Could not encode team icon"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.set_team_icon.get_team.app_error",
     "translation": "An error occurred getting the team"
   },
@@ -2481,6 +2485,10 @@
   {
     "id": "api.team.set_team_icon.too_large.app_error",
     "translation": "Unable to upload team icon. File is too large."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
