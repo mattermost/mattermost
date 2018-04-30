@@ -562,6 +562,7 @@
     "bpf",
     "html",
     "html/atom",
+    "html/charset",
     "idna",
     "internal/iana",
     "internal/socket",
@@ -585,12 +586,24 @@
   packages = [
     "collate",
     "collate/build",
+    "encoding",
+    "encoding/charmap",
+    "encoding/htmlindex",
+    "encoding/internal",
+    "encoding/internal/identifier",
+    "encoding/japanese",
+    "encoding/korean",
+    "encoding/simplifiedchinese",
+    "encoding/traditionalchinese",
+    "encoding/unicode",
     "internal/colltab",
     "internal/gen",
     "internal/tag",
     "internal/triegen",
     "internal/ucd",
+    "internal/utf8internal",
     "language",
+    "runes",
     "secure/bidirule",
     "transform",
     "unicode/bidi",
@@ -659,6 +672,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4f92b22eac4e8efa0aa098a6b1f1599ab087160296bd5fb74a9fad5366bbe1bc"
+  inputs-digest = "c9e6f408ca532c6d09084fcd86678986225e8810585cbc0476a586f1d1969066"
   solver-name = "gps-cdcl"
   solver-version = 1

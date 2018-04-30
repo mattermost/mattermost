@@ -297,6 +297,34 @@ func TestImageProxy(t *testing.T) {
 	}
 }
 
+func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
+	HTML := `
+		<html>
+			<head>
+				<meta property="og:url" content="https://example.com/apps/mattermost">
+				<meta property="og:image" content="https://images.example.com/image.png">
+			</head>
+		</html>
+	`
+	ContentType := "text/html; utf-8"
+
+	b.Run("with converting", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			r := forceHTMLEncodingToUTF8(strings.NewReader(HTML), ContentType)
+
+			og := opengraph.NewOpenGraph()
+			og.ProcessHTML(r)
+		}
+	})
+
+	b.Run("without converting", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			og := opengraph.NewOpenGraph()
+			og.ProcessHTML(strings.NewReader(HTML))
+		}
+	})
+}
+
 func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 	for name, tc := range map[string]struct {
 		HTML       string
