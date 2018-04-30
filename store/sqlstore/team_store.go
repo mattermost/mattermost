@@ -99,7 +99,6 @@ func (s SqlTeamStore) Update(team *model.Team) store.StoreChannel {
 			team.CreateAt = oldTeam.CreateAt
 			team.UpdateAt = model.GetMillis()
 			team.Name = oldTeam.Name
-			team.LastTeamIconUpdate = oldTeam.LastTeamIconUpdate
 
 			if count, err := s.GetMaster().Update(team); err != nil {
 				result.Err = model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
