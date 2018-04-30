@@ -17,6 +17,7 @@ func InitGlobalLogger(logger *Logger) {
 	Warn = globalLogger.Warn
 	Error = globalLogger.Error
 	Critical = globalLogger.Critical
+	DoWithLogLevel = globalLogger.DoWithLogLevel
 }
 
 func RedirectStdLog(logger *Logger) {
@@ -25,18 +26,9 @@ func RedirectStdLog(logger *Logger) {
 
 type LogFunc func(string, ...Field)
 
-// DON'T USE THIS Modify the level on the app logger
-func GloballyDisableDebugLogForTest() {
-	globalLogger.consoleLevel.SetLevel(zapcore.ErrorLevel)
-}
-
-// DON'T USE THIS Modify the level on the app logger
-func GloballyEnableDebugLogForTest() {
-	globalLogger.consoleLevel.SetLevel(zapcore.DebugLevel)
-}
-
 var Debug LogFunc
 var Info LogFunc
 var Warn LogFunc
 var Error LogFunc
 var Critical LogFunc
+var DoWithLogLevel func(string, func())

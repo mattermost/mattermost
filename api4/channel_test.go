@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -1817,17 +1817,17 @@ func TestAutocompleteChannels(t *testing.T) {
 	defer th.TearDown()
 
 	// A private channel to make sure private channels are not used
-	utils.DisableDebugLogForTest()
-	ptown, _ := th.Client.CreateChannel(&model.Channel{
-		DisplayName: "Town",
-		Name:        "town",
-		Type:        model.CHANNEL_PRIVATE,
-		TeamId:      th.BasicTeam.Id,
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		ptown, _ := th.Client.CreateChannel(&model.Channel{
+			DisplayName: "Town",
+			Name:        "town",
+			Type:        model.CHANNEL_PRIVATE,
+			TeamId:      th.BasicTeam.Id,
+		})
+		defer func() {
+			th.Client.DeleteChannel(ptown.Id)
+		}()
 	})
-	utils.EnableDebugLogForTest()
-	defer func() {
-		th.Client.DeleteChannel(ptown.Id)
-	}()
 
 	for _, tc := range []struct {
 		description      string

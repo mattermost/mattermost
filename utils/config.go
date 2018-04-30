@@ -76,16 +76,6 @@ func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfigurati
 	}
 }
 
-// DON'T USE THIS Modify the level on the app logger
-func DisableDebugLogForTest() {
-	mlog.GloballyDisableDebugLogForTest()
-}
-
-// DON'T USE THIS Modify the level on the app logger
-func EnableDebugLogForTest() {
-	mlog.GloballyEnableDebugLogForTest()
-}
-
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
 		fileLocation, _ = FindDir("logs")

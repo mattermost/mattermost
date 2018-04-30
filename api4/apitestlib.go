@@ -146,64 +146,64 @@ func Setup() *TestHelper {
 }
 
 func (me *TestHelper) TearDown() {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	var wg sync.WaitGroup
-	wg.Add(3)
+		var wg sync.WaitGroup
+		wg.Add(3)
 
-	go func() {
-		defer wg.Done()
-		options := map[string]bool{}
-		options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
-		if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
-			mlog.Error("Error tearing down test users")
-		} else {
-			users := result.Data.([]*model.User)
+		go func() {
+			defer wg.Done()
+			options := map[string]bool{}
+			options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+			if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
+				mlog.Error("Error tearing down test users")
+			} else {
+				users := result.Data.([]*model.User)
 
-			for _, u := range users {
-				if err := me.App.PermanentDeleteUser(u); err != nil {
-					mlog.Error(err.Error())
+				for _, u := range users {
+					if err := me.App.PermanentDeleteUser(u); err != nil {
+						mlog.Error(err.Error())
+					}
 				}
 			}
-		}
-	}()
+		}()
 
-	go func() {
-		defer wg.Done()
-		if result := <-me.App.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
-			mlog.Error("Error tearing down test teams")
-		} else {
-			teams := result.Data.([]*model.Team)
+		go func() {
+			defer wg.Done()
+			if result := <-me.App.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
+				mlog.Error("Error tearing down test teams")
+			} else {
+				teams := result.Data.([]*model.Team)
 
-			for _, t := range teams {
-				if err := me.App.PermanentDeleteTeam(t); err != nil {
-					mlog.Error(err.Error())
+				for _, t := range teams {
+					if err := me.App.PermanentDeleteTeam(t); err != nil {
+						mlog.Error(err.Error())
+					}
 				}
 			}
-		}
-	}()
+		}()
 
-	go func() {
-		defer wg.Done()
-		if result := <-me.App.Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
-			mlog.Error("Error tearing down test oauth apps")
-		} else {
-			apps := result.Data.([]*model.OAuthApp)
+		go func() {
+			defer wg.Done()
+			if result := <-me.App.Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
+				mlog.Error("Error tearing down test oauth apps")
+			} else {
+				apps := result.Data.([]*model.OAuthApp)
 
-			for _, a := range apps {
-				if strings.HasPrefix(a.Name, "fakeoauthapp") {
-					<-me.App.Srv.Store.OAuth().DeleteApp(a.Id)
+				for _, a := range apps {
+					if strings.HasPrefix(a.Name, "fakeoauthapp") {
+						<-me.App.Srv.Store.OAuth().DeleteApp(a.Id)
+					}
 				}
 			}
-		}
-	}()
+		}()
 
-	wg.Wait()
+		wg.Wait()
 
-	me.App.Shutdown()
-	os.Remove(me.tempConfigPath)
+		me.App.Shutdown()
+		os.Remove(me.tempConfigPath)
 
-	utils.EnableDebugLogForTest()
+	})
 
 	if err := recover(); err != nil {
 		StopTestStore()
@@ -285,9 +285,10 @@ func (me *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 		Type:        model.TEAM_OPEN,
 	}
 
-	utils.DisableDebugLogForTest()
-	rteam, _ := client.CreateTeam(team)
-	utils.EnableDebugLogForTest()
+	var rteam *model.Team
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		rteam, _ = client.CreateTeam(team)
+	})
 	return rteam
 }
 
@@ -303,15 +304,17 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Password:  "Password1",
 	}
 
-	utils.DisableDebugLogForTest()
-	ruser, response := client.CreateUser(user)
-	if response.Error != nil {
-		panic(response.Error)
-	}
+	var ruser *model.User
+	var response *model.Response
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		ruser, response = client.CreateUser(user)
+		if response.Error != nil {
+			panic(response.Error)
+		}
 
-	ruser.Password = "Password1"
-	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
-	utils.EnableDebugLogForTest()
+		ruser.Password = "Password1"
+		store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
+	})
 	return ruser
 }
 
@@ -337,9 +340,10 @@ func (me *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 		TeamId:      teamId,
 	}
 
-	utils.DisableDebugLogForTest()
-	rchannel, _ := client.CreateChannel(channel)
-	utils.EnableDebugLogForTest()
+	var rchannel *model.Channel
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		rchannel, _ = client.CreateChannel(channel)
+	})
 	return rchannel
 }
 
@@ -363,12 +367,14 @@ func (me *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 		Message:   "message_" + id,
 	}
 
-	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
-	if resp.Error != nil {
-		panic(resp.Error)
-	}
-	utils.EnableDebugLogForTest()
+	var rpost *model.Post
+	var resp *model.Response
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		rpost, resp = client.CreatePost(post)
+		if resp.Error != nil {
+			panic(resp.Error)
+		}
+	})
 	return rpost
 }
 
@@ -381,12 +387,14 @@ func (me *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 		IsPinned:  true,
 	}
 
-	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
-	if resp.Error != nil {
-		panic(resp.Error)
-	}
-	utils.EnableDebugLogForTest()
+	var rpost *model.Post
+	var resp *model.Response
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		rpost, resp = client.CreatePost(post)
+		if resp.Error != nil {
+			panic(resp.Error)
+		}
+	})
 	return rpost
 }
 
@@ -396,12 +404,14 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 		Message:   message,
 	}
 
-	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
-	if resp.Error != nil {
-		panic(resp.Error)
-	}
-	utils.EnableDebugLogForTest()
+	var rpost *model.Post
+	var resp *model.Response
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		rpost, resp = client.CreatePost(post)
+		if resp.Error != nil {
+			panic(resp.Error)
+		}
+	})
 	return rpost
 }
 
@@ -422,69 +432,71 @@ func (me *TestHelper) LoginSystemAdmin() {
 }
 
 func (me *TestHelper) LoginBasicWithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
-	client.Login(me.BasicUser.Email, me.BasicUser.Password)
-	utils.EnableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		client.Login(me.BasicUser.Email, me.BasicUser.Password)
+	})
 }
 
 func (me *TestHelper) LoginBasic2WithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
-	client.Login(me.BasicUser2.Email, me.BasicUser2.Password)
-	utils.EnableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		client.Login(me.BasicUser2.Email, me.BasicUser2.Password)
+	})
 }
 
 func (me *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
-	client.Login(me.TeamAdminUser.Email, me.TeamAdminUser.Password)
-	utils.EnableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		client.Login(me.TeamAdminUser.Email, me.TeamAdminUser.Password)
+	})
 }
 
 func (me *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
-	utils.DisableDebugLogForTest()
-	client.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password)
-	utils.EnableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		client.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password)
+	})
 }
 
 func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	_, err := me.App.UpdateActive(user, active)
-	if err != nil {
-		mlog.Error(err.Error())
+		_, err := me.App.UpdateActive(user, active)
+		if err != nil {
+			mlog.Error(err.Error())
 
-		time.Sleep(time.Second)
-		panic(err)
-	}
+			time.Sleep(time.Second)
+			panic(err)
+		}
 
-	utils.EnableDebugLogForTest()
+	})
 }
 
 func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	err := me.App.JoinUserToTeam(team, user, "")
-	if err != nil {
-		mlog.Error(err.Error())
+		err := me.App.JoinUserToTeam(team, user, "")
+		if err != nil {
+			mlog.Error(err.Error())
 
-		time.Sleep(time.Second)
-		panic(err)
-	}
+			time.Sleep(time.Second)
+			panic(err)
+		}
 
-	utils.EnableDebugLogForTest()
+	})
 }
 
 func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	utils.DisableDebugLogForTest()
+	var member *model.ChannelMember
+	var err *model.AppError
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	member, err := me.App.AddUserToChannel(user, channel)
-	if err != nil {
-		mlog.Error(err.Error())
+		member, err = me.App.AddUserToChannel(user, channel)
+		if err != nil {
+			mlog.Error(err.Error())
 
-		time.Sleep(time.Second)
-		panic(err)
-	}
+			time.Sleep(time.Second)
+			panic(err)
+		}
 
-	utils.EnableDebugLogForTest()
+	})
 
 	return member
 }
@@ -761,158 +773,144 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
-		cm := cmr.Data.(*model.ChannelMember)
-		cm.Roles = "channel_admin channel_user"
-		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
-			utils.EnableDebugLogForTest()
-			panic(sr.Err)
+		if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
+			cm := cmr.Data.(*model.ChannelMember)
+			cm.Roles = "channel_admin channel_user"
+			if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
+				panic(sr.Err)
+			}
+		} else {
+			panic(cmr.Err)
 		}
-	} else {
-		utils.EnableDebugLogForTest()
-		panic(cmr.Err)
-	}
 
-	utils.EnableDebugLogForTest()
+	})
 }
 
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID}
-	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
-		utils.EnableDebugLogForTest()
-		mlog.Error(tmr.Err.Error())
+		tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID}
+		if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+			mlog.Error(tmr.Err.Error())
 
-		time.Sleep(time.Second)
-		panic(tmr.Err)
-	}
-	utils.EnableDebugLogForTest()
+			time.Sleep(time.Second)
+			panic(tmr.Err)
+		}
+	})
 }
 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID}
-	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
-		utils.EnableDebugLogForTest()
-		mlog.Error(tmr.Err.Error())
+		tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID}
+		if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+			mlog.Error(tmr.Err.Error())
 
-		time.Sleep(time.Second)
-		panic(tmr.Err)
-	}
-	utils.EnableDebugLogForTest()
+			time.Sleep(time.Second)
+			panic(tmr.Err)
+		}
+	})
 }
 
 func (me *TestHelper) SaveDefaultRolePermissions() map[string][]string {
-	utils.DisableDebugLogForTest()
-
 	results := make(map[string][]string)
 
-	for _, roleName := range []string{
-		"system_user",
-		"system_admin",
-		"team_user",
-		"team_admin",
-		"channel_user",
-		"channel_admin",
-	} {
-		role, err1 := me.App.GetRoleByName(roleName)
-		if err1 != nil {
-			utils.EnableDebugLogForTest()
-			panic(err1)
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
+		for _, roleName := range []string{
+			"system_user",
+			"system_admin",
+			"team_user",
+			"team_admin",
+			"channel_user",
+			"channel_admin",
+		} {
+			role, err1 := me.App.GetRoleByName(roleName)
+			if err1 != nil {
+				panic(err1)
+			}
+
+			results[roleName] = role.Permissions
 		}
 
-		results[roleName] = role.Permissions
-	}
-
-	utils.EnableDebugLogForTest()
+	})
 	return results
 }
 
 func (me *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	for roleName, permissions := range data {
-		role, err1 := me.App.GetRoleByName(roleName)
-		if err1 != nil {
-			utils.EnableDebugLogForTest()
-			panic(err1)
+		for roleName, permissions := range data {
+			role, err1 := me.App.GetRoleByName(roleName)
+			if err1 != nil {
+				panic(err1)
+			}
+
+			if strings.Join(role.Permissions, " ") == strings.Join(permissions, " ") {
+				continue
+			}
+
+			role.Permissions = permissions
+
+			_, err2 := me.App.UpdateRole(role)
+			if err2 != nil {
+				panic(err2)
+			}
 		}
 
-		if strings.Join(role.Permissions, " ") == strings.Join(permissions, " ") {
-			continue
-		}
-
-		role.Permissions = permissions
-
-		_, err2 := me.App.UpdateRole(role)
-		if err2 != nil {
-			utils.EnableDebugLogForTest()
-			panic(err2)
-		}
-	}
-
-	utils.EnableDebugLogForTest()
+	})
 }
 
 func (me *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	role, err1 := me.App.GetRoleByName(roleName)
-	if err1 != nil {
-		utils.EnableDebugLogForTest()
-		panic(err1)
-	}
-
-	var newPermissions []string
-	for _, p := range role.Permissions {
-		if p != permission {
-			newPermissions = append(newPermissions, p)
+		role, err1 := me.App.GetRoleByName(roleName)
+		if err1 != nil {
+			panic(err1)
 		}
-	}
 
-	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
-		utils.EnableDebugLogForTest()
-		return
-	}
+		var newPermissions []string
+		for _, p := range role.Permissions {
+			if p != permission {
+				newPermissions = append(newPermissions, p)
+			}
+		}
 
-	role.Permissions = newPermissions
+		if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
+			return
+		}
 
-	_, err2 := me.App.UpdateRole(role)
-	if err2 != nil {
-		utils.EnableDebugLogForTest()
-		panic(err2)
-	}
+		role.Permissions = newPermissions
 
-	utils.EnableDebugLogForTest()
+		_, err2 := me.App.UpdateRole(role)
+		if err2 != nil {
+			panic(err2)
+		}
+
+	})
 }
 
 func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	utils.DisableDebugLogForTest()
+	mlog.DoWithLogLevel(mlog.LevelError, func() {
 
-	role, err1 := me.App.GetRoleByName(roleName)
-	if err1 != nil {
-		utils.EnableDebugLogForTest()
-		panic(err1)
-	}
-
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			utils.EnableDebugLogForTest()
-			return
+		role, err1 := me.App.GetRoleByName(roleName)
+		if err1 != nil {
+			panic(err1)
 		}
-	}
 
-	role.Permissions = append(role.Permissions, permission)
+		for _, existingPermission := range role.Permissions {
+			if existingPermission == permission {
+				return
+			}
+		}
 
-	_, err2 := me.App.UpdateRole(role)
-	if err2 != nil {
-		utils.EnableDebugLogForTest()
-		panic(err2)
-	}
+		role.Permissions = append(role.Permissions, permission)
 
-	utils.EnableDebugLogForTest()
+		_, err2 := me.App.UpdateRole(role)
+		if err2 != nil {
+			panic(err2)
+		}
+
+	})
 }
