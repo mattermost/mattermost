@@ -783,6 +783,54 @@
     "translation": "help"
   },
   {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Error to retrieve the current channel."
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Invite a user to a channel"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "You can't add someone to a direct message channel."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "An error occurred while joining the channel."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[username] ~[channel]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Missing Username and Channel."
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "We couldn't find the user."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "invite"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} added to {{.Channel}} channel."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} is already in the channel."
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "Join the open channel"
   },
@@ -809,54 +857,6 @@
   {
     "id": "api.command_join.success",
     "translation": "Joined channel."
-  },
-  {
-    "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
-  },
-  {
-    "id": "api.command_invite.name",
-    "translation": "invite"
-  },
-  {
-    "id": "api.command_invite.desc",
-    "translation": "Invite a user to a channel"
-  },
-  {
-    "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
-  },
-  {
-    "id": "api.command_invite.missing_user.app_error",
-    "translation": "We couldn't find the user."
-  },
-  {
-    "id": "api.command_invite.channel.app_error",
-    "translation": "Error to retrieve the current channel."
-  },
-  {
-    "id": "api.command_invite.channel.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
-  },
-  {
-    "id": "api.command_invite.fail.app_error",
-    "translation": "An error occurred while joining the channel."
-  },
-  {
-    "id": "api.command_invite.permission.app_error",
-    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
-  },
-  {
-    "id": "api.command_invite.directchannel.app_error",
-    "translation": "You can't add someone to a direct message channel."
-  },
-  {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is already in the channel."
-  },
-  {
-    "id": "api.command_invite.success",
-    "translation": "{{.User}} added to {{.Channel}} channel."
   },
   {
     "id": "api.command_kick.name",
@@ -951,20 +951,20 @@
     "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
   },
   {
-    "id": "api.command_mute.no_channel.error",
-    "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
-  },
-  {
     "id": "api.command_mute.hint",
     "translation": "~[channel]"
   },
   {
     "id": "api.command_mute.name",
     "translation": "mute"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Could not mute channel {{.Channel}} as you are not a member."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2855,12 +2855,12 @@
     "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
   },
   {
-    "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Missing Token."
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "Missing Invite Id."
+  },
+  {
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "Missing Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2909,6 +2909,10 @@
   {
     "id": "api.user.get_me.getting.error",
     "translation": "Error in getting users profile for id=%v forcing logout"
+  },
+  {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "Unable to get profile image, user not found."
   },
   {
     "id": "api.user.init.debug",
@@ -3147,10 +3151,6 @@
     "translation": "Could not parse multipart form"
   },
   {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Unable to get profile image, user not found."
-  },
-  {
     "id": "api.user.upload_profile_user.storage.app_error",
     "translation": "Unable to upload file. Image storage is not configured."
   },
@@ -3305,6 +3305,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -6563,14 +6567,6 @@
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
-    "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
-  },
-  {
-    "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles"
-  },
-  {
     "id": "store.sql_post.search.warn",
     "translation": "Query error searching posts: %v"
   },
@@ -6695,6 +6691,10 @@
     "translation": "Unable to get roles"
   },
   {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles"
+  },
+  {
     "id": "store.sql_role.save.insert.app_error",
     "translation": "Unable to save new role"
   },
@@ -6809,6 +6809,10 @@
   {
     "id": "store.sql_system.get_version.app_error",
     "translation": "We couldn't get the database version"
+  },
+  {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7385,10 +7389,6 @@
   {
     "id": "utils.mail.send_mail.msg.app_error",
     "translation": "Failed to write email message"
-  },
-  {
-    "id": "app.admin.test_email.failure",
-    "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "utils.mail.send_mail.msg_data.app_error",
