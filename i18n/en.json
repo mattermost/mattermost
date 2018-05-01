@@ -2435,6 +2435,10 @@
     "translation": "Permanently deleted team %v id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "The user does not appear to be part of this team."
   },
@@ -2457,10 +2461,6 @@
   {
     "id": "api.team.set_team_icon.encode.app_error",
     "translation": "Could not encode team icon"
-  },
-  {
-    "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
@@ -2487,16 +2487,16 @@
     "translation": "Unable to upload team icon. File is too large."
   },
   {
-    "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
-  },
-  {
     "id": "api.team.set_team_icon.write_file.app_error",
     "translation": "Could not save team icon"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "Team sign-up with email is disabled."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",

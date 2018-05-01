@@ -2435,6 +2435,10 @@
     "translation": "Équipe %v supprimée définitivement id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "L'utilisateur n'appartient pas à cette équipe."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "L'inscription avec une adresse e-mail est désactivée."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4691,6 +4699,10 @@
     "translation": "Id utilisateur invalide"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Impossible d'interpréter les données entrantes"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "Une erreur est survenue durant la connexion au serveur"
   },
@@ -5771,10 +5783,6 @@
     "translation": "Fermeture de SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Échec de la vérification de l'existence de la colonne %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Échec de la vérification de l'existence de la colonne en raison d'un driver manquant"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Échec du chargement du type de données pour la colonne %s de la table %s : %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Échec de la vérification de l'existence de la table %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",

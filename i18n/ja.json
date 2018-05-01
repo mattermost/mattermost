@@ -217,11 +217,11 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
+    "translation": "このデフォルトチャンネルは非公開チャンネルに変更できません。"
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
+    "translation": "変更しようとしているチャンネルはすでに非公開チャンネルです。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2435,6 +2435,10 @@
     "translation": "チーム%vを完全に削除しました id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "ユーザーはこのチームの一員ではありません。"
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "電子メールによるチームへの利用登録は無効です。"
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2960,7 +2968,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "AD/LDAPはこのサーバーでは有効ではありません"
+    "translation": "AD/LDAPはこのサーバーでは有効化されていません"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -4168,7 +4176,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "このサーバーではElasticsearchによる検索は無効です。"
+    "translation": "このサーバーではElasticsearchによる検索は有効化されていません"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -4689,6 +4697,10 @@
   {
     "id": "model.channel_member_history.is_valid.user_id.app_error",
     "translation": "不正なユーザーIDです"
+  },
+  {
+    "id": "model.client.command.parse.app_error",
+    "translation": "外部からのデータを解析できません"
   },
   {
     "id": "model.client.connecting.app_error",
@@ -5771,10 +5783,6 @@
     "translation": "SqlStoreを閉じています"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "列が存在するか確認できませんでした %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "ドライバーがなかったので列が存在するか確認できませんでした"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "列%s(テーブル%s)のデータ形式を取得できません: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "テーブルが存在するか確認できませんでした %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",

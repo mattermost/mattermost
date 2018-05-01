@@ -2435,6 +2435,10 @@
     "translation": "Trwałe usuwanie zespołu %v id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "Użytkownik nie należy do tego zespołu."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "Zapisy do zespołu za pomocą email są wyłączone."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4691,6 +4699,10 @@
     "translation": "Nieprawidłowy identyfikator użytkownika"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Unable to parse incoming data"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "Napotkano błąd podczas podłączania się do serwera"
   },
@@ -5771,10 +5783,6 @@
     "translation": "Zamykanie SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Nie udało się sprawdzić czy kolumna istnieje %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Nie udało się sprawdzić czy kolumna istnieje gdyż brakuje sterownika"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Nie udało się pobrać typu danych dla kolumny %s z tabeli %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Nie udało się sprawdzić czy tabela istnieje %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",
