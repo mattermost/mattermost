@@ -2435,6 +2435,10 @@
     "translation": "Team permanent gelöscht %v id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "Der Benutzer scheint nicht Teil dieses Teams zu sein."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "Team-Anmeldung mit einer E-Mail-Adresse ist deaktiviert."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4691,6 +4699,10 @@
     "translation": "Ungültige Benutzer-ID"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Konnte eingehende Daten nicht verarbeiten"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
   },
@@ -5771,10 +5783,6 @@
     "translation": "Schließe SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Fehler beim Prüfen ob Spalte existiert %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Fehler beim Überprüfen ob Spalte existiert aufgrund fehlendem Treiber"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Fehler beim Lesen des Datentyps für Spalte %s von Tabelle %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Fehler beim Überprüfen ob Tabelle existiert %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",

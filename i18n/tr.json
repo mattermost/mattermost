@@ -2435,6 +2435,10 @@
     "translation": "%v takımı kalıcı olarak silindi. Kod: %v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "Kullanıcı bu takımın bir üyesi gibi görünmüyor."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "E-posta ile takım hesabı açma özelliği devre dışı bırakılmış."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4691,6 +4699,10 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Gelen veriler işlenemedi"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "Sunucuya bağlanılırken bir sorun çıktı"
   },
@@ -5771,10 +5783,6 @@
     "translation": "SqlStore kapatılıyor"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "%v sütununun var olup olmadığı denetlenemedi"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Sütunun var olup olmadığı eksik sürücü nedeniyle denetlenemedi"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "%s sütunu %s tablosu için veri türü alınamadı: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "%v tablosunun var olup olmadığı denetlenemedi"
   },
   {
     "id": "store.sql.too_short_ciphertext",

@@ -2435,6 +2435,10 @@
     "translation": "팀이 완전히 삭제되었습니다. %v id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "The user does not appear to be part of this team."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "이메일을 통한 팀 가입이 비활성화 되어있습니다."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4691,6 +4699,10 @@
     "translation": "잘못된 사용자 ID"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Unable to parse incoming data"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "We encountered an error while connecting to the server"
   },
@@ -5771,10 +5783,6 @@
     "translation": "Closing SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Failed to check if column exists %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Failed to check if column exists because of missing driver"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Failed to get data type for column %s from table %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Failed to check if table exists %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",
