@@ -322,6 +322,28 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 	return t
 }
 
+func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+
+	rawUrl, _ := url.Parse(siteURL)
+
+	subject := T("api.templates.deactivate_subject",
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
+			"ServerURL": rawUrl.Host})
+
+	bodyPage := a.NewEmailTemplate("deactivate_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.deactivate_body.title", map[string]interface{}{"ServerURL": rawUrl.Host})
+	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.deactivate_body.info",
+		map[string]interface{}{"SiteURL": siteURL})
+
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendDeactivateEmail", "api.user.send_deactivate_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
 	license := a.License()
 	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)

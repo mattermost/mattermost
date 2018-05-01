@@ -1002,6 +1002,7 @@ type TeamSettings struct {
 	EnableTeamCreation                  *bool
 	EnableUserCreation                  *bool
 	EnableOpenServer                    *bool
+	EnableUserDeactivation              *bool
 	RestrictCreationToDomains           string
 	EnableCustomBrand                   *bool
 	CustomBrandText                     *string
@@ -1034,6 +1035,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableCustomBrand == nil {
 		s.EnableCustomBrand = NewBool(false)
+	}
+
+	if s.EnableUserDeactivation == nil {
+		s.EnableUserDeactivation = NewBool(false)
 	}
 
 	if s.CustomBrandText == nil {
