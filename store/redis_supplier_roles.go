@@ -91,7 +91,7 @@ func (s *RedisSupplier) RoleDelete(ctx context.Context, roleId string, hints ...
 		key := buildRedisKeyForRoleName(role.Name)
 
 		if err := s.client.Del(key).Err(); err != nil {
-			l4g.Error("Redis failed to remove key " + key + " Error: " + err.Error())
+			mlog.Error("Redis failed to remove key " + key + " Error: " + err.Error())
 		}
 	}
 
