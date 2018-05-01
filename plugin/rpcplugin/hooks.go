@@ -11,6 +11,7 @@ import (
 	"net/rpc"
 	"reflect"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -165,6 +166,7 @@ type RemoteHooks struct {
 	muxer       *Muxer
 	apiCloser   io.Closer
 	implemented [maxRemoteHookCount]bool
+	pluginId    string
 }
 
 var _ plugin.Hooks = (*RemoteHooks)(nil)
@@ -237,6 +239,7 @@ func (h *RemoteHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Request:              forwardedRequest,
 		RequestBodyStream:    requestBodyStream,
 	}, nil); err != nil {
+		mlog.Error("Plugin failed to ServeHTTP", mlog.String("plugin_id", h.pluginId), mlog.Err(err))
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
 	}
 }
@@ -260,10 +263,11 @@ func (h *RemoteHooks) Close() error {
 	return h.client.Close()
 }
 
-func ConnectHooks(conn io.ReadWriteCloser, muxer *Muxer) (*RemoteHooks, error) {
+func ConnectHooks(conn io.ReadWriteCloser, muxer *Muxer, pluginId string) (*RemoteHooks, error) {
 	remote := &RemoteHooks{
-		client: rpc.NewClient(conn),
-		muxer:  muxer,
+		client:   rpc.NewClient(conn),
+		muxer:    muxer,
+		pluginId: pluginId,
 	}
 	implemented, err := remote.Implemented()
 	if err != nil {

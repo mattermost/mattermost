@@ -93,9 +93,9 @@ type PluginSettingsSchema struct {
 //               help_text: When true, an extra thing will be enabled!
 //               default: false
 type Manifest struct {
-	// The id is a globally unique identifier that represents your plugin. Ids are limited
-	// to 190 characters. Reverse-DNS notation using a name you control is a good option.
-	// For example, "com.mycompany.myplugin".
+	// The id is a globally unique identifier that represents your plugin. Ids must be at least
+	// 3 characters, at most 190 characters and must match ^[a-zA-Z0-9-_\.]+$.
+	// Reverse-DNS notation using a name you control is a good option, e.g. "com.mycompany.myplugin".
 	Id string `json:"id" yaml:"id"`
 
 	// The name to be displayed for the plugin.
