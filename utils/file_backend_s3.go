@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	s3 "github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -70,14 +70,14 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 	}
 
 	if !exists {
-		l4g.Warn("Bucket specified does not exist. Attempting to create...")
+		mlog.Warn("Bucket specified does not exist. Attempting to create...")
 		err := s3Clnt.MakeBucket(b.bucket, b.region)
 		if err != nil {
-			l4g.Error("Unable to create bucket.")
+			mlog.Error("Unable to create bucket.")
 			return model.NewAppError("TestFileConnection", "Unable to create bucket", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	l4g.Info("Connection to S3 or minio is good. Bucket exists.")
+	mlog.Info("Connection to S3 or minio is good. Bucket exists.")
 	return nil
 }
 

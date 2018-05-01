@@ -216,6 +216,14 @@
     "translation": "此頻道已轉為私人頻道。"
   },
   {
+    "id": "api.channel.convert_channel_to_private.default_channel_error",
+    "translation": "This default channel cannot be converted into a private channel."
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.private_channel_error",
+    "translation": "The channel requested to convert is already a private channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "必須使用 createDirectChannel API 服務來建立直接訊息頻道"
   },
@@ -330,18 +338,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v 退出頻道。"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "將頻道對話發送至私人傳訊時失敗。"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "將頻道從公開轉換成私人時無法擷取使用者"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s 已將頻道從公開轉換成私人"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -787,6 +783,54 @@
     "translation": "help"
   },
   {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "取得當前頻道時錯誤。"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Invite a user to a channel"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "無法將成員從直接通訊頻道中移除。"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "加入頻道時發生錯誤。"
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[username] ~[channel]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Missing Username and Channel."
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "找不到使用者"
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "invite"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} added to {{.Channel}} channel."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} is already in the channel."
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "加入公開頻道"
   },
@@ -913,6 +957,14 @@
   {
     "id": "api.command_mute.name",
     "translation": "靜音"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Could not mute channel {{.Channel}} as you are not a member."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2795,12 +2847,12 @@
     "translation": "加入預設頻道時遇到錯誤 user_id=%s, team_id=%s, err=%v"
   },
   {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "缺少雜湊或 URL 查詢資料。"
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "缺少邀請 ID。"
+  },
+  {
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "Missing Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2849,6 +2901,10 @@
   {
     "id": "api.user.get_me.getting.error",
     "translation": "取得使用者 id=%v 資訊時遇到錯誤，強制登出"
+  },
+  {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "Unable to get profile image, user not found."
   },
   {
     "id": "api.user.init.debug",
@@ -3241,6 +3297,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "無效的參數 {{.Name}}"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -5743,10 +5803,6 @@
     "translation": "因為找不到驅動，建立欄位失敗"
   },
   {
-    "id": "store.sql.create_index.critical",
-    "translation": "建立索引 %v 失敗"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "因為找不到驅動，建立索引失敗"
   },
@@ -5771,10 +5827,6 @@
     "translation": "取得欄位 %v 最大長度失敗"
   },
   {
-    "id": "store.sql.open_conn.critical",
-    "translation": "開啟 SQL 連線失敗 err:%v"
-  },
-  {
     "id": "store.sql.open_conn.panic",
     "translation": "開啟 SQL 連線失敗 %v"
   },
@@ -5793,10 +5845,6 @@
   {
     "id": "store.sql.schema_out_of_date.warn",
     "translation": "%v 的資料庫結構描述版本似乎過期了"
-  },
-  {
-    "id": "store.sql.schema_set.info",
-    "translation": "資料庫結構描述已被設定為版本 %v"
   },
   {
     "id": "store.sql.schema_upgrade_attempt.warn",
@@ -6531,10 +6579,6 @@
     "translation": "刪除偏好設定時遇到錯誤"
   },
   {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "正在刪除所有沒有使用的預先發佈功能"
-  },
-  {
     "id": "store.sql_preference.get.app_error",
     "translation": "尋找偏好設定時遇到錯誤"
   },
@@ -6641,6 +6685,10 @@
   {
     "id": "store.sql_role.get_by_names.app_error",
     "translation": "無法取得角色"
+  },
+  {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6757,6 +6805,10 @@
   {
     "id": "store.sql_system.get_version.app_error",
     "translation": "無法取得資料庫版本"
+  },
+  {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7328,7 +7380,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "缺少通知信寄件人地址設定或是該設定無效。"
+    "translation": "Error setting \"From Address\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7344,7 +7396,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "缺少通知信收件人地址設定或是該設定無效。"
+    "translation": "Error setting \"To Address\""
   },
   {
     "id": "utils.mail.test.configured.error",

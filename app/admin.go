@@ -13,7 +13,7 @@ import (
 
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -137,7 +137,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 }
 
 func (a *App) InvalidateAllCachesSkipSend() {
-	l4g.Info(utils.T("api.context.invalidate_all_caches"))
+	mlog.Info("Purging all caches")
 	a.sessionCache.Purge()
 	ClearStatusCache()
 	a.Srv.Store.Channel().ClearCaches()
@@ -209,7 +209,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
-	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
+	mlog.Warn("Attempting to recycle the database connection.")
 	a.Srv.Store = a.newStore()
 	a.Jobs.Store = a.Srv.Store
 
@@ -218,7 +218,7 @@ func (a *App) RecycleDatabaseConnection() {
 		oldStore.Close()
 	}
 
-	l4g.Warn(utils.T("api.admin.recycle_db_end.warn"))
+	mlog.Warn("Finished recycling the database connection.")
 }
 
 func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {

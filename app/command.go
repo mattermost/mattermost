@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
@@ -207,7 +207,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 		teamCmds := result.Data.([]*model.Command)
 		for _, cmd := range teamCmds {
 			if trigger == cmd.Trigger {
-				l4g.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, args.UserId))
+				mlog.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, args.UserId))
 
 				p := url.Values{}
 				p.Set("token", cmd.Token)
@@ -308,7 +308,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	response.Attachments = a.ProcessSlackAttachments(response.Attachments)
 
 	if _, err := a.CreateCommandPost(post, args.TeamId, response); err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 	}
 
 	return response, nil

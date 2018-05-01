@@ -14,14 +14,13 @@ import (
 
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/wsapi"
-
-	l4g "github.com/alecthomas/log4go"
 )
 
 type TestHelper struct {
@@ -233,8 +232,8 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 	err := me.App.JoinUserToTeam(team, user, "")
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -254,6 +253,9 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 		}
 	} else {
 		utils.EnableDebugLogForTest()
+		mlog.Error(tmr.Err.Error())
+
+		time.Sleep(time.Second)
 		panic(tmr.Err)
 	}
 
@@ -272,6 +274,9 @@ func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Tea
 		}
 	} else {
 		utils.EnableDebugLogForTest()
+		mlog.Error(tmr.Err.Error())
+
+		time.Sleep(time.Second)
 		panic(tmr.Err)
 	}
 

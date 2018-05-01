@@ -6,8 +6,9 @@ package app
 import (
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/model"
 	"net/http"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
@@ -98,6 +99,15 @@ func tearDownStores() {
 }
 
 func TestMain(m *testing.M) {
+	// Setup a global logger to catch tests logging outside of app context
+	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
+	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	}))
+
 	utils.TranslationsPreInit()
 
 	status := 0

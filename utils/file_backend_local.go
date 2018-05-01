@@ -9,8 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -28,7 +27,7 @@ func (b *LocalFileBackend) TestConnection() *model.AppError {
 		return model.NewAppError("TestFileConnection", "Don't have permissions to write to local path specified or other error.", nil, err.Error(), http.StatusInternalServerError)
 	}
 	os.Remove(filepath.Join(b.directory, TEST_FILE_PATH))
-	l4g.Info("Able to write files to local storage.")
+	mlog.Info("Able to write files to local storage.")
 	return nil
 }
 

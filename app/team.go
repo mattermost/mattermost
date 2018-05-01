@@ -13,9 +13,9 @@ import (
 	"net/url"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -103,6 +103,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.AllowOpenInvite = team.AllowOpenInvite
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
+	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
 
 	if result := <-a.Srv.Store.Team().Update(oldTeam); result.Err != nil {
 		return nil, result.Err
@@ -387,8 +388,8 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	shouldBeAdmin := team.Email == user.Email
 
 	// Soft error if there is an issue joining the default channels
-	if err := a.JoinDefaultChannels(team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
+	if err := a.JoinDefaultChannels(team.Id, user, channelRole, userRequestorId); err != nil {
+		mlog.Error(fmt.Sprintf("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", user.Id, team.Id, err), mlog.String("user_id", user.Id))
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
@@ -676,11 +677,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
 			if err := a.postLeaveTeamMessage(user, channel); err != nil {
-				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
 			}
 		} else {
 			if err := a.postRemoveFromTeamMessage(user, channel); err != nil {
-				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
 			}
 		}
 	}
@@ -946,7 +947,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	} else if len(inviteId) > 0 {
 		if result := <-a.Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
 			// soft fail, so we still create user but don't auto-join team
-			l4g.Error("%v", result.Err)
+			mlog.Error(fmt.Sprintf("%v", result.Err))
 		} else {
 			return result.Data.(*model.Team).Id, nil
 		}
@@ -1045,11 +1046,28 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 	curTime := model.GetMillis()
 
 	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, curTime); result.Err != nil {
-		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SetTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
 	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = curTime
+
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return nil
+}
+
+func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return model.NewAppError("RemoveTeamIcon", "api.team.remove_team_icon.get_team.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, 0); result.Err != nil {
+		return model.NewAppError("RemoveTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	}
+
+	team.LastTeamIconUpdate = 0
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 

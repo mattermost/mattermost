@@ -4,10 +4,11 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -193,8 +194,8 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 	if err != nil {
 		// This should only happen if something is very broken. We can't realistically
 		// recover the situation, so deny permission and log an error.
-		l4g.Error("Failed to get roles from database with role names: " + strings.Join(roleNames, ","))
-		l4g.Error(err)
+		mlog.Error("Failed to get roles from database with role names: " + strings.Join(roleNames, ","))
+		mlog.Error(fmt.Sprint(err))
 		return false
 	}
 

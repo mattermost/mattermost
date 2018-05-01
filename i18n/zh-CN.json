@@ -216,6 +216,14 @@
     "translation": "此频道已转换到私有频道。"
   },
   {
+    "id": "api.channel.convert_channel_to_private.default_channel_error",
+    "translation": "This default channel cannot be converted into a private channel."
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.private_channel_error",
+    "translation": "The channel requested to convert is already a private channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "必须使用 createDirectChannel API 创建私信频道"
   },
@@ -330,18 +338,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v 已退出该频道。"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "Failed to post channel conversion to private message"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "Failed to retrieve user while converting the channel from public to private"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s converted the channel from public to private"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -787,6 +783,54 @@
     "translation": "帮助"
   },
   {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "获取当前频道错误。"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "无法找到频道 {{.Channel}}。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation)  以分辨频道。"
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "邀请用户到频道"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "您不能添加成员到私信频道。"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "加入频道时发生错误。"
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[用户名] ~[频道]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "缺少用户名和频道。"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "无法找到该用户。"
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "邀请"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "您没有足够的权限在 {{.Channel}} 添加 {{.User}}。"
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "已添加 {{.User}} 到 {{.Channel}} 频道。"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} 已在频道。"
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "添加到公开频道"
   },
@@ -796,7 +840,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[频道]"
+    "translation": "~[频道]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -900,19 +944,27 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+    "translation": "关闭当前频道或指定[频道]的桌面、邮件以及推送通知。"
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "无法找到频道 {{.Channel}}。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation)  以分辨频道。"
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[频道]"
+    "translation": "~[频道]"
   },
   {
     "id": "api.command_mute.name",
     "translation": "静音"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "无法找到指定的频道。请使用[频道识别](https://about.mattermost.com/default-channel-handle-documentation)  以分辨频道。"
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "无法静音频道 {{.Channel}} 因为您不是成员。"
   },
   {
     "id": "api.command_mute.success_mute",
@@ -1698,11 +1750,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}}和{{.LastUsername}}被提到了，但是他们不会收到通知，因为他们不在这个频道。"
+    "translation": "@{{.Usernames}} 与 @{{.LastUsername}} 被提到了，但是他们因不在这个频道而不会收到通知。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}}被提到了，但是他因不在此频道而不会收到通知。"
+    "translation": "@{{.Username}} 被提到了，但是他因不在此频道而不会收到通知。"
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -2216,7 +2268,7 @@
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack 导入：频道 {{.ChannelName}} 的 Handle 过长。导入时会被截断。"
+    "translation": "Slack 导入：频道 {{.ChannelName}} 的识别过长。导入时会被截断。"
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
@@ -2392,7 +2444,7 @@
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "请求中图片为空"
+    "translation": "请求中 'image' 为空"
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -2400,7 +2452,7 @@
   },
   {
     "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Could not decode team icon metadata"
+    "translation": "无法解码团队图标元数据"
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
@@ -2795,12 +2847,12 @@
     "translation": "加入默认通道遇到一个问题 user_id=%s, team_id=%s, err=%v"
   },
   {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "无效的哈系或 URL 查询数据。"
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "无效的邀请 id。"
+  },
+  {
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "缺少令牌。"
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2849,6 +2901,10 @@
   {
     "id": "api.user.get_me.getting.error",
     "translation": "获取用户配置文件中的错误 id=%v 强制注销"
+  },
+  {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "无法获取个人资料图片，用户不存在。"
   },
   {
     "id": "api.user.init.debug",
@@ -3241,6 +3297,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "无效的参数 {{.Name}}"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "连接失败：{{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3748,7 +3808,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "当机群开启并使用 ReadOnlyConfig 时，config.json 文件中的插件设置必须手动上传。"
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3820,7 +3880,7 @@
   },
   {
     "id": "app.timezones.failed_deserialize.app_error",
-    "translation": "读取时区配置文件失败 file={{.Filename}}, err={{.Error}}"
+    "translation": "反序列化区配置文件失败 file={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "app.timezones.load_config.app_error",
@@ -5044,7 +5104,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "消息导出任务 ExportFormat 为 'globalrelay'，但缺少 GlobalRelaySettings"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -5743,10 +5803,6 @@
     "translation": "未能创建列，因为缺少驱动程序"
   },
   {
-    "id": "store.sql.create_index.critical",
-    "translation": "创建索引失败 %v"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "未能创建索引，因为缺少驱动程序"
   },
@@ -5771,10 +5827,6 @@
     "translation": "未能获取列的最大长度%v"
   },
   {
-    "id": "store.sql.open_conn.critical",
-    "translation": "打开数据库连接失败 err:%v"
-  },
-  {
     "id": "store.sql.open_conn.panic",
     "translation": "打开数据库连接失败 %v"
   },
@@ -5793,10 +5845,6 @@
   {
     "id": "store.sql.schema_out_of_date.warn",
     "translation": "数据库结构版本 %v 似乎过旧"
-  },
-  {
-    "id": "store.sql.schema_set.info",
-    "translation": "数据库结构版本设为 %v"
   },
   {
     "id": "store.sql.schema_upgrade_attempt.warn",
@@ -6496,7 +6544,7 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.max_post_size_bytes",
-    "translation": "Post.Message supports at most %d characters (%d bytes)"
+    "translation": "Post.Message 最多支持 %d 字符 (%d 字节)"
   },
   {
     "id": "store.sql_post.query_max_post_size.unrecognized_driver",
@@ -6529,10 +6577,6 @@
   {
     "id": "store.sql_preference.delete.app_error",
     "translation": "我们删除偏好设置时出现错误"
-  },
-  {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "删除任何未使用的预发行功能"
   },
   {
     "id": "store.sql_preference.get.app_error",
@@ -6641,6 +6685,10 @@
   {
     "id": "store.sql_role.get_by_names.app_error",
     "translation": "无法获取角色"
+  },
+  {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "我们无法永久删除所有角色"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6757,6 +6805,10 @@
   {
     "id": "store.sql_system.get_version.app_error",
     "translation": "我们无法获得数据库版本"
+  },
+  {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "我们无法永久删除系统表数据"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7328,7 +7380,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "缺少或无效的从寄件人地址通知设定。"
+    "translation": "设定 \"From Address\" 错误"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7344,7 +7396,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "缺少或无效的通知到收件人地址设定。"
+    "translation": "设定 \"To Address\" 错误"
   },
   {
     "id": "utils.mail.test.configured.error",

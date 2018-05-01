@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/gorp"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -1088,7 +1088,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 	}
 
 	if result := <-s.GetAllChannelMembersForUser(userId, true); result.Err != nil {
-		l4g.Error("SqlChannelStore.IsUserInChannelUseCache: " + result.Err.Error())
+		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + result.Err.Error())
 		return false
 	} else {
 		ids := result.Data.(map[string]string)

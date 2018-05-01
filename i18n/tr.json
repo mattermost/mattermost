@@ -216,6 +216,14 @@
     "translation": "Bu kanal Özel Kanala dönüştürüldü."
   },
   {
+    "id": "api.channel.convert_channel_to_private.default_channel_error",
+    "translation": "This default channel cannot be converted into a private channel."
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.private_channel_error",
+    "translation": "The channel requested to convert is already a private channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Doğrudan ileti kanalı eklemek için createDirectChannel API hizmeti kullanılmalıdır"
   },
@@ -330,18 +338,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v kanaldan ayrıldı."
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "Kanal sohbeti özel ileti olarak gönderilemedi"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "Herkese açık kanal, özel kanala dönüştürülürken kullanıcı alınamadı"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s herkese açık kanalı özel kanala dönüştürdü"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -787,6 +783,54 @@
     "translation": "yardım"
   },
   {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Geçerli kanal alınırken sorun çıktı."
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [channel handle](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Invite a user to a channel"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "Bir kişiyi doğrudan ileti kanalından çıkaramazsınız."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Kanala katılınılırken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[username] ~[channel]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Missing Username and Channel."
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "Kullanıcı bulunamadı."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "invite"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} added to {{.Channel}} channel."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} is already in the channel."
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "Açık kanala katılın"
   },
@@ -913,6 +957,14 @@
   {
     "id": "api.command_mute.name",
     "translation": "bildirimleri kapat"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [channel handle](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Could not mute channel {{.Channel}} as you are not a member."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2795,12 +2847,12 @@
     "translation": "Varsayılan kanallara katılırken bir sorun çıktı. Kullanıcı Kodu: %v, Takım Kodu: %v, Hata: %v"
   },
   {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Missing Hash or URL query data."
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "Missing Invite Id."
+  },
+  {
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "Missing Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2849,6 +2901,10 @@
   {
     "id": "api.user.get_me.getting.error",
     "translation": "%v kodlu kullanıcı profili alınırken sorun çıktı, oturum kapatılıyor"
+  },
+  {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "Unable to get profile image, user not found."
   },
   {
     "id": "api.user.init.debug",
@@ -3241,6 +3297,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "{{.Name}} parametresi geçersiz"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -5743,10 +5803,6 @@
     "translation": "Sütun eksik sürücü nedeniyle oluşturulamadı"
   },
   {
-    "id": "store.sql.create_index.critical",
-    "translation": "%v dizini oluşturulamadı"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "Dizin eksik sürücü nedeniyle oluşturulamadı"
   },
@@ -5771,10 +5827,6 @@
     "translation": "%v sütununun en fazla uzunluğu alınamadı"
   },
   {
-    "id": "store.sql.open_conn.critical",
-    "translation": "SQL bağlantısı açılamadı. Hata: %v"
-  },
-  {
     "id": "store.sql.open_conn.panic",
     "translation": "SQL bağlantısı açılamadı %v"
   },
@@ -5793,10 +5845,6 @@
   {
     "id": "store.sql.schema_out_of_date.warn",
     "translation": "%v veritabanı şeması sürümü eskimiş gibi görünüyor"
-  },
-  {
-    "id": "store.sql.schema_set.info",
-    "translation": "Veritabanı şeması %v sürümüne ayarlandı"
   },
   {
     "id": "store.sql.schema_upgrade_attempt.warn",
@@ -6531,10 +6579,6 @@
     "translation": "Ayarlar silinirken bir sorun çıktı"
   },
   {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "Kullanılmayan ön yayın özellikleri siliniyor"
-  },
-  {
     "id": "store.sql_preference.get.app_error",
     "translation": "Ayarlar bulunurken bir sorun çıktı"
   },
@@ -6641,6 +6685,10 @@
   {
     "id": "store.sql_role.get_by_names.app_error",
     "translation": "Roller alınamadı"
+  },
+  {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6757,6 +6805,10 @@
   {
     "id": "store.sql_system.get_version.app_error",
     "translation": "Veritabanı sürümü alınamadı"
+  },
+  {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7328,7 +7380,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "E-posta adresinden eklenemedi"
+    "translation": "Error setting \"From Address\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7344,7 +7396,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "E-posta adresi eklenemedi"
+    "translation": "Error setting \"To Address\""
   },
   {
     "id": "utils.mail.test.configured.error",
