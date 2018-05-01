@@ -5,14 +5,13 @@ package sqlstore
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"github.com/mattermost/gorp"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func initSqlSupplierReactions(sqlStore SqlStore) {
@@ -136,7 +135,7 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 	for _, reaction := range reactions {
 		if _, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
 			map[string]interface{}{"PostId": reaction.PostId, "UpdateAt": model.GetMillis()}); err != nil {
-			l4g.Warn(utils.T("store.sql_reaction.delete_all_with_emoji_name.update_post.warn"), reaction.PostId, err.Error())
+			mlog.Warn(fmt.Sprintf("Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v", reaction.PostId, err.Error()))
 		}
 	}
 

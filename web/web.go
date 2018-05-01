@@ -4,6 +4,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -11,20 +12,20 @@ import (
 	"github.com/NYTimes/gziphandler"
 	"github.com/avct/uasurfer"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 func Init(api3 *api.API) {
-	l4g.Debug(utils.T("web.init.debug"))
+	mlog.Debug("Initializing web routes")
 
 	mainrouter := api3.BaseRoutes.Root
 
 	if *api3.App.Config().ServiceSettings.WebserverMode != "disabled" {
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
-		l4g.Debug("Using client directory at %v", staticDir)
+		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
 
 		staticHandler := staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
 		pluginHandler := pluginHandler(api3.App.Config, http.StripPrefix("/static/plugins/", http.FileServer(http.Dir(*api3.App.Config().PluginSettings.ClientDirectory))))

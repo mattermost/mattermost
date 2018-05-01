@@ -4,11 +4,12 @@
 package app
 
 import (
+	"testing"
+	"time"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestMuteCommandNoChannel(t *testing.T) {

@@ -33,8 +33,6 @@ func InitDBCommandContext(configFileLocation string) (*app.App, error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	utils.ConfigureCmdLineLog()
-
 	a, err := app.New(app.ConfigFile(configFileLocation))
 	if err != nil {
 		return nil, err

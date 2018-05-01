@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -23,6 +24,15 @@ type FileBackendTestSuite struct {
 }
 
 func TestLocalFileBackendTestSuite(t *testing.T) {
+	// Setup a global logger to catch tests logging outside of app context
+	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
+	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	}))
+
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)

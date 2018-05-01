@@ -32,6 +32,7 @@ func (api *API) InitTeam() {
 
 	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
 	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequired(setTeamIcon)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequired(removeTeamIcon)).Methods("DELETE")
 
 	api.BaseRoutes.TeamMembers.Handle("", api.ApiSessionRequired(getTeamMembers)).Methods("GET")
 	api.BaseRoutes.TeamMembers.Handle("/ids", api.ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
@@ -805,6 +806,26 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	imageData := imageArray[0]
 
 	if err := c.App.SetTeamIcon(c.Params.TeamId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
+}
+
+func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	if err := c.App.RemoveTeamIcon(c.Params.TeamId); err != nil {
 		c.Err = err
 		return
 	}

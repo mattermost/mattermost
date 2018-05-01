@@ -5,11 +5,10 @@ package app
 
 import (
 	"encoding/json"
-	"log"
-	"os"
 	"runtime"
 	"sync/atomic"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/segmentio/analytics-go"
 )
@@ -69,12 +68,12 @@ func (a *App) SendDailyDiagnostics() {
 func (a *App) initDiagnostics(endpoint string) {
 	if client == nil {
 		client = analytics.New(SEGMENT_KEY)
+		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
 		// For testing
 		if endpoint != "" {
 			client.Endpoint = endpoint
 			client.Verbose = true
 			client.Size = 1
-			client.Logger = log.New(os.Stdout, "segment ", log.LstdFlags)
 		}
 		client.Identify(&analytics.Identify{
 			UserId: a.DiagnosticId(),
@@ -273,6 +272,7 @@ func (a *App) trackConfig() {
 		"isdefault_user_status_away_timeout":      isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
 		"restrict_private_channel_manage_members": *cfg.TeamSettings.RestrictPrivateChannelManageMembers,
 		"enable_X_to_leave_channels_from_LHS":     *cfg.TeamSettings.EnableXToLeaveChannelsFromLHS,
+		"experimental_enable_automatic_replies":   *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
 		"experimental_town_square_is_read_only":   *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
 		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
 	})
@@ -299,10 +299,11 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
 		"enable_console":           cfg.LogSettings.EnableConsole,
 		"console_level":            cfg.LogSettings.ConsoleLevel,
+		"console_json":             *cfg.LogSettings.ConsoleJson,
 		"enable_file":              cfg.LogSettings.EnableFile,
 		"file_level":               cfg.LogSettings.FileLevel,
+		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
-		"isdefault_file_format":    isDefault(cfg.LogSettings.FileFormat, ""),
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 	})
 

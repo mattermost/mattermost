@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/app/plugin"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -34,7 +34,7 @@ func (p *Plugin) config() *Configuration {
 func (p *Plugin) OnConfigurationChange() {
 	var configuration Configuration
 	if err := p.api.LoadPluginConfiguration(&configuration); err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 	}
 	p.configuration.Store(&configuration)
 }

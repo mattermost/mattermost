@@ -4,6 +4,7 @@
 package manualtesting
 
 import (
+	"fmt"
 	"hash/fnv"
 	"math/rand"
 	"net/http"
@@ -11,9 +12,9 @@ import (
 	"strconv"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -34,7 +35,7 @@ func Init(api3 *api.API) {
 
 func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	// Let the world know
-	l4g.Info(utils.T("manaultesting.manual_test.setup.info"))
+	mlog.Info("Setting up for manual test...")
 
 	// URL Parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
@@ -51,7 +52,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		hash := hasher.Sum32()
 		rand.Seed(int64(hash))
 	} else {
-		l4g.Debug(utils.T("manaultesting.manual_test.uid.debug"))
+		mlog.Debug("No uid in URL")
 	}
 
 	// Create a client for tests to use
@@ -63,7 +64,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	var teamID string
 	var userID string
 	if ok1 && ok2 {
-		l4g.Info(utils.T("manaultesting.manual_test.create.info"))
+		mlog.Info("Creating user and team")
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
@@ -155,7 +156,7 @@ func getChannelID(a *app.App, channelname string, teamid string, userid string) 
 	// Grab all the channels
 	result := <-a.Srv.Store.Channel().GetChannels(teamid, userid)
 	if result.Err != nil {
-		l4g.Debug(utils.T("manaultesting.get_channel_id.unable.debug"))
+		mlog.Debug("Unable to get channels")
 		return "", false
 	}
 
@@ -166,6 +167,6 @@ func getChannelID(a *app.App, channelname string, teamid string, userid string) 
 			return channel.Id, true
 		}
 	}
-	l4g.Debug(utils.T("manaultesting.get_channel_id.no_found.debug"), channelname, strconv.Itoa(len(data)))
+	mlog.Debug(fmt.Sprintf("Could not find channel: %v, %v possibilities searched", channelname, strconv.Itoa(len(data))))
 	return "", false
 }

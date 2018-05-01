@@ -216,6 +216,14 @@
     "translation": "Este canal foi convertido para um Canal Privado."
   },
   {
+    "id": "api.channel.convert_channel_to_private.default_channel_error",
+    "translation": "This default channel cannot be converted into a private channel."
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.private_channel_error",
+    "translation": "The channel requested to convert is already a private channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Deve-se usar a API de serviço createDirectChannel para criação do canal de mensagens diretas"
   },
@@ -330,18 +338,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v deixou o canal."
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "Falha ao postar a conversão do canal em mensagem privada"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "Falha ao recuperar usuário durante a conversão do canal de público para privado"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s convertido de canal publico para privado"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -787,6 +783,54 @@
     "translation": "ajuda"
   },
   {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Error ao obter o canal atual."
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "Não foi possível encontrar o canal {{.Channel}}. Por favor use o [identificador de canal](https://about.mattermost.com/default-channel-handle-documentation) para identificar os canais."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Invite a user to a channel"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "Você não pode remover a pessoa de um canal de mensagens diretas"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Ocorreu um erro enquanto conectava ao canal."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[username] ~[channel]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Missing Username and Channel."
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "Não foi possível encontrar o usuário."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "convite"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "Você não tem permissão suficiente para adicionar {{.User}} em {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} adicionado ao canal {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} já está no canal."
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "Junte-se ao canal aberto"
   },
@@ -913,6 +957,14 @@
   {
     "id": "api.command_mute.name",
     "translation": "mudo"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Não foi possível encontrar o canal {{.Channel}}. Por favor use o [identificador de canal](https://about.mattermost.com/default-channel-handle-documentation) para identificar os canais."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Não foi possível silenciar o canal {{.Channel}} porque você não é um membro."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2795,12 +2847,12 @@
     "translation": "Encontrado um problema ao se juntar ao canal padrão user_id=%s, team_id=%s, err=%v"
   },
   {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Falta a Hash ou URL nos dados da consulta."
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "Falta Id do Convite."
+  },
+  {
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "Faltando Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2849,6 +2901,10 @@
   {
     "id": "api.user.get_me.getting.error",
     "translation": "Erro na obtenção do perfil dos usuários para id=%v forçando o logout"
+  },
+  {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "Unable to get profile image, user not found."
   },
   {
     "id": "api.user.init.debug",
@@ -3241,6 +3297,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Parâmetro {{.Name}} inválido"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -5743,10 +5803,6 @@
     "translation": "Falha ao criar a couna devido a falta do driver"
   },
   {
-    "id": "store.sql.create_index.critical",
-    "translation": "Falha ao criar o índice %v"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "Falha para criar o índice devido a falta do driver"
   },
@@ -5771,10 +5827,6 @@
     "translation": "Falha ao obter o comprimento máximo da coluna %v"
   },
   {
-    "id": "store.sql.open_conn.critical",
-    "translation": "Falha ao abrir a conexão SQL err:%v"
-  },
-  {
     "id": "store.sql.open_conn.panic",
     "translation": "Falha ao abrir a conexão SQL %v"
   },
@@ -5793,10 +5845,6 @@
   {
     "id": "store.sql.schema_out_of_date.warn",
     "translation": "A versão do esquema do banco de dados %v parece estar desatualizada"
-  },
-  {
-    "id": "store.sql.schema_set.info",
-    "translation": "O esquema do banco de dados foi ajustado para a versão %v"
   },
   {
     "id": "store.sql.schema_upgrade_attempt.warn",
@@ -6531,10 +6579,6 @@
     "translation": "Encontramos um erro enquanto deletava as preferências"
   },
   {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "Excluindo recursos de pré-lançamento não utilizados"
-  },
-  {
     "id": "store.sql_preference.get.app_error",
     "translation": "Encontramos um erro ao procurar as preferências"
   },
@@ -6641,6 +6685,10 @@
   {
     "id": "store.sql_role.get_by_names.app_error",
     "translation": "Não foi possível obter as funções"
+  },
+  {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6757,6 +6805,10 @@
   {
     "id": "store.sql_system.get_version.app_error",
     "translation": "Não foi possível obter a versão do banco de dados"
+  },
+  {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7328,7 +7380,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Endereço de remetente de email para notificação está faltando ou é inválido."
+    "translation": "Error setting \"From Address\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7344,7 +7396,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Endereço de email para notificação está faltando ou é inválido."
+    "translation": "Error setting \"To Address\""
   },
   {
     "id": "utils.mail.test.configured.error",
