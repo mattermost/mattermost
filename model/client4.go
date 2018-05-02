@@ -326,6 +326,14 @@ func (c *Client4) GetTimezonesRoute() string {
 	return fmt.Sprintf(c.GetSystemRoute() + "/timezones")
 }
 
+func (c *Client4) GetChannelSchemeRoute(channelId string) string {
+	return fmt.Sprintf(c.GetChannelsRoute()+"/%v/scheme", channelId)
+}
+
+func (c *Client4) GetTeamSchemeRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/scheme", teamId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -3499,6 +3507,28 @@ func (c *Client4) ActivatePlugin(id string) (bool, *Response) {
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) DeactivatePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/deactivate", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateChannelScheme will update a channel's scheme.
+func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (bool, *Response) {
+	sip := &SchemeIDPatch{SchemeID: &schemeId}
+	if r, err := c.DoApiPut(c.GetChannelSchemeRoute(channelId), sip.ToJson()); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateTeamScheme will update a team's scheme.
+func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (bool, *Response) {
+	sip := &SchemeIDPatch{SchemeID: &schemeId}
+	if r, err := c.DoApiPut(c.GetTeamSchemeRoute(teamId), sip.ToJson()); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

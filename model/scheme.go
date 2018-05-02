@@ -29,6 +29,10 @@ type Scheme struct {
 	DefaultChannelUserRole  string `json:"default_channel_user_role"`
 }
 
+type SchemeIDPatch struct {
+	SchemeID *string `json:"scheme_id"`
+}
+
 func (scheme *Scheme) ToJson() string {
 	b, _ := json.Marshal(scheme)
 	return string(b)
@@ -92,4 +96,15 @@ func (scheme *Scheme) IsValidForCreate() bool {
 	}
 
 	return true
+}
+
+func SchemeIDFromJson(data io.Reader) *string {
+	var p *SchemeIDPatch
+	json.NewDecoder(data).Decode(&p)
+	return p.SchemeID
+}
+
+func (p *SchemeIDPatch) ToJson() string {
+	b, _ := json.Marshal(p)
+	return string(b)
 }
