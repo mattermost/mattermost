@@ -2359,7 +2359,7 @@ func (c *Client4) RemoveLicenseFile() (bool, *Response) {
 // and defaults to "standard". The "teamId" argument is optional and will limit results
 // to a specific team.
 func (c *Client4) GetAnalyticsOld(name, teamId string) (AnalyticsRows, *Response) {
-	query := fmt.Sprintf("?name=%v&teamId=%v", name, teamId)
+	query := fmt.Sprintf("?name=%v&team_id=%v", name, teamId)
 	if r, err := c.DoApiGet(c.GetAnalyticsRoute()+"/old"+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
