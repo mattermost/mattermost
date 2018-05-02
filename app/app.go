@@ -546,6 +546,14 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		return
 	}
 
+	config := a.Config()
+	if *config.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_ALWAYS {
+		*config.ServiceSettings.PostEditTimeLimit = -1
+		if err := a.SaveConfig(config, true); err != nil {
+			l4g.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", err.Error())
+		}
+	}
+
 	system := model.System{
 		Name:  ADVANCED_PERMISSIONS_MIGRATION_KEY,
 		Value: "true",
