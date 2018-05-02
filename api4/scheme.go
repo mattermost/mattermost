@@ -71,7 +71,7 @@ func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	scope := c.Params.Scope
-	if len(scope) > 0 && !(scope == model.SCHEME_SCOPE_TEAM || scope == model.SCHEME_SCOPE_CHANNEL) {
+	if scope != "" && scope != model.SCHEME_SCOPE_TEAM && scope != model.SCHEME_SCOPE_CHANNEL {
 		c.SetInvalidParam("scope")
 		return
 	}

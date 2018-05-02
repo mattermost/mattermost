@@ -100,7 +100,7 @@ type Routes struct {
 	Reactions *mux.Router // 'api/v4/reactions'
 
 	Roles   *mux.Router // 'api/v4/roles'
-	Schemes *mux.Router // 'api/v4/roles'
+	Schemes *mux.Router // 'api/v4/schemes'
 
 	Emojis      *mux.Router // 'api/v4/emoji'
 	Emoji       *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
