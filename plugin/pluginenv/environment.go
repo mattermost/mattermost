@@ -112,8 +112,12 @@ func (env *Environment) ActivatePlugin(id string) error {
 	env.mutex.Lock()
 	defer env.mutex.Unlock()
 
+	if !plugin.IsValidId(id) {
+		return fmt.Errorf("invalid plugin id: %s", id)
+	}
+
 	if _, ok := env.activePlugins[id]; ok {
-		return fmt.Errorf("plugin already active: %v", id)
+		return nil
 	}
 	plugins, err := ScanSearchPath(env.searchPath)
 	if err != nil {

@@ -944,7 +944,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Apaga las notificaciones de escritorio, correo electrónico y push para el canal actual o el [canal] especificado."
+    "translation": "Apaga las notificaciones de escritorio, correo electrónico y a dispositivos móviles para el canal actual o el [canal] especificado."
   },
   {
     "id": "api.command_mute.error",
@@ -1896,7 +1896,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Limpiando notificaciones push a %v con el channel_id '%v'"
+    "translation": "Limpiando notificaciones dispositivos móviles para %v con el channel_id '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -1948,7 +1948,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Error al enviar push device_id={{.DeviceId}}, err={{.Error}}"
+    "translation": "Error al enviar notificación al dispositivo móvil device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
@@ -2435,6 +2435,10 @@
     "translation": "Equipo eliminado permanentemente %v id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "El usuario no parece ser parte de este equipo."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "El registro a equipos por correo electrónico está inhabilitado."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -3728,7 +3736,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": "La propiedad de notificación del estatus del usuario para recibir mediante push no es válida."
+    "translation": "La propiedad de notificación del estatus del usuario para recibir notificaciones a dispositivos móviles no es válida."
   },
   {
     "id": "app.import.validate_user_import_data.pasword_length.error",
@@ -4656,7 +4664,7 @@
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Nivel para la notificación push no es válido"
+    "translation": "Nivel para la notificación a dispositivos móviles no es válido"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4689,6 +4697,10 @@
   {
     "id": "model.channel_member_history.is_valid.user_id.app_error",
     "translation": "Id de usuario no válido"
+  },
+  {
+    "id": "model.client.command.parse.app_error",
+    "translation": "No se puede analizar la data entrante"
   },
   {
     "id": "model.client.connecting.app_error",
@@ -5771,10 +5783,6 @@
     "translation": "Cerrando SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Falla al revisar si la columna existe %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Falla al revisar si la columna existe porque el controlador no se encuentra"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Falla al obtener el tipo de dato de la columna %s de la tabla %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Falla al revisar si la tabla existe %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",

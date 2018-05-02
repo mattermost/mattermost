@@ -2435,6 +2435,10 @@
     "translation": "Команда %v id=%v безвозвратно удалена"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "Пользователь неактивен для участия в этой команде."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "Вход в команду с электронной почтой отключен."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -4691,6 +4699,10 @@
     "translation": "Недопустимый идентификатор пользователя"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Невозможно разобрать входящие данные"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "Мы обнаружили ошибку при подключении к серверу"
   },
@@ -5771,10 +5783,6 @@
     "translation": "Закрытие SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Не удалось проверить, существует ли колонка %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Не удалось проверить существование колонки по причине отсутствующего драйвера"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Не удалось получить тип данных колонки %s из таблицы %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Не удалось проверить, существует ли таблица %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",

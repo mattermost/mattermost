@@ -30,7 +30,7 @@ func Main(hooks interface{}) {
 }
 
 // Returns the hooks being served by a call to Main.
-func ConnectMain(muxer *Muxer) (*RemoteHooks, error) {
+func ConnectMain(muxer *Muxer, pluginId string) (*RemoteHooks, error) {
 	buf := make([]byte, 1)
 	if _, err := muxer.Read(buf); err != nil {
 		return nil, err
@@ -43,5 +43,5 @@ func ConnectMain(muxer *Muxer) (*RemoteHooks, error) {
 		return nil, err
 	}
 
-	return ConnectHooks(muxer.Connect(id), muxer)
+	return ConnectHooks(muxer.Connect(id), muxer, pluginId)
 }
