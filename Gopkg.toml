@@ -44,12 +44,6 @@
   name = "github.com/mattermost/gorp"
   branch = "master"
 
-# To use our fork
-[[constraint]]
-  name = "github.com/minio/minio-go"
-  source = "https://github.com/mattermost/minio-go.git"
-  version = "4.0.7.1"
-
 # Fork for adding our own method to viper EnvSettings
 [[constraint]]
   name = "github.com/spf13/viper"

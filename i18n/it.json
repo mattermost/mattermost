@@ -217,11 +217,11 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
+    "translation": "Questo canale predefinito non può essere convertito in un canale privato."
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
+    "translation": "Il canale da convertire è già un canale privato."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2435,6 +2435,10 @@
     "translation": "Gruppo eliminato permanentemente %v id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "L'utente non è membro di questo gruppo."
   },
@@ -2489,6 +2493,10 @@
   {
     "id": "api.team.signup_team.email_disabled.app_error",
     "translation": "L'iscrizione al gruppo con email è disabilitata."
+  },
+  {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2852,7 +2860,7 @@
   },
   {
     "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Missing Token."
+    "translation": "Token mancante."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -4691,6 +4699,10 @@
     "translation": "Id utente non valido"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Impossibile analizzare i dati in ingresso"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "E' stato riscontrato un errore durante la connessione al server"
   },
@@ -5771,10 +5783,6 @@
     "translation": "Chiusura SqlStore"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Fallimento nel controllo se la colonna esiste %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Controllo se la colonna esiste fallita a causa di un driver mancante"
   },
@@ -5861,10 +5869,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Impossibile ottenere il tipo di dato per la colonna %s dalla tabella %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Impossibile controllare se la tabella esiste %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",
@@ -6688,7 +6692,7 @@
   },
   {
     "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles"
+    "translation": "Impossibile eliminare definitivamente tutti i ruoli"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6808,7 +6812,7 @@
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
+    "translation": "Impossibile eliminare definitivamente questa voce dalla tabella di sistema"
   },
   {
     "id": "store.sql_system.save.app_error",

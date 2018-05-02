@@ -1,6 +1,6 @@
 /*
  * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 Minio, Inc.
+ * Copyright 2015-2018 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "4.0.7"
+	libraryVersion = "6.0.0"
 )
 
 // User Agent should always following the below style.
@@ -258,8 +258,7 @@ func (c *Client) redirectHeaders(req *http.Request, via []*http.Request) error {
 		}
 		switch {
 		case signerType.IsV2():
-			// Add signature version '2' authorization header.
-			req = s3signer.SignV2(*req, accessKeyID, secretAccessKey)
+			return errors.New("signature V2 cannot support redirection")
 		case signerType.IsV4():
 			req = s3signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, getDefaultLocation(*c.endpointURL, region))
 		}
@@ -288,7 +287,7 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 
 	// Instantiate http client and bucket location cache.
 	clnt.httpClient = &http.Client{
-		Transport:     defaultMinioTransport,
+		Transport:     DefaultTransport,
 		CheckRedirect: clnt.redirectHeaders,
 	}
 
@@ -338,7 +337,7 @@ func (c *Client) SetCustomTransport(customHTTPTransport http.RoundTripper) {
 	//           TLSClientConfig:    &tls.Config{RootCAs: pool},
 	//           DisableCompression: true,
 	//   }
-	//   api.SetTransport(tr)
+	//   api.SetCustomTransport(tr)
 	//
 	if c.httpClient != nil {
 		c.httpClient.Transport = customHTTPTransport
@@ -694,8 +693,11 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		}
 	}
 
+	// Look if target url supports virtual host.
+	isVirtualHost := c.isVirtualHostStyleRequest(*c.endpointURL, metadata.bucketName)
+
 	// Construct a new target URL.
-	targetURL, err := c.makeTargetURL(metadata.bucketName, metadata.objectName, location, metadata.queryValues)
+	targetURL, err := c.makeTargetURL(metadata.bucketName, metadata.objectName, location, isVirtualHost, metadata.queryValues)
 	if err != nil {
 		return nil, err
 	}
@@ -737,7 +739,7 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		}
 		if signerType.IsV2() {
 			// Presign URL with signature v2.
-			req = s3signer.PreSignV2(*req, accessKeyID, secretAccessKey, metadata.expires)
+			req = s3signer.PreSignV2(*req, accessKeyID, secretAccessKey, metadata.expires, isVirtualHost)
 		} else if signerType.IsV4() {
 			// Presign URL with signature v4.
 			req = s3signer.PreSignV4(*req, accessKeyID, secretAccessKey, sessionToken, location, metadata.expires)
@@ -783,7 +785,7 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 	switch {
 	case signerType.IsV2():
 		// Add signature version '2' authorization header.
-		req = s3signer.SignV2(*req, accessKeyID, secretAccessKey)
+		req = s3signer.SignV2(*req, accessKeyID, secretAccessKey, isVirtualHost)
 	case metadata.objectName != "" && method == "PUT" && metadata.customHeader.Get("X-Amz-Copy-Source") == "" && !c.secure:
 		// Streaming signature is used by default for a PUT object request. Additionally we also
 		// look if the initialized client is secure, if yes then we don't need to perform
@@ -815,7 +817,7 @@ func (c Client) setUserAgent(req *http.Request) {
 }
 
 // makeTargetURL make a new target url.
-func (c Client) makeTargetURL(bucketName, objectName, bucketLocation string, queryValues url.Values) (*url.URL, error) {
+func (c Client) makeTargetURL(bucketName, objectName, bucketLocation string, isVirtualHostStyle bool, queryValues url.Values) (*url.URL, error) {
 	host := c.endpointURL.Host
 	// For Amazon S3 endpoint, try to fetch location based endpoint.
 	if s3utils.IsAmazonEndpoint(*c.endpointURL) {
@@ -854,8 +856,6 @@ func (c Client) makeTargetURL(bucketName, objectName, bucketLocation string, que
 	// Make URL only if bucketName is available, otherwise use the
 	// endpoint URL.
 	if bucketName != "" {
-		// Save if target url will have buckets which suppport virtual host.
-		isVirtualHostStyle := c.isVirtualHostStyleRequest(*c.endpointURL, bucketName)
 		// If endpoint supports virtual host style use that always.
 		// Currently only S3 and Google Cloud Storage would support
 		// virtual host style.
@@ -883,12 +883,17 @@ func (c Client) makeTargetURL(bucketName, objectName, bucketLocation string, que
 
 // returns true if virtual hosted style requests are to be used.
 func (c *Client) isVirtualHostStyleRequest(url url.URL, bucketName string) bool {
+	if bucketName == "" {
+		return false
+	}
+
 	if c.lookup == BucketLookupDNS {
 		return true
 	}
 	if c.lookup == BucketLookupPath {
 		return false
 	}
+
 	// default to virtual only for Amazon/Google  storage. In all other cases use
 	// path style requests
 	return s3utils.IsVirtualHostSupported(url, bucketName)
