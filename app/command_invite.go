@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -42,8 +41,6 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		return &model.CommandResponse{Text: args.T("api.command_invite.missing_message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	mlog.Debug(fmt.Sprint(message))
-
 	splitMessage := strings.SplitN(message, " ", 2)
 	targetUsername := splitMessage[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
@@ -77,18 +74,19 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		return &model.CommandResponse{Text: args.T("api.command_invite.directchannel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	// Check if user is already in the channel
-	_, err = a.GetChannelMember(channelToJoin.Id, userProfile.Id)
-	if err == nil {
-		return &model.CommandResponse{Text: args.T("api.command_invite.user_already_in_channel.app_error", map[string]interface{}{"User": userProfile.Username}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	}
-
+	// Check Permissions
 	if channelToJoin.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 		return &model.CommandResponse{Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{"User": userProfile.Username, "Channel": channelToJoin.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	if channelToJoin.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
 		return &model.CommandResponse{Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{"User": userProfile.Username, "Channel": channelToJoin.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	// Check if user is already in the channel
+	_, err = a.GetChannelMember(channelToJoin.Id, userProfile.Id)
+	if err == nil {
+		return &model.CommandResponse{Text: args.T("api.command_invite.user_already_in_channel.app_error", map[string]interface{}{"User": userProfile.Username}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.Session.UserId, ""); err != nil {
