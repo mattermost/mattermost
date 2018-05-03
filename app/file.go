@@ -499,9 +499,8 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, widt
 		return
 	}
 
-
 	if _, err := a.WriteFile(buf, thumbnailPath); err != nil {
-		l4g.Error(utils.T("api.file.handle_images_forget.upload_thumb.error"), thumbnailPath, err)
+		mlog.Error(fmt.Sprintf(utils.T("api.file.handle_images_forget.upload_thumb.error"), thumbnailPath, err))
 		return
 	}
 }
@@ -523,7 +522,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	}
 
 	if _, err := a.WriteFile(buf, previewPath); err != nil {
-		l4g.Error(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err)
+		mlog.Error(fmt.Sprintf(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err))
 		return
 	}
 }
