@@ -270,3 +270,22 @@ func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints .
 
 	return result
 }
+
+func (s *SqlSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	var schemes []*model.Scheme
+
+	scopeClause := ""
+	if len(scope) > 0 {
+		scopeClause = " AND Scope=:Scope "
+	}
+
+	if _, err := s.GetReplica().Select(&schemes, "SELECT * from Schemes WHERE DeleteAt = 0 "+scopeClause+" ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset, "Scope": scope}); err != nil {
+		result.Err = model.NewAppError("SqlSchemeStore.Get", "store.sql_scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	result.Data = schemes
+
+	return result
+}

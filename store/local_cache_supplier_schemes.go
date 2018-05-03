@@ -42,3 +42,7 @@ func (s *LocalCacheSupplier) SchemeDelete(ctx context.Context, schemeId string, 
 
 	return s.Next().SchemeDelete(ctx, schemeId, hints...)
 }
+
+func (s *LocalCacheSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().SchemeGetAllPage(ctx, scope, offset, limit, hints...)
+}

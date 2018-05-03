@@ -318,6 +318,14 @@ func (c *Client4) GetRolesRoute() string {
 	return fmt.Sprintf("/roles")
 }
 
+func (c *Client4) GetSchemesRoute() string {
+	return fmt.Sprintf("/schemes")
+}
+
+func (c *Client4) GetSchemeRoute(id string) string {
+	return c.GetSchemesRoute() + fmt.Sprintf("/%v", id)
+}
+
 func (c *Client4) GetAnalyticsRoute() string {
 	return fmt.Sprintf("/analytics")
 }
@@ -3417,6 +3425,78 @@ func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response) 
 	} else {
 		defer closeBody(r)
 		return RoleFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Schemes Section
+
+// CreateScheme creates a new Scheme.
+func (c *Client4) CreateScheme(scheme *Scheme) (*Scheme, *Response) {
+	if r, err := c.DoApiPost(c.GetSchemesRoute(), scheme.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemeFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetScheme gets a single scheme by ID.
+func (c *Client4) GetScheme(id string) (*Scheme, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemeRoute(id), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemeFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Get all schemes, sorted with the most recently created first, optionally filtered by scope.
+func (c *Client4) GetSchemes(scope string, page int, perPage int) ([]*Scheme, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemesRoute()+fmt.Sprintf("?scope=%v&page=%v&per_page=%v", scope, page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemesFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DeleteScheme deletes a single scheme by ID.
+func (c *Client4) DeleteScheme(id string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetSchemeRoute(id)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// PatchScheme partially updates a scheme in the system. Any missing fields are not updated.
+func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response) {
+	if r, err := c.DoApiPut(c.GetSchemeRoute(id)+"/patch", patch.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemeFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Get the teams using this scheme, sorted alphabetically by display name.
+func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/teams?page=%v&per_page=%v", page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Get the channels using this scheme, sorted alphabetically by display name.
+func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (ChannelList, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return *ChannelListFromJson(r.Body), BuildResponse(r)
 	}
 }
 

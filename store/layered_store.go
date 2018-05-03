@@ -292,3 +292,9 @@ func (s *LayeredSchemeStore) Delete(schemeId string) StoreChannel {
 		return supplier.SchemeDelete(s.TmpContext, schemeId)
 	})
 }
+
+func (s *LayeredSchemeStore) GetAllPage(scope string, offset int, limit int) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.SchemeGetAllPage(s.TmpContext, scope, offset, limit)
+	})
+}

@@ -29,6 +29,11 @@ type Scheme struct {
 	DefaultChannelUserRole  string `json:"default_channel_user_role"`
 }
 
+type SchemePatch struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+}
+
 type SchemeIDPatch struct {
 	SchemeID *string `json:"scheme_id"`
 }
@@ -42,6 +47,20 @@ func SchemeFromJson(data io.Reader) *Scheme {
 	var scheme *Scheme
 	json.NewDecoder(data).Decode(&scheme)
 	return scheme
+}
+
+func SchemesToJson(schemes []*Scheme) string {
+	b, _ := json.Marshal(schemes)
+	return string(b)
+}
+
+func SchemesFromJson(data io.Reader) []*Scheme {
+	var schemes []*Scheme
+	if err := json.NewDecoder(data).Decode(&schemes); err == nil {
+		return schemes
+	} else {
+		return nil
+	}
 }
 
 func (scheme *Scheme) IsValid() bool {
@@ -96,6 +115,26 @@ func (scheme *Scheme) IsValidForCreate() bool {
 	}
 
 	return true
+}
+
+func (scheme *Scheme) Patch(patch *SchemePatch) {
+	if patch.Name != nil {
+		scheme.Name = *patch.Name
+	}
+	if patch.Description != nil {
+		scheme.Description = *patch.Description
+	}
+}
+
+func (patch *SchemePatch) ToJson() string {
+	b, _ := json.Marshal(patch)
+	return string(b)
+}
+
+func SchemePatchFromJson(data io.Reader) *SchemePatch {
+	var patch *SchemePatch
+	json.NewDecoder(data).Decode(&patch)
+	return patch
 }
 
 func SchemeIDFromJson(data io.Reader) *string {

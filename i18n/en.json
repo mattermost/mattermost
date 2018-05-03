@@ -6655,6 +6655,14 @@
     "translation": "Unable to delete reaction"
   },
   {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "Unable to get the teams for scheme because the supplied scheme is not a team scheme."
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "Unable to get the channels for scheme because the supplied scheme is not a channel scheme."
+  },
+  {
     "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
     "translation": "Unable to delete reactions with the given emoji name"
   },
