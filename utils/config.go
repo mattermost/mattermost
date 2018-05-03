@@ -217,13 +217,17 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 
 	// Set zeroed defaults for all the config settings so that Viper knows what environment variables
 	// it needs to be looking for. The correct defaults will later be applied using Config.SetDefaults.
-	defaults := flattenStructToMap(structToMap(reflect.TypeOf(model.Config{})))
+	defaults := getDefaultsFromStruct(model.Config{})
 
 	for key, value := range defaults {
 		v.SetDefault(key, value)
 	}
 
 	return v
+}
+
+func getDefaultsFromStruct(s interface{}) map[string]interface{} {
+	return flattenStructToMap(structToMap(reflect.TypeOf(s)))
 }
 
 // Converts a struct type into a nested map with keys matching the struct's fields and values
@@ -251,7 +255,14 @@ func structToMap(t reflect.Type) (out map[string]interface{}) {
 		case reflect.Struct:
 			value = structToMap(field.Type)
 		case reflect.Ptr:
-			value = nil
+			indirectType := field.Type.Elem()
+
+			if indirectType.Kind() == reflect.Struct {
+				// Follow pointers to structs since we need to define defaults for their fields
+				value = structToMap(indirectType)
+			} else {
+				value = nil
+			}
 		default:
 			value = reflect.Zero(field.Type).Interface()
 		}
