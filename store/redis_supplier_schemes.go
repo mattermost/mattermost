@@ -23,3 +23,8 @@ func (s *RedisSupplier) SchemeDelete(ctx context.Context, schemeId string, hints
 	// TODO: Redis caching.
 	return s.Next().SchemeDelete(ctx, schemeId, hints...)
 }
+
+func (s *RedisSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().SchemeGetAllPage(ctx, scope, offset, limit, hints...)
+}

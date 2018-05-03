@@ -17,6 +17,7 @@ func TestSchemeStore(t *testing.T, ss store.Store) {
 
 	t.Run("Save", func(t *testing.T) { testSchemeStoreSave(t, ss) })
 	t.Run("Get", func(t *testing.T) { testSchemeStoreGet(t, ss) })
+	t.Run("GetAllPage", func(t *testing.T) { testSchemeStoreGetAllPage(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testSchemeStoreDelete(t, ss) })
 }
 
@@ -169,6 +170,66 @@ func testSchemeStoreGet(t *testing.T, ss store.Store) {
 	// Get an invalid scheme
 	res3 := <-ss.Scheme().Get(model.NewId())
 	assert.NotNil(t, res3.Err)
+}
+
+func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
+	// Save a scheme to test with.
+	schemes := []*model.Scheme{
+		{
+			Name:        model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		},
+		{
+			Name:        model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_CHANNEL,
+		},
+		{
+			Name:        model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		},
+		{
+			Name:        model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_CHANNEL,
+		},
+	}
+
+	for _, scheme := range schemes {
+		store.Must(ss.Scheme().Save(scheme))
+	}
+
+	r1 := <-ss.Scheme().GetAllPage("", 0, 2)
+	assert.Nil(t, r1.Err)
+	s1 := r1.Data.([]*model.Scheme)
+	assert.Len(t, s1, 2)
+
+	r2 := <-ss.Scheme().GetAllPage("", 2, 2)
+	assert.Nil(t, r2.Err)
+	s2 := r2.Data.([]*model.Scheme)
+	assert.Len(t, s2, 2)
+	assert.NotEqual(t, s1[0].Name, s2[0].Name)
+	assert.NotEqual(t, s1[0].Name, s2[1].Name)
+	assert.NotEqual(t, s1[1].Name, s2[0].Name)
+	assert.NotEqual(t, s1[1].Name, s2[1].Name)
+
+	r3 := <-ss.Scheme().GetAllPage("team", 0, 1000)
+	assert.Nil(t, r3.Err)
+	s3 := r3.Data.([]*model.Scheme)
+	assert.NotZero(t, len(s3))
+	for _, s := range s3 {
+		assert.Equal(t, "team", s.Scope)
+	}
+
+	r4 := <-ss.Scheme().GetAllPage("channel", 0, 1000)
+	assert.Nil(t, r4.Err)
+	s4 := r4.Data.([]*model.Scheme)
+	assert.NotZero(t, len(s4))
+	for _, s := range s4 {
+		assert.Equal(t, "channel", s.Scope)
+	}
 }
 
 func testSchemeStoreDelete(t *testing.T, ss store.Store) {
