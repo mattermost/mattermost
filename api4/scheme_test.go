@@ -142,25 +142,28 @@ func TestGetScheme(t *testing.T) {
 	assert.NotZero(t, len(s1.DefaultChannelAdminRole))
 	assert.NotZero(t, len(s1.DefaultChannelUserRole))
 
-	s2, r2 := th.Client.GetScheme(s1.Id)
+	s2, r2 := th.SystemAdminClient.GetScheme(s1.Id)
 	CheckNoError(t, r2)
 
 	assert.Equal(t, s1, s2)
 
-	_, r3 := th.Client.GetScheme(model.NewId())
+	_, r3 := th.SystemAdminClient.GetScheme(model.NewId())
 	CheckNotFoundStatus(t, r3)
 
-	_, r4 := th.Client.GetScheme("12345")
+	_, r4 := th.SystemAdminClient.GetScheme("12345")
 	CheckBadRequestStatus(t, r4)
 
-	th.Client.Logout()
-	_, r5 := th.Client.GetScheme(s1.Id)
+	th.SystemAdminClient.Logout()
+	_, r5 := th.SystemAdminClient.GetScheme(s1.Id)
 	CheckUnauthorizedStatus(t, r5)
 
-	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+	th.SystemAdminClient.Login(th.SystemAdminUser.Username, th.SystemAdminUser.Password)
 	th.App.SetLicense(nil)
-	_, r6 := th.Client.GetScheme(s1.Id)
+	_, r6 := th.SystemAdminClient.GetScheme(s1.Id)
 	CheckNoError(t, r6)
+
+	_, r7 := th.Client.GetScheme(s1.Id)
+	CheckForbiddenStatus(t, r7)
 }
 
 func TestGetSchemes(t *testing.T) {
