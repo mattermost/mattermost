@@ -2991,7 +2991,9 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return CommandResponseFromJson(r.Body), BuildResponse(r)
+
+		response, _ := CommandResponseFromJson(r.Body)
+		return response, BuildResponse(r)
 	}
 }
 
@@ -3007,7 +3009,9 @@ func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*Co
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return CommandResponseFromJson(r.Body), BuildResponse(r)
+
+		response, _ := CommandResponseFromJson(r.Body)
+		return response, BuildResponse(r)
 	}
 }
 

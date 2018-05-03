@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
@@ -207,7 +207,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 		teamCmds := result.Data.([]*model.Command)
 		for _, cmd := range teamCmds {
 			if trigger == cmd.Trigger {
-				l4g.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, args.UserId))
+				mlog.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, args.UserId))
 
 				p := url.Values{}
 				p.Set("token", cmd.Token)
@@ -246,8 +246,9 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 					return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
 				} else {
 					if resp.StatusCode == http.StatusOK {
-						response := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), resp.Body)
-						if response == nil {
+						if response, err := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), resp.Body); err != nil {
+							return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
+						} else if response == nil {
 							return nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusInternalServerError)
 						} else {
 							return a.HandleCommandResponse(cmd, args, response, false)
@@ -307,7 +308,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	response.Attachments = a.ProcessSlackAttachments(response.Attachments)
 
 	if _, err := a.CreateCommandPost(post, args.TeamId, response); err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 	}
 
 	return response, nil

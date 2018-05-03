@@ -6,8 +6,8 @@ package store
 import (
 	"context"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -42,7 +42,7 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 
 	// Setup the chain
 	if ENABLE_EXPERIMENTAL_REDIS {
-		l4g.Debug("Experimental redis enabled.")
+		mlog.Debug("Experimental redis enabled.")
 		store.RedisLayer = NewRedisSupplier()
 		store.RedisLayer.SetChainNext(store.DatabaseLayer)
 		store.LayerChainHead = store.RedisLayer
