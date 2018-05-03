@@ -361,6 +361,14 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 		return nil, err
 	}
 
+	if orientation, err := getImageOrientation(bytes.NewReader(data)); err == nil &&
+		(orientation == RotatedCWMirrored ||
+			orientation == RotatedCCW ||
+			orientation == RotatedCCWMirrored ||
+			orientation == RotatedCW) {
+		info.Width, info.Height = info.Height, info.Width
+	}
+
 	info.Id = model.NewId()
 	info.CreatorId = userId
 
