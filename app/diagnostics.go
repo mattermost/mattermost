@@ -138,7 +138,7 @@ func (a *App) trackActivity() {
 		activeUserCount = ucr.Data.(int64)
 	}
 
-	if iucr := <-a.Srv.Store.Status().GetTotalActiveUsersCount(); iucr.Err == nil {
+	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
 		inactiveUserCount = iucr.Data.(int64)
 	}
 
@@ -171,17 +171,17 @@ func (a *App) trackActivity() {
 	}
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
-		"registered_users":          userCount,
-		"active_users":              activeUserCount,
-		"registered_inactive_users": inactiveUserCount,
-		"teams":                     teamCount,
-		"public_channels":           publicChannelCount,
-		"private_channels":          privateChannelCount,
-		"direct_message_channels":   directChannelCount,
-		"public_channels_deleted":   deletedPublicChannelCount,
-		"private_channels_deleted":  deletedPrivateChannelCount,
-		"posts":                     postsCount,
-		"used_apiv3":                atomic.LoadInt32(model.UsedApiV3) == 1,
+		"registered_users":             userCount,
+		"active_users":                 activeUserCount,
+		"registered_deactivated_users": inactiveUserCount,
+		"teams":                    teamCount,
+		"public_channels":          publicChannelCount,
+		"private_channels":         privateChannelCount,
+		"direct_message_channels":  directChannelCount,
+		"public_channels_deleted":  deletedPublicChannelCount,
+		"private_channels_deleted": deletedPrivateChannelCount,
+		"posts":                    postsCount,
+		"used_apiv3":               atomic.LoadInt32(model.UsedApiV3) == 1,
 	})
 
 	atomic.StoreInt32(model.UsedApiV3, 0)
