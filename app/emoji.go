@@ -10,8 +10,11 @@ import (
 	"image/gif"
 	_ "image/jpeg"
 	"image/png"
+	"mime"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -51,6 +54,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "createEmoji"}, "", http.StatusBadRequest)
 		return nil, err
 	}
+
 	if err := a.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
 		return nil, err
 	}
@@ -85,14 +89,11 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 	if err != nil {
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
+	file.Seek(0, 0)
 	if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
-		info, err := model.GetInfoForBytes(imageData.Filename, file)
-		if err != nil {
-			return err
-		}
+		mimeType := mime.TypeByExtension(strings.ToLower(filepath.Ext(imageData.Filename)))
 		newbuf := bytes.NewBuffer(nil)
-		file.Seek(0, 0)
-		if info.MimeType == "image/gif" {
+		if mimeType == "image/gif" {
 			gif_data, err := gif.DecodeAll(file)
 			if err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest)
@@ -115,7 +116,6 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 		_, apperr := a.WriteFile(file, getEmojiImagePath(id))
 		return apperr
 	}
-	file.Seek(0, 0)
 	_, apperr := a.WriteFile(file, getEmojiImagePath(id))
 	return apperr
 }

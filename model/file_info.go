@@ -111,7 +111,7 @@ func (o *FileInfo) IsImage() bool {
 	return strings.HasPrefix(o.MimeType, "image")
 }
 
-func GetInfoForBytes(name string, file io.Reader) (*FileInfo, *AppError) {
+func GetInfoForBytes(name string, file io.ReadSeeker) (*FileInfo, *AppError) {
 	info := &FileInfo{
 		Name: name,
 	}
@@ -131,6 +131,7 @@ func GetInfoForBytes(name string, file io.Reader) (*FileInfo, *AppError) {
 		if config, _, err := image.DecodeConfig(file); err == nil {
 			info.Width = config.Width
 			info.Height = config.Height
+			file.Seek(0, 0)
 			if info.MimeType == "image/gif" {
 				// Just show the gif itself instead of a preview image for animated gifs
 				if gifConfig, err := gif.DecodeAll(file); err != nil {
@@ -140,11 +141,9 @@ func GetInfoForBytes(name string, file io.Reader) (*FileInfo, *AppError) {
 				} else {
 					info.HasPreviewImage = len(gifConfig.Image) == 1
 				}
-
 			} else {
 				info.HasPreviewImage = true
 			}
-
 		}
 	}
 	return info, err

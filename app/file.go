@@ -122,12 +122,11 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	} else {
 		var err *model.AppError
 		info, err = model.GetInfoForBytes(name, bytes.NewReader(data))
-		info.Size = int64(len(data))
 		if err != nil {
 			l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.info.app_error"), post.Id, filename, err)
 		}
+		info.Size = int64(len(data))
 	}
-
 	// Generate a new ID because with the old system, you could very rarely get multiple posts referencing the same file
 	info.Id = model.NewId()
 	info.CreatorId = post.UserId
@@ -347,7 +346,7 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 	return resStruct, nil
 }
 
-func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, file io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, file io.ReadSeeker) (*model.FileInfo, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamId := filepath.Base(rawTeamId)
 	channelId := filepath.Base(rawChannelId)
