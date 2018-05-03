@@ -10,6 +10,7 @@ webapp/yarn-error.log
 mattermost.mattermost-license
 config/mattermost.mattermost-license
 config/config.json
+/tmp
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
