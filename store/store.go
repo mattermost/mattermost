@@ -468,6 +468,11 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+	CreatePluginStatus(pluginStatus *model.PluginStatus) StoreChannel
+	GetPluginStatuses() StoreChannel
+	UpdatePluginStatusState(pluginStatus *model.PluginStatus) StoreChannel
+	DeletePluginStatus(pluginStatus *model.PluginStatus) StoreChannel
+	PrunePluginStatuses(excludeClusterDiscoveryId string) StoreChannel
 }
 
 type RoleStore interface {

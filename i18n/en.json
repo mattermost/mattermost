@@ -4799,6 +4799,10 @@
     "translation": "Unable to build multipart request"
   },
   {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "Invalid Id"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },

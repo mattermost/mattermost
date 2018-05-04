@@ -60,3 +60,78 @@ func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) store.StoreCha
 
 	return r0
 }
+
+func (_m *PluginStore) CreatePluginStatus(pluginStatus *model.PluginStatus) store.StoreChannel {
+	ret := _m.Called(pluginStatus)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(*model.PluginStatus) store.StoreChannel); ok {
+		r0 = rf(pluginStatus)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+func (_m *PluginStore) GetPluginStatuses() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+func (_m *PluginStore) UpdatePluginStatusState(pluginStatus *model.PluginStatus) store.StoreChannel {
+	ret := _m.Called(pluginStatus)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(*model.PluginStatus) store.StoreChannel); ok {
+		r0 = rf(pluginStatus)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+func (_m *PluginStore) DeletePluginStatus(pluginStatus *model.PluginStatus) store.StoreChannel {
+	ret := _m.Called(pluginStatus)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(*model.PluginStatus) store.StoreChannel); ok {
+		r0 = rf(pluginStatus)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+func (_m *PluginStore) PrunePluginStatuses(excludeClusterDiscoveryId string) store.StoreChannel {
+	ret := _m.Called(excludeClusterDiscoveryId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(excludeClusterDiscoveryId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
