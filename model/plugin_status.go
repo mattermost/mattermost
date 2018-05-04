@@ -10,9 +10,11 @@ import (
 
 const (
 	PluginStateNotRunning          = 0
-	PluginStateRunning             = 1
-	PluginStateFailedToStart       = 2
-	PluginStateFailedToStayRunning = 3
+	PluginStateStarting            = 1
+	PluginStateRunning             = 2
+	PluginStateFailedToStart       = 3
+	PluginStateFailedToStayRunning = 4
+	PluginStateStopping            = 5
 )
 
 // PluginStatus provides a cluster-aware view of installed plugins.

@@ -73,7 +73,33 @@ func (a *App) setPluginsActive(activate bool) {
 	}
 
 	for _, plugin := range plugins {
-		a.setPluginActive(plugin, activate)
+		if plugin.Manifest == nil {
+			continue
+		}
+
+		enabled := false
+		if state, ok := a.Config().PluginSettings.PluginStates[plugin.Manifest.Id]; ok {
+			enabled = state.Enable
+		}
+
+		result := <-a.Srv.Store.Plugin().CreatePluginStatus(&model.PluginStatus{
+			ClusterDiscoveryId: a.Cluster.GetClusterId(),
+			PluginId:           plugin.Manifest.Id,
+			PluginPath:         filepath.Dir(plugin.ManifestPath),
+			IsSandboxed:        a.IsPluginSandboxSupported,
+			Name:               plugin.Manifest.Name,
+			Description:        plugin.Manifest.Description,
+			Version:            plugin.Manifest.Version,
+		})
+		if result.Err != nil {
+			mlog.Error("failed to register plugin status", mlog.String("plugin_id", plugin.Manifest.Id), mlog.Err(result.Err))
+		}
+
+		if activate && enabled {
+			a.setPluginActive(plugin, activate)
+		} else if !activate {
+			a.setPluginActive(plugin, activate)
+		}
 	}
 }
 
@@ -98,28 +124,73 @@ func (a *App) setPluginActive(plugin *model.BundleInfo, activate bool) {
 
 	id := plugin.Manifest.Id
 
-	pluginState := &model.PluginState{Enable: false}
-	if state, ok := a.Config().PluginSettings.PluginStates[id]; ok {
-		pluginState = state
-	}
-
 	active := a.PluginEnv.IsPluginActive(id)
 
-	if activate && pluginState.Enable && !active {
-		if err := a.activatePlugin(plugin.Manifest); err != nil {
-			mlog.Error("Plugin failed to activate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
+	if activate {
+		if !active {
+			if err := a.activatePlugin(plugin.Manifest); err != nil {
+				mlog.Error("Plugin failed to activate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
+			}
 		}
 
-	} else if (!activate || !pluginState.Enable) && active {
-		if err := a.deactivatePlugin(plugin.Manifest); err != nil {
-			mlog.Error("Plugin failed to deactivate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
+	} else if !activate {
+		if active {
+			if err := a.deactivatePlugin(plugin.Manifest); err != nil {
+				mlog.Error("Plugin failed to deactivate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
+			}
+		} else {
+			if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+				ClusterDiscoveryId: a.Cluster.GetClusterId(),
+				PluginId:           plugin.Manifest.Id,
+				State:              model.PluginStateNotRunning,
+			}); result.Err != nil {
+				mlog.Error("Plugin status state failed to update", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", result.Err.DetailedError))
+			}
 		}
 	}
 }
 
 func (a *App) activatePlugin(manifest *model.Manifest) *model.AppError {
-	if err := a.PluginEnv.ActivatePlugin(manifest.Id, nil); err != nil {
+	mlog.Debug("Activating plugin", mlog.String("plugin_id", manifest.Id))
+
+	if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+		ClusterDiscoveryId: a.Cluster.GetClusterId(),
+		PluginId:           manifest.Id,
+		State:              model.PluginStateStarting,
+	}); result.Err != nil {
+		return model.NewAppError("activatePlugin", "app.plugin.set_plugin_status_state.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	}
+
+	onError := func(err error) {
+		mlog.Debug("Plugin failed to stay running", mlog.String("plugin_id", manifest.Id), mlog.Err(err))
+
+		if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+			ClusterDiscoveryId: a.Cluster.GetClusterId(),
+			PluginId:           manifest.Id,
+			State:              model.PluginStateFailedToStayRunning,
+		}); result.Err != nil {
+			mlog.Error("Failed to record plugin status", mlog.String("plugin_id", manifest.Id), mlog.Err(result.Err))
+		}
+	}
+
+	if err := a.PluginEnv.ActivatePlugin(manifest.Id, onError); err != nil {
+		if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+			ClusterDiscoveryId: a.Cluster.GetClusterId(),
+			PluginId:           manifest.Id,
+			State:              model.PluginStateFailedToStart,
+		}); result.Err != nil {
+			return model.NewAppError("activatePlugin", "app.plugin.activate.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+		}
+
 		return model.NewAppError("activatePlugin", "app.plugin.activate.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+		ClusterDiscoveryId: a.Cluster.GetClusterId(),
+		PluginId:           manifest.Id,
+		State:              model.PluginStateRunning,
+	}); result.Err != nil {
+		return model.NewAppError("activatePlugin", "app.plugin.activate.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
 	if manifest.HasClient() {
@@ -133,6 +204,16 @@ func (a *App) activatePlugin(manifest *model.Manifest) *model.AppError {
 }
 
 func (a *App) deactivatePlugin(manifest *model.Manifest) *model.AppError {
+	mlog.Debug("Deactivating plugin", mlog.String("plugin_id", manifest.Id))
+
+	if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+		ClusterDiscoveryId: a.Cluster.GetClusterId(),
+		PluginId:           manifest.Id,
+		State:              model.PluginStateStopping,
+	}); result.Err != nil {
+		return model.NewAppError("EnablePlugin", "app.plugin.deactivate.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	}
+
 	if err := a.PluginEnv.DeactivatePlugin(manifest.Id); err != nil {
 		return model.NewAppError("deactivatePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -143,6 +224,14 @@ func (a *App) deactivatePlugin(manifest *model.Manifest) *model.AppError {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
 		message.Add("manifest", manifest.ClientManifest())
 		a.Publish(message)
+	}
+
+	if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+		ClusterDiscoveryId: a.Cluster.GetClusterId(),
+		PluginId:           manifest.Id,
+		State:              model.PluginStateNotRunning,
+	}); result.Err != nil {
+		return model.NewAppError("deactivatePlugin", "app.plugin.deactivate.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
 	mlog.Info("Deactivated plugin", mlog.String("plugin_id", manifest.Id))
@@ -184,7 +273,8 @@ func (a *App) installPlugin(pluginFile io.Reader, allowPrepackaged bool) (*model
 		return nil, model.NewAppError("installPlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if _, ok := prepackagedPlugins[manifest.Id]; ok && !allowPrepackaged {
+	_, isPrepackaged := prepackagedPlugins[manifest.Id]
+	if isPrepackaged && !allowPrepackaged {
 		return nil, model.NewAppError("installPlugin", "app.plugin.prepackaged.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -203,9 +293,25 @@ func (a *App) installPlugin(pluginFile io.Reader, allowPrepackaged bool) (*model
 		}
 	}
 
-	err = utils.CopyDir(tmpPluginDir, filepath.Join(a.PluginEnv.SearchPath(), manifest.Id))
+	pluginPath := filepath.Join(a.PluginEnv.SearchPath(), manifest.Id)
+	err = utils.CopyDir(tmpPluginDir, pluginPath)
 	if err != nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	result := <-a.Srv.Store.Plugin().CreatePluginStatus(&model.PluginStatus{
+		ClusterDiscoveryId: a.Cluster.GetClusterId(),
+		PluginId:           manifest.Id,
+		PluginPath:         pluginPath,
+		State:              model.PluginStateNotRunning,
+		IsSandboxed:        a.IsPluginSandboxSupported,
+		IsPrepackaged:      isPrepackaged,
+		Name:               manifest.Name,
+		Description:        manifest.Description,
+		Version:            manifest.Version,
+	})
+	if result.Err != nil {
+		mlog.Error(result.Err.Error())
 	}
 
 	// Should add manifest validation and error handling here
@@ -264,12 +370,12 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // the administrator via the system console.
 func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	if !*a.Config().PluginSettings.Enable {
-		return nil, model.NewAppError("GetPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	result := <-a.Srv.Store.Plugin().GetPluginStatuses()
 	if result.Err != nil {
-		return nil, model.NewAppError("GetPlugins", "app.plugin.get_plugins.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.get_plugins.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
 	}
 
 	return model.PluginStatuses(result.Data.([]*model.PluginStatus)), nil
@@ -319,10 +425,18 @@ func (a *App) removePlugin(id string, allowPrepackaged bool) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if result := <-a.Srv.Store.Plugin().DeletePluginStatus(&model.PluginStatus{
+		ClusterDiscoveryId: a.Cluster.GetClusterId(),
+		PluginId:           manifest.Id,
+	}); result.Err != nil {
+		return model.NewAppError("removePlugin", "app.plugin.delete_plugin_status_state.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	}
+
 	return nil
 }
 
-// EnablePlugin will set the config for an installed plugin to enabled, triggering activation if inactive.
+// EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
+// activation if inactive.
 func (a *App) EnablePlugin(id string) *model.AppError {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
 		return model.NewAppError("EnablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -345,8 +459,12 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := a.activatePlugin(manifest); err != nil {
-		return err
+	if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+		ClusterDiscoveryId: a.Cluster.GetClusterId(),
+		PluginId:           manifest.Id,
+		State:              model.PluginStateStarting,
+	}); result.Err != nil {
+		return model.NewAppError("EnablePlugin", "app.plugin.set_plugin_status_state.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
@@ -386,6 +504,14 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
+		ClusterDiscoveryId: a.Cluster.GetClusterId(),
+		PluginId:           manifest.Id,
+		State:              model.PluginStateStopping,
+	}); result.Err != nil {
+		return model.NewAppError("EnablePlugin", "app.plugin.set_plugin_status_state.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	}
+
 	a.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
@@ -398,6 +524,10 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 }
 
 func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride pluginenv.SupervisorProviderFunc) {
+	if result := <-a.Srv.Store.Plugin().PrunePluginStatuses(a.Cluster.GetClusterId()); result.Err != nil {
+		mlog.Error("Failed to prune plugins", mlog.Err(result.Err))
+	}
+
 	if !*a.Config().PluginSettings.Enable {
 		return
 	}
