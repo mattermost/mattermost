@@ -153,14 +153,12 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
-
 	oldPublicChannel, err := c.App.GetChannel(c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
+		return
+	} else if !c.App.SessionHasPermissionToTeam(c.Session, oldPublicChannel.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
 		return
 	} else if oldPublicChannel.Type == model.CHANNEL_PRIVATE {
 		c.Err = model.NewAppError("convertChannelToPrivate", "api.channel.convert_channel_to_private.private_channel_error", nil, "", http.StatusBadRequest)
