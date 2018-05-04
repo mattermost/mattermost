@@ -108,7 +108,7 @@ func (env *Environment) IsPluginActive(pluginId string) bool {
 }
 
 // Activates the plugin with the given id.
-func (env *Environment) ActivatePlugin(id string) error {
+func (env *Environment) ActivatePlugin(id string, onError func(error)) error {
 	env.mutex.Lock()
 	defer env.mutex.Unlock()
 
@@ -155,6 +155,14 @@ func (env *Environment) ActivatePlugin(id string) error {
 		}
 		if err := supervisor.Start(api); err != nil {
 			return errors.Wrapf(err, "unable to start plugin: %v", id)
+		}
+		if onError != nil {
+			go func() {
+				err := supervisor.Wait()
+				if err != nil {
+					onError(err)
+				}
+			}()
 		}
 
 		activePlugin.Supervisor = supervisor

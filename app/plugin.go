@@ -100,7 +100,7 @@ func (a *App) setPluginsActive(activate bool) {
 }
 
 func (a *App) activatePlugin(manifest *model.Manifest) *model.AppError {
-	if err := a.PluginEnv.ActivatePlugin(manifest.Id); err != nil {
+	if err := a.PluginEnv.ActivatePlugin(manifest.Id, nil); err != nil {
 		return model.NewAppError("activatePlugin", "app.plugin.activate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 

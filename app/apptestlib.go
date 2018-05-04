@@ -336,6 +336,10 @@ func (s *mockPluginSupervisor) Start(api plugin.API) error {
 	return s.hooks.OnActivate(api)
 }
 
+func (s *mockPluginSupervisor) Wait() error {
+	return nil
+}
+
 func (s *mockPluginSupervisor) Stop() error {
 	return nil
 }

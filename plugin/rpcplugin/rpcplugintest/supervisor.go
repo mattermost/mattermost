@@ -174,6 +174,14 @@ func testSupervisor_PluginCrash(t *testing.T, sp SupervisorProviderFunc) {
 	bundle := model.BundleInfoForPath(dir)
 	supervisor, err := sp(bundle)
 	require.NoError(t, err)
+
+	var supervisorWaitErr error
+	supervisorWaitDone := make(chan bool, 1)
+	go func() {
+		supervisorWaitErr = supervisor.Wait()
+		close(supervisorWaitDone)
+	}()
+
 	require.NoError(t, supervisor.Start(&api))
 
 	failed := false
@@ -189,7 +197,21 @@ func testSupervisor_PluginCrash(t *testing.T, sp SupervisorProviderFunc) {
 		time.Sleep(time.Millisecond * 100)
 	}
 	assert.True(t, recovered)
+
+	select {
+	case <-supervisorWaitDone:
+		require.Fail(t, "supervisor.Wait() unexpectedly returned")
+	case <-time.After(500 * time.Millisecond):
+	}
+
 	require.NoError(t, supervisor.Stop())
+
+	select {
+	case <-supervisorWaitDone:
+		require.Nil(t, supervisorWaitErr)
+	case <-time.After(500 * time.Millisecond):
+		require.Fail(t, "supervisor.Wait() failed to return")
+	}
 }
 
 // Crashed plugins should be relaunched at most three times.
@@ -239,6 +261,14 @@ func testSupervisor_PluginRepeatedlyCrash(t *testing.T, sp SupervisorProviderFun
 	bundle := model.BundleInfoForPath(dir)
 	supervisor, err := sp(bundle)
 	require.NoError(t, err)
+
+	var supervisorWaitErr error
+	supervisorWaitDone := make(chan bool, 1)
+	go func() {
+		supervisorWaitErr = supervisor.Wait()
+		close(supervisorWaitDone)
+	}()
+
 	require.NoError(t, supervisor.Start(&api))
 
 	for attempt := 1; attempt <= 4; attempt++ {
@@ -264,10 +294,19 @@ func testSupervisor_PluginRepeatedlyCrash(t *testing.T, sp SupervisorProviderFun
 		}
 
 		if attempt < 4 {
+			require.Nil(t, supervisorWaitErr)
 			require.True(t, recovered, "failed to recover after attempt %d", attempt)
 		} else {
 			require.False(t, recovered, "unexpectedly recovered after attempt %d", attempt)
 		}
 	}
+
+	select {
+	case <-supervisorWaitDone:
+		require.NotNil(t, supervisorWaitErr)
+	case <-time.After(500 * time.Millisecond):
+		require.Fail(t, "supervisor.Wait() failed to return after plugin crashed")
+	}
+
 	require.NoError(t, supervisor.Stop())
 }
