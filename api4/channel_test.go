@@ -915,10 +915,13 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginTeamAdmin()
-	_, resp = Client.ConvertChannelToPrivate(publicChannel.Id)
-	CheckForbiddenStatus(t, resp)
+	rchannel, resp := Client.ConvertChannelToPrivate(publicChannel.Id)
+	CheckOKStatus(t, resp)
+	if rchannel.Type != model.CHANNEL_PRIVATE {
+		t.Fatal("channel should be converted from public to private")
+	}
 
-	rchannel, resp := th.SystemAdminClient.ConvertChannelToPrivate(privateChannel.Id)
+	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(privateChannel.Id)
 	CheckBadRequestStatus(t, resp)
 	if rchannel != nil {
 		t.Fatal("should not return a channel")
@@ -930,7 +933,8 @@ func TestConvertChannelToPrivate(t *testing.T) {
 		t.Fatal("should not return a channel")
 	}
 
-	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(publicChannel.Id)
+	publicChannel2 := th.CreatePublicChannel()
+	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(publicChannel2.Id)
 	CheckOKStatus(t, resp)
 	if rchannel.Type != model.CHANNEL_PRIVATE {
 		t.Fatal("channel should be converted from public to private")
