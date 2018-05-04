@@ -220,3 +220,28 @@ func TestPluginBadActivation(t *testing.T) {
 		assert.True(t, strings.Contains(err.DetailedError, "won't activate for some reason"))
 	})
 }
+
+func TestGetPluginStatusesDisabled(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = false
+	})
+
+	_, err := th.App.GetPluginStatuses()
+	require.EqualError(t, err, "GetPlugins: Plugins have been disabled. Please check your logs for details., ")
+}
+
+func TestGetPluginStatuses(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+	})
+
+	pluginStatuses, err := th.App.GetPluginStatuses()
+	require.Nil(t, err)
+	require.NotNil(t, pluginStatuses)
+}

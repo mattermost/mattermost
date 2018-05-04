@@ -28,15 +28,15 @@ type PluginStatus struct {
 	Version            string `json:"version"`
 }
 
-type PluginStatuses []PluginStatus
+type PluginStatuses []*PluginStatus
 
 func (m *PluginStatuses) ToJson() string {
 	b, _ := json.Marshal(m)
 	return string(b)
 }
 
-func PluginStatusesFromJson(data io.Reader) *PluginStatuses {
-	var m *PluginStatuses
+func PluginStatusesFromJson(data io.Reader) PluginStatuses {
+	var m PluginStatuses
 	json.NewDecoder(data).Decode(&m)
 	return m
 }

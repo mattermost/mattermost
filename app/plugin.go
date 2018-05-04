@@ -213,6 +213,8 @@ func (a *App) installPlugin(pluginFile io.Reader, allowPrepackaged bool) (*model
 	return manifest, nil
 }
 
+// GetPlugins returned the plugins installed on this server, including the manifests needed to
+// enable plugins with web functionality.
 func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
 		return nil, model.NewAppError("GetPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -256,6 +258,21 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 	}
 
 	return manifests, nil
+}
+
+// GetPluginStatuses returned the plugins installed on any server in the cluster, for reporting to
+// the administrator via the system console.
+func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	if !*a.Config().PluginSettings.Enable {
+		return nil, model.NewAppError("GetPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	result := <-a.Srv.Store.Plugin().GetPluginStatuses()
+	if result.Err != nil {
+		return nil, model.NewAppError("GetPlugins", "app.plugin.get_plugins.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	}
+
+	return model.PluginStatuses(result.Data.([]*model.PluginStatus)), nil
 }
 
 func (a *App) RemovePlugin(id string) *model.AppError {
