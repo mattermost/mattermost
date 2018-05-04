@@ -147,7 +147,7 @@ func (l *Logger) Critical(message string, fields ...Field) {
 // after which the log level returns to its original value.
 func (l *Logger) DoWithLogLevel(level string, f func()) {
 	origLevel := l.consoleLevel.Level()
-	globalLogger.consoleLevel.SetLevel(getZapLevel(level))
+	l.consoleLevel.SetLevel(getZapLevel(level))
 	defer globalLogger.consoleLevel.SetLevel(origLevel)
 	f()
 }

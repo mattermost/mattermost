@@ -165,7 +165,7 @@ func (me *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TEAM_OPEN,
 	}
 
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		var err *model.AppError
 		if team, err = me.App.CreateTeam(team); err != nil {
 			mlog.Error(err.Error())
@@ -188,7 +188,7 @@ func (me *TestHelper) CreateUser() *model.User {
 		EmailVerified: true,
 	}
 
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		var err *model.AppError
 		if user, err = me.App.CreateUser(user); err != nil {
 			mlog.Error(err.Error())
@@ -215,7 +215,7 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 		CreatorId:   me.BasicUser.Id,
 	}
 
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		var err *model.AppError
 		if channel, err = me.App.CreateChannel(channel, true); err != nil {
 			mlog.Error(err.Error())
@@ -230,7 +230,7 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
 			mlog.Error(err.Error())
 
@@ -251,7 +251,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		var err *model.AppError
 		if post, err = me.App.CreatePost(post, channel, false); err != nil {
 			mlog.Error(err.Error())
@@ -264,7 +264,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 }
 
 func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		err := me.App.JoinUserToTeam(team, user, "")
 		if err != nil {
@@ -280,7 +280,7 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	var member *model.ChannelMember
 	var err *model.AppError
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		member, err = me.App.AddUserToChannel(user, channel)
 		if err != nil {

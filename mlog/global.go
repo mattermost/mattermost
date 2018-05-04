@@ -17,7 +17,6 @@ func InitGlobalLogger(logger *Logger) {
 	Warn = globalLogger.Warn
 	Error = globalLogger.Error
 	Critical = globalLogger.Critical
-	DoWithLogLevel = globalLogger.DoWithLogLevel
 }
 
 func RedirectStdLog(logger *Logger) {
@@ -31,4 +30,3 @@ var Info LogFunc
 var Warn LogFunc
 var Error LogFunc
 var Critical LogFunc
-var DoWithLogLevel func(string, func())

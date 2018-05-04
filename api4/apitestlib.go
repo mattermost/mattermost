@@ -146,7 +146,7 @@ func Setup() *TestHelper {
 }
 
 func (me *TestHelper) TearDown() {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		var wg sync.WaitGroup
 		wg.Add(3)
@@ -286,7 +286,7 @@ func (me *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 	}
 
 	var rteam *model.Team
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		rteam, _ = client.CreateTeam(team)
 	})
 	return rteam
@@ -306,7 +306,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 
 	var ruser *model.User
 	var response *model.Response
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		ruser, response = client.CreateUser(user)
 		if response.Error != nil {
 			panic(response.Error)
@@ -341,7 +341,7 @@ func (me *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 	}
 
 	var rchannel *model.Channel
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		rchannel, _ = client.CreateChannel(channel)
 	})
 	return rchannel
@@ -369,7 +369,7 @@ func (me *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 
 	var rpost *model.Post
 	var resp *model.Response
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		rpost, resp = client.CreatePost(post)
 		if resp.Error != nil {
 			panic(resp.Error)
@@ -389,7 +389,7 @@ func (me *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 
 	var rpost *model.Post
 	var resp *model.Response
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		rpost, resp = client.CreatePost(post)
 		if resp.Error != nil {
 			panic(resp.Error)
@@ -406,7 +406,7 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 
 	var rpost *model.Post
 	var resp *model.Response
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		rpost, resp = client.CreatePost(post)
 		if resp.Error != nil {
 			panic(resp.Error)
@@ -432,31 +432,31 @@ func (me *TestHelper) LoginSystemAdmin() {
 }
 
 func (me *TestHelper) LoginBasicWithClient(client *model.Client4) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		client.Login(me.BasicUser.Email, me.BasicUser.Password)
 	})
 }
 
 func (me *TestHelper) LoginBasic2WithClient(client *model.Client4) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		client.Login(me.BasicUser2.Email, me.BasicUser2.Password)
 	})
 }
 
 func (me *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		client.Login(me.TeamAdminUser.Email, me.TeamAdminUser.Password)
 	})
 }
 
 func (me *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		client.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password)
 	})
 }
 
 func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		_, err := me.App.UpdateActive(user, active)
 		if err != nil {
@@ -470,7 +470,7 @@ func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 }
 
 func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		err := me.App.JoinUserToTeam(team, user, "")
 		if err != nil {
@@ -486,7 +486,7 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	var member *model.ChannelMember
 	var err *model.AppError
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		member, err = me.App.AddUserToChannel(user, channel)
 		if err != nil {
@@ -773,7 +773,7 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
 			cm := cmr.Data.(*model.ChannelMember)
@@ -789,7 +789,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 }
 
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID}
 		if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
@@ -802,7 +802,7 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 }
 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID}
 		if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
@@ -817,7 +817,7 @@ func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Tea
 func (me *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 	results := make(map[string][]string)
 
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		for _, roleName := range []string{
 			"system_user",
 			"system_admin",
@@ -839,7 +839,7 @@ func (me *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 }
 
 func (me *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		for roleName, permissions := range data {
 			role, err1 := me.App.GetRoleByName(roleName)
@@ -863,7 +863,7 @@ func (me *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 }
 
 func (me *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		role, err1 := me.App.GetRoleByName(roleName)
 		if err1 != nil {
@@ -892,7 +892,7 @@ func (me *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	mlog.DoWithLogLevel(mlog.LevelError, func() {
+	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 
 		role, err1 := me.App.GetRoleByName(roleName)
 		if err1 != nil {
