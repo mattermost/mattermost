@@ -411,14 +411,13 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 4.10.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_4_9_0, VERSION_4_10_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_9_0, VERSION_4_10_0) {
 
-	sqlStore.RemoveIndexIfExists("Name_2", "Channels")
-	sqlStore.RemoveIndexIfExists("Name_2", "Emoji")
-	sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
+		sqlStore.RemoveIndexIfExists("Name_2", "Channels")
+		sqlStore.RemoveIndexIfExists("Name_2", "Emoji")
+		sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
-	//	saveSchemaVersion(sqlStore, VERSION_4_10_0)
-	sqlStore.GetMaster().Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
-	//}
+		saveSchemaVersion(sqlStore, VERSION_4_10_0)
+		sqlStore.GetMaster().Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
+	}
 }
