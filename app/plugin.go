@@ -73,28 +73,46 @@ func (a *App) setPluginsActive(activate bool) {
 	}
 
 	for _, plugin := range plugins {
-		if plugin.Manifest == nil {
-			continue
+		a.setPluginActive(plugin, activate)
+	}
+}
+
+func (a *App) setPluginActiveById(id string, activate bool) {
+	plugins, err := a.PluginEnv.Plugins()
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Cannot setPluginActiveById(%t)", activate), mlog.String("plugin_id", id), mlog.Err(err))
+		return
+	}
+
+	for _, plugin := range plugins {
+		if plugin.Manifest != nil && plugin.Manifest.Id == id {
+			a.setPluginActive(plugin, activate)
+		}
+	}
+}
+
+func (a *App) setPluginActive(plugin *model.BundleInfo, activate bool) {
+	if plugin.Manifest == nil {
+		return
+	}
+
+	id := plugin.Manifest.Id
+
+	pluginState := &model.PluginState{Enable: false}
+	if state, ok := a.Config().PluginSettings.PluginStates[id]; ok {
+		pluginState = state
+	}
+
+	active := a.PluginEnv.IsPluginActive(id)
+
+	if activate && pluginState.Enable && !active {
+		if err := a.activatePlugin(plugin.Manifest); err != nil {
+			mlog.Error("Plugin failed to activate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
 		}
 
-		id := plugin.Manifest.Id
-
-		pluginState := &model.PluginState{Enable: false}
-		if state, ok := a.Config().PluginSettings.PluginStates[id]; ok {
-			pluginState = state
-		}
-
-		active := a.PluginEnv.IsPluginActive(id)
-
-		if activate && pluginState.Enable && !active {
-			if err := a.activatePlugin(plugin.Manifest); err != nil {
-				mlog.Error("Plugin failed to activate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
-			}
-
-		} else if (!activate || !pluginState.Enable) && active {
-			if err := a.deactivatePlugin(plugin.Manifest); err != nil {
-				mlog.Error("Plugin failed to deactivate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
-			}
+	} else if (!activate || !pluginState.Enable) && active {
+		if err := a.deactivatePlugin(plugin.Manifest); err != nil {
+			mlog.Error("Plugin failed to deactivate", mlog.String("plugin_id", plugin.Manifest.Id), mlog.String("err", err.DetailedError))
 		}
 	}
 }
@@ -431,12 +449,34 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 	}
 
 	a.RemoveConfigListener(a.PluginConfigListenerId)
-	a.PluginConfigListenerId = a.AddConfigListener(func(_, cfg *model.Config) {
+	a.PluginConfigListenerId = a.AddConfigListener(func(oldCfg *model.Config, cfg *model.Config) {
 		if a.PluginEnv == nil {
 			return
 		}
 
-		a.setPluginsActive(*cfg.PluginSettings.Enable)
+		if *oldCfg.PluginSettings.Enable != *cfg.PluginSettings.Enable {
+			a.setPluginsActive(*cfg.PluginSettings.Enable)
+		} else {
+			plugins := map[string]bool{}
+			for id := range oldCfg.PluginSettings.PluginStates {
+				plugins[id] = true
+			}
+			for id := range cfg.PluginSettings.PluginStates {
+				plugins[id] = true
+			}
+
+			for id := range plugins {
+				oldPluginState := oldCfg.PluginSettings.PluginStates[id]
+				pluginState := cfg.PluginSettings.PluginStates[id]
+
+				wasEnabled := oldPluginState != nil && oldPluginState.Enable
+				isEnabled := pluginState != nil && pluginState.Enable
+
+				if wasEnabled != isEnabled {
+					a.setPluginActiveById(id, isEnabled)
+				}
+			}
+		}
 
 		for _, err := range a.PluginEnv.Hooks().OnConfigurationChange() {
 			mlog.Error(err.Error())
