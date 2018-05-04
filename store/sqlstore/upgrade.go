@@ -419,5 +419,6 @@ func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 	sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
 	//	saveSchemaVersion(sqlStore, VERSION_4_10_0)
+	sqlStore.GetMaster().Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
 	//}
 }
