@@ -117,7 +117,7 @@ func (env *Environment) ActivatePlugin(id string) error {
 	}
 
 	if _, ok := env.activePlugins[id]; ok {
-		return nil
+		return fmt.Errorf("plugin already active: %v", id)
 	}
 	plugins, err := ScanSearchPath(env.searchPath)
 	if err != nil {

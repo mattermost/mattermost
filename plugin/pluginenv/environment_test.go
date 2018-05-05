@@ -149,7 +149,7 @@ func TestEnvironment(t *testing.T) {
 	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
 	activePlugins = env.ActivePlugins()
 	assert.Len(t, activePlugins, 1)
-	assert.NoError(t, env.ActivatePlugin("foo"))
+	assert.Error(t, env.ActivatePlugin("foo"))
 	assert.True(t, env.IsPluginActive("foo"))
 
 	hooks.On("OnDeactivate").Return(nil)
