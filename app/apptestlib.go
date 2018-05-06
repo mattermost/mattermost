@@ -357,17 +357,6 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 		me.tempWorkspace = dir
 	}
 
-	pluginDir := filepath.Join(me.tempWorkspace, "plugins")
-	webappDir := filepath.Join(me.tempWorkspace, "webapp")
-	me.App.InitPlugins(pluginDir, webappDir, func(bundle *model.BundleInfo) (plugin.Supervisor, error) {
-		if hooks, ok := me.pluginHooks[bundle.Manifest.Id]; ok {
-			return &mockPluginSupervisor{hooks}, nil
-		}
-		return pluginenv.DefaultSupervisorProvider(bundle)
-	})
-
-	me.pluginHooks[manifest.Id] = hooks
-
 	manifestCopy := *manifest
 	if manifestCopy.Backend == nil {
 		manifestCopy.Backend = &model.ManifestBackend{}
@@ -377,6 +366,9 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 		panic(err)
 	}
 
+	pluginDir := filepath.Join(me.tempWorkspace, "plugins")
+	webappDir := filepath.Join(me.tempWorkspace, "webapp")
+
 	if err := os.MkdirAll(filepath.Join(pluginDir, manifest.Id), 0700); err != nil {
 		panic(err)
 	}
@@ -384,6 +376,15 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 	if err := ioutil.WriteFile(filepath.Join(pluginDir, manifest.Id, "plugin.json"), manifestBytes, 0600); err != nil {
 		panic(err)
 	}
+
+	me.App.InitPlugins(pluginDir, webappDir, func(bundle *model.BundleInfo) (plugin.Supervisor, error) {
+		if hooks, ok := me.pluginHooks[bundle.Manifest.Id]; ok {
+			return &mockPluginSupervisor{hooks}, nil
+		}
+		return pluginenv.DefaultSupervisorProvider(bundle)
+	})
+
+	me.pluginHooks[manifest.Id] = hooks
 }
 
 func (me *TestHelper) ResetRoleMigration() {
