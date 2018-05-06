@@ -526,15 +526,15 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 }
 
 func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride pluginenv.SupervisorProviderFunc) {
+	if a.PluginEnv != nil {
+		return
+	}
+
 	if result := <-a.Srv.Store.Plugin().PrunePluginStatuses(a.GetClusterId()); result.Err != nil {
 		mlog.Error("Failed to prune plugins", mlog.Err(result.Err))
 	}
 
 	if !*a.Config().PluginSettings.Enable {
-		return
-	}
-
-	if a.PluginEnv != nil {
 		return
 	}
 
