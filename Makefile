@@ -43,7 +43,7 @@ else
 endif
 
 # Golang Flags
-GOPATH ?= $(GOPATH:):./vendor
+GOPATH ?= $(shell go env GOPATH)
 GOFLAGS ?= $(GOFLAGS:)
 GO=go
 GO_LINKER_FLAGS ?= -ldflags \
@@ -198,9 +198,9 @@ stop-docker: ## Stops the docker containers for local development.
 	fi
 
 		@if [ $(shell docker ps -a | grep -ci mattermost-minio) -eq 1 ]; then \
-    		echo stopping mattermost-minio; \
-    		docker stop mattermost-minio > /dev/null; \
-    	fi
+		echo stopping mattermost-minio; \
+		docker stop mattermost-minio > /dev/null; \
+	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 1 ]; then \
 		echo stopping mattermost-elasticsearch; \
@@ -273,7 +273,7 @@ gofmt: ## Runs gofmt against all packages.
 
 store-mocks: ## Creates mock files.
 	go get github.com/vektra/mockery/...
-	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 update-jira-plugin: ## Updates Jira plugin.
 	go get github.com/mattermost/go-bindata/...
