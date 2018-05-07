@@ -3847,16 +3847,16 @@
     "translation": "Unable to get active plugins"
   },
   {
-    "id": "app.plugin.invalid_id.app_error",
-    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",
