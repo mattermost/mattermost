@@ -583,6 +583,22 @@ func (_m *ChannelStore) IsUserInChannelUseCache(userId string, channelId string)
 	return r0
 }
 
+// MigrateChannelMembers provides a mock function with given fields: fromChannelId, fromUserId
+func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) store.StoreChannel {
+	ret := _m.Called(fromChannelId, fromUserId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(fromChannelId, fromUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // PermanentDelete provides a mock function with given fields: channelId
 func (_m *ChannelStore) PermanentDelete(channelId string) store.StoreChannel {
 	ret := _m.Called(channelId)

@@ -301,6 +301,22 @@ func (_m *TeamStore) GetTotalMemberCount(teamId string) store.StoreChannel {
 	return r0
 }
 
+// MigrateTeamMembers provides a mock function with given fields: fromTeamId, fromUserId
+func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) store.StoreChannel {
+	ret := _m.Called(fromTeamId, fromUserId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(fromTeamId, fromUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // PermanentDelete provides a mock function with given fields: teamId
 func (_m *TeamStore) PermanentDelete(teamId string) store.StoreChannel {
 	ret := _m.Called(teamId)

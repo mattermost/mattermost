@@ -157,6 +157,20 @@ func (_m *SqlStore) CreateColumnIfNotExistsNoDefault(tableName string, columnNam
 	return r0
 }
 
+// CreateColumnIfNotExistsNoDefault provides a mock function with given fields: tableName, columnName, mySqlColType, postgresColType
+func (_m *SqlStore) CreateColumnIfNotExistsNoDefault(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
+	ret := _m.Called(tableName, columnName, mySqlColType, postgresColType)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, string, string) bool); ok {
+		r0 = rf(tableName, columnName, mySqlColType, postgresColType)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // CreateCompositeIndexIfNotExists provides a mock function with given fields: indexName, tableName, columnNames
 func (_m *SqlStore) CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
 	ret := _m.Called(indexName, tableName, columnNames)
