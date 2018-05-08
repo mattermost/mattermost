@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	MaxEmojiFileSize = 1000 * 1024 // 1 MB
+	MaxEmojiFileSize = 1024 * 1024 // 1 MiB
 	MaxEmojiWidth    = 128
 	MaxEmojiHeight   = 128
 )

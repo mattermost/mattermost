@@ -699,7 +699,7 @@ func (s *FileSettings) SetDefaults() {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(52428800) // 50 MB
+		s.MaxFileSize = NewInt64(52428800) // 50 MiB
 	}
 
 	if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {

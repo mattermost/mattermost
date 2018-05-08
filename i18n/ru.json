@@ -1262,7 +1262,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Невозможно создать эмодзи. Изображение должно быть не более 1 MB."
+    "translation": "Невозможно создать эмодзи. Изображение должно быть не более 1 MiB."
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
