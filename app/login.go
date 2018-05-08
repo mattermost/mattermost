@@ -6,7 +6,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/avct/uasurfer"
@@ -73,26 +72,10 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	ua := uasurfer.Parse(r.UserAgent())
 
-	plat := ua.OS.Platform.String()
-	if plat == "" {
-		plat = "unknown"
-	}
-
-	os := ua.OS.Name.String()
-	if os == "" {
-		os = "unknown"
-	}
-
-	bname := ua.Browser.Name.String()
-	if bname == "" {
-		bname = "unknown"
-	}
-
-	if strings.Contains(r.UserAgent(), "Mattermost") {
-		bname = "Desktop App"
-	}
-
-	bversion := ua.Browser.Version
+	plat := getPlatformName(ua)
+	os := getOSName(ua)
+	bname := getBrowserName(ua, r.UserAgent())
+	bversion := getBrowserVersion(ua, r.UserAgent())
 
 	session.AddProp(model.SESSION_PROP_PLATFORM, plat)
 	session.AddProp(model.SESSION_PROP_OS, os)
