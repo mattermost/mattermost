@@ -8,7 +8,9 @@ This document includes a list of open source components used in Mattermost Serve
 
 ---
 
-This product contains a modified portion of 'jquery-dragster', a drag and drop listener
+## jquery-dragster
+
+This product contains a modified portion of 'jquery-dragster', a drag and drop listener, built
 by Jan Martin.
 
 * HOMEPAGE:
@@ -40,8 +42,10 @@ SOFTWARE.
 
 ---
 
+## golang-lru
+
 This product contains a modified portion of 'golang-lru', a golang LRU cache by hashicorp,
-based on Groupcache by Google Inc.
+based on Groupcache by Google Inc, built by HashiCorp.
 
 * HOMEPAGE:
   * https://github.com/hashicorp/golang-lru
@@ -54,192 +58,12 @@ http://mozilla.org/MPL/2.0/.
 
 ---
 
-This product contains a modified portion of 'golang-freetype', a port of the Freetype
-font rasterizer (www.freetype.org) to the Go programming.
-
-Portions of this software are copyright © 2010 The FreeType Project (www.freetype.org).
-All rights reserved.
-
-* HOMEPAGE:
-  * http://www.freetype.org
-
-* LICENSE:
-
-                    The FreeType Project LICENSE
-                    ----------------------------
-
-                            2006-Jan-27
-
-                    Copyright 1996-2002, 2006 by
-          David Turner, Robert Wilhelm, and Werner Lemberg
-
-
-
-Introduction
-============
-
-  The FreeType  Project is distributed in  several archive packages;
-  some of them may contain, in addition to the FreeType font engine,
-  various tools and  contributions which rely on, or  relate to, the
-  FreeType Project.
-
-  This  license applies  to all  files found  in such  packages, and
-  which do not  fall under their own explicit  license.  The license
-  affects  thus  the  FreeType   font  engine,  the  test  programs,
-  documentation and makefiles, at the very least.
-
-  This  license   was  inspired  by  the  BSD,   Artistic,  and  IJG
-  (Independent JPEG  Group) licenses, which  all encourage inclusion
-  and  use of  free  software in  commercial  and freeware  products
-  alike.  As a consequence, its main points are that:
-
-    o We don't promise that this software works. However, we will be
-      interested in any kind of bug reports. (`as is' distribution)
-
-    o You can  use this software for whatever you  want, in parts or
-      full form, without having to pay us. (`royalty-free' usage)
-
-    o You may not pretend that  you wrote this software.  If you use
-      it, or  only parts of it,  in a program,  you must acknowledge
-      somewhere  in  your  documentation  that  you  have  used  the
-      FreeType code. (`credits')
-
-  We  specifically  permit  and  encourage  the  inclusion  of  this
-  software, with  or without modifications,  in commercial products.
-  We  disclaim  all warranties  covering  The  FreeType Project  and
-  assume no liability related to The FreeType Project.
-
-
-  Finally,  many  people  asked  us  for  a  preferred  form  for  a
-  credit/disclaimer to use in compliance with this license.  We thus
-  encourage you to use the following text:
-
-   """
-    Portions of this software are copyright � <year> The FreeType
-    Project (www.freetype.org).  All rights reserved.
-   """
-
-  Please replace <year> with the value from the FreeType version you
-  actually use.
-
-
-Legal Terms
-===========
-
-0. Definitions
---------------
-
-  Throughout this license,  the terms `package', `FreeType Project',
-  and  `FreeType  archive' refer  to  the  set  of files  originally
-  distributed  by the  authors  (David Turner,  Robert Wilhelm,  and
-  Werner Lemberg) as the `FreeType Project', be they named as alpha,
-  beta or final release.
-
-  `You' refers to  the licensee, or person using  the project, where
-  `using' is a generic term including compiling the project's source
-  code as  well as linking it  to form a  `program' or `executable'.
-  This  program is  referred to  as  `a program  using the  FreeType
-  engine'.
-
-  This  license applies  to all  files distributed  in  the original
-  FreeType  Project,   including  all  source   code,  binaries  and
-  documentation,  unless  otherwise  stated   in  the  file  in  its
-  original, unmodified form as  distributed in the original archive.
-  If you are  unsure whether or not a particular  file is covered by
-  this license, you must contact us to verify this.
-
-  The FreeType  Project is copyright (C) 1996-2000  by David Turner,
-  Robert Wilhelm, and Werner Lemberg.  All rights reserved except as
-  specified below.
-
-1. No Warranty
---------------
-
-  THE FREETYPE PROJECT  IS PROVIDED `AS IS' WITHOUT  WARRANTY OF ANY
-  KIND, EITHER  EXPRESS OR IMPLIED,  INCLUDING, BUT NOT  LIMITED TO,
-  WARRANTIES  OF  MERCHANTABILITY   AND  FITNESS  FOR  A  PARTICULAR
-  PURPOSE.  IN NO EVENT WILL ANY OF THE AUTHORS OR COPYRIGHT HOLDERS
-  BE LIABLE  FOR ANY DAMAGES CAUSED  BY THE USE OR  THE INABILITY TO
-  USE, OF THE FREETYPE PROJECT.
-
-2. Redistribution
------------------
-
-  This  license  grants  a  worldwide, royalty-free,  perpetual  and
-  irrevocable right  and license to use,  execute, perform, compile,
-  display,  copy,   create  derivative  works   of,  distribute  and
-  sublicense the  FreeType Project (in  both source and  object code
-  forms)  and  derivative works  thereof  for  any  purpose; and  to
-  authorize others  to exercise  some or all  of the  rights granted
-  herein, subject to the following conditions:
-
-    o Redistribution of  source code  must retain this  license file
-      (`FTL.TXT') unaltered; any  additions, deletions or changes to
-      the original  files must be clearly  indicated in accompanying
-      documentation.   The  copyright   notices  of  the  unaltered,
-      original  files must  be  preserved in  all  copies of  source
-      files.
-
-    o Redistribution in binary form must provide a  disclaimer  that
-      states  that  the software is based in part of the work of the
-      FreeType Team,  in  the  distribution  documentation.  We also
-      encourage you to put an URL to the FreeType web page  in  your
-      documentation, though this isn't mandatory.
-
-  These conditions  apply to any  software derived from or  based on
-  the FreeType Project,  not just the unmodified files.   If you use
-  our work, you  must acknowledge us.  However, no  fee need be paid
-  to us.
-
-3. Advertising
---------------
-
-  Neither the  FreeType authors and  contributors nor you  shall use
-  the name of the  other for commercial, advertising, or promotional
-  purposes without specific prior written permission.
-
-  We suggest,  but do not require, that  you use one or  more of the
-  following phrases to refer  to this software in your documentation
-  or advertising  materials: `FreeType Project',  `FreeType Engine',
-  `FreeType library', or `FreeType Distribution'.
-
-  As  you have  not signed  this license,  you are  not  required to
-  accept  it.   However,  as  the FreeType  Project  is  copyrighted
-  material, only  this license, or  another one contracted  with the
-  authors, grants you  the right to use, distribute,  and modify it.
-  Therefore,  by  using,  distributing,  or modifying  the  FreeType
-  Project, you indicate that you understand and accept all the terms
-  of this license.
-
-4. Contacts
------------
-
-  There are two mailing lists related to FreeType:
-
-    o freetype@nongnu.org
-
-      Discusses general use and applications of FreeType, as well as
-      future and  wanted additions to the  library and distribution.
-      If  you are looking  for support,  start in  this list  if you
-      haven't found anything to help you in the documentation.
-
-    o freetype-devel@nongnu.org
-
-      Discusses bugs,  as well  as engine internals,  design issues,
-      specific licenses, porting, etc.
-
-  Our home page can be found at
-
-    http://www.freetype.org
-
---- end of FTL.TXT ---
-
----
+## gemoji
 
 This product contains a modified portion of 'gemoji', a collection of emoji images and names by Apple Inc. and other contributors.
 
 * HOMEPAGE:
-  * https://github.com/github/gemoji/blob/master/LICENSE
+  * https://github.com/github/gemoji
 
 * LICENSE:
 
@@ -277,9 +101,9 @@ DEALINGS IN THE SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'goexif', which provides decoding of basic exif and tiff encoded data.
+## goexif
 
-by Robert Carlsen & Contributors
+This product contains a modified portion of 'goexif', which provides decoding of basic exif and tiff encoded data, built by Robert Carlsen & Contributors.
 
 * HOMEPAGE:
   * https://github.com/rwcarlsen/goexif
@@ -312,12 +136,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'graphics-go', an implementation of basic image manipulation operations in the Go programming language.
+## graphics-go
 
-by The Graphics-Go Authors
+This product contains a modified portion of 'graphics-go', an implementation of basic image manipulation operations in the Go programming language, built by The Graphics-Go Authors.
 
 * HOMEPAGE:
-  * https://code.google.com/p/graphics-go/
+  * https://code.google.com/p/graphics-go
 
 * LICENSE:
 
@@ -342,9 +166,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'babel-es6-polyfill', a pure ES6 polyfill for Babel that only includes standardised features.
+## babel-es6-polyfill
 
-by Jason Berry
+This product contains a modified portion of 'babel-es6-polyfill', a pure ES6 polyfill for Babel that only includes standardised features, built by Jason Berry.
 
 * HOMEPAGE:
   * https://github.com/JasonBerry/babel-es6-polyfill
@@ -373,9 +197,9 @@ THE SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'go-ldap', basic LDAP v3 functionality for the GO programming language.
+## ldap
 
-by The Go Authors
+This product contains a modified portion of 'go-ldap', basic LDAP v3 functionality for the GO programming language, built by The Go Authors.
 
 * HOMEPAGE:
   * https://github.com/go-ldap/ldap
@@ -412,12 +236,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'Google Fonts', various Open Source fonts for use on the web.
+## fonts
 
-by Google Inc.
+This product contains a modified portion of 'fonts', various Open Source fonts for use on the web, built by Google Inc.
 
 * HOMEPAGE:
-  * https://www.google.com/fonts
+  * https://github.com/google/fonts
 
 * LICENSE:
 
@@ -509,8 +333,9 @@ Creative Commons may be contacted at https://creativecommons.org/.
 
 ---
 
-This product contains a modified portion of 'go-i18n', a Go package and a command that translates Go programs into multiple languages
-by Nick Snyder.
+## go-i18n
+
+This product contains a modified portion of 'go-i18n', a Go package and a command that translates Go programs into multiple languages, built by Nick Snyder.
 
 * HOMEPAGE:
   * https://github.com/nicksnyder/go-i18n
@@ -539,7 +364,9 @@ THE SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'dgoogauth', a go implementation of the Google Authenticator library by Damian Gryski.
+## dgoogauth
+
+This product contains a modified portion of 'dgoogauth', a go implementation of the Google Authenticator library, built by Damian Gryski.
 
 * HOMEPAGE:
   * https://github.com/dgryski/dgoogauth
@@ -562,7 +389,9 @@ limitations under the License.
 
 ---
 
-This product contains a modified portion of 'fbjs', a collection of JavaScript utilities by Facebook, Inc.
+## fbjs
+
+This product contains a modified portion of 'fbjs', a collection of JavaScript utilities, built by Facebook, Inc.
 
 * HOMEPAGE:
   * https://github.com/facebook/fbjs
@@ -603,6 +432,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
+## marked
+
 This product contains a modified portion of 'marked', a full-featured markdown parser and compiler, written in JavaScript. Built for speed by Christopher Jeffrey.
 
 * HOMEPAGE:
@@ -627,6 +458,8 @@ included in all copies or substantial portions of the Software.
 No attribution is required by products that make use of this software.
 
 ---
+
+## gziphandler
 
 This product contains a modified portion of 'gziphandler',  a tiny Go package which wraps HTTP handlers to transparently gzip the response body, for clients which support it by The New York Times Company.
 
@@ -653,7 +486,9 @@ limitations under the License.
 
 ---
 
-This product contains a modified portion of 'handlers',  a collection of handlers (aka "HTTP middleware") for use with Go's net/http package (or any framework supporting http.Handler) by The Gorilla Handlers Authors.
+## handlers
+
+This product contains a modified portion of 'handlers',  a collection of handlers (aka "HTTP middleware") for use with Go's net/http package (or any framework supporting http.Handler), built by The Gorilla Handlers Authors.
 
 * HOMEPAGE:
   * https://github.com/gorilla/handlers
@@ -685,7 +520,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'manners',  a package imaging providing basic image manipulation functions (resize, rotate, flip, crop, etc.) by Grigory Dryapak.
+## imaging
+
+This product contains a modified portion of 'manners', a package imaging providing basic image manipulation functions (resize, rotate, flip, crop, etc.), built by Grigory Dryapak.
 
 * HOMEPAGE:
   * https://github.com/disintegration/imaging
@@ -716,7 +553,9 @@ SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'gorp',  to save time, minimize the drudgery of getting data in and out of the database, and help code focus on algorithms, not infrastructure by James Cooper.
+## gorp
+
+This product contains a modified portion of 'gorp',  to save time, minimize the drudgery of getting data in and out of the database, and help code focus on algorithms, not infrastructure, built by James Cooper.
 
 * HOMEPAGE:
   * https://github.com/go-gorp/gorp
@@ -748,7 +587,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'mysql',  a lightweight and fast MySQL driver for Go's (golang) database/sql package by Mozilla Public.
+## mysql
+
+This product contains a modified portion of 'mysql',  a lightweight and fast MySQL driver for Go's (golang) database/sql package, built by Mozilla Public.
 
 * HOMEPAGE:
   * https://github.com/go-sql-driver/mysql
@@ -1131,7 +972,9 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 ---
 
-This product contains a modified portion of 'context', a golang registry for global request variables by Rodrigo Moraes.
+## context
+
+This product contains a modified portion of 'context', a golang registry for global request variables, built by Rodrigo Moraes.
 
 * HOMEPAGE:
   * https://github.com/gorilla/context
@@ -1168,7 +1011,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'mux', a powerful URL router and dispatcher for golang by Rodrigo Moraes.
+## mux
+
+This product contains a modified portion of 'mux', a powerful URL router and dispatcher for golang, built by Rodrigo Moraes.
 
 * HOMEPAGE:
   * https://github.com/gorilla/mux
@@ -1205,7 +1050,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'websocket', a WebSocket implementation for Go by The Gorilla WebSocket Authors.
+## websocket
+
+This product contains a modified portion of 'websocket', a WebSocket implementation for Go, built by The Gorilla WebSocket Authors.
 
 * HOMEPAGE:
   * https://github.com/gorilla/websocket
@@ -1239,7 +1086,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## pq
 
-This product contains a modified portion of 'pq', a Pure Go Postgres driver for database/sql by Blake Mizerany and Contributors.
+This product contains a modified portion of 'pq', a Pure Go Postgres driver for database/sql, built by Blake Mizerany and Contributors.
 
 * HOMEPAGE:
   * https://github.com/lib/pq
@@ -1261,7 +1108,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 ---
 
-This product contains a modified portion of 'durafmt', a Go library that formats time.Duration strings into a human readable format by Wesley Hill.
+## durafmt
+
+This product contains a modified portion of 'durafmt', a Go library that formats time.Duration strings into a human readable format, built by Wesley Hill.
 
 * HOMEPAGE:
   * https://github.com/hako/durafmt
@@ -1289,6 +1138,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
+
+## uuid
 
 This product contains a modified portion of 'uuid', a package generates and inspects UUIDs based on RFC 412 and DCE 1.1: Authentication and Security Services by Google Inc.
 
@@ -1327,10 +1178,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
+## yaml
+
 This product contains a modified portion of 'yaml', a YAML support for the Go language by Canonical Inc.
 
 * HOMEPAGE:
-  * https://gopkg.in/yaml.v2
+  * https://github.com/go-yaml/yaml/tree/v2.2.1
 
 * LICENSE:
 
@@ -1525,36 +1378,12 @@ Library.
 
 ---
 
-This product contains a modified portion of 'throttled', a package store offering a memory-based and a Redis-based throttled by Martin Angers.
-
-* HOMEPAGE:
-  * http://gopkg.in/throttled/throttled.v1/store
-
-* LICENSE:
-
-Copyright (c) 2014, Martin Angers
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-* Neither the name of the author nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
----
+## throttled
 
 This product contains a modified portion of 'throttled', a package throttled implementing different throttling strategies for controlling access to HTTP handlers by Martin Angers and Contributors.
 
 * HOMEPAGE:
-  * http://gopkg.in/throttled/throttled.v1
+  * https://github.com/throttled/throttled/tree/v1.0.0
 
 * LICENSE:
 
@@ -1577,10 +1406,12 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
+## fsnotify
+
 This product contains a modified portion of 'fsnotify', to utilize golang.org/x/sys rather than syscall from the standard library by The Go Authors and fsnotify Authors.
 
 * HOMEPAGE:
-  * http://gopkg.in/fsnotify.v1
+  * https://github.com/fsnotify/fsnotify/tree/v1.4.7
 
 * LICENSE:
 
@@ -1620,7 +1451,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 This product contains a modified portion of 'asn1-ber', an ASN1 BER Encoding / Decoding Library for the GO programming language by The Go Authors.
 
 * HOMEPAGE:
-  * http://gopkg.in/asn1-ber.v1
+  * https://github.com/go-asn1-ber/asn1-ber/tree/v1.2
 
 * LICENSE:
 
@@ -1656,7 +1487,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## redigo
 
-This product contains a modified portion of 'redigo', a Go client for the Redis database.
+This product contains a modified portion of 'redigo', a Go client for the Redis database, built by Gary Burd.
 
 * HOMEPAGE:
   * https://github.com/garyburd/redigo
@@ -1842,7 +1673,7 @@ This product contains a modified portion of 'redigo', a Go client for the Redis 
 
 ## crypto
 
-This product contains a modified portion of 'crypto', a set of Go cryptographic libraries.
+This product contains a modified portion of 'crypto', a set of Go cryptographic libraries, built by Go.
 
 * HOMEPAGE:
   * https://github.com/golang/crypto
@@ -1882,7 +1713,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## image
 
-This product contains a modified portion of 'image', a set of Go image libraries.
+This product contains a modified portion of 'image', a set of Go image libraries, built by Go.
 
 * HOMEPAGE:
   * https://github.com/golang/image
@@ -1917,31 +1748,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
----
-
-## rsc
-
-This product contains a modified portion of 'rsc', a random source code library from Google
-
-* HOMEPAGE:
-  * https://code.google.com/archive/p/rsc/
-
-* LICENSE:
-
-Copyright (c) <YEAR>, <OWNER>
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 ---
 
 ## mattermost-driver-javascript
@@ -1962,6 +1768,8 @@ http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ---
+
+## osext
 
 This product contains a modified portion of 'osext', providing a function that returns an absolute path to the current program executable, built by kardianos.
 
@@ -2000,7 +1808,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'go-saml', a SAML client library for Go written by RobotsAndPencils.
+## go-saml
+
+This product contains a modified portion of 'go-saml', a SAML client library for Go, built by RobotsAndPencils.
 
 * HOMEPAGE:
   * https://github.com/RobotsAndPencils/go-saml
@@ -2030,6 +1840,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
+
+## minio-go
 
 This product contains a modified portion of 'minio-go', a Golang Client SDK providing simple APIs to access any Amazon S3 compatible object storage server, built by Minio.
 
@@ -2249,6 +2061,8 @@ SOFTWARE.
 
 ---
 
+## manners
+
 This product contains a modified portion of ‘manners’ a polite webserver for Go, built by Braintree, a division of PayPal, Inc.
 
 * HOMEPAGE:
@@ -2277,6 +2091,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ---
+
+## perks
 
 This product contains a modified portion of ‘perks’ which contains the Go package quantile that computes approximate quantiles over an unbounded data stream within low memory and CPU bounds, built by Blake Mizerany.
 
@@ -2307,6 +2123,8 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ---
+
+## protobuf
 
 This product contains a modified portion of ‘protobuf’ for Go support for Protocol Buffers, built by The Go Authors.
 
@@ -2348,6 +2166,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
+## golang_protobuf_extensions
+
 This product contains a modified portion of ‘golang_protobuf_extensions’ which provides various Protocol Buffer extensions, built by matttproud.
 
 * HOMEPAGE:
@@ -2370,6 +2190,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ---
+
+## cobra
 
 This product contains a modified portion of ‘cobra’, a Commander for modern Go CLI interactions, built by spf13.
 
@@ -2394,6 +2216,8 @@ limitations under the License.
 
 ---
 
+## client_golang
+
 This product contains modified portions of Prometheus ‘client_golang’, which is the Go library for Prometheus. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
 * HOMEPAGE:
@@ -2416,6 +2240,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ---
+
+## client_model
 
 This product contains modified portions of Prometheus ‘client_model’, which provides data model artifacts for Prometheus. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
@@ -2440,6 +2266,8 @@ limitations under the License.
 
 ---
 
+## common
+
 This product contains modified portions of Prometheus ‘common’, which is the part of the Prometheus project that contains Go libraries that are shared across Prometheus components and libraries. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
 * HOMEPAGE:
@@ -2462,6 +2290,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ---
+
+## procfs
 
 This product contains modified portions of Prometheus ‘procfs’, which is the part of the Prometheus project that provides functions to retrieve system, kernel and process metrics from the pseudo-filesystem proc. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
@@ -2486,7 +2316,9 @@ limitations under the License.
 
 ----
 
-This product contains a modified portion of 'go-opengraph', for parsing OpenGraph data from HTML into regular structures by Vitaly Dyatlov.
+## go-opengraph
+
+This product contains a modified portion of 'go-opengraph', for parsing OpenGraph data from HTML into regular structures, built by Vitaly Dyatlov.
 
 * HOMEPAGE:
   * https://github.com/dyatlov/go-opengraph
@@ -2517,7 +2349,9 @@ SOFTWARE.
 
 ----
 
-This product contains a modified portion of `viper` for handling configuration in Go programs. Built by Steve Francia.
+## viper
+
+This product contains a modified portion of `viper` for handling configuration in Go programs, built by Steve Francia.
 
 * HOMEPAGE:
   * https://github.com/spf13/viper
@@ -2548,7 +2382,9 @@ SOFTWARE.
 
 ----
 
-This product contains a modified version of `gomail` for sending emails. Built by Alexandre Cesaro.
+## gomail
+
+This product contains a modified version of `gomail` for sending emails, built by Alexandre Cesaro.
 
 * HOMEPAGE:
   * https://github.com/go-gomail/gomail
@@ -2578,7 +2414,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ----
 
-This product contains a modified version of `fsnotify` for file system notifications. Built by the Go Authors and the fsnotify Authors.
+## fsnotify
+
+This product contains a modified version of `fsnotify` for file system notifications, built by the Go Authors and the fsnotify Authors.
 
 * HOMEPAGE:
   * https://github.com/fsnotify/fsnotify
@@ -2618,7 +2456,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## analytics-go
 
-This product contains a modified portion of `analytics-go`, a segment analytics client for Go by Segment.
+This product contains a modified portion of `analytics-go`, a segment analytics client for Go, built by Segment.
 
 * HOMEPAGE:
   * https://github.com/segmentio/analytics-go
@@ -2631,7 +2469,7 @@ MIT license
 
 ## html2text
 
-This product contains a modified portion of 'html2text', an HTML to raw text converter by Carlos Tadeu Panato Junior, based on `html2text` by Jay Taylor.
+This product contains a modified portion of 'html2text', an HTML to raw text converter by Carlos Tadeu Panato Junior based on `html2text`, built by Jay Taylor.
 
 * HOMEPAGE
   * https://github.com/mattermost/html2text
@@ -2664,7 +2502,7 @@ SOFTWARE.
 
 ## elastic
 
-This product contains a modified portion of `elastic`, an Elasticsearch client for the Go programming language by Oliver Eilhard.
+This product contains a modified portion of `elastic`, an Elasticsearch client for the Go programming language, built by Oliver Eilhard.
 
 * HOMEPAGE
   * https://github.com/olivere/elastic
@@ -2696,7 +2534,7 @@ IN THE SOFTWARE.
 
 ## redis
 
-This product contains a modified portion of `redis`, a type-safe Redis client for Golang, by go-redis.
+This product contains a modified portion of `redis`, a type-safe Redis client for Golang, built by go-redis.
 
 * HOMEPAGE
   * https://github.com/go-redis/redis
@@ -2733,7 +2571,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## testify
 
-This product contains a modified portion of testify, a Golang toolkit providing tools for testifying that code behaves as intended.
+This product contains a modified portion of testify, a Golang toolkit providing tools for testifying that code behaves as intended, built by Stretchr, Inc.
 
 * HOMEPAGE
   * https://github.com/stretchr/testify
@@ -3537,44 +3375,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-## gomail.v2
+## lumberjack
 
-This product contains a modified portion of 'gomail.v2', a simple and efficient package to send emails, built by Gomail.
-
-* HOMEPAGE
-  * https://gopkg.in/gomail.v2
-
-* LICENSE
-
-The MIT License (MIT)
-
-Copyright (c) 2014 Alexandre Cesaro
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
----
-
-## lumberjack.v2
-
-This product contains a modified portion of 'lumberjack.v2', a Go package for writing logs to rolling files, built by Nate Finch.
+This product contains a modified portion of 'lumberjack', a Go package for writing logs to rolling files, built by Nate Finch.
 
 * HOMEPAGE
-  * gopkg.in/natefinch/lumberjack.v2
+  * https://github.com/natefinch/lumberjack
 
 * LICENSE
 
@@ -3602,69 +3408,12 @@ SOFTWARE.
 
 ---
 
-## elastic.v5
-
-This product contains a modified portion of 'elastic.v5', an elasticsearch client for Go, built by Oliver Eilhard.
-
-* HOMEPAGE
-  * gopkg.in/olivere/elastic.v5
-
-* LICENSE
-
-The MIT License (MIT)
-Copyright © 2012-2015 Oliver Eilhard
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the “Software”), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-IN THE SOFTWARE.
-
----
-
-## throttled.v2
-
-This product contains a modified portion of 'throttled.v2', a package that mplements rate limiting access to resources such as HTTP endpoints, built by throttled.
-
-* HOMEPAGE
-  * gopkg.in/throttled/throttled.v2
-
-* LICENSE
-
-Copyright (c) 2014, Martin Angers and Contributors.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-* Neither the name of the author nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-© 2018 GitHub, Inc.
-
----
-
 ## zap
 
 This product contains a modified portion of 'zap', a package that provides fast, structured, leveled logging; built by Uber Golang.
 
 * HOMEPAGE
-  * go.uber.org/zap
+  * https://github.com/uber-go/zap
 
 * LICENSE
 
