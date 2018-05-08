@@ -1262,7 +1262,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Emoji eklenemedi. Görsel boyutu 1 MiB değerinden küçük olmalıdır."
+    "translation": "Emoji eklenemedi. Görsel boyutu 1 MB değerinden küçük olmalıdır."
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",

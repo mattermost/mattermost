@@ -1262,7 +1262,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "無法建立繪文字。圖片必須小於1 MiB。"
+    "translation": "無法建立繪文字。圖片必須小於1 MB。"
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",

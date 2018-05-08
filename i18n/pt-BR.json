@@ -1262,7 +1262,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Não foi possível criar o emoji. A imagem tem que ser menor que 1 MiB em tamanho."
+    "translation": "Não foi possível criar o emoji. A imagem tem que ser menor que 1 MB em tamanho."
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
