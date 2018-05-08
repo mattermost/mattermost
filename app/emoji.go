@@ -22,36 +22,13 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-var emojiCache *utils.Cache = utils.NewLru(5000)
-
 const (
 	MaxEmojiFileSize = 1 << 20 // 1 MB
 	MaxEmojiWidth    = 128
 	MaxEmojiHeight   = 128
 )
 
-func ClearEmojiCache() {
-	emojiCache.Purge()
-}
-
-func (a *App) AddEmojiCache(emoji *model.Emoji) {
-	//emojiCache.Add(emoji.Id, emoji)
-	emojiCache.Add(emoji.Name, emoji)
-}
-
-func GetEmojiFromCache(emojiName string) *model.Emoji {
-	if result, ok := emojiCache.Get(emojiName); ok {
-		emoji := result.(*model.Emoji)
-		emojiCopy := &model.Emoji{}
-		*emojiCopy = *emoji
-		return emojiCopy
-	}
-
-	return nil
-}
-
 func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
-	l4g.Debug("app - CreateEmoji")
 	// wipe the emoji id so that existing emojis can't get overwritten
 	emoji.Id = ""
 
@@ -80,8 +57,6 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	if result := <-a.Srv.Store.Emoji().Save(emoji); result.Err != nil {
 		return nil, result.Err
 	} else {
-		l4g.Debug("Adding to cache in CreateEmoji")
-		a.AddEmojiCache(result.Data.(*model.Emoji))
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EMOJI_ADDED, "", "", "", nil)
 		message.Add("emoji", emoji.ToJson())
 		a.Publish(message)
@@ -90,7 +65,6 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 }
 
 func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
-	l4g.Debug("app - GetEmojiList")
 	if result := <-a.Srv.Store.Emoji().GetList(page*perPage, perPage, sort); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -174,22 +148,12 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 }
 
 func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
-	l4g.Debug("app - GetEmojiByName")
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	l4g.Debug("Cache size %v", emojiCache.Len())
-	emoji := GetEmojiFromCache(emojiName)
-	if emoji != nil {
-		return emoji, nil
-	}
-	if emoji == nil {
-		l4g.Debug("NULLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
 	}
 
 	if result := <-a.Srv.Store.Emoji().GetByName(emojiName); result.Err != nil {
