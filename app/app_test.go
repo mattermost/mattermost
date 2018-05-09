@@ -426,4 +426,32 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, permissions, role.Permissions)
 	}
+
+	// Check that the config setting for "always" and "time_limit" edit posts is updated correctly.
+	th.ResetRoleMigration()
+
+	config := th.App.GetConfig()
+	*config.ServiceSettings.AllowEditPost = "always"
+	*config.ServiceSettings.PostEditTimeLimit = 300
+	th.App.SaveConfig(config, false)
+
+	th.App.DoAdvancedPermissionsMigration()
+	config = th.App.GetConfig()
+	assert.Equal(t, -1, *config.ServiceSettings.PostEditTimeLimit)
+
+	th.ResetRoleMigration()
+
+	config = th.App.GetConfig()
+	*config.ServiceSettings.AllowEditPost = "time_limit"
+	*config.ServiceSettings.PostEditTimeLimit = 300
+	th.App.SaveConfig(config, false)
+
+	th.App.DoAdvancedPermissionsMigration()
+	config = th.App.GetConfig()
+	assert.Equal(t, 300, *config.ServiceSettings.PostEditTimeLimit)
+
+	config = th.App.GetConfig()
+	*config.ServiceSettings.AllowEditPost = "always"
+	*config.ServiceSettings.PostEditTimeLimit = 300
+	th.App.SaveConfig(config, false)
 }
