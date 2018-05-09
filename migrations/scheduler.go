@@ -64,7 +64,6 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 				return scheduler.createJob(key, job, scheduler.App.Srv.Store)
 			}
 
-			// TODO: Check that returning nil, nil here is legit (and make it so if it isn't).
 			return nil, nil
 		}
 

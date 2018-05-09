@@ -4,9 +4,6 @@
 package migrations
 
 import (
-	"encoding/json"
-	"io"
-
 	"github.com/mattermost/mattermost-server/app"
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -65,45 +62,4 @@ func GetMigrationState(migration string, store store.Store) (string, *model.Job,
 	}
 
 	return MIGRATION_STATE_UNSCHEDULED, nil, nil
-}
-
-type AdvancedPermissionsPhase2Progress struct {
-	CurrentTable  string `json:"current_table"`
-	LastTeamId    string `json:"last_team_id"`
-	LastChannelId string `json:"last_channel_id"`
-	LastUserId    string `json:"last_user"`
-}
-
-func (p *AdvancedPermissionsPhase2Progress) ToJson() string {
-	b, _ := json.Marshal(p)
-	return string(b)
-}
-
-func AdvancedPermissionsPhase2ProgressFromJson(data io.Reader) *AdvancedPermissionsPhase2Progress {
-	var o *AdvancedPermissionsPhase2Progress
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
-
-func (p *AdvancedPermissionsPhase2Progress) IsValid() bool {
-	if len(p.LastChannelId) != 26 {
-		return false
-	}
-
-	if len(p.LastTeamId) != 26 {
-		return false
-	}
-
-	if len(p.LastUserId) != 26 {
-		return false
-	}
-
-	switch p.CurrentTable {
-	case "TeamMembers":
-	case "ChannelMembers":
-	default:
-		return false
-	}
-
-	return true
 }
