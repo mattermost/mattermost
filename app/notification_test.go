@@ -37,7 +37,7 @@ func TestSendNotifications(t *testing.T) {
 	} else if mentions == nil {
 		t.Log(mentions)
 		t.Fatal("user should have been mentioned")
-	} else if mentions[0] != th.BasicUser2.Id {
+	} else if !utils.StringInSlice(th.BasicUser2.Id, mentions) {
 		t.Log(mentions)
 		t.Fatal("user should have been mentioned")
 	}

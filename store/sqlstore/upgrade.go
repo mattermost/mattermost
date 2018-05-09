@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_5_0_0            = "5.0.0"
 	VERSION_4_10_0           = "4.10.0"
 	VERSION_4_9_0            = "4.9.0"
 	VERSION_4_8_1            = "4.8.1"
@@ -76,6 +77,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion481(sqlStore)
 	UpgradeDatabaseToVersion49(sqlStore)
 	UpgradeDatabaseToVersion410(sqlStore)
+	UpgradeDatabaseToVersion50(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -411,26 +413,20 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 4.10.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_4_9_0, VERSION_4_10_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_9_0, VERSION_4_10_0) {
 
-	sqlStore.RemoveIndexIfExists("Name_2", "Channels")
-	sqlStore.RemoveIndexIfExists("Name_2", "Emoji")
-	sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
+		sqlStore.RemoveIndexIfExists("Name_2", "Channels")
+		sqlStore.RemoveIndexIfExists("Name_2", "Emoji")
+		sqlStore.RemoveIndexIfExists("ClientId_2", "OAuthAccessData")
 
-	//	saveSchemaVersion(sqlStore, VERSION_4_10_0)
-	sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "SchemeId", "varchar(26)", "varchar(26)")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "SchemeId", "varchar(26)", "varchar(26)")
+		saveSchemaVersion(sqlStore, VERSION_4_10_0)
+		sqlStore.GetMaster().Exec("UPDATE Users SET AuthData=LOWER(AuthData) WHERE AuthService = 'saml'")
+	}
+}
 
-	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeUser", "boolean", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeAdmin", "boolean", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeUser", "boolean", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
-
-	sqlStore.CreateColumnIfNotExists("Roles", "BuiltIn", "boolean", "boolean", "0")
-	sqlStore.GetMaster().Exec("UPDATE Roles SET BuiltIn=true")
-	sqlStore.GetMaster().Exec("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
-
-	//	saveSchemaVersion(sqlStore, VERSION_4_9_0)
+func UpgradeDatabaseToVersion50(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 3.10.0 is released
+	//if shouldPerformUpgrade(sqlStore, VERSION_4_10_0, VERSION_5_0_0) {
+	//	saveSchemaVersion(sqlStore, VERSION_5_0_0)
 	//}
 }
