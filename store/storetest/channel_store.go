@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"strings"
 )
 
 func TestChannelStore(t *testing.T, ss store.Store) {
@@ -52,6 +53,7 @@ func TestChannelStore(t *testing.T, ss store.Store) {
 	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
 	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
 	t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, ss) })
+	t.Run("MigrateChannelMembers", func(t *testing.T) { testChannelStoreMigrateChannelMembers(t, ss) })
 
 }
 
@@ -2253,4 +2255,77 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	assert.Nil(t, res3.Err)
 	d3 := res3.Data.(model.ChannelList)
 	assert.Len(t, d3, 0)
+}
+
+func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
+	s1 := model.NewId()
+	c1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &s1,
+	}
+	c1 = (<-ss.Channel().Save(c1, 100)).Data.(*model.Channel)
+
+	cm1 := &model.ChannelMember{
+		ChannelId:     c1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "channel_admin channel_user",
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+	}
+	cm2 := &model.ChannelMember{
+		ChannelId:     c1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "channel_user",
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+	}
+	cm3 := &model.ChannelMember{
+		ChannelId:     c1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "something_else",
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+	}
+
+	cm1 = (<-ss.Channel().SaveMember(cm1)).Data.(*model.ChannelMember)
+	cm2 = (<-ss.Channel().SaveMember(cm2)).Data.(*model.ChannelMember)
+	cm3 = (<-ss.Channel().SaveMember(cm3)).Data.(*model.ChannelMember)
+
+	lastDoneChannelId := strings.Repeat("0", 26)
+	lastDoneUserId := strings.Repeat("0", 26)
+
+	for {
+		res := <-ss.Channel().MigrateChannelMembers(lastDoneChannelId, lastDoneUserId)
+		if assert.Nil(t, res.Err) {
+			if res.Data == nil {
+				break
+			}
+			data := res.Data.(map[string]string)
+			lastDoneChannelId = data["ChannelId"]
+			lastDoneUserId = data["UserId"]
+		}
+	}
+
+	ss.Channel().ClearCaches()
+
+	res1 := <-ss.Channel().GetMember(cm1.ChannelId, cm1.UserId)
+	assert.Nil(t, res1.Err)
+	cm1b := res1.Data.(*model.ChannelMember)
+	assert.Equal(t, "", cm1b.ExplicitRoles)
+	assert.True(t, cm1b.SchemeUser)
+	assert.True(t, cm1b.SchemeAdmin)
+
+	res2 := <-ss.Channel().GetMember(cm2.ChannelId, cm2.UserId)
+	assert.Nil(t, res2.Err)
+	cm2b := res2.Data.(*model.ChannelMember)
+	assert.Equal(t, "", cm2b.ExplicitRoles)
+	assert.True(t, cm2b.SchemeUser)
+	assert.False(t, cm2b.SchemeAdmin)
+
+	res3 := <-ss.Channel().GetMember(cm3.ChannelId, cm3.UserId)
+	assert.Nil(t, res3.Err)
+	cm3b := res3.Data.(*model.ChannelMember)
+	assert.Equal(t, "something_else", cm3b.ExplicitRoles)
+	assert.False(t, cm3b.SchemeUser)
+	assert.False(t, cm3b.SchemeAdmin)
 }

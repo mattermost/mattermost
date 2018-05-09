@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"strings"
 )
 
 func TestTeamStore(t *testing.T, ss store.Store) {
@@ -39,6 +40,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetChannelUnreadsForTeam", func(t *testing.T) { testGetChannelUnreadsForTeam(t, ss) })
 	t.Run("UpdateLastTeamIconUpdate", func(t *testing.T) { testUpdateLastTeamIconUpdate(t, ss) })
 	t.Run("GetTeamsByScheme", func(t *testing.T) { testGetTeamsByScheme(t, ss) })
+	t.Run("MigrateTeamMembers", func(t *testing.T) { testTeamStoreMigrateTeamMembers(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1097,4 +1099,73 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	assert.Nil(t, res3.Err)
 	d3 := res3.Data.([]*model.Team)
 	assert.Len(t, d3, 0)
+}
+
+func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
+	s1 := model.NewId()
+	t1 := &model.Team{
+		DisplayName: "Name",
+		Name:        "z-z-z" + model.NewId() + "b",
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		InviteId:    model.NewId(),
+		SchemeId:    &s1,
+	}
+	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
+
+	tm1 := &model.TeamMember{
+		TeamId:        t1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_admin team_user",
+	}
+	tm2 := &model.TeamMember{
+		TeamId:        t1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_user",
+	}
+	tm3 := &model.TeamMember{
+		TeamId:        t1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "something_else",
+	}
+
+	tm1 = (<-ss.Team().SaveMember(tm1, -1)).Data.(*model.TeamMember)
+	tm2 = (<-ss.Team().SaveMember(tm2, -1)).Data.(*model.TeamMember)
+	tm3 = (<-ss.Team().SaveMember(tm3, -1)).Data.(*model.TeamMember)
+
+	lastDoneTeamId := strings.Repeat("0", 26)
+	lastDoneUserId := strings.Repeat("0", 26)
+
+	for {
+		res := <-ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
+		if assert.Nil(t, res.Err) {
+			if res.Data == nil {
+				break
+			}
+			data := res.Data.(map[string]string)
+			lastDoneTeamId = data["TeamId"]
+			lastDoneUserId = data["UserId"]
+		}
+	}
+
+	res1 := <-ss.Team().GetMember(tm1.TeamId, tm1.UserId)
+	assert.Nil(t, res1.Err)
+	tm1b := res1.Data.(*model.TeamMember)
+	assert.Equal(t, "", tm1b.ExplicitRoles)
+	assert.True(t, tm1b.SchemeUser)
+	assert.True(t, tm1b.SchemeAdmin)
+
+	res2 := <-ss.Team().GetMember(tm2.TeamId, tm2.UserId)
+	assert.Nil(t, res2.Err)
+	tm2b := res2.Data.(*model.TeamMember)
+	assert.Equal(t, "", tm2b.ExplicitRoles)
+	assert.True(t, tm2b.SchemeUser)
+	assert.False(t, tm2b.SchemeAdmin)
+
+	res3 := <-ss.Team().GetMember(tm3.TeamId, tm3.UserId)
+	assert.Nil(t, res3.Err)
+	tm3b := res3.Data.(*model.TeamMember)
+	assert.Equal(t, "something_else", tm3b.ExplicitRoles)
+	assert.False(t, tm3b.SchemeUser)
+	assert.False(t, tm3b.SchemeAdmin)
 }
