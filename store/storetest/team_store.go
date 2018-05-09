@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"strings"
 )
 
 func TestTeamStore(t *testing.T, ss store.Store) {

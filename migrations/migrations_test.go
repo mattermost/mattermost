@@ -6,8 +6,9 @@ package migrations
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestGetMigrationState(t *testing.T) {

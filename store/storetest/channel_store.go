@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"strings"
 )
 
 func TestChannelStore(t *testing.T, ss store.Store) {
