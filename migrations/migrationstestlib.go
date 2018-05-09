@@ -372,6 +372,22 @@ func (me *TestHelper) ResetRoleMigration() {
 	}
 }
 
+func (me *TestHelper) DeleteAllJobsByTypeAndMigrationKey(jobType string, migrationKey string) {
+	if res := <-me.App.Srv.Store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS); res.Err != nil {
+		panic(res.Err)
+	} else {
+		jobs := res.Data.([]*model.Job)
+
+		for _, job := range jobs {
+			if key, ok := job.Data[JOB_DATA_KEY_MIGRATION]; ok && key == migrationKey {
+				if res := <-me.App.Srv.Store.Job().Delete(job.Id); res.Err != nil {
+					panic(res.Err)
+				}
+			}
+		}
+	}
+}
+
 type FakeClusterInterface struct {
 	clusterMessageHandler einterfaces.ClusterMessageHandler
 }

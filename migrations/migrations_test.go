@@ -6,6 +6,7 @@ package migrations
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,9 +14,83 @@ func TestGetMigrationState(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	state, job, err := GetMigrationState(MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, th.App.Srv.Store)
+	migrationKey := model.NewId()
+
+	th.DeleteAllJobsByTypeAndMigrationKey(model.JOB_TYPE_MIGRATIONS, migrationKey)
+
+	// Test with no job yet.
+	state, job, err := GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
 	assert.Nil(t, job)
 	assert.Equal(t, "unscheduled", state)
-}
 
+	// Test with the system table showing the migration as done.
+	system := model.System{
+		Name:  migrationKey,
+		Value: "true",
+	}
+	res1 := <-th.App.Srv.Store.System().Save(&system)
+	assert.Nil(t, res1.Err)
+
+	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
+	assert.Nil(t, err)
+	assert.Nil(t, job)
+	assert.Equal(t, "completed", state)
+
+	res2 := <-th.App.Srv.Store.System().PermanentDeleteByName(migrationKey)
+	assert.Nil(t, res2.Err)
+
+	// Test with a job scheduled in "pending" state.
+	j1 := &model.Job{
+		Id:       model.NewId(),
+		CreateAt: model.GetMillis(),
+		Data: map[string]string{
+			JOB_DATA_KEY_MIGRATION: migrationKey,
+		},
+		Status: model.JOB_STATUS_PENDING,
+		Type:   model.JOB_TYPE_MIGRATIONS,
+	}
+
+	j1 = (<-th.App.Srv.Store.Job().Save(j1)).Data.(*model.Job)
+
+	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
+	assert.Nil(t, err)
+	assert.Equal(t, j1.Id, job.Id)
+	assert.Equal(t, "in_progress", state)
+
+	// Test with a job scheduled in "in progress" state.
+	j2 := &model.Job{
+		Id:       model.NewId(),
+		CreateAt: j1.CreateAt + 1,
+		Data: map[string]string{
+			JOB_DATA_KEY_MIGRATION: migrationKey,
+		},
+		Status: model.JOB_STATUS_IN_PROGRESS,
+		Type:   model.JOB_TYPE_MIGRATIONS,
+	}
+
+	j2 = (<-th.App.Srv.Store.Job().Save(j2)).Data.(*model.Job)
+
+	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
+	assert.Nil(t, err)
+	assert.Equal(t, j2.Id, job.Id)
+	assert.Equal(t, "in_progress", state)
+
+	// Test with a job scheduled in "error" state.
+	j3 := &model.Job{
+		Id:       model.NewId(),
+		CreateAt: j2.CreateAt + 1,
+		Data: map[string]string{
+			JOB_DATA_KEY_MIGRATION: migrationKey,
+		},
+		Status: model.JOB_STATUS_ERROR,
+		Type:   model.JOB_TYPE_MIGRATIONS,
+	}
+
+	j3 = (<-th.App.Srv.Store.Job().Save(j3)).Data.(*model.Job)
+
+	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
+	assert.Nil(t, err)
+	assert.Equal(t, j3.Id, job.Id)
+	assert.Equal(t, "unscheduled", state)
+}
