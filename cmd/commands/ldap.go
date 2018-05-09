@@ -22,9 +22,19 @@ var LdapSyncCmd = &cobra.Command{
 	RunE:    ldapSyncCmdF,
 }
 
+var LdapIdMigrate = &cobra.Command{
+	Use:     "idmigrate",
+	Short:   "Migrate LDAP IDAttribute to new value",
+	Long:    "Migrate LDAP IdAttribute to new value. Run this utility then change the IdAttribute to the new value.",
+	Example: " ldap idmigrate objectGUID",
+	Args:    cobra.ExactArgs(1),
+	RunE:    ldapIdMigrateCmdF,
+}
+
 func init() {
 	LdapCmd.AddCommand(
 		LdapSyncCmd,
+		LdapIdMigrate,
 	)
 	cmd.RootCmd.AddCommand(LdapCmd)
 }
@@ -42,6 +52,25 @@ func ldapSyncCmdF(command *cobra.Command, args []string) error {
 			cmd.CommandPrintErrorln("ERROR: AD/LDAP Synchronization please check the server logs")
 		} else {
 			cmd.CommandPrettyPrintln("SUCCESS: AD/LDAP Synchronization Complete")
+		}
+	}
+
+	return nil
+}
+
+func ldapIdMigrateCmdF(command *cobra.Command, args []string) error {
+	a, err := cmd.InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	toAttribute := args[0]
+	if ldapI := a.Ldap; ldapI != nil {
+		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {
+			cmd.CommandPrintErrorln("ERROR: AD/LDAP IdAttribute migration failed! Error: " + err.Error())
+		} else {
+			cmd.CommandPrettyPrintln("SUCCESS: AD/LDAP IdAttribute migration complete. You can now change your IdAttribute to: " + toAttribute)
 		}
 	}
 

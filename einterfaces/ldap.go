@@ -18,4 +18,5 @@ type LdapInterface interface {
 	StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError)
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
+	MigrateIDAttribute(toAttribute string) error
 }
