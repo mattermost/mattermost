@@ -128,7 +128,12 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
-		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		a.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = true
+			if *cfg.ServiceSettings.SiteURL == "" {
+				*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			}
+		})
 	}
 
 	resetStatuses(a)

@@ -5196,7 +5196,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Site URL must be a valid URL and start with http:// or https://"
+    "translation": "Site URL must be set, a valid URL, and start with http:// or https://"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",

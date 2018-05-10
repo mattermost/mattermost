@@ -82,6 +82,27 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	}
 }
 
+func TestConfigDefaultSiteURL(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	assert.Equal(t, "", *c1.ServiceSettings.SiteURL, "SiteURL should be empty by default.")
+}
+
+func TestConfigIsValidSiteURL(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	assert.NotNil(t, c1.ServiceSettings.isValid())
+	oldv := BuildNumber
+	BuildNumber = "dev"
+	defer func() {
+		BuildNumber = oldv
+	}()
+
+	assert.Nil(t, c1.ServiceSettings.isValid())
+}
+
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
