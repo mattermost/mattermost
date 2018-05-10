@@ -343,7 +343,7 @@ func (h *Hub) Unregister(webConn *WebConn) {
 }
 
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
-	if message != nil {
+	if h != nil && h.broadcast != nil && message != nil {
 		h.broadcast <- message
 	}
 }
