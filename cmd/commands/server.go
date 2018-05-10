@@ -107,7 +107,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
-	web.Init(a, a.Srv.Router)
+	web.NewWeb(a, a.Srv.Router)
 
 	license := a.License()
 

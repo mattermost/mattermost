@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (w *Web) WebHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
 		App:            w.App,
 		HandleFunc:     h,

@@ -22,7 +22,7 @@ type Web struct {
 	MainRouter *mux.Router
 }
 
-func Init(a *app.App, root *mux.Router) *Web {
+func NewWeb(a *app.App, root *mux.Router) *Web {
 	mlog.Debug("Initializing web routes")
 
 	web := &Web{
