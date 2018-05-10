@@ -1001,7 +1001,7 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 
 	path := "teams/" + teamId + "/teamIcon.png"
 
-	if err := a.WriteFile(buf.Bytes(), path); err != nil {
+	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, "", http.StatusInternalServerError)
 	}
 

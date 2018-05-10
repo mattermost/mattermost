@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -95,7 +96,9 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 	b := []byte("test")
 	path := "tests/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path))
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path)
 
 	read, err := s.backend.ReadFile(path)
@@ -109,7 +112,9 @@ func (s *FileBackendTestSuite) TestReadWriteFileImage() {
 	b := []byte("testimage")
 	path := "tests/" + model.NewId() + ".png"
 
-	s.Nil(s.backend.WriteFile(b, path))
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path)
 
 	read, err := s.backend.ReadFile(path)
@@ -124,8 +129,9 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 	path1 := "tests/" + model.NewId()
 	path2 := "tests/" + model.NewId()
 
-	err := s.backend.WriteFile(b, path1)
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path1)
 
 	err = s.backend.CopyFile(path1, path2)
@@ -144,8 +150,9 @@ func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
 	path1 := "tests/" + model.NewId()
 	path2 := "tests/newdirectory/" + model.NewId()
 
-	err := s.backend.WriteFile(b, path1)
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path1)
 
 	err = s.backend.CopyFile(path1, path2)
@@ -164,13 +171,15 @@ func (s *FileBackendTestSuite) TestMoveFile() {
 	path1 := "tests/" + model.NewId()
 	path2 := "tests/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path1))
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path1)
 
 	s.Nil(s.backend.MoveFile(path1, path2))
 	defer s.backend.RemoveFile(path2)
 
-	_, err := s.backend.ReadFile(path1)
+	_, err = s.backend.ReadFile(path1)
 	s.Error(err)
 
 	_, err = s.backend.ReadFile(path2)
@@ -181,15 +190,26 @@ func (s *FileBackendTestSuite) TestRemoveFile() {
 	b := []byte("test")
 	path := "tests/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path))
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	s.Nil(s.backend.RemoveFile(path))
 
-	_, err := s.backend.ReadFile(path)
+	_, err = s.backend.ReadFile(path)
 	s.Error(err)
 
-	s.Nil(s.backend.WriteFile(b, "tests2/foo"))
-	s.Nil(s.backend.WriteFile(b, "tests2/bar"))
-	s.Nil(s.backend.WriteFile(b, "tests2/asdf"))
+	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/foo")
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
+
+	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/bar")
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
+
+	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/asdf")
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
+
 	s.Nil(s.backend.RemoveDirectory("tests2"))
 }
 
@@ -198,9 +218,14 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	path1 := "19700101/" + model.NewId()
 	path2 := "19800101/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path1))
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path1)
-	s.Nil(s.backend.WriteFile(b, path2))
+
+	written, err = s.backend.WriteFile(bytes.NewReader(b), path2)
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 	defer s.backend.RemoveFile(path2)
 
 	paths, err := s.backend.ListDirectory("")
@@ -222,13 +247,21 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 func (s *FileBackendTestSuite) TestRemoveDirectory() {
 	b := []byte("test")
 
-	s.Nil(s.backend.WriteFile(b, "tests2/foo"))
-	s.Nil(s.backend.WriteFile(b, "tests2/bar"))
-	s.Nil(s.backend.WriteFile(b, "tests2/aaa"))
+	written, err := s.backend.WriteFile(bytes.NewReader(b), "tests2/foo")
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
+
+	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/bar")
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
+
+	written, err = s.backend.WriteFile(bytes.NewReader(b), "tests2/aaa")
+	s.Nil(err)
+	s.EqualValues(len(b), written, "expected given number of bytes to have been written")
 
 	s.Nil(s.backend.RemoveDirectory("tests2"))
 
-	_, err := s.backend.ReadFile("tests2/foo")
+	_, err = s.backend.ReadFile("tests2/foo")
 	s.Error(err)
 	_, err = s.backend.ReadFile("tests2/bar")
 	s.Error(err)
