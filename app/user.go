@@ -754,7 +754,7 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 			}
 
 			if user.LastPictureUpdate == 0 {
-				if err := a.WriteFile(img, path); err != nil {
+				if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
 					return nil, false, err
 				}
 			}
@@ -810,7 +810,7 @@ func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model
 
 	path := "users/" + userId + "/profile.png"
 
-	if err := a.WriteFile(buf.Bytes(), path); err != nil {
+	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
 	}
 
