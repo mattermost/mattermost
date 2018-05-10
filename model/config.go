@@ -1144,6 +1144,7 @@ type LdapSettings struct {
 	NicknameAttribute  *string
 	IdAttribute        *string
 	PositionAttribute  *string
+	LoginIdAttribute   *string
 
 	// Synchronization
 	SyncIntervalMinutes *int
@@ -1225,6 +1226,12 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.PositionAttribute == nil {
 		s.PositionAttribute = NewString(LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE)
+	}
+
+	// For those upgrading to the version when LoginIdAttribute was added
+	// they need IdAttribute == LoginIdAttribute not to break
+	if s.LoginIdAttribute == nil {
+		s.LoginIdAttribute = s.IdAttribute
 	}
 
 	if s.SyncIntervalMinutes == nil {
@@ -2073,6 +2080,10 @@ func (ls *LdapSettings) isValid() *AppError {
 
 		if *ls.IdAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_id", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.LoginIdAttribute == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_login_id", nil, "", http.StatusBadRequest)
 		}
 	}
 
