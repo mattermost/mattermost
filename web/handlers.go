@@ -21,7 +21,18 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		RequireSession: false,
 		TrustRequester: false,
 		RequireMfa:     false,
-		IsApi:          false,
+		IsStatic:       false,
+	}
+}
+
+func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &Handler{
+		App:            w.App,
+		HandleFunc:     h,
+		RequireSession: false,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
 	}
 }
 
@@ -31,7 +42,7 @@ type Handler struct {
 	RequireSession bool
 	TrustRequester bool
 	RequireMfa     bool
-	IsApi          bool
+	IsStatic       bool
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -60,17 +71,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
 
-	if h.IsApi {
+	if h.IsStatic {
+		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
 
 		if r.Method == "GET" {
 			w.Header().Set("Expires", "0")
 		}
-	} else {
-		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
-		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
 	}
 
 	if len(token) != 0 {

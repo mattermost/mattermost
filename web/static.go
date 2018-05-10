@@ -31,7 +31,7 @@ func (w *Web) InitStatic() {
 
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
-		w.MainRouter.Handle("/{anything:.*}", w.NewHandler(root)).Methods("GET")
+		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods("GET")
 	}
 }
 

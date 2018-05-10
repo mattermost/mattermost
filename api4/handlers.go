@@ -18,7 +18,7 @@ func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request))
 		RequireSession: false,
 		TrustRequester: false,
 		RequireMfa:     false,
-		IsApi:          true,
+		IsStatic:       false,
 	}
 }
 
@@ -29,7 +29,7 @@ func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.R
 		RequireSession: true,
 		TrustRequester: false,
 		RequireMfa:     true,
-		IsApi:          true,
+		IsStatic:       false,
 	}
 }
 
@@ -40,7 +40,7 @@ func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 		RequireSession: true,
 		TrustRequester: false,
 		RequireMfa:     false,
-		IsApi:          true,
+		IsStatic:       false,
 	}
 }
 
@@ -51,7 +51,7 @@ func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 		RequireSession: false,
 		TrustRequester: true,
 		RequireMfa:     false,
-		IsApi:          true,
+		IsStatic:       false,
 	}
 }
 
@@ -62,6 +62,6 @@ func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseW
 		RequireSession: true,
 		TrustRequester: true,
 		RequireMfa:     true,
-		IsApi:          true,
+		IsStatic:       false,
 	}
 }
