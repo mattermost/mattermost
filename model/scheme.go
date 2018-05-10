@@ -38,6 +38,30 @@ type SchemeIDPatch struct {
 	SchemeID *string `json:"scheme_id"`
 }
 
+// SchemeConveyor is used for importing and exporting a Scheme and its associated Roles.
+type SchemeConveyor struct {
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Scope        string  `json:"scope"`
+	TeamAdmin    string  `json:"default_team_admin_role"`
+	TeamUser     string  `json:"default_team_user_role"`
+	ChannelAdmin string  `json:"default_channel_admin_role"`
+	ChannelUser  string  `json:"default_channel_user_role"`
+	Roles        []*Role `json:"roles"`
+}
+
+func (sc *SchemeConveyor) Scheme() *Scheme {
+	return &Scheme{
+		Name:                    sc.Name,
+		Description:             sc.Description,
+		Scope:                   sc.Scope,
+		DefaultTeamAdminRole:    sc.TeamAdmin,
+		DefaultTeamUserRole:     sc.TeamUser,
+		DefaultChannelAdminRole: sc.ChannelAdmin,
+		DefaultChannelUserRole:  sc.ChannelUser,
+	}
+}
+
 func (scheme *Scheme) ToJson() string {
 	b, _ := json.Marshal(scheme)
 	return string(b)

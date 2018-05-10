@@ -316,6 +316,39 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 	return member
 }
 
+func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
+	utils.DisableDebugLogForTest()
+
+	scheme, err := me.App.CreateScheme(&model.Scheme{
+		Name:        "Test Scheme Name",
+		Description: "Test scheme description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	roleIDs := []string{
+		scheme.DefaultTeamAdminRole,
+		scheme.DefaultTeamUserRole,
+		scheme.DefaultChannelAdminRole,
+		scheme.DefaultChannelUserRole,
+	}
+
+	var roles []*model.Role
+	for _, roleID := range roleIDs {
+		role, err := me.App.GetRole(roleID)
+		if err != nil {
+			panic(err)
+		}
+		roles = append(roles, role)
+	}
+
+	utils.EnableDebugLogForTest()
+
+	return scheme, roles
+}
+
 func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
 	os.Remove(me.tempConfigPath)
