@@ -614,6 +614,18 @@ func TestS3TestConnection(t *testing.T) {
 	config.FileSettings.AmazonS3Region = ""
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
+
+	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckInternalErrorStatus(t, resp)
+	if resp.Error.Message != "Unable to create bucket" {
+		t.Fatal("should return error ")
+	}
+
+	config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckOKStatus(t, resp)
+
 }
 
 func TestSupportedTimezones(t *testing.T) {
