@@ -107,7 +107,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	c.LogAudit("attempt - user_id=" + id + " login_id=" + loginId)
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
 	if err != nil {
 		c.LogAudit("failure - user_id=" + id + " login_id=" + loginId)
 		c.Err = err
@@ -1072,7 +1072,7 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	rdata := map[string]string{}
-	if user, err := c.App.GetUserForLogin(loginId, false); err != nil {
+	if user, err := c.App.GetUserForLogin("", loginId); err != nil {
 		rdata["mfa_required"] = "false"
 	} else {
 		rdata["mfa_required"] = strconv.FormatBool(user.MfaActive)

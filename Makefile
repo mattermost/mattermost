@@ -275,6 +275,10 @@ store-mocks: ## Creates mock files.
 	go get github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
+ldap-mocks: ## Creates mock files for ldap.
+	go get github.com/vektra/mockery/...
+	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
+
 update-jira-plugin: ## Updates Jira plugin.
 	go get github.com/mattermost/go-bindata/...
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
