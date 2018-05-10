@@ -127,6 +127,10 @@ func (a *App) HubStop() {
 }
 
 func (a *App) GetHubForUserId(userId string) *Hub {
+	if len(a.Hubs) == 0 {
+		return nil
+	}
+
 	hash := fnv.New32a()
 	hash.Write([]byte(userId))
 	index := hash.Sum32() % uint32(len(a.Hubs))
@@ -134,11 +138,17 @@ func (a *App) GetHubForUserId(userId string) *Hub {
 }
 
 func (a *App) HubRegister(webConn *WebConn) {
-	a.GetHubForUserId(webConn.UserId).Register(webConn)
+	hub := a.GetHubForUserId(webConn.UserId)
+	if hub != nil {
+		hub.Register(webConn)
+	}
 }
 
 func (a *App) HubUnregister(webConn *WebConn) {
-	a.GetHubForUserId(webConn.UserId).Unregister(webConn)
+	hub := a.GetHubForUserId(webConn.UserId)
+	if hub != nil {
+		hub.Unregister(webConn)
+	}
 }
 
 func (a *App) Publish(message *model.WebSocketEvent) {
