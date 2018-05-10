@@ -1817,7 +1817,7 @@ func TestAutocompleteChannels(t *testing.T) {
 	defer th.TearDown()
 
 	// A private channel to make sure private channels are not used
-	me.App.Log.DoWithLogLevel(mlog.LevelError, func() {
+	th.App.Log.DoWithLogLevel(mlog.LevelError, func() {
 		ptown, _ := th.Client.CreateChannel(&model.Channel{
 			DisplayName: "Town",
 			Name:        "town",
