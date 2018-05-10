@@ -270,25 +270,6 @@ func (s SqlChannelStore) Update(channel *model.Channel) store.StoreChannel {
 	})
 }
 
-func (s SqlChannelStore) extraUpdated(channel *model.Channel) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		channel.ExtraUpdated()
-
-		_, err := s.GetMaster().Exec(
-			`UPDATE
-				Channels
-			SET
-				ExtraUpdateAt = :Time
-			WHERE
-				Id = :Id`,
-			map[string]interface{}{"Id": channel.Id, "Time": channel.ExtraUpdateAt})
-
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.extraUpdated", "store.sql_channel.extra_updated.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
-}
-
 func (s SqlChannelStore) GetChannelUnread(channelId, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var unreadChannel model.ChannelUnread
@@ -750,10 +731,6 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) store.StoreChan
 					if err := transaction.Commit(); err != nil {
 						result.Err = model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 					}
-					// If successfull record members have changed in channel
-					if mu := <-s.extraUpdated(channel); mu.Err != nil {
-						result.Err = mu.Err
-					}
 				}
 			}
 		}
@@ -1055,21 +1032,9 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) s
 
 func (s SqlChannelStore) RemoveMember(channelId string, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		// Grab the channel we are saving this member to
-		if cr := <-s.Get(channelId, true); cr.Err != nil {
-			result.Err = cr.Err
-		} else {
-			channel := cr.Data.(*model.Channel)
-
-			_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
-			if err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-			} else {
-				// If successfull record members have changed in channel
-				if mu := <-s.extraUpdated(channel); mu.Err != nil {
-					result.Err = mu.Err
-				}
-			}
+		_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 		}
 	})
 }

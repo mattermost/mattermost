@@ -713,9 +713,6 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	c1.Type = model.CHANNEL_OPEN
 	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
 
-	c1t1 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
-	t1 := c1t1.ExtraUpdateAt
-
 	u1 := model.User{}
 	u1.Email = model.NewId()
 	u1.Nickname = model.NewId()
@@ -739,13 +736,6 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	o2.UserId = u2.Id
 	o2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&o2))
-
-	c1t2 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
-	t2 := c1t2.ExtraUpdateAt
-
-	if t2 <= t1 {
-		t.Fatal("Member update time incorrect")
-	}
 
 	count := (<-ss.Channel().GetMemberCount(o1.ChannelId, true)).Data.(int64)
 	if count != 2 {
@@ -777,13 +767,6 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have removed 1 member")
 	}
 
-	c1t3 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
-	t3 := c1t3.ExtraUpdateAt
-
-	if t3 <= t2 || t3 <= t1 {
-		t.Fatal("Member update time incorrect on delete")
-	}
-
 	member := (<-ss.Channel().GetMember(o1.ChannelId, o1.UserId)).Data.(*model.ChannelMember)
 	if member.ChannelId != o1.ChannelId {
 		t.Fatal("should have go member")
@@ -791,12 +774,6 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 
 	if err := (<-ss.Channel().SaveMember(&o1)).Err; err == nil {
 		t.Fatal("Should have been a duplicate")
-	}
-
-	c1t4 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
-	t4 := c1t4.ExtraUpdateAt
-	if t4 != t3 {
-		t.Fatal("Should not update time upon failure")
 	}
 }
 
@@ -807,9 +784,6 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
-
-	c1t1 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
-	t1 := c1t1.ExtraUpdateAt
 
 	u1 := model.User{}
 	u1.Email = model.NewId()
@@ -834,13 +808,6 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	o2.UserId = u2.Id
 	o2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&o2))
-
-	c1t2 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
-	t2 := c1t2.ExtraUpdateAt
-
-	if t2 <= t1 {
-		t.Fatal("Member update time incorrect")
-	}
 
 	count := (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
 	if count != 2 {
