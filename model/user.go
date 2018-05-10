@@ -96,27 +96,6 @@ type UserAuth struct {
 	AuthService string  `json:"auth_service,omitempty"`
 }
 
-// Everything needed to login a user and create a session
-type UserLoginDetails struct {
-	// Allows for login with a user's databse ID
-	Id string
-
-	// A username/email/ldapLoginId given
-	LoginId string
-
-	// The password given
-	Password string
-
-	// The device ID given at login time
-	DeviceId string
-
-	// MFA Token given
-	MFAToken string
-
-	// Only allow login with LDAP. Skip checking username/email.
-	LdapOnly bool
-}
-
 func (u *User) DeepCopy() *User {
 	copyUser := *u
 	if u.AuthData != nil {
