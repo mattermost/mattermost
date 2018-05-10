@@ -73,7 +73,7 @@
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "transaction": "Failed to commit the database transaction"
+    "translation": "Failed to commit the database transaction"
   },
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
