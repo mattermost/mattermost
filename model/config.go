@@ -2179,13 +2179,6 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Don't validate SiteURL in dev mode. (it gets set automaticly later)
-	if BuildNumber != "dev" {
-		if _, err := url.ParseRequestURI(*ss.SiteURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-
 	if len(*ss.WebsocketURL) != 0 {
 		if _, err := url.ParseRequestURI(*ss.WebsocketURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
