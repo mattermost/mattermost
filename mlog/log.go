@@ -62,6 +62,16 @@ func getZapLevel(level string) zapcore.Level {
 	}
 }
 
+func makeEncoder(json bool) zapcore.Encoder {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	if json {
+		return zapcore.NewJSONEncoder(encoderConfig)
+	}
+
+	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	return zapcore.NewConsoleEncoder(encoderConfig)
+}
+
 func NewLogger(config *LoggerConfiguration) *Logger {
 	cores := []zapcore.Core{}
 	logger := &Logger{
@@ -69,18 +79,9 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel(config.FileLevel)),
 	}
 
-	encoderConfig := zap.NewProductionEncoderConfig()
-	var encoder zapcore.Encoder
-	if config.ConsoleJson {
-		encoder = zapcore.NewJSONEncoder(encoderConfig)
-	} else {
-		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-		encoder = zapcore.NewConsoleEncoder(encoderConfig)
-	}
-
 	if config.EnableConsole {
 		writer := zapcore.Lock(os.Stdout)
-		core := zapcore.NewCore(encoder, writer, logger.consoleLevel)
+		core := zapcore.NewCore(makeEncoder(config.ConsoleJson), writer, logger.consoleLevel)
 		cores = append(cores, core)
 	}
 
@@ -90,7 +91,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 			MaxSize:  100,
 			Compress: true,
 		})
-		core := zapcore.NewCore(encoder, writer, logger.fileLevel)
+		core := zapcore.NewCore(makeEncoder(config.FileJson), writer, logger.fileLevel)
 		cores = append(cores, core)
 	}
 
