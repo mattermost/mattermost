@@ -771,7 +771,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUserForLogin(loginId, false); err == nil {
+	if user, err := c.App.GetUserForLogin("", loginId); err == nil {
 		resp["mfa_required"] = user.MfaActive
 	}
 
@@ -943,7 +943,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
@@ -1167,7 +1167,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUserForLogin(email, false)
+	user, err := c.App.GetUserForLogin("", email)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
 		ReturnStatusOK(w)
@@ -1205,7 +1205,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		link, err = c.App.SwitchOAuthToEmail(switchRequest.Email, switchRequest.NewPassword, c.Session.UserId)
 	} else if switchRequest.EmailToLdap() {
-		link, err = c.App.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapId, switchRequest.NewPassword)
+		link, err = c.App.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
 	} else if switchRequest.LdapToEmail() {
 		link, err = c.App.SwitchLdapToEmail(switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
 	} else {

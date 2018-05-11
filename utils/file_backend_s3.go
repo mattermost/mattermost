@@ -4,7 +4,7 @@
 package utils
 
 import (
-	"bytes"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -136,10 +136,10 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	return nil
 }
 
-func (b *S3FileBackend) WriteFile(f []byte, path string) *model.AppError {
+func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
-		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var contentType string
@@ -150,12 +150,12 @@ func (b *S3FileBackend) WriteFile(f []byte, path string) *model.AppError {
 	}
 
 	options := s3PutOptions(b.encrypt, contentType)
-
-	if _, err = s3Clnt.PutObject(b.bucket, path, bytes.NewReader(f), -1, options); err != nil {
-		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	written, err := s3Clnt.PutObject(b.bucket, path, fr, -1, options)
+	if err != nil {
+		return written, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return nil
+	return written, nil
 }
 
 func (b *S3FileBackend) RemoveFile(path string) *model.AppError {

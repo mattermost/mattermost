@@ -819,13 +819,12 @@ func (us SqlUserStore) GetByUsername(username string) store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) store.StoreChannel {
+func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		params := map[string]interface{}{
 			"LoginId":                 loginId,
 			"AllowSignInWithUsername": allowSignInWithUsername,
 			"AllowSignInWithEmail":    allowSignInWithEmail,
-			"LdapEnabled":             ldapEnabled,
 		}
 
 		users := []*model.User{}
@@ -837,8 +836,7 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 				Users
 			WHERE
 				(:AllowSignInWithUsername AND Username = :LoginId)
-				OR (:AllowSignInWithEmail AND Email = :LoginId)
-				OR (:LdapEnabled AND AuthService = '`+model.USER_AUTH_SERVICE_LDAP+`' AND AuthData = :LoginId)`,
+				OR (:AllowSignInWithEmail AND Email = :LoginId)`,
 			params); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if len(users) == 1 {

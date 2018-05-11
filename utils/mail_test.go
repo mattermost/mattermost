@@ -150,8 +150,10 @@ func TestSendMailUsingConfig(t *testing.T) {
 	filePath2 := fmt.Sprintf("test2/%s", fileName)
 	fileContents1 := []byte("hello world")
 	fileContents2 := []byte("foo bar")
-	assert.Nil(t, fileBackend.WriteFile(fileContents1, filePath1))
-	assert.Nil(t, fileBackend.WriteFile(fileContents2, filePath2))
+	_, err := fileBackend.WriteFile(bytes.NewReader(fileContents1), filePath1)
+	assert.Nil(t, err)
+	_, err := fileBackend.WriteFile(bytes.NewReader(fileContents2), filePath2)
+	assert.Nil(t, err)
 	defer fileBackend.RemoveFile(filePath1)
 	defer fileBackend.RemoveFile(filePath2)
 
