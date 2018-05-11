@@ -411,7 +411,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
         
-	file.seek(0,0)
+	file.Seek(0,0)
 
 	if info.Size, err = a.WriteFile(file, info.Path); err != nil {
 		return nil, err
