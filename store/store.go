@@ -106,6 +106,7 @@ type TeamStore interface {
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) StoreChannel
 	GetTeamsByScheme(schemeId string, offset int, limit int) StoreChannel
 	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
+	ResetAllTeamSchemes() StoreChannel
 }
 
 type ChannelStore interface {
@@ -165,6 +166,7 @@ type ChannelStore interface {
 	ClearCaches()
 	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
+	ResetAllChannelSchemes() StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -489,4 +491,5 @@ type SchemeStore interface {
 	Get(schemeId string) StoreChannel
 	GetAllPage(scope string, offset int, limit int) StoreChannel
 	Delete(schemeId string) StoreChannel
+	PermanentDeleteAll() StoreChannel
 }

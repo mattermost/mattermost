@@ -8,6 +8,21 @@ import (
 )
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
+	// Reset all Teams to not have a scheme.
+	if result := <-a.Srv.Store.Team().ResetAllTeamSchemes(); result.Err != nil {
+		return result.Err
+	}
+
+	// Reset all Channels to not have a scheme.
+	if result := <-a.Srv.Store.Channel().ResetAllChannelSchemes(); result.Err != nil {
+		return result.Err
+	}
+
+	// Purge all schemes from the database.
+	if result := <-a.Srv.Store.Scheme().PermanentDeleteAll(); result.Err != nil {
+		return result.Err
+	}
+
 	// Purge all roles from the database.
 	if result := <-a.Srv.Store.Role().PermanentDeleteAll(); result.Err != nil {
 		return result.Err

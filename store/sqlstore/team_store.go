@@ -794,3 +794,11 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 		result.Data = data
 	})
 }
+
+func (s SqlTeamStore) ResetAllTeamSchemes() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.ResetAllTeamSchemes", "store.sql_team.reset_all_team_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	})
+}

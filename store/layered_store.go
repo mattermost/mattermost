@@ -298,3 +298,9 @@ func (s *LayeredSchemeStore) GetAllPage(scope string, offset int, limit int) Sto
 		return supplier.SchemeGetAllPage(s.TmpContext, scope, offset, limit)
 	})
 }
+
+func (s *LayeredSchemeStore) PermanentDeleteAll() StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.SchemePermanentDeleteAll(s.TmpContext)
+	})
+}
