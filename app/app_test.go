@@ -169,6 +169,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			model.PERMISSION_PERMANENT_DELETE_USER.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
+			model.PERMISSION_MANAGE_EMOJIS.Id,
 		},
 		"system_post_all": []string{
 			model.PERMISSION_CREATE_POST.Id,
@@ -334,6 +335,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			model.PERMISSION_PERMANENT_DELETE_USER.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
+			model.PERMISSION_MANAGE_EMOJIS.Id,
 		},
 		"system_post_all": []string{
 			model.PERMISSION_CREATE_POST.Id,

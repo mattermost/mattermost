@@ -100,6 +100,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
+			model.PERMISSION_MANAGE_EMOJIS.Id,
 		}
 
 		changedPermissions := model.PermissionsChangedByPatch(oldRole, patch)
