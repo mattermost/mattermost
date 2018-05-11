@@ -70,13 +70,13 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 			case model.SYSTEM_USER_ROLE_ID:
 				systemUser = true
 			}
-
-			if !systemUser {
-				roles = append(roles, model.SYSTEM_USER_ROLE_ID)
-			}
-			if !systemAdmin {
-				roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
-			}
+		}
+		
+		if !systemUser {
+			roles = append(roles, model.SYSTEM_USER_ROLE_ID)
+		}
+		if !systemAdmin {
+			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
 		}
 
 		if _, err := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true); err != nil {
@@ -117,10 +117,10 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 				}
 				newRoles = append(newRoles, role)
 			}
+		}
 
-			if !systemUser {
-				newRoles = append(roles, model.SYSTEM_USER_ROLE_ID)
-			}
+		if !systemUser {
+			newRoles = append(roles, model.SYSTEM_USER_ROLE_ID)
 		}
 
 		if _, err := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true); err != nil {
