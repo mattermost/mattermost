@@ -71,7 +71,7 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 				systemUser = true
 			}
 		}
-		
+
 		if !systemUser {
 			roles = append(roles, model.SYSTEM_USER_ROLE_ID)
 		}
