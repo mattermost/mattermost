@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "Ocorreu um erro ao obter a equipe"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "Ocorreu um erro ao atualizar o ícone da equipe"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Não foi possível ativar o plugin extraído. O plugin já pode existir e estar ativado."
+    "translation": "Unable to activate extracted plugin."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "Não é possível obter os plugins ativos"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "Id do plugin deve ter menos de {{.Max}} caracteres."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Não foi possível instalar o plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Não foi possível instalar o plugin. Um plugin como o mesmo ID já está instalado."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",
