@@ -213,10 +213,9 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 }
 
 func (c *Context) LogError(err *model.AppError) {
-
 	// Filter out 404s, endless reconnects and browser compatibility errors
 	if err.StatusCode == http.StatusNotFound ||
-		(c.Path == "/api/v3/users/websocket" && err.StatusCode == 401) ||
+		(c.Path == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
 		err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
@@ -226,8 +225,13 @@ func (c *Context) LogError(err *model.AppError) {
 }
 
 func (c *Context) LogInfo(err *model.AppError) {
-	mlog.Info(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
+	// Filter out 401s
+	if err.StatusCode == http.StatusUnauthorized {
+		c.LogDebug(err)
+	} else {
+		mlog.Info(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
+	}
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
