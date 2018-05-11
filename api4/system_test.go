@@ -570,7 +570,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
-/*func TestS3TestConnection(t *testing.T) {
+func TestS3TestConnection(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
@@ -626,7 +626,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 
-}*/
+}
 
 func TestSupportedTimezones(t *testing.T) {
 	th := Setup().InitBasic()
