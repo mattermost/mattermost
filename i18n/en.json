@@ -5027,6 +5027,10 @@
     "translation": "AD/LDAP field \"ID Attribute\" is required."
   },
   {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP field \"Login ID Attribute\" is required."
+  },
+  {
     "id": "model.config.is_valid.ldap_lastname",
     "translation": "AD/LDAP field \"Last Name Attribute\" is required."
   },

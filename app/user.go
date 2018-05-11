@@ -382,38 +382,6 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	}
 }
 
-func (a *App) GetUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
-	license := a.License()
-	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && license != nil && *license.Features.LDAP
-
-	if result := <-a.Srv.Store.User().GetForLogin(
-		loginId,
-		*a.Config().EmailSettings.EnableSignInWithUsername && !onlyLdap,
-		*a.Config().EmailSettings.EnableSignInWithEmail && !onlyLdap,
-		ldapAvailable,
-	); result.Err != nil && result.Err.Id == "store.sql_user.get_for_login.multiple_users" {
-		// don't fall back to LDAP in this case since we already know there's an LDAP user, but that it shouldn't work
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
-	} else if result.Err != nil {
-		if !ldapAvailable {
-			// failed to find user and no LDAP server to fall back on
-			result.Err.StatusCode = http.StatusBadRequest
-			return nil, result.Err
-		}
-
-		// fall back to LDAP server to see if we can find a user
-		if ldapUser, ldapErr := a.Ldap.GetUser(loginId); ldapErr != nil {
-			ldapErr.StatusCode = http.StatusBadRequest
-			return nil, ldapErr
-		} else {
-			return ldapUser, nil
-		}
-	} else {
-		return result.Data.(*model.User), nil
-	}
-}
-
 func (a *App) GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
 	if result := <-a.Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
 		return nil, result.Err
@@ -786,7 +754,7 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 			}
 
 			if user.LastPictureUpdate == 0 {
-				if err := a.WriteFile(img, path); err != nil {
+				if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
 					return nil, false, err
 				}
 			}
@@ -842,7 +810,7 @@ func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model
 
 	path := "users/" + userId + "/profile.png"
 
-	if err := a.WriteFile(buf.Bytes(), path); err != nil {
+	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
 	}
 
