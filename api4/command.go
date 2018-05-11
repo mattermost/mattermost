@@ -23,8 +23,8 @@ func (api *API) InitCommand() {
 	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
 	api.BaseRoutes.Command.Handle("/regen_token", api.ApiSessionRequired(regenCommandToken)).Methods("PUT")
 
-	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testPostCommand)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testGetCommand)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testPostCommand)).Methods("POST")
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {

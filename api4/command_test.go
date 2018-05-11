@@ -391,7 +391,7 @@ func TestRegenToken(t *testing.T) {
 	}
 }
 
-func TestExecutePostCommand(t *testing.T) {
+func TestExecuteInvalidCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
@@ -408,49 +408,43 @@ func TestExecutePostCommand(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
-	postCmd := &model.Command{
+	getCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
-		Method:    model.COMMAND_METHOD_POST,
-		Trigger:   "postcommand",
+		Method:    model.COMMAND_METHOD_GET,
+		Trigger:   "getcommand",
 	}
 
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
-		t.Fatal("failed to create post command")
+	if _, err := th.App.CreateCommand(getCmd); err != nil {
+		t.Fatal("failed to create get command")
 	}
 
-	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
+	_, resp := Client.ExecuteCommand(channel.Id, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ExecuteCommand(channel.Id, "/")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ExecuteCommand(channel.Id, "getcommand")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ExecuteCommand(channel.Id, "/junk")
+	CheckNotFoundStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	Client.Login(otherUser.Email, otherUser.Password)
+
+	_, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.ExecuteCommand(channel.Id, "/getcommand")
 	CheckNoError(t, resp)
-
-	if commandResponse == nil {
-		t.Fatal("command response should have returned")
-	}
-
-	posts, err := th.App.GetPostsPage(channel.Id, 0, 10)
-	if err != nil || posts == nil || len(posts.Order) != 3 {
-		t.Fatal("Test command failed to send")
-	}
-
-	cmdPosted := false
-	for _, post := range posts.Posts {
-		if post.Message == fmt.Sprintf("test post command response: \ntoken=%s\nteam_domain=%s", postCmd.Token, th.BasicTeam.Name) {
-			if post.Type != "custom_test" {
-				t.Fatal("wrong type set in slash command post")
-			}
-
-			if post.Props["someprop"] != "somevalue" {
-				t.Fatal("wrong prop set in slash command post")
-			}
-
-			cmdPosted = true
-			break
-		}
-	}
-
-	if !cmdPosted {
-		t.Fatal("Test command response failed to post")
-	}
 }
 
 func TestExecuteGetCommand(t *testing.T) {
@@ -515,7 +509,7 @@ func TestExecuteGetCommand(t *testing.T) {
 	}
 }
 
-func TestExecuteInvalidCommand(t *testing.T) {
+func TestExecutePostCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
@@ -532,43 +526,49 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
-	getCmd := &model.Command{
+	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
-		Method:    model.COMMAND_METHOD_GET,
-		Trigger:   "getcommand",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "postcommand",
 	}
 
-	if _, err := th.App.CreateCommand(getCmd); err != nil {
-		t.Fatal("failed to create get command")
+	if _, err := th.App.CreateCommand(postCmd); err != nil {
+		t.Fatal("failed to create post command")
 	}
 
-	_, resp := Client.ExecuteCommand(channel.Id, "")
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.ExecuteCommand(channel.Id, "/")
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.ExecuteCommand(channel.Id, "getcommand")
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.ExecuteCommand(channel.Id, "/junk")
-	CheckNotFoundStatus(t, resp)
-
-	otherUser := th.CreateUser()
-	Client.Login(otherUser.Email, otherUser.Password)
-
-	_, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
-	CheckForbiddenStatus(t, resp)
-
-	Client.Logout()
-
-	_, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
-	CheckUnauthorizedStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.ExecuteCommand(channel.Id, "/getcommand")
+	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
 	CheckNoError(t, resp)
+
+	if commandResponse == nil {
+		t.Fatal("command response should have returned")
+	}
+
+	posts, err := th.App.GetPostsPage(channel.Id, 0, 10)
+	if err != nil || posts == nil || len(posts.Order) != 3 {
+		t.Fatal("Test command failed to send")
+	}
+
+	cmdPosted := false
+	for _, post := range posts.Posts {
+		if post.Message == fmt.Sprintf("test post command response: \ntoken=%s\nteam_domain=%s", postCmd.Token, th.BasicTeam.Name) {
+			if post.Type != "custom_test" {
+				t.Fatal("wrong type set in slash command post")
+			}
+
+			if post.Props["someprop"] != "somevalue" {
+				t.Fatal("wrong prop set in slash command post")
+			}
+
+			cmdPosted = true
+			break
+		}
+	}
+
+	if !cmdPosted {
+		t.Fatal("Test command response failed to post")
+	}
 }
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
