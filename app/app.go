@@ -57,7 +57,6 @@ type App struct {
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface
-	Emoji            einterfaces.EmojiInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
@@ -288,12 +287,6 @@ func RegisterElasticsearchInterface(f func(*App) einterfaces.ElasticsearchInterf
 	elasticsearchInterface = f
 }
 
-var emojiInterface func(*App) einterfaces.EmojiInterface
-
-func RegisterEmojiInterface(f func(*App) einterfaces.EmojiInterface) {
-	emojiInterface = f
-}
-
 var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
 
 func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
@@ -375,9 +368,6 @@ func (a *App) initEnterprise() {
 	}
 	if elasticsearchInterface != nil {
 		a.Elasticsearch = elasticsearchInterface(a)
-	}
-	if emojiInterface != nil {
-		a.Emoji = emojiInterface(a)
 	}
 	if ldapInterface != nil {
 		a.Ldap = ldapInterface(a)
@@ -603,3 +593,68 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	a.phase2PermissionsMigrationComplete = isComplete
 	return nil
 }
+
+// func (a *App) DoEmojisPermissionsMigration() {
+// 	// If the migration is already marked as completed, don't do it again.
+// 	if result := <-a.Srv.Store.System().GetByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); result.Err == nil {
+// 		return
+// 	}
+//
+// 	mlog.Info("Migrating emojisto database.")
+// 	if a.Config().ServiceSettings.RestrictCustomEmojiCreation == model.RESTRICT_EMOJI_CREATION_ALL {
+// 	}
+// 	if a.Config().ServiceSettings.RestrictCustomEmojiCreation == model.RESTRICT_EMOJI_CREATION_ALL {
+// 	}
+// 	roles := model.MakeDefaultRoles()
+// 	roles = utils.SetRolePermiemojisssionsFromConfig(roles, a.Config(), a.License() != nil)
+//
+// 	allSucceeded := true
+//
+// 	for _, role := range roles {
+// 		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+// 			// If this failed for reasons other than the role already existing, don't mark the migration as done.
+// 			if result2 := <-a.Srv.Store.Role().GetByName(role.Name); result2.Err != nil {
+// 				mlog.Critical("Failed to migrate role to database.")
+// 				mlog.Critical(fmt.Sprint(result.Err))
+// 				allSucceeded = false
+// 			} else {
+// 				// If the role already existed, check it is the same and update if not.
+// 				fetchedRole := result.Data.(*model.Role)
+// 				if !reflect.DeepEqual(fetchedRole.Permissions, role.Permissions) ||
+// 					fetchedRole.DisplayName != role.DisplayName ||
+// 					fetchedRole.Description != role.Description ||
+// 					fetchedRole.SchemeManaged != role.SchemeManaged {
+// 					role.Id = fetchedRole.Id
+// 					if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+// 						// Role is not the same, but failed to update.
+// 						mlog.Critical("Failed to migrate role to database.")
+// 						mlog.Critical(fmt.Sprint(result.Err))
+// 						allSucceeded = false
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+//
+// 	if !allSucceeded {
+// 		return
+// 	}
+//
+// 	config := a.Config()
+// 	if *config.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_ALWAYS {
+// 		*config.ServiceSettings.PostEditTimeLimit = -1
+// 		if err := a.SaveConfig(config, true); err != nil {
+// 			mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.String("error", err.Error()))
+// 		}
+// 	}
+//
+// 	system := model.System{
+// 		Name:  ADVANCED_PERMISSIONS_MIGRATION_KEY,
+// 		Value: "true",
+// 	}
+//
+// 	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
+// 		mlog.Critical("Failed to mark advanced permissions migration as completed.")
+// 		mlog.Critical(fmt.Sprint(result.Err))
+// 	}
+//}

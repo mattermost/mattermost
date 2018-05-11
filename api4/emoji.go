@@ -33,12 +33,6 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if emojiInterface := c.App.Emoji; emojiInterface != nil &&
-		!emojiInterface.CanUserCreateEmoji(c.Session.Roles, c.Session.TeamMembers) {
-		c.Err = model.NewAppError("getEmoji", "api.emoji.disabled.app_error", nil, "user_id="+c.Session.UserId, http.StatusUnauthorized)
-		return
-	}
-
 	if len(*c.App.Config().FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
