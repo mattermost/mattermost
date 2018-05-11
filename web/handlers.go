@@ -32,7 +32,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		RequireSession: false,
 		TrustRequester: false,
 		RequireMfa:     false,
-		IsStatic:       false,
+		IsStatic:       true,
 	}
 }
 
