@@ -13,6 +13,15 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+func StringInSlice(a string, slice []string) bool {
+	for _, b := range slice {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 func StringArrayIntersection(arr1, arr2 []string) []string {
 	arrMap := map[string]bool{}
 	result := []string{}

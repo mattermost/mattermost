@@ -119,7 +119,9 @@ func (c Client) PresignedPostPolicy(p *PostPolicy) (u *url.URL, formData map[str
 		return nil, nil, err
 	}
 
-	u, err = c.makeTargetURL(bucketName, "", location, nil)
+	isVirtualHost := c.isVirtualHostStyleRequest(*c.endpointURL, bucketName)
+
+	u, err = c.makeTargetURL(bucketName, "", location, isVirtualHost, nil)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -250,7 +250,7 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
 	if err := a.SendMail(user.Email, subject, body.Render()); err != nil {
-		mlog.Warn(fmt.Sprint("api.email_batchings.send_batched_email_notification.send.app_error FIXME: NOT FOUND IN TRANSLATIONS FILE", user.Email, err))
+		mlog.Warn(fmt.Sprintf("Unable to send batched email notification err=%v", err), mlog.String("email", user.Email))
 	}
 }
 

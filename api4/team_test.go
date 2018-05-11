@@ -2015,3 +2015,40 @@ func TestGetTeamIcon(t *testing.T) {
 	_, resp = Client.GetTeamIcon(team.Id, "")
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestRemoveTeamIcon(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	th.LoginTeamAdmin()
+	data, _ := readTestFile("test.png")
+	Client.SetTeamIcon(team.Id, data)
+
+	_, resp := Client.RemoveTeamIcon(team.Id)
+	CheckNoError(t, resp)
+	teamAfter, _ := th.App.GetTeam(team.Id)
+	if teamAfter.LastTeamIconUpdate != 0 {
+		t.Fatal("should update LastTeamIconUpdate to 0")
+	}
+
+	Client.SetTeamIcon(team.Id, data)
+
+	_, resp = th.SystemAdminClient.RemoveTeamIcon(team.Id)
+	CheckNoError(t, resp)
+	teamAfter, _ = th.App.GetTeam(team.Id)
+	if teamAfter.LastTeamIconUpdate != 0 {
+		t.Fatal("should update LastTeamIconUpdate to 0")
+	}
+
+	Client.SetTeamIcon(team.Id, data)
+	Client.Logout()
+
+	_, resp = Client.RemoveTeamIcon(team.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic()
+	_, resp = Client.RemoveTeamIcon(team.Id)
+	CheckForbiddenStatus(t, resp)
+}

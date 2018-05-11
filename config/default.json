@@ -263,6 +263,7 @@
         "NicknameAttribute": "",
         "IdAttribute": "",
         "PositionAttribute": "",
+        "LoginIdAttribute": "",
         "SyncIntervalMinutes": 60,
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,

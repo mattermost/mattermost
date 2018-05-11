@@ -512,15 +512,18 @@ func TestGetAnalyticsOld(t *testing.T) {
 	CheckNoError(t, resp)
 
 	found := false
+	found2 := false
 	for _, row := range rows {
 		if row.Name == "unique_user_count" {
 			found = true
+		} else if row.Name == "inactive_user_count" {
+			found2 = true
+			assert.True(t, row.Value >= 0)
 		}
 	}
 
-	if !found {
-		t.Fatal("should return unique user count")
-	}
+	assert.True(t, found, "should return unique user count")
+	assert.True(t, found2, "should return inactive user count")
 
 	_, resp = th.SystemAdminClient.GetAnalyticsOld("post_counts_day", "")
 	CheckNoError(t, resp)
@@ -531,8 +534,14 @@ func TestGetAnalyticsOld(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetAnalyticsOld("extra_counts", "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetAnalyticsOld("", th.BasicTeam.Id)
+	rows, resp = th.SystemAdminClient.GetAnalyticsOld("", th.BasicTeam.Id)
 	CheckNoError(t, resp)
+
+	for _, row := range rows {
+		if row.Name == "inactive_user_count" {
+			assert.Equal(t, float64(-1), row.Value, "inactive user count should be -1 when team specified")
+		}
+	}
 
 	rows2, resp2 := th.SystemAdminClient.GetAnalyticsOld("standard", "")
 	CheckNoError(t, resp2)
@@ -609,9 +618,14 @@ func TestS3TestConnection(t *testing.T) {
 	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckInternalErrorStatus(t, resp)
-	if resp.Error.Message != "Error checking if bucket exists." {
+	if resp.Error.Message != "Unable to create bucket" {
 		t.Fatal("should return error ")
 	}
+
+	config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+	_, resp = th.SystemAdminClient.TestS3Connection(&config)
+	CheckOKStatus(t, resp)
+
 }
 
 func TestSupportedTimezones(t *testing.T) {

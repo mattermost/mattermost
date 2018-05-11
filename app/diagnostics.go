@@ -138,7 +138,7 @@ func (a *App) trackActivity() {
 		activeUserCount = ucr.Data.(int64)
 	}
 
-	if iucr := <-a.Srv.Store.Status().GetTotalActiveUsersCount(); iucr.Err == nil {
+	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
 		inactiveUserCount = iucr.Data.(int64)
 	}
 
@@ -171,17 +171,17 @@ func (a *App) trackActivity() {
 	}
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
-		"registered_users":          userCount,
-		"active_users":              activeUserCount,
-		"registered_inactive_users": inactiveUserCount,
-		"teams":                     teamCount,
-		"public_channels":           publicChannelCount,
-		"private_channels":          privateChannelCount,
-		"direct_message_channels":   directChannelCount,
-		"public_channels_deleted":   deletedPublicChannelCount,
-		"private_channels_deleted":  deletedPrivateChannelCount,
-		"posts":                     postsCount,
-		"used_apiv3":                atomic.LoadInt32(model.UsedApiV3) == 1,
+		"registered_users":             userCount,
+		"active_users":                 activeUserCount,
+		"registered_deactivated_users": inactiveUserCount,
+		"teams":                    teamCount,
+		"public_channels":          publicChannelCount,
+		"private_channels":         privateChannelCount,
+		"direct_message_channels":  directChannelCount,
+		"public_channels_deleted":  deletedPublicChannelCount,
+		"private_channels_deleted": deletedPrivateChannelCount,
+		"posts":                    postsCount,
+		"used_apiv3":               atomic.LoadInt32(model.UsedApiV3) == 1,
 	})
 
 	atomic.StoreInt32(model.UsedApiV3, 0)
@@ -272,6 +272,7 @@ func (a *App) trackConfig() {
 		"isdefault_user_status_away_timeout":      isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
 		"restrict_private_channel_manage_members": *cfg.TeamSettings.RestrictPrivateChannelManageMembers,
 		"enable_X_to_leave_channels_from_LHS":     *cfg.TeamSettings.EnableXToLeaveChannelsFromLHS,
+		"experimental_enable_automatic_replies":   *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
 		"experimental_town_square_is_read_only":   *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
 		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
 	})

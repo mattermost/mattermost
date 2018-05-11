@@ -31,7 +31,7 @@ func testHooksRPC(hooks interface{}, f func(*RemoteHooks)) error {
 	id, server := c1.Serve()
 	go ServeHooks(hooks, server, c1)
 
-	remote, err := ConnectHooks(c2.Connect(id), c2)
+	remote, err := ConnectHooks(c2.Connect(id), c2, "plugin_id")
 	if err != nil {
 		return err
 	}

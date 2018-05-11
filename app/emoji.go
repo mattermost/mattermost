@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	MaxEmojiFileSize = 1000 * 1024 // 1 MB
+	MaxEmojiFileSize = 1 << 20 // 1 MB
 	MaxEmojiWidth    = 128
 	MaxEmojiHeight   = 128
 )
@@ -96,6 +96,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 			gif_data, err := gif.DecodeAll(file)
 			if err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest)
+
 			}
 			resized_gif := resizeEmojiGif(gif_data)
 			if err = gif.EncodeAll(newbuf, resized_gif); err != nil {
@@ -105,18 +106,24 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 			img, _, err := image.Decode(file)
 			if err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest)
+
 			}
 			resized_image := resizeEmoji(img, config.Width, config.Height)
 			if err = png.Encode(newbuf, resized_image); err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest)
+
 			}
 		}
 		file.Seek(0, 0)
 		_, apperr := a.WriteFile(file, getEmojiImagePath(id))
 		return apperr
 	}
+
 	_, apperr := a.WriteFile(file, getEmojiImagePath(id))
 	return apperr
+
+
+
 }
 
 func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {

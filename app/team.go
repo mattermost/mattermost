@@ -103,6 +103,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.AllowOpenInvite = team.AllowOpenInvite
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
+	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
 
 	if result := <-a.Srv.Store.Team().Update(oldTeam); result.Err != nil {
 		return nil, result.Err
@@ -1007,11 +1008,28 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 	curTime := model.GetMillis()
 
 	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, curTime); result.Err != nil {
-		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SetTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
 	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = curTime
+
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return nil
+}
+
+func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return model.NewAppError("RemoveTeamIcon", "api.team.remove_team_icon.get_team.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, 0); result.Err != nil {
+		return model.NewAppError("RemoveTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	}
+
+	team.LastTeamIconUpdate = 0
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 

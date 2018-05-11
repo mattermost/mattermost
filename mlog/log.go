@@ -29,6 +29,8 @@ type Field = zapcore.Field
 var Int64 = zap.Int64
 var Int = zap.Int
 var String = zap.String
+var Any = zap.Any
+var Err = zap.Error
 
 type LoggerConfiguration struct {
 	EnableConsole bool
@@ -119,7 +121,7 @@ func (l *Logger) With(fields ...Field) *Logger {
 }
 
 func (l *Logger) StdLog(fields ...Field) *log.Logger {
-	return zap.NewStdLog(l.With(fields...).zap)
+	return zap.NewStdLog(l.With(fields...).zap.WithOptions(getStdLogOption()))
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {
