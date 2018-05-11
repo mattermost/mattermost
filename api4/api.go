@@ -243,8 +243,4 @@ func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
 	web.Handle404(api.App, w, r)
 }
 
-func ReturnStatusOK(w http.ResponseWriter) {
-	m := make(map[string]string)
-	m[model.STATUS] = model.STATUS_OK
-	w.Write([]byte(model.MapToJson(m)))
-}
+var ReturnStatusOK = web.ReturnStatusOK

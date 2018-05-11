@@ -32,6 +32,7 @@ func NewWeb(a *app.App, root *mux.Router) *Web {
 
 	web.InitStatic()
 	web.InitWebhooks()
+	web.InitSaml()
 
 	return web
 }
@@ -70,4 +71,10 @@ func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
 
 func IsApiCall(r *http.Request) bool {
 	return strings.Index(r.URL.Path, "/api/") == 0
+}
+
+func ReturnStatusOK(w http.ResponseWriter) {
+	m := make(map[string]string)
+	m[model.STATUS] = model.STATUS_OK
+	w.Write([]byte(model.MapToJson(m)))
 }
