@@ -405,14 +405,11 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
 			return nil, err
 		}
-
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
 		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
-        
 	file.Seek(0,0)
-
 	if info.Size, err = a.WriteFile(file, info.Path); err != nil {
 		return nil, err
 	}
