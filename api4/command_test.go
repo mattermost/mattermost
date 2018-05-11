@@ -5,7 +5,6 @@ package api4
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -392,7 +391,7 @@ func TestRegenToken(t *testing.T) {
 	}
 }
 
-func TestExecuteCommand(t *testing.T) {
+func TestExecutePostCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
@@ -435,7 +434,7 @@ func TestExecuteCommand(t *testing.T) {
 
 	cmdPosted := false
 	for _, post := range posts.Posts {
-		if strings.Contains(post.Message, "test command response") {
+		if post.Message == fmt.Sprintf("test post command response: \ntoken=%s\nteam_domain=%s", postCmd.Token, th.BasicTeam.Name) {
 			if post.Type != "custom_test" {
 				t.Fatal("wrong type set in slash command post")
 			}
@@ -452,6 +451,24 @@ func TestExecuteCommand(t *testing.T) {
 	if !cmdPosted {
 		t.Fatal("Test command response failed to post")
 	}
+}
+
+func TestExecuteGetCommand(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
 	getCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
@@ -465,19 +482,69 @@ func TestExecuteCommand(t *testing.T) {
 		t.Fatal("failed to create get command")
 	}
 
-	commandResponse, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
+	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/getcommand")
 	CheckNoError(t, resp)
 
 	if commandResponse == nil {
 		t.Fatal("command response should have returned")
 	}
 
-	posts, err = th.App.GetPostsPage(channel.Id, 0, 10)
-	if err != nil || posts == nil || len(posts.Order) != 4 {
+	posts, err := th.App.GetPostsPage(channel.Id, 0, 10)
+	if err != nil || posts == nil || len(posts.Order) != 3 {
 		t.Fatal("Test command failed to send")
 	}
 
-	_, resp = Client.ExecuteCommand(channel.Id, "")
+	cmdReceived := false
+	for _, post := range posts.Posts {
+		if post.Message == fmt.Sprintf("test get command response: \ntoken=%s\nteam_domain=%s", getCmd.Token, th.BasicTeam.Name) {
+			if post.Type != "custom_test" {
+				t.Fatal("wrong type set in slash command post")
+			}
+
+			if post.Props["someprop"] != "somevalue" {
+				t.Fatal("wrong prop set in slash command post")
+			}
+
+			cmdReceived = true
+			break
+		}
+	}
+
+	if !cmdReceived {
+		t.Fatal("Test command response failed to be received")
+	}
+}
+
+func TestExecuteInvalidCommand(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
+
+	getCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		Method:    model.COMMAND_METHOD_GET,
+		Trigger:   "getcommand",
+	}
+
+	if _, err := th.App.CreateCommand(getCmd); err != nil {
+		t.Fatal("failed to create get command")
+	}
+
+	_, resp := Client.ExecuteCommand(channel.Id, "")
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.ExecuteCommand(channel.Id, "/")

@@ -230,12 +230,14 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 					p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 				}
 
-				method := "POST"
+				var req *http.Request
 				if cmd.Method == model.COMMAND_METHOD_GET {
-					method = "GET"
+					req, _ = http.NewRequest(http.MethodGet, cmd.URL, nil)
+					req.URL.RawQuery = p.Encode()
+				} else {
+					req, _ = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 				}
 
-				req, _ := http.NewRequest(method, cmd.URL, strings.NewReader(p.Encode()))
 				req.Header.Set("Accept", "application/json")
 				req.Header.Set("Authorization", "Token "+cmd.Token)
 				if cmd.Method == model.COMMAND_METHOD_POST {
