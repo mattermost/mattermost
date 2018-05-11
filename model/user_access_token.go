@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/json-iterator/go"
 )
 
 type UserAccessToken struct {
@@ -43,7 +45,7 @@ func (t *UserAccessToken) PreSave() {
 }
 
 func (t *UserAccessToken) ToJson() string {
-	b, _ := json.Marshal(t)
+	b, _ := jsoniter.Marshal(t)
 	return string(b)
 }
 
@@ -54,7 +56,7 @@ func UserAccessTokenFromJson(data io.Reader) *UserAccessToken {
 }
 
 func UserAccessTokenListToJson(t []*UserAccessToken) string {
-	b, _ := json.Marshal(t)
+	b, _ := jsoniter.Marshal(t)
 	return string(b)
 }
 

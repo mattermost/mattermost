@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/json-iterator/go"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -23,7 +24,7 @@ type CommandArgs struct {
 }
 
 func (o *CommandArgs) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

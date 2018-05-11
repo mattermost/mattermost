@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type InitialLoad struct {
@@ -19,7 +21,7 @@ type InitialLoad struct {
 }
 
 func (me *InitialLoad) ToJson() string {
-	b, _ := json.Marshal(me)
+	b, _ := jsoniter.Marshal(me)
 	return string(b)
 }
 

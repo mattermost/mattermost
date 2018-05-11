@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -71,7 +73,7 @@ func (j *Job) IsValid() *AppError {
 }
 
 func (js *Job) ToJson() string {
-	b, _ := json.Marshal(js)
+	b, _ := jsoniter.Marshal(js)
 	return string(b)
 }
 
@@ -85,7 +87,7 @@ func JobFromJson(data io.Reader) *Job {
 }
 
 func JobsToJson(jobs []*Job) string {
-	b, _ := json.Marshal(jobs)
+	b, _ := jsoniter.Marshal(jobs)
 	return string(b)
 }
 
@@ -99,7 +101,7 @@ func JobsFromJson(data io.Reader) []*Job {
 }
 
 func (js *Job) DataToJson() string {
-	b, _ := json.Marshal(js.Data)
+	b, _ := jsoniter.Marshal(js.Data)
 	return string(b)
 }
 

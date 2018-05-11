@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"strings"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -46,7 +48,7 @@ type RolePatch struct {
 }
 
 func (role *Role) ToJson() string {
-	b, _ := json.Marshal(role)
+	b, _ := jsoniter.Marshal(role)
 	return string(b)
 }
 
@@ -57,7 +59,7 @@ func RoleFromJson(data io.Reader) *Role {
 }
 
 func RoleListToJson(r []*Role) string {
-	b, _ := json.Marshal(r)
+	b, _ := jsoniter.Marshal(r)
 	return string(b)
 }
 
@@ -68,7 +70,7 @@ func RoleListFromJson(data io.Reader) []*Role {
 }
 
 func (r *RolePatch) ToJson() string {
-	b, _ := json.Marshal(r)
+	b, _ := jsoniter.Marshal(r)
 	return string(b)
 }
 

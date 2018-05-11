@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"sort"
+
+	"github.com/json-iterator/go"
 )
 
 type PostList struct {
@@ -43,7 +45,7 @@ func (o *PostList) StripActionIntegrations() {
 func (o *PostList) ToJson() string {
 	copy := *o
 	copy.StripActionIntegrations()
-	b, err := json.Marshal(&copy)
+	b, err := jsoniter.Marshal(&copy)
 	if err != nil {
 		return ""
 	} else {

@@ -74,7 +74,7 @@ import (
 				break
 			} else {
 				var response model.WebSocketResponse
-				if err := json.Unmarshal(rawMsg, &response); err != nil && !response.IsValid() {
+				if err := jsoniter.Unmarshal(rawMsg, &response); err != nil && !response.IsValid() {
 					t.Fatal("should not have failed")
 				} else {
 					if response.Error == nil || response.Error.Id != "api.web_socket_router.not_authenticated.app_error" {
@@ -102,7 +102,7 @@ import (
 			t.Fatal("should not have closed automatically")
 		} else {
 			var event model.WebSocketEvent
-			if err := json.Unmarshal(rawMsg, &event); err != nil && !event.IsValid() {
+			if err := jsoniter.Unmarshal(rawMsg, &event); err != nil && !event.IsValid() {
 				t.Fatal("should not have failed")
 			} else if event.Event != model.WEBSOCKET_EVENT_HELLO {
 				t.Log(event.ToJson())

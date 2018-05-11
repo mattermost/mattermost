@@ -4,11 +4,11 @@
 package app
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
@@ -27,10 +27,10 @@ type PluginKeyValueStore struct {
 }
 
 func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
-	if b, err := json.Marshal(api.app.Config().PluginSettings.Plugins[api.id]); err != nil {
+	if b, err := jsoniter.Marshal(api.app.Config().PluginSettings.Plugins[api.id]); err != nil {
 		return err
 	} else {
-		return json.Unmarshal(b, dest)
+		return jsoniter.Unmarshal(b, dest)
 	}
 }
 
@@ -193,10 +193,10 @@ type BuiltInPluginAPI struct {
 }
 
 func (api *BuiltInPluginAPI) LoadPluginConfiguration(dest interface{}) error {
-	if b, err := json.Marshal(api.app.Config().PluginSettings.Plugins[api.id]); err != nil {
+	if b, err := jsoniter.Marshal(api.app.Config().PluginSettings.Plugins[api.id]); err != nil {
 		return err
 	} else {
-		return json.Unmarshal(b, dest)
+		return jsoniter.Unmarshal(b, dest)
 	}
 }
 

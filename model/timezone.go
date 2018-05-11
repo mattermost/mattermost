@@ -6,12 +6,14 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type SupportedTimezones []string
 
 func TimezonesToJson(timezoneList []string) string {
-	b, _ := json.Marshal(timezoneList)
+	b, _ := jsoniter.Marshal(timezoneList)
 	return string(b)
 }
 

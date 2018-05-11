@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/utils/jsonutils"
 )
 
@@ -29,7 +30,7 @@ type CommandResponse struct {
 }
 
 func (o *CommandResponse) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

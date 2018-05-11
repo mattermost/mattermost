@@ -10,6 +10,8 @@ import (
 	"io"
 	"sort"
 	"strconv"
+
+	"github.com/json-iterator/go"
 )
 
 type ChannelCounts struct {
@@ -43,7 +45,7 @@ func (o *ChannelCounts) Etag() string {
 }
 
 func (o *ChannelCounts) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type ClusterInfo struct {
@@ -17,7 +19,7 @@ type ClusterInfo struct {
 }
 
 func (me *ClusterInfo) ToJson() string {
-	b, _ := json.Marshal(me)
+	b, _ := jsoniter.Marshal(me)
 	return string(b)
 }
 
@@ -28,7 +30,7 @@ func ClusterInfoFromJson(data io.Reader) *ClusterInfo {
 }
 
 func ClusterInfosToJson(objmap []*ClusterInfo) string {
-	b, _ := json.Marshal(objmap)
+	b, _ := jsoniter.Marshal(objmap)
 	return string(b)
 }
 

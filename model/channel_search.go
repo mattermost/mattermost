@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type ChannelSearch struct {
@@ -14,7 +16,7 @@ type ChannelSearch struct {
 
 // ToJson convert a Channel to a json string
 func (c *ChannelSearch) ToJson() string {
-	b, _ := json.Marshal(c)
+	b, _ := jsoniter.Marshal(c)
 	return string(b)
 }
 

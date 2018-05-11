@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type UserAutocompleteInChannel struct {
@@ -23,7 +25,7 @@ type UserAutocomplete struct {
 }
 
 func (o *UserAutocomplete) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -39,7 +41,7 @@ func UserAutocompleteFromJson(data io.Reader) *UserAutocomplete {
 }
 
 func (o *UserAutocompleteInChannel) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -50,7 +52,7 @@ func UserAutocompleteInChannelFromJson(data io.Reader) *UserAutocompleteInChanne
 }
 
 func (o *UserAutocompleteInTeam) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

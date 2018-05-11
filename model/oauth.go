@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"unicode/utf8"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -110,7 +112,7 @@ func (a *OAuthApp) PreUpdate() {
 
 // ToJson convert a User to a json string
 func (a *OAuthApp) ToJson() string {
-	b, _ := json.Marshal(a)
+	b, _ := jsoniter.Marshal(a)
 	return string(b)
 }
 
@@ -142,7 +144,7 @@ func OAuthAppFromJson(data io.Reader) *OAuthApp {
 }
 
 func OAuthAppListToJson(l []*OAuthApp) string {
-	b, _ := json.Marshal(l)
+	b, _ := jsoniter.Marshal(l)
 	return string(b)
 }
 

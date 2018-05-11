@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"math/big"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -24,7 +26,7 @@ type System struct {
 }
 
 func (o *System) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

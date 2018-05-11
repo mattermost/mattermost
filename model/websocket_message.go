@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -83,9 +85,9 @@ type WebSocketEvent struct {
 // PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
 // This makes ToJson much more efficient when sending the same event to multiple connections.
 func (m *WebSocketEvent) PrecomputeJSON() {
-	event, _ := json.Marshal(m.Event)
-	data, _ := json.Marshal(m.Data)
-	broadcast, _ := json.Marshal(m.Broadcast)
+	event, _ := jsoniter.Marshal(m.Event)
+	data, _ := jsoniter.Marshal(m.Data)
+	broadcast, _ := jsoniter.Marshal(m.Broadcast)
 	m.precomputedJSON = &precomputedWebSocketEventJSON{
 		Event:     json.RawMessage(event),
 		Data:      json.RawMessage(data),
@@ -114,7 +116,7 @@ func (o *WebSocketEvent) ToJson() string {
 	if o.precomputedJSON != nil {
 		return fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, o.precomputedJSON.Event, o.precomputedJSON.Data, o.precomputedJSON.Broadcast, o.Sequence)
 	}
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -152,7 +154,7 @@ func (o *WebSocketResponse) EventType() string {
 }
 
 func (o *WebSocketResponse) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

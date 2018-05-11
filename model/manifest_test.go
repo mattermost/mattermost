@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +12,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -115,7 +115,7 @@ settings_schema:
 	assert.Equal(t, expected, yamlResult)
 
 	var jsonResult Manifest
-	require.NoError(t, json.Unmarshal([]byte(`{
+	require.NoError(t, jsoniter.Unmarshal([]byte(`{
 	"id": "theid",
 	"backend": {
 		"executable": "theexecutable"

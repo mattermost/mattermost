@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type EmojiSearch struct {
@@ -14,7 +16,7 @@ type EmojiSearch struct {
 }
 
 func (es *EmojiSearch) ToJson() string {
-	b, _ := json.Marshal(es)
+	b, _ := jsoniter.Marshal(es)
 	return string(b)
 }
 

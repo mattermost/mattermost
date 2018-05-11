@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type SuggestCommand struct {
@@ -14,7 +16,7 @@ type SuggestCommand struct {
 }
 
 func (o *SuggestCommand) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

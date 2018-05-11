@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -40,7 +42,7 @@ type IncomingWebhookRequest struct {
 }
 
 func (o *IncomingWebhook) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -51,7 +53,7 @@ func IncomingWebhookFromJson(data io.Reader) *IncomingWebhook {
 }
 
 func IncomingWebhookListToJson(l []*IncomingWebhook) string {
-	b, _ := json.Marshal(l)
+	b, _ := jsoniter.Marshal(l)
 	return string(b)
 }
 
@@ -206,7 +208,7 @@ func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *A
 }
 
 func (o *IncomingWebhookRequest) ToJson() string {
-	b, err := json.Marshal(o)
+	b, err := jsoniter.Marshal(o)
 	if err != nil {
 		return ""
 	} else {

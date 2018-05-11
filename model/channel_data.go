@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type ChannelData struct {
@@ -23,7 +25,7 @@ func (o *ChannelData) Etag() string {
 }
 
 func (o *ChannelData) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -1795,14 +1797,14 @@ type Config struct {
 
 func (o *Config) Clone() *Config {
 	var ret Config
-	if err := json.Unmarshal([]byte(o.ToJson()), &ret); err != nil {
+	if err := jsoniter.Unmarshal([]byte(o.ToJson()), &ret); err != nil {
 		panic(err)
 	}
 	return &ret
 }
 
 func (o *Config) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

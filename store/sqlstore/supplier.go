@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"context"
 	dbsql "database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	sqltrace "log"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/json-iterator/go"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -898,7 +898,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 				return errors.New(utils.T("store.sql.convert_string_map"))
 			}
 			b := []byte(*s)
-			return json.Unmarshal(b, target)
+			return jsoniter.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *map[string]string:
@@ -908,7 +908,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 				return errors.New(utils.T("store.sql.convert_string_map"))
 			}
 			b := []byte(*s)
-			return json.Unmarshal(b, target)
+			return jsoniter.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *model.StringArray:
@@ -918,7 +918,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 				return errors.New(utils.T("store.sql.convert_string_array"))
 			}
 			b := []byte(*s)
-			return json.Unmarshal(b, target)
+			return jsoniter.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *model.StringInterface:
@@ -928,7 +928,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 				return errors.New(utils.T("store.sql.convert_string_interface"))
 			}
 			b := []byte(*s)
-			return json.Unmarshal(b, target)
+			return jsoniter.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *map[string]interface{}:
@@ -938,7 +938,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 				return errors.New(utils.T("store.sql.convert_string_interface"))
 			}
 			b := []byte(*s)
-			return json.Unmarshal(b, target)
+			return jsoniter.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	}

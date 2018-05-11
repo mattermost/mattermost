@@ -4,12 +4,13 @@
 package app
 
 import (
-	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/json-iterator/go"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -345,7 +346,7 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 	if manifestCopy.Backend == nil {
 		manifestCopy.Backend = &model.ManifestBackend{}
 	}
-	manifestBytes, err := json.Marshal(&manifestCopy)
+	manifestBytes, err := jsoniter.Marshal(&manifestCopy)
 	if err != nil {
 		panic(err)
 	}

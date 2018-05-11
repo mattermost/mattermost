@@ -4,7 +4,6 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"reflect"
@@ -12,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -39,7 +39,7 @@ func mapping() (map[string]map[string][]RoleState, error) {
 	}
 
 	var f map[string]interface{}
-	err = json.Unmarshal(raw, &f)
+	err = jsoniter.Unmarshal(raw, &f)
 	if err != nil {
 		return policiesRolesMapping, err
 	}
@@ -54,9 +54,9 @@ func mapping() (map[string]map[string][]RoleState, error) {
 			var roleStates []RoleState
 			for _, roleStateMapping := range roleStatesMappings.([]interface{}) {
 
-				roleStateMappingJSON, _ := json.Marshal(roleStateMapping)
+				roleStateMappingJSON, _ := jsoniter.Marshal(roleStateMapping)
 				var roleState RoleState
-				_ = json.Unmarshal(roleStateMappingJSON, &roleState)
+				_ = jsoniter.Unmarshal(roleStateMappingJSON, &roleState)
 
 				roleStates = append(roleStates, roleState)
 

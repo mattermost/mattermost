@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -28,7 +30,7 @@ type Status struct {
 }
 
 func (o *Status) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -39,7 +41,7 @@ func StatusFromJson(data io.Reader) *Status {
 }
 
 func StatusListToJson(u []*Status) string {
-	b, _ := json.Marshal(u)
+	b, _ := jsoniter.Marshal(u)
 	return string(b)
 }
 

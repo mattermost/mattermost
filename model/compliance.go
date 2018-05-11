@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -38,7 +40,7 @@ type Compliance struct {
 type Compliances []Compliance
 
 func (o *Compliance) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -105,7 +107,7 @@ func ComplianceFromJson(data io.Reader) *Compliance {
 }
 
 func (o Compliances) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	if b, err := jsoniter.Marshal(o); err != nil {
 		return "[]"
 	} else {
 		return string(b)

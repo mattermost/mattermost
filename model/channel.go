@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -61,12 +63,12 @@ func (o *Channel) DeepCopy() *Channel {
 }
 
 func (o *Channel) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
 func (o *ChannelPatch) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 

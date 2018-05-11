@@ -4,10 +4,10 @@
 package app
 
 import (
-	"encoding/json"
 	"runtime"
 	"sync/atomic"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/segmentio/analytics-go"
@@ -99,10 +99,10 @@ func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, def
 		return defaultValue
 	}
 	var m map[string]interface{}
-	if b, err := json.Marshal(settings); err != nil {
+	if b, err := jsoniter.Marshal(settings); err != nil {
 		return defaultValue
 	} else {
-		json.Unmarshal(b, &m)
+		jsoniter.Unmarshal(b, &m)
 	}
 	if value, ok := m[key]; ok {
 		return value

@@ -9,9 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
-
-	"encoding/json"
 
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/utils"
@@ -30,7 +29,7 @@ func TestConfigFlag(t *testing.T) {
 
 	timezones := utils.LoadTimezones("timezones.json")
 	tzConfigPath := filepath.Join(dir, "timezones.json")
-	timezoneData, _ := json.Marshal(timezones)
+	timezoneData, _ := jsoniter.Marshal(timezones)
 	require.NoError(t, ioutil.WriteFile(tzConfigPath, timezoneData, 0600))
 
 	i18n, ok := utils.FindDir("i18n")

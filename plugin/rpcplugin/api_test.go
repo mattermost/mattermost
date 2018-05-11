@@ -1,12 +1,12 @@
 package rpcplugin
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
 
+	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -49,7 +49,7 @@ func TestAPI(t *testing.T) {
 
 	api.On("LoadPluginConfiguration", mock.MatchedBy(func(x interface{}) bool { return true })).Run(func(args mock.Arguments) {
 		dest := args.Get(0).(interface{})
-		json.Unmarshal([]byte(`{"Foo": "foo", "Bar": {"Baz": "baz"}}`), dest)
+		jsoniter.Unmarshal([]byte(`{"Foo": "foo", "Bar": {"Baz": "baz"}}`), dest)
 	}).Return(nil)
 
 	testChannel := &model.Channel{

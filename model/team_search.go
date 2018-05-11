@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/json-iterator/go"
 )
 
 type TeamSearch struct {
@@ -14,7 +16,7 @@ type TeamSearch struct {
 
 // ToJson convert a TeamSearch to json string
 func (c *TeamSearch) ToJson() string {
-	b, err := json.Marshal(c)
+	b, err := jsoniter.Marshal(c)
 	if err != nil {
 		return ""
 	}

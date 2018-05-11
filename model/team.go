@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -69,12 +71,12 @@ func (o *Invites) ToEmailList() []string {
 }
 
 func (o *Invites) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
 func (o *Team) ToJson() string {
-	b, _ := json.Marshal(o)
+	b, _ := jsoniter.Marshal(o)
 	return string(b)
 }
 
@@ -85,7 +87,7 @@ func TeamFromJson(data io.Reader) *Team {
 }
 
 func TeamMapToJson(u map[string]*Team) string {
-	b, _ := json.Marshal(u)
+	b, _ := jsoniter.Marshal(u)
 	return string(b)
 }
 
@@ -96,7 +98,7 @@ func TeamMapFromJson(data io.Reader) map[string]*Team {
 }
 
 func TeamListToJson(t []*Team) string {
-	b, _ := json.Marshal(t)
+	b, _ := jsoniter.Marshal(t)
 	return string(b)
 }
 
@@ -266,7 +268,7 @@ func (t *Team) Patch(patch *TeamPatch) {
 }
 
 func (t *TeamPatch) ToJson() string {
-	b, err := json.Marshal(t)
+	b, err := jsoniter.Marshal(t)
 	if err != nil {
 		return ""
 	}

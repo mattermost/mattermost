@@ -4,9 +4,9 @@
 package utils
 
 import (
-	"encoding/json"
 	"io/ioutil"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -17,7 +17,7 @@ func LoadTimezones(fileName string) model.SupportedTimezones {
 		return model.DefaultSupportedTimezones
 	} else if raw, err := ioutil.ReadFile(timezoneFile); err != nil {
 		return model.DefaultSupportedTimezones
-	} else if err := json.Unmarshal(raw, &supportedTimezones); err != nil {
+	} else if err := jsoniter.Unmarshal(raw, &supportedTimezones); err != nil {
 		return model.DefaultSupportedTimezones
 	} else {
 		return supportedTimezones

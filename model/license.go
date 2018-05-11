@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -169,7 +171,7 @@ func (l *License) IsStarted() bool {
 }
 
 func (l *License) ToJson() string {
-	b, _ := json.Marshal(l)
+	b, _ := jsoniter.Marshal(l)
 	return string(b)
 }
 
@@ -186,8 +188,8 @@ func NewTestLicense(features ...string) *License {
 	for _, feature := range features {
 		featureMap[feature] = true
 	}
-	featureJson, _ := json.Marshal(featureMap)
-	json.Unmarshal(featureJson, &ret.Features)
+	featureJson, _ := jsoniter.Marshal(featureMap)
+	jsoniter.Unmarshal(featureJson, &ret.Features)
 
 	return ret
 }

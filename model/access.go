@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/json-iterator/go"
 )
 
 const (
@@ -74,7 +76,7 @@ func (me *AccessData) IsExpired() bool {
 }
 
 func (ad *AccessData) ToJson() string {
-	b, _ := json.Marshal(ad)
+	b, _ := jsoniter.Marshal(ad)
 	return string(b)
 }
 
@@ -85,7 +87,7 @@ func AccessDataFromJson(data io.Reader) *AccessData {
 }
 
 func (ar *AccessResponse) ToJson() string {
-	b, _ := json.Marshal(ar)
+	b, _ := jsoniter.Marshal(ar)
 	return string(b)
 }
 

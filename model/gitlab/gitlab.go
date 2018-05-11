@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/json-iterator/go"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -66,7 +67,7 @@ func gitLabUserFromJson(data io.Reader) *GitLabUser {
 }
 
 func (glu *GitLabUser) ToJson() string {
-	b, err := json.Marshal(glu)
+	b, err := jsoniter.Marshal(glu)
 	if err != nil {
 		return ""
 	} else {
