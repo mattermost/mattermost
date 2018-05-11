@@ -143,3 +143,12 @@ func (l *Logger) Error(message string, fields ...Field) {
 func (l *Logger) Critical(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
 }
+
+// DoWithLogLevel allow for execution of code with the log level temporarily set to the parameter value,
+// after which the log level returns to its original value.
+func (l *Logger) DoWithLogLevel(level string, f func()) {
+	origLevel := l.consoleLevel.Level()
+	l.consoleLevel.SetLevel(getZapLevel(level))
+	defer globalLogger.consoleLevel.SetLevel(origLevel)
+	f()
+}
