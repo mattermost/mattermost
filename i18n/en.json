@@ -272,6 +272,18 @@
     "translation": "The channel requested to convert is already a private channel."
   },
   {
+    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
+    "translation": "We could not reset the channel schemes"
+  },
+  {
+    "id": "store.sql_scheme.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete the schemes"
+  },
+  {
+    "id": "store.sql_team.reset_all_team_schemes.app_error",
+    "translation": "We could not reset the team schemes"
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation"
   },
