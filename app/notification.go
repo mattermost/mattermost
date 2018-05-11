@@ -919,12 +919,13 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 
 			// remove trailing '.', as that is the end of a sentence
 			foundWithSuffix := false
-
-			for strings.HasSuffix(word, ".") {
-				word = strings.TrimSuffix(word, ".")
-				if checkForMention(word) {
-					foundWithSuffix = true
-					break
+			for _, suffixPunctuation := range []string{".", ":"} {
+				for strings.HasSuffix(word, suffixPunctuation) {
+					word = strings.TrimSuffix(word, suffixPunctuation)
+					if checkForMention(word) {
+						foundWithSuffix = true
+						break
+					}
 				}
 			}
 
