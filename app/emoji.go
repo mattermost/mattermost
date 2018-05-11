@@ -118,12 +118,8 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 		_, apperr := a.WriteFile(file, getEmojiImagePath(id))
 		return apperr
 	}
-
 	_, apperr := a.WriteFile(file, getEmojiImagePath(id))
 	return apperr
-
-
-
 }
 
 func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
