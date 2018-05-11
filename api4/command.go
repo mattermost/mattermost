@@ -4,8 +4,8 @@
 package api4
 
 import (
+	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -23,8 +23,8 @@ func (api *API) InitCommand() {
 	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
 	api.BaseRoutes.Command.Handle("/regen_token", api.ApiSessionRequired(regenCommandToken)).Methods("PUT")
 
-	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testGetCommand)).Methods("GET")
-	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testPostCommand)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testCommand)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testCommand)).Methods("GET")
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -292,46 +292,20 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(resp)))
 }
 
-func testGetCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+func testCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	if r.Method != http.MethodGet {
-		c.Err = model.NewAppError("testGetCommand", "api.command.invalid_method.app_error", nil, "", http.StatusBadRequest)
-		return
+	msg := ""
+	if r.Method == "POST" {
+		msg = msg + "\ntoken=" + r.FormValue("token")
+		msg = msg + "\nteam_domain=" + r.FormValue("team_domain")
+	} else {
+		body, _ := ioutil.ReadAll(r.Body)
+		msg = string(body)
 	}
-
-	values, err := url.ParseQuery(r.URL.RawQuery)
-	if err != nil {
-		c.Err = model.NewAppError("testGetCommand", "api.command.invalid_query_string.app_error", nil, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	msg := "\ntoken=" + values.Get("token")
-	msg = msg + "\nteam_domain=" + values.Get("team_domain")
 
 	rc := &model.CommandResponse{
-		Text:         "test get command response: " + msg,
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
-		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
-	}
-
-	w.Write([]byte(rc.ToJson()))
-}
-
-func testPostCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-
-	if r.Method != http.MethodPost {
-		c.Err = model.NewAppError("testPostCommand", "api.command.invalid_method.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	msg := "\ntoken=" + r.FormValue("token")
-	msg = msg + "\nteam_domain=" + r.FormValue("team_domain")
-
-	rc := &model.CommandResponse{
-		Text:         "test post command response: " + msg,
+		Text:         "test command response " + msg,
 		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
 		Type:         "custom_test",
 		Props:        map[string]interface{}{"someprop": "somevalue"},
