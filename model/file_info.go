@@ -10,6 +10,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -125,7 +126,8 @@ func GetInfoForBytes(name string, file io.ReadSeeker) (*FileInfo, *AppError) {
 	} else {
 		info.Extension = extension
 	}
-
+	info.Size, _ = file.Seek(0, os.SEEK_END)
+	file.Seek(0, 0)
 	if info.IsImage() {
 		// Only set the width and height if it's actually an image that we can understand
 		if config, _, err := image.DecodeConfig(file); err == nil {

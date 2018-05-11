@@ -85,6 +85,8 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect filename: %v", info.Name)
 	} else if info.Extension != "txt" {
 		t.Fatalf("Got incorrect extension: %v", info.Extension)
+	} else if info.Size != 1000 {
+		t.Fatalf("Got incorrect size: %v", info.Size)
 	} else if !strings.HasPrefix(info.MimeType, "text/plain") {
 		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
 	} else if info.Width != 0 {
@@ -96,7 +98,6 @@ func TestGetInfoForFile(t *testing.T) {
 	}
 
 	pngFile, err := os.Open("../tests/test.png")
-	defer pngFile.Close()
 	if err != nil {
 		t.Fatalf("Failed to load test.png: %v", err.Error())
 	}
@@ -137,7 +138,7 @@ func TestGetInfoForFile(t *testing.T) {
 	} else if !info.HasPreviewImage {
 		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
-	animatedGifFile, err := os.Open("../tests/ttestgif.gif")
+	animatedGifFile, err := os.Open("../tests/testgif.gif")
 	defer animatedGifFile.Close()
 	if err != nil {
 		t.Fatalf("Failed to load testgif.gif: %v", err.Error())
