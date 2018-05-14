@@ -12,7 +12,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/model"
@@ -60,8 +59,7 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.Router, false)
-	api.Init(a, a.Srv.Router)
+	api4.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
@@ -82,8 +80,7 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.Router, false)
-	api.Init(a, a.Srv.Router)
+	api4.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	a.UpdateConfig(setupClientTests)
 

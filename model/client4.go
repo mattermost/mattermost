@@ -13,6 +13,33 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
+)
+
+const (
+	HEADER_REQUEST_ID         = "X-Request-ID"
+	HEADER_VERSION_ID         = "X-Version-ID"
+	HEADER_CLUSTER_ID         = "X-Cluster-ID"
+	HEADER_ETAG_SERVER        = "ETag"
+	HEADER_ETAG_CLIENT        = "If-None-Match"
+	HEADER_FORWARDED          = "X-Forwarded-For"
+	HEADER_REAL_IP            = "X-Real-IP"
+	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
+	HEADER_TOKEN              = "token"
+	HEADER_BEARER             = "BEARER"
+	HEADER_AUTH               = "Authorization"
+	HEADER_REQUESTED_WITH     = "X-Requested-With"
+	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
+	STATUS                    = "status"
+	STATUS_OK                 = "OK"
+	STATUS_FAIL               = "FAIL"
+	STATUS_REMOVE             = "REMOVE"
+
+	CLIENT_DIR = "client"
+
+	API_URL_SUFFIX_V1 = "/api/v1"
+	API_URL_SUFFIX_V4 = "/api/v4"
+	API_URL_SUFFIX    = API_URL_SUFFIX_V4
 )
 
 type Response struct {
@@ -30,6 +57,24 @@ type Client4 struct {
 	HttpClient *http.Client // The http client
 	AuthToken  string
 	AuthType   string
+}
+
+func closeBody(r *http.Response) {
+	if r.Body != nil {
+		ioutil.ReadAll(r.Body)
+		r.Body.Close()
+	}
+}
+
+// Must is a convenience function used for testing.
+func (c *Client4) Must(result interface{}, resp *Response) interface{} {
+	if resp.Error != nil {
+
+		time.Sleep(time.Second)
+		panic(resp.Error)
+	}
+
+	return result
 }
 
 func NewAPIv4Client(url string) *Client4 {
@@ -62,6 +107,11 @@ func BuildResponse(r *http.Response) *Response {
 		ServerVersion: r.Header.Get(HEADER_VERSION_ID),
 		Header:        r.Header,
 	}
+}
+
+func (c *Client4) MockSession(sessionToken string) {
+	c.AuthToken = sessionToken
+	c.AuthType = HEADER_BEARER
 }
 
 func (c *Client4) SetOAuthToken(token string) {

@@ -14,7 +14,7 @@ type TeamEnvironment struct {
 }
 
 type AutoTeamCreator struct {
-	client        *model.Client
+	client        *model.Client4
 	Fuzzy         bool
 	NameLength    utils.Range
 	NameCharset   string
@@ -24,7 +24,7 @@ type AutoTeamCreator struct {
 	EmailCharset  string
 }
 
-func NewAutoTeamCreator(client *model.Client) *AutoTeamCreator {
+func NewAutoTeamCreator(client *model.Client4) *AutoTeamCreator {
 	return &AutoTeamCreator{
 		client:        client,
 		Fuzzy:         false,
@@ -57,11 +57,10 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, bool) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	result, err := cfg.client.CreateTeam(team)
+	createdTeam, err := cfg.client.CreateTeam(team)
 	if err != nil {
 		return nil, false
 	}
-	createdTeam := result.Data.(*model.Team)
 	return createdTeam, true
 }
 

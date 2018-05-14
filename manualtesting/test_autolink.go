@@ -31,6 +31,6 @@ func testAutoLink(env TestEnvironment) *model.AppError {
 	post := &model.Post{
 		ChannelId: channelID,
 		Message:   LINK_POST_TEXT}
-	_, err2 := env.Client.CreatePost(post)
-	return err2
+	_, resp := env.Client.CreatePost(post)
+	return resp.Error
 }

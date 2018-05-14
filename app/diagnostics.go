@@ -6,7 +6,6 @@ package app
 import (
 	"encoding/json"
 	"runtime"
-	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -181,10 +180,7 @@ func (a *App) trackActivity() {
 		"public_channels_deleted":  deletedPublicChannelCount,
 		"private_channels_deleted": deletedPrivateChannelCount,
 		"posts":                    postsCount,
-		"used_apiv3":               atomic.LoadInt32(model.UsedApiV3) == 1,
 	})
-
-	atomic.StoreInt32(model.UsedApiV3, 0)
 }
 
 func (a *App) trackConfig() {

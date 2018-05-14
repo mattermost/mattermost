@@ -7,17 +7,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
 )
 
 func TestJoinChannel(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
-	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+	channel := th.CreatePublicChannel()
 
 	cmd.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
 
@@ -29,10 +29,10 @@ func TestJoinChannel(t *testing.T) {
 }
 
 func TestRemoveChannel(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
-	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+	channel := th.CreatePublicChannel()
 
 	cmd.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
 
@@ -46,12 +46,11 @@ func TestRemoveChannel(t *testing.T) {
 }
 
 func TestMoveChannel(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
-	client := th.BasicClient
 	team1 := th.BasicTeam
-	team2 := th.CreateTeam(client)
+	team2 := th.CreateTeam()
 	user1 := th.BasicUser
 	th.LinkUserToTeam(user1, team2)
 	channel := th.BasicChannel
@@ -73,11 +72,11 @@ func TestMoveChannel(t *testing.T) {
 }
 
 func TestListChannels(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
-	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
-	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
+	channel := th.CreatePublicChannel()
+	th.Client.Must(th.Client.DeleteChannel(channel.Id))
 
 	output := cmd.CheckCommand(t, "channel", "list", th.BasicTeam.Name)
 
@@ -91,11 +90,11 @@ func TestListChannels(t *testing.T) {
 }
 
 func TestRestoreChannel(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
-	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
-	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
+	channel := th.CreatePublicChannel()
+	th.Client.Must(th.Client.DeleteChannel(channel.Id))
 
 	cmd.CheckCommand(t, "channel", "restore", th.BasicTeam.Name+":"+channel.Name)
 
@@ -104,7 +103,7 @@ func TestRestoreChannel(t *testing.T) {
 }
 
 func TestCreateChannel(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
