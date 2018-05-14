@@ -66,7 +66,6 @@ func Setup() *TestHelper {
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
-		*cfg.ServiceSettings.EnableAPIv3 = true
 	})
 
 	th := &TestHelper{

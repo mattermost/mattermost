@@ -195,7 +195,6 @@ func (a *App) trackConfig() {
 		"enable_only_admin_integrations":                          *cfg.ServiceSettings.EnableOnlyAdminIntegrations,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                               cfg.ServiceSettings.EnablePostIconOverride,
-		"enable_apiv3":                                            *cfg.ServiceSettings.EnableAPIv3,
 		"enable_user_access_tokens":                               *cfg.ServiceSettings.EnableUserAccessTokens,
 		"enable_custom_emoji":                                     *cfg.ServiceSettings.EnableCustomEmoji,
 		"enable_emoji_picker":                                     *cfg.ServiceSettings.EnableEmojiPicker,
