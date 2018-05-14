@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ func TestIncomingWebhook(t *testing.T) {
 	defer th.TearDown()
 
 	if !th.App.Config().ServiceSettings.EnableIncomingWebhooks {
-		_, err := ApiClient.PostToWebhook("123", "123")
+		_, err := http.Post(ApiClient.Url+"/hooks/123", "", strings.NewReader("123"))
 		assert.NotNil(t, err, "should have errored - webhooks turned off")
 		return
 	}
@@ -28,7 +29,7 @@ func TestIncomingWebhook(t *testing.T) {
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	require.Nil(t, err)
 
-	url := "/hooks/" + hook.Id
+	url := ApiClient.Url + "/hooks/" + hook.Id
 
 	tooLongText := ""
 	for i := 0; i < 8200; i++ {
@@ -37,55 +38,68 @@ func TestIncomingWebhook(t *testing.T) {
 
 	t.Run("WebhookBasics", func(t *testing.T) {
 		payload := "payload={\"text\": \"test text\"}"
-		_, err := ApiClient.DoPost(url, payload, "application/x-www-form-urlencoded")
-		assert.Nil(t, err)
+		resp, err := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
 		payload = "payload={\"text\": \"\"}"
-		_, err = ApiClient.DoPost(url, payload, "application/x-www-form-urlencoded")
-		assert.NotNil(t, err, "should have errored - no text to post")
+		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode != http.StatusOK, "should have errored - no text to post")
 
 		payload = "payload={\"text\": \"test text\", \"channel\": \"junk\"}"
-		_, err = ApiClient.DoPost(url, payload, "application/x-www-form-urlencoded")
-		assert.NotNil(t, err, "should have errored - bad channel")
+		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode != http.StatusOK, "should have errored - bad channel")
 
 		payload = "payload={\"text\": \"test text\"}"
-		_, err = ApiClient.DoPost("/hooks/abc123", payload, "application/x-www-form-urlencoded")
-		assert.NotNil(t, err, "should have errored - bad hook")
+		resp, err = http.Post(ApiClient.Url+"/hooks/abc123", "application/x-www-form-urlencoded", strings.NewReader(payload))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode != http.StatusOK, "should have errored - bad hook")
 
-		_, err = ApiClient.DoPost(url, "{\"text\":\"this is a test\"}", "application/json")
-		assert.Nil(t, err)
+		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\"this is a test\"}"))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
 		text := `this is a \"test\"
 	that contains a newline and a tab`
-		_, err = ApiClient.DoPost(url, "{\"text\":\""+text+"\"}", "application/json")
-		assert.Nil(t, err)
+		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\""+text+"\"}"))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		_, err = ApiClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name), "application/json")
-		assert.Nil(t, err)
+		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		_, err = ApiClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"#%s\"}", th.BasicChannel.Name), "application/json")
-		assert.Nil(t, err)
+		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"#%s\"}", th.BasicChannel.Name)))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		_, err = ApiClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"@%s\"}", th.BasicUser.Username), "application/json")
-		assert.Nil(t, err)
+		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"@%s\"}", th.BasicUser.Username)))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		_, err = ApiClient.DoPost(url, "payload={\"text\":\"this is a test\"}", "application/x-www-form-urlencoded")
-		assert.Nil(t, err)
+		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader("payload={\"text\":\"this is a test\"}"))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		_, err = ApiClient.DoPost(url, "payload={\"text\":\""+text+"\"}", "application/x-www-form-urlencoded")
+		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		_, err = ApiClient.DoPost(url, "{\"text\":\""+tooLongText+"\"}", "application/json")
-		assert.Nil(t, err)
+		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
 		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nthis is a test :tada:\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
-		_, err = ApiClient.DoPost("/hooks/"+hook.Id, payloadMultiPart, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW")
-		assert.Nil(t, err)
+		resp, err = http.Post(ApiClient.Url+"/hooks/"+hook.Id, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", strings.NewReader(payloadMultiPart))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 	})
 
 	t.Run("WebhookExperimentReadOnly", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
-		_, err := ApiClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL), "application/json")
+		_, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
 		assert.Nil(t, err, "Not read only")
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
@@ -126,8 +140,9 @@ func TestIncomingWebhook(t *testing.T) {
 	       ]
 	   }`
 
-		_, err := ApiClient.DoPost(url, attachmentPayload, "application/json")
-		assert.Nil(t, err)
+		resp, err := http.Post(url, "application/json", strings.NewReader(attachmentPayload))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 
 		attachmentPayload = `{
 	       "text": "this is a test",
@@ -162,14 +177,16 @@ func TestIncomingWebhook(t *testing.T) {
 	       ]
 	   }`
 
-		_, err = ApiClient.DoPost(url, attachmentPayload, "application/json")
-		assert.Nil(t, err)
+		resp, err = http.Post(url, "application/json", strings.NewReader(attachmentPayload))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
 	})
 
 	t.Run("DisableWebhooks", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
-		_, err := ApiClient.DoPost(url, "{\"text\":\"this is a test\"}", "application/json")
-		assert.NotNil(t, err)
+		resp, err := http.Post(url, "application/json", strings.NewReader("{\"text\":\"this is a test\"}"))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusNotImplemented)
 	})
 }
 
