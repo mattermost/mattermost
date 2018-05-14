@@ -1,14 +1,13 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api4
+package web
 
 import (
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
-	"time"
 
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
@@ -21,176 +20,13 @@ import (
 type Context struct {
 	App           *app.App
 	Session       model.Session
-	Params        *ApiParams
+	Params        *Params
 	Err           *model.AppError
 	T             goi18n.TranslateFunc
 	RequestId     string
 	IpAddress     string
 	Path          string
 	siteURLHeader string
-}
-
-func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{
-		app:            api.App,
-		handleFunc:     h,
-		requireSession: false,
-		trustRequester: false,
-		requireMfa:     false,
-	}
-}
-
-func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{
-		app:            api.App,
-		handleFunc:     h,
-		requireSession: true,
-		trustRequester: false,
-		requireMfa:     true,
-	}
-}
-
-func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{
-		app:            api.App,
-		handleFunc:     h,
-		requireSession: true,
-		trustRequester: false,
-		requireMfa:     false,
-	}
-}
-
-func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{
-		app:            api.App,
-		handleFunc:     h,
-		requireSession: false,
-		trustRequester: true,
-		requireMfa:     false,
-	}
-}
-
-func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{
-		app:            api.App,
-		handleFunc:     h,
-		requireSession: true,
-		trustRequester: true,
-		requireMfa:     true,
-	}
-}
-
-type handler struct {
-	app            *app.App
-	handleFunc     func(*Context, http.ResponseWriter, *http.Request)
-	requireSession bool
-	trustRequester bool
-	requireMfa     bool
-}
-
-func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	now := time.Now()
-	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
-
-	c := &Context{}
-	c.App = h.app
-	c.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.RequestId = model.NewId()
-	c.IpAddress = utils.GetIpAddress(r)
-	c.Params = ApiParamsFromRequest(r)
-
-	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
-
-	// CSRF Check
-	if tokenLocation == app.TokenLocationCookie && h.requireSession && !h.trustRequester {
-		if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
-			token = ""
-		}
-	}
-
-	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
-
-	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
-
-	w.Header().Set("Content-Type", "application/json")
-
-	if r.Method == "GET" {
-		w.Header().Set("Expires", "0")
-	}
-
-	if len(token) != 0 {
-		session, err := c.App.GetSession(token)
-
-		if err != nil {
-			mlog.Info(fmt.Sprintf("Invalid session err=%v", err.Error()))
-			if err.StatusCode == http.StatusInternalServerError {
-				c.Err = err
-			} else if h.requireSession {
-				c.RemoveSessionCookie(w, r)
-				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
-			}
-		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
-			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
-		} else {
-			c.Session = *session
-		}
-
-		// Rate limit by UserID
-		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.Session.UserId, w) {
-			return
-		}
-	}
-
-	c.Path = r.URL.Path
-
-	if c.Err == nil && h.requireSession {
-		c.SessionRequired()
-	}
-
-	if c.Err == nil && h.requireMfa {
-		c.MfaRequired()
-	}
-
-	if c.Err == nil {
-		h.handleFunc(c, w, r)
-	}
-
-	// Handle errors that have occurred
-	if c.Err != nil {
-		c.Err.Translate(c.T)
-		c.Err.RequestId = c.RequestId
-
-		if c.Err.Id == "api.context.session_expired.app_error" {
-			c.LogInfo(c.Err)
-		} else {
-			c.LogError(c.Err)
-		}
-
-		c.Err.Where = r.URL.Path
-
-		// Block out detailed error when not in developer mode
-		if !*c.App.Config().ServiceSettings.EnableDeveloper {
-			c.Err.DetailedError = ""
-		}
-
-		w.WriteHeader(c.Err.StatusCode)
-		w.Write([]byte(c.Err.ToJson()))
-
-		if c.App.Metrics != nil {
-			c.App.Metrics.IncrementHttpError()
-		}
-	}
-
-	if c.App.Metrics != nil {
-		c.App.Metrics.IncrementHttpRequest()
-
-		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
-			elapsed := float64(time.Since(now)) / float64(time.Second)
-			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
-		}
-	}
 }
 
 func (c *Context) LogAudit(extraInfo string) {
