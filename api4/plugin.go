@@ -109,7 +109,7 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := c.App.GetPluginStatuses()
+	response, err := c.App.GetClusterPluginStatuses()
 	if err != nil {
 		c.Err = err
 		return

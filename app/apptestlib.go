@@ -420,6 +420,9 @@ func (me *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model
 func (me *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return []string{}, nil
 }
+func (me *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	return nil, nil
+}
 func (me *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }

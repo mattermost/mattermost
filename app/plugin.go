@@ -377,6 +377,25 @@ func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	return pluginStatuses, nil
 }
 
+// GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
+func (a *App) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	pluginStatuses, err := a.GetPluginStatuses()
+	if err != nil {
+		return nil, err
+	}
+
+	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
+		clusterPluginStatuses, err := a.Cluster.GetPluginStatuses()
+		if err != nil {
+			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		pluginStatuses = append(pluginStatuses, clusterPluginStatuses...)
+	}
+
+	return pluginStatuses, nil
+}
+
 func (a *App) RemovePlugin(id string) *model.AppError {
 	return a.removePlugin(id, false)
 }
