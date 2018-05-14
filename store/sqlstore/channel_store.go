@@ -1739,3 +1739,71 @@ func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit 
 		}
 	})
 }
+
+// This function does the Advanced Permissions Phase 2 migration for ChannelMember objects. It performs the migration
+// in batches as a single transaction per batch to ensure consistency but to also minimise execution time to avoid
+// causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
+// *after* the new Schemes functionality has been used on an installation will have unintended consequences.
+func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var transaction *gorp.Transaction
+		var err error
+
+		if transaction, err = s.GetMaster().Begin(); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.MigrateChannelMembers", "store.sql_channel.migrate_channel_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var channelMembers []channelMember
+		if _, err := transaction.Select(&channelMembers, "SELECT * from ChannelMembers WHERE (ChannelId, UserId) > (:FromChannelId, :FromUserId) ORDER BY ChannelId, UserId LIMIT 100", map[string]interface{}{"FromChannelId": fromChannelId, "FromUserId": fromUserId}); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.MigrateChannelMembers", "store.sql_channel.migrate_channel_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if len(channelMembers) == 0 {
+			// No more channel members in query result means that the migration has finished.
+			return
+		}
+
+		for _, member := range channelMembers {
+			roles := strings.Fields(member.Roles)
+			var newRoles []string
+			member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
+			member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
+			for _, role := range roles {
+				if role == model.CHANNEL_ADMIN_ROLE_ID {
+					member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
+				} else if role == model.CHANNEL_USER_ROLE_ID {
+					member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
+				} else {
+					newRoles = append(newRoles, role)
+				}
+			}
+			member.Roles = strings.Join(newRoles, " ")
+
+			if _, err := transaction.Update(&member); err != nil {
+				if err2 := transaction.Rollback(); err2 != nil {
+					result.Err = model.NewAppError("SqlChannelStore.MigrateChannelMembers", "store.sql_channel.migrate_channel_members.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
+					return
+				}
+				result.Err = model.NewAppError("SqlChannelStore.MigrateChannelMembers", "store.sql_channel.migrate_channel_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+		}
+
+		if err := transaction.Commit(); err != nil {
+			if err2 := transaction.Rollback(); err2 != nil {
+				result.Err = model.NewAppError("SqlChannelStore.MigrateChannelMembers", "store.sql_channel.migrate_channel_members.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
+				return
+			}
+			result.Err = model.NewAppError("SqlChannelStore.MigrateChannelMembers", "store.sql_channel.migrate_channel_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		data := make(map[string]string)
+		data["ChannelId"] = channelMembers[len(channelMembers)-1].ChannelId
+		data["UserId"] = channelMembers[len(channelMembers)-1].UserId
+		result.Data = data
+	})
+}
