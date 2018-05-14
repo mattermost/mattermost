@@ -44,7 +44,6 @@ type Channel struct {
 	Purpose       string `json:"purpose"`
 	LastPostAt    int64  `json:"last_post_at"`
 	TotalMsgCount int64  `json:"total_msg_count"`
-	ExtraUpdateAt int64  `json:"extra_update_at"`
 	CreatorId     string `json:"creator_id"`
 }
 
@@ -133,15 +132,10 @@ func (o *Channel) PreSave() {
 
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
-	o.ExtraUpdateAt = o.CreateAt
 }
 
 func (o *Channel) PreUpdate() {
 	o.UpdateAt = GetMillis()
-}
-
-func (o *Channel) ExtraUpdated() {
-	o.ExtraUpdateAt = GetMillis()
 }
 
 func (o *Channel) IsGroupOrDirect() bool {
