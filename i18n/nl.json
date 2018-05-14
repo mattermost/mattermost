@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
+    "translation": "Unable to activate extracted plugin."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "Unable to get active plugins"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "Plugin Id must be less than {{.Max}} characters."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",

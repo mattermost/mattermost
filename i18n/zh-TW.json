@@ -217,11 +217,11 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
+    "translation": "預設頻道不能轉換為私人頻道。"
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
+    "translation": "要求轉換的頻道已為私人頻道。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -792,11 +792,11 @@
   },
   {
     "id": "api.command_invite.desc",
-    "translation": "Invite a user to a channel"
+    "translation": "邀請使用者至頻道"
   },
   {
     "id": "api.command_invite.directchannel.app_error",
-    "translation": "無法將成員從直接通訊頻道中移除。"
+    "translation": "無法新增成員至直接通訊頻道。"
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -804,11 +804,11 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[使用者] ~[頻道]"
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
+    "translation": "缺少使用者名稱跟頻道。"
   },
   {
     "id": "api.command_invite.missing_user.app_error",
@@ -816,19 +816,19 @@
   },
   {
     "id": "api.command_invite.name",
-    "translation": "invite"
+    "translation": "邀請"
   },
   {
     "id": "api.command_invite.permission.app_error",
-    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+    "translation": "沒有足夠的權限將 {{.User}} 新增至 {{.Channel}}。"
   },
   {
     "id": "api.command_invite.success",
-    "translation": "{{.User}} added to {{.Channel}} channel."
+    "translation": "已將 {{.User}} 新增至 {{.Channel}} 頻道。"
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is already in the channel."
+    "translation": "{{.User}} 已在頻道當中。"
   },
   {
     "id": "api.command_join.desc",
@@ -960,11 +960,11 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到特定的頻道。 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
   },
   {
     "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
+    "translation": "由於不是頻道成員，無法對頻道 {{.Channel}} 靜音。"
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "取得團隊時發生錯誤"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "更新團隊時發生錯誤"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2860,7 +2860,7 @@
   },
   {
     "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Missing Token."
+    "translation": "缺少 Token。"
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2912,7 +2912,7 @@
   },
   {
     "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Unable to get profile image, user not found."
+    "translation": "無法取得個人圖像，找不到使用者。"
   },
   {
     "id": "api.user.init.debug",
@@ -3308,7 +3308,7 @@
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": "Connection unsuccessful: {{.Error}}"
+    "translation": "連線失敗：{{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "無法啟動已解開的模組。模組可能已存在並已啟動。"
+    "translation": "無法啟用已解開的模組。"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "無法取得啟用的模組"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "模組 ID 必須少於 {{.Max}} 字元。"
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "無法安裝模組。"
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "無法安裝模組。已安裝了相同 ID 的模組。"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "模組 ID 至少需 {{.Min}} 字元，最多可為 {{.Max}} 且符合 {{.Regex}}。"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -6692,7 +6692,7 @@
   },
   {
     "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles"
+    "translation": "無法永久刪除所有的角色"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6812,7 +6812,7 @@
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
+    "translation": "無法永久刪除系統表單當中的項目"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7384,7 +7384,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
+    "translation": "無法設定寄件人地址"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7400,7 +7400,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
+    "translation": "無法設定收件人地址"
   },
   {
     "id": "utils.mail.test.configured.error",
