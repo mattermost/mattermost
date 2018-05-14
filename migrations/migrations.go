@@ -15,8 +15,6 @@ const (
 	MIGRATION_STATE_IN_PROGRESS = "in_progress"
 	MIGRATION_STATE_COMPLETED   = "completed"
 
-	MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2 = "migration_advanced_permissions_phase_2"
-
 	JOB_DATA_KEY_MIGRATION           = "migration_key"
 	JOB_DATA_KEY_MIGRATION_LAST_DONE = "last_done"
 )
@@ -33,7 +31,7 @@ func init() {
 
 func MakeMigrationsList() []string {
 	return []string{
-		MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2,
+		model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2,
 	}
 }
 

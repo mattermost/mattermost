@@ -3,7 +3,9 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"github.com/mattermost/mattermost-server/model"
+)
 
 func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 	if result := <-a.Srv.Store.Scheme().Get(id); result.Err != nil {
@@ -109,7 +111,9 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 }
 
 func (a *App) IsPhase2MigrationCompleted() *model.AppError {
-	// TODO: Actually check the Phase 2 migration has completed before permitting these actions.
+	if result := <-a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); result.Err != nil {
+		return result.Err
+	}
 
 	return nil
 }
