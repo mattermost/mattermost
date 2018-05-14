@@ -90,10 +90,10 @@ func TestAPI(t *testing.T) {
 		api.On("UnregisterCommand", "team", "trigger").Return(nil).Once()
 		assert.NoError(t, remote.UnregisterCommand("team", "trigger"))
 
-		api.On("CreateChannel", mock.AnythingOfType("*model.Channel")).Return(func(c *model.Channel) (*model.Channel, *model.AppError) {
+		api.On("CreateChannel", mock.AnythingOfType("*model.Channel")).Return(func(c *model.Channel) *model.Channel {
 			c.Id = "thechannelid"
-			return c, nil
-		}).Once()
+			return c
+		}, nil).Once()
 		channel, err := remote.CreateChannel(testChannel)
 		assert.Equal(t, "thechannelid", channel.Id)
 		assert.Nil(t, err)
@@ -121,9 +121,9 @@ func TestAPI(t *testing.T) {
 		assert.Equal(t, testChannel, channel)
 		assert.Nil(t, err)
 
-		api.On("UpdateChannel", mock.AnythingOfType("*model.Channel")).Return(func(c *model.Channel) (*model.Channel, *model.AppError) {
-			return c, nil
-		}).Once()
+		api.On("UpdateChannel", mock.AnythingOfType("*model.Channel")).Return(func(c *model.Channel) *model.Channel {
+			return c
+		}, nil).Once()
 		channel, err = remote.UpdateChannel(testChannel)
 		assert.Equal(t, testChannel, channel)
 		assert.Nil(t, err)
@@ -154,10 +154,10 @@ func TestAPI(t *testing.T) {
 		err = remote.DeleteChannelMember("thechannelid", "theuserid")
 		assert.Nil(t, err)
 
-		api.On("CreateUser", mock.AnythingOfType("*model.User")).Return(func(u *model.User) (*model.User, *model.AppError) {
+		api.On("CreateUser", mock.AnythingOfType("*model.User")).Return(func(u *model.User) *model.User {
 			u.Id = "theuserid"
-			return u, nil
-		}).Once()
+			return u
+		}, nil).Once()
 		user, err := remote.CreateUser(testUser)
 		assert.Equal(t, "theuserid", user.Id)
 		assert.Nil(t, err)
@@ -180,17 +180,17 @@ func TestAPI(t *testing.T) {
 		assert.Equal(t, testUser, user)
 		assert.Nil(t, err)
 
-		api.On("UpdateUser", mock.AnythingOfType("*model.User")).Return(func(u *model.User) (*model.User, *model.AppError) {
-			return u, nil
-		}).Once()
+		api.On("UpdateUser", mock.AnythingOfType("*model.User")).Return(func(u *model.User) *model.User {
+			return u
+		}, nil).Once()
 		user, err = remote.UpdateUser(testUser)
 		assert.Equal(t, testUser, user)
 		assert.Nil(t, err)
 
-		api.On("CreateTeam", mock.AnythingOfType("*model.Team")).Return(func(t *model.Team) (*model.Team, *model.AppError) {
+		api.On("CreateTeam", mock.AnythingOfType("*model.Team")).Return(func(t *model.Team) *model.Team {
 			t.Id = "theteamid"
-			return t, nil
-		}).Once()
+			return t
+		}, nil).Once()
 		team, err := remote.CreateTeam(testTeam)
 		assert.Equal(t, "theteamid", team.Id)
 		assert.Nil(t, err)
@@ -213,17 +213,17 @@ func TestAPI(t *testing.T) {
 		assert.Nil(t, team)
 		assert.Equal(t, teamNotFoundError, err)
 
-		api.On("UpdateTeam", mock.AnythingOfType("*model.Team")).Return(func(t *model.Team) (*model.Team, *model.AppError) {
-			return t, nil
-		}).Once()
+		api.On("UpdateTeam", mock.AnythingOfType("*model.Team")).Return(func(t *model.Team) *model.Team {
+			return t
+		}, nil).Once()
 		team, err = remote.UpdateTeam(testTeam)
 		assert.Equal(t, testTeam, team)
 		assert.Nil(t, err)
 
-		api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) (*model.Post, *model.AppError) {
+		api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) *model.Post {
 			p.Id = "thepostid"
-			return p, nil
-		}).Once()
+			return p
+		}, nil).Once()
 		post, err := remote.CreatePost(testPost)
 		require.Nil(t, err)
 		assert.NotEmpty(t, post.Id)
@@ -237,9 +237,9 @@ func TestAPI(t *testing.T) {
 		assert.Equal(t, testPost, post)
 		assert.Nil(t, err)
 
-		api.On("UpdatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) (*model.Post, *model.AppError) {
-			return p, nil
-		}).Once()
+		api.On("UpdatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) *model.Post {
+			return p
+		}, nil).Once()
 		post, err = remote.UpdatePost(testPost)
 		assert.Equal(t, testPost, post)
 		assert.Nil(t, err)
@@ -248,9 +248,9 @@ func TestAPI(t *testing.T) {
 		err = remote.KeyValueStore().Set("thekey", []byte("thevalue"))
 		assert.Nil(t, err)
 
-		api.KeyValueStore().(*plugintest.KeyValueStore).On("Get", "thekey").Return(func(key string) ([]byte, *model.AppError) {
-			return []byte("thevalue"), nil
-		}).Once()
+		api.KeyValueStore().(*plugintest.KeyValueStore).On("Get", "thekey").Return(func(key string) []byte {
+			return []byte("thevalue")
+		}, nil).Once()
 		ret, err := remote.KeyValueStore().Get("thekey")
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("thevalue"), ret)
@@ -267,10 +267,10 @@ func TestAPI_GobRegistration(t *testing.T) {
 	defer api.AssertExpectations(t)
 
 	testAPIRPC(&api, func(remote plugin.API) {
-		api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) (*model.Post, *model.AppError) {
+		api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) *model.Post {
 			p.Id = "thepostid"
-			return p, nil
-		}).Once()
+			return p
+		}, nil).Once()
 		_, err := remote.CreatePost(&model.Post{
 			Message: "hello",
 			Props: map[string]interface{}{
