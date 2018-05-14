@@ -26,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 
 	s3 "github.com/minio/minio-go"
@@ -120,6 +121,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	Init(th.App, th.App.Srv.Router, true)
+	web.NewWeb(th.App, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 	th.App.DoAdvancedPermissionsMigration()
