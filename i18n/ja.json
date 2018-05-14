@@ -3856,7 +3856,7 @@
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "プラグインIDは {{.Min}} 文字以上 {{Max}} 文字以下で、{{.Regex}}にマッチしなければなりません。"
+    "translation": "プラグインIDは {{.Min}} 文字以上 {{.Max}} 文字以下で、{{.Regex}}にマッチしなければなりません。"
   },
   {
     "id": "app.plugin.manifest.app_error",

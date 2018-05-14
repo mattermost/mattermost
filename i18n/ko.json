@@ -968,7 +968,7 @@
   },
   {
     "id": "api.command_mute.success_mute",
-    "translation": "채널 음소거가 해제될 때까지{{. Channel}}에 대한 알림을 받지 못 합니다."
+    "translation": "채널 음소거가 해제될 때까지{{.Channel}}에 대한 알림을 받지 못 합니다."
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",

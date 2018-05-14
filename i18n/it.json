@@ -3856,7 +3856,7 @@
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "L'id del plugin deve essere lungo almeno {{.Min}} caratteri, al massimo {{.Max} caratteri e corrispondere a {{.Regex}}."
+    "translation": "L'id del plugin deve essere lungo almeno {{.Min}} caratteri, al massimo {{.Max}} caratteri e corrispondere a {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",

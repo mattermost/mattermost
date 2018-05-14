@@ -3856,7 +3856,7 @@
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "Uygulama eki kodu {{.Min}} ile {{.Max}} karakter arasında olmalı ve {{.Regex.}} ile uyumlu olmalıdır."
+    "translation": "Uygulama eki kodu {{.Min}} ile {{.Max}} karakter arasında olmalı ve {{.Regex}}. ile uyumlu olmalıdır."
   },
   {
     "id": "app.plugin.manifest.app_error",
