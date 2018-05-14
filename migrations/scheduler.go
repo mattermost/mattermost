@@ -61,6 +61,9 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 			// Check the migration job isn't wedged.
 			if job != nil && job.LastActivityAt < model.GetMillis()-MIGRATION_JOB_WEDGED_TIMEOUT_MILLISECONDS {
 				mlog.Warn("Job appears to be wedged. Rescheduling another instance.", mlog.String("scheduler", scheduler.Name()), mlog.String("wedged_job_id", job.Id), mlog.String("migration_key", key))
+				if err := scheduler.App.Jobs.SetJobError(job, nil); err != nil {
+					mlog.Error("Worker: Failed to set job error", mlog.String("scheduler", scheduler.Name()), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+				}
 				return scheduler.createJob(key, job, scheduler.App.Srv.Store)
 			}
 
@@ -72,8 +75,13 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 			continue
 		}
 
-		mlog.Debug("Scheduling a new job for migration.", mlog.String("scheduler", scheduler.Name()), mlog.String("migration_key", key))
-		return scheduler.createJob(key, job, scheduler.App.Srv.Store)
+		if state == MIGRATION_STATE_UNSCHEDULED {
+			mlog.Debug("Scheduling a new job for migration.", mlog.String("scheduler", scheduler.Name()), mlog.String("migration_key", key))
+			return scheduler.createJob(key, job, scheduler.App.Srv.Store)
+		}
+
+		mlog.Error("Unknown migration state. Not doing anything.", mlog.String("migration_state", state))
+		return nil, nil
 	}
 
 	// If we reached here, then there aren't any migrations left to run.
