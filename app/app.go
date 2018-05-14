@@ -41,6 +41,7 @@ type App struct {
 	PluginEnv                *pluginenv.Environment
 	PluginConfigListenerId   string
 	IsPluginSandboxSupported bool
+	pluginStatuses           map[string]*model.PluginStatus
 
 	EmailBatching *EmailBatchingJob
 

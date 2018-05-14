@@ -38,12 +38,10 @@ var prepackagedPlugins map[string]func(string) ([]byte, error) = map[string]func
 }
 
 func (a *App) notifyPluginStatusesChanged() error {
-	result := <-a.Srv.Store.Plugin().GetPluginStatuses()
-	if result.Err != nil {
-		return result.Err
+	pluginStatuses := make([]*model.PluginStatus, 0, len(a.pluginStatuses))
+	for _, pluginStatus := range a.pluginStatuses {
+		pluginStatuses = append(pluginStatuses, pluginStatus)
 	}
-
-	pluginStatuses := result.Data.([]*model.PluginStatus)
 
 	// Notify any system admins.
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED, "", "", "", nil)
@@ -55,13 +53,11 @@ func (a *App) notifyPluginStatusesChanged() error {
 }
 
 func (a *App) setPluginStatusState(id string, state int) error {
-	if result := <-a.Srv.Store.Plugin().UpdatePluginStatusState(&model.PluginStatus{
-		ClusterDiscoveryId: a.GetClusterId(),
-		PluginId:           id,
-		State:              state,
-	}); result.Err != nil {
-		return result.Err
+	if _, ok := a.pluginStatuses[id]; !ok {
+		return nil
 	}
+
+	a.pluginStatuses[id].State = state
 
 	return a.notifyPluginStatusesChanged()
 }
@@ -111,17 +107,14 @@ func (a *App) setPluginsActive(activate bool) {
 			enabled = state.Enable
 		}
 
-		result := <-a.Srv.Store.Plugin().CreatePluginStatus(&model.PluginStatus{
-			ClusterDiscoveryId: a.GetClusterId(),
-			PluginId:           plugin.Manifest.Id,
-			PluginPath:         filepath.Dir(plugin.ManifestPath),
-			IsSandboxed:        a.IsPluginSandboxSupported,
-			Name:               plugin.Manifest.Name,
-			Description:        plugin.Manifest.Description,
-			Version:            plugin.Manifest.Version,
-		})
-		if result.Err != nil {
-			mlog.Error("failed to register plugin status", mlog.String("plugin_id", plugin.Manifest.Id), mlog.Err(result.Err))
+		a.pluginStatuses[plugin.Manifest.Id] = &model.PluginStatus{
+			ClusterId:   a.GetClusterId(),
+			PluginId:    plugin.Manifest.Id,
+			PluginPath:  filepath.Dir(plugin.ManifestPath),
+			IsSandboxed: a.IsPluginSandboxSupported,
+			Name:        plugin.Manifest.Name,
+			Description: plugin.Manifest.Description,
+			Version:     plugin.Manifest.Version,
 		}
 
 		if activate && enabled {
@@ -304,19 +297,16 @@ func (a *App) installPlugin(pluginFile io.Reader, allowPrepackaged bool) (*model
 		return nil, model.NewAppError("installPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	result := <-a.Srv.Store.Plugin().CreatePluginStatus(&model.PluginStatus{
-		ClusterDiscoveryId: a.GetClusterId(),
-		PluginId:           manifest.Id,
-		PluginPath:         pluginPath,
-		State:              model.PluginStateNotRunning,
-		IsSandboxed:        a.IsPluginSandboxSupported,
-		IsPrepackaged:      isPrepackaged,
-		Name:               manifest.Name,
-		Description:        manifest.Description,
-		Version:            manifest.Version,
-	})
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	a.pluginStatuses[manifest.Id] = &model.PluginStatus{
+		ClusterId:     a.GetClusterId(),
+		PluginId:      manifest.Id,
+		PluginPath:    pluginPath,
+		State:         model.PluginStateNotRunning,
+		IsSandboxed:   a.IsPluginSandboxSupported,
+		IsPrepackaged: isPrepackaged,
+		Name:          manifest.Name,
+		Description:   manifest.Description,
+		Version:       manifest.Version,
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
@@ -373,19 +363,18 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 	return manifests, nil
 }
 
-// GetPluginStatuses returned the plugins installed on any server in the cluster, for reporting to
-// the administrator via the system console.
+// GetPluginStatuses returns the status for plugins installed on this server.
 func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	if !*a.Config().PluginSettings.Enable {
 		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Plugin().GetPluginStatuses()
-	if result.Err != nil {
-		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.get_plugins.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	pluginStatuses := make([]*model.PluginStatus, 0, len(a.pluginStatuses))
+	for _, pluginStatus := range a.pluginStatuses {
+		pluginStatuses = append(pluginStatuses, pluginStatus)
 	}
 
-	return model.PluginStatuses(result.Data.([]*model.PluginStatus)), nil
+	return pluginStatuses, nil
 }
 
 func (a *App) RemovePlugin(id string) *model.AppError {
@@ -432,12 +421,7 @@ func (a *App) removePlugin(id string, allowPrepackaged bool) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if result := <-a.Srv.Store.Plugin().DeletePluginStatus(&model.PluginStatus{
-		ClusterDiscoveryId: a.GetClusterId(),
-		PluginId:           manifest.Id,
-	}); result.Err != nil {
-		return model.NewAppError("removePlugin", "app.plugin.delete_plugin_status_state.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
-	}
+	delete(a.pluginStatuses, manifest.Id)
 	if err := a.notifyPluginStatusesChanged(); err != nil {
 		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
 	}
@@ -530,15 +514,13 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 		return
 	}
 
-	if result := <-a.Srv.Store.Plugin().PrunePluginStatuses(a.GetClusterId()); result.Err != nil {
-		mlog.Error("Failed to prune plugins", mlog.Err(result.Err))
-	}
-
 	if !*a.Config().PluginSettings.Enable {
 		return
 	}
 
 	mlog.Info("Starting up plugins")
+
+	a.pluginStatuses = make(map[string]*model.PluginStatus)
 
 	if err := os.Mkdir(pluginPath, 0744); err != nil && !os.IsExist(err) {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
