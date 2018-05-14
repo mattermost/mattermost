@@ -50,6 +50,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, ldapSyncInterface.MakeScheduler())
 	}
 
+	if migrationsInterface := srv.Migrations; migrationsInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, migrationsInterface.MakeScheduler())
+	}
+
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }

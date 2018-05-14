@@ -106,6 +106,13 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 	return result.Err
 }
 
+func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
+	job.Status = model.JOB_STATUS_IN_PROGRESS
+	job.LastActivityAt = model.GetMillis()
+	result := <-srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
+	return result.Err
+}
+
 func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 	if result := <-srv.Store.Job().UpdateStatusOptimistically(jobId, model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED); result.Err != nil {
 		return result.Err

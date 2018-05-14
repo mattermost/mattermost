@@ -20,6 +20,7 @@ type Workers struct {
 	ElasticsearchIndexing    model.Worker
 	ElasticsearchAggregation model.Worker
 	LdapSync                 model.Worker
+	Migrations               model.Worker
 
 	listenerId string
 }
@@ -50,6 +51,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.LdapSync = ldapSyncInterface.MakeWorker()
 	}
 
+	if migrationsInterface := srv.Migrations; migrationsInterface != nil {
+		workers.Migrations = migrationsInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -75,6 +80,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.LdapSync != nil && *workers.ConfigService.Config().LdapSettings.EnableSync {
 			go workers.LdapSync.Run()
+		}
+
+		if workers.Migrations != nil {
+			go workers.Migrations.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -150,6 +159,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.LdapSync != nil && *workers.ConfigService.Config().LdapSettings.EnableSync {
 		workers.LdapSync.Stop()
+	}
+
+	if workers.Migrations != nil {
+		workers.Migrations.Stop()
 	}
 
 	mlog.Info("Stopped workers")
