@@ -823,6 +823,10 @@
     "translation": "Vous n'avez pas les permissions nécessaires pour ajouter {{.User}} dans {{.Channel}}."
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} a été ajouté dans {{.Channel}}."
   },

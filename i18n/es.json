@@ -823,6 +823,10 @@
     "translation": "No tienes suficientes permisos para agregar a {{.User}} en {{.Channel}}."
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "No se pudo encontrar el canal {{.Channel}}. Por favor utiliza el identificador del canal."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} agregado al canal {{.Channel}}."
   },

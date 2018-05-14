@@ -823,6 +823,10 @@
     "translation": "{{.Channel}} 에 {{.User}}를 추가할 권한이 없습니다."
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "{{.Channel}} 채널에 {{.User}} 가 추가되었습니다."
   },

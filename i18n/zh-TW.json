@@ -823,6 +823,10 @@
     "translation": "沒有足夠的權限將 {{.User}} 新增至 {{.Channel}}。"
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "已將 {{.User}} 新增至 {{.Channel}} 頻道。"
   },
