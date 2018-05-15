@@ -134,15 +134,10 @@ func (o *Channel) PreSave() {
 
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
-	o.ExtraUpdateAt = o.CreateAt
 }
 
 func (o *Channel) PreUpdate() {
 	o.UpdateAt = GetMillis()
-}
-
-func (o *Channel) ExtraUpdated() {
-	o.ExtraUpdateAt = GetMillis()
 }
 
 func (o *Channel) IsGroupOrDirect() bool {

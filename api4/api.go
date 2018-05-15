@@ -4,14 +4,12 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/web"
 
 	_ "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -234,7 +232,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitScheme()
 	api.InitImage()
 
-	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
+	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
 	// REMOVE CONDITION WHEN APIv3 REMOVED
 	if full {
@@ -244,18 +242,8 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	return api
 }
 
-func Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
-
-	w.WriteHeader(err.StatusCode)
-	err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'."
-	w.Write([]byte(err.ToJson()))
+func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
+	web.Handle404(api.App, w, r)
 }
 
-func ReturnStatusOK(w http.ResponseWriter) {
-	m := make(map[string]string)
-	m[model.STATUS] = model.STATUS_OK
-	w.Write([]byte(model.MapToJson(m)))
-}
+var ReturnStatusOK = web.ReturnStatusOK

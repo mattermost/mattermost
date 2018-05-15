@@ -1,7 +1,7 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api4
+package web
 
 import (
 	"net/http"
@@ -19,7 +19,7 @@ const (
 	LOGS_PER_PAGE_MAXIMUM = 10000
 )
 
-type ApiParams struct {
+type Params struct {
 	UserId         string
 	TeamId         string
 	InviteId       string
@@ -55,8 +55,8 @@ type ApiParams struct {
 	Permanent      bool
 }
 
-func ApiParamsFromRequest(r *http.Request) *ApiParams {
-	params := &ApiParams{}
+func ParamsFromRequest(r *http.Request) *Params {
+	params := &Params{}
 
 	props := mux.Vars(r)
 	query := r.URL.Query()
