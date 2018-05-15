@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "Si è verificato un errore recuperando il gruppo"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "Si è verificato un errore aggiornando l'icona del gruppo"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Impossibile attivare il plugin estratto. Il plugin può essere già disponibile e dev'essere attivato."
+    "translation": "Impossibile attivate il plugin estratto."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "Impossibile trovare i plugin attivi"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "L'ID del plugin deve contenere meno di {{.Max}} caratteri."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Impossibile installare il plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Impossibile installare il plugin. Un plugin con lo stesso ID è già installato."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "L'id del plugin deve essere lungo almeno {{.Min}} caratteri, al massimo {{.Max}} caratteri e corrispondere a {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",

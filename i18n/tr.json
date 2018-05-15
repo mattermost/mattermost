@@ -217,11 +217,11 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
+    "translation": "Bu varsayılan kanal özel bir kanala dönüştürülemez."
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
+    "translation": "Dönüştürmek istediğiniz kanal zaten özel bir kanal."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -788,19 +788,19 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [channel handle](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [channel handle] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_invite.desc",
-    "translation": "Invite a user to a channel"
+    "translation": "Bir kanala bir kullanıcı çağır"
   },
   {
     "id": "api.command_invite.directchannel.app_error",
-    "translation": "Bir kişiyi doğrudan ileti kanalından çıkaramazsınız."
+    "translation": "Bir kişiyi doğrudan ileti kanalına ekleyemezsiniz."
   },
   {
     "id": "api.command_invite.fail.app_error",
-    "translation": "Kanala katılınılırken bir sorun çıktı."
+    "translation": "Kanala katılma sırasında bir sorun çıktı."
   },
   {
     "id": "api.command_invite.hint",
@@ -808,7 +808,7 @@
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
+    "translation": "Kullanıcı Adı ya da Kanal eksik."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
@@ -816,19 +816,19 @@
   },
   {
     "id": "api.command_invite.name",
-    "translation": "invite"
+    "translation": "çağır"
   },
   {
     "id": "api.command_invite.permission.app_error",
-    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+    "translation": "{{.User}} kullanıcısını {{.Channel}} kanalına eklemek için yeterli izinleriniz yok."
   },
   {
     "id": "api.command_invite.success",
-    "translation": "{{.User}} added to {{.Channel}} channel."
+    "translation": "{{.User}} kullanıcısı {{.Channel}} kanalına eklendi."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is already in the channel."
+    "translation": "{{.User}} zaten kanalda."
   },
   {
     "id": "api.command_join.desc",
@@ -960,11 +960,11 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [channel handle](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+    "translation": "Belirtilen kanal bulunamadı. Lütfen kanalları belirtmek için [channel handle] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
+    "translation": "Üyesi olmadığınızdan {{.Channel}} kanalının bildirimlerini kapatamazsınız."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "Takım alınırken bir sorun çıktı"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "Takım simgesi güncellenirken bir sorun çıktı"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2628,7 +2628,7 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "Parolanızı sıfırlamak için aşağıdaki \"Parolayı Sıfırla\" üzerine tıklayın.<br>Parola sıfırlama isteğinde bulunmadıysanız bu e-posta yoksayın böylece parolanız değiştirilmez. Parola sıfırlama bağlantısı 24 saat sonra geçersiz olur."
+    "translation": "Parolanızı sıfırlamak için aşağıdaki \"Parolayı Sıfırla\" üzerine tıklayın.<br>Parola sıfırlama isteğinde bulunmadıysanız bu e-posta yok sayın böylece parolanız değiştirilmez. Parola sıfırlama bağlantısı 24 saat sonra geçersiz olur."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2860,7 +2860,7 @@
   },
   {
     "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Missing Token."
+    "translation": "Kod Eksik."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2912,7 +2912,7 @@
   },
   {
     "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Unable to get profile image, user not found."
+    "translation": "Profil görseli alınamadı, kullanıcı bulunamadı."
   },
   {
     "id": "api.user.init.debug",
@@ -3308,7 +3308,7 @@
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": "Connection unsuccessful: {{.Error}}"
+    "translation": "Bağlantı kurulamadı: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Ayıklanan uygulama eki etkinleştirilemedi. Uygulama eki zaten var ve etkinleştirilmiş olabilir."
+    "translation": "Ayıklanan uygulama eki etkinleştirilemedi."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "Etkin uygulama ekleri alınamadı"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "Uygulama eki kodu {{.Max}} karakterden kısa olmalıdır."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Uygulama eki kurulamadı."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Uygulama eki kurulamadı. Aynı kodu taşıyan bir uygulama eki zaten var."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Uygulama eki kodu {{.Min}} ile {{.Max}} karakter arasında olmalı ve {{.Regex}}. ile uyumlu olmalıdır."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -6692,7 +6692,7 @@
   },
   {
     "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles"
+    "translation": "Tüm roller kalıcı olarak silinemedi"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6812,7 +6812,7 @@
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
+    "translation": "Sistem tablosu kaydı kalıcı olarak silinemedi"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7384,7 +7384,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
+    "translation": "\"Kimden\" adresi ayarlanırken sorun çıktı"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7400,7 +7400,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
+    "translation": "\"Kime\" adresi ayarlanırken sorun çıktı"
   },
   {
     "id": "utils.mail.test.configured.error",
