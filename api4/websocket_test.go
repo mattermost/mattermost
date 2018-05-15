@@ -331,8 +331,8 @@ func TestWebSocketStatuses(t *testing.T) {
 		}
 
 		for _, status := range resp.Data {
-			if status != model.STATUS_OFFLINE && status != model.STATUS_AWAY && status != model.STATUS_ONLINE {
-				t.Fatal("one of the statuses had an invalid value")
+			if status != model.STATUS_OFFLINE && status != model.STATUS_AWAY && status != model.STATUS_ONLINE && status != model.STATUS_DND {
+				t.Fatalf("one of the statuses had an invalid value status=%v", status)
 			}
 		}
 

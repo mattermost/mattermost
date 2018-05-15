@@ -10,11 +10,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -960,12 +958,7 @@ func TestOAuthComplete(t *testing.T) {
 
 	Client := th.Client
 
-	r, err := HttpGet(Client.Url+"/login/gitlab/complete", Client.HttpClient, "", true)
-	require.Nil(t, err)
-	assert.True(t, strings.Contains(r.Request.URL.Path, "/error"))
-	closeBody(r)
-
-	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123", Client.HttpClient, "", true)
+	r, err := HttpGet(Client.Url+"/login/gitlab/complete?code=123", Client.HttpClient, "", true)
 	assert.NotNil(t, err)
 	closeBody(r)
 
