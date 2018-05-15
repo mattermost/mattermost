@@ -217,11 +217,11 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
+    "translation": "Dieser Standard-Kanal kann nicht in einen privaten Kanal umgewandelt werden."
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
+    "translation": "Der umzuwandelnde Kanal ist bereits ein privater Kanal."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -792,11 +792,11 @@
   },
   {
     "id": "api.command_invite.desc",
-    "translation": "Invite a user to a channel"
+    "translation": "Benutzer in einen Kanal einladen"
   },
   {
     "id": "api.command_invite.directchannel.app_error",
-    "translation": "Sie können keinen Benutzer aus einem Direktnachrichtenkanal entfernen."
+    "translation": "Sie können keinen Benutzer einem Direktnachrichtenkanal hinzufügen."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -804,11 +804,11 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[Benutzername] ~[Kanal]"
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
+    "translation": "Benutzername und Kanal fehlen."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
@@ -816,19 +816,19 @@
   },
   {
     "id": "api.command_invite.name",
-    "translation": "invite"
+    "translation": "einladen"
   },
   {
     "id": "api.command_invite.permission.app_error",
-    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+    "translation": "Sie haben nicht die nötigen Berechtigungen um {{.User}} dem Kanal {{.Channel}} hinzuzufügen."
   },
   {
     "id": "api.command_invite.success",
-    "translation": "{{.User}} added to {{.Channel}} channel."
+    "translation": "{{.User}} wurde dem Kanal {{.Channel}} hinzugefügt."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is already in the channel."
+    "translation": "{{.User}} ist bereits im Kanal."
   },
   {
     "id": "api.command_join.desc",
@@ -960,11 +960,11 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Konnte den Kanal {{.Channel}} nicht finden. Bitte nutzen Sie den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
+    "translation": "Konnte den Kanal nicht finden. Bitte nutzen Sie den [Kanal-Handle](https://about.mattermost.com/default-channel-handle-documentation), um Kanäle zu identifizieren."
   },
   {
     "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
+    "translation": "Kanal {{.Channel}} konnte nicht stumm geschaltet werden, da Sie kein Mitglied sind."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "Ein Fehler ist beim Aktualisieren des Teamsymbols aufgetreten"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2860,7 +2860,7 @@
   },
   {
     "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Missing Token."
+    "translation": "Fehlendes Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2912,7 +2912,7 @@
   },
   {
     "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Unable to get profile image, user not found."
+    "translation": "Profilbild konnte nicht abgerufen werden, Benutzer nicht gefunden."
   },
   {
     "id": "api.user.init.debug",
@@ -3308,7 +3308,7 @@
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": "Connection unsuccessful: {{.Error}}"
+    "translation": "Verbindung nicht erfolgreich: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Kann extrahiertes Plugin nicht aktivieren. Plugin könnte schon existieren und aktiviert sein."
+    "translation": "Extrahiertes Plugin konnte nicht aktiviert werden."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "Konnte aktive Plugins nicht ermitteln"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "Plugin-ID muss kürzer als {{.Max}} Zeichen sein."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Konnte Plugin nicht installieren."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Konnte Plugin nicht installieren. Ein Plugin mit der selben ID ist bereits installiert."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Plugin-Id muss aus mindestens {{.Min}} und maximal {{.Max}} Zeichen bestehen und zu {{.Regex}} passen."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -6576,7 +6576,7 @@
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Flags aufgetreten"
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Markierungen aufgetreten"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -6692,7 +6692,7 @@
   },
   {
     "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles"
+    "translation": "Es konnten nicht alle Rollen permanent gelöscht werden"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6812,7 +6812,7 @@
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
+    "translation": "System-Tabelleneintrag konnte nicht permanent gelöscht werden"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7384,7 +7384,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
+    "translation": "Fehler beim Setzen von \"Absenderadresse\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7400,7 +7400,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
+    "translation": "Fehler beim Setzen von \"Empfängeradresse\""
   },
   {
     "id": "utils.mail.test.configured.error",

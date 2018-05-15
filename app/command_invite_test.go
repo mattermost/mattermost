@@ -18,6 +18,7 @@ func TestInviteProvider(t *testing.T) {
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
 	privateChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
 	dmChannel := th.CreateDmChannel(th.BasicUser2)
+	privateChannel2 := th.createChannelWithAnotherUser(th.BasicTeam, model.CHANNEL_PRIVATE, th.BasicUser2.Id)
 
 	basicUser3 := th.CreateUser()
 	th.LinkUserToTeam(basicUser3, th.BasicTeam)
@@ -36,6 +37,7 @@ func TestInviteProvider(t *testing.T) {
 	userAndDisplayChannel := "@" + th.BasicUser2.Username + " ~" + channel.DisplayName + " "
 	userAndPrivateChannel := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
 	userAndDMChannel := "@" + basicUser3.Username + " ~" + dmChannel.Name
+	userAndInvalidPrivate := "@" + basicUser3.Username + " ~" + privateChannel2.Name
 
 	tests := []struct {
 		desc     string
@@ -96,6 +98,11 @@ func TestInviteProvider(t *testing.T) {
 			desc:     "try to add a user to a direct channel",
 			expected: "api.command_invite.directchannel.app_error",
 			msg:      userAndDMChannel,
+		},
+		{
+			desc:     "try to add a user to a privante channel with no permission",
+			expected: "api.command_invite.private_channel.app_error",
+			msg:      userAndInvalidPrivate,
 		},
 	}
 
