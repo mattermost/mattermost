@@ -5983,10 +5983,6 @@
     "translation": "We couldn't delete the channel"
   },
   {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "Problem updating members last updated time"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "We couldn't find the existing channel"
   },

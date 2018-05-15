@@ -1,4 +1,4 @@
-package api4
+package web
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 func TestRequireHookId(t *testing.T) {
 	c := &Context{}
 	t.Run("WhenHookIdIsValid", func(t *testing.T) {
-		c.Params = &ApiParams{HookId: "abcdefghijklmnopqrstuvwxyz"}
+		c.Params = &Params{HookId: "abcdefghijklmnopqrstuvwxyz"}
 		c.RequireHookId()
 
 		if c.Err != nil {
@@ -17,7 +17,7 @@ func TestRequireHookId(t *testing.T) {
 	})
 
 	t.Run("WhenHookIdIsInvalid", func(t *testing.T) {
-		c.Params = &ApiParams{HookId: "abc"}
+		c.Params = &Params{HookId: "abc"}
 		c.RequireHookId()
 
 		if c.Err == nil {
