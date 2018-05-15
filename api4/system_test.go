@@ -524,7 +524,7 @@ func TestS3TestConnection(t *testing.T) {
 	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckInternalErrorStatus(t, resp)
-	require.Equal(t, "Error checking if bucket exists.", resp.Error.Message)
+	require.Equal(t, "Unable to create bucket", resp.Error.Message)
 }
 
 func TestSupportedTimezones(t *testing.T) {
