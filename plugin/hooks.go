@@ -58,13 +58,13 @@ type Hooks interface {
 	// updated the post.
 	MessageWillBeUpdated(newPost, oldPost *model.Post) (*model.Post, string)
 
-	// MessageHasBeenPosted is envoked after the message has been commited to the databse.
+	// MessageHasBeenPosted is invoked after the message has been commited to the databse.
 	// If you need to modify or reject the post, see MessageWillBePosted
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
 	MessageHasBeenPosted(post *model.Post)
 
-	// MessageHasBeenUpdated is envoked after a message is updated and has been updated in the databse.
+	// MessageHasBeenUpdated is invoked after a message is updated and has been updated in the databse.
 	// If you need to modify or reject the post, see MessageWillBeUpdated
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
