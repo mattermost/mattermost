@@ -227,6 +227,29 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 	return channel
 }
 
+func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType, userId string) *model.Channel {
+	id := model.NewId()
+
+	channel := &model.Channel{
+		DisplayName: "dn_" + id,
+		Name:        "name_" + id,
+		Type:        channelType,
+		TeamId:      team.Id,
+		CreatorId:   userId,
+	}
+
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	if channel, err = me.App.CreateChannel(channel, true); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return channel
+}
+
 func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError

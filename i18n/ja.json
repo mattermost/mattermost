@@ -517,7 +517,7 @@
   },
   {
     "id": "api.command_away.name",
-    "translation": "離席"
+    "translation": "離席中"
   },
   {
     "id": "api.command_away.success",
@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "チームの取得中にエラーが発生しました"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "チームアイコンの取得中にエラーが発生しました"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "抽出されたプラグインを有効化できませんでした。プラグインが既に存在し、有効化されている可能性があります。"
+    "translation": "抽出されたプラグインを有効化できませんでした。"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "有効なプラグインを取得できませんでした"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "プラグインIDは{{.Max}}文字未満でなくてはなりません。"
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "プラグインをインストールできません。"
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "プラグインをインストールできません。同じIDを持つプラグインがすでにインストールされています。"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "プラグインIDは {{.Min}} 文字以上 {{.Max}} 文字以下で、{{.Regex}}にマッチしなければなりません。"
   },
   {
     "id": "app.plugin.manifest.app_error",
