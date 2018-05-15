@@ -823,6 +823,10 @@
     "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} added to {{.Channel}} channel."
   },
@@ -3847,16 +3851,16 @@
     "translation": "Unable to get active plugins"
   },
   {
-    "id": "app.plugin.invalid_id.app_error",
-    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",

@@ -685,7 +685,7 @@
   },
   {
     "id": "api.command_echo.delay.app_error",
-    "translation": "延迟必须在10000秒内"
+    "translation": "延迟必须在 10000 秒内"
   },
   {
     "id": "api.command_echo.desc",
@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "获取团队时发生错误"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "更新团队图标时发生错误"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "无法激活揭开的插件。插件可能已存在并已激活。"
+    "translation": "无法激活解压的插件。"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "无法获取已启动的插件"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "插件 Id 必须小于 {{.Max}} 个字符。"
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "无法安装插件。"
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "无法安装插件。已存在相同 ID 的插件。"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "插件 Id 必须至少 {{.Min}} 个字符，最多 {{.Max}} 个字符并匹配 {{.Regex}}。"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -4120,7 +4120,7 @@
   },
   {
     "id": "ent.compliance.run_limit.warning",
-    "translation": "任务'{{.JobName}}'的导出审核警告：'{{.FilePath}}'过多行返回截断至第30,000行"
+    "translation": "任务 '{{.JobName}}' 的导出审核警告：'{{.FilePath}}' 过多行返回截断至第 3,0000 行"
   },
   {
     "id": "ent.compliance.run_started.info",
