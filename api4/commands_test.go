@@ -346,12 +346,12 @@ func TestMsgCommands(t *testing.T) {
 	Client.Must(Client.CreateDirectChannel(th.BasicUser.Id, user2.Id))
 	Client.Must(Client.CreateDirectChannel(th.BasicUser.Id, user3.Id))
 
-	rs1 := Client.Must(Client.ExecuteCommand("", "/msg "+user2.Username)).(*model.CommandResponse)
+	rs1 := Client.Must(Client.ExecuteCommand(th.BasicChannel.Id, "/msg "+user2.Username)).(*model.CommandResponse)
 	if !strings.HasSuffix(rs1.GotoLocation, "/"+team.Name+"/channels/"+user1.Id+"__"+user2.Id) && !strings.HasSuffix(rs1.GotoLocation, "/"+team.Name+"/channels/"+user2.Id+"__"+user1.Id) {
 		t.Fatal("failed to create direct channel")
 	}
 
-	rs2 := Client.Must(Client.ExecuteCommand("", "/msg "+user3.Username+" foobar")).(*model.CommandResponse)
+	rs2 := Client.Must(Client.ExecuteCommand(th.BasicChannel.Id, "/msg "+user3.Username+" foobar")).(*model.CommandResponse)
 	if !strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+user1.Id+"__"+user3.Id) && !strings.HasSuffix(rs2.GotoLocation, "/"+team.Name+"/channels/"+user3.Id+"__"+user1.Id) {
 		t.Fatal("failed to create second direct channel")
 	}
@@ -359,13 +359,13 @@ func TestMsgCommands(t *testing.T) {
 		t.Fatalf("post did not get sent to direct message")
 	}
 
-	rs3 := Client.Must(Client.ExecuteCommand("", "/msg "+user2.Username)).(*model.CommandResponse)
+	rs3 := Client.Must(Client.ExecuteCommand(th.BasicChannel.Id, "/msg "+user2.Username)).(*model.CommandResponse)
 	if !strings.HasSuffix(rs3.GotoLocation, "/"+team.Name+"/channels/"+user1.Id+"__"+user2.Id) && !strings.HasSuffix(rs3.GotoLocation, "/"+team.Name+"/channels/"+user2.Id+"__"+user1.Id) {
 		t.Fatal("failed to go back to existing direct channel")
 	}
 
-	Client.Must(Client.ExecuteCommand("", "/msg "+th.BasicUser.Username+" foobar"))
-	Client.Must(Client.ExecuteCommand("", "/msg junk foobar"))
+	Client.Must(Client.ExecuteCommand(th.BasicChannel.Id, "/msg "+th.BasicUser.Username+" foobar"))
+	Client.Must(Client.ExecuteCommand(th.BasicChannel.Id, "/msg junk foobar"))
 }
 
 func TestOpenCommands(t *testing.T) {
