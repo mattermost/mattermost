@@ -661,3 +661,7 @@ func (a *App) ExecutePluginCommand(args *model.CommandArgs) (*model.Command, *mo
 	}
 	return nil, nil, nil
 }
+
+func (a *App) PluginsReady() bool {
+	return a.PluginEnv != nil && *a.Config().PluginSettings.Enable
+}

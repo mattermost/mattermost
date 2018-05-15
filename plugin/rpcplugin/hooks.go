@@ -141,6 +141,52 @@ func (h *LocalHooks) ExecuteCommand(args *model.CommandArgs, reply *HooksExecute
 	return nil
 }
 
+type MessageWillBeReply struct {
+	Post            *model.Post
+	RejectionReason string
+}
+
+type MessageUpdatedArgs struct {
+	NewPost *model.Post
+	OldPost *model.Post
+}
+
+func (h *LocalHooks) MessageWillBePosted(args *model.Post, reply *MessageWillBeReply) error {
+	if hook, ok := h.hooks.(interface {
+		MessageWillBePosted(*model.Post) (*model.Post, string)
+	}); ok {
+		reply.Post, reply.RejectionReason = hook.MessageWillBePosted(args)
+	}
+	return nil
+}
+
+func (h *LocalHooks) MessageWillBeUpdated(args *MessageUpdatedArgs, reply *MessageWillBeReply) error {
+	if hook, ok := h.hooks.(interface {
+		MessageWillBeUpdated(*model.Post, *model.Post) (*model.Post, string)
+	}); ok {
+		reply.Post, reply.RejectionReason = hook.MessageWillBeUpdated(args.NewPost, args.OldPost)
+	}
+	return nil
+}
+
+func (h *LocalHooks) MessageHasBeenPosted(args *model.Post, reply *struct{}) error {
+	if hook, ok := h.hooks.(interface {
+		MessageHasBeenPosted(*model.Post)
+	}); ok {
+		hook.MessageHasBeenPosted(args)
+	}
+	return nil
+}
+
+func (h *LocalHooks) MessageHasBeenUpdated(args *MessageUpdatedArgs, reply *struct{}) error {
+	if hook, ok := h.hooks.(interface {
+		MessageHasBeenUpdated(*model.Post, *model.Post)
+	}); ok {
+		hook.MessageHasBeenUpdated(args.NewPost, args.OldPost)
+	}
+	return nil
+}
+
 func ServeHooks(hooks interface{}, conn io.ReadWriteCloser, muxer *Muxer) {
 	server := rpc.NewServer()
 	server.Register(&LocalHooks{
@@ -158,6 +204,10 @@ const (
 	remoteServeHTTP             = 2
 	remoteOnConfigurationChange = 3
 	remoteExecuteCommand        = 4
+	remoteMessageWillBePosted   = 5
+	remoteMessageWillBeUpdated  = 6
+	remoteMessageHasBeenPosted  = 7
+	remoteMessageHasBeenUpdated = 8
 	maxRemoteHookCount          = iota
 )
 
@@ -255,6 +305,54 @@ func (h *RemoteHooks) ExecuteCommand(args *model.CommandArgs) (*model.CommandRes
 	return reply.Response, reply.Error
 }
 
+func (h *RemoteHooks) MessageWillBePosted(args *model.Post) (*model.Post, string) {
+	if !h.implemented[remoteMessageWillBePosted] {
+		return args, ""
+	}
+	var reply MessageWillBeReply
+	if err := h.client.Call("LocalHooks.MessageWillBePosted", args, &reply); err != nil {
+		return nil, ""
+	}
+	return reply.Post, reply.RejectionReason
+}
+
+func (h *RemoteHooks) MessageWillBeUpdated(newPost, oldPost *model.Post) (*model.Post, string) {
+	if !h.implemented[remoteMessageWillBeUpdated] {
+		return newPost, ""
+	}
+	var reply MessageWillBeReply
+	args := &MessageUpdatedArgs{
+		NewPost: newPost,
+		OldPost: oldPost,
+	}
+	if err := h.client.Call("LocalHooks.MessageWillBeUpdated", args, &reply); err != nil {
+		return nil, ""
+	}
+	return reply.Post, reply.RejectionReason
+}
+
+func (h *RemoteHooks) MessageHasBeenPosted(args *model.Post) {
+	if !h.implemented[remoteMessageHasBeenPosted] {
+		return
+	}
+	if err := h.client.Call("LocalHooks.MessageHasBeenPosted", args, nil); err != nil {
+		return
+	}
+}
+
+func (h *RemoteHooks) MessageHasBeenUpdated(newPost, oldPost *model.Post) {
+	if !h.implemented[remoteMessageHasBeenUpdated] {
+		return
+	}
+	args := &MessageUpdatedArgs{
+		NewPost: newPost,
+		OldPost: oldPost,
+	}
+	if err := h.client.Call("LocalHooks.MessageHasBeenUpdated", args, nil); err != nil {
+		return
+	}
+}
+
 func (h *RemoteHooks) Close() error {
 	if h.apiCloser != nil {
 		h.apiCloser.Close()
@@ -286,6 +384,14 @@ func ConnectHooks(conn io.ReadWriteCloser, muxer *Muxer, pluginId string) (*Remo
 			remote.implemented[remoteServeHTTP] = true
 		case "ExecuteCommand":
 			remote.implemented[remoteExecuteCommand] = true
+		case "MessageWillBePosted":
+			remote.implemented[remoteMessageWillBePosted] = true
+		case "MessageWillBeUpdated":
+			remote.implemented[remoteMessageWillBeUpdated] = true
+		case "MessageHasBeenPosted":
+			remote.implemented[remoteMessageHasBeenPosted] = true
+		case "MessageHasBeenUpdated":
+			remote.implemented[remoteMessageHasBeenUpdated] = true
 		}
 	}
 	return remote, nil
