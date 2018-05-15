@@ -641,10 +641,6 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 			if err := a.postLeaveTeamMessage(user, channel); err != nil {
 				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
 			}
-		} else {
-			if err := a.postRemoveFromTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-			}
 		}
 	}
 
@@ -689,24 +685,6 @@ func (a *App) postLeaveTeamMessage(user *model.User, channel *model.Channel) *mo
 
 	if _, err := a.CreatePost(post, channel, false); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
-func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel) *model.AppError {
-	post := &model.Post{
-		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.team.remove_user_from_team.removed"), user.Username),
-		Type:      model.POST_REMOVE_FROM_TEAM,
-		UserId:    user.Id,
-		Props: model.StringInterface{
-			"username": user.Username,
-		},
-	}
-
-	if _, err := a.CreatePost(post, channel, false); err != nil {
-		return model.NewAppError("postRemoveFromTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
