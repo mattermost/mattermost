@@ -3016,6 +3016,28 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 	}
 }
 
+// GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
+func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Response) {
+	rq, _ := http.NewRequest(http.MethodPost, c.Url+"/oauth/access_token", strings.NewReader(data.Encode()))
+	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.Url+"/oauth/access_token", "model.client.connecting.app_error", nil, err.Error(), 403)}
+	} else {
+		defer closeBody(rp)
+		if rp.StatusCode >= 300 {
+			return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
+		} else {
+			return AccessResponseFromJson(rp.Body), BuildResponse(rp)
+		}
+	}
+}
+
 // Elasticsearch Section
 
 // TestElasticsearch will attempt to connect to the configured Elasticsearch server and return OK if configured
