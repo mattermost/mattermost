@@ -511,7 +511,7 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.MaxIdleConnsPerHost == nil {
-		s.MaxIdleConnsPerHost = NewInt(2)
+		s.MaxIdleConnsPerHost = NewInt(128)
 	}
 
 	if s.IdleConnTimeoutMilliseconds == nil {
