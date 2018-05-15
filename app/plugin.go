@@ -38,9 +38,9 @@ var prepackagedPlugins map[string]func(string) ([]byte, error) = map[string]func
 }
 
 func (a *App) notifyPluginStatusesChanged() error {
-	pluginStatuses := make([]*model.PluginStatus, 0, len(a.pluginStatuses))
-	for _, pluginStatus := range a.pluginStatuses {
-		pluginStatuses = append(pluginStatuses, pluginStatus)
+	pluginStatuses, err := a.GetClusterPluginStatuses()
+	if err != nil {
+		return err
 	}
 
 	// Notify any system admins.
