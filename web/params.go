@@ -173,7 +173,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Page = val
 	}
 
-	if val, err := strconv.ParseBool(query.Get("permanent")); err != nil {
+	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {
 		params.Permanent = val
 	}
 
