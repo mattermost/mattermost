@@ -6,13 +6,13 @@ package commands
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestAssignRole(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	cmd.CheckCommand(t, "roles", "system_admin", th.BasicUser.Email)

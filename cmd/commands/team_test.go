@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := api.Setup().InitSystemAdmin()
+	th := api4.Setup().InitSystemAdmin()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -22,7 +22,7 @@ func TestCreateTeam(t *testing.T) {
 
 	cmd.CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
 
-	found := th.SystemAdminClient.Must(th.SystemAdminClient.FindTeamByName(name)).Data.(bool)
+	found := th.SystemAdminClient.Must(th.SystemAdminClient.TeamExists(name, "")).(bool)
 
 	if !found {
 		t.Fatal("Failed to create Team")
@@ -30,12 +30,12 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestJoinTeam(t *testing.T) {
-	th := api.Setup().InitSystemAdmin().InitBasic()
+	th := api4.Setup().InitSystemAdmin().InitBasic()
 	defer th.TearDown()
 
-	cmd.CheckCommand(t, "team", "add", th.SystemAdminTeam.Name, th.BasicUser.Email)
+	cmd.CheckCommand(t, "team", "add", th.BasicTeam.Name, th.BasicUser.Email)
 
-	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfilesInTeam(th.SystemAdminTeam.Id, 0, 1000, "")).Data.(map[string]*model.User)
+	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")).([]*model.User)
 
 	found := false
 
@@ -52,12 +52,12 @@ func TestJoinTeam(t *testing.T) {
 }
 
 func TestLeaveTeam(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	cmd.CheckCommand(t, "team", "remove", th.BasicTeam.Name, th.BasicUser.Email)
 
-	profiles := th.BasicClient.Must(th.BasicClient.GetProfilesInTeam(th.BasicTeam.Id, 0, 1000, "")).Data.(map[string]*model.User)
+	profiles := th.Client.Must(th.Client.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")).([]*model.User)
 
 	found := false
 
@@ -81,7 +81,7 @@ func TestLeaveTeam(t *testing.T) {
 }
 
 func TestListTeams(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()

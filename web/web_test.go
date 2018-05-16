@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-var ApiClient *model.Client
+var ApiClient *model.Client4
 var URL string
 
 type persistentTestStore struct {
@@ -58,7 +58,7 @@ func Setup() *TestHelper {
 
 	NewWeb(a, a.Srv.Router)
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
-	ApiClient = model.NewClient(URL)
+	ApiClient = model.NewAPIv4Client(URL)
 
 	a.DoAdvancedPermissionsMigration()
 
@@ -66,7 +66,6 @@ func Setup() *TestHelper {
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
-		*cfg.ServiceSettings.EnableAPIv3 = true
 	})
 
 	th := &TestHelper{

@@ -113,7 +113,7 @@ type API struct {
 	BaseRoutes *Routes
 }
 
-func Init(a *app.App, root *mux.Router, full bool) *API {
+func Init(a *app.App, root *mux.Router) *API {
 	api := &API{
 		App:        a,
 		BaseRoutes: &Routes{},
@@ -231,10 +231,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
-	// REMOVE CONDITION WHEN APIv3 REMOVED
-	if full {
-		a.InitEmailBatching()
-	}
+	a.InitEmailBatching()
 
 	return api
 }
