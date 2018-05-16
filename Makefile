@@ -277,7 +277,14 @@ store-mocks: ## Creates mock files.
 
 ldap-mocks: ## Creates mock files for ldap.
 	go get github.com/vektra/mockery/...
-	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
+	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
+
+plugin-mocks: ## Creates mock files for plugins.
+	go get github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOPATH)/bin/mockery -dir plugin -name KeyValueStore -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	@sed -i'' -e 's|API|APIMOCKINTERNAL|g' plugin/plugintest/api.go
 
 update-jira-plugin: ## Updates Jira plugin.
 	go get github.com/mattermost/go-bindata/...

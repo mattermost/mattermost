@@ -35,8 +35,8 @@ func GloballyEnableDebugLogForTest() {
 	globalLogger.consoleLevel.SetLevel(zapcore.DebugLevel)
 }
 
-var Debug LogFunc
-var Info LogFunc
-var Warn LogFunc
-var Error LogFunc
-var Critical LogFunc
+var Debug LogFunc = defaultDebugLog
+var Info LogFunc = defaultInfoLog
+var Warn LogFunc = defaultWarnLog
+var Error LogFunc = defaultErrorLog
+var Critical LogFunc = defaultCriticalLog
