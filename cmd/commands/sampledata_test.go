@@ -6,13 +6,13 @@ package commands
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSampledataBadParameters(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	// should fail because you need at least 1 worker
