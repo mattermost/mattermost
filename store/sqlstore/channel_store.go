@@ -946,10 +946,6 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) store.StoreChan
 					if err := transaction.Commit(); err != nil {
 						result.Err = model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 					}
-					// If successful record members have changed in channel
-					if mu := <-s.extraUpdated(channel); mu.Err != nil {
-						result.Err = mu.Err
-					}
 				}
 			}
 		}
