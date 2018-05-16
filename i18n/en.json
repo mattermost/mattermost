@@ -244,6 +244,10 @@
     "translation": "Private Channel management and creation is restricted to System Administrators."
   },
   {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
     "translation": "Private Channel management and creation is restricted to Team and System Administrators."
   },
