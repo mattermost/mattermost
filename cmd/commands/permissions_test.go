@@ -32,8 +32,9 @@ func permissionsLicenseRequiredTest(t *testing.T, subcommand string) {
 	args := []string{"-test.run", "ExecCommand", "--", "--disableconfigwatch", "permissions", subcommand}
 	output, err := exec.Command(path, args...).CombinedOutput()
 
-	errorMsg := strings.Split(string(output), "\n")[0]
-	if !strings.Contains(errorMsg, utils.T("cli.license.critical")) {
-		t.Error()
+	actual := string(output)
+	expected := utils.T("cli.license.critical")
+	if !strings.Contains(actual, expected) {
+		t.Errorf("Expected '%v' but got '%v'.", expected, actual)
 	}
 }

@@ -62,6 +62,7 @@ func createDefaultRoles(t *testing.T, ss store.Store) {
 func testSchemeStoreSave(t *testing.T, ss store.Store) {
 	// Save a new scheme.
 	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -72,6 +73,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 	assert.Nil(t, res1.Err)
 	d1 := res1.Data.(*model.Scheme)
 	assert.Len(t, d1.Id, 26)
+	assert.Equal(t, s1.DisplayName, d1.DisplayName)
 	assert.Equal(t, s1.Name, d1.Name)
 	assert.Equal(t, s1.Description, d1.Description)
 	assert.NotZero(t, d1.CreateAt)
@@ -115,6 +117,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 	assert.Nil(t, res2.Err)
 	d2 := res2.Data.(*model.Scheme)
 	assert.Equal(t, d1.Id, d2.Id)
+	assert.Equal(t, s1.DisplayName, d2.DisplayName)
 	assert.Equal(t, s1.Name, d2.Name)
 	assert.Equal(t, d1.Description, d2.Description)
 	assert.NotZero(t, d2.CreateAt)
@@ -129,6 +132,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 	// Try saving one with an invalid ID set.
 	s3 := &model.Scheme{
 		Id:          model.NewId(),
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -141,6 +145,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 func testSchemeStoreGet(t *testing.T, ss store.Store) {
 	// Save a scheme to test with.
 	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -156,6 +161,7 @@ func testSchemeStoreGet(t *testing.T, ss store.Store) {
 	assert.Nil(t, res2.Err)
 	d2 := res1.Data.(*model.Scheme)
 	assert.Equal(t, d1.Id, d2.Id)
+	assert.Equal(t, s1.DisplayName, d2.DisplayName)
 	assert.Equal(t, s1.Name, d2.Name)
 	assert.Equal(t, d1.Description, d2.Description)
 	assert.NotZero(t, d2.CreateAt)
@@ -176,21 +182,25 @@ func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
 	// Save a scheme to test with.
 	schemes := []*model.Scheme{
 		{
+			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		},
 		{
+			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_CHANNEL,
 		},
 		{
+			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		},
 		{
+			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_CHANNEL,
@@ -210,6 +220,10 @@ func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
 	assert.Nil(t, r2.Err)
 	s2 := r2.Data.([]*model.Scheme)
 	assert.Len(t, s2, 2)
+	assert.NotEqual(t, s1[0].DisplayName, s2[0].DisplayName)
+	assert.NotEqual(t, s1[0].DisplayName, s2[1].DisplayName)
+	assert.NotEqual(t, s1[1].DisplayName, s2[0].DisplayName)
+	assert.NotEqual(t, s1[1].DisplayName, s2[1].DisplayName)
 	assert.NotEqual(t, s1[0].Name, s2[0].Name)
 	assert.NotEqual(t, s1[0].Name, s2[1].Name)
 	assert.NotEqual(t, s1[1].Name, s2[0].Name)
@@ -235,6 +249,7 @@ func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
 func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	// Save a new scheme.
 	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -245,6 +260,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	assert.Nil(t, res1.Err)
 	d1 := res1.Data.(*model.Scheme)
 	assert.Len(t, d1.Id, 26)
+	assert.Equal(t, s1.DisplayName, d1.DisplayName)
 	assert.Equal(t, s1.Name, d1.Name)
 	assert.Equal(t, s1.Description, d1.Description)
 	assert.NotZero(t, d1.CreateAt)
@@ -316,6 +332,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 
 	// Try deleting a team scheme that's in use.
 	s4 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -345,6 +362,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 
 	// Try deleting a channel scheme that's in use.
 	s5 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,

@@ -34,7 +34,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 func (a *App) ExportPermissions(w io.Writer) error {
 
-	next := a.SchemeGenerator(permissionsExportBatchSize)
+	next := a.SchemesIterator(permissionsExportBatchSize)
 	var schemeBatch []*model.Scheme
 
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {
@@ -62,6 +62,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 
 			schemeExport, err := json.Marshal(&model.SchemeConveyor{
 				Name:         scheme.Name,
+				DisplayName:  scheme.DisplayName,
 				Description:  scheme.Description,
 				Scope:        scheme.Scope,
 				TeamAdmin:    scheme.DefaultTeamAdminRole,
@@ -109,10 +110,10 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 
 		schemeIn := schemeConveyor.Scheme()
 		roleIDTuples := [][]string{
-			[]string{schemeCreated.DefaultTeamAdminRole, schemeIn.DefaultTeamAdminRole},
-			[]string{schemeCreated.DefaultTeamUserRole, schemeIn.DefaultTeamUserRole},
-			[]string{schemeCreated.DefaultChannelAdminRole, schemeIn.DefaultChannelAdminRole},
-			[]string{schemeCreated.DefaultChannelUserRole, schemeIn.DefaultChannelUserRole},
+			{schemeCreated.DefaultTeamAdminRole, schemeIn.DefaultTeamAdminRole},
+			{schemeCreated.DefaultTeamUserRole, schemeIn.DefaultTeamUserRole},
+			{schemeCreated.DefaultChannelAdminRole, schemeIn.DefaultChannelAdminRole},
+			{schemeCreated.DefaultChannelUserRole, schemeIn.DefaultChannelUserRole},
 		}
 		for _, roleIDTuple := range roleIDTuples {
 			if len(roleIDTuple[0]) == 0 || len(roleIDTuple[1]) == 0 {

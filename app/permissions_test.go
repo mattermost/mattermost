@@ -21,7 +21,11 @@ func TestExportPermissions(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	scheme, roles := th.CreateScheme()
+	var scheme *model.Scheme
+	var roles []*model.Role
+	withMigrationMarkedComplete(th, func() {
+		scheme, roles = th.CreateScheme()
+	})
 
 	results := [][]byte{}
 
@@ -59,6 +63,7 @@ func TestExportPermissions(t *testing.T) {
 	}
 
 	expectations := map[string]func(str string) string{
+		scheme.DisplayName:             func(str string) string { return row["display_name"].(string) },
 		scheme.Name:                    func(str string) string { return row["name"].(string) },
 		scheme.Description:             func(str string) string { return row["description"].(string) },
 		scheme.Scope:                   func(str string) string { return row["scope"].(string) },
@@ -83,6 +88,7 @@ func TestImportPermissions(t *testing.T) {
 	defer th.TearDown()
 
 	name := model.NewId()
+	displayName := model.NewId()
 	description := "my test description"
 	scope := model.SCHEME_SCOPE_CHANNEL
 	roleName1 := model.NewId()
@@ -95,13 +101,15 @@ func TestImportPermissions(t *testing.T) {
 	}
 	beforeCount := len(results)
 
-	json := fmt.Sprintf(`{"name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"1x5nk4xxoinx88tynhe6f1fjeh","default_channel_user_role":"unuudyfc1jfwunznun5qx7m9br","roles":[{"id":"1x5nk4xxoinx88tynhe6f1fjeh","name":"%v","display_name":"Channel Admin Role for Scheme a7c1ae93-e6a7-48f7-abb0-1e13fbda97ae","description":"","create_at":1526078502853,"update_at":1526078502853,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"unuudyfc1jfwunznun5qx7m9br","name":"%v","display_name":"Channel User Role for Scheme a7c1ae93-e6a7-48f7-abb0-1e13fbda97ae","description":"","create_at":1526078502855,"update_at":1526078502855,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, name, description, scope, roleName1, roleName2)
+	json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"yzfx3g9xjjfw8cqo6bpn33xr7o","default_channel_user_role":"a7s3cp4n33dfxbsrmyh9djao3a","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2)
 	r := strings.NewReader(json)
 
-	err := th.App.ImportPermissions(r)
-	if err != nil {
-		t.Error(err)
-	}
+	withMigrationMarkedComplete(th, func() {
+		err := th.App.ImportPermissions(r)
+		if err != nil {
+			t.Error(err)
+		}
+	})
 
 	results, appErr = th.App.GetSchemes(scope, 0, 100)
 	if appErr != nil {
@@ -127,6 +135,7 @@ func TestImportPermissions(t *testing.T) {
 	}
 
 	expectations := map[string]string{
+		newScheme.DisplayName:          displayName,
 		newScheme.Name:                 name,
 		newScheme.Description:          description,
 		newScheme.Scope:                scope,
@@ -144,19 +153,19 @@ func TestImportPermissions(t *testing.T) {
 
 }
 
-func TestImportPermissions_deletesOnFailure(t *testing.T) {
+func TestImportPermissions_idempotentScheme(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	name := model.NewId()
+	displayName := model.NewId()
 	description := "my test description"
 	scope := model.SCHEME_SCOPE_CHANNEL
 	roleName1 := model.NewId()
 	roleName2 := model.NewId()
 
-	json := fmt.Sprintf(`{"name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"1x5nk4xxoinx88tynhe6f1fjeh","default_channel_user_role":"unuudyfc1jfwunznun5qx7m9br","roles":[{"id":"1x5nk4xxoinx88tynhe6f1fjeh","name":"%v","display_name":"Channel Admin Role for Scheme a7c1ae93-e6a7-48f7-abb0-1e13fbda97ae","description":"","create_at":1526078502853,"update_at":1526078502853,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"unuudyfc1jfwunznun5qx7m9br","name":"%v","display_name":"Channel User Role for Scheme a7c1ae93-e6a7-48f7-abb0-1e13fbda97ae","description":"","create_at":1526078502855,"update_at":1526078502855,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}
-{"name":"a7c1ae93-e6a7-48f7-abb0-1e13fbda97ae","description":"scheme test description 1526078503","scope":"channel","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"1x5nk4xxoinx88tynhe6f1fjeh","default_channel_user_role":"unuudyfc1jfwunznun5qx7m9br","roles":[{"id":"1x5nk4xxoinx88tynhe6f1fjeh","name":"ju5guemb3td47ny3e14tihoyqy","display_name":"Channel Admin Role for Scheme a7c1ae93-e6a7-48f7-abb0-1e13fbda97ae","description":"","create_at":1526078502853,"update_at":1526078502853,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"unuudyfc1jfwunznun5qx7m9br","name":"6kwp5utosidwmpamw87xrrt9fe","display_name":"Channel User Role for Scheme a7c1ae93-e6a7-48f7-abb0-1e13fbda97ae","description":"","create_at":1526078502855,"update_at":1526078502855,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, name, description, scope, roleName1, roleName2)
-	jsonl := strings.Repeat(json+"\n", 2)
+	json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"yzfx3g9xjjfw8cqo6bpn33xr7o","default_channel_user_role":"a7s3cp4n33dfxbsrmyh9djao3a","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2)
+	jsonl := strings.Repeat(json+"\n", 4)
 	r := strings.NewReader(jsonl)
 
 	var appErr *model.AppError
@@ -164,12 +173,14 @@ func TestImportPermissions_deletesOnFailure(t *testing.T) {
 	if appErr != nil {
 		panic(appErr)
 	}
-	expected := len(results)
+	expected := len(results) + 1
 
-	err := th.App.ImportPermissions(r)
-	if err == nil {
-		t.Error(err)
-	}
+	withMigrationMarkedComplete(th, func() {
+		err := th.App.ImportPermissions(r)
+		if err == nil {
+			t.Error(err)
+		}
+	})
 
 	results, appErr = th.App.GetSchemes(model.SCHEME_SCOPE_CHANNEL, 0, 100)
 	if appErr != nil {
@@ -181,4 +192,55 @@ func TestImportPermissions_deletesOnFailure(t *testing.T) {
 		t.Errorf("Expected count to be %v but got %v", expected, actual)
 	}
 
+}
+
+func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	name := model.NewId()
+	displayName := model.NewId()
+	description := "my test description"
+	scope := model.SCHEME_SCOPE_CHANNEL
+	roleName1 := model.NewId()
+	roleName2 := "some invalid role name"
+
+	jsonl := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"yzfx3g9xjjfw8cqo6bpn33xr7o","default_channel_user_role":"a7s3cp4n33dfxbsrmyh9djao3a","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2)
+	r := strings.NewReader(jsonl)
+
+	var appErr *model.AppError
+	results, appErr := th.App.GetSchemes(model.SCHEME_SCOPE_CHANNEL, 0, 100)
+	if appErr != nil {
+		panic(appErr)
+	}
+	expected := len(results)
+
+	withMigrationMarkedComplete(th, func() {
+		err := th.App.ImportPermissions(r)
+		if err == nil {
+			t.Error(err)
+		}
+	})
+
+	results, appErr = th.App.GetSchemes(model.SCHEME_SCOPE_CHANNEL, 0, 100)
+	if appErr != nil {
+		panic(appErr)
+	}
+	actual := len(results)
+
+	if expected != actual {
+		t.Errorf("Expected count to be %v but got %v", expected, actual)
+	}
+
+}
+
+func withMigrationMarkedComplete(th *TestHelper, f func()) {
+	// Mark the migration as done.
+	<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	// Un-mark the migration at the end of the test.
+	defer func() {
+		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	}()
+	f()
 }

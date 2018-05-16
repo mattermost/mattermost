@@ -320,7 +320,8 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	utils.DisableDebugLogForTest()
 
 	scheme, err := me.App.CreateScheme(&model.Scheme{
-		Name:        "Test Scheme Name",
+		DisplayName: "Test Scheme Display Name",
+		Name:        model.NewId(),
 		Description: "Test scheme description",
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	})

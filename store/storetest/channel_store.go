@@ -2163,12 +2163,14 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
 func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	// Create some schemes.
 	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
 
 	s2 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,

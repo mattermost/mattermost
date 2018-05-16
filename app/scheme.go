@@ -149,7 +149,7 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 	return nil
 }
 
-func (a *App) SchemeGenerator(batchSize int) func() []*model.Scheme {
+func (a *App) SchemesIterator(batchSize int) func() []*model.Scheme {
 	offset := 0
 	return func() []*model.Scheme {
 		var result store.StoreResult
