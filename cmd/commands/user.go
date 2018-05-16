@@ -422,6 +422,10 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
+	if len(args) != 2 {
+		return errors.New("Expected two arguments. See help text for details.")
+	}
+
 	newEmail := args[1]
 
 	if !model.IsValidEmail(newEmail) {
@@ -440,7 +444,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	user.Email = newEmail
 	_, errUpdate := a.UpdateUser(user, true)
 	if errUpdate != nil {
-		return errUpdate
+		return errors.New(errUpdate.Message)
 	}
 
 	return nil

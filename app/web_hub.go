@@ -177,8 +177,9 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 
 func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 	if message.Broadcast.UserId != "" {
-		if len(a.Hubs) != 0 {
-			a.GetHubForUserId(message.Broadcast.UserId).Broadcast(message)
+		hub := a.GetHubForUserId(message.Broadcast.UserId)
+		if hub != nil {
+			hub.Broadcast(message)
 		}
 	} else {
 		for _, hub := range a.Hubs {
@@ -299,8 +300,9 @@ func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
 	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
 
-	if len(a.Hubs) != 0 {
-		a.GetHubForUserId(userId).InvalidateUser(userId)
+	hub := a.GetHubForUserId(userId)
+	if hub != nil {
+		hub.InvalidateUser(userId)
 	}
 }
 
@@ -322,8 +324,9 @@ func (a *App) InvalidateCacheForWebhookSkipClusterSend(webhookId string) {
 }
 
 func (a *App) InvalidateWebConnSessionCacheForUser(userId string) {
-	if len(a.Hubs) != 0 {
-		a.GetHubForUserId(userId).InvalidateUser(userId)
+	hub := a.GetHubForUserId(userId)
+	if hub != nil {
+		hub.InvalidateUser(userId)
 	}
 }
 
