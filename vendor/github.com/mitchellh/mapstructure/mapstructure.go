@@ -644,16 +644,28 @@ func (d *Decoder) decodeMapFromStruct(name string, dataVal reflect.Value, val re
 			return fmt.Errorf("cannot assign type '%s' to map value field of type '%s'", v.Type(), valMap.Type().Elem())
 		}
 
+		tagValue := f.Tag.Get(d.config.TagName)
+		tagParts := strings.Split(tagValue, ",")
+
 		// Determine the name of the key in the map
 		keyName := f.Name
-		tagValue := f.Tag.Get(d.config.TagName)
-		tagValue = strings.SplitN(tagValue, ",", 2)[0]
-		if tagValue != "" {
-			if tagValue == "-" {
+		if tagParts[0] != "" {
+			if tagParts[0] == "-" {
 				continue
 			}
+			keyName = tagParts[0]
+		}
 
-			keyName = tagValue
+		// If "squash" is specified in the tag, we squash the field down.
+		squash := false
+		for _, tag := range tagParts[1:] {
+			if tag == "squash" {
+				squash = true
+				break
+			}
+		}
+		if squash && v.Kind() != reflect.Struct {
+			return fmt.Errorf("cannot squash non-struct type '%s'", v.Type())
 		}
 
 		switch v.Kind() {
@@ -673,7 +685,13 @@ func (d *Decoder) decodeMapFromStruct(name string, dataVal reflect.Value, val re
 				return err
 			}
 
-			valMap.SetMapIndex(reflect.ValueOf(keyName), vMap)
+			if squash {
+				for _, k := range vMap.MapKeys() {
+					valMap.SetMapIndex(k, vMap.MapIndex(k))
+				}
+			} else {
+				valMap.SetMapIndex(reflect.ValueOf(keyName), vMap)
+			}
 
 		default:
 			valMap.SetMapIndex(reflect.ValueOf(keyName), v)
