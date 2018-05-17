@@ -336,7 +336,12 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	t4 = tres4.Data.(*model.Team)
 
 	sres4 := <-ss.Scheme().Delete(d4.Id)
-	assert.NotNil(t, sres4.Err)
+	assert.Nil(t, sres4.Err)
+
+	tres5 := <-ss.Team().Get(t4.Id)
+	assert.Nil(t, tres5.Err)
+	t5 := tres5.Data.(*model.Team)
+	assert.Equal(t, "", *t5.SchemeId)
 
 	// Try deleting a channel scheme that's in use.
 	s5 := &model.Scheme{
@@ -360,5 +365,10 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	c5 = cres5.Data.(*model.Channel)
 
 	sres5 := <-ss.Scheme().Delete(d5.Id)
-	assert.NotNil(t, sres5.Err)
+	assert.Nil(t, sres5.Err)
+
+	cres6 := <-ss.Channel().Get(c5.Id, true)
+	assert.Nil(t, cres6.Err)
+	c6 := cres6.Data.(*model.Channel)
+	assert.Equal(t, "", *c6.SchemeId)
 }

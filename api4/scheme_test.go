@@ -615,29 +615,6 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Nil(t, res.Err)
 		team := res.Data.(*model.Team)
 
-		// Try and fail to delete the scheme.
-		_, r2 := th.SystemAdminClient.DeleteScheme(s1.Id)
-		CheckInternalErrorStatus(t, r2)
-
-		role1, roleRes1 = th.SystemAdminClient.GetRole(s1.DefaultTeamAdminRole)
-		CheckNoError(t, roleRes1)
-		role2, roleRes2 = th.SystemAdminClient.GetRole(s1.DefaultTeamUserRole)
-		CheckNoError(t, roleRes2)
-		role3, roleRes3 = th.SystemAdminClient.GetRole(s1.DefaultChannelAdminRole)
-		CheckNoError(t, roleRes3)
-		role4, roleRes4 = th.SystemAdminClient.GetRole(s1.DefaultChannelUserRole)
-		CheckNoError(t, roleRes4)
-
-		assert.Zero(t, role1.DeleteAt)
-		assert.Zero(t, role2.DeleteAt)
-		assert.Zero(t, role3.DeleteAt)
-		assert.Zero(t, role4.DeleteAt)
-
-		// Change the team using it to a different scheme.
-		emptyString := ""
-		team.SchemeId = &emptyString
-		res = <-th.App.Srv.Store.Team().Update(team)
-
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)
 		CheckNoError(t, r3)
@@ -656,6 +633,11 @@ func TestDeleteScheme(t *testing.T) {
 		assert.NotZero(t, role2.DeleteAt)
 		assert.NotZero(t, role3.DeleteAt)
 		assert.NotZero(t, role4.DeleteAt)
+
+		// Check the team now uses the default scheme
+		c2, resp := th.SystemAdminClient.GetTeam(team.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "", *c2.SchemeId)
 	})
 
 	t.Run("ValidChannelScheme", func(t *testing.T) {
@@ -702,23 +684,6 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Nil(t, res.Err)
 		channel := res.Data.(*model.Channel)
 
-		// Try and fail to delete the scheme.
-		_, r2 := th.SystemAdminClient.DeleteScheme(s1.Id)
-		CheckInternalErrorStatus(t, r2)
-
-		role3, roleRes3 = th.SystemAdminClient.GetRole(s1.DefaultChannelAdminRole)
-		CheckNoError(t, roleRes3)
-		role4, roleRes4 = th.SystemAdminClient.GetRole(s1.DefaultChannelUserRole)
-		CheckNoError(t, roleRes4)
-
-		assert.Zero(t, role3.DeleteAt)
-		assert.Zero(t, role4.DeleteAt)
-
-		// Change the team using it to a different scheme.
-		emptyString := ""
-		channel.SchemeId = &emptyString
-		res = <-th.App.Srv.Store.Channel().Update(channel)
-
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)
 		CheckNoError(t, r3)
@@ -731,6 +696,11 @@ func TestDeleteScheme(t *testing.T) {
 
 		assert.NotZero(t, role3.DeleteAt)
 		assert.NotZero(t, role4.DeleteAt)
+
+		// Check the channel now uses the default scheme
+		c2, resp := th.SystemAdminClient.GetChannelByName(channel.Name, channel.TeamId, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "", *c2.SchemeId)
 	})
 
 	t.Run("FailureCases", func(t *testing.T) {
