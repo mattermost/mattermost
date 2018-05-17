@@ -10,6 +10,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetPing(t *testing.T) {
@@ -523,9 +524,7 @@ func TestS3TestConnection(t *testing.T) {
 	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckInternalErrorStatus(t, resp)
-	if resp.Error.Message != "Error checking if bucket exists." {
-		t.Fatal("should return error ")
-	}
+	require.Equal(t, "Unable to create bucket", resp.Error.Message)
 }
 
 func TestSupportedTimezones(t *testing.T) {

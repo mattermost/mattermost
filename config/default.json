@@ -318,7 +318,10 @@
         "UseExperimentalGossip": false,
         "ReadOnlyConfig": true,
         "GossipPort": 8074,
-        "StreamingPort": 8075
+        "StreamingPort": 8075,
+        "MaxIdleConns": 100,
+        "MaxIdleConnsPerHost": 16,
+        "IdleConnTimeoutMilliseconds": 90000
     },
     "MetricsSettings": {
         "Enable": false,

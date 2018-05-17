@@ -459,14 +459,17 @@ func (s *ServiceSettings) SetDefaults() {
 }
 
 type ClusterSettings struct {
-	Enable                *bool
-	ClusterName           *string
-	OverrideHostname      *string
-	UseIpAddress          *bool
-	UseExperimentalGossip *bool
-	ReadOnlyConfig        *bool
-	GossipPort            *int
-	StreamingPort         *int
+	Enable                      *bool
+	ClusterName                 *string
+	OverrideHostname            *string
+	UseIpAddress                *bool
+	UseExperimentalGossip       *bool
+	ReadOnlyConfig              *bool
+	GossipPort                  *int
+	StreamingPort               *int
+	MaxIdleConns                *int
+	MaxIdleConnsPerHost         *int
+	IdleConnTimeoutMilliseconds *int
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -500,6 +503,18 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.StreamingPort == nil {
 		s.StreamingPort = NewInt(8075)
+	}
+
+	if s.MaxIdleConns == nil {
+		s.MaxIdleConns = NewInt(100)
+	}
+
+	if s.MaxIdleConnsPerHost == nil {
+		s.MaxIdleConnsPerHost = NewInt(16)
+	}
+
+	if s.IdleConnTimeoutMilliseconds == nil {
+		s.IdleConnTimeoutMilliseconds = NewInt(90000)
 	}
 }
 
