@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -22,7 +22,7 @@ func TestPermissionsImport_rejectsUnlicensed(t *testing.T) {
 }
 
 func permissionsLicenseRequiredTest(t *testing.T, subcommand string) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	path, err := os.Executable()
