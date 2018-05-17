@@ -46,3 +46,9 @@ func (s *LocalCacheSupplier) SchemeDelete(ctx context.Context, schemeId string, 
 func (s *LocalCacheSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	return s.Next().SchemeGetAllPage(ctx, scope, offset, limit, hints...)
 }
+
+func (s *LocalCacheSupplier) SchemePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	defer s.doClearCacheCluster(s.schemeCache)
+
+	return s.Next().SchemePermanentDeleteAll(ctx, hints...)
+}
