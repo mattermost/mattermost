@@ -1916,7 +1916,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " attached a file "
+    "translation": " attached a file."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -1936,7 +1936,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": " sent you a message."
+    "translation": "sent you a message."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",

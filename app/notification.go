@@ -799,7 +799,7 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 	// If the post only has images then push an appropriate message
 	if len(postMessage) == 0 && hasFiles {
 		if channelType == model.CHANNEL_DIRECT {
-			message = userLocale("api.post.send_notifications_and_forget.push_image_only")
+			message = strings.Trim(userLocale("api.post.send_notifications_and_forget.push_image_only"), " ")
 		} else {
 			message = "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_image_only")
 		}
