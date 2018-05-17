@@ -210,27 +210,20 @@ func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints .
 		return result
 	}
 
-	// Check that the scheme isn't being used on any Teams or Channels.
+	// Update any teams or channels using this scheme to the default scheme.
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
-		if c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
-			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.team_count.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+		if _, err := s.GetReplica().Exec("UPDATE Teams SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
+			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.reset_teams.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
 			return result
-		} else {
-			if c > 0 {
-				result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.scheme_in_use.app_error", nil, "Id="+schemeId, http.StatusInternalServerError)
-				return result
-			}
 		}
 	} else if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
-		if c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Channels WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
-			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.channel_count.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+		if _, err := s.GetReplica().Exec("UPDATE Channels SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
+			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.reset_channels.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
 			return result
-		} else {
-			if c > 0 {
-				result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.scheme_in_use.app_error", nil, "Id="+schemeId, http.StatusInternalServerError)
-				return result
-			}
 		}
+
+		// Blow away the channel caches.
+		s.Channel().ClearCaches()
 	}
 
 	// Delete the roles belonging to the scheme.
