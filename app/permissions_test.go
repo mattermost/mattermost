@@ -94,27 +94,30 @@ func TestImportPermissions(t *testing.T) {
 	roleName1 := model.NewId()
 	roleName2 := model.NewId()
 
-	var appErr *model.AppError
-	results, appErr := th.App.GetSchemes(scope, 0, 100)
-	if appErr != nil {
-		panic(appErr)
-	}
-	beforeCount := len(results)
-
-	json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"yzfx3g9xjjfw8cqo6bpn33xr7o","default_channel_user_role":"a7s3cp4n33dfxbsrmyh9djao3a","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2)
-	r := strings.NewReader(json)
-
+	var results []*model.Scheme
+	var beforeCount int
 	withMigrationMarkedComplete(th, func() {
+
+		var appErr *model.AppError
+		results, appErr = th.App.GetSchemes(scope, 0, 100)
+		if appErr != nil {
+			panic(appErr)
+		}
+		beforeCount = len(results)
+
+		json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"yzfx3g9xjjfw8cqo6bpn33xr7o","default_channel_user_role":"a7s3cp4n33dfxbsrmyh9djao3a","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2)
+		r := strings.NewReader(json)
+
 		err := th.App.ImportPermissions(r)
 		if err != nil {
 			t.Error(err)
 		}
-	})
+		results, appErr = th.App.GetSchemes(scope, 0, 100)
+		if appErr != nil {
+			panic(appErr)
+		}
 
-	results, appErr = th.App.GetSchemes(scope, 0, 100)
-	if appErr != nil {
-		panic(appErr)
-	}
+	})
 
 	actual := len(results)
 	expected := beforeCount + 1

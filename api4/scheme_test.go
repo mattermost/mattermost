@@ -175,9 +175,6 @@ func TestGetScheme(t *testing.T) {
 	s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
 	CheckNoError(t, r1)
 
-	res = <-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
-	assert.Nil(t, res.Err)
-
 	assert.Equal(t, s1.DisplayName, scheme1.DisplayName)
 	assert.Equal(t, s1.Name, scheme1.Name)
 	assert.Equal(t, s1.Description, scheme1.Description)
