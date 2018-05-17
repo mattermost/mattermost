@@ -23,6 +23,11 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
+const (
+	THREAD_ANY  = "any"
+	THREAD_ROOT = "root"
+)
+
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
 	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	cmnchan := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
@@ -47,6 +52,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	mentionedUserIds := make(map[string]bool)
+	threadMentionedUserIds := make(map[string]string)
 	allActivityPushUserIds := []string{}
 	hereNotification := false
 	channelNotification := false
@@ -106,8 +112,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		if len(post.RootId) > 0 && parentPostList != nil {
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
-				if profile != nil && (profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == parentPostList.Order[0])) {
-					mentionedUserIds[threadPost.UserId] = true
+				if profile != nil && (profile.NotifyProps["comments"] == THREAD_ANY || (profile.NotifyProps["comments"] == THREAD_ROOT && threadPost.Id == parentPostList.Order[0])) {
+					if threadPost.Id == parentPostList.Order[0] {
+						threadMentionedUserIds[threadPost.UserId] = THREAD_ROOT
+					} else {
+						threadMentionedUserIds[threadPost.UserId] = THREAD_ANY
+					}
+
+					if _, ok := mentionedUserIds[threadPost.UserId]; !ok {
+						mentionedUserIds[threadPost.UserId] = false
+					}
 				}
 			}
 		}
@@ -145,6 +159,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		updateMentionChans = append(updateMentionChans, a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
+	var senderUsername string
 	senderName := ""
 	channelName := ""
 	if post.IsSystemMessage() {
@@ -152,8 +167,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	} else {
 		if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
 			senderName = value.(string)
+			senderUsername = value.(string)
 		} else {
 			senderName = sender.Username
+			senderUsername = sender.Username
 		}
 	}
 
@@ -168,13 +185,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		channelName = model.GetGroupDisplayNameFromUsers(userList, false)
 	} else {
 		channelName = channel.DisplayName
-	}
-
-	var senderUsername string
-	if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
-		senderUsername = value.(string)
-	} else {
-		senderUsername = sender.Username
 	}
 
 	if a.Config().EmailSettings.SendEmailNotifications {
@@ -294,7 +304,22 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
-				a.sendPushNotification(post, profileMap[id], channel, senderName, channelName, true)
+				replyToThreadType := ""
+				if value, ok := threadMentionedUserIds[id]; ok {
+					replyToThreadType = value
+				}
+
+				a.sendPushNotification(
+					post,
+					profileMap[id],
+					channel,
+					channelName,
+					sender,
+					senderName,
+					mentionedUserIds[id],
+					(channelNotification || allNotification),
+					replyToThreadType,
+				)
 			}
 		}
 
@@ -311,7 +336,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				}
 
 				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
-					a.sendPushNotification(post, profileMap[id], channel, senderName, channelName, false)
+					a.sendPushNotification(
+						post,
+						profileMap[id],
+						channel,
+						channelName,
+						sender,
+						senderName,
+						false,
+						false,
+						"",
+					)
 				}
 			}
 		}
@@ -655,14 +690,26 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 	}
 }
 
-func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName, channelName string, wasMentioned bool) *model.AppError {
+func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, channelName string, sender *model.User, senderName string,
+	explicitMention, channelWideMention bool, replyToThreadType string) *model.AppError {
+	contentsConfig := *a.Config().EmailSettings.PushNotificationContents
 	sessions, err := a.getMobileAppSessions(user.Id)
 	if err != nil {
 		return err
 	}
 
 	if channel.Type == model.CHANNEL_DIRECT {
-		channelName = senderName
+		if senderName == utils.T("system.message.name") {
+			channelName = senderName
+		} else {
+			preference, prefError := a.GetPreferenceByCategoryAndNameForUser(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format")
+			if prefError != nil {
+				channelName = fmt.Sprintf("@%v", senderName)
+			} else {
+				channelName = fmt.Sprintf("@%v", sender.GetDisplayName(preference.Value))
+				senderName = channelName
+			}
+		}
 	}
 
 	msg := model.PushNotification{}
@@ -678,8 +725,11 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	msg.ChannelId = channel.Id
 	msg.PostId = post.Id
 	msg.RootId = post.RootId
-	msg.ChannelName = channel.Name
 	msg.SenderId = post.UserId
+
+	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
+		msg.ChannelName = channelName
+	}
 
 	if ou, ok := post.Props["override_username"].(string); ok {
 		msg.OverrideUsername = ou
@@ -696,7 +746,7 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	userLocale := utils.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
-	msg.Message, msg.Category = a.getPushNotificationMessage(post.Message, wasMentioned, hasFiles, senderName, channelName, channel.Type, userLocale)
+	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, senderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
@@ -718,56 +768,44 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	return nil
 }
 
-func (a *App) getPushNotificationMessage(postMessage string, wasMentioned bool, hasFiles bool, senderName string, channelName string, channelType string, userLocale i18n.TranslateFunc) (string, string) {
+func (a *App) getPushNotificationMessage(postMessage string, explicitMention, channelWideMention, hasFiles bool,
+	senderName, channelName, channelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
 	message := ""
-	category := ""
 
 	contentsConfig := *a.Config().EmailSettings.PushNotificationContents
 
 	if contentsConfig == model.FULL_NOTIFICATION {
-		category = model.CATEGORY_CAN_REPLY
-
 		if channelType == model.CHANNEL_DIRECT {
-			message = senderName + ": " + model.ClearMentionTags(postMessage)
+			message = model.ClearMentionTags(postMessage)
 		} else {
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(postMessage)
-		}
-	} else if contentsConfig == model.GENERIC_NO_CHANNEL_NOTIFICATION {
-		if channelType == model.CHANNEL_DIRECT {
-			category = model.CATEGORY_CAN_REPLY
-
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned {
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
-		} else {
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention_no_channel")
+			message = "@" + senderName + ": " + model.ClearMentionTags(postMessage)
 		}
 	} else {
 		if channelType == model.CHANNEL_DIRECT {
-			category = model.CATEGORY_CAN_REPLY
-
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned {
-			category = model.CATEGORY_CAN_REPLY
-
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+			message = userLocale("api.post.send_notifications_and_forget.push_message")
+		} else if channelWideMention {
+			message = "@" + senderName + userLocale("api.post.send_notification_and_forget.push_channel_mention")
+		} else if explicitMention {
+			message = "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_explicit_mention")
+		} else if replyToThreadType == THREAD_ROOT {
+			message = "@" + senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_post")
+		} else if replyToThreadType == THREAD_ANY {
+			message = "@" + senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_thread")
 		} else {
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
+			message = "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 		}
 	}
 
 	// If the post only has images then push an appropriate message
 	if len(postMessage) == 0 && hasFiles {
 		if channelType == model.CHANNEL_DIRECT {
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_dm")
-		} else if contentsConfig == model.GENERIC_NO_CHANNEL_NOTIFICATION {
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_no_channel")
+			message = userLocale("api.post.send_notifications_and_forget.push_image_only")
 		} else {
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only") + channelName
+			message = "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_image_only")
 		}
 	}
 
-	return message, category
+	return message
 }
 
 func (a *App) ClearPushNotification(userId string, channelId string) {

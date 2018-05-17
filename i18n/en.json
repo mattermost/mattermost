@@ -1916,39 +1916,31 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " uploaded one or more files in "
+    "translation": " attached a file "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " uploaded one or more files in a direct message"
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": " mentioned you."
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
-    "translation": " uploaded one or more files"
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " notified the channel."
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_in",
-    "translation": " in "
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " commented on your post."
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_mention",
-    "translation": " mentioned you in "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
-    "translation": " mentioned you"
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " commented on a thread you participated in."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": " sent you a direct message"
+    "translation": " sent you a message."
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_non_mention",
-    "translation": " posted in "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
-    "translation": " posted a message"
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": " posted a message."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
