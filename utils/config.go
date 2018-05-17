@@ -448,7 +448,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
-	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
+	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
