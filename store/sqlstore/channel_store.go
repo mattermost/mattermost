@@ -1772,3 +1772,11 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 		result.Data = data
 	})
 }
+
+func (s SqlChannelStore) ResetAllChannelSchemes() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := s.GetMaster().Exec("UPDATE Channels SET SchemeId=''"); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.ResetAllChannelSchemes", "store.sql_channel.reset_all_channel_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	})
+}

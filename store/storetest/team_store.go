@@ -41,6 +41,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("UpdateLastTeamIconUpdate", func(t *testing.T) { testUpdateLastTeamIconUpdate(t, ss) })
 	t.Run("GetTeamsByScheme", func(t *testing.T) { testGetTeamsByScheme(t, ss) })
 	t.Run("MigrateTeamMembers", func(t *testing.T) { testTeamStoreMigrateTeamMembers(t, ss) })
+	t.Run("ResetAllTeamSchemes", func(t *testing.T) { testResetAllTeamSchemes(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1168,4 +1169,44 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 	assert.Equal(t, "something_else", tm3b.ExplicitRoles)
 	assert.False(t, tm3b.SchemeUser)
 	assert.False(t, tm3b.SchemeAdmin)
+}
+
+func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
+	s1 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+
+	t1 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+
+	t2 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+
+	t1 = (<-ss.Team().Save(t1)).Data.(*model.Team)
+	t2 = (<-ss.Team().Save(t2)).Data.(*model.Team)
+
+	assert.Equal(t, s1.Id, *t1.SchemeId)
+	assert.Equal(t, s1.Id, *t2.SchemeId)
+
+	res := <-ss.Team().ResetAllTeamSchemes()
+	assert.Nil(t, res.Err)
+
+	t1 = (<-ss.Team().Get(t1.Id)).Data.(*model.Team)
+	t2 = (<-ss.Team().Get(t2.Id)).Data.(*model.Team)
+
+	assert.Equal(t, "", *t1.SchemeId)
+	assert.Equal(t, "", *t2.SchemeId)
 }

@@ -19,6 +19,7 @@ func TestSchemeStore(t *testing.T, ss store.Store) {
 	t.Run("Get", func(t *testing.T) { testSchemeStoreGet(t, ss) })
 	t.Run("GetAllPage", func(t *testing.T) { testSchemeStoreGetAllPage(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testSchemeStoreDelete(t, ss) })
+	t.Run("PermanentDeleteAll", func(t *testing.T) { testSchemeStorePermanentDeleteAll(t, ss) })
 }
 
 func createDefaultRoles(t *testing.T, ss store.Store) {
@@ -371,4 +372,34 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	assert.Nil(t, cres6.Err)
 	c6 := cres6.Data.(*model.Channel)
 	assert.Equal(t, "", *c6.SchemeId)
+}
+
+func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
+	s1 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+
+	s2 := &model.Scheme{
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+
+	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+
+	res := <-ss.Scheme().PermanentDeleteAll()
+	assert.Nil(t, res.Err)
+
+	res1 := <-ss.Scheme().Get(s1.Id)
+	assert.NotNil(t, res1.Err)
+
+	res2 := <-ss.Scheme().Get(s2.Id)
+	assert.NotNil(t, res2.Err)
+
+	res3 := <-ss.Scheme().GetAllPage("", 0, 100000)
+	assert.Nil(t, res3.Err)
+	assert.Len(t, res3.Data.([]*model.Scheme), 0)
 }

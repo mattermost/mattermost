@@ -282,3 +282,13 @@ func (s *SqlSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset
 
 	return result
 }
+
+func (s *SqlSupplier) SchemePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	if _, err := s.GetMaster().Exec("DELETE from Schemes"); err != nil {
+		result.Err = model.NewAppError("SqlSchemeStore.PermanentDeleteAll", "store.sql_scheme.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return result
+}

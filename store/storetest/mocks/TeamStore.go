@@ -381,6 +381,22 @@ func (_m *TeamStore) RemoveMember(teamId string, userId string) store.StoreChann
 	return r0
 }
 
+// ResetAllTeamSchemes provides a mock function with given fields:
+func (_m *TeamStore) ResetAllTeamSchemes() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: team
 func (_m *TeamStore) Save(team *model.Team) store.StoreChannel {
 	ret := _m.Called(team)
