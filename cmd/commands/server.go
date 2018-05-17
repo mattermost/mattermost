@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/cmd"
@@ -104,8 +103,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.Router, false)
-	api3 := api.Init(a, a.Srv.Router)
+	api := api4.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	web.NewWeb(a, a.Srv.Router)
 
@@ -135,7 +133,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 
 	// If we allow testing then listen for manual testing URL hits
 	if a.Config().ServiceSettings.EnableTesting {
-		manualtesting.Init(api3)
+		manualtesting.Init(api)
 	}
 
 	a.EnsureDiagnosticId()

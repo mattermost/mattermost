@@ -39,15 +39,15 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 // NewWebSocketClientWithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer.
 func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := dialer.Dial(url+API_URL_SUFFIX_V3+"/users/websocket", nil)
+	conn, _, err := dialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
 	if err != nil {
 		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	client := &WebSocketClient{
 		url,
-		url + API_URL_SUFFIX_V3,
-		url + API_URL_SUFFIX_V3 + "/users/websocket",
+		url + API_URL_SUFFIX,
+		url + API_URL_SUFFIX + "/websocket",
 		conn,
 		authToken,
 		1,
@@ -74,30 +74,7 @@ func NewWebSocketClient4(url, authToken string) (*WebSocketClient, *AppError) {
 // NewWebSocketClient4WithDialer constructs a new WebSocket client with convenience
 // methods for talking to the server using a custom dialer. Uses the v4 endpoint.
 func NewWebSocketClient4WithDialer(dialer *websocket.Dialer, url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := dialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
-	if err != nil {
-		return nil, NewAppError("NewWebSocketClient4", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	client := &WebSocketClient{
-		url,
-		url + API_URL_SUFFIX,
-		url + API_URL_SUFFIX + "/websocket",
-		conn,
-		authToken,
-		1,
-		make(chan bool, 1),
-		make(chan *WebSocketEvent, 100),
-		make(chan *WebSocketResponse, 100),
-		nil,
-		nil,
-	}
-
-	client.configurePingHandling()
-
-	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
-
-	return client, nil
+	return NewWebSocketClientWithDialer(dialer, url, authToken)
 }
 
 func (wsc *WebSocketClient) Connect() *AppError {

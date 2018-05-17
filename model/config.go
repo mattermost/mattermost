@@ -184,7 +184,6 @@ type ServiceSettings struct {
 	EnableOnlyAdminIntegrations                       *bool
 	EnablePostUsernameOverride                        bool
 	EnablePostIconOverride                            bool
-	EnableAPIv3                                       *bool
 	EnableLinkPreviews                                *bool
 	EnableTesting                                     bool
 	EnableDeveloper                                   *bool
@@ -242,10 +241,6 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ListenAddress == nil {
 		s.ListenAddress = NewString(SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS)
-	}
-
-	if s.EnableAPIv3 == nil {
-		s.EnableAPIv3 = NewBool(true)
 	}
 
 	if s.EnableLinkPreviews == nil {

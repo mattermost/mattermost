@@ -6,14 +6,14 @@ package commands
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUserWithTeam(t *testing.T) {
-	th := api.Setup().InitSystemAdmin()
+	th := api4.Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -22,9 +22,9 @@ func TestCreateUserWithTeam(t *testing.T) {
 
 	cmd.CheckCommand(t, "user", "create", "--email", email, "--password", "mypassword1", "--username", username)
 
-	cmd.CheckCommand(t, "team", "add", th.SystemAdminTeam.Id, email)
+	cmd.CheckCommand(t, "team", "add", th.BasicTeam.Id, email)
 
-	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetProfilesInTeam(th.SystemAdminTeam.Id, 0, 1000, "")).Data.(map[string]*model.User)
+	profiles := th.SystemAdminClient.Must(th.SystemAdminClient.GetUsersInTeam(th.BasicTeam.Id, 0, 1000, "")).([]*model.User)
 
 	found := false
 
@@ -41,7 +41,7 @@ func TestCreateUserWithTeam(t *testing.T) {
 }
 
 func TestCreateUserWithoutTeam(t *testing.T) {
-	th := api.Setup()
+	th := api4.Setup()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -61,18 +61,18 @@ func TestCreateUserWithoutTeam(t *testing.T) {
 }
 
 func TestResetPassword(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	cmd.CheckCommand(t, "user", "password", th.BasicUser.Email, "password2")
 
-	th.BasicClient.Logout()
+	th.Client.Logout()
 	th.BasicUser.Password = "password2"
 	th.LoginBasic()
 }
 
 func TestMakeUserActiveAndInactive(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	// first inactivate the user
@@ -83,7 +83,7 @@ func TestMakeUserActiveAndInactive(t *testing.T) {
 }
 
 func TestChangeUserEmail(t *testing.T) {
-	th := api.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	newEmail := model.NewId() + "@mattermost-test.com"
