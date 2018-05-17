@@ -30,9 +30,9 @@ func NewWeb(a *app.App, root *mux.Router) *Web {
 		MainRouter: root,
 	}
 
-	web.InitStatic()
 	web.InitWebhooks()
 	web.InitSaml()
+	web.InitStatic()
 
 	return web
 }
