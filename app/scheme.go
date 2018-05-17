@@ -5,9 +5,14 @@ package app
 
 import (
 	"github.com/mattermost/mattermost-server/model"
+	"net/http"
 )
 
 func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
 	if result := <-a.Srv.Store.Scheme().Get(id); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -16,10 +21,18 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 }
 
 func (a *App) GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
 	return a.GetSchemes(scope, page*perPage, perPage)
 }
 
 func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
 	if result := <-a.Srv.Store.Scheme().GetAllPage(scope, offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -87,10 +100,18 @@ func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 }
 
 func (a *App) GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
 	return a.GetTeamsForScheme(scheme, page*perPage, perPage)
 }
 
 func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]*model.Team, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
 	if result := <-a.Srv.Store.Team().GetTeamsByScheme(scheme.Id, offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -99,10 +120,18 @@ func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]
 }
 
 func (a *App) GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
 	return a.GetChannelsForScheme(scheme, page*perPage, perPage)
 }
 
 func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
 	if result := <-a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -112,7 +141,7 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 
 func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 	if result := <-a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); result.Err != nil {
-		return result.Err
+		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, result.Err.Error(), http.StatusNotImplemented)
 	}
 
 	return nil
