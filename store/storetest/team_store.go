@@ -1041,12 +1041,14 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	// Create some schemes.
 	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
 
 	s2 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,

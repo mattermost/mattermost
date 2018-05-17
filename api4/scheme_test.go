@@ -25,6 +25,7 @@ func TestCreateScheme(t *testing.T) {
 
 	// Basic test of creating a team scheme.
 	scheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -33,6 +34,7 @@ func TestCreateScheme(t *testing.T) {
 	s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
 	CheckNoError(t, r1)
 
+	assert.Equal(t, s1.DisplayName, scheme1.DisplayName)
 	assert.Equal(t, s1.Name, scheme1.Name)
 	assert.Equal(t, s1.Description, scheme1.Description)
 	assert.NotZero(t, s1.CreateAt)
@@ -56,6 +58,7 @@ func TestCreateScheme(t *testing.T) {
 
 	// Basic Test of a Channel scheme.
 	scheme2 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
@@ -64,6 +67,7 @@ func TestCreateScheme(t *testing.T) {
 	s2, r2 := th.SystemAdminClient.CreateScheme(scheme2)
 	CheckNoError(t, r2)
 
+	assert.Equal(t, s2.DisplayName, scheme2.DisplayName)
 	assert.Equal(t, s2.Name, scheme2.Name)
 	assert.Equal(t, s2.Description, scheme2.Description)
 	assert.NotZero(t, s2.CreateAt)
@@ -83,6 +87,7 @@ func TestCreateScheme(t *testing.T) {
 
 	// Try and create a scheme with an invalid scope.
 	scheme3 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.NewId(),
@@ -91,17 +96,29 @@ func TestCreateScheme(t *testing.T) {
 	_, r3 := th.SystemAdminClient.CreateScheme(scheme3)
 	CheckBadRequestStatus(t, r3)
 
-	// Try and create a scheme with an invalid name.
+	// Try and create a scheme with an invalid display name.
 	scheme4 := &model.Scheme{
-		Name:        strings.Repeat(model.NewId(), 100),
+		DisplayName: strings.Repeat(model.NewId(), 100),
+		Name:        "Name",
 		Description: model.NewId(),
 		Scope:       model.NewId(),
 	}
 	_, r4 := th.SystemAdminClient.CreateScheme(scheme4)
 	CheckBadRequestStatus(t, r4)
 
+	// Try and create a scheme with an invalid name.
+	scheme8 := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        strings.Repeat(model.NewId(), 100),
+		Description: model.NewId(),
+		Scope:       model.NewId(),
+	}
+	_, r8 := th.SystemAdminClient.CreateScheme(scheme8)
+	CheckBadRequestStatus(t, r8)
+
 	// Try and create a scheme without the appropriate permissions.
 	scheme5 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -112,6 +129,7 @@ func TestCreateScheme(t *testing.T) {
 	// Try and create a scheme without a license.
 	th.App.SetLicense(nil)
 	scheme6 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -127,6 +145,7 @@ func TestCreateScheme(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	scheme7 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -143,6 +162,7 @@ func TestGetScheme(t *testing.T) {
 
 	// Basic test of creating a team scheme.
 	scheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -155,6 +175,7 @@ func TestGetScheme(t *testing.T) {
 	s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
 	CheckNoError(t, r1)
 
+	assert.Equal(t, s1.DisplayName, scheme1.DisplayName)
 	assert.Equal(t, s1.Name, scheme1.Name)
 	assert.Equal(t, s1.Description, scheme1.Description)
 	assert.NotZero(t, s1.CreateAt)
@@ -204,12 +225,14 @@ func TestGetSchemes(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	scheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
 
 	scheme2 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
@@ -273,6 +296,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	assert.Nil(t, res.Err)
 
 	scheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -341,6 +365,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	CheckForbiddenStatus(t, ri4)
 
 	scheme2 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
@@ -370,6 +395,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	assert.Nil(t, res.Err)
 
 	scheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
@@ -440,6 +466,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	CheckForbiddenStatus(t, ri4)
 
 	scheme2 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -471,6 +498,7 @@ func TestPatchScheme(t *testing.T) {
 
 	// Basic test of creating a team scheme.
 	scheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
 		Name:        model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
@@ -479,6 +507,7 @@ func TestPatchScheme(t *testing.T) {
 	s1, r1 := th.SystemAdminClient.CreateScheme(scheme1)
 	CheckNoError(t, r1)
 
+	assert.Equal(t, s1.DisplayName, scheme1.DisplayName)
 	assert.Equal(t, s1.Name, scheme1.Name)
 	assert.Equal(t, s1.Description, scheme1.Description)
 	assert.NotZero(t, s1.CreateAt)
@@ -497,15 +526,18 @@ func TestPatchScheme(t *testing.T) {
 
 	// Test with a valid patch.
 	schemePatch := &model.SchemePatch{
+		DisplayName: new(string),
 		Name:        new(string),
 		Description: new(string),
 	}
+	*schemePatch.DisplayName = model.NewId()
 	*schemePatch.Name = model.NewId()
 	*schemePatch.Description = model.NewId()
 
 	s3, r3 := th.SystemAdminClient.PatchScheme(s2.Id, schemePatch)
 	CheckNoError(t, r3)
 	assert.Equal(t, s3.Id, s2.Id)
+	assert.Equal(t, s3.DisplayName, *schemePatch.DisplayName)
 	assert.Equal(t, s3.Name, *schemePatch.Name)
 	assert.Equal(t, s3.Description, *schemePatch.Description)
 
@@ -515,11 +547,13 @@ func TestPatchScheme(t *testing.T) {
 
 	// Test with a partial patch.
 	*schemePatch.Name = model.NewId()
+	*schemePatch.DisplayName = model.NewId()
 	schemePatch.Description = nil
 
 	s5, r5 := th.SystemAdminClient.PatchScheme(s4.Id, schemePatch)
 	CheckNoError(t, r5)
 	assert.Equal(t, s5.Id, s4.Id)
+	assert.Equal(t, s5.DisplayName, *schemePatch.DisplayName)
 	assert.Equal(t, s5.Name, *schemePatch.Name)
 	assert.Equal(t, s5.Description, s4.Description)
 
@@ -581,6 +615,7 @@ func TestDeleteScheme(t *testing.T) {
 
 		// Create a team scheme.
 		scheme1 := &model.Scheme{
+			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
@@ -656,6 +691,7 @@ func TestDeleteScheme(t *testing.T) {
 
 		// Create a channel scheme.
 		scheme1 := &model.Scheme{
+			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_CHANNEL,
@@ -712,6 +748,7 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Nil(t, res.Err)
 
 		scheme1 := &model.Scheme{
+			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_CHANNEL,

@@ -1924,13 +1924,15 @@ func TestUpdateChannelScheme(t *testing.T) {
 	channel, _ = th.SystemAdminClient.CreateChannel(channel)
 
 	channelScheme := &model.Scheme{
-		Name:        "Name",
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
 		Description: "Some description",
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
 	channelScheme, _ = th.SystemAdminClient.CreateScheme(channelScheme)
 	teamScheme := &model.Scheme{
-		Name:        "Name",
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
 		Description: "Some description",
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
