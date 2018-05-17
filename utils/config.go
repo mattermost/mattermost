@@ -41,7 +41,7 @@ func FindConfigFile(fileName string) (path string) {
 			return fileName
 		}
 	} else {
-		for _, dir := range []string{"./config", "../config", "../../config", "."} {
+		for _, dir := range []string{"./config", "../config", "../../config", "../../../config", "."} {
 			path, _ := filepath.Abs(filepath.Join(dir, fileName))
 			if _, err := os.Stat(path); err == nil {
 				return path
@@ -53,7 +53,7 @@ func FindConfigFile(fileName string) (path string) {
 
 // FindDir looks for the given directory in nearby ancestors, falling back to `./` if not found.
 func FindDir(dir string) (string, bool) {
-	for _, parent := range []string{".", "..", "../.."} {
+	for _, parent := range []string{".", "..", "../..", "../../.."} {
 		foundDir, err := filepath.Abs(filepath.Join(parent, dir))
 		if err != nil {
 			continue
