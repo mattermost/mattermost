@@ -6847,16 +6847,16 @@
     "translation": "Unable to get the scheme"
   },
   {
-    "id": "store.sql_scheme.team_count.app_error",
-    "translation": "Unable to count the number of teams using this scheme"
+    "id": "store.sql_scheme.reset_teams.app_error",
+    "translation": "Unable to reset all teams using this scheme to the default scheme"
   },
   {
     "id": "store.sql_scheme.delete.scheme_in_use.app_error",
     "translation": "Unable to delete the scheme as it in use by 1 or more teams or channels"
   },
   {
-    "id": "store.sql_scheme.channel_count.app_error",
-    "translation": "Unable to count the number of channels using this scheme"
+    "id": "store.sql_scheme.reset_channels.app_error",
+    "translation": "Unable to reset all channels using this scheme to the default scheme"
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
