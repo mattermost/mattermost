@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	SCHEME_DISPLAY_NAME_MAX_LENGTH = 64
+	SCHEME_DISPLAY_NAME_MAX_LENGTH = 128
 	SCHEME_NAME_MAX_LENGTH         = 64
 	SCHEME_DESCRIPTION_MAX_LENGTH  = 1024
 	SCHEME_SCOPE_TEAM              = "team"
@@ -20,8 +20,8 @@ const (
 
 type Scheme struct {
 	Id                      string `json:"id"`
-	DisplayName             string `json:"display_name"`
 	Name                    string `json:"name"`
+	DisplayName             string `json:"display_name"`
 	Description             string `json:"description"`
 	CreateAt                int64  `json:"create_at"`
 	UpdateAt                int64  `json:"update_at"`
@@ -45,8 +45,8 @@ type SchemeIDPatch struct {
 
 // SchemeConveyor is used for importing and exporting a Scheme and its associated Roles.
 type SchemeConveyor struct {
-	DisplayName  string  `json:"display_name"`
 	Name         string  `json:"name"`
+	DisplayName  string  `json:"display_name"`
 	Description  string  `json:"description"`
 	Scope        string  `json:"scope"`
 	TeamAdmin    string  `json:"default_team_admin_role"`

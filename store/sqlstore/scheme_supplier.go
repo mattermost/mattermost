@@ -20,9 +20,9 @@ func initSqlSupplierSchemes(sqlStore SqlStore) {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Scheme{}, "Schemes").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
-		table.ColMap("DisplayName").SetMaxSize(64)
-		table.ColMap("Description").SetMaxSize(1024)
+		table.ColMap("Name").SetMaxSize(model.SCHEME_NAME_MAX_LENGTH).SetUnique(true)
+		table.ColMap("DisplayName").SetMaxSize(model.SCHEME_DISPLAY_NAME_MAX_LENGTH)
+		table.ColMap("Description").SetMaxSize(model.SCHEME_DESCRIPTION_MAX_LENGTH)
 		table.ColMap("Scope").SetMaxSize(32)
 		table.ColMap("DefaultTeamAdminRole").SetMaxSize(64)
 		table.ColMap("DefaultTeamUserRole").SetMaxSize(64)
