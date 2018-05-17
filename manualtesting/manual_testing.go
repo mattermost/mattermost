@@ -12,28 +12,29 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/web"
 )
 
 type TestEnvironment struct {
 	Params        map[string][]string
-	Client        *model.Client
+	Client        *model.Client4
 	CreatedTeamId string
 	CreatedUserId string
-	Context       *api.Context
+	Context       *web.Context
 	Writer        http.ResponseWriter
 	Request       *http.Request
 }
 
-func Init(api3 *api.API) {
-	api3.BaseRoutes.Root.Handle("/manualtest", api3.AppHandler(manualTest)).Methods("GET")
+func Init(api4 *api4.API) {
+	api4.BaseRoutes.Root.Handle("/manualtest", api4.ApiHandler(manualTest)).Methods("GET")
 }
 
-func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
+func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	// Let the world know
 	mlog.Info("Setting up for manual test...")
 
@@ -56,7 +57,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a client for tests to use
-	client := model.NewClient("http://localhost" + *c.App.Config().ServiceSettings.ListenAddress)
+	client := model.NewAPIv4Client("http://localhost" + *c.App.Config().ServiceSettings.ListenAddress)
 
 	// Check for username parameter and create a user if present
 	username, ok1 := params["username"]
@@ -95,22 +96,21 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			Nickname: username[0],
 			Password: app.USER_PASSWORD}
 
-		result, err := client.CreateUser(user, "")
-		if err != nil {
-			c.Err = err
+		user, resp := client.CreateUser(user)
+		if resp.Error != nil {
+			c.Err = resp.Error
 			return
 		}
 
-		<-c.App.Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
-		<-c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: result.Data.(*model.User).Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		<-c.App.Srv.Store.User().VerifyEmail(user.Id)
+		<-c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
-		newuser := result.Data.(*model.User)
-		userID = newuser.Id
+		userID = user.Id
 
 		// Login as user to generate auth token
-		_, err = client.LoginById(newuser.Id, app.USER_PASSWORD)
-		if err != nil {
-			c.Err = err
+		_, resp = client.LoginById(user.Id, app.USER_PASSWORD)
+		if resp.Error != nil {
+			c.Err = resp.Error
 			return
 		}
 

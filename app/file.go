@@ -295,11 +295,6 @@ func (a *App) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
 	return fmt.Sprintf("%s/files/%v/public?h=%s", siteURL, info.Id, hash)
 }
 
-func (a *App) GeneratePublicLinkV3(siteURL string, info *model.FileInfo) string {
-	hash := GeneratePublicLinkHash(info.Id, *a.Config().FileSettings.PublicLinkSalt)
-	return fmt.Sprintf("%s%s/public/files/%v/get?h=%s", siteURL, model.API_URL_SUFFIX_V3, info.Id, hash)
-}
-
 func GeneratePublicLinkHash(fileId, salt string) string {
 	hash := sha256.New()
 	hash.Write([]byte(salt))

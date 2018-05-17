@@ -14,7 +14,7 @@ import (
 )
 
 type AutoPostCreator struct {
-	client         *model.Client
+	client         *model.Client4
 	channelid      string
 	Fuzzy          bool
 	TextLength     utils.Range
@@ -26,7 +26,7 @@ type AutoPostCreator struct {
 }
 
 // Automatic poster used for testing
-func NewAutoPostCreator(client *model.Client, channelid string) *AutoPostCreator {
+func NewAutoPostCreator(client *model.Client4, channelid string) *AutoPostCreator {
 	return &AutoPostCreator{
 		client:         client,
 		channelid:      channelid,
@@ -56,7 +56,7 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 		return nil, false
 	}
 
-	resp, appErr := cfg.client.UploadPostAttachment(data.Bytes(), cfg.channelid, filename)
+	resp, appErr := cfg.client.UploadFile(data.Bytes(), cfg.channelid, filename)
 	if appErr != nil {
 		return nil, false
 	}
@@ -85,9 +85,9 @@ func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
 		ChannelId: cfg.channelid,
 		Message:   postText,
 		FileIds:   fileIds}
-	result, err2 := cfg.client.CreatePost(post)
+	rpost, err2 := cfg.client.CreatePost(post)
 	if err2 != nil {
 		return nil, false
 	}
-	return result.Data.(*model.Post), true
+	return rpost, true
 }
