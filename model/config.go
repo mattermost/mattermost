@@ -975,7 +975,7 @@ type TeamSettings struct {
 	SiteName                            string
 	MaxUsersPerTeam                     *int
 	EnableTeamCreation                  *bool
-	EnableUserCreation                  bool
+	EnableUserCreation                  *bool
 	EnableOpenServer                    *bool
 	RestrictCreationToDomains           string
 	EnableCustomBrand                   *bool
@@ -1106,6 +1106,11 @@ func (s *TeamSettings) SetDefaults() {
 	if s.EnableTeamCreation == nil {
 		s.EnableTeamCreation = NewBool(true)
 	}
+
+	if s.EnableUserCreation == nil {
+		s.EnableUserCreation = NewBool(true)
+	}
+
 }
 
 type ClientRequirements struct {
