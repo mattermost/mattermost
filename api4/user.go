@@ -604,6 +604,16 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !model.IsValidUsername(*patch.Username) {
+		c.SetInvalidParam("Username")
+		return
+	}
+
+	if !model.IsValidUsername(*patch.Nickname) {
+		c.SetInvalidParam("Nickname")
+		return
+	}
+
 	ouser, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.SetInvalidParam("user_id")

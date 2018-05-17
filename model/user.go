@@ -566,6 +566,7 @@ var restrictedUsernames = []string{
 	"all",
 	"channel",
 	"matterbot",
+	"system",
 }
 
 func IsValidUsername(s string) bool {
