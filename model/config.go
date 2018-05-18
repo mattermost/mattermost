@@ -224,6 +224,7 @@ type ServiceSettings struct {
 	ImageProxyType                                    *string
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
+	EnableAPITeamDeletion                             *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -451,6 +452,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ImageProxyOptions == nil {
 		s.ImageProxyOptions = NewString("")
+	}
+
+	if s.EnableAPITeamDeletion == nil {
+		s.EnableAPITeamDeletion = NewBool(false)
 	}
 }
 
