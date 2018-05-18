@@ -6,6 +6,8 @@ package commands
 import (
 	"fmt"
 	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -129,7 +131,19 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
-		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		a.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = true
+			if *cfg.ServiceSettings.SiteURL == "" {
+				*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			}
+		})
+	}
+
+	// SiteURL should be set at this point. Either by a user or by the dev mode above
+	// This is here instead of in config.IsValid because there are many tests that make the assumption
+	// that the default config is valid. Which it is not.
+	if _, err := url.ParseRequestURI(*a.Config().ServiceSettings.SiteURL); err != nil {
+		return model.NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	resetStatuses(a)
