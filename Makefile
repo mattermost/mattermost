@@ -56,7 +56,7 @@ GO_LINKER_FLAGS ?= -ldflags \
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
 
-PLATFORM_FILES="./main.go"
+PLATFORM_FILES="./cmd/mattermost/main.go"
 
 # Output paths
 DIST_ROOT=dist
@@ -504,6 +504,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	rm -f *.test
 	rm -f imports/imports.go
 	rm -f cmd/platform/cprofile*.out
+	rm -f cmd/mattermost/cprofile*.out
 
 nuke: clean clean-docker ## Clean plus removes persistant server data.
 	@echo BOOM
