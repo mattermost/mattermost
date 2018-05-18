@@ -82,7 +82,9 @@ func resetPermissionsCmdF(command *cobra.Command, args []string) error {
 		return errors.New(err.Error())
 	}
 
-	CommandPrettyPrintln("Permissions system successfully reset")
+	CommandPrettyPrintln("Permissions system successfully reset.")
+	CommandPrettyPrintln("Changes will take effect gradually as the server caches expire.")
+	CommandPrettyPrintln("To force the changes take effect immediately, go to the Mattermost System Console, Section \"General -> Configuration\" and click \"Purge All Caches\".")
 
 	return nil
 }
