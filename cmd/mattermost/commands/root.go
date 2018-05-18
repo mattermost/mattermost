@@ -15,7 +15,7 @@ func Run(args []string) error {
 }
 
 var RootCmd = &cobra.Command{
-	Use:   "platform",
+	Use:   "mattermost",
 	Short: "Open source, self-hosted Slack-alternative",
 	Long:  `Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com`,
 }
