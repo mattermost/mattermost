@@ -395,12 +395,14 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 	s1 := &model.Scheme{
 		Name:        model.NewId(),
+		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
 
 	s2 := &model.Scheme{
 		Name:        model.NewId(),
+		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}

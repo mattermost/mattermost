@@ -1176,6 +1176,7 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	s1 := &model.Scheme{
 		Name:        model.NewId(),
+		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
