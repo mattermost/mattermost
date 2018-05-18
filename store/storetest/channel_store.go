@@ -2303,6 +2303,7 @@ func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
 func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 	s1 := &model.Scheme{
 		Name:        model.NewId(),
+		DisplayName: model.NewId(),
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
