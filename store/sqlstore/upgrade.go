@@ -425,8 +425,21 @@ func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion50(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 3.10.0 is released
+	// TODO: Uncomment following condition when version 5.0.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_10_0, VERSION_5_0_0) {
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "SchemeId", "varchar(26)", "varchar(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "SchemeId", "varchar(26)", "varchar(26)")
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeUser", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeAdmin", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeUser", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
+
+	sqlStore.CreateColumnIfNotExists("Roles", "BuiltIn", "boolean", "boolean", "0")
+	sqlStore.GetMaster().Exec("UPDATE Roles SET BuiltIn=true")
+	sqlStore.GetMaster().Exec("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
+
 	//	saveSchemaVersion(sqlStore, VERSION_5_0_0)
 	//}
 }
