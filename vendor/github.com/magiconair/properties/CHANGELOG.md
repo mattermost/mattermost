@@ -1,5 +1,13 @@
 ## Changelog
 
+### [1.8](https://github.com/magiconair/properties/tree/v1.8) - 15 May 2018
+
+ * [PR #26](https://github.com/magiconair/properties/pull/26): Disable expansion during loading
+
+   This adds the option to disable property expansion during loading.
+
+   Thanks to [@kmala](https://github.com/kmala) for the patch.
+
 ### [1.7.6](https://github.com/magiconair/properties/tree/v1.7.6) - 14 Feb 2018
 
  * [PR #29](https://github.com/magiconair/properties/pull/29): Reworked expansion logic to handle more complex cases.

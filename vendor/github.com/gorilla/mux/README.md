@@ -1,5 +1,5 @@
-gorilla/mux
-===
+# gorilla/mux
+
 [![GoDoc](https://godoc.org/github.com/gorilla/mux?status.svg)](https://godoc.org/github.com/gorilla/mux)
 [![Build Status](https://travis-ci.org/gorilla/mux.svg?branch=master)](https://travis-ci.org/gorilla/mux)
 [![Sourcegraph](https://sourcegraph.com/github.com/gorilla/mux/-/badge.svg)](https://sourcegraph.com/github.com/gorilla/mux?badge)
@@ -29,6 +29,7 @@ The name mux stands for "HTTP request multiplexer". Like the standard `http.Serv
 * [Walking Routes](#walking-routes)
 * [Graceful Shutdown](#graceful-shutdown)
 * [Middleware](#middleware)
+* [Testing Handlers](#testing-handlers)
 * [Full Example](#full-example)
 
 ---
@@ -178,70 +179,13 @@ s.HandleFunc("/{key}/", ProductHandler)
 // "/products/{key}/details"
 s.HandleFunc("/{key}/details", ProductDetailsHandler)
 ```
-### Listing Routes
 
-Routes on a mux can be listed using the Router.Walk method—useful for generating documentation:
-
-```go
-package main
-
-import (
-    "fmt"
-    "net/http"
-    "strings"
-
-    "github.com/gorilla/mux"
-)
-
-func handler(w http.ResponseWriter, r *http.Request) {
-    return
-}
-
-func main() {
-    r := mux.NewRouter()
-    r.HandleFunc("/", handler)
-    r.HandleFunc("/products", handler).Methods("POST")
-    r.HandleFunc("/articles", handler).Methods("GET")
-    r.HandleFunc("/articles/{id}", handler).Methods("GET", "PUT")
-    r.HandleFunc("/authors", handler).Queries("surname", "{surname}")
-    r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
-        t, err := route.GetPathTemplate()
-        if err != nil {
-            return err
-        }
-        qt, err := route.GetQueriesTemplates()
-        if err != nil {
-            return err
-        }
-        // p will contain regular expression is compatible with regular expression in Perl, Python, and other languages.
-        // for instance the regular expression for path '/articles/{id}' will be '^/articles/(?P<v0>[^/]+)$'
-        p, err := route.GetPathRegexp()
-        if err != nil {
-            return err
-        }
-        // qr will contain a list of regular expressions with the same semantics as GetPathRegexp,
-        // just applied to the Queries pairs instead, e.g., 'Queries("surname", "{surname}") will return
-        // {"^surname=(?P<v0>.*)$}. Where each combined query pair will have an entry in the list.
-        qr, err := route.GetQueriesRegexp()
-        if err != nil {
-            return err
-        }
-        m, err := route.GetMethods()
-        if err != nil {
-            return err
-        }
-        fmt.Println(strings.Join(m, ","), strings.Join(qt, ","), strings.Join(qr, ","), t, p)
-        return nil
-    })
-    http.Handle("/", r)
-}
-```
 
 ### Static Files
 
 Note that the path provided to `PathPrefix()` represents a "wildcard": calling
 `PathPrefix("/static/").Handler(...)` means that the handler will be passed any
-request that matches "/static/*". This makes it easy to serve static files with mux:
+request that matches "/static/\*". This makes it easy to serve static files with mux:
 
 ```go
 func main() {
@@ -348,41 +292,58 @@ The `Walk` function on `mux.Router` can be used to visit all of the routes that 
 the following prints all of the registered routes:
 
 ```go
-r := mux.NewRouter()
-r.HandleFunc("/", handler)
-r.HandleFunc("/products", handler).Methods("POST")
-r.HandleFunc("/articles", handler).Methods("GET")
-r.HandleFunc("/articles/{id}", handler).Methods("GET", "PUT")
-r.HandleFunc("/authors", handler).Queries("surname", "{surname}")
-r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
-    t, err := route.GetPathTemplate()
-    if err != nil {
-        return err
-    }
-    qt, err := route.GetQueriesTemplates()
-    if err != nil {
-        return err
-    }
-    // p will contain a regular expression that is compatible with regular expressions in Perl, Python, and other languages.
-    // For example, the regular expression for path '/articles/{id}' will be '^/articles/(?P<v0>[^/]+)$'.
-    p, err := route.GetPathRegexp()
-    if err != nil {
-        return err
-    }
-    // qr will contain a list of regular expressions with the same semantics as GetPathRegexp,
-    // just applied to the Queries pairs instead, e.g., 'Queries("surname", "{surname}") will return
-    // {"^surname=(?P<v0>.*)$}. Where each combined query pair will have an entry in the list.
-    qr, err := route.GetQueriesRegexp()
-    if err != nil {
-        return err
-    }
-    m, err := route.GetMethods()
-    if err != nil {
-        return err
-    }
-    fmt.Println(strings.Join(m, ","), strings.Join(qt, ","), strings.Join(qr, ","), t, p)
-    return nil
-})
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/gorilla/mux"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+func main() {
+	r := mux.NewRouter()
+	r.HandleFunc("/", handler)
+	r.HandleFunc("/products", handler).Methods("POST")
+	r.HandleFunc("/articles", handler).Methods("GET")
+	r.HandleFunc("/articles/{id}", handler).Methods("GET", "PUT")
+	r.HandleFunc("/authors", handler).Queries("surname", "{surname}")
+	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		pathTemplate, err := route.GetPathTemplate()
+		if err == nil {
+			fmt.Println("ROUTE:", pathTemplate)
+		}
+		pathRegexp, err := route.GetPathRegexp()
+		if err == nil {
+			fmt.Println("Path regexp:", pathRegexp)
+		}
+		queriesTemplates, err := route.GetQueriesTemplates()
+		if err == nil {
+			fmt.Println("Queries templates:", strings.Join(queriesTemplates, ","))
+		}
+		queriesRegexps, err := route.GetQueriesRegexp()
+		if err == nil {
+			fmt.Println("Queries regexps:", strings.Join(queriesRegexps, ","))
+		}
+		methods, err := route.GetMethods()
+		if err == nil {
+			fmt.Println("Methods:", strings.Join(methods, ","))
+		}
+		fmt.Println()
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	http.Handle("/", r)
+}
 ```
 
 ### Graceful Shutdown
@@ -399,6 +360,7 @@ import (
     "net/http"
     "os"
     "os/signal"
+    "time"
 
     "github.com/gorilla/mux"
 )
@@ -410,7 +372,7 @@ func main() {
 
     r := mux.NewRouter()
     // Add your routes as needed
-    
+
     srv := &http.Server{
         Addr:         "0.0.0.0:8080",
         // Good practice to set timeouts to avoid Slowloris attacks.
@@ -426,7 +388,7 @@ func main() {
             log.Println(err)
         }
     }()
-    
+
     c := make(chan os.Signal, 1)
     // We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
     // SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
@@ -436,7 +398,8 @@ func main() {
     <-c
 
     // Create a deadline to wait for.
-    ctx, cancel := context.WithTimeout(ctx, wait)
+    ctx, cancel := context.WithTimeout(context.Background(), wait)
+    defer cancel()
     // Doesn't block if no connections, but will otherwise wait
     // until the timeout deadline.
     srv.Shutdown(ctx)
@@ -464,7 +427,7 @@ Typically, the returned handler is a closure which does something with the http.
 A very basic middleware which logs the URI of the request being handled could be written as:
 
 ```go
-func simpleMw(next http.Handler) http.Handler {
+func loggingMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         // Do stuff here
         log.Println(r.RequestURI)
@@ -474,12 +437,12 @@ func simpleMw(next http.Handler) http.Handler {
 }
 ```
 
-Middlewares can be added to a router using `Router.AddMiddlewareFunc()`:
+Middlewares can be added to a router using `Router.Use()`:
 
 ```go
 r := mux.NewRouter()
 r.HandleFunc("/", handler)
-r.AddMiddleware(simpleMw)
+r.Use(loggingMiddleware)
 ```
 
 A more complex authentication middleware, which maps session token to users, could be written as:
@@ -502,7 +465,7 @@ func (amw *authenticationMiddleware) Populate() {
 func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         token := r.Header.Get("X-Session-Token")
-        
+
         if user, found := amw.tokenUsers[token]; found {
         	// We found the token in our map
         	log.Printf("Authenticated user %s\n", user)
@@ -510,7 +473,7 @@ func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler 
         	next.ServeHTTP(w, r)
         } else {
         	// Write an error and stop the handler chain
-        	http.Error(w, "Forbidden", 403)
+        	http.Error(w, "Forbidden", http.StatusForbidden)
         }
     })
 }
@@ -523,10 +486,136 @@ r.HandleFunc("/", handler)
 amw := authenticationMiddleware{}
 amw.Populate()
 
-r.AddMiddlewareFunc(amw.Middleware)
+r.Use(amw.Middleware)
 ```
 
-Note: The handler chain will be stopped if your middleware doesn't call `next.ServeHTTP()` with the corresponding parameters. This can be used to abort a request if the middleware writer wants to. Middlewares *should* write to `ResponseWriter` if they *are* going to terminate the request, and they *should not* write to `ResponseWriter` if they *are not* going to terminate it.
+Note: The handler chain will be stopped if your middleware doesn't call `next.ServeHTTP()` with the corresponding parameters. This can be used to abort a request if the middleware writer wants to. Middlewares _should_ write to `ResponseWriter` if they _are_ going to terminate the request, and they _should not_ write to `ResponseWriter` if they _are not_ going to terminate it.
+
+### Testing Handlers
+
+Testing handlers in a Go web application is straightforward, and _mux_ doesn't complicate this any further. Given two files: `endpoints.go` and `endpoints_test.go`, here's how we'd test an application using _mux_.
+
+First, our simple HTTP handler:
+
+```go
+// endpoints.go
+package main
+
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+    // A very simple health check.
+    w.WriteHeader(http.StatusOK)
+    w.Header().Set("Content-Type", "application/json")
+
+    // In the future we could report back on the status of our DB, or our cache
+    // (e.g. Redis) by performing a simple PING, and include them in the response.
+    io.WriteString(w, `{"alive": true}`)
+}
+
+func main() {
+    r := mux.NewRouter()
+    r.HandleFunc("/health", HealthCheckHandler)
+
+    log.Fatal(http.ListenAndServe("localhost:8080", r))
+}
+```
+
+Our test code:
+
+```go
+// endpoints_test.go
+package main
+
+import (
+    "net/http"
+    "net/http/httptest"
+    "testing"
+)
+
+func TestHealthCheckHandler(t *testing.T) {
+    // Create a request to pass to our handler. We don't have any query parameters for now, so we'll
+    // pass 'nil' as the third parameter.
+    req, err := http.NewRequest("GET", "/health", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    // We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+    rr := httptest.NewRecorder()
+    handler := http.HandlerFunc(HealthCheckHandler)
+
+    // Our handlers satisfy http.Handler, so we can call their ServeHTTP method
+    // directly and pass in our Request and ResponseRecorder.
+    handler.ServeHTTP(rr, req)
+
+    // Check the status code is what we expect.
+    if status := rr.Code; status != http.StatusOK {
+        t.Errorf("handler returned wrong status code: got %v want %v",
+            status, http.StatusOK)
+    }
+
+    // Check the response body is what we expect.
+    expected := `{"alive": true}`
+    if rr.Body.String() != expected {
+        t.Errorf("handler returned unexpected body: got %v want %v",
+            rr.Body.String(), expected)
+    }
+}
+```
+
+In the case that our routes have [variables](#examples), we can pass those in the request. We could write
+[table-driven tests](https://dave.cheney.net/2013/06/09/writing-table-driven-tests-in-go) to test multiple
+possible route variables as needed.
+
+```go
+// endpoints.go
+func main() {
+    r := mux.NewRouter()
+    // A route with a route variable:
+    r.HandleFunc("/metrics/{type}", MetricsHandler)
+
+    log.Fatal(http.ListenAndServe("localhost:8080", r))
+}
+```
+
+Our test file, with a table-driven test of `routeVariables`:
+
+```go
+// endpoints_test.go
+func TestMetricsHandler(t *testing.T) {
+    tt := []struct{
+        routeVariable string
+        shouldPass bool
+    }{
+        {"goroutines", true},
+        {"heap", true},
+        {"counters", true},
+        {"queries", true},
+        {"adhadaeqm3k", false},
+    }
+
+    for _, tc := range tt {
+        path := fmt.Sprintf("/metrics/%s", tc.routeVariable)
+        req, err := http.NewRequest("GET", path, nil)
+        if err != nil {
+            t.Fatal(err)
+        }
+
+        rr := httptest.NewRecorder()
+	
+	// Need to create a router that we can pass the request through so that the vars will be added to the context
+	router := mux.NewRouter()
+        router.HandleFunc("/metrics/{type}", MetricsHandler)
+        router.ServeHTTP(rr, req)
+
+        // In this case, our MetricsHandler returns a non-200 response
+        // for a route variable it doesn't know about.
+        if rr.Code == http.StatusOK && !tc.shouldPass {
+            t.Errorf("handler should have failed on routeVariable %s: got %v want %v",
+                tc.routeVariable, rr.Code, http.StatusOK)
+        }
+    }
+}
+```
 
 ## Full Example
 
