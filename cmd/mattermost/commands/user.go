@@ -170,7 +170,7 @@ func init() {
 	MigrateAuthCmd.Flags().Bool("auto", false, "Automatically migrate all users. Assumes the usernames and emails are identical between Mattermost and SAML services. (saml only)")
 	MigrateAuthCmd.Flags().Bool("dryRun", false, "Run a simulation of the migration process without changing the database.")
 	MigrateAuthCmd.SetUsageTemplate(`Usage:
-  platform user migrate_auth [from_auth] [to_auth] [migration-options] [flags]
+  mattermost user migrate_auth [from_auth] [to_auth] [migration-options] [flags]
 
 Examples:
 {{.Example}}
@@ -194,7 +194,7 @@ Global Flags:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}
 `)
 	MigrateAuthCmd.SetHelpTemplate(`Usage:
-  platform user migrate_auth [from_auth] [to_auth] [migration-options] [flags]
+  mattermost user migrate_auth [from_auth] [to_auth] [migration-options] [flags]
 
 Examples:
 {{.Example}}
