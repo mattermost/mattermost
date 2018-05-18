@@ -73,11 +73,11 @@ and port to use for the connection:
 		Port: 12345,
 		Zone: "",
 	}
-	d := net.Dialer{
+	c.Dialer := &net.Dialer{
 		Timeout: 200 * time.Millisecond,
 		LocalAddr: &laddr,
 	}
-	in, rtt, err := c.ExchangeWithDialer(&d, m1, "8.8.8.8:53")
+	in, rtt, err := c.Exchange(m1, "8.8.8.8:53")
 
 If these "advanced" features are not needed, a simple UDP query can be sent,
 with:
