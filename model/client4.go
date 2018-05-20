@@ -3153,11 +3153,9 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile("image", filename)
-	if err != nil {
+	if part, err := writer.CreateFormFile("image", filename); err != nil {
 		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)}
-	}
-	if _, err = io.Copy(part, bytes.NewBuffer(image)); err != nil {
+	} else if _, err = io.Copy(part, bytes.NewBuffer(image)); err != nil {
 		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)}
 	}
 

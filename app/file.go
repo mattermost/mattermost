@@ -531,7 +531,7 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, widt
 	}
 
 	if _, err := a.WriteFile(buf, thumbnailPath); err != nil {
-		mlog.Error(fmt.Sprintf(utils.T("api.file.handle_images_forget.upload_thumb.error"), thumbnailPath, err))
+		mlog.Error(fmt.Sprintf("Unable to upload thumbnail path=%v err=%v", thumbnailPath, err))
 		return
 	}
 }
