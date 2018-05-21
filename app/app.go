@@ -92,6 +92,8 @@ type App struct {
 	clientConfig     map[string]string
 	clientConfigHash string
 	diagnosticId     string
+
+	phase2PermissionsMigrationComplete bool
 }
 
 var appCount = 0
@@ -587,4 +589,15 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		mlog.Critical("Failed to mark advanced permissions migration as completed.")
 		mlog.Critical(fmt.Sprint(result.Err))
 	}
+}
+
+func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
+	if !isComplete {
+		res := <-a.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		if res.Err != nil {
+			return res.Err
+		}
+	}
+	a.phase2PermissionsMigrationComplete = isComplete
+	return nil
 }
