@@ -48,13 +48,11 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	if result := <-a.Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
 	}
-	imageData := multiPartImageData.File["image"]
-	if len(imageData) == 0 {
+
+	if imageData := multiPartImageData.File["image"]; len(imageData) == 0 {
 		err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "createEmoji"}, "", http.StatusBadRequest)
 		return nil, err
-	}
-
-	if err := a.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
+	} else if err := a.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
 		return nil, err
 	}
 

@@ -123,6 +123,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return
 		}
+
 		resStruct, appErr = c.App.UploadMultipartFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
 	}
 

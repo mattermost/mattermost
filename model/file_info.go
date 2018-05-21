@@ -117,6 +117,7 @@ func GetInfoForBytes(name string, file io.ReadSeeker) (*FileInfo, *AppError) {
 		Name: name,
 	}
 	var err *AppError
+
 	extension := strings.ToLower(filepath.Ext(name))
 	info.MimeType = mime.TypeByExtension(extension)
 
@@ -148,6 +149,7 @@ func GetInfoForBytes(name string, file io.ReadSeeker) (*FileInfo, *AppError) {
 			}
 		}
 	}
+
 	return info, err
 }
 

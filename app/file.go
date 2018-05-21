@@ -83,6 +83,7 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	if err != nil {
 		return 0, err
 	}
+
 	return backend.WriteFile(fr, path)
 }
 
