@@ -143,6 +143,7 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 		}
 		info.Size = int64(len(data))
 	}
+
 	// Generate a new ID because with the old system, you could very rarely get multiple posts referencing the same file
 	info.Id = model.NewId()
 	info.CreatorId = post.UserId
@@ -401,6 +402,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
 			return nil, err
 		}
+
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
 		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
@@ -549,7 +551,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	}
 
 	if _, err := a.WriteFile(buf, previewPath); err != nil {
-		mlog.Error(fmt.Sprintf(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err))
+		mlog.Error(fmt.Sprintf("Unable to upload preview err=%v", err), mlog.String("path", previewPath))
 		return
 	}
 }
