@@ -217,7 +217,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 {
-				a.sendNotificationEmail(post, profileMap[id], channel, team, senderName, sender)
+				a.sendNotificationEmail(post, profileMap[id], channel, team, channelName, senderName, sender)
 			}
 		}
 	}
@@ -351,7 +351,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	return mentionedUsersList, nil
 }
 
-func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) *model.AppError {
+func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, channelName string, senderName string, sender *model.User) *model.AppError {
 	if channel.IsGroupOrDirect() {
 		if result := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
 			return result.Err
@@ -396,22 +396,24 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 
 	translateFunc := utils.GetUserTranslations(user.Locale)
 
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
+		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
+	}
+
 	var subjectText string
 	if channel.Type == model.CHANNEL_DIRECT {
 		subjectText = getDirectMessageNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, senderName)
+	} else if channel.Type == model.CHANNEL_GROUP {
+		subjectText = getGroupMessageNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType)
 	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
 		subjectText = getNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channel.DisplayName+")")
 	} else {
 		subjectText = getNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName)
 	}
 
-	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
-		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
-	}
-
 	teamURL := a.GetSiteURL() + "/" + team.Name
-	var bodyText = a.getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
+	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
 	a.Go(func() {
 		if err := a.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
@@ -457,9 +459,36 @@ func getNotificationEmailSubject(post *model.Post, translateFunc i18n.TranslateF
 }
 
 /**
+ * Computes the subject line for group email messages
+ */
+func getGroupMessageNotificationEmailSubject(post *model.Post, translateFunc i18n.TranslateFunc, siteName string, channelName string, emailNotificationContentsType string) string {
+	t := getFormattedPostTime(post, translateFunc)
+	var subjectText string
+	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+		var subjectParameters = map[string]interface{}{
+			"SiteName":    siteName,
+			"ChannelName": channelName,
+			"Month":       t.Month,
+			"Day":         t.Day,
+			"Year":        t.Year,
+		}
+		subjectText = translateFunc("app.notification.subject.group_message.full", subjectParameters)
+	} else {
+		var subjectParameters = map[string]interface{}{
+			"SiteName": siteName,
+			"Month":    t.Month,
+			"Day":      t.Day,
+			"Year":     t.Year,
+		}
+		subjectText = translateFunc("app.notification.subject.group_message.generic", subjectParameters)
+	}
+	return subjectText
+}
+
+/**
  * Computes the email body for notification messages
  */
-func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, senderName string, teamName string, teamURL string, emailNotificationContentsType string, translateFunc i18n.TranslateFunc) string {
+func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, teamURL string, emailNotificationContentsType string, translateFunc i18n.TranslateFunc) string {
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
@@ -476,10 +505,6 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		bodyPage.Props["TeamLink"] = teamURL
 	}
 
-	var channelName = channel.DisplayName
-	if channel.Type == model.CHANNEL_GROUP {
-		channelName = translateFunc("api.templates.channel_name.group")
-	}
 	t := getFormattedPostTime(post, translateFunc)
 
 	var bodyText string
@@ -501,6 +526,32 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 				"SenderName": senderName,
 			})
 			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.direct.generic",
+				map[string]interface{}{
+					"Hour":     t.Hour,
+					"Minute":   t.Minute,
+					"TimeZone": t.TimeZone,
+					"Month":    t.Month,
+					"Day":      t.Day,
+				})
+		}
+	} else if channel.Type == model.CHANNEL_GROUP {
+		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+			bodyText = translateFunc("app.notification.body.intro.group_message.full")
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.group_message.full",
+				map[string]interface{}{
+					"ChannelName": channelName,
+					"SenderName":  senderName,
+					"Hour":        t.Hour,
+					"Minute":      t.Minute,
+					"TimeZone":    t.TimeZone,
+					"Month":       t.Month,
+					"Day":         t.Day,
+				})
+		} else {
+			bodyText = translateFunc("app.notification.body.intro.group_message.generic", map[string]interface{}{
+				"SenderName": senderName,
+			})
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.group_message.generic",
 				map[string]interface{}{
 					"Hour":     t.Hour,
 					"Minute":   t.Minute,
@@ -919,12 +970,13 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 
 			// remove trailing '.', as that is the end of a sentence
 			foundWithSuffix := false
-
-			for strings.HasSuffix(word, ".") {
-				word = strings.TrimSuffix(word, ".")
-				if checkForMention(word) {
-					foundWithSuffix = true
-					break
+			for _, suffixPunctuation := range []string{".", ":"} {
+				for strings.HasSuffix(word, suffixPunctuation) {
+					word = strings.TrimSuffix(word, suffixPunctuation)
+					if checkForMention(word) {
+						foundWithSuffix = true
+						break
+					}
 				}
 			}
 

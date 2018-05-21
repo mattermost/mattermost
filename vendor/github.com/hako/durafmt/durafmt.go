@@ -16,12 +16,19 @@ var (
 type Durafmt struct {
 	duration time.Duration
 	input    string // Used as reference.
+	short    bool
 }
 
 // Parse creates a new *Durafmt struct, returns error if input is invalid.
 func Parse(dinput time.Duration) *Durafmt {
 	input := dinput.String()
-	return &Durafmt{dinput, input}
+	return &Durafmt{dinput, input, false}
+}
+
+// ParseShort creates a new *Durafmt struct, short form, returns error if input is invalid.
+func ParseShort(dinput time.Duration) *Durafmt {
+	input := dinput.String()
+	return &Durafmt{dinput, input, true}
 }
 
 // ParseString creates a new *Durafmt struct from a string.
@@ -34,7 +41,20 @@ func ParseString(input string) (*Durafmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Durafmt{duration, input}, nil
+	return &Durafmt{duration, input, false}, nil
+}
+
+// ParseStringShort creates a new *Durafmt struct from a string, short form
+// returns an error if input is invalid.
+func ParseStringShort(input string) (*Durafmt, error) {
+	if input == "0" || input == "-0" {
+		return nil, errors.New("durafmt: missing unit in duration " + input)
+	}
+	duration, err := time.ParseDuration(input)
+	if err != nil {
+		return nil, err
+	}
+	return &Durafmt{duration, input, true}, nil
 }
 
 // String parses d *Durafmt into a human readable duration.
@@ -116,5 +136,12 @@ func (d *Durafmt) String() string {
 	}
 	// trim any remaining spaces.
 	duration = strings.TrimSpace(duration)
+
+	// if more than 2 spaces present return the first 2 strings
+	// if short version is requested
+	if d.short {
+		duration = strings.Join(strings.Split(duration, " ")[:2], " ")
+	}
+
 	return duration
 }

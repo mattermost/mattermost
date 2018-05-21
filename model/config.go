@@ -184,7 +184,6 @@ type ServiceSettings struct {
 	EnableOnlyAdminIntegrations                       *bool
 	EnablePostUsernameOverride                        bool
 	EnablePostIconOverride                            bool
-	EnableAPIv3                                       *bool
 	EnableLinkPreviews                                *bool
 	EnableTesting                                     bool
 	EnableDeveloper                                   *bool
@@ -225,6 +224,7 @@ type ServiceSettings struct {
 	ImageProxyType                                    *string
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
+	EnableAPITeamDeletion                             *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -242,10 +242,6 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ListenAddress == nil {
 		s.ListenAddress = NewString(SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS)
-	}
-
-	if s.EnableAPIv3 == nil {
-		s.EnableAPIv3 = NewBool(true)
 	}
 
 	if s.EnableLinkPreviews == nil {
@@ -456,6 +452,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ImageProxyOptions == nil {
 		s.ImageProxyOptions = NewString("")
+	}
+
+	if s.EnableAPITeamDeletion == nil {
+		s.EnableAPITeamDeletion = NewBool(false)
 	}
 }
 
@@ -980,7 +980,7 @@ type TeamSettings struct {
 	SiteName                            string
 	MaxUsersPerTeam                     *int
 	EnableTeamCreation                  *bool
-	EnableUserCreation                  bool
+	EnableUserCreation                  *bool
 	EnableOpenServer                    *bool
 	RestrictCreationToDomains           string
 	EnableCustomBrand                   *bool
@@ -1111,6 +1111,11 @@ func (s *TeamSettings) SetDefaults() {
 	if s.EnableTeamCreation == nil {
 		s.EnableTeamCreation = NewBool(true)
 	}
+
+	if s.EnableUserCreation == nil {
+		s.EnableUserCreation = NewBool(true)
+	}
+
 }
 
 type ClientRequirements struct {
@@ -1865,16 +1870,8 @@ func (o *Config) SetDefaults() {
 }
 
 func (o *Config) IsValid() *AppError {
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
-		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
-		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
@@ -2180,12 +2177,6 @@ func (ss *ServiceSettings) isValid() *AppError {
 
 	if *ss.MaximumLoginAttempts <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(*ss.SiteURL) != 0 {
-		if _, err := url.ParseRequestURI(*ss.SiteURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
-		}
 	}
 
 	if len(*ss.WebsocketURL) != 0 {

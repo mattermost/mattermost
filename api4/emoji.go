@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/web"
 )
 
 const (
@@ -197,7 +198,7 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emojis, err := c.App.SearchEmoji(emojiSearch.Term, emojiSearch.PrefixOnly, PER_PAGE_MAXIMUM)
+	emojis, err := c.App.SearchEmoji(emojiSearch.Term, emojiSearch.PrefixOnly, web.PER_PAGE_MAXIMUM)
 	if err != nil {
 		c.Err = err
 		return

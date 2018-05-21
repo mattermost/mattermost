@@ -7,13 +7,13 @@ matrix:
     - go: 1.4
     - go: 1.5
     - go: 1.6
+    - go: 1.7
     - go: tip
-
-install:
-  - go get golang.org/x/tools/cmd/vet
+  allow_failures:
+    - go: tip
 
 script:
   - go get -t -v ./...
   - diff -u <(echo -n) <(gofmt -d .)
-  - go tool vet .
+  - go vet $(go list ./... | grep -v /vendor/)
   - go test -v -race ./...

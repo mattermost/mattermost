@@ -6,7 +6,6 @@ package app
 import (
 	"encoding/json"
 	"runtime"
-	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -181,10 +180,7 @@ func (a *App) trackActivity() {
 		"public_channels_deleted":  deletedPublicChannelCount,
 		"private_channels_deleted": deletedPrivateChannelCount,
 		"posts":                    postsCount,
-		"used_apiv3":               atomic.LoadInt32(model.UsedApiV3) == 1,
 	})
-
-	atomic.StoreInt32(model.UsedApiV3, 0)
 }
 
 func (a *App) trackConfig() {
@@ -199,7 +195,6 @@ func (a *App) trackConfig() {
 		"enable_only_admin_integrations":                          *cfg.ServiceSettings.EnableOnlyAdminIntegrations,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                               cfg.ServiceSettings.EnablePostIconOverride,
-		"enable_apiv3":                                            *cfg.ServiceSettings.EnableAPIv3,
 		"enable_user_access_tokens":                               *cfg.ServiceSettings.EnableUserAccessTokens,
 		"enable_custom_emoji":                                     *cfg.ServiceSettings.EnableCustomEmoji,
 		"enable_emoji_picker":                                     *cfg.ServiceSettings.EnableEmojiPicker,
@@ -249,7 +244,7 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
-		"enable_user_creation":                    cfg.TeamSettings.EnableUserCreation,
+		"enable_user_creation":                    *cfg.TeamSettings.EnableUserCreation,
 		"enable_team_creation":                    *cfg.TeamSettings.EnableTeamCreation,
 		"restrict_team_invite":                    *cfg.TeamSettings.RestrictTeamInvite,
 		"restrict_public_channel_creation":        *cfg.TeamSettings.RestrictPublicChannelCreation,

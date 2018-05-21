@@ -197,7 +197,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	if c.Params.Permanent {
+	if c.Params.Permanent && *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
 		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)

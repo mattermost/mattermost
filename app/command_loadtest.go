@@ -159,7 +159,7 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 			numPosts, _ = strconv.Atoi(tokens[numArgs+2])
 		}
 	}
-	client := model.NewClient(args.SiteURL)
+	client := model.NewAPIv4Client(args.SiteURL)
 
 	if doTeams {
 		if err := a.CreateBasicUser(client); err != nil {
@@ -193,7 +193,6 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		}
 
 		client.MockSession(args.Session.Token)
-		client.SetTeamId(args.TeamId)
 		CreateTestEnvironmentInTeam(
 			a,
 			client,
@@ -228,8 +227,7 @@ func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, messag
 		team = tr.Data.(*model.Team)
 	}
 
-	client := model.NewClient(args.SiteURL)
-	client.SetTeamId(team.Id)
+	client := model.NewAPIv4Client(args.SiteURL)
 	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = doFuzz
 	userCreator.CreateTestUsers(usersr)
@@ -258,8 +256,7 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 		team = tr.Data.(*model.Team)
 	}
 
-	client := model.NewClient(args.SiteURL)
-	client.SetTeamId(team.Id)
+	client := model.NewAPIv4Client(args.SiteURL)
 	client.MockSession(args.Session.Token)
 	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = doFuzz
@@ -301,8 +298,7 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 		}
 	}
 
-	client := model.NewClient(args.SiteURL)
-	client.SetTeamId(args.TeamId)
+	client := model.NewAPIv4Client(args.SiteURL)
 	client.MockSession(args.Session.Token)
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = doFuzz

@@ -8,8 +8,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api"
-	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -19,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-var ApiClient *model.Client
+var ApiClient *model.Client4
 var URL string
 
 type persistentTestStore struct {
@@ -38,7 +36,14 @@ func StopTestStore() {
 	}
 }
 
-func Setup() *app.App {
+type TestHelper struct {
+	App          *app.App
+	BasicUser    *model.User
+	BasicChannel *model.Channel
+	BasicTeam    *model.Team
+}
+
+func Setup() *TestHelper {
 	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch)
 	if err != nil {
 		panic(err)
@@ -50,11 +55,10 @@ func Setup() *app.App {
 		panic(serverErr)
 	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	api4.Init(a, a.Srv.Router, false)
-	api3 := api.Init(a, a.Srv.Router)
-	Init(api3)
+
+	NewWeb(a, a.Srv.Router)
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
-	ApiClient = model.NewClient(URL)
+	ApiClient = model.NewAPIv4Client(URL)
 
 	a.DoAdvancedPermissionsMigration()
 
@@ -62,14 +66,33 @@ func Setup() *app.App {
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
-		*cfg.ServiceSettings.EnableAPIv3 = true
 	})
 
-	return a
+	th := &TestHelper{
+		App: a,
+	}
+
+	return th
 }
 
-func TearDown(a *app.App) {
-	a.Shutdown()
+func (th *TestHelper) InitBasic() *TestHelper {
+	user, _ := th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
+
+	team, _ := th.App.CreateTeam(&model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
+
+	th.App.JoinUserToTeam(team, user, "")
+
+	channel, _ := th.App.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id, CreatorId: user.Id}, true)
+
+	th.BasicUser = user
+	th.BasicChannel = channel
+	th.BasicTeam = team
+
+	return th
+}
+
+func (th *TestHelper) TearDown() {
+	th.App.Shutdown()
 	if err := recover(); err != nil {
 		StopTestStore()
 		panic(err)
@@ -92,63 +115,6 @@ func TestStatic(t *testing.T) {
 	}
 }
 */
-
-func TestIncomingWebhook(t *testing.T) {
-	a := Setup()
-	defer TearDown(a)
-
-	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
-	store.Must(a.Srv.Store.User().VerifyEmail(user.Id))
-
-	ApiClient.Login(user.Email, "passwd1")
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
-
-	a.JoinUserToTeam(team, user, "")
-
-	a.UpdateUserRoles(user.Id, model.SYSTEM_ADMIN_ROLE_ID, false)
-	ApiClient.SetTeamId(team.Id)
-
-	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
-	channel1 = ApiClient.Must(ApiClient.CreateChannel(channel1)).Data.(*model.Channel)
-
-	if a.Config().ServiceSettings.EnableIncomingWebhooks {
-		hook1 := &model.IncomingWebhook{ChannelId: channel1.Id}
-		hook1 = ApiClient.Must(ApiClient.CreateIncomingWebhook(hook1)).Data.(*model.IncomingWebhook)
-
-		payload := "payload={\"text\": \"test text\"}"
-		if _, err := ApiClient.PostToWebhook(hook1.Id, payload); err != nil {
-			t.Fatal(err)
-		}
-
-		payload = "payload={\"text\": \"\"}"
-		if _, err := ApiClient.PostToWebhook(hook1.Id, payload); err == nil {
-			t.Fatal("should have errored - no text to post")
-		}
-
-		payload = "payload={\"text\": \"test text\", \"channel\": \"junk\"}"
-		if _, err := ApiClient.PostToWebhook(hook1.Id, payload); err == nil {
-			t.Fatal("should have errored - bad channel")
-		}
-
-		payload = "payload={\"text\": \"test text\"}"
-		if _, err := ApiClient.PostToWebhook("abc123", payload); err == nil {
-			t.Fatal("should have errored - bad hook")
-		}
-
-		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nthis is a test :tada:\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
-		if _, err := ApiClient.DoPost("/hooks/"+hook1.Id, payloadMultiPart, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"); err != nil {
-			t.Fatal("should have errored - bad hook")
-		}
-
-	} else {
-		if _, err := ApiClient.PostToWebhook("123", "123"); err == nil {
-			t.Fatal("should have failed - webhooks turned off")
-		}
-	}
-}
 
 func TestMain(m *testing.M) {
 	// Setup a global logger to catch tests logging outside of app context

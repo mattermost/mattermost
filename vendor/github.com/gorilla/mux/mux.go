@@ -13,8 +13,11 @@ import (
 )
 
 var (
+	// ErrMethodMismatch is returned when the method in the request does not match
+	// the method defined against the route.
 	ErrMethodMismatch = errors.New("method is not allowed")
-	ErrNotFound       = errors.New("no matching route was found")
+	// ErrNotFound is returned when no route match is found.
+	ErrNotFound = errors.New("no matching route was found")
 )
 
 // NewRouter returns a new router instance.
@@ -95,9 +98,9 @@ func (r *Router) Match(req *http.Request, match *RouteMatch) bool {
 		if r.MethodNotAllowedHandler != nil {
 			match.Handler = r.MethodNotAllowedHandler
 			return true
-		} else {
-			return false
 		}
+
+		return false
 	}
 
 	// Closest match for a router (includes sub-routers)

@@ -125,6 +125,10 @@ func (a *App) HubStop() {
 }
 
 func (a *App) GetHubForUserId(userId string) *Hub {
+	if len(a.Hubs) == 0 {
+		return nil
+	}
+
 	hash := fnv.New32a()
 	hash.Write([]byte(userId))
 	index := hash.Sum32() % uint32(len(a.Hubs))
@@ -132,11 +136,17 @@ func (a *App) GetHubForUserId(userId string) *Hub {
 }
 
 func (a *App) HubRegister(webConn *WebConn) {
-	a.GetHubForUserId(webConn.UserId).Register(webConn)
+	hub := a.GetHubForUserId(webConn.UserId)
+	if hub != nil {
+		hub.Register(webConn)
+	}
 }
 
 func (a *App) HubUnregister(webConn *WebConn) {
-	a.GetHubForUserId(webConn.UserId).Unregister(webConn)
+	hub := a.GetHubForUserId(webConn.UserId)
+	if hub != nil {
+		hub.Unregister(webConn)
+	}
 }
 
 func (a *App) Publish(message *model.WebSocketEvent) {
@@ -167,8 +177,9 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 
 func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 	if message.Broadcast.UserId != "" {
-		if len(a.Hubs) != 0 {
-			a.GetHubForUserId(message.Broadcast.UserId).Broadcast(message)
+		hub := a.GetHubForUserId(message.Broadcast.UserId)
+		if hub != nil {
+			hub.Broadcast(message)
 		}
 	} else {
 		for _, hub := range a.Hubs {
@@ -289,8 +300,9 @@ func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
 	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
 
-	if len(a.Hubs) != 0 {
-		a.GetHubForUserId(userId).InvalidateUser(userId)
+	hub := a.GetHubForUserId(userId)
+	if hub != nil {
+		hub.InvalidateUser(userId)
 	}
 }
 
@@ -312,8 +324,9 @@ func (a *App) InvalidateCacheForWebhookSkipClusterSend(webhookId string) {
 }
 
 func (a *App) InvalidateWebConnSessionCacheForUser(userId string) {
-	if len(a.Hubs) != 0 {
-		a.GetHubForUserId(userId).InvalidateUser(userId)
+	hub := a.GetHubForUserId(userId)
+	if hub != nil {
+		hub.InvalidateUser(userId)
 	}
 }
 
@@ -333,7 +346,7 @@ func (h *Hub) Unregister(webConn *WebConn) {
 }
 
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
-	if message != nil {
+	if h != nil && h.broadcast != nil && message != nil {
 		h.broadcast <- message
 	}
 }

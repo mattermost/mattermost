@@ -6,7 +6,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/avct/uasurfer"
@@ -68,9 +67,11 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 		return result.Data.(*model.User), nil
 	}
 
-	// Try to get the user with LDAP
-	if user, err := a.Ldap.GetUser(loginId); err == nil {
-		return user, nil
+	// Try to get the user with LDAP if enabled
+	if *a.Config().LdapSettings.Enable && a.Ldap != nil {
+		if user, err := a.Ldap.GetUser(loginId); err == nil {
+			return user, nil
+		}
 	}
 
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
@@ -95,26 +96,10 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	ua := uasurfer.Parse(r.UserAgent())
 
-	plat := ua.OS.Platform.String()
-	if plat == "" {
-		plat = "unknown"
-	}
-
-	os := ua.OS.Name.String()
-	if os == "" {
-		os = "unknown"
-	}
-
-	bname := ua.Browser.Name.String()
-	if bname == "" {
-		bname = "unknown"
-	}
-
-	if strings.Contains(r.UserAgent(), "Mattermost") {
-		bname = "Desktop App"
-	}
-
-	bversion := ua.Browser.Version
+	plat := getPlatformName(ua)
+	os := getOSName(ua)
+	bname := getBrowserName(ua, r.UserAgent())
+	bversion := getBrowserVersion(ua, r.UserAgent())
 
 	session.AddProp(model.SESSION_PROP_PLATFORM, plat)
 	session.AddProp(model.SESSION_PROP_OS, os)

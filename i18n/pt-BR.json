@@ -217,11 +217,11 @@
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
-    "translation": "This default channel cannot be converted into a private channel."
+    "translation": "O canal padrão não pode ser convertido em um canal privado."
   },
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
-    "translation": "The channel requested to convert is already a private channel."
+    "translation": "O canal selecionado para conversão já é um canal privado."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -792,7 +792,7 @@
   },
   {
     "id": "api.command_invite.desc",
-    "translation": "Invite a user to a channel"
+    "translation": "Convide um usuário para o canal"
   },
   {
     "id": "api.command_invite.directchannel.app_error",
@@ -808,7 +808,7 @@
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Missing Username and Channel."
+    "translation": "Faltando Nome do Usuário e Canal."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "Ocorreu um erro ao obter a equipe"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2496,7 +2496,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "Ocorreu um erro ao atualizar o ícone da equipe"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2912,7 +2912,7 @@
   },
   {
     "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Unable to get profile image, user not found."
+    "translation": "Não foi possível retornar a image de perfil, usuário não encontrado."
   },
   {
     "id": "api.user.init.debug",
@@ -3308,7 +3308,7 @@
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": "Connection unsuccessful: {{.Error}}"
+    "translation": "Conexão sem sucesso: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3812,7 +3812,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Não foi possível ativar o plugin extraído. O plugin já pode existir e estar ativado."
+    "translation": "Não foi possível ativar o plugin extraído."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3847,16 +3847,16 @@
     "translation": "Não é possível obter os plugins ativos"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "Id do plugin deve ter menos de {{.Max}} caracteres."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Não foi possível instalar o plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Não foi possível instalar o plugin. Um plugin como o mesmo ID já está instalado."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "O Id do Plugin deve ter pelo menos {{.Min}} caracteres, e no máximo {{.Max}} caracteres e ser válido com {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -6692,7 +6692,7 @@
   },
   {
     "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles"
+    "translation": "Não podemos apagar permanentemente todas as funções"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6812,7 +6812,7 @@
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
+    "translation": "Não podemos apagar permanentemente as entradas da tabela do sistema"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7384,7 +7384,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
+    "translation": "Erro em configurar \"From Address\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7400,7 +7400,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
+    "translation": "Erro em configurar \"To Address\""
   },
   {
     "id": "utils.mail.test.configured.error",
