@@ -12,8 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -1892,16 +1890,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense(""))
 
-	// Mark the migration as done.
-	<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
-	res := <-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
-	assert.Nil(t, res.Err)
-
-	// Un-mark the migration at the end of the test.
-	defer func() {
-		res := <-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
-		assert.Nil(t, res.Err)
-	}()
+	th.App.SetPhase2PermissionsMigrationStatus(true)
 
 	team := &model.Team{
 		DisplayName:     "Name",
