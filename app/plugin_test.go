@@ -166,7 +166,7 @@ func TestPluginCommands(t *testing.T) {
 	found := false
 	for _, pluginStatus := range pluginStatuses {
 		if pluginStatus.PluginId == "foo" {
-			require.Equal(t, model.PluginStateFailedToStart, pluginStatus.State)
+			require.Equal(t, model.PluginStateRunning, pluginStatus.State)
 			found = true
 		}
 	}
@@ -258,7 +258,7 @@ func TestGetPluginStatusesDisabled(t *testing.T) {
 	})
 
 	_, err := th.App.GetPluginStatuses()
-	require.EqualError(t, err, "GetPlugins: Plugins have been disabled. Please check your logs for details., ")
+	require.EqualError(t, err, "GetPluginStatuses: Plugins have been disabled. Please check your logs for details., ")
 }
 
 func TestGetPluginStatuses(t *testing.T) {

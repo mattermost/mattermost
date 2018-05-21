@@ -56,6 +56,10 @@ func (m *MockSupervisor) Hooks() plugin.Hooks {
 	return m.Called().Get(0).(plugin.Hooks)
 }
 
+func (m *MockSupervisor) Wait() error {
+	return m.Called().Get(0).(error)
+}
+
 func initTmpDir(t *testing.T, files map[string]string) string {
 	success := false
 	dir, err := ioutil.TempDir("", "mm-plugin-test")
