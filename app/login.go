@@ -67,9 +67,11 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 		return result.Data.(*model.User), nil
 	}
 
-	// Try to get the user with LDAP
-	if user, err := a.Ldap.GetUser(loginId); err == nil {
-		return user, nil
+	// Try to get the user with LDAP if enabled
+	if *a.Config().LdapSettings.Enable && a.Ldap != nil {
+		if user, err := a.Ldap.GetUser(loginId); err == nil {
+			return user, nil
+		}
 	}
 
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)

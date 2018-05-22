@@ -42,6 +42,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Intentionally export __val fields in Fsid and Sigset_t
+	valRegex := regexp.MustCompile(`type (Fsid|Sigset_t) struct {(\s+)X__val(\s+\S+\s+)}`)
+	b = valRegex.ReplaceAll(b, []byte("type $1 struct {${2}Val$3}"))
+
 	// If we have empty Ptrace structs, we should delete them. Only s390x emits
 	// nonempty Ptrace structs.
 	ptraceRexexp := regexp.MustCompile(`type Ptrace((Psw|Fpregs|Per) struct {\s*})`)
@@ -70,7 +74,7 @@ func main() {
 	b = removePaddingFieldsRegex.ReplaceAll(b, []byte("_"))
 
 	// Remove padding, hidden, or unused fields
-	removeFieldsRegex = regexp.MustCompile(`\bX_\S+`)
+	removeFieldsRegex = regexp.MustCompile(`\b(X_\S+|Padding)`)
 	b = removeFieldsRegex.ReplaceAll(b, []byte("_"))
 
 	// Remove the first line of warning from cgo

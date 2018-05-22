@@ -2,117 +2,154 @@
 
 package dns
 
-func compressionLenHelperType(c map[string]int, r RR) {
+func compressionLenHelperType(c map[string]int, r RR, initLen int) int {
+	currentLen := initLen
 	switch x := r.(type) {
 	case *AFSDB:
-		compressionLenHelper(c, x.Hostname)
+		currentLen -= len(x.Hostname) + 1
+		currentLen += compressionLenHelper(c, x.Hostname, currentLen)
 	case *CNAME:
-		compressionLenHelper(c, x.Target)
+		currentLen -= len(x.Target) + 1
+		currentLen += compressionLenHelper(c, x.Target, currentLen)
 	case *DNAME:
-		compressionLenHelper(c, x.Target)
+		currentLen -= len(x.Target) + 1
+		currentLen += compressionLenHelper(c, x.Target, currentLen)
 	case *HIP:
 		for i := range x.RendezvousServers {
-			compressionLenHelper(c, x.RendezvousServers[i])
+			currentLen -= len(x.RendezvousServers[i]) + 1
+		}
+		for i := range x.RendezvousServers {
+			currentLen += compressionLenHelper(c, x.RendezvousServers[i], currentLen)
 		}
 	case *KX:
-		compressionLenHelper(c, x.Exchanger)
+		currentLen -= len(x.Exchanger) + 1
+		currentLen += compressionLenHelper(c, x.Exchanger, currentLen)
 	case *LP:
-		compressionLenHelper(c, x.Fqdn)
+		currentLen -= len(x.Fqdn) + 1
+		currentLen += compressionLenHelper(c, x.Fqdn, currentLen)
 	case *MB:
-		compressionLenHelper(c, x.Mb)
+		currentLen -= len(x.Mb) + 1
+		currentLen += compressionLenHelper(c, x.Mb, currentLen)
 	case *MD:
-		compressionLenHelper(c, x.Md)
+		currentLen -= len(x.Md) + 1
+		currentLen += compressionLenHelper(c, x.Md, currentLen)
 	case *MF:
-		compressionLenHelper(c, x.Mf)
+		currentLen -= len(x.Mf) + 1
+		currentLen += compressionLenHelper(c, x.Mf, currentLen)
 	case *MG:
-		compressionLenHelper(c, x.Mg)
+		currentLen -= len(x.Mg) + 1
+		currentLen += compressionLenHelper(c, x.Mg, currentLen)
 	case *MINFO:
-		compressionLenHelper(c, x.Rmail)
-		compressionLenHelper(c, x.Email)
+		currentLen -= len(x.Rmail) + 1
+		currentLen += compressionLenHelper(c, x.Rmail, currentLen)
+		currentLen -= len(x.Email) + 1
+		currentLen += compressionLenHelper(c, x.Email, currentLen)
 	case *MR:
-		compressionLenHelper(c, x.Mr)
+		currentLen -= len(x.Mr) + 1
+		currentLen += compressionLenHelper(c, x.Mr, currentLen)
 	case *MX:
-		compressionLenHelper(c, x.Mx)
+		currentLen -= len(x.Mx) + 1
+		currentLen += compressionLenHelper(c, x.Mx, currentLen)
 	case *NAPTR:
-		compressionLenHelper(c, x.Replacement)
+		currentLen -= len(x.Replacement) + 1
+		currentLen += compressionLenHelper(c, x.Replacement, currentLen)
 	case *NS:
-		compressionLenHelper(c, x.Ns)
+		currentLen -= len(x.Ns) + 1
+		currentLen += compressionLenHelper(c, x.Ns, currentLen)
 	case *NSAPPTR:
-		compressionLenHelper(c, x.Ptr)
+		currentLen -= len(x.Ptr) + 1
+		currentLen += compressionLenHelper(c, x.Ptr, currentLen)
 	case *NSEC:
-		compressionLenHelper(c, x.NextDomain)
+		currentLen -= len(x.NextDomain) + 1
+		currentLen += compressionLenHelper(c, x.NextDomain, currentLen)
 	case *PTR:
-		compressionLenHelper(c, x.Ptr)
+		currentLen -= len(x.Ptr) + 1
+		currentLen += compressionLenHelper(c, x.Ptr, currentLen)
 	case *PX:
-		compressionLenHelper(c, x.Map822)
-		compressionLenHelper(c, x.Mapx400)
+		currentLen -= len(x.Map822) + 1
+		currentLen += compressionLenHelper(c, x.Map822, currentLen)
+		currentLen -= len(x.Mapx400) + 1
+		currentLen += compressionLenHelper(c, x.Mapx400, currentLen)
 	case *RP:
-		compressionLenHelper(c, x.Mbox)
-		compressionLenHelper(c, x.Txt)
+		currentLen -= len(x.Mbox) + 1
+		currentLen += compressionLenHelper(c, x.Mbox, currentLen)
+		currentLen -= len(x.Txt) + 1
+		currentLen += compressionLenHelper(c, x.Txt, currentLen)
 	case *RRSIG:
-		compressionLenHelper(c, x.SignerName)
+		currentLen -= len(x.SignerName) + 1
+		currentLen += compressionLenHelper(c, x.SignerName, currentLen)
 	case *RT:
-		compressionLenHelper(c, x.Host)
+		currentLen -= len(x.Host) + 1
+		currentLen += compressionLenHelper(c, x.Host, currentLen)
 	case *SIG:
-		compressionLenHelper(c, x.SignerName)
+		currentLen -= len(x.SignerName) + 1
+		currentLen += compressionLenHelper(c, x.SignerName, currentLen)
 	case *SOA:
-		compressionLenHelper(c, x.Ns)
-		compressionLenHelper(c, x.Mbox)
+		currentLen -= len(x.Ns) + 1
+		currentLen += compressionLenHelper(c, x.Ns, currentLen)
+		currentLen -= len(x.Mbox) + 1
+		currentLen += compressionLenHelper(c, x.Mbox, currentLen)
 	case *SRV:
-		compressionLenHelper(c, x.Target)
+		currentLen -= len(x.Target) + 1
+		currentLen += compressionLenHelper(c, x.Target, currentLen)
 	case *TALINK:
-		compressionLenHelper(c, x.PreviousName)
-		compressionLenHelper(c, x.NextName)
+		currentLen -= len(x.PreviousName) + 1
+		currentLen += compressionLenHelper(c, x.PreviousName, currentLen)
+		currentLen -= len(x.NextName) + 1
+		currentLen += compressionLenHelper(c, x.NextName, currentLen)
 	case *TKEY:
-		compressionLenHelper(c, x.Algorithm)
+		currentLen -= len(x.Algorithm) + 1
+		currentLen += compressionLenHelper(c, x.Algorithm, currentLen)
 	case *TSIG:
-		compressionLenHelper(c, x.Algorithm)
+		currentLen -= len(x.Algorithm) + 1
+		currentLen += compressionLenHelper(c, x.Algorithm, currentLen)
 	}
+	return currentLen - initLen
 }
 
-func compressionLenSearchType(c map[string]int, r RR) (int, bool) {
+func compressionLenSearchType(c map[string]int, r RR) (int, bool, int) {
 	switch x := r.(type) {
 	case *AFSDB:
-		k1, ok1 := compressionLenSearch(c, x.Hostname)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Hostname)
+		return k1, ok1, sz1
 	case *CNAME:
-		k1, ok1 := compressionLenSearch(c, x.Target)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Target)
+		return k1, ok1, sz1
 	case *MB:
-		k1, ok1 := compressionLenSearch(c, x.Mb)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Mb)
+		return k1, ok1, sz1
 	case *MD:
-		k1, ok1 := compressionLenSearch(c, x.Md)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Md)
+		return k1, ok1, sz1
 	case *MF:
-		k1, ok1 := compressionLenSearch(c, x.Mf)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Mf)
+		return k1, ok1, sz1
 	case *MG:
-		k1, ok1 := compressionLenSearch(c, x.Mg)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Mg)
+		return k1, ok1, sz1
 	case *MINFO:
-		k1, ok1 := compressionLenSearch(c, x.Rmail)
-		k2, ok2 := compressionLenSearch(c, x.Email)
-		return k1 + k2, ok1 && ok2
+		k1, ok1, sz1 := compressionLenSearch(c, x.Rmail)
+		k2, ok2, sz2 := compressionLenSearch(c, x.Email)
+		return k1 + k2, ok1 && ok2, sz1 + sz2
 	case *MR:
-		k1, ok1 := compressionLenSearch(c, x.Mr)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Mr)
+		return k1, ok1, sz1
 	case *MX:
-		k1, ok1 := compressionLenSearch(c, x.Mx)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Mx)
+		return k1, ok1, sz1
 	case *NS:
-		k1, ok1 := compressionLenSearch(c, x.Ns)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Ns)
+		return k1, ok1, sz1
 	case *PTR:
-		k1, ok1 := compressionLenSearch(c, x.Ptr)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Ptr)
+		return k1, ok1, sz1
 	case *RT:
-		k1, ok1 := compressionLenSearch(c, x.Host)
-		return k1, ok1
+		k1, ok1, sz1 := compressionLenSearch(c, x.Host)
+		return k1, ok1, sz1
 	case *SOA:
-		k1, ok1 := compressionLenSearch(c, x.Ns)
-		k2, ok2 := compressionLenSearch(c, x.Mbox)
-		return k1 + k2, ok1 && ok2
+		k1, ok1, sz1 := compressionLenSearch(c, x.Ns)
+		k2, ok2, sz2 := compressionLenSearch(c, x.Mbox)
+		return k1 + k2, ok1 && ok2, sz1 + sz2
 	}
-	return 0, false
+	return 0, false, 0
 }

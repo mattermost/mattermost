@@ -55,16 +55,6 @@ func (h *RR_Header) Header() *RR_Header { return h }
 // Just to implement the RR interface.
 func (h *RR_Header) copy() RR { return nil }
 
-func (h *RR_Header) copyHeader() *RR_Header {
-	r := new(RR_Header)
-	r.Name = h.Name
-	r.Rrtype = h.Rrtype
-	r.Class = h.Class
-	r.Ttl = h.Ttl
-	r.Rdlength = h.Rdlength
-	return r
-}
-
 func (h *RR_Header) String() string {
 	var s string
 

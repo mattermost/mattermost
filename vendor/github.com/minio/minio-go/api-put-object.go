@@ -33,16 +33,17 @@ import (
 
 // PutObjectOptions represents options specified by user for PutObject call
 type PutObjectOptions struct {
-	UserMetadata         map[string]string
-	Progress             io.Reader
-	ContentType          string
-	ContentEncoding      string
-	ContentDisposition   string
-	ContentLanguage      string
-	CacheControl         string
-	ServerSideEncryption encrypt.ServerSide
-	NumThreads           uint
-	StorageClass         string
+	UserMetadata            map[string]string
+	Progress                io.Reader
+	ContentType             string
+	ContentEncoding         string
+	ContentDisposition      string
+	ContentLanguage         string
+	CacheControl            string
+	ServerSideEncryption    encrypt.ServerSide
+	NumThreads              uint
+	StorageClass            string
+	WebsiteRedirectLocation string
 }
 
 // getNumThreads - gets the number of threads to be used in the multipart
@@ -83,6 +84,9 @@ func (opts PutObjectOptions) Header() (header http.Header) {
 	}
 	if opts.StorageClass != "" {
 		header[amzStorageClass] = []string{opts.StorageClass}
+	}
+	if opts.WebsiteRedirectLocation != "" {
+		header[amzWebsiteRedirectLocation] = []string{opts.WebsiteRedirectLocation}
 	}
 	for k, v := range opts.UserMetadata {
 		if !isAmzHeader(k) && !isStandardHeader(k) && !isStorageClassHeader(k) {

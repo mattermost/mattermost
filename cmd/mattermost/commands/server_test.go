@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/jobs"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -20,6 +21,7 @@ type ServerTestHelper struct {
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
 	originalInterval   int
+	oldBuildNumber     string
 }
 
 func SetupServerTest() *ServerTestHelper {
@@ -41,14 +43,20 @@ func SetupServerTest() *ServerTestHelper {
 		interruptChan:      interruptChan,
 		originalInterval:   originalInterval,
 	}
+
+	// Run in dev mode so SiteURL gets set
+	th.oldBuildNumber = model.BuildNumber
+	model.BuildNumber = "dev"
+
 	return th
 }
 
 func (th *ServerTestHelper) TearDownServerTest() {
 	jobs.DEFAULT_WATCHER_POLLING_INTERVAL = th.originalInterval
+	model.BuildNumber = th.oldBuildNumber
 }
 
-func TestRunServerSuccess(t *testing.T) {
+func TestRunServerSiteURL(t *testing.T) {
 	th := SetupServerTest()
 	defer th.TearDownServerTest()
 
