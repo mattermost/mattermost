@@ -823,6 +823,10 @@
     "translation": "Sie haben nicht die nötigen Berechtigungen um {{.User}} dem Kanal {{.Channel}} hinzuzufügen."
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} wurde dem Kanal {{.Channel}} hinzugefügt."
   },
@@ -3779,6 +3783,14 @@
     "translation": "Sie haben eine neue Direktnachricht von {{.SenderName}}"
   },
   {
+    "id": "app.notification.body.intro.group_message.full",
+    "translation": "Sie haben eine neue Direktnachricht."
+  },
+  {
+    "id": "app.notification.body.intro.group_message.generic",
+    "translation": "Sie haben eine neue Direktnachricht von {{.SenderName}}"
+  },
+  {
     "id": "app.notification.body.intro.notification.full",
     "translation": "Sie haben eine neue Benachrichtigung."
   },
@@ -3795,6 +3807,14 @@
     "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
   },
   {
+    "id": "app.notification.body.text.group_message.full",
+    "translation": "KANAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}.{{.Month}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
+  },
+  {
     "id": "app.notification.body.text.notification.full",
     "translation": "KANAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}.{{.Month}}"
   },
@@ -3805,6 +3825,14 @@
   {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Neue Direktnachricht von {{.SenderDisplayName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{ .SiteName }}] Benachrichtigung in {{ .TeamName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] Neue Benachrichtigung für {{.Day}}. {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -5023,6 +5051,10 @@
     "translation": "AD/LDAP-Feld \"Nachnameattribut\" ist erforderlich."
   },
   {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP-Feld \"ID Attribut\" ist erforderlich."
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "Ungültiger Wert für die MaxPageSize."
   },
@@ -5921,10 +5953,6 @@
   {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Der Kanal konnte nicht gelöscht werden"
-  },
-  {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "Problem beim Aktualisieren des zuletzt Aktualisiert Zeitpunkt für Mitglied"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",

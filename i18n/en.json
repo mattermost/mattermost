@@ -3783,14 +3783,6 @@
     "translation": "You have a new Direct Message from @{{.SenderName}}"
   },
   {
-    "id": "app.notification.body.intro.notification.full",
-    "translation": "You have a new notification."
-  },
-  {
-    "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from @{{.SenderName}}"
-  },
-  {
     "id": "app.notification.body.intro.group_message.full",
     "translation": "You have a new Group Message."
   },
@@ -3799,19 +3791,19 @@
     "translation": "You have a new Group Message from @{{.SenderName}}"
   },
   {
+    "id": "app.notification.body.intro.notification.full",
+    "translation": "You have a new notification."
+  },
+  {
+    "id": "app.notification.body.intro.notification.generic",
+    "translation": "You have a new notification from @{{.SenderName}}"
+  },
+  {
     "id": "app.notification.body.text.direct.full",
     "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.notification.body.text.notification.generic",
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
@@ -3823,12 +3815,16 @@
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] New Direct Message from @{{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "id": "app.notification.body.text.notification.full",
+    "translation": "Channel: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
-    "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "id": "app.notification.body.text.notification.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "[{{.SiteName}}] New Direct Message from @{{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3837,6 +3833,10 @@
   {
     "id": "app.notification.subject.group_message.generic",
     "translation": "[{{ .SiteName }}] New Group Message on {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.plugin.activate.app_error",
@@ -5047,12 +5047,12 @@
     "translation": "AD/LDAP field \"ID Attribute\" is required."
   },
   {
-    "id": "model.config.is_valid.ldap_login_id",
-    "translation": "AD/LDAP field \"Login ID Attribute\" is required."
-  },
-  {
     "id": "model.config.is_valid.ldap_lastname",
     "translation": "AD/LDAP field \"Last Name Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP field \"Login ID Attribute\" is required."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
