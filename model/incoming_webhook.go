@@ -16,17 +16,18 @@ const (
 )
 
 type IncomingWebhook struct {
-	Id          string `json:"id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
-	UserId      string `json:"user_id"`
-	ChannelId   string `json:"channel_id"`
-	TeamId      string `json:"team_id"`
-	DisplayName string `json:"display_name"`
-	Description string `json:"description"`
-	Username    string `json:"username"`
-	IconURL     string `json:"icon_url"`
+	Id            string `json:"id"`
+	CreateAt      int64  `json:"create_at"`
+	UpdateAt      int64  `json:"update_at"`
+	DeleteAt      int64  `json:"delete_at"`
+	UserId        string `json:"user_id"`
+	ChannelId     string `json:"channel_id"`
+	TeamId        string `json:"team_id"`
+	DisplayName   string `json:"display_name"`
+	Description   string `json:"description"`
+	Username      string `json:"username"`
+	IconURL       string `json:"icon_url"`
+	ChannelLocked bool   `json:"channel_locked"`
 }
 
 type IncomingWebhookRequest struct {

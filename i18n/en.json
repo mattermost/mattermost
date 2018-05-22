@@ -6887,6 +6887,10 @@
     "translation": "Unable to get roles"
   },
   {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "This webhook is not permitted to post to the requested channel"
+  },
+  {
     "id": "store.sql_role.permanent_delete_all.app_error",
     "translation": "We could not permanently delete all the roles"
   },

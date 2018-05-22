@@ -501,6 +501,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
+	props["EnablePreviewModeBanner"] = strconv.FormatBool(*c.EmailSettings.EnablePreviewModeBanner)
 	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
 	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
