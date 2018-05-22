@@ -427,7 +427,7 @@ func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 func UpgradeDatabaseToVersion50(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.0.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_10_0, VERSION_5_0_0) {
-  
+
 	sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "SchemeId", "varchar(26)", "varchar(26)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "SchemeId", "varchar(26)", "varchar(26)")
 
