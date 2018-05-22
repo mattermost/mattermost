@@ -44,6 +44,7 @@
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
         "EnableEmojiPicker": true,
+        "EnableGifPicker": true,
         "RestrictCustomEmojiCreation": "all",
         "RestrictPostDelete": "all",
         "AllowEditPost": "always",
