@@ -739,6 +739,7 @@ type EmailSettings struct {
 	EnableEmailBatching               *bool
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
+	EnablePreviewModeBanner           *bool
 	SkipServerCertificateVerification *bool
 	EmailNotificationContentsType     *string
 	LoginButtonColor                  *string
@@ -789,6 +790,10 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.EmailBatchingInterval == nil {
 		s.EmailBatchingInterval = NewInt(EMAIL_BATCHING_INTERVAL)
+	}
+
+	if s.EnablePreviewModeBanner == nil {
+		s.EnablePreviewModeBanner = NewBool(true)
 	}
 
 	if s.EnableSMTPAuth == nil {

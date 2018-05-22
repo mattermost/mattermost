@@ -338,6 +338,7 @@ func (a *App) trackConfig() {
 		"enable_email_batching":                *cfg.EmailSettings.EnableEmailBatching,
 		"email_batching_buffer_size":           *cfg.EmailSettings.EmailBatchingBufferSize,
 		"email_batching_interval":              *cfg.EmailSettings.EmailBatchingInterval,
+		"enable_preview_mode_banner":           *cfg.EmailSettings.EnablePreviewModeBanner,
 		"isdefault_feedback_name":              isDefault(cfg.EmailSettings.FeedbackName, ""),
 		"isdefault_feedback_email":             isDefault(cfg.EmailSettings.FeedbackEmail, ""),
 		"isdefault_feedback_organization":      isDefault(*cfg.EmailSettings.FeedbackOrganization, model.EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION),
