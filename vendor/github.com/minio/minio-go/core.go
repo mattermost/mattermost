@@ -82,6 +82,8 @@ func (c Core) PutObject(bucket, object string, data io.Reader, size int64, md5Ba
 			opts.ContentType = v
 		} else if strings.ToLower(k) == "cache-control" {
 			opts.CacheControl = v
+		} else if strings.ToLower(k) == strings.ToLower(amzWebsiteRedirectLocation) {
+			opts.WebsiteRedirectLocation = v
 		} else {
 			m[k] = metadata[k]
 		}

@@ -88,7 +88,7 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	th.App.PermanentDeleteUser(user)
 
-	th.App.Config().TeamSettings.EnableUserCreation = false
+	*th.App.Config().TeamSettings.EnableUserCreation = false
 
 	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
 	if err == nil {

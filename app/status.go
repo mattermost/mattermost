@@ -87,7 +87,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 			statuses := result.Data.([]*model.Status)
 
 			for _, s := range statuses {
-				a.AddStatusCache(s)
+				a.AddStatusCacheSkipClusterSend(s)
 				statusMap[s.UserId] = s.Status
 			}
 		}
@@ -134,7 +134,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 			statuses := result.Data.([]*model.Status)
 
 			for _, s := range statuses {
-				a.AddStatusCache(s)
+				a.AddStatusCacheSkipClusterSend(s)
 			}
 
 			statusMap = append(statusMap, statuses...)
