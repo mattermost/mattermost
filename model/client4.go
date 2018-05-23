@@ -3534,6 +3534,18 @@ func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {
 	}
 }
 
+// GetPluginStatuses will return the plugins installed on any server in the cluster, for reporting
+// to the administrator via the system console.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response) {
+	if r, err := c.DoApiGet(c.GetPluginsRoute(), "/statuses"); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return PluginStatusesFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // RemovePlugin will deactivate and delete a plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) RemovePlugin(id string) (bool, *Response) {
