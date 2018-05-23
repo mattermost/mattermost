@@ -209,7 +209,7 @@ func testSupervisor_PluginCrash(t *testing.T, sp SupervisorProviderFunc) {
 	select {
 	case <-supervisorWaitDone:
 		require.Nil(t, supervisorWaitErr)
-	case <-time.After(500 * time.Millisecond):
+	case <-time.After(5000 * time.Millisecond):
 		require.Fail(t, "supervisor.Wait() failed to return")
 	}
 }
