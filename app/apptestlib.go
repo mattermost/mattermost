@@ -370,6 +370,10 @@ func (s *mockPluginSupervisor) Start(api plugin.API) error {
 	return s.hooks.OnActivate(api)
 }
 
+func (s *mockPluginSupervisor) Wait() error {
+	return nil
+}
+
 func (s *mockPluginSupervisor) Stop() error {
 	return nil
 }
@@ -387,17 +391,6 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 		me.tempWorkspace = dir
 	}
 
-	pluginDir := filepath.Join(me.tempWorkspace, "plugins")
-	webappDir := filepath.Join(me.tempWorkspace, "webapp")
-	me.App.InitPlugins(pluginDir, webappDir, func(bundle *model.BundleInfo) (plugin.Supervisor, error) {
-		if hooks, ok := me.pluginHooks[bundle.Manifest.Id]; ok {
-			return &mockPluginSupervisor{hooks}, nil
-		}
-		return pluginenv.DefaultSupervisorProvider(bundle)
-	})
-
-	me.pluginHooks[manifest.Id] = hooks
-
 	manifestCopy := *manifest
 	if manifestCopy.Backend == nil {
 		manifestCopy.Backend = &model.ManifestBackend{}
@@ -407,6 +400,9 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 		panic(err)
 	}
 
+	pluginDir := filepath.Join(me.tempWorkspace, "plugins")
+	webappDir := filepath.Join(me.tempWorkspace, "webapp")
+
 	if err := os.MkdirAll(filepath.Join(pluginDir, manifest.Id), 0700); err != nil {
 		panic(err)
 	}
@@ -414,6 +410,15 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 	if err := ioutil.WriteFile(filepath.Join(pluginDir, manifest.Id, "plugin.json"), manifestBytes, 0600); err != nil {
 		panic(err)
 	}
+
+	me.App.InitPlugins(pluginDir, webappDir, func(bundle *model.BundleInfo) (plugin.Supervisor, error) {
+		if hooks, ok := me.pluginHooks[bundle.Manifest.Id]; ok {
+			return &mockPluginSupervisor{hooks}, nil
+		}
+		return pluginenv.DefaultSupervisorProvider(bundle)
+	})
+
+	me.pluginHooks[manifest.Id] = hooks
 }
 
 func (me *TestHelper) ResetRoleMigration() {
@@ -448,6 +453,9 @@ func (me *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model
 }
 func (me *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return []string{}, nil
+}
+func (me *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	return nil, nil
 }
 func (me *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil

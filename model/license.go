@@ -49,7 +49,6 @@ type Features struct {
 	CustomBrand               *bool `json:"custom_brand"`
 	MHPNS                     *bool `json:"mhpns"`
 	SAML                      *bool `json:"saml"`
-	PasswordRequirements      *bool `json:"password_requirements"`
 	Elasticsearch             *bool `json:"elastic_search"`
 	Announcement              *bool `json:"announcement"`
 	ThemeManagement           *bool `json:"theme_management"`
@@ -74,7 +73,6 @@ func (f *Features) ToMap() map[string]interface{} {
 		"custom_brand":                *f.CustomBrand,
 		"mhpns":                       *f.MHPNS,
 		"saml":                        *f.SAML,
-		"password":                    *f.PasswordRequirements,
 		"elastic_search":              *f.Elasticsearch,
 		"email_notification_contents": *f.EmailNotificationContents,
 		"data_retention":              *f.DataRetention,
@@ -131,10 +129,6 @@ func (f *Features) SetDefaults() {
 
 	if f.SAML == nil {
 		f.SAML = NewBool(*f.FutureFeatures)
-	}
-
-	if f.PasswordRequirements == nil {
-		f.PasswordRequirements = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Elasticsearch == nil {

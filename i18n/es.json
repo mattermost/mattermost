@@ -823,6 +823,10 @@
     "translation": "No tienes suficientes permisos para agregar a {{.User}} en {{.Channel}}."
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "No se pudo encontrar el canal {{.Channel}}. Por favor utiliza el identificador del canal."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} agregado al canal {{.Channel}}."
   },
@@ -3772,11 +3776,19 @@
   },
   {
     "id": "app.notification.body.intro.direct.full",
-    "translation": "Tienes un nuevo mensaje directo."
+    "translation": "Tienes un nuevo Mensaje Directo."
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "Tienes un nuevo mensaje directo de {{.SenderName}}"
+    "translation": "Tienes un nuevo Mensaje Directo de @{{.SenderName}}"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.full",
+    "translation": "Tienes un nuevo Mensaje de Grupo."
+  },
+  {
+    "id": "app.notification.body.intro.group_message.generic",
+    "translation": "Tienes un nuevo mensaje de Grupo de @{{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3784,19 +3796,27 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "Tienes una nueva notificación de {{.SenderName}}"
+    "translation": "Tienes una nueva notificación de @{{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
     "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
   },
   {
+    "id": "app.notification.body.text.group_message.full",
+    "translation": "Canal: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+  },
+  {
     "id": "app.notification.body.text.notification.full",
-    "translation": "Canal: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+    "translation": "Canal: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3804,7 +3824,15 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nuevo Mensaje Directo de {{.SenderDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Nuevo Mensaje Directo de @{{.SenderDisplayName}} el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{ .SiteName }}] Nuevo Mensaje de Grupo en {{ .TeamName}} el {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] Nuevo Mensaje de Grupo el {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -5023,6 +5051,10 @@
     "translation": "El campo AD/LDAP \"Atributo Apellido\" es obligatorio."
   },
   {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "El campo AD/LDAP \"Atributo Login ID\" es obligatorio."
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "El valor del tamaño de página no es válido."
   },
@@ -5196,7 +5228,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "URL del Sitio debe ser una URL válida y empezar con http:// o https://."
+    "translation": "URL del Sitio debe estar asignado, ser una URL válida y empezar con http:// o https://."
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -5921,10 +5953,6 @@
   {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "No pudimos eliminar el canal"
-  },
-  {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "Problema actualizando el último momento de actualización de los miembros"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
