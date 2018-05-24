@@ -823,6 +823,10 @@
     "translation": "沒有足夠的權限將 {{.User}} 新增至 {{.Channel}}。"
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "已將 {{.User}} 新增至 {{.Channel}} 頻道。"
   },
@@ -3779,6 +3783,14 @@
     "translation": "您有 1 筆新的直接傳訊，來自{{.SenderName}}。"
   },
   {
+    "id": "app.notification.body.intro.group_message.full",
+    "translation": "您有 1 筆新的直接傳訊。"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.generic",
+    "translation": "您有 1 筆新的直接傳訊，來自{{.SenderName}}。"
+  },
+  {
     "id": "app.notification.body.intro.notification.full",
     "translation": "您有一筆新通知。"
   },
@@ -3795,6 +3807,14 @@
     "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
+    "id": "app.notification.body.text.group_message.full",
+    "translation": "頻道：{{.ChannelName}}<br>{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.generic",
+    "translation": "{{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+  },
+  {
     "id": "app.notification.body.text.notification.full",
     "translation": "頻道：{{.ChannelName}}<br>{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
@@ -3805,6 +3825,14 @@
   {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] 來自 {{.SenderDisplayName}} 的直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{.SiteName}}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -5023,6 +5051,10 @@
     "translation": "AD/LDAP 欄位 \"姓氏屬性\" 為必須欄位。"
   },
   {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP 欄位 \"ID 的屬性\" 為必須欄位。"
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "無效的最大分頁大小。"
   },
@@ -5921,10 +5953,6 @@
   {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "無法刪除頻道"
-  },
-  {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "更新成員的最後更新時間時遇到問題"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",

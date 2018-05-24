@@ -823,6 +823,10 @@
     "translation": "Vous n'avez pas les permissions nécessaires pour ajouter {{.User}} dans {{.Channel}}."
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} a été ajouté dans {{.Channel}}."
   },
@@ -3779,6 +3783,14 @@
     "translation": "Vous avez un nouveau message personnel de {{.SenderName}}"
   },
   {
+    "id": "app.notification.body.intro.group_message.full",
+    "translation": "Vous avez un nouveau message personnel."
+  },
+  {
+    "id": "app.notification.body.intro.group_message.generic",
+    "translation": "Vous avez un nouveau message personnel de {{.SenderName}}"
+  },
+  {
     "id": "app.notification.body.intro.notification.full",
     "translation": "Vous avez une nouvelle notification."
   },
@@ -3795,6 +3807,14 @@
     "translation": "{{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
+    "id": "app.notification.body.text.group_message.full",
+    "translation": "CANAL : {{.ChannelName}}<br>{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.generic",
+    "translation": "{{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.Timezone}}"
+  },
+  {
     "id": "app.notification.body.text.notification.full",
     "translation": "CANAL : {{.ChannelName}}<br>{{.SenderName}} - {{.Day}}/{{.Month}}, {{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
@@ -3805,6 +3825,14 @@
   {
     "id": "app.notification.subject.direct.full",
     "translation": "[{{.SiteName}}] Nouveau message personnel de {{.SenderDisplayName}} du {{.Day}}/{{.Month}}/{{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{.SiteName}}] Notification dans {{.TeamName}} le {{.Day}}/{{.Month}}/{{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] New Notification for {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -5023,6 +5051,10 @@
     "translation": "Le champ AD/LDAP \"Last Name Attribute\" est obligatoire."
   },
   {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "Le champ AD/LDAP \"ID Attribute\" est obligatoire."
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "Valeur de la taille maximale de page invalide."
   },
@@ -5921,10 +5953,6 @@
   {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Impossible de supprimer le canal"
-  },
-  {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "Problème de mise à jour de la date de dernière mise à jour des membres"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
