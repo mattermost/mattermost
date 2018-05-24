@@ -823,6 +823,10 @@
     "translation": "您没有足够的权限在 {{.Channel}} 添加 {{.User}}。"
   },
   {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "无法找到频道 {{.Channel}}。请使用频道识别查找频道。"
+  },
+  {
     "id": "api.command_invite.success",
     "translation": "已添加 {{.User}} 到 {{.Channel}} 频道。"
   },
@@ -3772,11 +3776,19 @@
   },
   {
     "id": "app.notification.body.intro.direct.full",
-    "translation": "你有一条新消息。"
+    "translation": "你有一条新私信。"
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "您有来自 {{.SenderName}} 的新私信"
+    "translation": "您有来自 @{{.SenderName}} 的新私信"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.full",
+    "translation": "你有一条新团体消息。"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.generic",
+    "translation": "您有来自 @{{.SenderName}} 的新团体消息"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3784,19 +3796,27 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "您有来自 {{.SenderName}} 的新通知"
+    "translation": "您有来自 @{{.SenderName}} 的新通知"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
     "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
+    "id": "app.notification.body.text.group_message.full",
+    "translation": "频道：{{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
     "id": "app.notification.body.text.notification.full",
-    "translation": "频道: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "频道：{{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3804,7 +3824,15 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] 来自 {{ .SenderDisplayName}} 的新私信消息于 {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] 来自 @{{ .SenderDisplayName}} 于 {{.Month}} {{.Day}}, {{.Year}} 发送的新私信消息"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 于 {{.Month}} {{.Day}}, {{.Year}} 的新团体消息"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] 于 {{.Month}} {{.Day}}, {{.Year}} 的新团体消息"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -5023,6 +5051,10 @@
     "translation": "AD/LDAP 栏 \"姓氏\" 为必填。"
   },
   {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP 栏 \"登入 ID 属性\" 为必填。"
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "无效的最大页面值。"
   },
@@ -5196,7 +5228,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "站点网址必须为有效URL并且以 http:// 或 https:// 开头"
+    "translation": "站点网址必须为有效的 URL 并以 http:// 或 https:// 开头"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -5921,10 +5953,6 @@
   {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "我们无法删除频道"
-  },
-  {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "更新成员上次更新时间出现问题"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",

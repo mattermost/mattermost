@@ -85,3 +85,11 @@ func (a *App) IsLeader() bool {
 		return true
 	}
 }
+
+func (a *App) GetClusterId() string {
+	if a.Cluster == nil {
+		return ""
+	}
+
+	return a.Cluster.GetClusterId()
+}

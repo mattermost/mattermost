@@ -39,8 +39,10 @@ type App struct {
 
 	Log *mlog.Logger
 
-	PluginEnv              *pluginenv.Environment
-	PluginConfigListenerId string
+	PluginEnv                *pluginenv.Environment
+	PluginConfigListenerId   string
+	IsPluginSandboxSupported bool
+	pluginStatuses           map[string]*model.PluginStatus
 
 	EmailBatching *EmailBatchingJob
 
