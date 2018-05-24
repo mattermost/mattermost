@@ -954,7 +954,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_CHANNEL_UPDATED && resp.Data["channel_id"].(string) == publicChannel2.Id {
+				if resp.Event == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED {
 					eventHit = true
 				}
 			case <-stop:
@@ -968,7 +968,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	stop <- true
 
 	if !eventHit {
-		t.Fatal("did not receive channel updated event")
+		t.Fatal("did not receive channel_converted event")
 	}
 }
 
