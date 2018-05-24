@@ -322,6 +322,8 @@ func (s *mockPluginSupervisor) Hooks() plugin.Hooks {
 	return s.hooks
 }
 
+func (s *mockPluginSupervisor) Wait() error { return nil }
+
 func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks) {
 	if me.tempWorkspace == "" {
 		dir, err := ioutil.TempDir("", "apptest")
@@ -416,4 +418,7 @@ func (me *FakeClusterInterface) sendClearRoleCacheMessage() {
 	me.clusterMessageHandler(&model.ClusterMessage{
 		Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
 	})
+}
+func (me *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	return nil, nil
 }
