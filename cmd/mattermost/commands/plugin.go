@@ -8,7 +8,6 @@ import (
 	"errors"
 	"os"
 
-	"github.com/mattermost/mattermost-server/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -65,11 +64,11 @@ func init() {
 		PluginDeactivateCmd,
 		PluginListCmd,
 	)
-	cmd.RootCmd.AddCommand(PluginCmd)
+	RootCmd.AddCommand(PluginCmd)
 }
 
 func pluginCreateCmdF(command *cobra.Command, args []string) error {
-	a, err := cmd.InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
@@ -91,13 +90,13 @@ func pluginCreateCmdF(command *cobra.Command, args []string) error {
 		fileReader.Close()
 	}
 
-	cmd.CommandPrettyPrintln("Created plugin(s)")
+	CommandPrettyPrintln("Created plugin(s)")
 
 	return nil
 }
 
 func pluginDeleteCmdF(command *cobra.Command, args []string) error {
-	a, err := cmd.InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
@@ -111,13 +110,13 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to delete plugin: " + args[0])
 	}
 
-	cmd.CommandPrettyPrintln("Deleted plugin")
+	CommandPrettyPrintln("Deleted plugin")
 
 	return nil
 }
 
 func pluginActivateCmdF(command *cobra.Command, args []string) error {
-	a, err := cmd.InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
@@ -133,13 +132,13 @@ func pluginActivateCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	cmd.CommandPrettyPrintln("Activated plugin(s)")
+	CommandPrettyPrintln("Activated plugin(s)")
 
 	return nil
 }
 
 func pluginDeactivateCmdF(command *cobra.Command, args []string) error {
-	a, err := cmd.InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
@@ -153,13 +152,13 @@ func pluginDeactivateCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to deactivate plugin: " + args[0])
 	}
 
-	cmd.CommandPrettyPrintln("Deactivated plugin")
+	CommandPrettyPrintln("Deactivated plugin")
 
 	return nil
 }
 
 func pluginListCmdF(command *cobra.Command, args []string) error {
-	a, err := cmd.InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
@@ -170,13 +169,14 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to get plugins. Error: " + err.Error())
 	}
 
-	cmd.CommandPrettyPrintln("Listing plugins")
+	CommandPrettyPrintln("Listing plugins")
 
 	pluginList, err := json.MarshalIndent(plugins, "", "  ")
 	if err != nil {
 		return errors.New("Unable to list plugins. Error: " + err.Error())
 	}
-	cmd.CommandPrettyPrintln(pluginList)
+
+	CommandPrettyPrintln(pluginList)
 
 	return nil
 }
