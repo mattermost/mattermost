@@ -37,6 +37,7 @@ var PERMISSION_LIST_TEAM_CHANNELS *Permission
 var PERMISSION_JOIN_PUBLIC_CHANNELS *Permission
 var PERMISSION_DELETE_PUBLIC_CHANNEL *Permission
 var PERMISSION_DELETE_PRIVATE_CHANNEL *Permission
+var PERMISSION_CONVERT_PUBLIC_CHANNEL *Permission
 var PERMISSION_EDIT_OTHER_USERS *Permission
 var PERMISSION_READ_CHANNEL *Permission
 var PERMISSION_READ_PUBLIC_CHANNEL *Permission
@@ -206,6 +207,12 @@ func initializePermissions() {
 		"delete_private_channel",
 		"authentication.permissions.delete_private_channel.name",
 		"authentication.permissions.delete_private_channel.description",
+		PERMISSION_SCOPE_CHANNEL,
+	}
+	PERMISSION_CONVERT_PUBLIC_CHANNEL = &Permission{
+		"convert_public_channel",
+		"authentication.permissions.convert_public_channel.name",
+		"authentication.permissions.convert_public_channel.description",
 		PERMISSION_SCOPE_CHANNEL,
 	}
 	PERMISSION_EDIT_OTHER_USERS = &Permission{
@@ -411,6 +418,7 @@ func initializePermissions() {
 		PERMISSION_JOIN_PUBLIC_CHANNELS,
 		PERMISSION_DELETE_PUBLIC_CHANNEL,
 		PERMISSION_DELETE_PRIVATE_CHANNEL,
+		PERMISSION_CONVERT_PUBLIC_CHANNEL,
 		PERMISSION_EDIT_OTHER_USERS,
 		PERMISSION_READ_CHANNEL,
 		PERMISSION_READ_PUBLIC_CHANNEL,

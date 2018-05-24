@@ -902,6 +902,12 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
 	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id)
 	_, resp := Client.ConvertChannelToPrivate(defaultChannel.Id)
 	CheckForbiddenStatus(t, resp)
@@ -915,11 +921,19 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginTeamAdmin()
+
+	// Default roles for team admin includes permission to convert public to private channel
 	rchannel, resp := Client.ConvertChannelToPrivate(publicChannel.Id)
 	CheckOKStatus(t, resp)
 	if rchannel.Type != model.CHANNEL_PRIVATE {
 		t.Fatal("channel should be converted from public to private")
 	}
+
+	// Team admin without "convert_public_channel" permission is restricted to convert public to private channel
+	th.RemovePermissionFromRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL.Id, model.TEAM_ADMIN_ROLE_ID)
+	publicChannel2 := th.CreatePublicChannel()
+	rchannel, resp = Client.ConvertChannelToPrivate(publicChannel2.Id)
+	CheckForbiddenStatus(t, resp)
 
 	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(privateChannel.Id)
 	CheckBadRequestStatus(t, resp)
@@ -933,7 +947,6 @@ func TestConvertChannelToPrivate(t *testing.T) {
 		t.Fatal("should not return a channel")
 	}
 
-	publicChannel2 := th.CreatePublicChannel()
 	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(publicChannel2.Id)
 	CheckOKStatus(t, resp)
 	if rchannel.Type != model.CHANNEL_PRIVATE {
