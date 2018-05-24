@@ -83,7 +83,6 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	if err != nil {
 		return 0, err
 	}
-
 	return backend.WriteFile(fr, path)
 }
 
@@ -133,7 +132,7 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 		return nil
 	} else {
 		var err *model.AppError
-		info, err = model.GetInfoForBytes(name, data)
+		info, err = model.GetInfoForBytes(name, bytes.NewReader(data))
 		if err != nil {
 			mlog.Warn(
 				fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, err=%v", err),
@@ -141,8 +140,8 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 				mlog.String("filename", filename),
 			)
 		}
+		info.Size = int64(len(data))
 	}
-
 	// Generate a new ID because with the old system, you could very rarely get multiple posts referencing the same file
 	info.Id = model.NewId()
 	info.CreatorId = post.UserId
@@ -304,7 +303,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 }
 
 func (a *App) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
-	files := make([]io.ReadCloser, len(fileHeaders))
+	files := make([]io.ReadSeeker, len(fileHeaders))
 	filenames := make([]string, len(fileHeaders))
 
 	for i, fileHeader := range fileHeaders {
@@ -326,7 +325,7 @@ func (a *App) UploadMultipartFiles(teamId string, channelId string, userId strin
 // Uploads some files to the given team and channel as the given user. files and filenames should have
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadSeeker, filenames []string, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -342,22 +341,19 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 
 	previewPathList := []string{}
 	thumbnailPathList := []string{}
-	imageDataList := [][]byte{}
+	imageDataList := []io.Reader{}
 
 	for i, file := range files {
-		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, file)
-		data := buf.Bytes()
-
-		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, filenames[i], data)
+		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, filenames[i], file)
 		if err != nil {
 			return nil, err
 		}
+		file.Seek(0, 0)
 
 		if info.PreviewPath != "" || info.ThumbnailPath != "" {
 			previewPathList = append(previewPathList, info.PreviewPath)
 			thumbnailPathList = append(thumbnailPathList, info.ThumbnailPath)
-			imageDataList = append(imageDataList, data)
+			imageDataList = append(imageDataList, file)
 		}
 
 		resStruct.FileInfos = append(resStruct.FileInfos, info)
@@ -372,19 +368,19 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 	return resStruct, nil
 }
 
-func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, file io.ReadSeeker) (*model.FileInfo, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamId := filepath.Base(rawTeamId)
 	channelId := filepath.Base(rawChannelId)
 	userId := filepath.Base(rawUserId)
 
-	info, err := model.GetInfoForBytes(filename, data)
+	info, err := model.GetInfoForBytes(filename, file)
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, err
 	}
-
-	if orientation, err := getImageOrientation(bytes.NewReader(data)); err == nil &&
+	file.Seek(0, 0)
+	if orientation, err := getImageOrientation(file); err == nil &&
 		(orientation == RotatedCWMirrored ||
 			orientation == RotatedCCW ||
 			orientation == RotatedCCWMirrored ||
@@ -404,13 +400,12 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
 			return nil, err
 		}
-
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
 		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
-
-	if _, err := a.WriteFile(bytes.NewReader(data), info.Path); err != nil {
+	file.Seek(0, 0)
+	if info.Size, err = a.WriteFile(file, info.Path); err != nil {
 		return nil, err
 	}
 
@@ -421,7 +416,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 	return info, nil
 }
 
-func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
+func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string, fileData []io.Reader) {
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
@@ -442,9 +437,12 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg.Wait()
 }
 
-func prepareImage(fileData []byte) (*image.Image, int, int) {
+func prepareImage(fileData io.Reader) (*image.Image, int, int) {
 	// Decode image bytes into Image object
-	img, imgType, err := image.Decode(bytes.NewReader(fileData))
+	if bio, ok := fileData.(io.Seeker); ok {
+		bio.Seek(0, 0)
+	}
+	img, imgType, err := image.Decode(fileData)
 	if err != nil {
 		mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
 		return nil, 0, 0
@@ -462,7 +460,7 @@ func prepareImage(fileData []byte) (*image.Image, int, int) {
 	}
 
 	// Flip the image to be upright
-	orientation, _ := getImageOrientation(bytes.NewReader(fileData))
+	orientation, _ := getImageOrientation(fileData)
 	img = makeImageUpright(img, orientation)
 
 	return &img, width, height
@@ -550,7 +548,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	}
 
 	if _, err := a.WriteFile(buf, previewPath); err != nil {
-		mlog.Error(fmt.Sprintf("Unable to upload preview err=%v", err), mlog.String("path", previewPath))
+		mlog.Error(fmt.Sprintf(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err))
 		return
 	}
 }

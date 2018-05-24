@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
@@ -1701,17 +1702,20 @@ func (a *App) OldImportChannel(channel *model.Channel) *model.Channel {
 	}
 }
 
-func (a *App) OldImportFile(timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-	data := buf.Bytes()
-
-	fileInfo, err := a.DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
+func (a *App) OldImportFile(timestamp time.Time, file io.ReadCloser, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
+	frs, ok := file.(io.ReadSeeker)
+	if !ok {
+		body, err := ioutil.ReadAll(file)
+		if err != nil {
+			return nil, err
+		}
+		frs = bytes.NewReader(body)
+	}
+	fileInfo, err := a.DoUploadFile(timestamp, teamId, channelId, userId, fileName, frs)
 	if err != nil {
 		return nil, err
 	}
-
-	img, width, height := prepareImage(data)
+	img, width, height := prepareImage(frs)
 	if img != nil {
 		a.generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
 		a.generatePreviewImage(*img, fileInfo.PreviewPath, width)

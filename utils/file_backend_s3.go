@@ -152,7 +152,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppE
 	options := s3PutOptions(b.encrypt, contentType)
 	written, err := s3Clnt.PutObject(b.bucket, path, fr, -1, options)
 	if err != nil {
-		return written, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return written, nil
