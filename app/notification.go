@@ -728,9 +728,9 @@ func (a *App) getPushNotificationMessage(postMessage string, wasMentioned bool, 
 		category = model.CATEGORY_CAN_REPLY
 
 		if channelType == model.CHANNEL_DIRECT {
-			message = senderName + ": " + model.ClearMentionTags(postMessage)
+			message = model.ClearMentionTags(postMessage)
 		} else {
-			message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(postMessage)
+			message = senderName + ": " + model.ClearMentionTags(postMessage)
 		}
 	} else if contentsConfig == model.GENERIC_NO_CHANNEL_NOTIFICATION {
 		if channelType == model.CHANNEL_DIRECT {
