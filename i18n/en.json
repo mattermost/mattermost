@@ -3791,10 +3791,6 @@
     "translation": "Invalid Comment Trigger Notify Prop for user."
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "Invalid Desktop Duration Notify Prop value for user."
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "Invalid Desktop Notify Prop value for user."
   },

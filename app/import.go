@@ -79,9 +79,8 @@ type UserImportData struct {
 }
 
 type UserNotifyPropsImportData struct {
-	Desktop         *string `json:"desktop"`
-	DesktopDuration *string `json:"desktop_duration"`
-	DesktopSound    *string `json:"desktop_sound"`
+	Desktop      *string `json:"desktop"`
+	DesktopSound *string `json:"desktop_sound"`
 
 	Email *string `json:"email"`
 
@@ -608,13 +607,6 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			}
 		}
 
-		if data.NotifyProps.DesktopDuration != nil {
-			if value, ok := user.NotifyProps[model.DESKTOP_DURATION_NOTIFY_PROP]; !ok || value != *data.NotifyProps.DesktopDuration {
-				user.AddNotifyProp(model.DESKTOP_DURATION_NOTIFY_PROP, *data.NotifyProps.DesktopDuration)
-				hasNotifyPropsChanged = true
-			}
-		}
-
 		if data.NotifyProps.DesktopSound != nil {
 			if value, ok := user.NotifyProps[model.DESKTOP_SOUND_NOTIFY_PROP]; !ok || value != *data.NotifyProps.DesktopSound {
 				user.AddNotifyProp(model.DESKTOP_SOUND_NOTIFY_PROP, *data.NotifyProps.DesktopSound)
@@ -967,10 +959,6 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 	if data.NotifyProps != nil {
 		if data.NotifyProps.Desktop != nil && !model.IsValidUserNotifyLevel(*data.NotifyProps.Desktop) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_invalid.error", nil, "", http.StatusBadRequest)
-		}
-
-		if data.NotifyProps.DesktopDuration != nil && !model.IsValidNumberString(*data.NotifyProps.DesktopDuration) {
-			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error", nil, "", http.StatusBadRequest)
 		}
 
 		if data.NotifyProps.DesktopSound != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.DesktopSound) {
