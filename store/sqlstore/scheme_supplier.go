@@ -160,6 +160,9 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 	}
 
 	scheme.Id = model.NewId()
+	if len(scheme.Name) == 0 {
+		scheme.Name = model.NewId()
+	}
 	scheme.CreateAt = model.GetMillis()
 	scheme.UpdateAt = scheme.CreateAt
 
