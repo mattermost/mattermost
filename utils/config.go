@@ -41,7 +41,7 @@ var (
 	}
 )
 
-func findPath(path string, baseSearchPaths []string) string {
+func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
 	if filepath.IsAbs(path) {
 		if _, err := os.Stat(path); err == nil {
 			return path
@@ -77,8 +77,12 @@ func findPath(path string, baseSearchPaths []string) string {
 		found, err := filepath.Abs(filepath.Join(parent, path))
 		if err != nil {
 			continue
-		} else if _, err := os.Stat(found); err == nil {
-			return found
+		} else if fileInfo, err := os.Stat(found); err == nil {
+			if filter != nil && filter(fileInfo) {
+				return found
+			} else {
+				return found
+			}
 		}
 	}
 
@@ -89,18 +93,28 @@ func findPath(path string, baseSearchPaths []string) string {
 // relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
 // string is returned if no configuration is found.
 func FindConfigFile(fileName string) (path string) {
-	found := findPath(filepath.Join("config", fileName), commonBaseSearchPaths)
+	found := FindFile(filepath.Join("config", fileName))
 	if found == "" {
-		found = findPath(fileName, []string{"."})
+		found = FindPath(fileName, []string{"."}, nil)
 	}
 
 	return found
 }
 
+// FindFile looks for the given file in nearby ancestors relative to the current working
+// directory as well as the directory of the executable.
+func FindFile(path string) string {
+	return FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return !fileInfo.IsDir()
+	})
+}
+
 // FindDir looks for the given directory in nearby ancestors relative to the current working
 // directory as well as the directory of the executable, falling back to `./` if not found.
 func FindDir(dir string) (string, bool) {
-	found := findPath(dir, commonBaseSearchPaths)
+	found := FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return fileInfo.IsDir()
+	})
 	if found == "" {
 		return "./", false
 	}

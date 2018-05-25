@@ -6,19 +6,10 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"syscall"
-)
 
-func findMattermostBinary() string {
-	for _, file := range []string{"./mattermost", "../mattermost", "./bin/mattermost"} {
-		path, _ := filepath.Abs(file)
-		if stat, err := os.Stat(path); err == nil && !stat.IsDir() {
-			return path
-		}
-	}
-	return "./mattermost"
-}
+	"github.com/mattermost/mattermost-server/utils"
+)
 
 func main() {
 	// Print angry message to use mattermost command directly
@@ -33,7 +24,14 @@ The platform binary will be removed in a future version.
 	args := os.Args
 	args[0] = "mattermost"
 	args = append(args, "--platform")
-	if err := syscall.Exec(findMattermostBinary(), args, nil); err != nil {
+
+	realMattermost := utils.FindFile("mattermost")
+	if realMattermost == "" {
+		// This will still fail, of course.
+		realMattermost = "./mattermost"
+	}
+
+	if err := syscall.Exec(utils.FindFile("mattermost"), args, nil); err != nil {
 		fmt.Println("Could not start Mattermost, use the mattermost command directly.")
 	}
 }
