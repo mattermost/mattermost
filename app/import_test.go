@@ -430,8 +430,6 @@ func TestImportValidateUserImportData(t *testing.T) {
 	checkError(t, validateUserImportData(&data))
 
 	data.NotifyProps.Desktop = ptrStr(model.USER_NOTIFY_ALL)
-	checkError(t, validateUserImportData(&data))
-
 	data.NotifyProps.DesktopSound = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
