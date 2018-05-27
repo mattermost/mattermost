@@ -262,12 +262,13 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 	bodyPage.Props["SiteURL"] = siteURL
 
 	if activated {
-		bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.mfa_activated_body.info", map[string]interface{}{"SiteURL": siteURL})
+		bodyPage.Props["Info"] = T("api.templates.mfa_activated_body.info", map[string]interface{}{"SiteURL": siteURL})
 		bodyPage.Props["Title"] = T("api.templates.mfa_activated_body.title")
 	} else {
-		bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.mfa_deactivated_body.info", map[string]interface{}{"SiteURL": siteURL})
+		bodyPage.Props["Info"] = T("api.templates.mfa_deactivated_body.info", map[string]interface{}{"SiteURL": siteURL})
 		bodyPage.Props["Title"] = T("api.templates.mfa_deactivated_body.title")
 	}
+	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
 	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendMfaChangeEmail", "api.user.send_mfa_change_email.error", nil, err.Error(), http.StatusInternalServerError)

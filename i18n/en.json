@@ -1808,7 +1808,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1820,7 +1820,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
