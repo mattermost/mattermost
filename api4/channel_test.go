@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -933,11 +934,41 @@ func TestConvertChannelToPrivate(t *testing.T) {
 		t.Fatal("should not return a channel")
 	}
 
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	WebSocketClient.Listen()
+
 	publicChannel2 := th.CreatePublicChannel()
 	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(publicChannel2.Id)
 	CheckOKStatus(t, resp)
 	if rchannel.Type != model.CHANNEL_PRIVATE {
 		t.Fatal("channel should be converted from public to private")
+	}
+
+	stop := make(chan bool)
+	eventHit := false
+
+	go func() {
+		for {
+			select {
+			case resp := <-WebSocketClient.EventChannel:
+				if resp.Event == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED && resp.Data["channel_id"].(string) == publicChannel2.Id {
+					eventHit = true
+				}
+			case <-stop:
+				return
+			}
+		}
+	}()
+
+	time.Sleep(400 * time.Millisecond)
+
+	stop <- true
+
+	if !eventHit {
+		t.Fatal("did not receive channel_converted event")
 	}
 }
 
