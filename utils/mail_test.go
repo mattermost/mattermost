@@ -4,11 +4,16 @@
 package utils
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
+	"net/mail"
 	"net/smtp"
 
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -127,8 +132,8 @@ func TestSendMailUsingConfig(t *testing.T) {
 	}
 }
 
-/*func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+func TestSendMailUsingConfigAdvanced(t *testing.T) {
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
 
@@ -150,9 +155,9 @@ func TestSendMailUsingConfig(t *testing.T) {
 	filePath2 := fmt.Sprintf("test2/%s", fileName)
 	fileContents1 := []byte("hello world")
 	fileContents2 := []byte("foo bar")
-	_, err := fileBackend.WriteFile(bytes.NewReader(fileContents1), filePath1)
+	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents1), filePath1)
 	assert.Nil(t, err)
-	_, err := fileBackend.WriteFile(bytes.NewReader(fileContents2), filePath2)
+	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents2), filePath2)
 	assert.Nil(t, err)
 	defer fileBackend.RemoveFile(filePath1)
 	defer fileBackend.RemoveFile(filePath2)
@@ -221,7 +226,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 			}
 		}
 	}
-}*/
+}
 
 func TestAuthMethods(t *testing.T) {
 	auth := &authChooser{
