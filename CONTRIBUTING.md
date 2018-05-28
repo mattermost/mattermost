@@ -1,6 +1,6 @@
 # Code Contribution Guidelines
 
-Thank you for your interest in contributing! Please see the [Mattermost Contribution Guide](http://docs.mattermost.com/developer/contribution-guide.html) which describes the process for making code contributions across Mattermost projects.
+Thank you for your interest in contributing! Please see the [Mattermost Contribution Guide](http://docs.mattermost.com/developer/contribution-guide.html) which describes the process for making code contributions across Mattermost projects and [join our "Contributors" community channel](https://pre-release.mattermost.com/core/channels/tickets) to ask questions from community members and the Mattermost core team.
 
 ### Review Process for this Repo
 
@@ -62,7 +62,7 @@ Two developers will review the pull request and either give feedback or approve 
 Review process is complete and the pull request is merged.
 
  - Dev assigns `3: Ready to Merge` label.
- - If Mattermost is not in release mode (between [major feature cut and release candidate cut](https://docs.mattermost.com/process/release-process.html), the PR is merged into `master`.
+ - If Mattermost is not in release mode (between [major feature cut and release candidate cut](https://docs.mattermost.com/process/release-process.html)), the PR is merged into `master`.
  - If the PR is a major change, merge is postponed until the next release cycle.
    - Dev calls out on the issue that it is a major change and it will be merged after branching.
    - Once the current release is branched the PR can be merged into `master`.
