@@ -909,18 +909,20 @@ func TestGetUsersByUsernames(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
-// func TestGetTotalUsersStats(t *testing.T) {
-// 	th := Setup().InitBasic().InitSystemAdmin()
-// 	defer th.TearDown()
-// 	Client := th.Client
+func TestGetTotalUsersStat(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
 
-// 	rstats, resp := Client.GetTotalUsersStats("")
-// 	CheckNoError(t, resp)
+	total := <-th.App.Srv.Store.User().GetTotalUsersCount()
 
-// 	if rstats.TotalUsersCount != 3 {
-// 		t.Fatal("wrong count")
-// 	}
-// }
+	rstats, resp := Client.GetTotalUsersStats("")
+	CheckNoError(t, resp)
+
+	if rstats.TotalUsersCount != total.Data.(int64) {
+		t.Fatal("wrong count")
+	}
+}
 
 func TestUpdateUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()

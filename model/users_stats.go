@@ -9,7 +9,7 @@ import (
 )
 
 type UsersStats struct {
-	TotalUsersCount int64 `json:"total_user_count"`
+	TotalUsersCount int64 `json:"total_users_count"`
 }
 
 func (o *UsersStats) ToJson() string {
