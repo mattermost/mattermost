@@ -608,7 +608,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
 	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
-	props["AutolinkingSchemes"] = strings.Join(*c.DisplaySettings.AutolinkingSchemes, ",")
+	props["CustomUrlSchemes"] = strings.Join(*c.DisplaySettings.CustomUrlSchemes, ",")
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)

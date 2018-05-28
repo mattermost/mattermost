@@ -444,7 +444,7 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *tes
 	require.Equal(t, 10000, *mes.BatchSize)
 }
 
-func TestDisplaySettingsIsValidAutolinkingSchemes(t *testing.T) {
+func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 	tests := []struct {
 		name  string
 		value []string
@@ -516,12 +516,12 @@ func TestDisplaySettingsIsValidAutolinkingSchemes(t *testing.T) {
 			ds := &DisplaySettings{}
 			ds.SetDefaults()
 
-			ds.AutolinkingSchemes = &test.value
+			ds.CustomUrlSchemes = &test.value
 
 			if err := ds.isValid(); err != nil && test.valid {
-				t.Error("Expected DisplaySettings to be valid but got error:", err)
+				t.Error("Expected CustomUrlSchemes to be valid but got error:", err)
 			} else if err == nil && !test.valid {
-				t.Error("Expected DisplaySettings to be invalid but got no error")
+				t.Error("Expected CustomUrlSchemes to be invalid but got no error")
 			}
 		})
 	}

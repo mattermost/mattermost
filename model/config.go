@@ -1773,14 +1773,14 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	AutolinkingSchemes   *[]string
+	CustomUrlSchemes     *[]string
 	ExperimentalTimezone *bool
 }
 
 func (s *DisplaySettings) SetDefaults() {
-	if s.AutolinkingSchemes == nil {
-		autolinkingSchemes := []string{}
-		s.AutolinkingSchemes = &autolinkingSchemes
+	if s.CustomUrlSchemes == nil {
+		customUrlSchemes := []string{}
+		s.CustomUrlSchemes = &customUrlSchemes
 	}
 
 	if s.ExperimentalTimezone == nil {
@@ -2346,14 +2346,14 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 }
 
 func (ds *DisplaySettings) isValid() *AppError {
-	if len(*ds.AutolinkingSchemes) != 0 {
+	if len(*ds.CustomUrlSchemes) != 0 {
 		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9+.-]*\s*$`)
 
-		for _, scheme := range *ds.AutolinkingSchemes {
+		for _, scheme := range *ds.CustomUrlSchemes {
 			if !validProtocolPattern.MatchString(scheme) {
 				return NewAppError(
 					"Config.IsValid",
-					"model.config.is_valid.display.autolinking_schemes.app_error",
+					"model.config.is_valid.display.custom_url_schemes.app_error",
 					map[string]interface{}{"Protocol": scheme},
 					"",
 					http.StatusBadRequest,
