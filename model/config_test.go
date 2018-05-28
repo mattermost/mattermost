@@ -443,3 +443,86 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *tes
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
 }
+
+func TestDisplaySettingsIsValidAutolinkingSchemes(t *testing.T) {
+	tests := []struct {
+		name  string
+		value []string
+		valid bool
+	}{
+		{
+			name:  "empty",
+			value: []string{},
+			valid: true,
+		},
+		{
+			name:  "custom protocol",
+			value: []string{"steam"},
+			valid: true,
+		},
+		{
+			name:  "multiple custom protocols",
+			value: []string{"bitcoin", "rss", "redis"},
+			valid: true,
+		},
+		{
+			name:  "containing numbers",
+			value: []string{"ut2004", "ts3server", "h323"},
+			valid: true,
+		},
+		{
+			name:  "containing period",
+			value: []string{"iris.beep"},
+			valid: true,
+		},
+		{
+			name:  "containing hyphen",
+			value: []string{"ms-excel"},
+			valid: true,
+		},
+		{
+			name:  "containing plus",
+			value: []string{"coap+tcp", "coap+ws"},
+			valid: true,
+		},
+		{
+			name:  "starting with number",
+			value: []string{"4four"},
+			valid: false,
+		},
+		{
+			name:  "starting with period",
+			value: []string{"data", ".dot"},
+			valid: false,
+		},
+		{
+			name:  "starting with hyphen",
+			value: []string{"-hyphen", "dns"},
+			valid: false,
+		},
+		{
+			name:  "invalid symbols",
+			value: []string{"!!fun!!"},
+			valid: false,
+		},
+		{
+			name:  "invalid letters",
+			value: []string{"école"},
+			valid: false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ds := &DisplaySettings{}
+			ds.SetDefaults()
+
+			ds.AutolinkingSchemes = &test.value
+
+			if err := ds.isValid(); err != nil && test.valid {
+				t.Error("Expected DisplaySettings to be valid but got error:", err)
+			} else if err == nil && !test.valid {
+				t.Error("Expected DisplaySettings to be invalid but got no error")
+			}
+		})
+	}
+}

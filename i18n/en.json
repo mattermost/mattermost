@@ -4951,6 +4951,10 @@
     "translation": "Message retention must be one day or longer."
   },
   {
+    "id": "model.config.is_valid.display.autolinking_schemes.app_error",
+    "translation": "The autolinking scheme {{.Scheme}} is invalid. Autolinking schemes must start with a letter and contain only letters, numbers, plus (+), period (.), and hyphen (-)."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
   },

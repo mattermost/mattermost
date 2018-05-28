@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -1772,10 +1773,16 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
+	AutolinkingSchemes   *[]string
 	ExperimentalTimezone *bool
 }
 
 func (s *DisplaySettings) SetDefaults() {
+	if s.AutolinkingSchemes == nil {
+		autolinkingSchemes := []string{}
+		s.AutolinkingSchemes = &autolinkingSchemes
+	}
+
 	if s.ExperimentalTimezone == nil {
 		s.ExperimentalTimezone = NewBool(false)
 	}
@@ -1957,6 +1964,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
+		return err
+	}
+
+	if err := o.DisplaySettings.isValid(); err != nil {
 		return err
 	}
 
@@ -2331,6 +2342,26 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			}
 		}
 	}
+	return nil
+}
+
+func (ds *DisplaySettings) isValid() *AppError {
+	if len(*ds.AutolinkingSchemes) != 0 {
+		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9+.-]*\s*$`)
+
+		for _, scheme := range *ds.AutolinkingSchemes {
+			if !validProtocolPattern.MatchString(scheme) {
+				return NewAppError(
+					"Config.IsValid",
+					"model.config.is_valid.display.autolinking_schemes.app_error",
+					map[string]interface{}{"Protocol": scheme},
+					"",
+					http.StatusBadRequest,
+				)
+			}
+		}
+	}
+
 	return nil
 }
 
