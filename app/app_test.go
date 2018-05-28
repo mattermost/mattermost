@@ -169,7 +169,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			model.PERMISSION_PERMANENT_DELETE_USER.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
-			model.PERMISSION_MANAGE_EMOJIS.Id,
 		},
 		"system_post_all": []string{
 			model.PERMISSION_CREATE_POST.Id,
@@ -335,7 +334,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			model.PERMISSION_PERMANENT_DELETE_USER.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
-			model.PERMISSION_MANAGE_EMOJIS.Id,
 		},
 		"system_post_all": []string{
 			model.PERMISSION_CREATE_POST.Id,
@@ -456,4 +454,129 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	*config.ServiceSettings.AllowEditPost = "always"
 	*config.ServiceSettings.PostEditTimeLimit = 300
 	th.App.SaveConfig(config, false)
+}
+
+func TestDoEmojisPermissionsMigration(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	if testStoreSqlSupplier == nil {
+		t.Skip("This test requires a TestStore to be run.")
+	}
+
+	// Add a license and change the policy config.
+	restrictCustomEmojiCreation := *th.App.Config().ServiceSettings.RestrictCustomEmojiCreation
+
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.RestrictCustomEmojiCreation = restrictCustomEmojiCreation
+		})
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN
+	})
+
+	th.ResetEmojisMigration()
+	th.App.DoEmojisPermissionsMigration()
+
+	role1, err1 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Nil(t, err1)
+	expected1 := []string{
+		model.PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE.Id,
+		model.PERMISSION_MANAGE_SYSTEM.Id,
+		model.PERMISSION_MANAGE_ROLES.Id,
+		model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+		model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
+		model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+		model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
+		model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+		model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+		model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
+		model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
+		model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
+		model.PERMISSION_EDIT_OTHER_USERS.Id,
+		model.PERMISSION_MANAGE_OAUTH.Id,
+		model.PERMISSION_INVITE_USER.Id,
+		model.PERMISSION_DELETE_POST.Id,
+		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+		model.PERMISSION_CREATE_TEAM.Id,
+		model.PERMISSION_ADD_USER_TO_TEAM.Id,
+		model.PERMISSION_LIST_USERS_WITHOUT_TEAM.Id,
+		model.PERMISSION_MANAGE_JOBS.Id,
+		model.PERMISSION_CREATE_POST_PUBLIC.Id,
+		model.PERMISSION_CREATE_POST_EPHEMERAL.Id,
+		model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
+		model.PERMISSION_READ_USER_ACCESS_TOKEN.Id,
+		model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
+		model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
+		model.PERMISSION_LIST_TEAM_CHANNELS.Id,
+		model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
+		model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
+		model.PERMISSION_VIEW_TEAM.Id,
+		model.PERMISSION_READ_CHANNEL.Id,
+		model.PERMISSION_ADD_REACTION.Id,
+		model.PERMISSION_REMOVE_REACTION.Id,
+		model.PERMISSION_UPLOAD_FILE.Id,
+		model.PERMISSION_GET_PUBLIC_LINK.Id,
+		model.PERMISSION_CREATE_POST.Id,
+		model.PERMISSION_USE_SLASH_COMMANDS.Id,
+		model.PERMISSION_EDIT_OTHERS_POSTS.Id,
+		model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
+		model.PERMISSION_MANAGE_TEAM.Id,
+		model.PERMISSION_IMPORT_TEAM.Id,
+		model.PERMISSION_MANAGE_TEAM_ROLES.Id,
+		model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
+		model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
+		model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
+		model.PERMISSION_MANAGE_WEBHOOKS.Id,
+		model.PERMISSION_EDIT_POST.Id,
+		model.PERMISSION_MANAGE_EMOJIS.Id,
+	}
+	assert.Equal(t, expected1, role1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ADMIN
+	})
+
+	th.ResetEmojisMigration()
+	th.App.DoEmojisPermissionsMigration()
+
+	role2, err2 := th.App.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+	assert.Nil(t, err2)
+	expected2 := []string{
+		model.PERMISSION_EDIT_OTHERS_POSTS.Id,
+		model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
+		model.PERMISSION_MANAGE_TEAM.Id,
+		model.PERMISSION_IMPORT_TEAM.Id,
+		model.PERMISSION_MANAGE_TEAM_ROLES.Id,
+		model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
+		model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
+		model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
+		model.PERMISSION_MANAGE_WEBHOOKS.Id,
+		model.PERMISSION_DELETE_POST.Id,
+		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+		model.PERMISSION_MANAGE_EMOJIS.Id,
+	}
+	assert.Equal(t, expected2, role2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.TEAM_ADMIN_ROLE_ID))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ALL
+	})
+
+	th.ResetEmojisMigration()
+	th.App.DoEmojisPermissionsMigration()
+
+	role3, err3 := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+	assert.Nil(t, err3)
+	expected3 := []string{
+		model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
+		model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
+		model.PERMISSION_PERMANENT_DELETE_USER.Id,
+		model.PERMISSION_CREATE_TEAM.Id,
+		model.PERMISSION_MANAGE_EMOJIS.Id,
+	}
+	assert.Equal(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_USER_ROLE_ID))
 }

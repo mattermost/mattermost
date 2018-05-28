@@ -425,6 +425,10 @@ func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion50(sqlStore SqlStore) {
+	// This version of Mattermost includes an App-Layer migration which migrates from hard-coded emojis configured
+	// in `config.json` to a `Permission` in the database. The migration code can be seen
+	// in the file `app/app.go` in the function `DoEmojisPermissionsMigration()`.
+
 	// TODO: Uncomment following condition when version 5.0.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_10_0, VERSION_5_0_0) {
 
