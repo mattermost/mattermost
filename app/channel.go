@@ -366,6 +366,12 @@ func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) 
 			return channel, err
 		}
 
+		a.InvalidateCacheForChannel(channel)
+
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_CONVERTED, channel.TeamId, "", "", nil)
+		messageWs.Add("channel_id", channel.Id)
+		a.Publish(messageWs)
+
 		return channel, nil
 	}
 }
