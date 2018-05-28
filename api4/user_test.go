@@ -1198,6 +1198,12 @@ func TestUpdateUserActive(t *testing.T) {
 	SystemAdminClient := th.SystemAdminClient
 	user := th.BasicUser
 
+	EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserDeactivation = EnableUserDeactivation })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = true })
 	pass, resp := Client.UpdateUserActive(user.Id, false)
 	CheckNoError(t, resp)
 
@@ -1205,6 +1211,15 @@ func TestUpdateUserActive(t *testing.T) {
 		t.Fatal("should have returned true")
 	}
 
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = false })
+	pass, resp = Client.UpdateUserActive(user.Id, false)
+	CheckUnauthorizedStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have returned false")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = true })
 	pass, resp = Client.UpdateUserActive(user.Id, false)
 	CheckUnauthorizedStatus(t, resp)
 
