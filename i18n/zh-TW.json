@@ -2515,6 +2515,18 @@
     "translation": "群組訊息"
   },
   {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "您在 {{.TeamDisplayName}} 上的電子郵件地址已經變更為 {{.NewEmail}}。<br>如果這不是您所變更的，請聯繫系統管理員。"
   },
@@ -3023,6 +3035,10 @@
     "translation": "本機不支援或未設定 SAML 2.0。"
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "更改通知電子郵件傳送失敗"
   },
@@ -3069,6 +3085,10 @@
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "不能變更 SSO 帳號的啟用狀態。請透過 SSO 伺服器變更。"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3719,10 +3739,6 @@
     "translation": "使用者的註解觸發 Notify Props 無效。"
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "使用者的桌面期間 Notify Props 無效。"
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "使用者的桌面 Notify Props 無效。"
   },
@@ -3855,6 +3871,10 @@
     "translation": "無法停用模組"
   },
   {
+    "id": "app.plugin.delete_plugin_status_state.app_error",
+    "translation": "Unable to delete plugin status state."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "模組已被停用。詳情請看系統紀錄。"
   },
@@ -3899,8 +3919,16 @@
     "translation": "模組尚未安裝"
   },
   {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "Cannot install prepackaged plugin"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "無法刪除模組"
+  },
+  {
+    "id": "app.plugin.set_plugin_status_state.app_error",
+    "translation": "Unable to set plugin status state."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -4797,6 +4825,10 @@
   {
     "id": "model.client.writer.app_error",
     "translation": "無法建立 multipart 要求"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "無效的 ID"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -7525,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "找不到頻道"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "This webhook is not permitted to post to the requested channel"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",

@@ -2515,6 +2515,18 @@
     "translation": "Grup İletisi"
   },
   {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "{{.TeamDisplayName}} takımındaki e-posta adresiniz {{.NewEmail}} olarak değiştirildi.<br>Bu değişikliği siz yapmadıysanız sistem yöneticisi ile görüşün."
   },
@@ -3023,6 +3035,10 @@
     "translation": "SAML 2.0 ayarları yapılmamış ya da bu sunucu tarafından desteklenmiyor."
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "E-posta adresi değişikliği bildirim e-postası gönderilemedi"
   },
@@ -3069,6 +3085,10 @@
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "SSO hesaplarının etkinleştirme durumu değiştirilemez. Lütfen değişiklikleri SSO sunucusu üzerinde yapın."
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3719,10 +3739,6 @@
     "translation": "Kullanıcının komut tetikleyici bildirimi değeri geçersiz."
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "Kullanıcının masaüstü süresi bildirimi değeri geçersiz."
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "Kullanıcının masaüstü bildirimi değeri geçersiz."
   },
@@ -3855,6 +3871,10 @@
     "translation": "Uygulama eki devre dışı bırakılamadı"
   },
   {
+    "id": "app.plugin.delete_plugin_status_state.app_error",
+    "translation": "Uygulama eki durumu silinemedi."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Uygulama ekleri devre dışı bırakıldı. Ayrıntılar için günlük kayıtlarına bakın."
   },
@@ -3899,8 +3919,16 @@
     "translation": "Uygulama eki kurulmamış"
   },
   {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "Önceden paketlenmiş uygulama eki kurulamadı"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Uygulama eki silinemedi"
+  },
+  {
+    "id": "app.plugin.set_plugin_status_state.app_error",
+    "translation": "Uygulama eki durumu ayarlanamadı."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -4797,6 +4825,10 @@
   {
     "id": "model.client.writer.app_error",
     "translation": "Multipart isteği oluşturulamadı"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "Kod geçersiz"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -7525,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Kanal bulunamadı"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "Bu web bağlantısının istenilen kanala gönderilmesine izin verilmiyor"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",

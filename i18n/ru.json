@@ -2515,6 +2515,18 @@
     "translation": "Групповые сообщения"
   },
   {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "Ваш адрес электронной почты для {{.TeamDisplayName}} изменен на {{.NewEmail}}. <br> Если Вы не делали это изменение, пожалуйста, обратитесь к системному администратору."
   },
@@ -3023,6 +3035,10 @@
     "translation": "SAML 2.0 не настроен или не поддерживается на этом сервере."
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Не удалось отправить письмо с уведомленим о смене адреса электронной почты"
   },
@@ -3069,6 +3085,10 @@
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "Вы не можете изменять состояние активности учетных записей AD/LDAP. Пожалуйста, измените его через сервер AD/LDAP."
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3719,10 +3739,6 @@
     "translation": "Invalid Comment Trigger Notify Prop for user."
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "Invalid Desktop Duration Notify Prop value for user."
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "Invalid Desktop Notify Prop value for user."
   },
@@ -3855,6 +3871,10 @@
     "translation": "Не удалось отключить плагин"
   },
   {
+    "id": "app.plugin.delete_plugin_status_state.app_error",
+    "translation": "Unable to delete plugin status state."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugins have been disabled. Please check your logs for details."
   },
@@ -3899,8 +3919,16 @@
     "translation": "Plugin is not installed"
   },
   {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "Cannot install prepackaged plugin"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Не удалось удалить плагин"
+  },
+  {
+    "id": "app.plugin.set_plugin_status_state.app_error",
+    "translation": "Unable to set plugin status state."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -4797,6 +4825,10 @@
   {
     "id": "model.client.writer.app_error",
     "translation": "Unable to build multipart request"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "Недопустимый идентификатор"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -7525,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Не удалось найти канал"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "This webhook is not permitted to post to the requested channel"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
