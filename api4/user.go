@@ -713,6 +713,12 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
+	if isSelfDeactive && !*c.App.GetConfig().TeamSettings.EnableUserDeactivation {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+		return
+	}
+
 	var user *model.User
 	var err *model.AppError
 
@@ -725,6 +731,13 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 	} else {
 		c.LogAuditWithUserId(user.Id, fmt.Sprintf("active=%v", active))
+		if isSelfDeactive {
+			c.App.Go(func() {
+				if err = c.App.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		}
 		ReturnStatusOK(w)
 	}
 }
