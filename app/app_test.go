@@ -480,9 +480,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th.ResetEmojisMigration()
 	th.App.DoEmojisPermissionsMigration()
 
-	role1, err1 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
-	assert.Nil(t, err1)
-	expected1 := []string{
+	expectedSystemAdmin := []string{
 		model.PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE.Id,
 		model.PERMISSION_MANAGE_SYSTEM.Id,
 		model.PERMISSION_MANAGE_ROLES.Id,
@@ -533,8 +531,12 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_MANAGE_WEBHOOKS.Id,
 		model.PERMISSION_EDIT_POST.Id,
 		model.PERMISSION_MANAGE_EMOJIS.Id,
+		model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id,
 	}
-	assert.Equal(t, expected1, role1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
+
+	role1, err1 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Nil(t, err1)
+	assert.Equal(t, expectedSystemAdmin, role1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ADMIN
@@ -562,6 +564,10 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	}
 	assert.Equal(t, expected2, role2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.TEAM_ADMIN_ROLE_ID))
 
+	systemAdmin1, systemAdminErr1 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Nil(t, systemAdminErr1)
+	assert.Equal(t, expectedSystemAdmin, systemAdmin1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ALL
 	})
@@ -579,4 +585,8 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_MANAGE_EMOJIS.Id,
 	}
 	assert.Equal(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_USER_ROLE_ID))
+
+	systemAdmin2, systemAdminErr2 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Nil(t, systemAdminErr2)
+	assert.Equal(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
 }
