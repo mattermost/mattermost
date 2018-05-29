@@ -2095,6 +2095,10 @@ func TestUpdateTeamScheme(t *testing.T) {
 	_, resp := th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
 	CheckNoError(t, resp)
 
+	// Test the return to default scheme
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "")
+	CheckNoError(t, resp)
+
 	// Test various invalid team and scheme id combinations.
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
 	CheckBadRequestStatus(t, resp)

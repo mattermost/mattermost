@@ -842,7 +842,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || len(*schemeID) != 26 {
+	if schemeID == nil || (len(*schemeID) != 26 && *schemeID != "") {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
@@ -857,15 +857,17 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	scheme, err := c.App.GetScheme(*schemeID)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	if *schemeID != "" {
+		scheme, err := c.App.GetScheme(*schemeID)
+		if err != nil {
+			c.Err = err
+			return
+		}
 
-	if scheme.Scope != model.SCHEME_SCOPE_TEAM {
-		c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
-		return
+		if scheme.Scope != model.SCHEME_SCOPE_TEAM {
+			c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
@@ -874,7 +876,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team.SchemeId = &scheme.Id
+	team.SchemeId = schemeID
 
 	_, err = c.App.UpdateTeamScheme(team)
 	if err != nil {
