@@ -22,7 +22,7 @@ import (
 	_ "github.com/mattermost/rsc/qr"
 	_ "github.com/prometheus/client_golang/prometheus"
 	_ "github.com/prometheus/client_golang/prometheus/promhttp"
-	_ "github.com/tylerb/graceful"
+	_ "gopkg.in/tylerb/graceful.v1"
 	_ "gopkg.in/olivere/elastic.v5"
 )
 
