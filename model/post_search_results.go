@@ -8,12 +8,14 @@ import (
 	"io"
 )
 
+type PostSearchMatches map[string][]string
+
 type PostSearchResults struct {
 	*PostList
-	Matches map[string][]string `json:"matches"`
+	Matches PostSearchMatches `json:"matches"`
 }
 
-func MakePostSearchResults(posts *PostList, matches map[string][]string) *PostSearchResults {
+func MakePostSearchResults(posts *PostList, matches PostSearchMatches) *PostSearchResults {
 	return &PostSearchResults{
 		posts,
 		matches,
