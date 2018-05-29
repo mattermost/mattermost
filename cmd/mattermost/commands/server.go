@@ -6,6 +6,7 @@ package commands
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -72,6 +73,11 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	if usedPlatform {
 		mlog.Error("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
+
+	if _, err := url.ParseRequestURI(*a.Config().ServiceSettings.SiteURL); err != nil {
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
+	}
+
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
 	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
