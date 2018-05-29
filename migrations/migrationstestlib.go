@@ -111,6 +111,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	th.App.DoAdvancedPermissionsMigration()
+	th.App.DoEmojisPermissionsMigration()
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
