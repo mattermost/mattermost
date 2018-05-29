@@ -21,7 +21,6 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["compliance"].(bool))
 	CheckTrue(t, m["cluster"].(bool))
 	CheckTrue(t, m["metrics"].(bool))
-	CheckTrue(t, m["custom_brand"].(bool))
 	CheckTrue(t, m["mhpns"].(bool))
 	CheckTrue(t, m["saml"].(bool))
 	CheckTrue(t, m["elastic_search"].(bool))
@@ -44,7 +43,6 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.Compliance)
 	CheckTrue(t, *f.Cluster)
 	CheckTrue(t, *f.Metrics)
-	CheckTrue(t, *f.CustomBrand)
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
 	CheckTrue(t, *f.Elasticsearch)
@@ -66,7 +64,6 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.Compliance = true
 	*f.Cluster = true
 	*f.Metrics = true
-	*f.CustomBrand = true
 	*f.MHPNS = true
 	*f.SAML = true
 	*f.Elasticsearch = true
@@ -85,7 +82,6 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.Compliance)
 	CheckTrue(t, *f.Cluster)
 	CheckTrue(t, *f.Metrics)
-	CheckTrue(t, *f.CustomBrand)
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
 	CheckTrue(t, *f.Elasticsearch)
@@ -169,7 +165,6 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.Compliance, *f.Compliance)
 	CheckBool(t, *f1.Cluster, *f.Cluster)
 	CheckBool(t, *f1.Metrics, *f.Metrics)
-	CheckBool(t, *f1.CustomBrand, *f.CustomBrand)
 	CheckBool(t, *f1.MHPNS, *f.MHPNS)
 	CheckBool(t, *f1.SAML, *f.SAML)
 	CheckBool(t, *f1.Elasticsearch, *f.Elasticsearch)
