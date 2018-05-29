@@ -56,16 +56,18 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasPermission := false
-	for _, membership := range memberships {
-		if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_EMOJIS) {
-			hasPermission = true
-			break
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_EMOJIS) {
+		hasPermission := false
+		for _, membership := range memberships {
+			if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_EMOJIS) {
+				hasPermission = true
+				break
+			}
 		}
-	}
-	if !hasPermission {
-		c.SetPermissionError(model.PERMISSION_MANAGE_EMOJIS)
-		return
+		if !hasPermission {
+			c.SetPermissionError(model.PERMISSION_MANAGE_EMOJIS)
+			return
+		}
 	}
 
 	m := r.MultipartForm
@@ -132,30 +134,34 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasPermission := false
-	for _, membership := range memberships {
-		if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_EMOJIS) {
-			hasPermission = true
-			break
-		}
-	}
-	if !hasPermission {
-		c.SetPermissionError(model.PERMISSION_MANAGE_EMOJIS)
-		return
-	}
-
-	if c.Session.UserId != emoji.CreatorId {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_EMOJIS) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_OTHERS_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_EMOJIS) {
 				hasPermission = true
 				break
 			}
 		}
-
 		if !hasPermission {
-			c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_EMOJIS)
+			c.SetPermissionError(model.PERMISSION_MANAGE_EMOJIS)
 			return
+		}
+	}
+
+	if c.Session.UserId != emoji.CreatorId {
+		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OTHERS_EMOJIS) {
+			hasPermission := false
+			for _, membership := range memberships {
+				if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_OTHERS_EMOJIS) {
+					hasPermission = true
+					break
+				}
+			}
+
+			if !hasPermission {
+				c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_EMOJIS)
+				return
+			}
 		}
 	}
 
