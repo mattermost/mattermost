@@ -110,6 +110,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	th.App.DoAdvancedPermissionsMigration()
+	th.App.DoEmojisPermissionsMigration()
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
@@ -429,6 +430,18 @@ func (me *TestHelper) ResetRoleMigration() {
 	testClusterInterface.sendClearRoleCacheMessage()
 
 	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+		panic(err)
+	}
+}
+
+func (me *TestHelper) ResetEmojisMigration() {
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
+		panic(err)
+	}
+
+	testClusterInterface.sendClearRoleCacheMessage()
+
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

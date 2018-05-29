@@ -30,6 +30,7 @@ import (
 )
 
 const ADVANCED_PERMISSIONS_MIGRATION_KEY = "AdvancedPermissionsMigrationComplete"
+const EMOJIS_PERMISSIONS_MIGRATION_KEY = "EmojisPermissionsMigrationComplete"
 
 type App struct {
 	goroutineCount      int32
@@ -57,7 +58,6 @@ type App struct {
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface
-	Emoji            einterfaces.EmojiInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
@@ -288,12 +288,6 @@ func RegisterElasticsearchInterface(f func(*App) einterfaces.ElasticsearchInterf
 	elasticsearchInterface = f
 }
 
-var emojiInterface func(*App) einterfaces.EmojiInterface
-
-func RegisterEmojiInterface(f func(*App) einterfaces.EmojiInterface) {
-	emojiInterface = f
-}
-
 var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
 
 func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
@@ -375,9 +369,6 @@ func (a *App) initEnterprise() {
 	}
 	if elasticsearchInterface != nil {
 		a.Elasticsearch = elasticsearchInterface(a)
-	}
-	if emojiInterface != nil {
-		a.Emoji = emojiInterface(a)
 	}
 	if ldapInterface != nil {
 		a.Ldap = ldapInterface(a)
@@ -602,4 +593,76 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	}
 	a.phase2PermissionsMigrationComplete = isComplete
 	return nil
+}
+
+func (a *App) DoEmojisPermissionsMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if result := <-a.Srv.Store.System().GetByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); result.Err == nil {
+		return
+	}
+
+	var role *model.Role = nil
+	var systemAdminRole *model.Role = nil
+	var err *model.AppError = nil
+
+	mlog.Info("Migrating emojis config to database.")
+	switch *a.Config().ServiceSettings.RestrictCustomEmojiCreation {
+	case model.RESTRICT_EMOJI_CREATION_ALL:
+		role, err = a.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		if err != nil {
+			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+			mlog.Critical(err.Error())
+			return
+		}
+		break
+	case model.RESTRICT_EMOJI_CREATION_ADMIN:
+		role, err = a.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+		if err != nil {
+			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+			mlog.Critical(err.Error())
+			return
+		}
+		break
+	case model.RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN:
+		role = nil
+		break
+	default:
+		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+		mlog.Critical("Invalid restrict emoji creation setting")
+		return
+	}
+
+	if role != nil {
+		role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_EMOJIS.Id)
+		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+			mlog.Critical(result.Err.Error())
+			return
+		}
+	}
+
+	systemAdminRole, err = a.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	if err != nil {
+		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+		mlog.Critical(err.Error())
+		return
+	}
+
+	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_MANAGE_EMOJIS.Id)
+	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id)
+	if result := <-a.Srv.Store.Role().Save(systemAdminRole); result.Err != nil {
+		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+		mlog.Critical(result.Err.Error())
+		return
+	}
+
+	system := model.System{
+		Name:  EMOJIS_PERMISSIONS_MIGRATION_KEY,
+		Value: "true",
+	}
+
+	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
+		mlog.Critical("Failed to mark emojis permissions migration as completed.")
+		mlog.Critical(fmt.Sprint(result.Err))
+	}
 }

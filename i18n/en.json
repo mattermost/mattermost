@@ -1337,10 +1337,6 @@
     "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
   },
   {
-    "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Invalid permissions to delete emoji."
-  },
-  {
     "id": "api.emoji.disabled.app_error",
     "translation": "Custom emoji have been disabled by the system admin."
   },
