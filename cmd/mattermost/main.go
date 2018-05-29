@@ -16,7 +16,7 @@ import (
 
 	// Enterprise Deps
 	_ "github.com/dgryski/dgoogauth"
-	_ "github.com/go-ldap/ldap"
+	_ "gopkg.in/ldap.v2"
 	_ "github.com/hako/durafmt"
 	_ "github.com/hashicorp/memberlist"
 	_ "github.com/mattermost/rsc/qr"
