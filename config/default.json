@@ -63,7 +63,8 @@
         "ImageProxyType": "",
         "ImageProxyOptions": "",
         "ImageProxyURL": "",
-        "EnableAPITeamDeletion": false
+        "EnableAPITeamDeletion": false,
+        "ExperimentalEnableHardenedMode": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
