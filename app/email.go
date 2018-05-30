@@ -242,7 +242,8 @@ func (a *App) SendPasswordResetEmail(email string, token *model.Token, locale, s
 	bodyPage := a.NewEmailTemplate("reset_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.reset_body.title")
-	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.reset_body.info", nil)
+	bodyPage.Props["Info1"] = utils.TranslateAsHtml(T, "api.templates.reset_body.info1", nil)
+	bodyPage.Props["Info2"] = T("api.templates.reset_body.info2")
 	bodyPage.Props["ResetUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
 

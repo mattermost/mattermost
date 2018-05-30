@@ -1847,8 +1847,12 @@
     "translation": "Reset Password"
   },
   {
-    "id": "api.templates.reset_body.info",
-    "translation": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
+    "id": "api.templates.reset_body.info1",
+    "translation": "To change your password, click \"Reset Password\" below."
+  },
+  {
+    "id": "api.templates.reset_body.info2",
+    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
   },
   {
     "id": "api.templates.reset_body.title",
