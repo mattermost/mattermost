@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -1772,10 +1773,16 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
+	CustomUrlSchemes     *[]string
 	ExperimentalTimezone *bool
 }
 
 func (s *DisplaySettings) SetDefaults() {
+	if s.CustomUrlSchemes == nil {
+		customUrlSchemes := []string{}
+		s.CustomUrlSchemes = &customUrlSchemes
+	}
+
 	if s.ExperimentalTimezone == nil {
 		s.ExperimentalTimezone = NewBool(false)
 	}
@@ -1965,6 +1972,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
+		return err
+	}
+
+	if err := o.DisplaySettings.isValid(); err != nil {
 		return err
 	}
 
@@ -2345,6 +2356,26 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			}
 		}
 	}
+	return nil
+}
+
+func (ds *DisplaySettings) isValid() *AppError {
+	if len(*ds.CustomUrlSchemes) != 0 {
+		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9+.-]*\s*$`)
+
+		for _, scheme := range *ds.CustomUrlSchemes {
+			if !validProtocolPattern.MatchString(scheme) {
+				return NewAppError(
+					"Config.IsValid",
+					"model.config.is_valid.display.custom_url_schemes.app_error",
+					map[string]interface{}{"Protocol": scheme},
+					"",
+					http.StatusBadRequest,
+				)
+			}
+		}
+	}
+
 	return nil
 }
 

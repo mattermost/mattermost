@@ -97,6 +97,7 @@
         "ExperimentalPrimaryTeam": ""
     },
     "DisplaySettings": {
+        "CustomUrlSchemes": [],
         "ExperimentalTimezone": false
     },
     "ClientRequirements": {
