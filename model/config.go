@@ -1900,8 +1900,16 @@ func (o *Config) SetDefaults() {
 }
 
 func (o *Config) IsValid() *AppError {
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
@@ -2207,6 +2215,12 @@ func (ss *ServiceSettings) isValid() *AppError {
 
 	if *ss.MaximumLoginAttempts <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*ss.SiteURL) != 0 {
+		if _, err := url.ParseRequestURI(*ss.SiteURL); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	if len(*ss.WebsocketURL) != 0 {
