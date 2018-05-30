@@ -2515,6 +2515,18 @@
     "translation": "团体消息"
   },
   {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "您的邮箱地址从 {{.TeamDisplayName}} 修改为 {{.NewEmail}}。<br>如果您没有做过这个修改，请联系系统管理员。"
   },
@@ -3023,6 +3035,10 @@
     "translation": "此服务器没有正确配置或者不支持 SAML 2.0。"
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "未能发送电子邮件通知电子邮件成功"
   },
@@ -3069,6 +3085,10 @@
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "您无法修改 SSO 帐号的激活状态。请到 SSO 服务器上修改。"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3719,10 +3739,6 @@
     "translation": "无效用户评论触发 Notify Prop。"
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "用户的桌面间期 Notify Prop 值无效。"
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "用户的桌面 Notify Prop 值无效。"
   },
@@ -3855,6 +3871,10 @@
     "translation": "无法停用插件"
   },
   {
+    "id": "app.plugin.delete_plugin_status_state.app_error",
+    "translation": "无法删除插件状态。"
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "日志已停用。请检查您的日志了解详情。"
   },
@@ -3899,8 +3919,16 @@
     "translation": "插件未安装"
   },
   {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "无法安装预包装插件"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "无法删除插件"
+  },
+  {
+    "id": "app.plugin.set_plugin_status_state.app_error",
+    "translation": "无法设置插件状态。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -4797,6 +4825,10 @@
   {
     "id": "model.client.writer.app_error",
     "translation": "无法建立 multipart 请求"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "无效 Id"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -7525,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "找不到该频道"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "This webhook is not permitted to post to the requested channel"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
