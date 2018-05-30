@@ -2515,6 +2515,18 @@
     "translation": "Group Message"
   },
   {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
   },
@@ -2749,22 +2761,6 @@
   {
     "id": "api.templates.welcome_subject",
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
-  },
-  {
-    "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
-  },
-  {
-    "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
-  },
-  {
-    "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
-  },
-  {
-    "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Failed to send the deactivate account email successfully"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -3039,6 +3035,10 @@
     "translation": "SAML 2.0 is not configured or supported on this server."
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Failed to send email change notification email successfully"
   },
@@ -3087,12 +3087,12 @@
     "translation": "You can not modify the activation status of SSO accounts. Please modify through the SSO server."
   },
   {
-    "id": "api.user.update_active.permissions.app_error",
-    "translation": "You do not have the appropriate permissions"
-  },
-  {
     "id": "api.user.update_active.not_enable.app_error",
     "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
+  },
+  {
+    "id": "api.user.update_active.permissions.app_error",
+    "translation": "You do not have the appropriate permissions"
   },
   {
     "id": "api.user.update_mfa.not_available.app_error",
@@ -6751,10 +6751,6 @@
     "translation": "Unable to get roles"
   },
   {
-    "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
-  },
-  {
     "id": "store.sql_role.permanent_delete_all.app_error",
     "translation": "We could not permanently delete all the roles"
   },
@@ -7561,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Couldn't find the channel"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "This webhook is not permitted to post to the requested channel"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
