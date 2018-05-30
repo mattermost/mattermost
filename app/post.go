@@ -569,14 +569,14 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 	}
 }
 
-func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
+func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
 	if result := <-a.Srv.Store.Post().GetSingle(postId); result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		post := result.Data.(*model.Post)
 
-		if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis()); result.Err != nil {
+		if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
 			return nil, result.Err
 		}
 
