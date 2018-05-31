@@ -100,8 +100,10 @@ func (a *App) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *
 	bodyPage := a.NewEmailTemplate("email_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.email_change_body.title")
-	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.email_change_body.info",
+	bodyPage.Props["Info"] = T("api.templates.email_change_body.info",
 		map[string]interface{}{"TeamDisplayName": a.Config().TeamSettings.SiteName, "NewEmail": newEmail})
+	
+	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
 	if err := a.SendMail(oldEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendEmailChangeEmail", "api.user.send_email_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
