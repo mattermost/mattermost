@@ -363,8 +363,12 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 		t.Props["Organization"] = ""
 	}
 
-	t.Html["EmailInfo"] = utils.TranslateAsHtml(localT, "api.templates.email_info",
-		map[string]interface{}{"SupportEmail": *a.Config().SupportSettings.SupportEmail, "SiteName": a.Config().TeamSettings.SiteName})
+	t.Props["EmailInfo1"] = localT("api.templates.email_info1")
+	t.Props["EmailInfo2"] = localT("api.templates.email_info2")
+	t.Props["EmailInfo3"] = localT("api.templates.email_info3",
+		map[string]interface{}{"SiteName": a.Config().TeamSettings.SiteName})
+	t.Props["SupportEmail"] = *a.Config().SupportSettings.SupportEmail
+
 
 	return t
 }
