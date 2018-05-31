@@ -4,7 +4,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -19,6 +18,7 @@ import (
 
 type Context struct {
 	App           *app.App
+	Log           *mlog.Logger
 	Session       model.Session
 	Params        *Params
 	Err           *model.AppError
@@ -55,8 +55,12 @@ func (c *Context) LogError(err *model.AppError) {
 		err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
-		mlog.Error(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
-			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
+		c.Log.Error(
+			err.SystemMessage(utils.TDefault),
+			mlog.String("err_where", err.Where),
+			mlog.Int("http_code", err.StatusCode),
+			mlog.String("err_details", err.DetailedError),
+		)
 	}
 }
 
@@ -65,14 +69,22 @@ func (c *Context) LogInfo(err *model.AppError) {
 	if err.StatusCode == http.StatusUnauthorized {
 		c.LogDebug(err)
 	} else {
-		mlog.Info(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
-			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
+		c.Log.Info(
+			err.SystemMessage(utils.TDefault),
+			mlog.String("err_where", err.Where),
+			mlog.Int("http_code", err.StatusCode),
+			mlog.String("err_details", err.DetailedError),
+		)
 	}
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
-	mlog.Debug(fmt.Sprintf("%v:%v code=%v rid=%v uid=%v ip=%v %v [details: %v]", c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError), mlog.String("user_id", c.Session.UserId))
+	c.Log.Debug(
+		err.SystemMessage(utils.TDefault),
+		mlog.String("err_where", err.Where),
+		mlog.Int("http_code", err.StatusCode),
+		mlog.String("err_details", err.DetailedError),
+	)
 }
 
 func (c *Context) IsSystemAdmin() bool {
