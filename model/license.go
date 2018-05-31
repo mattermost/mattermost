@@ -55,6 +55,7 @@ type Features struct {
 	EmailNotificationContents *bool `json:"email_notification_contents"`
 	DataRetention             *bool `json:"data_retention"`
 	MessageExport             *bool `json:"message_export"`
+	CustomPermissionsSchemes  *bool `json:"custom_permissions_schemes"`
 
 	// after we enabled more features for webrtc we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -76,6 +77,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"email_notification_contents": *f.EmailNotificationContents,
 		"data_retention":              *f.DataRetention,
 		"message_export":              *f.MessageExport,
+		"custom_permissions_schemes":  *f.CustomPermissionsSchemes,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -151,6 +153,10 @@ func (f *Features) SetDefaults() {
 
 	if f.MessageExport == nil {
 		f.MessageExport = NewBool(*f.FutureFeatures)
+	}
+
+	if f.CustomPermissionsSchemes == nil {
+		f.CustomPermissionsSchemes = NewBool(*f.FutureFeatures)
 	}
 }
 

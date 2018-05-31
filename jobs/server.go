@@ -5,6 +5,7 @@ package jobs
 
 import (
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -34,6 +35,7 @@ type JobServer struct {
 	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
 	ElasticsearchIndexer    ejobs.ElasticsearchIndexerInterface
 	LdapSync                ejobs.LdapSyncInterface
+	Migrations              tjobs.MigrationsJobInterface
 }
 
 func NewJobServer(configService ConfigService, store store.Store) *JobServer {

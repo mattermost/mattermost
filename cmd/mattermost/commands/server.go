@@ -96,6 +96,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	}
 
 	a.DoAdvancedPermissionsMigration()
+	a.DoEmojisPermissionsMigration()
 
 	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory, nil)
 	a.AddConfigListener(func(prevCfg, cfg *model.Config) {

@@ -13,6 +13,22 @@ type RoleStore struct {
 	mock.Mock
 }
 
+// Delete provides a mock function with given fields: roldId
+func (_m *RoleStore) Delete(roldId string) store.StoreChannel {
+	ret := _m.Called(roldId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(roldId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: roleId
 func (_m *RoleStore) Get(roleId string) store.StoreChannel {
 	ret := _m.Called(roleId)
