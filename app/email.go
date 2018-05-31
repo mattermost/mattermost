@@ -142,8 +142,9 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 	bodyPage := a.NewEmailTemplate("signin_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.signin_change_email.body.title")
-	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.signin_change_email.body.info",
+	bodyPage.Props["Info"] = T("api.templates.signin_change_email.body.info",
 		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "Method": method})
+	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
 	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)

@@ -1864,7 +1864,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "You updated your sign-in method on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "You updated your sign-in method on {{ .SiteName }} to {{.Method}}."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
