@@ -61,6 +61,7 @@ func Setup() *TestHelper {
 	ApiClient = model.NewAPIv4Client(URL)
 
 	a.DoAdvancedPermissionsMigration()
+	a.DoEmojisPermissionsMigration()
 
 	a.Srv.Store.MarkSystemRanUnitTests()
 

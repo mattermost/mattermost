@@ -17,6 +17,7 @@ func TestRoleStore(t *testing.T, ss store.Store) {
 	t.Run("Get", func(t *testing.T) { testRoleStoreGet(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testRoleStoreGetByName(t, ss) })
 	t.Run("GetNames", func(t *testing.T) { testRoleStoreGetByNames(t, ss) })
+	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, ss) })
 	t.Run("PermanentDeleteAll", func(t *testing.T) { testRoleStorePermanentDeleteAll(t, ss) })
 }
 
@@ -244,6 +245,49 @@ func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
 	assert.NotContains(t, roles6, d3)
 }
 
+func testRoleStoreDelete(t *testing.T, ss store.Store) {
+	// Save a role to test with.
+	r1 := &model.Role{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Permissions: []string{
+			"invite_user",
+			"create_public_channel",
+			"add_user_to_team",
+		},
+		SchemeManaged: false,
+	}
+
+	res1 := <-ss.Role().Save(r1)
+	assert.Nil(t, res1.Err)
+	d1 := res1.Data.(*model.Role)
+	assert.Len(t, d1.Id, 26)
+
+	// Check the role is there.
+	res2 := <-ss.Role().Get(d1.Id)
+	assert.Nil(t, res2.Err)
+
+	// Delete the role.
+	res3 := <-ss.Role().Delete(d1.Id)
+	assert.Nil(t, res3.Err)
+
+	// Check the role is deleted there.
+	res4 := <-ss.Role().Get(d1.Id)
+	assert.Nil(t, res4.Err)
+	d2 := res4.Data.(*model.Role)
+	assert.NotZero(t, d2.DeleteAt)
+
+	res5 := <-ss.Role().GetByName(d1.Name)
+	assert.Nil(t, res5.Err)
+	d3 := res5.Data.(*model.Role)
+	assert.NotZero(t, d3.DeleteAt)
+
+	// Try and delete a role that does not exist.
+	res6 := <-ss.Role().Delete(model.NewId())
+	assert.NotNil(t, res6.Err)
+}
+
 func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 	r1 := &model.Role{
 		Name:        model.NewId(),
@@ -256,6 +300,7 @@ func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 		},
 		SchemeManaged: false,
 	}
+
 	r2 := &model.Role{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
