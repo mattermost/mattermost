@@ -48,6 +48,8 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 				return true
 			}
 		}
+	} else {
+		mlog.Error(cmcresult.Err.Error())
 	}
 
 	channel, err := a.GetChannel(channelId)
