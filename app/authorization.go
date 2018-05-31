@@ -47,7 +47,10 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 			if a.RolesGrantPermission(channelRoles, permission.Id) {
 				return true
 			}
+			mlog.Info(roles)
 		}
+	} else {
+		mlog.Error(cmcresult.Err.Error())
 	}
 
 	channel, err := a.GetChannel(channelId)
