@@ -139,6 +139,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.DetailedError = ""
 		}
 
+		// Sanitize all 5xx error messages in hardened mode
+		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
+			c.Err.Id = ""
+			c.Err.Message = "Internal Server Error"
+			c.Err.DetailedError = ""
+			c.Err.StatusCode = 500
+			c.Err.Where = ""
+			c.Err.IsOAuth = false
+		}
+
 		w.WriteHeader(c.Err.StatusCode)
 		w.Write([]byte(c.Err.ToJson()))
 
