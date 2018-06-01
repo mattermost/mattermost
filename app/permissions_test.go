@@ -53,10 +53,10 @@ func TestExportPermissions(t *testing.T) {
 		t.Error(err)
 	}
 
-	getRoleByID := func(id string) string {
+	getRoleByName := func(name string) string {
 		for _, role := range roles {
-			if role.Id == id {
-				return role.Id
+			if role.Name == name {
+				return role.Name
 			}
 		}
 		return ""
@@ -67,10 +67,10 @@ func TestExportPermissions(t *testing.T) {
 		scheme.Name:                    func(str string) string { return row["name"].(string) },
 		scheme.Description:             func(str string) string { return row["description"].(string) },
 		scheme.Scope:                   func(str string) string { return row["scope"].(string) },
-		scheme.DefaultTeamAdminRole:    func(str string) string { return getRoleByID(str) },
-		scheme.DefaultTeamUserRole:     func(str string) string { return getRoleByID(str) },
-		scheme.DefaultChannelAdminRole: func(str string) string { return getRoleByID(str) },
-		scheme.DefaultChannelUserRole:  func(str string) string { return getRoleByID(str) },
+		scheme.DefaultTeamAdminRole:    func(str string) string { return getRoleByName(str) },
+		scheme.DefaultTeamUserRole:     func(str string) string { return getRoleByName(str) },
+		scheme.DefaultChannelAdminRole: func(str string) string { return getRoleByName(str) },
+		scheme.DefaultChannelUserRole:  func(str string) string { return getRoleByName(str) },
 	}
 
 	for key, valF := range expectations {
@@ -105,7 +105,7 @@ func TestImportPermissions(t *testing.T) {
 		}
 		beforeCount = len(results)
 
-		json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"yzfx3g9xjjfw8cqo6bpn33xr7o","default_channel_user_role":"a7s3cp4n33dfxbsrmyh9djao3a","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2)
+		json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
 		r := strings.NewReader(json)
 
 		err := th.App.ImportPermissions(r)
@@ -127,12 +127,12 @@ func TestImportPermissions(t *testing.T) {
 
 	newScheme := results[0]
 
-	channelAdminRole, appErr := th.App.GetRole(newScheme.DefaultChannelAdminRole)
+	channelAdminRole, appErr := th.App.GetRoleByName(newScheme.DefaultChannelAdminRole)
 	if appErr != nil {
 		t.Error(appErr)
 	}
 
-	channelUserRole, appErr := th.App.GetRole(newScheme.DefaultChannelUserRole)
+	channelUserRole, appErr := th.App.GetRoleByName(newScheme.DefaultChannelUserRole)
 	if appErr != nil {
 		t.Error(appErr)
 	}
@@ -144,8 +144,8 @@ func TestImportPermissions(t *testing.T) {
 		newScheme.Scope:                scope,
 		newScheme.DefaultTeamAdminRole: "",
 		newScheme.DefaultTeamUserRole:  "",
-		channelAdminRole.Name:          roleName1,
-		channelUserRole.Name:           roleName2,
+		channelAdminRole.Name:          newScheme.DefaultChannelAdminRole,
+		channelUserRole.Name:           newScheme.DefaultChannelUserRole,
 	}
 
 	for actual, expected := range expectations {
@@ -167,7 +167,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 	roleName1 := model.NewId()
 	roleName2 := model.NewId()
 
-	json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"yzfx3g9xjjfw8cqo6bpn33xr7o","default_channel_user_role":"a7s3cp4n33dfxbsrmyh9djao3a","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2)
+	json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
 	jsonl := strings.Repeat(json+"\n", 4)
 	r := strings.NewReader(jsonl)
 
@@ -206,11 +206,11 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 	name := model.NewId()
 	displayName := model.NewId()
 	description := "my test description"
-	scope := model.SCHEME_SCOPE_CHANNEL
+	scope := "invalid scope"
 	roleName1 := model.NewId()
-	roleName2 := "some invalid role name"
+	roleName2 := model.NewId()
 
-	jsonl := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"yzfx3g9xjjfw8cqo6bpn33xr7o","default_channel_user_role":"a7s3cp4n33dfxbsrmyh9djao3a","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2)
+	jsonl := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
 	r := strings.NewReader(jsonl)
 
 	var results []*model.Scheme
