@@ -133,7 +133,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 	resetStatuses(a)
 
 	// If we allow testing then listen for manual testing URL hits
-	if a.Config().ServiceSettings.EnableTesting {
+	if *a.Config().ServiceSettings.EnableTesting {
 		manualtesting.Init(api3)
 	}
 

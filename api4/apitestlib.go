@@ -107,7 +107,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
-		cfg.EmailSettings.SendEmailNotifications = true
+		*cfg.EmailSettings.SendEmailNotifications = true
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	if testStore != nil {
@@ -490,7 +490,7 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 }
 
 func (me *TestHelper) GenerateTestEmail() string {
-	if me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
+	if *me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
 	return strings.ToLower(model.NewId() + "@dockerhost")
@@ -713,17 +713,17 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 	cfg := me.App.Config()
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := cfg.FileSettings.AmazonS3Endpoint
-		accessKey := cfg.FileSettings.AmazonS3AccessKeyId
-		secretKey := cfg.FileSettings.AmazonS3SecretAccessKey
+		endpoint := *cfg.FileSettings.AmazonS3Endpoint
+		accessKey := *cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := *cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *cfg.FileSettings.AmazonS3SSL
 		signV2 := *cfg.FileSettings.AmazonS3SignV2
-		region := cfg.FileSettings.AmazonS3Region
+		region := *cfg.FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return err
 		}
-		bucket := cfg.FileSettings.AmazonS3Bucket
+		bucket := *cfg.FileSettings.AmazonS3Bucket
 		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
 			return err
 		}
@@ -740,18 +740,18 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 			}
 		}
 	} else if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if err := os.Remove(cfg.FileSettings.Directory + info.Path); err != nil {
+		if err := os.Remove(*cfg.FileSettings.Directory + info.Path); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := os.Remove(cfg.FileSettings.Directory + info.ThumbnailPath); err != nil {
+			if err := os.Remove(*cfg.FileSettings.Directory + info.ThumbnailPath); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := os.Remove(cfg.FileSettings.Directory + info.PreviewPath); err != nil {
+			if err := os.Remove(*cfg.FileSettings.Directory + info.PreviewPath); err != nil {
 				return err
 			}
 		}

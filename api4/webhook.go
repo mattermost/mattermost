@@ -491,7 +491,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if c.App.Config().LogSettings.EnableWebhookDebugging {
+	if *c.App.Config().LogSettings.EnableWebhookDebugging {
 		l4g.Debug(utils.T("api.webhook.incoming.debug"), incomingWebhookPayload.ToJson())
 	}
 

@@ -115,7 +115,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -148,7 +148,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -176,7 +176,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -464,8 +464,8 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		hideFullName := !c.App.Config().PrivacySettings.ShowFullName
-		hideEmail := !c.App.Config().PrivacySettings.ShowEmailAddress
+		hideFullName := !*c.App.Config().PrivacySettings.ShowFullName
+		hideEmail := !*c.App.Config().PrivacySettings.ShowEmailAddress
 
 		if hideFullName && hideEmail {
 			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
@@ -494,7 +494,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	searchOptions := map[string]bool{}
 
-	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
+	hideFullName := !*c.App.Config().PrivacySettings.ShowFullName
 	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {

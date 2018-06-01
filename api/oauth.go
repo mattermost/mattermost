@@ -168,7 +168,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
 
-	if !c.App.Config().TeamSettings.EnableUserCreation {
+	if !*c.App.Config().TeamSettings.EnableUserCreation {
 		c.Err = model.NewAppError("signupWithOAuth", "api.oauth.singup_with_oauth.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

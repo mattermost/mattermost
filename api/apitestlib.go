@@ -99,7 +99,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
-		cfg.EmailSettings.SendEmailNotifications = true
+		*cfg.EmailSettings.SendEmailNotifications = true
 		*cfg.ServiceSettings.EnableAPIv3 = true
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
@@ -378,7 +378,7 @@ func (me *TestHelper) LoginSystemAdmin() {
 }
 
 func (me *TestHelper) GenerateTestEmail() string {
-	if me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
+	if *me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
 	return strings.ToLower(model.NewId() + "@dockerhost")

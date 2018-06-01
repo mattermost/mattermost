@@ -247,11 +247,11 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.RemoveSessionCookie(w, r)
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 		return
-	} else if c.HandleEtag(user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
+	} else if c.HandleEtag(user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
 		return
 	} else {
 		user.Sanitize(map[string]bool{})
-		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress))
+		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress))
 		w.Write([]byte(user.ToJson()))
 		return
 	}
@@ -319,7 +319,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -341,12 +341,12 @@ func getByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err = c.App.GetUserByUsername(username); err != nil {
 		c.Err = err
 		return
-	} else if c.HandleEtag(user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
+	} else if c.HandleEtag(user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
 		return
 	} else {
 		sanitizeProfile(c, user)
 
-		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress))
+		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress))
 		w.Write([]byte(user.ToJson()))
 		return
 	}
@@ -359,12 +359,12 @@ func getByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err := c.App.GetUserByEmail(email); err != nil {
 		c.Err = err
 		return
-	} else if c.HandleEtag(user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
+	} else if c.HandleEtag(user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
 		return
 	} else {
 		sanitizeProfile(c, user)
 
-		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress))
+		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress))
 		w.Write([]byte(user.ToJson()))
 		return
 	}
@@ -1247,8 +1247,8 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		hideFullName := !c.App.Config().PrivacySettings.ShowFullName
-		hideEmail := !c.App.Config().PrivacySettings.ShowEmailAddress
+		hideFullName := !*c.App.Config().PrivacySettings.ShowFullName
+		hideEmail := !*c.App.Config().PrivacySettings.ShowEmailAddress
 
 		if hideFullName && hideEmail {
 			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
@@ -1307,7 +1307,7 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 
 	searchOptions := map[string]bool{}
 
-	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
+	hideFullName := !*c.App.Config().PrivacySettings.ShowFullName
 	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {
@@ -1337,7 +1337,7 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 
 	searchOptions := map[string]bool{}
 
-	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
+	hideFullName := !*c.App.Config().PrivacySettings.ShowFullName
 	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {
@@ -1358,7 +1358,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	searchOptions := map[string]bool{}
 
-	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
+	hideFullName := !*c.App.Config().PrivacySettings.ShowFullName
 	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {

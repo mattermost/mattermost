@@ -64,7 +64,7 @@ func (a *App) isTeamEmailAddressAllowed(email string) bool {
 	email = strings.ToLower(email)
 	// commas and @ signs are optional
 	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
-	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(a.Config().TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
+	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(*a.Config().TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
 
 	matched := false
 	for _, d := range domains {
@@ -74,7 +74,7 @@ func (a *App) isTeamEmailAddressAllowed(email string) bool {
 		}
 	}
 
-	if len(a.Config().TeamSettings.RestrictCreationToDomains) > 0 && !matched {
+	if len(*a.Config().TeamSettings.RestrictCreationToDomains) > 0 && !matched {
 		return false
 	}
 
@@ -219,7 +219,7 @@ func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppE
 func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
 	props := model.MapFromJson(strings.NewReader(data))
 
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
+	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, *a.Config().EmailSettings.InviteSalt)) {
 		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -881,7 +881,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		data := query.Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
-		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
+		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, *a.Config().EmailSettings.InviteSalt)) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 

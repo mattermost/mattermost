@@ -154,7 +154,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		senderUsername = sender.Username
 	}
 
-	if a.Config().EmailSettings.SendEmailNotifications {
+	if *a.Config().EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
 			userAllowsEmails := profileMap[id].NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
 			if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
@@ -172,7 +172,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			//If email verification is required and user email is not verified don't send email.
-			if a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
+			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				l4g.Error("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", profileMap[id].Email, id)
 				continue
 			}
@@ -336,7 +336,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 				team = teams[0]
 			} else {
 				// in case the user hasn't joined any teams we send them to the select_team page
-				team = &model.Team{Name: "select_team", DisplayName: a.Config().TeamSettings.SiteName}
+				team = &model.Team{Name: "select_team", DisplayName: *a.Config().TeamSettings.SiteName}
 			}
 		}
 	}
@@ -363,11 +363,11 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 
 	var subjectText string
 	if channel.Type == model.CHANNEL_DIRECT {
-		subjectText = getDirectMessageNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, senderName)
+		subjectText = getDirectMessageNotificationEmailSubject(post, translateFunc, *a.Config().TeamSettings.SiteName, senderName)
 	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
-		subjectText = getNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channel.DisplayName+")")
+		subjectText = getNotificationEmailSubject(post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channel.DisplayName+")")
 	} else {
-		subjectText = getNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName)
+		subjectText = getNotificationEmailSubject(post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName)
 	}
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL

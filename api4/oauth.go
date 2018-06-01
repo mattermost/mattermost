@@ -312,7 +312,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	if !*c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		err := model.NewAppError("authorizeOAuth", "api.oauth.authorize_oauth.disabled.app_error", nil, "", http.StatusNotImplemented)
 		utils.RenderWebAppError(w, r, err, c.App.AsymmetricSigningKey())
 		return
@@ -563,7 +563,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().TeamSettings.EnableUserCreation {
+	if !*c.App.Config().TeamSettings.EnableUserCreation {
 		utils.RenderWebError(w, r, http.StatusBadRequest, url.Values{
 			"message": []string{utils.T("api.oauth.singup_with_oauth.disabled.app_error")},
 		}, c.App.AsymmetricSigningKey())

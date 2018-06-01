@@ -207,7 +207,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FileSettings.EnablePublicLink {
+	if !*c.App.Config().FileSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -297,7 +297,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FileSettings.EnablePublicLink {
+	if !*c.App.Config().FileSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

@@ -277,10 +277,10 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 			props["name"] = team.Name
 			props["time"] = fmt.Sprintf("%v", model.GetMillis())
 			data := model.MapToJson(props)
-			hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt))
+			hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, *a.Config().EmailSettings.InviteSalt))
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(hash))
 
-			if !a.Config().EmailSettings.SendEmailNotifications {
+			if !*a.Config().EmailSettings.SendEmailNotifications {
 				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
 			}
 

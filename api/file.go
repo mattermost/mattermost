@@ -156,7 +156,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().FileSettings.EnablePublicLink {
+	if !*c.App.Config().FileSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -231,7 +231,7 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(*c.App.Config().FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_file_old.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
-	} else if !c.App.Config().FileSettings.EnablePublicLink {
+	} else if !*c.App.Config().FileSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -313,7 +313,7 @@ func writeFileResponse(filename string, contentType string, bytes []byte, w http
 }
 
 func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().FileSettings.EnablePublicLink {
+	if !*c.App.Config().FileSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

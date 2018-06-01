@@ -78,8 +78,8 @@ func EnableDebugLogForTest() {
 
 func ConfigureCmdLineLog() {
 	ls := model.LogSettings{}
-	ls.EnableConsole = true
-	ls.ConsoleLevel = "WARN"
+	ls.EnableConsole = model.NewBool(true)
+	ls.ConsoleLevel = model.NewString("WARN")
 	ConfigureLog(&ls)
 }
 
@@ -89,13 +89,13 @@ func ConfigureLog(s *model.LogSettings) {
 
 	l4g.Close()
 
-	if s.EnableConsole {
+	if *s.EnableConsole {
 		level := l4g.DEBUG
-		if s.ConsoleLevel == "INFO" {
+		if *s.ConsoleLevel == "INFO" {
 			level = l4g.INFO
-		} else if s.ConsoleLevel == "WARN" {
+		} else if *s.ConsoleLevel == "WARN" {
 			level = l4g.WARNING
-		} else if s.ConsoleLevel == "ERROR" {
+		} else if *s.ConsoleLevel == "ERROR" {
 			level = l4g.ERROR
 		}
 
@@ -104,25 +104,24 @@ func ConfigureLog(s *model.LogSettings) {
 		l4g.AddFilter("stdout", level, lw)
 	}
 
-	if s.EnableFile {
-
+	if s.EnableFile != nil && *s.EnableFile {
 		var fileFormat = s.FileFormat
 
-		if fileFormat == "" {
-			fileFormat = "[%D %T] [%L] %M"
+		if *fileFormat == "" {
+			fileFormat = model.NewString("[%D %T] [%L] %M")
 		}
 
 		level := l4g.DEBUG
-		if s.FileLevel == "INFO" {
+		if *s.FileLevel == "INFO" {
 			level = l4g.INFO
-		} else if s.FileLevel == "WARN" {
+		} else if *s.FileLevel == "WARN" {
 			level = l4g.WARNING
-		} else if s.FileLevel == "ERROR" {
+		} else if *s.FileLevel == "ERROR" {
 			level = l4g.ERROR
 		}
 
-		flw := l4g.NewFileLogWriter(GetLogFileLocation(s.FileLocation), false)
-		flw.SetFormat(fileFormat)
+		flw := l4g.NewFileLogWriter(GetLogFileLocation(*s.FileLocation), false)
+		flw.SetFormat(*fileFormat)
 		flw.SetRotate(true)
 		flw.SetRotateLines(LOG_ROTATE_SIZE)
 		l4g.AddFilter("file", level, flw)
@@ -293,8 +292,9 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 		return
 	}
 
-	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
-		len(config.EmailSettings.InviteSalt) == 0
+	needSave := config.SqlSettings.AtRestEncryptKey == nil || len(*config.SqlSettings.AtRestEncryptKey) == 0 ||
+		config.FileSettings.PublicLinkSalt == nil || len(*config.FileSettings.PublicLinkSalt) == 0 ||
+		config.EmailSettings.InviteSalt == nil || len(*config.EmailSettings.InviteSalt) == 0
 
 	config.SetDefaults()
 
@@ -316,8 +316,9 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 
 	if *config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		dir := config.FileSettings.Directory
-		if len(dir) > 0 && dir[len(dir)-1:] != "/" {
-			config.FileSettings.Directory += "/"
+		dirString := *dir
+		if len(*dir) > 0 && dirString[len(dirString)-1:] != "/" {
+			*config.FileSettings.Directory += "/"
 		}
 	}
 
@@ -336,10 +337,10 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
-	props["SiteName"] = c.TeamSettings.SiteName
+	props["SiteName"] = *c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
 	props["EnableAPIv3"] = strconv.FormatBool(*c.ServiceSettings.EnableAPIv3)
-	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
+	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
@@ -361,17 +362,17 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
 	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
-	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
-	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
-	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
-	props["EnableOutgoingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableOutgoingWebhooks)
+	props["EnableOAuthServiceProvider"] = strconv.FormatBool(*c.ServiceSettings.EnableOAuthServiceProvider)
+	props["GoogleDeveloperKey"] = *c.ServiceSettings.GoogleDeveloperKey
+	props["EnableIncomingWebhooks"] = strconv.FormatBool(*c.ServiceSettings.EnableIncomingWebhooks)
+	props["EnableOutgoingWebhooks"] = strconv.FormatBool(*c.ServiceSettings.EnableOutgoingWebhooks)
 	props["EnableCommands"] = strconv.FormatBool(*c.ServiceSettings.EnableCommands)
 	props["EnableOnlyAdminIntegrations"] = strconv.FormatBool(*c.ServiceSettings.EnableOnlyAdminIntegrations)
-	props["EnablePostUsernameOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostUsernameOverride)
-	props["EnablePostIconOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostIconOverride)
+	props["EnablePostUsernameOverride"] = strconv.FormatBool(*c.ServiceSettings.EnablePostUsernameOverride)
+	props["EnablePostIconOverride"] = strconv.FormatBool(*c.ServiceSettings.EnablePostIconOverride)
 	props["EnableUserAccessTokens"] = strconv.FormatBool(*c.ServiceSettings.EnableUserAccessTokens)
 	props["EnableLinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnableLinkPreviews)
-	props["EnableTesting"] = strconv.FormatBool(c.ServiceSettings.EnableTesting)
+	props["EnableTesting"] = strconv.FormatBool(*c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
 	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 	props["RestrictPostDelete"] = *c.ServiceSettings.RestrictPostDelete
@@ -384,12 +385,12 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
 
-	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
+	props["SendEmailNotifications"] = strconv.FormatBool(*c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
-	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
+	props["EnableSignUpWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
-	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
+	props["RequireEmailVerification"] = strconv.FormatBool(*c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
 	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
@@ -397,9 +398,9 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
 	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
 
-	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
+	props["EnableSignUpWithGitLab"] = strconv.FormatBool(*c.GitLabSettings.Enable)
 
-	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
+	props["ShowEmailAddress"] = strconv.FormatBool(*c.PrivacySettings.ShowEmailAddress)
 
 	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
 	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
@@ -409,7 +410,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
-	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
+	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)
 
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
@@ -544,11 +545,11 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 		}
 
 		if *license.Features.GoogleOAuth {
-			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
+			props["EnableSignUpWithGoogle"] = strconv.FormatBool(*c.GoogleSettings.Enable)
 		}
 
 		if *license.Features.Office365OAuth {
-			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
+			props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.Enable)
 		}
 
 		if *license.Features.PasswordRequirements {
