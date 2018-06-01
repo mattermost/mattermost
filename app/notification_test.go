@@ -148,14 +148,58 @@ func TestGetExplicitMentions(t *testing.T) {
 				OtherPotentialMentions: []string{"user"},
 			},
 		},
-		"OnePersonWithColonAtEnd": {
-			Message:  "this is a message for @user:",
-			Keywords: map[string][]string{"this": {id1}},
+		"OnePersonWithPeriodAfter": {
+			Message:  "this is a message for @user.",
+			Keywords: map[string][]string{"@user": {id1}},
 			Expected: &ExplicitMentions{
 				MentionedUserIds: map[string]bool{
 					id1: true,
 				},
-				OtherPotentialMentions: []string{"user"},
+			},
+		},
+		"OnePersonWithPeriodBefore": {
+			Message:  "this is a message for .@user",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"OnePersonWithColonAfter": {
+			Message:  "this is a message for @user:",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"OnePersonWithColonBefore": {
+			Message:  "this is a message for :@user",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"OnePersonWithHyphenAfter": {
+			Message:  "this is a message for @user.",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"OnePersonWithHyphenBefore": {
+			Message:  "this is a message for -@user",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
 			},
 		},
 		"MultiplePeopleWithOneWord": {
@@ -493,7 +537,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		"(@here(":   true,
 		")@here)":   true,
 		"-@here-":   true,
-		"_@here_":   false, // This case shouldn't mention since it would be mentioning "@here_"
+		"_@here_":   true,
 		"=@here=":   true,
 		"+@here+":   true,
 		"[@here[":   true,
