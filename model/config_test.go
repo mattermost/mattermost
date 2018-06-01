@@ -13,7 +13,7 @@ func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if c1.FileSettings.Directory != "./data/" {
+	if *c1.FileSettings.Directory != "./data/" {
 		t.Fatal("FileSettings.Directory should default to './data/'")
 	}
 }

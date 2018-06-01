@@ -59,7 +59,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	cfg, cfgPath, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
-	if cfg.TeamSettings.SiteName != "From Environment" {
+	if *cfg.TeamSettings.SiteName != "From Environment" {
 		t.Fatal("Couldn't read config from environment var")
 	}
 
@@ -80,7 +80,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLECOMMANDS")
 	os.Unsetenv("MM_SERVICESETTINGS_READTIMEOUT")
 
-	cfg.TeamSettings.SiteName = "Mattermost"
+	*cfg.TeamSettings.SiteName = "Mattermost"
 	*cfg.ServiceSettings.SiteURL = ""
 	*cfg.ServiceSettings.EnableCommands = true
 	*cfg.ServiceSettings.ReadTimeout = 300
@@ -89,7 +89,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	cfg, _, err = LoadConfig("config.json")
 	require.Nil(t, err)
 
-	if cfg.TeamSettings.SiteName != "Mattermost" {
+	if *cfg.TeamSettings.SiteName != "Mattermost" {
 		t.Fatal("should have been reset")
 	}
 }

@@ -49,7 +49,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
+	*th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
 
 	a1 := &model.OAuthApp{}
 	a1.CreatorId = model.NewId()

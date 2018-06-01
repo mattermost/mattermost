@@ -30,7 +30,7 @@ func TestCreateIncomingHook(t *testing.T) {
 	}()
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	// Revoke permission from regular users.
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
@@ -112,7 +112,7 @@ func TestCreateIncomingHook(t *testing.T) {
 		t.Fatal("should have failed - channel is private and not a member")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 
 	if _, err := Client.CreateIncomingWebhook(hook); err == nil {
 		t.Fatal("should have errored - webhooks turned off")
@@ -138,7 +138,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.LinkUserToTeam(user3, team2)
 	th.UpdateUserToTeamAdmin(user3, team2)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -224,7 +224,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 		}
 	})
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	t.Run("OnlyAdminIntegrationsDisabled", func(t *testing.T) {
 
@@ -271,7 +271,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 	})
 
 	t.Run("IncomingHooksDisabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 		if _, err := Client.UpdateIncomingWebhook(hook); err == nil {
 			t.Fatal("should have failed - incoming hooks are disabled")
 		}
@@ -334,7 +334,7 @@ func TestListIncomingHooks(t *testing.T) {
 	user2 := th.CreateUser(Client)
 	th.LinkUserToTeam(user2, team)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -376,7 +376,7 @@ func TestListIncomingHooks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 
 	if _, err := Client.ListIncomingWebhooks(); err == nil {
 		t.Fatal("should have errored - webhooks turned off")
@@ -393,7 +393,7 @@ func TestDeleteIncomingHook(t *testing.T) {
 	user2 := th.CreateUser(Client)
 	th.LinkUserToTeam(user2, team)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -449,7 +449,7 @@ func TestDeleteIncomingHook(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 
 	if _, err := Client.DeleteIncomingWebhook(hook.Id); err == nil {
 		t.Fatal("should have errored - webhooks turned off")
@@ -471,7 +471,7 @@ func TestCreateOutgoingHook(t *testing.T) {
 	user3 := th.CreateUser(Client)
 	th.LinkUserToTeam(user3, team2)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -565,7 +565,7 @@ func TestCreateOutgoingHook(t *testing.T) {
 		t.Fatal("should have failed - wrong team")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 
 	if _, err := Client.CreateOutgoingWebhook(hook); err == nil {
 		t.Fatal("should have errored - webhooks turned off")
@@ -582,7 +582,7 @@ func TestListOutgoingHooks(t *testing.T) {
 	user2 := th.CreateUser(Client)
 	th.LinkUserToTeam(user2, team)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -624,7 +624,7 @@ func TestListOutgoingHooks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 
 	if _, err := Client.ListOutgoingWebhooks(); err == nil {
 		t.Fatal("should have errored - webhooks turned off")
@@ -647,7 +647,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	user3 := th.CreateUser(Client)
 	th.LinkUserToTeam(user3, team2)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -664,13 +664,13 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	hook.DisplayName = "Cats"
 	hook.Description = "Get me some cats"
 	t.Run("OutgoingHooksDisabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 		if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
 			t.Fatal("should have failed - outgoing webhooks disabled")
 		}
 	})
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	t.Run("UpdateOutgoingWebhook", func(t *testing.T) {
 		if result, err := Client.UpdateOutgoingWebhook(hook); err != nil {
 			t.Fatal("failed to update outgoing web hook")
@@ -825,7 +825,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	user2 := th.CreateUser(Client)
 	th.LinkUserToTeam(user2, team)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -881,7 +881,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 
 	if _, err := Client.DeleteOutgoingWebhook(hook.Id); err == nil {
 		t.Fatal("should have errored - webhooks turned off")
@@ -901,7 +901,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	user3 := th.CreateUser(Client)
 	th.LinkUserToTeam(user3, team2)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -962,7 +962,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 		t.Fatal("should have failed - wrong team")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 
 	if _, err := Client.RegenOutgoingWebhookToken(hook.Id); err == nil {
 		t.Fatal("should have errored - webhooks turned off")
@@ -979,7 +979,7 @@ func TestIncomingWebhooks(t *testing.T) {
 	user2 := th.CreateUser(Client)
 	th.LinkUserToTeam(user2, team)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	hook := &model.IncomingWebhook{ChannelId: channel1.Id}
 	hook = Client.Must(Client.CreateIncomingWebhook(hook)).Data.(*model.IncomingWebhook)
@@ -1114,7 +1114,7 @@ func TestIncomingWebhooks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 
 	if _, err := Client.DoPost(url, "{\"text\":\"this is a test\"}", "application/json"); err == nil {
 		t.Fatal("should have failed - webhooks turned off")

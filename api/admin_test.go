@@ -72,7 +72,7 @@ func TestGetConfig(t *testing.T) {
 	} else {
 		cfg := result.Data.(*model.Config)
 
-		if len(cfg.TeamSettings.SiteName) == 0 {
+		if len(*cfg.TeamSettings.SiteName) == 0 {
 			t.Fatal()
 		}
 
@@ -82,22 +82,22 @@ func TestGetConfig(t *testing.T) {
 		if *cfg.FileSettings.PublicLinkSalt != model.FAKE_SETTING {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
+		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
+		if *cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(cfg.EmailSettings.SMTPPassword) != 0 {
+		if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(cfg.GitLabSettings.Secret) != 0 {
+		if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
 			t.Fatal("did not sanitize properly")
 		}
 		if *cfg.SqlSettings.DataSource != model.FAKE_SETTING {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.SqlSettings.AtRestEncryptKey != model.FAKE_SETTING {
+		if *cfg.SqlSettings.AtRestEncryptKey != model.FAKE_SETTING {
 			t.Fatal("did not sanitize properly")
 		}
 		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
@@ -192,10 +192,10 @@ func TestEmailTest(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = FeedbackEmail })
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = "" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = "" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = "" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SendEmailNotifications = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPServer = "" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPort = "" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.FeedbackEmail = "" })
 
 	if _, err := th.BasicClient.TestEmail(th.App.Config()); err == nil {
 		t.Fatal("Shouldn't have permissions")

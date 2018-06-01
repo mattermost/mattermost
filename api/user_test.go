@@ -182,7 +182,7 @@ func TestLogin(t *testing.T) {
 	props["display_name"] = rteam2.Data.(*model.Team).DisplayName
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 	data := model.MapToJson(props)
-	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
 	ruser2, err := Client.CreateUserFromSignup(&user2, data, hash)
 	if err != nil {
@@ -220,7 +220,7 @@ func TestLoginUnverifiedEmail(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.EnableSignInWithEmail = true
-		cfg.EmailSettings.RequireEmailVerification = true
+		*cfg.EmailSettings.RequireEmailVerification = true
 	})
 
 	Client.Logout()
@@ -435,8 +435,8 @@ func TestGetUser(t *testing.T) {
 		t.Fatal("shouldn't exist")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	if result, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err != nil {
 		t.Fatal(err)
@@ -459,8 +459,8 @@ func TestGetUser(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = true })
 
 	if result, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err != nil {
 		t.Fatal(err)
@@ -536,7 +536,7 @@ func TestGetProfiles(t *testing.T) {
 
 	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := th.BasicClient.GetProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -563,7 +563,7 @@ func TestGetProfiles(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 
 	if result, err := th.BasicClient.GetProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -586,7 +586,7 @@ func TestGetProfilesByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := th.BasicClient.GetProfilesByIds([]string{th.BasicUser.Id}); err != nil {
 		t.Fatal(err)
@@ -604,7 +604,7 @@ func TestGetProfilesByIds(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 
 	if result, err := th.BasicClient.GetProfilesByIds([]string{th.BasicUser.Id}); err != nil {
 		t.Fatal(err)
@@ -681,7 +681,7 @@ func TestUserCreateImage(t *testing.T) {
 
 	Client := th.BasicClient
 
-	b, err := app.CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", th.App.Config().FileSettings.InitialFont)
+	b, err := app.CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", *th.App.Config().FileSettings.InitialFont)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -719,22 +719,22 @@ func TestUserCreateImage(t *testing.T) {
 	}
 
 	if *th.App.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := th.App.Config().FileSettings.AmazonS3Endpoint
-		accessKey := th.App.Config().FileSettings.AmazonS3AccessKeyId
-		secretKey := th.App.Config().FileSettings.AmazonS3SecretAccessKey
+		endpoint := *th.App.Config().FileSettings.AmazonS3Endpoint
+		accessKey := *th.App.Config().FileSettings.AmazonS3AccessKeyId
+		secretKey := *th.App.Config().FileSettings.AmazonS3SecretAccessKey
 		secure := *th.App.Config().FileSettings.AmazonS3SSL
 		signV2 := *th.App.Config().FileSettings.AmazonS3SignV2
-		region := th.App.Config().FileSettings.AmazonS3Region
+		region := *th.App.Config().FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			t.Fatal(err)
 		}
-		bucket := th.App.Config().FileSettings.AmazonS3Bucket
+		bucket := *th.App.Config().FileSettings.AmazonS3Bucket
 		if err = s3Clnt.RemoveObject(bucket, "/users/"+user.Id+"/profile.png"); err != nil {
 			t.Fatal(err)
 		}
 	} else {
-		path := th.App.Config().FileSettings.Directory + "/users/" + user.Id + "/profile.png"
+		path := *th.App.Config().FileSettings.Directory + "/users/" + user.Id + "/profile.png"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
@@ -827,22 +827,22 @@ func TestUserUploadProfileImage(t *testing.T) {
 		Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
 		if *th.App.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-			endpoint := th.App.Config().FileSettings.AmazonS3Endpoint
-			accessKey := th.App.Config().FileSettings.AmazonS3AccessKeyId
-			secretKey := th.App.Config().FileSettings.AmazonS3SecretAccessKey
+			endpoint := *th.App.Config().FileSettings.AmazonS3Endpoint
+			accessKey := *th.App.Config().FileSettings.AmazonS3AccessKeyId
+			secretKey := *th.App.Config().FileSettings.AmazonS3SecretAccessKey
 			secure := *th.App.Config().FileSettings.AmazonS3SSL
 			signV2 := *th.App.Config().FileSettings.AmazonS3SignV2
-			region := th.App.Config().FileSettings.AmazonS3Region
+			region := *th.App.Config().FileSettings.AmazonS3Region
 			s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 			if err != nil {
 				t.Fatal(err)
 			}
-			bucket := th.App.Config().FileSettings.AmazonS3Bucket
+			bucket := *th.App.Config().FileSettings.AmazonS3Bucket
 			if err = s3Clnt.RemoveObject(bucket, "/users/"+user.Id+"/profile.png"); err != nil {
 				t.Fatal(err)
 			}
 		} else {
-			path := th.App.Config().FileSettings.Directory + "users/" + user.Id + "/profile.png"
+			path := *th.App.Config().FileSettings.Directory + "users/" + user.Id + "/profile.png"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
@@ -2051,7 +2051,7 @@ func TestGetProfilesInChannel(t *testing.T) {
 
 	Client := th.BasicClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := Client.GetProfilesInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -2077,7 +2077,7 @@ func TestGetProfilesInChannel(t *testing.T) {
 
 	Client.Must(Client.JoinChannel(th.BasicChannel.Id))
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 
 	if result, err := Client.GetProfilesInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -2120,7 +2120,7 @@ func TestGetProfilesNotInChannel(t *testing.T) {
 
 	Client := th.BasicClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := Client.GetProfilesNotInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -2158,7 +2158,7 @@ func TestGetProfilesNotInChannel(t *testing.T) {
 
 	Client.Must(Client.JoinChannel(th.BasicChannel.Id))
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 
 	if result, err := Client.GetProfilesNotInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -2341,8 +2341,8 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	privacyEmailPrefix := strings.ToLower(model.NewId())
 	privacyUser := &model.User{Email: privacyEmailPrefix + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: model.NewId(), LastName: "Jimmers"}
@@ -2366,7 +2366,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
 		t.Fatal(err)
@@ -2385,8 +2385,8 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = true })
 
 	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
 		t.Fatal(err)
@@ -2422,7 +2422,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyEmailPrefix}); err != nil {
 		t.Fatal(err)
@@ -2629,7 +2629,7 @@ func TestAutocompleteUsers(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	privacyUser := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: model.NewId(), LastName: "Jimmers"}
 	privacyUser = Client.Must(Client.CreateUser(privacyUser, "")).Data.(*model.User)
@@ -2684,8 +2684,8 @@ func TestGetByUsername(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	if result, err := Client.GetByUsername(th.BasicUser2.Username, ""); err != nil {
 		t.Fatal(err)
@@ -2714,8 +2714,8 @@ func TestGetByEmail(t *testing.T) {
 		t.Fatal("Failed to get user by email")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	if user, respMetdata := Client.GetByEmail(th.BasicUser2.Email, ""); respMetdata.Error != nil {
 		t.Fatal(respMetdata.Error)

@@ -30,8 +30,8 @@ func TestMailConnectionFromConfig(t *testing.T) {
 		}
 	}
 
-	cfg.EmailSettings.SMTPServer = "wrongServer"
-	cfg.EmailSettings.SMTPPort = "553"
+	*cfg.EmailSettings.SMTPServer = "wrongServer"
+	*cfg.EmailSettings.SMTPPort = "553"
 
 	if _, err := ConnectToSMTPServer(cfg); err == nil {
 		t.Log(err)
@@ -45,11 +45,11 @@ func TestMailConnectionAdvanced(t *testing.T) {
 
 	if conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
-			ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
+			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       cfg.EmailSettings.SMTPServer,
-			SmtpServerHost:       cfg.EmailSettings.SMTPServer,
-			SmtpPort:             cfg.EmailSettings.SMTPPort,
+			SmtpServerName:       *cfg.EmailSettings.SMTPServer,
+			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
+			SmtpPort:             *cfg.EmailSettings.SMTPPort,
 		},
 	); err != nil {
 		t.Log(err)
@@ -59,14 +59,14 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			conn,
 			GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 			&SmtpConnectionInfo{
-				ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
+				ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 				SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-				SmtpServerName:       cfg.EmailSettings.SMTPServer,
-				SmtpServerHost:       cfg.EmailSettings.SMTPServer,
-				SmtpPort:             cfg.EmailSettings.SMTPPort,
+				SmtpServerName:       *cfg.EmailSettings.SMTPServer,
+				SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
+				SmtpPort:             *cfg.EmailSettings.SMTPPort,
 				Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
-				SmtpUsername:         cfg.EmailSettings.SMTPUsername,
-				SmtpPassword:         cfg.EmailSettings.SMTPPassword,
+				SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
+				SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
 			},
 		); err1 != nil {
 			t.Log(err)
@@ -76,7 +76,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 
 	if _, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
-			ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
+			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
 			SmtpServerName:       "wrongServer",
 			SmtpServerHost:       "wrongServer",

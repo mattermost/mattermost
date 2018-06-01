@@ -1369,7 +1369,7 @@ func TestAddTeamMember(t *testing.T) {
 	dataObject["id"] = team.Id
 
 	data := model.MapToJson(dataObject)
-	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
 	CheckNoError(t, resp)
@@ -1399,7 +1399,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired data of more than 50 hours
 	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
 	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
 	CheckBadRequestStatus(t, resp)
@@ -1407,7 +1407,7 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	dataObject["id"] = GenerateTestId()
 	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
 	CheckBadRequestStatus(t, resp)
@@ -1890,7 +1890,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = "@example.com" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@example.com" })
 
 	err := th.App.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
 

@@ -230,7 +230,7 @@ func testCreatePostWithOutgoingHook(
 	channel := th.CreateChannel(Client, team)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableOutgoingWebhooks = true
+		*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
 

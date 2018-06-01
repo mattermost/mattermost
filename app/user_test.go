@@ -88,7 +88,7 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	th.App.PermanentDeleteUser(user)
 
-	th.App.Config().TeamSettings.EnableUserCreation = false
+	*th.App.Config().TeamSettings.EnableUserCreation = false
 
 	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
 	if err == nil {
@@ -141,7 +141,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	defer th.App.PermanentDeleteUser(user)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
+		*cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
 	})
 
 	_, err := th.App.UpdateUser(user, false)

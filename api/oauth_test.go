@@ -25,14 +25,14 @@ func TestOAuthRegisterApp(t *testing.T) {
 
 	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	if !th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	if !*th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		if _, err := Client.RegisterApp(oauthApp); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	// calling the endpoint without an app
 	if _, err := Client.DoApiPost("/oauth/register", ""); err == nil {
@@ -114,18 +114,18 @@ func TestOAuthAllow(t *testing.T) {
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = AdminClient.Must(AdminClient.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
 
 	state := "123"
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	if _, err := Client.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, oauthApp.Id, oauthApp.CallbackUrls[0], "all", state); err == nil {
 		t.Fatal("should have failed - oauth providing turned off")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	if result, err := Client.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, oauthApp.Id, oauthApp.CallbackUrls[0], "all", state); err != nil {
 		t.Fatal(err)
@@ -201,15 +201,15 @@ func TestOAuthGetAppsByUser(t *testing.T) {
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	if !th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	if !*th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		if _, err := Client.GetOAuthAppsByUser(); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
 
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	if _, err := Client.GetOAuthAppsByUser(); err == nil {
 		t.Fatal("Should have failed.")
@@ -279,15 +279,15 @@ func TestOAuthGetAppInfo(t *testing.T) {
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	if !th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	if !*th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		if _, err := Client.GetOAuthAppInfo("fakeId"); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
 
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -309,15 +309,15 @@ func TestOAuthGetAuthorizedApps(t *testing.T) {
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	if !th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	if !*th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		if _, err := Client.GetOAuthAuthorizedApps(); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
 
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = AdminClient.Must(AdminClient.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
@@ -344,15 +344,15 @@ func TestOAuthDeauthorizeApp(t *testing.T) {
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	if !th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	if !*th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		if err := Client.OAuthDeauthorizeApp(model.NewId()); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
 
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -397,15 +397,15 @@ func TestOAuthRegenerateAppSecret(t *testing.T) {
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	if !th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	if !*th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		if _, err := AdminClient.RegenerateOAuthAppSecret(model.NewId()); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
 
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oauthApp := &model.OAuthApp{Name: "TestApp6" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -440,15 +440,15 @@ func TestOAuthDeleteApp(t *testing.T) {
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
-	if !th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	if !*th.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		if _, err := Client.DeleteOAuthApp("fakeId"); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
 
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -513,7 +513,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -525,13 +525,13 @@ func TestOAuthAccessToken(t *testing.T) {
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = Client.Must(Client.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
 	if _, err := Client.GetAccessToken(data); err == nil {
 		t.Fatal("should have failed - oauth providing turned off")
 	}
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	redirect := Client.Must(Client.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, oauthApp.Id, oauthApp.CallbackUrls[0], "all", "123")).Data.(map[string]string)["redirect"]
 	rurl, _ := url.Parse(redirect)
@@ -732,19 +732,19 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	if r, err := HttpGet(Client.Url+"/login/gitlab/complete?code=123&state=!#$#F@#Yˆ&~ñ", Client.HttpClient, "", true); err == nil {
 		t.Fatal("should have failed - gitlab disabled")
 		closeBody(r)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = model.NewId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = model.NewId() })
 
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAUTH_ACTION_LOGIN
 	stateProps["team_id"] = th.BasicTeam.Id
-	stateProps["redirect_to"] = th.App.Config().GitLabSettings.AuthEndpoint
+	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
 
 	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true); err == nil {
@@ -752,7 +752,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	stateProps["hash"] = utils.HashSha256(th.App.Config().GitLabSettings.Id)
+	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true); err == nil {
 		t.Fatal("should have failed - no connection")
@@ -760,7 +760,7 @@ func TestOAuthComplete(t *testing.T) {
 	}
 
 	// We are going to use mattermost as the provider emulating gitlab
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -781,11 +781,11 @@ func TestOAuthComplete(t *testing.T) {
 	}
 	oauthApp = Client.Must(Client.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = oauthApp.Id })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.TokenEndpoint = Client.Url + "/oauth/access_token" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.UserApiEndpoint = Client.ApiUrl + "/users/me" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = oauthApp.Id })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.TokenEndpoint = Client.Url + "/oauth/access_token" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.UserApiEndpoint = Client.ApiUrl + "/users/me" })
 
 	provider := &MattermostTestProvider{}
 
@@ -794,8 +794,8 @@ func TestOAuthComplete(t *testing.T) {
 	code := rurl.Query().Get("code")
 	stateProps["action"] = model.OAUTH_ACTION_EMAIL_TO_SSO
 	delete(stateProps, "team_id")
-	stateProps["redirect_to"] = th.App.Config().GitLabSettings.AuthEndpoint
-	stateProps["hash"] = utils.HashSha256(th.App.Config().GitLabSettings.Id)
+	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
+	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	stateProps["redirect_to"] = "/oauth/authorize"
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {

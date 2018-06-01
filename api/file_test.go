@@ -423,7 +423,7 @@ func TestGetPublicFile(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
 
 	Client := th.BasicClient
@@ -454,12 +454,12 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link without hash", resp.Status)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should've failed to get image with disabled public link")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 
 	// test after the salt has changed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
@@ -491,7 +491,7 @@ func TestGetPublicFileOld(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
 
 	channel := th.BasicChannel
@@ -531,12 +531,12 @@ func TestGetPublicFileOld(t *testing.T) {
 		t.Fatal("should've failed to get image with public link without hash", resp.Status)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should've failed to get image with disabled public link")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 
 	// test after the salt has changed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
@@ -571,7 +571,7 @@ func TestGetPublicLink(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 
 	Client := th.BasicClient
 	channel := th.BasicChannel
@@ -591,13 +591,13 @@ func TestGetPublicLink(t *testing.T) {
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
 	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 
 	if _, err := Client.GetPublicLink(fileId); err == nil {
 		t.Fatal("should've failed to get public link when disabled")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 
 	if link, err := Client.GetPublicLink(fileId); err != nil {
 		t.Fatal(err)
@@ -902,17 +902,17 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 
 func cleanupTestFile(info *model.FileInfo, settings *model.FileSettings) error {
 	if *settings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := settings.AmazonS3Endpoint
-		accessKey := settings.AmazonS3AccessKeyId
-		secretKey := settings.AmazonS3SecretAccessKey
+		endpoint := *settings.AmazonS3Endpoint
+		accessKey := *settings.AmazonS3AccessKeyId
+		secretKey := *settings.AmazonS3SecretAccessKey
 		secure := *settings.AmazonS3SSL
 		signV2 := *settings.AmazonS3SignV2
-		region := settings.AmazonS3Region
+		region := *settings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return err
 		}
-		bucket := settings.AmazonS3Bucket
+		bucket := *settings.AmazonS3Bucket
 		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
 			return err
 		}
@@ -929,18 +929,18 @@ func cleanupTestFile(info *model.FileInfo, settings *model.FileSettings) error {
 			}
 		}
 	} else if *settings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if err := os.Remove(settings.Directory + info.Path); err != nil {
+		if err := os.Remove(*settings.Directory + info.Path); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := os.Remove(settings.Directory + info.ThumbnailPath); err != nil {
+			if err := os.Remove(*settings.Directory + info.ThumbnailPath); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := os.Remove(settings.Directory + info.PreviewPath); err != nil {
+			if err := os.Remove(*settings.Directory + info.PreviewPath); err != nil {
 				return err
 			}
 		}

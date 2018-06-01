@@ -64,7 +64,7 @@ func TestCreateUser(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
 	user2 := &model.User{Email: th.GenerateTestEmail(), Password: "Password1", Username: GenerateTestUsername()}
 	_, resp = AdminClient.CreateUser(user2)
@@ -95,7 +95,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		props["time"] = fmt.Sprintf("%v", model.GetMillis())
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
 		ruser, resp := Client.CreateUserWithHash(&user, hash, data)
 		CheckNoError(t, resp)
@@ -121,7 +121,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		props["time"] = fmt.Sprintf("%v", model.GetMillis())
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
 		_, resp := Client.CreateUserWithHash(&user, "", data)
 		CheckBadRequestStatus(t, resp)
@@ -144,7 +144,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		props["time"] = fmt.Sprintf("%v", past49Hours)
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
 		_, resp := Client.CreateUserWithHash(&user, hash, data)
 		CheckInternalErrorStatus(t, resp)
@@ -177,15 +177,15 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		props["time"] = fmt.Sprintf("%v", model.GetMillis())
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
 		_, resp := Client.CreateUserWithHash(&user, hash, data)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = true })
 	})
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
@@ -198,7 +198,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		props["name"] = th.BasicTeam.Name
 		props["time"] = fmt.Sprintf("%v", model.GetMillis())
 		data := model.MapToJson(props)
-		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
@@ -279,7 +279,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
 		inviteId := th.BasicTeam.InviteId
 
@@ -287,7 +287,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = true })
 	})
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
@@ -362,8 +362,8 @@ func TestGetUser(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	ruser, resp = Client.GetUser(user.Id, "")
 	CheckNoError(t, resp)
@@ -417,8 +417,8 @@ func TestGetUserByUsername(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	ruser, resp = Client.GetUserByUsername(user.Username, "")
 	CheckNoError(t, resp)
@@ -475,8 +475,8 @@ func TestGetUserByEmail(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	ruser, resp = Client.GetUserByEmail(user.Email, "")
 	CheckNoError(t, resp)
@@ -636,8 +636,8 @@ func TestSearchUsers(t *testing.T) {
 
 	search.Term = th.BasicUser.Username
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	_, err = th.App.UpdateNonSSOUserActive(th.BasicUser2.Id, true)
 	if err != nil {
@@ -788,7 +788,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	th.LoginBasic()
 
@@ -2149,7 +2149,7 @@ func TestSwitchAccount(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 
 	Client.Logout()
 

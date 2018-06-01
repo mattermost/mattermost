@@ -47,7 +47,7 @@ func TestGetConfig(t *testing.T) {
 	cfg, resp := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
+	if cfg.TeamSettings.SiteName == nil || len(*cfg.TeamSettings.SiteName) == 0 {
 		t.Fatal()
 	}
 
@@ -57,22 +57,22 @@ func TestGetConfig(t *testing.T) {
 	if *cfg.FileSettings.PublicLinkSalt != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
+	if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
+	if *cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(cfg.EmailSettings.SMTPPassword) != 0 {
+	if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(cfg.GitLabSettings.Secret) != 0 {
+	if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
 	if *cfg.SqlSettings.DataSource != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.SqlSettings.AtRestEncryptKey != model.FAKE_SETTING {
+	if *cfg.SqlSettings.AtRestEncryptKey != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
 	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
@@ -117,14 +117,14 @@ func TestUpdateConfig(t *testing.T) {
 
 	SiteName := th.App.Config().TeamSettings.SiteName
 
-	cfg.TeamSettings.SiteName = "MyFancyName"
+	*cfg.TeamSettings.SiteName = "MyFancyName"
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
+	if cfg.TeamSettings.SiteName == nil || len(*cfg.TeamSettings.SiteName) == 0 {
 		t.Fatal()
 	} else {
-		if cfg.TeamSettings.SiteName != "MyFancyName" {
+		if *cfg.TeamSettings.SiteName != "MyFancyName" {
 			t.Log("It should update the SiteName")
 			t.Fatal()
 		}
@@ -135,10 +135,10 @@ func TestUpdateConfig(t *testing.T) {
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
+	if cfg.TeamSettings.SiteName == nil || len(*cfg.TeamSettings.SiteName) == 0 {
 		t.Fatal()
 	} else {
-		if cfg.TeamSettings.SiteName != SiteName {
+		if *cfg.TeamSettings.SiteName != *SiteName {
 			t.Log("It should update the SiteName")
 			t.Fatal()
 		}
@@ -264,8 +264,8 @@ func TestEmailTest(t *testing.T) {
 
 	config := model.Config{
 		EmailSettings: model.EmailSettings{
-			SMTPServer: "",
-			SMTPPort:   "",
+			SMTPServer: model.NewString(""),
+			SMTPPort:   model.NewString(""),
 		},
 	}
 
@@ -275,6 +275,8 @@ func TestEmailTest(t *testing.T) {
 	_, resp = th.SystemAdminClient.TestEmail(&config)
 	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
 	CheckBadRequestStatus(t, resp)
+
+	config.EmailSettings.SetDefaults()
 
 	inbucket_host := os.Getenv("CI_HOST")
 	if inbucket_host == "" {
@@ -286,8 +288,8 @@ func TestEmailTest(t *testing.T) {
 		inbucket_port = "9000"
 	}
 
-	config.EmailSettings.SMTPServer = inbucket_host
-	config.EmailSettings.SMTPPort = inbucket_port
+	*config.EmailSettings.SMTPServer = inbucket_host
+	*config.EmailSettings.SMTPPort = inbucket_port
 	_, resp = th.SystemAdminClient.TestEmail(&config)
 	CheckOKStatus(t, resp)
 }
@@ -494,10 +496,10 @@ func TestS3TestConnection(t *testing.T) {
 	config := model.Config{
 		FileSettings: model.FileSettings{
 			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
-			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
-			AmazonS3Bucket:          "",
-			AmazonS3Endpoint:        s3Endpoint,
+			AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
+			AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+			AmazonS3Bucket:          model.NewString(""),
+			AmazonS3Endpoint:        model.NewString(s3Endpoint),
 			AmazonS3SSL:             model.NewBool(false),
 		},
 	}
@@ -511,16 +513,16 @@ func TestS3TestConnection(t *testing.T) {
 		t.Fatal("should return error - missing s3 bucket")
 	}
 
-	config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
-	config.FileSettings.AmazonS3Region = "us-east-1"
+	*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
+	config.FileSettings.AmazonS3Region = model.NewString("us-east-1")
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 
-	config.FileSettings.AmazonS3Region = ""
+	config.FileSettings.AmazonS3Region = model.NewString("")
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 
-	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
+	config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckInternalErrorStatus(t, resp)
 	if resp.Error.Message != "Error checking if bucket exists." {
