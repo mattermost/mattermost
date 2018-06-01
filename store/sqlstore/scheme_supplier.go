@@ -216,12 +216,12 @@ func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints .
 
 	// Update any teams or channels using this scheme to the default scheme.
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
-		if _, err := s.GetReplica().Exec("UPDATE Teams SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
+		if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
 			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.reset_teams.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
 			return result
 		}
 	} else if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
-		if _, err := s.GetReplica().Exec("UPDATE Channels SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
+		if _, err := s.GetMaster().Exec("UPDATE Channels SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
 			result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.reset_channels.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
 			return result
 		}
