@@ -50,6 +50,7 @@ const (
 	POST_CUSTOM_TYPE_PREFIX     = "custom_"
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
 	POST_PROPS_ADDED_USER_ID    = "addedUserId"
+	POST_PROPS_DELETE_BY        = "deleteBy"
 )
 
 type Post struct {
