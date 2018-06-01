@@ -57,7 +57,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 
 		for _, scheme := range schemeBatch {
 
-			roleIDs := []string{
+			roleNames := []string{
 				scheme.DefaultTeamAdminRole,
 				scheme.DefaultTeamUserRole,
 				scheme.DefaultChannelAdminRole,
@@ -65,11 +65,11 @@ func (a *App) ExportPermissions(w io.Writer) error {
 			}
 
 			roles := []*model.Role{}
-			for _, roleID := range roleIDs {
-				if len(roleID) == 0 {
+			for _, roleName := range roleNames {
+				if len(roleName) == 0 {
 					continue
 				}
-				role, err := a.GetRole(roleID)
+				role, err := a.GetRoleByName(roleName)
 				if err != nil {
 					return err
 				}
@@ -125,18 +125,18 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 		createdSchemeIDs = append(createdSchemeIDs, schemeCreated.Id)
 
 		schemeIn := schemeConveyor.Scheme()
-		roleIDTuples := [][]string{
+		roleNameTuples := [][]string{
 			{schemeCreated.DefaultTeamAdminRole, schemeIn.DefaultTeamAdminRole},
 			{schemeCreated.DefaultTeamUserRole, schemeIn.DefaultTeamUserRole},
 			{schemeCreated.DefaultChannelAdminRole, schemeIn.DefaultChannelAdminRole},
 			{schemeCreated.DefaultChannelUserRole, schemeIn.DefaultChannelUserRole},
 		}
-		for _, roleIDTuple := range roleIDTuples {
-			if len(roleIDTuple[0]) == 0 || len(roleIDTuple[1]) == 0 {
+		for _, roleNameTuple := range roleNameTuples {
+			if len(roleNameTuple[0]) == 0 || len(roleNameTuple[1]) == 0 {
 				continue
 			}
 
-			err = updateRole(a, schemeConveyor, roleIDTuple[0], roleIDTuple[1])
+			err = updateRole(a, schemeConveyor, roleNameTuple[0], roleNameTuple[1])
 			if err != nil {
 				// Delete the new Schemes. The new Roles are deleted automatically.
 				for _, schemeID := range createdSchemeIDs {
@@ -154,23 +154,22 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 	return nil
 }
 
-func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedID, defaultRoleID string) error {
+func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
 	var err *model.AppError
 
-	roleCreated, err := a.GetRole(roleCreatedID)
+	roleCreated, err := a.GetRoleByName(roleCreatedName)
 	if err != nil {
 		return errors.New(err.Message)
 	}
 
 	var roleIn *model.Role
 	for _, role := range sc.Roles {
-		if role.Id == defaultRoleID {
+		if role.Name == defaultRoleName {
 			roleIn = role
 			break
 		}
 	}
 
-	roleCreated.Name = roleIn.Name
 	roleCreated.DisplayName = roleIn.DisplayName
 	roleCreated.Description = roleIn.Description
 	roleCreated.Permissions = roleIn.Permissions

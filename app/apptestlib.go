@@ -330,7 +330,7 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 		panic(err)
 	}
 
-	roleIDs := []string{
+	roleNames := []string{
 		scheme.DefaultTeamAdminRole,
 		scheme.DefaultTeamUserRole,
 		scheme.DefaultChannelAdminRole,
@@ -338,8 +338,8 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	}
 
 	var roles []*model.Role
-	for _, roleID := range roleIDs {
-		role, err := me.App.GetRole(roleID)
+	for _, roleName := range roleNames {
+		role, err := me.App.GetRoleByName(roleName)
 		if err != nil {
 			panic(err)
 		}
