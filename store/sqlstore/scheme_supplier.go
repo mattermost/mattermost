@@ -109,7 +109,7 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			result.Err = saveRoleResult.Err
 			return result
 		} else {
-			scheme.DefaultTeamAdminRole = saveRoleResult.Data.(*model.Role).Id
+			scheme.DefaultTeamAdminRole = saveRoleResult.Data.(*model.Role).Name
 		}
 
 		// Team User Role
@@ -124,7 +124,7 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			result.Err = saveRoleResult.Err
 			return result
 		} else {
-			scheme.DefaultTeamUserRole = saveRoleResult.Data.(*model.Role).Id
+			scheme.DefaultTeamUserRole = saveRoleResult.Data.(*model.Role).Name
 		}
 	}
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
@@ -140,7 +140,7 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			result.Err = saveRoleResult.Err
 			return result
 		} else {
-			scheme.DefaultChannelAdminRole = saveRoleResult.Data.(*model.Role).Id
+			scheme.DefaultChannelAdminRole = saveRoleResult.Data.(*model.Role).Name
 		}
 
 		// Channel User Role
@@ -155,7 +155,7 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			result.Err = saveRoleResult.Err
 			return result
 		} else {
-			scheme.DefaultChannelUserRole = saveRoleResult.Data.(*model.Role).Id
+			scheme.DefaultChannelUserRole = saveRoleResult.Data.(*model.Role).Name
 		}
 	}
 
@@ -231,16 +231,16 @@ func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints .
 	}
 
 	// Delete the roles belonging to the scheme.
-	roleIds := []string{scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
+	roleNames := []string{scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
-		roleIds = append(roleIds, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
+		roleNames = append(roleNames, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
 	}
 
 	var inQueryList []string
 	queryArgs := make(map[string]interface{})
-	for i, roleId := range roleIds {
-		inQueryList = append(inQueryList, fmt.Sprintf(":RoleId%v", i))
-		queryArgs[fmt.Sprintf("RoleId%v", i)] = roleId
+	for i, roleId := range roleNames {
+		inQueryList = append(inQueryList, fmt.Sprintf(":RoleName%v", i))
+		queryArgs[fmt.Sprintf("RoleName%v", i)] = roleId
 	}
 	inQuery := strings.Join(inQueryList, ", ")
 
@@ -248,7 +248,7 @@ func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints .
 	queryArgs["UpdateAt"] = time
 	queryArgs["DeleteAt"] = time
 
-	if _, err := s.GetMaster().Exec("UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Id IN ("+inQuery+")", queryArgs); err != nil {
+	if _, err := s.GetMaster().Exec("UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Name IN ("+inQuery+")", queryArgs); err != nil {
 		result.Err = model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.role_update.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}

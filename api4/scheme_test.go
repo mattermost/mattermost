@@ -44,13 +44,13 @@ func TestCreateScheme(t *testing.T) {
 	assert.NotZero(t, len(s1.DefaultChannelUserRole))
 
 	// Check the default roles have been created.
-	_, roleRes1 := th.SystemAdminClient.GetRole(s1.DefaultTeamAdminRole)
+	_, roleRes1 := th.SystemAdminClient.GetRoleByName(s1.DefaultTeamAdminRole)
 	CheckNoError(t, roleRes1)
-	_, roleRes2 := th.SystemAdminClient.GetRole(s1.DefaultTeamUserRole)
+	_, roleRes2 := th.SystemAdminClient.GetRoleByName(s1.DefaultTeamUserRole)
 	CheckNoError(t, roleRes2)
-	_, roleRes3 := th.SystemAdminClient.GetRole(s1.DefaultChannelAdminRole)
+	_, roleRes3 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelAdminRole)
 	CheckNoError(t, roleRes3)
-	_, roleRes4 := th.SystemAdminClient.GetRole(s1.DefaultChannelUserRole)
+	_, roleRes4 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 	CheckNoError(t, roleRes4)
 
 	// Basic Test of a Channel scheme.
@@ -77,9 +77,9 @@ func TestCreateScheme(t *testing.T) {
 	assert.NotZero(t, len(s2.DefaultChannelUserRole))
 
 	// Check the default roles have been created.
-	_, roleRes5 := th.SystemAdminClient.GetRole(s2.DefaultChannelAdminRole)
+	_, roleRes5 := th.SystemAdminClient.GetRoleByName(s2.DefaultChannelAdminRole)
 	CheckNoError(t, roleRes5)
-	_, roleRes6 := th.SystemAdminClient.GetRole(s2.DefaultChannelUserRole)
+	_, roleRes6 := th.SystemAdminClient.GetRoleByName(s2.DefaultChannelUserRole)
 	CheckNoError(t, roleRes6)
 
 	// Try and create a scheme with an invalid scope.
@@ -590,13 +590,13 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNoError(t, r1)
 
 		// Retrieve the roles and check they are not deleted.
-		role1, roleRes1 := th.SystemAdminClient.GetRole(s1.DefaultTeamAdminRole)
+		role1, roleRes1 := th.SystemAdminClient.GetRoleByName(s1.DefaultTeamAdminRole)
 		CheckNoError(t, roleRes1)
-		role2, roleRes2 := th.SystemAdminClient.GetRole(s1.DefaultTeamUserRole)
+		role2, roleRes2 := th.SystemAdminClient.GetRoleByName(s1.DefaultTeamUserRole)
 		CheckNoError(t, roleRes2)
-		role3, roleRes3 := th.SystemAdminClient.GetRole(s1.DefaultChannelAdminRole)
+		role3, roleRes3 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelAdminRole)
 		CheckNoError(t, roleRes3)
-		role4, roleRes4 := th.SystemAdminClient.GetRole(s1.DefaultChannelUserRole)
+		role4, roleRes4 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 		CheckNoError(t, roleRes4)
 
 		assert.Zero(t, role1.DeleteAt)
@@ -620,13 +620,13 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNoError(t, r3)
 
 		// Check the roles were deleted.
-		role1, roleRes1 = th.SystemAdminClient.GetRole(s1.DefaultTeamAdminRole)
+		role1, roleRes1 = th.SystemAdminClient.GetRoleByName(s1.DefaultTeamAdminRole)
 		CheckNoError(t, roleRes1)
-		role2, roleRes2 = th.SystemAdminClient.GetRole(s1.DefaultTeamUserRole)
+		role2, roleRes2 = th.SystemAdminClient.GetRoleByName(s1.DefaultTeamUserRole)
 		CheckNoError(t, roleRes2)
-		role3, roleRes3 = th.SystemAdminClient.GetRole(s1.DefaultChannelAdminRole)
+		role3, roleRes3 = th.SystemAdminClient.GetRoleByName(s1.DefaultChannelAdminRole)
 		CheckNoError(t, roleRes3)
-		role4, roleRes4 = th.SystemAdminClient.GetRole(s1.DefaultChannelUserRole)
+		role4, roleRes4 = th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 		CheckNoError(t, roleRes4)
 
 		assert.NotZero(t, role1.DeleteAt)
@@ -657,9 +657,9 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNoError(t, r1)
 
 		// Retrieve the roles and check they are not deleted.
-		role3, roleRes3 := th.SystemAdminClient.GetRole(s1.DefaultChannelAdminRole)
+		role3, roleRes3 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelAdminRole)
 		CheckNoError(t, roleRes3)
-		role4, roleRes4 := th.SystemAdminClient.GetRole(s1.DefaultChannelUserRole)
+		role4, roleRes4 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 		CheckNoError(t, roleRes4)
 
 		assert.Zero(t, role3.DeleteAt)
@@ -681,9 +681,9 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNoError(t, r3)
 
 		// Check the roles were deleted.
-		role3, roleRes3 = th.SystemAdminClient.GetRole(s1.DefaultChannelAdminRole)
+		role3, roleRes3 = th.SystemAdminClient.GetRoleByName(s1.DefaultChannelAdminRole)
 		CheckNoError(t, roleRes3)
-		role4, roleRes4 = th.SystemAdminClient.GetRole(s1.DefaultChannelUserRole)
+		role4, roleRes4 = th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 		CheckNoError(t, roleRes4)
 
 		assert.NotZero(t, role3.DeleteAt)
