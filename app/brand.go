@@ -4,10 +4,21 @@
 package app
 
 import (
+	"bytes"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	"image/png"
 	"mime/multipart"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+)
+
+const (
+	BRAND_FILE_PATH = "brand/"
+	BRAND_FILE_NAME = "image.png"
 )
 
 func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
@@ -15,12 +26,38 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if a.Brand == nil {
-		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.not_available.app_error", nil, "", http.StatusNotImplemented)
+	file, err := imageData.Open()
+	defer file.Close()
+	if err != nil {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := a.Brand.SaveBrandImage(imageData); err != nil {
-		return err
+	// Decode image config first to check dimensions before loading the whole thing into memory later on
+	config, _, err := image.DecodeConfig(file)
+	if err != nil {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
+	} else if config.Width*config.Height > model.MaxImageSize {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	file.Seek(0, 0)
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, img)
+	if err != nil {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	t := time.Now()
+	a.MoveFile(BRAND_FILE_PATH+BRAND_FILE_NAME, BRAND_FILE_PATH+t.Format("2006-01-02T15:04:05")+".png")
+
+	if _, err := a.WriteFile(buf, BRAND_FILE_PATH+BRAND_FILE_NAME); err != nil {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -31,13 +68,10 @@ func (a *App) GetBrandImage() ([]byte, *model.AppError) {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if a.Brand == nil {
-		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.not_available.app_error", nil, "", http.StatusNotImplemented)
+	img, err := a.ReadFile(BRAND_FILE_PATH + BRAND_FILE_NAME)
+	if err != nil {
+		return nil, err
 	}
 
-	if img, err := a.Brand.GetBrandImage(); err != nil {
-		return nil, err
-	} else {
-		return img, nil
-	}
+	return img, nil
 }
