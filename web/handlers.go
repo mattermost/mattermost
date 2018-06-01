@@ -55,6 +55,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.RequestId = model.NewId()
 	c.IpAddress = utils.GetIpAddress(r)
 	c.Params = ParamsFromRequest(r)
+	c.Path = r.URL.Path
+	c.Log = c.App.Log
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
@@ -88,7 +90,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session, err := c.App.GetSession(token)
 
 		if err != nil {
-			mlog.Info(fmt.Sprintf("Invalid session err=%v", err.Error()))
+			c.Log.Info("Invalid session", mlog.Err(err))
 			if err.StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.RequireSession {
@@ -107,7 +109,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Path = r.URL.Path
+	c.Log = c.App.Log.With(
+		mlog.String("path", c.Path),
+		mlog.String("request_id", c.RequestId),
+		mlog.String("ip_addr", c.IpAddress),
+		mlog.String("user_id", c.Session.UserId),
+		mlog.String("method", r.Method),
+	)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
