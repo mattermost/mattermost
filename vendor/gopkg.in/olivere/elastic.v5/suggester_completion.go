@@ -22,9 +22,8 @@ type CompletionSuggester struct {
 	contextQueries []SuggesterContextQuery
 	payload        interface{}
 
-	fuzzyOptions   *FuzzyCompletionSuggesterOptions
-	regexOptions   *RegexCompletionSuggesterOptions
-	skipDuplicates *bool
+	fuzzyOptions *FuzzyCompletionSuggesterOptions
+	regexOptions *RegexCompletionSuggesterOptions
 }
 
 // Creates a new completion suggester.
@@ -65,14 +64,6 @@ func (q *CompletionSuggester) FuzzyOptions(options *FuzzyCompletionSuggesterOpti
 	return q
 }
 
-func (q *CompletionSuggester) Fuzziness(fuzziness interface{}) *CompletionSuggester {
-	if q.fuzzyOptions == nil {
-		q.fuzzyOptions = NewFuzzyCompletionSuggesterOptions()
-	}
-	q.fuzzyOptions = q.fuzzyOptions.EditDistance(fuzziness)
-	return q
-}
-
 func (q *CompletionSuggester) Regex(regex string) *CompletionSuggester {
 	q.regex = regex
 	return q
@@ -86,11 +77,6 @@ func (q *CompletionSuggester) RegexWithOptions(regex string, options *RegexCompl
 
 func (q *CompletionSuggester) RegexOptions(options *RegexCompletionSuggesterOptions) *CompletionSuggester {
 	q.regexOptions = options
-	return q
-}
-
-func (q *CompletionSuggester) SkipDuplicates(skipDuplicates bool) *CompletionSuggester {
-	q.skipDuplicates = &skipDuplicates
 	return q
 }
 
@@ -171,7 +157,7 @@ func (q *CompletionSuggester) Source(includeName bool) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		suggester["contexts"] = src
+		suggester["context"] = src
 	default:
 		ctxq := make(map[string]interface{})
 		for _, query := range q.contextQueries {
@@ -207,10 +193,6 @@ func (q *CompletionSuggester) Source(includeName bool) (interface{}, error) {
 			return nil, err
 		}
 		suggester["regex"] = src
-	}
-
-	if q.skipDuplicates != nil {
-		suggester["skip_duplicates"] = *q.skipDuplicates
 	}
 
 	// TODO(oe) Add completion-suggester specific parameters here

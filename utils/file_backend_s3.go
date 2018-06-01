@@ -4,17 +4,18 @@
 package utils
 
 import (
-	"bytes"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	s3 "github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
+	"github.com/minio/minio-go/pkg/encrypt"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -70,14 +71,14 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 	}
 
 	if !exists {
-		l4g.Warn("Bucket specified does not exist. Attempting to create...")
+		mlog.Warn("Bucket specified does not exist. Attempting to create...")
 		err := s3Clnt.MakeBucket(b.bucket, b.region)
 		if err != nil {
-			l4g.Error("Unable to create bucket.")
+			mlog.Error("Unable to create bucket.")
 			return model.NewAppError("TestFileConnection", "Unable to create bucket", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	l4g.Info("Connection to S3 or minio is good. Bucket exists.")
+	mlog.Info("Connection to S3 or minio is good. Bucket exists.")
 	return nil
 }
 
@@ -105,7 +106,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	}
 
 	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
-	destination, err := s3.NewDestinationInfo(b.bucket, newPath, nil, s3CopyMetadata(b.encrypt))
+	destination, err := s3.NewDestinationInfo(b.bucket, newPath, encrypt.NewSSE(), nil)
 	if err != nil {
 		return model.NewAppError("copyFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -122,7 +123,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	}
 
 	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
-	destination, err := s3.NewDestinationInfo(b.bucket, newPath, nil, s3CopyMetadata(b.encrypt))
+	destination, err := s3.NewDestinationInfo(b.bucket, newPath, encrypt.NewSSE(), nil)
 	if err != nil {
 		return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -135,10 +136,10 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	return nil
 }
 
-func (b *S3FileBackend) WriteFile(f []byte, path string) *model.AppError {
+func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
-		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var contentType string
@@ -149,12 +150,12 @@ func (b *S3FileBackend) WriteFile(f []byte, path string) *model.AppError {
 	}
 
 	options := s3PutOptions(b.encrypt, contentType)
-
-	if _, err = s3Clnt.PutObject(b.bucket, path, bytes.NewReader(f), -1, options); err != nil {
-		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	written, err := s3Clnt.PutObject(b.bucket, path, fr, -1, options)
+	if err != nil {
+		return written, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return nil
+	return written, nil
 }
 
 func (b *S3FileBackend) RemoveFile(path string) *model.AppError {
@@ -231,21 +232,14 @@ func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
-func s3PutOptions(encrypt bool, contentType string) s3.PutObjectOptions {
+func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 	options := s3.PutObjectOptions{}
-	if encrypt {
-		options.UserMetadata = make(map[string]string)
-		options.UserMetadata["x-amz-server-side-encryption"] = "AES256"
+	if encrypted {
+		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
 
 	return options
-}
-
-func s3CopyMetadata(encrypt bool) map[string]string {
-	metaData := make(map[string]string)
-	metaData["x-amz-server-side-encryption"] = "AES256"
-	return metaData
 }
 
 func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {

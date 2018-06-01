@@ -4,12 +4,11 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-
-	l4g "github.com/alecthomas/log4go"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -63,7 +62,13 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		var err *model.AppError
 		session, err = a.createSessionForUserAccessToken(token)
 		if err != nil {
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, err.Error(), http.StatusUnauthorized)
+			detailedError := ""
+			statusCode := http.StatusUnauthorized
+			if err.Id != "app.user_access_token.invalid_or_missing" {
+				detailedError = err.Error()
+				statusCode = err.StatusCode
+			}
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, detailedError, statusCode)
 		}
 	}
 
@@ -165,10 +170,10 @@ func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentS
 		sessions := result.Data.([]*model.Session)
 		for _, session := range sessions {
 			if session.DeviceId == deviceId && session.Id != currentSessionId {
-				l4g.Debug(utils.T("api.user.login.revoking.app_error"), session.Id, userId)
+				mlog.Debug(fmt.Sprintf("Revoking sessionId=%v for userId=%v re-login with same device Id", session.Id, userId), mlog.String("user_id", userId))
 				if err := a.RevokeSession(session); err != nil {
 					// Soft error so we still remove the other sessions
-					l4g.Error(err.Error())
+					mlog.Error(err.Error())
 				}
 			}
 		}
@@ -227,7 +232,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if result := <-a.Srv.Store.Session().UpdateLastActivityAt(session.Id, now); result.Err != nil {
-		l4g.Error(utils.T("api.status.last_activity.error"), session.UserId, session.Id, result.Err)
+		mlog.Error(fmt.Sprintf("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", session.UserId, session.Id, result.Err), mlog.String("user_id", session.UserId))
 	}
 
 	session.LastActivityAt = now
@@ -250,11 +255,11 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 	}
 
 	if result := <-uchan; result.Err != nil {
-		l4g.Error(result.Err.Error())
+		mlog.Error(result.Err.Error())
 	} else {
 		user := result.Data.(*model.User)
 		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	}
 

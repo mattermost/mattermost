@@ -4,16 +4,17 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -21,15 +22,15 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/jsonutils"
 )
 
 const (
 	LOG_ROTATE_SIZE = 10000
 	LOG_FILENAME    = "mattermost.log"
 )
-
-var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 
 // FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
 // relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
@@ -40,7 +41,7 @@ func FindConfigFile(fileName string) (path string) {
 			return fileName
 		}
 	} else {
-		for _, dir := range []string{"./config", "../config", "../../config", "."} {
+		for _, dir := range []string{"./config", "../config", "../../config", "../../../config", "."} {
 			path, _ := filepath.Abs(filepath.Join(dir, fileName))
 			if _, err := os.Stat(path); err == nil {
 				return path
@@ -52,7 +53,7 @@ func FindConfigFile(fileName string) (path string) {
 
 // FindDir looks for the given directory in nearby ancestors, falling back to `./` if not found.
 func FindDir(dir string) (string, bool) {
-	for _, parent := range []string{".", "..", "../.."} {
+	for _, parent := range []string{".", "..", "../..", "../../.."} {
 		foundDir, err := filepath.Abs(filepath.Join(parent, dir))
 		if err != nil {
 			continue
@@ -63,69 +64,26 @@ func FindDir(dir string) (string, bool) {
 	return "./", false
 }
 
+func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
+	return &mlog.LoggerConfiguration{
+		EnableConsole: s.EnableConsole,
+		ConsoleJson:   *s.ConsoleJson,
+		ConsoleLevel:  strings.ToLower(s.ConsoleLevel),
+		EnableFile:    s.EnableFile,
+		FileJson:      *s.FileJson,
+		FileLevel:     strings.ToLower(s.FileLevel),
+		FileLocation:  GetLogFileLocation(s.FileLocation),
+	}
+}
+
+// DON'T USE THIS Modify the level on the app logger
 func DisableDebugLogForTest() {
-	if l4g.Global["stdout"] != nil {
-		originalDisableDebugLvl = l4g.Global["stdout"].Level
-		l4g.Global["stdout"].Level = l4g.ERROR
-	}
+	mlog.GloballyDisableDebugLogForTest()
 }
 
+// DON'T USE THIS Modify the level on the app logger
 func EnableDebugLogForTest() {
-	if l4g.Global["stdout"] != nil {
-		l4g.Global["stdout"].Level = originalDisableDebugLvl
-	}
-}
-
-func ConfigureCmdLineLog() {
-	ls := model.LogSettings{}
-	ls.EnableConsole = model.NewBool(true)
-	ls.ConsoleLevel = model.NewString("WARN")
-	ConfigureLog(&ls)
-}
-
-// TODO: this code initializes console and file logging. It will eventually be replaced by JSON logging in logger/logger.go
-// See PLT-3893 for more information
-func ConfigureLog(s *model.LogSettings) {
-
-	l4g.Close()
-
-	if *s.EnableConsole {
-		level := l4g.DEBUG
-		if *s.ConsoleLevel == "INFO" {
-			level = l4g.INFO
-		} else if *s.ConsoleLevel == "WARN" {
-			level = l4g.WARNING
-		} else if *s.ConsoleLevel == "ERROR" {
-			level = l4g.ERROR
-		}
-
-		lw := l4g.NewConsoleLogWriter()
-		lw.SetFormat("[%D %T] [%L] %M")
-		l4g.AddFilter("stdout", level, lw)
-	}
-
-	if s.EnableFile != nil && *s.EnableFile {
-		var fileFormat = s.FileFormat
-
-		if *fileFormat == "" {
-			fileFormat = model.NewString("[%D %T] [%L] %M")
-		}
-
-		level := l4g.DEBUG
-		if *s.FileLevel == "INFO" {
-			level = l4g.INFO
-		} else if *s.FileLevel == "WARN" {
-			level = l4g.WARNING
-		} else if *s.FileLevel == "ERROR" {
-			level = l4g.ERROR
-		}
-
-		flw := l4g.NewFileLogWriter(GetLogFileLocation(*s.FileLocation), false)
-		flw.SetFormat(*fileFormat)
-		flw.SetRotate(true)
-		flw.SetRotateLines(LOG_ROTATE_SIZE)
-		l4g.AddFilter("file", level, flw)
-	}
+	mlog.GloballyEnableDebugLogForTest()
 }
 
 func GetLogFileLocation(fileLocation string) string {
@@ -184,17 +142,17 @@ func NewConfigWatcher(cfgFileName string, f func()) (*ConfigWatcher, error) {
 				// we only care about the config file
 				if filepath.Clean(event.Name) == configFile {
 					if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-						l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
+						mlog.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
 
-						if _, configReadErr := ReadConfigFile(cfgFileName, true); configReadErr == nil {
+						if _, _, configReadErr := ReadConfigFile(cfgFileName, true); configReadErr == nil {
 							f()
 						} else {
-							l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
+							mlog.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
 						}
 					}
 				}
 			case err := <-watcher.Errors:
-				l4g.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", cfgFileName, err.Error()))
+				mlog.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", cfgFileName, err.Error()))
 			case <-ret.close:
 				return
 			}
@@ -210,18 +168,21 @@ func (w *ConfigWatcher) Close() {
 }
 
 // ReadConfig reads and parses the given configuration.
-func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, error) {
-	v := viper.New()
-
-	if allowEnvironmentOverrides {
-		v.SetEnvPrefix("mm")
-		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-		v.AutomaticEnv()
+func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map[string]interface{}, error) {
+	// Pre-flight check the syntax of the configuration file to improve error messaging.
+	configData, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, nil, err
+	} else {
+		var rawConfig interface{}
+		if err := json.Unmarshal(configData, &rawConfig); err != nil {
+			return nil, nil, jsonutils.HumanizeJsonError(err, configData)
+		}
 	}
 
-	v.SetConfigType("json")
-	if err := v.ReadConfig(r); err != nil {
-		return nil, err
+	v := newViper(allowEnvironmentOverrides)
+	if err := v.ReadConfig(bytes.NewReader(configData)); err != nil {
+		return nil, nil, err
 	}
 
 	var config model.Config
@@ -232,14 +193,162 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, err
 		config.PluginSettings = model.PluginSettings{}
 		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
 	}
-	return &config, unmarshalErr
+
+	envConfig := v.EnvSettings()
+
+	var envErr error
+	if envConfig, envErr = fixEnvSettingsCase(envConfig); envErr != nil {
+		return nil, nil, envErr
+	}
+
+	return &config, envConfig, unmarshalErr
+}
+
+func newViper(allowEnvironmentOverrides bool) *viper.Viper {
+	v := viper.New()
+
+	v.SetConfigType("json")
+
+	if allowEnvironmentOverrides {
+		v.SetEnvPrefix("mm")
+		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+		v.AutomaticEnv()
+	}
+
+	// Set zeroed defaults for all the config settings so that Viper knows what environment variables
+	// it needs to be looking for. The correct defaults will later be applied using Config.SetDefaults.
+	defaults := getDefaultsFromStruct(model.Config{})
+
+	for key, value := range defaults {
+		v.SetDefault(key, value)
+	}
+
+	return v
+}
+
+func getDefaultsFromStruct(s interface{}) map[string]interface{} {
+	return flattenStructToMap(structToMap(reflect.TypeOf(s)))
+}
+
+// Converts a struct type into a nested map with keys matching the struct's fields and values
+// matching the zeroed value of the corresponding field.
+func structToMap(t reflect.Type) (out map[string]interface{}) {
+	defer func() {
+		if r := recover(); r != nil {
+			mlog.Error(fmt.Sprintf("Panicked in structToMap. This should never happen. %v", r))
+		}
+	}()
+
+	if t.Kind() != reflect.Struct {
+		// Should never hit this, but this will prevent a panic if that does happen somehow
+		return nil
+	}
+
+	out = map[string]interface{}{}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		var value interface{}
+
+		switch field.Type.Kind() {
+		case reflect.Struct:
+			value = structToMap(field.Type)
+		case reflect.Ptr:
+			indirectType := field.Type.Elem()
+
+			if indirectType.Kind() == reflect.Struct {
+				// Follow pointers to structs since we need to define defaults for their fields
+				value = structToMap(indirectType)
+			} else {
+				value = nil
+			}
+		default:
+			value = reflect.Zero(field.Type).Interface()
+		}
+
+		out[field.Name] = value
+	}
+
+	return
+}
+
+// Flattens a nested map so that the result is a single map with keys corresponding to the
+// path through the original map. For example,
+// {
+//     "a": {
+//         "b": 1
+//     },
+//     "c": "sea"
+// }
+// would flatten to
+// {
+//     "a.b": 1,
+//     "c": "sea"
+// }
+func flattenStructToMap(in map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{})
+
+	for key, value := range in {
+		if valueAsMap, ok := value.(map[string]interface{}); ok {
+			sub := flattenStructToMap(valueAsMap)
+
+			for subKey, subValue := range sub {
+				out[key+"."+subKey] = subValue
+			}
+		} else {
+			out[key] = value
+		}
+	}
+
+	return out
+}
+
+// Fixes the case of the environment variables sent back from Viper since Viper stores
+// everything as lower case.
+func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			mlog.Error(fmt.Sprintf("Panicked in fixEnvSettingsCase. This should never happen. %v", r))
+			out = in
+		}
+	}()
+
+	var fixCase func(map[string]interface{}, reflect.Type) map[string]interface{}
+	fixCase = func(in map[string]interface{}, t reflect.Type) map[string]interface{} {
+		if t.Kind() != reflect.Struct {
+			// Should never hit this, but this will prevent a panic if that does happen somehow
+			return nil
+		}
+
+		out := make(map[string]interface{}, len(in))
+
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+
+			key := field.Name
+			if value, ok := in[strings.ToLower(key)]; ok {
+				if valueAsMap, ok := value.(map[string]interface{}); ok {
+					out[key] = fixCase(valueAsMap, field.Type)
+				} else {
+					out[key] = value
+				}
+			}
+		}
+
+		return out
+	}
+
+	out = fixCase(in, reflect.TypeOf(model.Config{}))
+
+	return
 }
 
 // ReadConfigFile reads and parses the configuration at the given file path.
-func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config, error) {
+func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config, map[string]interface{}, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer f.Close()
 	return ReadConfig(f, allowEnvironmentOverrides)
@@ -274,22 +383,24 @@ func EnsureConfigFile(fileName string) (string, error) {
 // LoadConfig will try to search around for the corresponding config file.  It will search
 // /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
 // fileName.
-func LoadConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
+func LoadConfig(fileName string) (*model.Config, string, map[string]interface{}, *model.AppError) {
+	var configPath string
+
 	if fileName != filepath.Base(fileName) {
 		configPath = fileName
 	} else {
 		if path, err := EnsureConfigFile(fileName); err != nil {
-			appErr = model.NewAppError("LoadConfig", "utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-			return
+			appErr := model.NewAppError("LoadConfig", "utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
+			return nil, "", nil, appErr
 		} else {
 			configPath = path
 		}
 	}
 
-	config, err := ReadConfigFile(configPath, true)
+	config, envConfig, err := ReadConfigFile(configPath, true)
 	if err != nil {
-		appErr = model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
-		return
+		appErr := model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
+		return nil, "", nil, appErr
 	}
 
 	needSave := config.SqlSettings.AtRestEncryptKey == nil || len(*config.SqlSettings.AtRestEncryptKey) == 0 ||
@@ -299,18 +410,18 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		return nil, "", err
+		return nil, "", nil, err
 	}
 
 	if needSave {
 		if err := SaveConfig(configPath, config); err != nil {
-			l4g.Warn(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
 	if err := ValidateLocales(config); err != nil {
 		if err := SaveConfig(configPath, config); err != nil {
-			l4g.Warn(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
@@ -322,7 +433,7 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 		}
 	}
 
-	return config, configPath, nil
+	return config, configPath, envConfig, nil
 }
 
 func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
@@ -339,8 +450,8 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["SiteName"] = *c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
-	props["EnableAPIv3"] = strconv.FormatBool(*c.ServiceSettings.EnableAPIv3)
 	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
+	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
@@ -383,6 +494,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableTutorial"] = strconv.FormatBool(*c.ServiceSettings.EnableTutorial)
 	props["ExperimentalEnableDefaultChannelLeaveJoinMessages"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages)
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
+	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(*c.EmailSettings.SendEmailNotifications)
@@ -392,6 +504,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(*c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
+	props["EnablePreviewModeBanner"] = strconv.FormatBool(*c.EmailSettings.EnablePreviewModeBanner)
 	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
 	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
@@ -443,7 +556,10 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
 
+	props["RunJobs"] = strconv.FormatBool(*c.JobSettings.RunJobs)
+
 	// Set default values for all options that require a license.
+	props["ExperimentalHideTownSquareinLHS"] = "false"
 	props["ExperimentalTownSquareIsReadOnly"] = "false"
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["EnableCustomBrand"] = "false"
@@ -492,8 +608,15 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
+	props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
+	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
+	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
+	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
+	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
+	props["CustomUrlSchemes"] = strings.Join(*c.DisplaySettings.CustomUrlSchemes, ",")
 
 	if license != nil {
+		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 
@@ -550,14 +673,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 		if *license.Features.Office365OAuth {
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.Enable)
-		}
-
-		if *license.Features.PasswordRequirements {
-			props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
-			props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
-			props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
-			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
-			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
 
 		if *license.Features.Announcement {

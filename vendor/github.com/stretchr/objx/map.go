@@ -47,8 +47,9 @@ func New(data interface{}) Map {
 //
 // The arguments follow a key, value pattern.
 //
+// Panics
 //
-// Returns nil if any key argument is non-string or if there are an odd number of arguments.
+// Panics if any key argument is non-string or if there are an odd number of arguments.
 //
 // Example
 //
@@ -57,13 +58,14 @@ func New(data interface{}) Map {
 //     m := objx.MSI("name", "Mat", "age", 29, "subobj", objx.MSI("active", true))
 //
 //     // creates an Map equivalent to
-//     m := objx.Map{"name": "Mat", "age": 29, "subobj": objx.Map{"active": true}}
+//     m := objx.New(map[string]interface{}{"name": "Mat", "age": 29, "subobj": map[string]interface{}{"active": true}})
 func MSI(keyAndValuePairs ...interface{}) Map {
-	newMap := Map{}
+	newMap := make(map[string]interface{})
 	keyAndValuePairsLen := len(keyAndValuePairs)
 	if keyAndValuePairsLen%2 != 0 {
-		return nil
+		panic("objx: MSI must have an even number of arguments following the 'key, value' pattern.")
 	}
+
 	for i := 0; i < keyAndValuePairsLen; i = i + 2 {
 		key := keyAndValuePairs[i]
 		value := keyAndValuePairs[i+1]
@@ -71,11 +73,11 @@ func MSI(keyAndValuePairs ...interface{}) Map {
 		// make sure the key is a string
 		keyString, keyStringOK := key.(string)
 		if !keyStringOK {
-			return nil
+			panic("objx: MSI must follow 'string, interface{}' pattern.  " + keyString + " is not a valid key.")
 		}
 		newMap[keyString] = value
 	}
-	return newMap
+	return New(newMap)
 }
 
 // ****** Conversion Constructors
@@ -97,50 +99,12 @@ func MustFromJSON(jsonString string) Map {
 //
 // Returns an error if the JSON is invalid.
 func FromJSON(jsonString string) (Map, error) {
-	var m Map
-	err := json.Unmarshal([]byte(jsonString), &m)
+	var data interface{}
+	err := json.Unmarshal([]byte(jsonString), &data)
 	if err != nil {
 		return Nil, err
 	}
-	m.tryConvertFloat64()
-	return m, nil
-}
-
-func (m Map) tryConvertFloat64() {
-	for k, v := range m {
-		switch v.(type) {
-		case float64:
-			f := v.(float64)
-			if float64(int(f)) == f {
-				m[k] = int(f)
-			}
-		case map[string]interface{}:
-			t := New(v)
-			t.tryConvertFloat64()
-			m[k] = t
-		case []interface{}:
-			m[k] = tryConvertFloat64InSlice(v.([]interface{}))
-		}
-	}
-}
-
-func tryConvertFloat64InSlice(s []interface{}) []interface{} {
-	for k, v := range s {
-		switch v.(type) {
-		case float64:
-			f := v.(float64)
-			if float64(int(f)) == f {
-				s[k] = int(f)
-			}
-		case map[string]interface{}:
-			t := New(v)
-			t.tryConvertFloat64()
-			s[k] = t
-		case []interface{}:
-			s[k] = tryConvertFloat64InSlice(v.([]interface{}))
-		}
-	}
-	return s
+	return New(data), nil
 }
 
 // FromBase64 creates a new Obj containing the data specified
@@ -206,11 +170,12 @@ func FromURLQuery(query string) (Map, error) {
 	if err != nil {
 		return nil, err
 	}
-	m := Map{}
+
+	m := make(map[string]interface{})
 	for k, vals := range vals {
 		m[k] = vals[0]
 	}
-	return m, nil
+	return New(m), nil
 }
 
 // MustFromURLQuery generates a new Obj by parsing the specified

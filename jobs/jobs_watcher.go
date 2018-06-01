@@ -4,10 +4,11 @@
 package jobs
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -35,7 +36,7 @@ func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watche
 }
 
 func (watcher *Watcher) Start() {
-	l4g.Debug("Watcher Started")
+	mlog.Debug("Watcher Started")
 
 	// Delay for some random number of milliseconds before starting to ensure that multiple
 	// instances of the jobserver  don't poll at a time too close to each other.
@@ -43,14 +44,14 @@ func (watcher *Watcher) Start() {
 	<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
 
 	defer func() {
-		l4g.Debug("Watcher Finished")
+		mlog.Debug("Watcher Finished")
 		watcher.stopped <- true
 	}()
 
 	for {
 		select {
 		case <-watcher.stop:
-			l4g.Debug("Watcher: Received stop signal")
+			mlog.Debug("Watcher: Received stop signal")
 			return
 		case <-time.After(time.Duration(watcher.pollingInterval) * time.Millisecond):
 			watcher.PollAndNotify()
@@ -59,14 +60,14 @@ func (watcher *Watcher) Start() {
 }
 
 func (watcher *Watcher) Stop() {
-	l4g.Debug("Watcher Stopping")
+	mlog.Debug("Watcher Stopping")
 	watcher.stop <- true
 	<-watcher.stopped
 }
 
 func (watcher *Watcher) PollAndNotify() {
 	if result := <-watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING); result.Err != nil {
-		l4g.Error("Error occurred getting all pending statuses: %v", result.Err.Error())
+		mlog.Error(fmt.Sprintf("Error occurred getting all pending statuses: %v", result.Err.Error()))
 	} else {
 		jobs := result.Data.([]*model.Job)
 
@@ -103,6 +104,13 @@ func (watcher *Watcher) PollAndNotify() {
 				if watcher.workers.LdapSync != nil {
 					select {
 					case watcher.workers.LdapSync.JobChannel() <- *job:
+					default:
+					}
+				}
+			} else if job.Type == model.JOB_TYPE_MIGRATIONS {
+				if watcher.workers.Migrations != nil {
+					select {
+					case watcher.workers.Migrations.JobChannel() <- *job:
 					default:
 					}
 				}

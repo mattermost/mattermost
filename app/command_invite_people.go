@@ -6,7 +6,7 @@ package app
 import (
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -28,7 +28,7 @@ func (me *InvitePeopleProvider) GetTrigger() string {
 
 func (me *InvitePeopleProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	autoComplete := true
-	if !*a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation {
+	if !a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation {
 		autoComplete = false
 	}
 	return &model.Command{
@@ -63,7 +63,7 @@ func (me *InvitePeopleProvider) DoCommand(a *App, args *model.CommandArgs, messa
 	}
 
 	if err := a.InviteNewUsersToTeam(emailList, args.TeamId, args.UserId); err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.fail")}
 	}
 

@@ -5,6 +5,7 @@ package app
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"html/template"
 	"net"
 	"net/http"
@@ -13,13 +14,14 @@ import (
 	"sync"
 	"sync/atomic"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	"github.com/mattermost/mattermost-server/jobs"
+	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 	"github.com/mattermost/mattermost-server/store"
@@ -28,6 +30,7 @@ import (
 )
 
 const ADVANCED_PERMISSIONS_MIGRATION_KEY = "AdvancedPermissionsMigrationComplete"
+const EMOJIS_PERMISSIONS_MIGRATION_KEY = "EmojisPermissionsMigrationComplete"
 
 type App struct {
 	goroutineCount      int32
@@ -35,8 +38,12 @@ type App struct {
 
 	Srv *Server
 
-	PluginEnv              *pluginenv.Environment
-	PluginConfigListenerId string
+	Log *mlog.Logger
+
+	PluginEnv                *pluginenv.Environment
+	PluginConfigListenerId   string
+	IsPluginSandboxSupported bool
+	pluginStatuses           map[string]*model.PluginStatus
 
 	EmailBatching *EmailBatchingJob
 
@@ -51,7 +58,6 @@ type App struct {
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface
-	Emoji            einterfaces.EmojiInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
@@ -59,6 +65,7 @@ type App struct {
 	Saml             einterfaces.SamlInterface
 
 	config          atomic.Value
+	envConfig       map[string]interface{}
 	configFile      string
 	configListeners map[string]func(*model.Config, *model.Config)
 
@@ -76,6 +83,7 @@ type App struct {
 	sessionCache         *utils.Cache
 	configListenerId     string
 	licenseListenerId    string
+	logListenerId        string
 	disableConfigWatch   bool
 	configWatcher        *utils.ConfigWatcher
 	asymmetricSigningKey *ecdsa.PrivateKey
@@ -86,6 +94,8 @@ type App struct {
 	clientConfig     map[string]string
 	clientConfigHash string
 	diagnosticId     string
+
+	phase2PermissionsMigrationComplete bool
 }
 
 var appCount = 0
@@ -125,9 +135,24 @@ func New(options ...Option) (outApp *App, outErr error) {
 		}
 	}
 	model.AppErrorInit(utils.T)
+
 	if err := app.LoadConfig(app.configFile); err != nil {
 		return nil, err
 	}
+
+	// Initalize logging
+	app.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&app.Config().LogSettings))
+
+	// Redirect default golang logger to this logger
+	mlog.RedirectStdLog(app.Log)
+
+	// Use this app logger as the global logger (eventually remove all instances of global logging)
+	mlog.InitGlobalLogger(app.Log)
+
+	app.logListenerId = app.AddConfigListener(func(_, after *model.Config) {
+		app.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
+	})
+
 	app.EnableConfigWatch()
 
 	app.LoadTimezones()
@@ -158,7 +183,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	})
 	app.regenerateClientConfig()
 
-	l4g.Info(utils.T("api.server.new_server.init.info"))
+	mlog.Info("Server is initializing...")
 
 	app.initEnterprise()
 
@@ -169,7 +194,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		l4g.Error(utils.T("api.api.init.parsing_templates.error"), err)
+		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
 	} else {
 		app.htmlTemplateWatcher = htmlTemplateWatcher
 	}
@@ -202,7 +227,7 @@ func (a *App) configOrLicenseListener() {
 func (a *App) Shutdown() {
 	appCount--
 
-	l4g.Info(utils.T("api.server.stop_server.stopping.info"))
+	mlog.Info("Stopping Server...")
 
 	a.StopServer()
 	a.HubStop()
@@ -221,7 +246,8 @@ func (a *App) Shutdown() {
 
 	a.RemoveConfigListener(a.configListenerId)
 	a.RemoveLicenseListener(a.licenseListenerId)
-	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
+	a.RemoveConfigListener(a.logListenerId)
+	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()
 }
@@ -262,12 +288,6 @@ func RegisterElasticsearchInterface(f func(*App) einterfaces.ElasticsearchInterf
 	elasticsearchInterface = f
 }
 
-var emojiInterface func(*App) einterfaces.EmojiInterface
-
-func RegisterEmojiInterface(f func(*App) einterfaces.EmojiInterface) {
-	emojiInterface = f
-}
-
 var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
 
 func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
@@ -296,6 +316,12 @@ var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
 
 func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
+}
+
+var jobsMigrationsInterface func(*App) tjobs.MigrationsJobInterface
+
+func RegisterJobsMigrationsJobInterface(f func(*App) tjobs.MigrationsJobInterface) {
+	jobsMigrationsInterface = f
 }
 
 var ldapInterface func(*App) einterfaces.LdapInterface
@@ -344,9 +370,6 @@ func (a *App) initEnterprise() {
 	if elasticsearchInterface != nil {
 		a.Elasticsearch = elasticsearchInterface(a)
 	}
-	if emojiInterface != nil {
-		a.Emoji = emojiInterface(a)
-	}
 	if ldapInterface != nil {
 		a.Ldap = ldapInterface(a)
 		a.AddConfigListener(func(_, cfg *model.Config) {
@@ -391,6 +414,9 @@ func (a *App) initJobs() {
 	}
 	if jobsLdapSyncInterface != nil {
 		a.Jobs.LdapSync = jobsLdapSyncInterface(a)
+	}
+	if jobsMigrationsInterface != nil {
+		a.Jobs.Migrations = jobsMigrationsInterface(a)
 	}
 }
 
@@ -491,7 +517,7 @@ func (a *App) HTTPClient(trustURLs bool) *http.Client {
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 
-	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
+	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
 	utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
 }
@@ -503,7 +529,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		return
 	}
 
-	l4g.Info("Migrating roles to database.")
+	mlog.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
 	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), a.License() != nil)
 
@@ -513,8 +539,8 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
 			// If this failed for reasons other than the role already existing, don't mark the migration as done.
 			if result2 := <-a.Srv.Store.Role().GetByName(role.Name); result2.Err != nil {
-				l4g.Critical("Failed to migrate role to database.")
-				l4g.Critical(result.Err)
+				mlog.Critical("Failed to migrate role to database.")
+				mlog.Critical(fmt.Sprint(result.Err))
 				allSucceeded = false
 			} else {
 				// If the role already existed, check it is the same and update if not.
@@ -526,8 +552,8 @@ func (a *App) DoAdvancedPermissionsMigration() {
 					role.Id = fetchedRole.Id
 					if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
 						// Role is not the same, but failed to update.
-						l4g.Critical("Failed to migrate role to database.")
-						l4g.Critical(result.Err)
+						mlog.Critical("Failed to migrate role to database.")
+						mlog.Critical(fmt.Sprint(result.Err))
 						allSucceeded = false
 					}
 				}
@@ -539,13 +565,104 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		return
 	}
 
+	config := a.Config()
+	if *config.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_ALWAYS {
+		*config.ServiceSettings.PostEditTimeLimit = -1
+		if err := a.SaveConfig(config, true); err != nil {
+			mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.String("error", err.Error()))
+		}
+	}
+
 	system := model.System{
 		Name:  ADVANCED_PERMISSIONS_MIGRATION_KEY,
 		Value: "true",
 	}
 
 	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
-		l4g.Critical("Failed to mark advanced permissions migration as completed.")
-		l4g.Critical(result.Err)
+		mlog.Critical("Failed to mark advanced permissions migration as completed.")
+		mlog.Critical(fmt.Sprint(result.Err))
+	}
+}
+
+func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
+	if !isComplete {
+		res := <-a.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		if res.Err != nil {
+			return res.Err
+		}
+	}
+	a.phase2PermissionsMigrationComplete = isComplete
+	return nil
+}
+
+func (a *App) DoEmojisPermissionsMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if result := <-a.Srv.Store.System().GetByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); result.Err == nil {
+		return
+	}
+
+	var role *model.Role = nil
+	var systemAdminRole *model.Role = nil
+	var err *model.AppError = nil
+
+	mlog.Info("Migrating emojis config to database.")
+	switch *a.Config().ServiceSettings.RestrictCustomEmojiCreation {
+	case model.RESTRICT_EMOJI_CREATION_ALL:
+		role, err = a.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		if err != nil {
+			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+			mlog.Critical(err.Error())
+			return
+		}
+		break
+	case model.RESTRICT_EMOJI_CREATION_ADMIN:
+		role, err = a.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+		if err != nil {
+			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+			mlog.Critical(err.Error())
+			return
+		}
+		break
+	case model.RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN:
+		role = nil
+		break
+	default:
+		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+		mlog.Critical("Invalid restrict emoji creation setting")
+		return
+	}
+
+	if role != nil {
+		role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_EMOJIS.Id)
+		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+			mlog.Critical(result.Err.Error())
+			return
+		}
+	}
+
+	systemAdminRole, err = a.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	if err != nil {
+		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+		mlog.Critical(err.Error())
+		return
+	}
+
+	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_MANAGE_EMOJIS.Id)
+	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id)
+	if result := <-a.Srv.Store.Role().Save(systemAdminRole); result.Err != nil {
+		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
+		mlog.Critical(result.Err.Error())
+		return
+	}
+
+	system := model.System{
+		Name:  EMOJIS_PERMISSIONS_MIGRATION_KEY,
+		Value: "true",
+	}
+
+	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
+		mlog.Critical("Failed to mark emojis permissions migration as completed.")
+		mlog.Critical(fmt.Sprint(result.Err))
 	}
 }

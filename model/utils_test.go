@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewId(t *testing.T) {
@@ -43,6 +46,17 @@ func TestAppErrorJunk(t *testing.T) {
 	if "body: <html><body>This is a broken test</body></html>" != rerr.DetailedError {
 		t.Fatal()
 	}
+}
+
+func TestCopyStringMap(t *testing.T) {
+	itemKey := "item1"
+	originalMap := make(map[string]string)
+	originalMap[itemKey] = "val1"
+
+	copyMap := CopyStringMap(originalMap)
+	copyMap[itemKey] = "changed"
+
+	assert.Equal(t, "val1", originalMap[itemKey])
 }
 
 func TestMapJson(t *testing.T) {
@@ -365,5 +379,186 @@ func TestIsValidId(t *testing.T) {
 		if actual != tc.Result {
 			t.Fatalf("case: %v\tshould returned: %#v", tc, tc.Result)
 		}
+	}
+}
+
+func TestNowhereNil(t *testing.T) {
+	t.Parallel()
+
+	var nilStringPtr *string
+	var nonNilStringPtr *string = new(string)
+	var nilSlice []string
+	var nilStruct *struct{}
+	var nilMap map[bool]bool
+
+	var nowhereNilStruct = struct {
+		X *string
+		Y *string
+	}{
+		nonNilStringPtr,
+		nonNilStringPtr,
+	}
+	var somewhereNilStruct = struct {
+		X *string
+		Y *string
+	}{
+		nonNilStringPtr,
+		nilStringPtr,
+	}
+
+	var privateSomewhereNilStruct = struct {
+		X *string
+		y *string
+	}{
+		nonNilStringPtr,
+		nilStringPtr,
+	}
+
+	testCases := []struct {
+		Description string
+		Value       interface{}
+		Expected    bool
+	}{
+		{
+			"nil",
+			nil,
+			false,
+		},
+		{
+			"empty string",
+			"",
+			true,
+		},
+		{
+			"non-empty string",
+			"not empty!",
+			true,
+		},
+		{
+			"nil string pointer",
+			nilStringPtr,
+			false,
+		},
+		{
+			"non-nil string pointer",
+			nonNilStringPtr,
+			true,
+		},
+		{
+			"0",
+			0,
+			true,
+		},
+		{
+			"1",
+			1,
+			true,
+		},
+		{
+			"0 (int64)",
+			int64(0),
+			true,
+		},
+		{
+			"1 (int64)",
+			int64(1),
+			true,
+		},
+		{
+			"true",
+			true,
+			true,
+		},
+		{
+			"false",
+			false,
+			true,
+		},
+		{
+			"nil slice",
+			nilSlice,
+			// A nil slice is observably the same as an empty slice, so allow it.
+			true,
+		},
+		{
+			"empty slice",
+			[]string{},
+			true,
+		},
+		{
+			"slice containing nils",
+			[]*string{nil, nil},
+			true,
+		},
+		{
+			"nil map",
+			nilMap,
+			false,
+		},
+		{
+			"non-nil map",
+			make(map[bool]bool),
+			true,
+		},
+		{
+			"non-nil map containing nil",
+			map[bool]*string{true: nilStringPtr, false: nonNilStringPtr},
+			// Map values are not checked
+			true,
+		},
+		{
+			"nil struct",
+			nilStruct,
+			false,
+		},
+		{
+			"empty struct",
+			struct{}{},
+			true,
+		},
+		{
+			"struct containing no nil",
+			nowhereNilStruct,
+			true,
+		},
+		{
+			"struct containing nil",
+			somewhereNilStruct,
+			false,
+		},
+		{
+			"struct pointer containing no nil",
+			&nowhereNilStruct,
+			true,
+		},
+		{
+			"struct pointer containing nil",
+			&somewhereNilStruct,
+			false,
+		},
+		{
+			"struct containing private nil",
+			privateSomewhereNilStruct,
+			true,
+		},
+		{
+			"struct pointer containing private nil",
+			&privateSomewhereNilStruct,
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("panic: %v", r)
+				}
+			}()
+
+			t.Parallel()
+			require.Equal(t, testCase.Expected, checkNowhereNil(t, "value", testCase.Value))
+		})
 	}
 }

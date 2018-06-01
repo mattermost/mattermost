@@ -49,13 +49,13 @@ type Features struct {
 	CustomBrand               *bool `json:"custom_brand"`
 	MHPNS                     *bool `json:"mhpns"`
 	SAML                      *bool `json:"saml"`
-	PasswordRequirements      *bool `json:"password_requirements"`
 	Elasticsearch             *bool `json:"elastic_search"`
 	Announcement              *bool `json:"announcement"`
 	ThemeManagement           *bool `json:"theme_management"`
 	EmailNotificationContents *bool `json:"email_notification_contents"`
 	DataRetention             *bool `json:"data_retention"`
 	MessageExport             *bool `json:"message_export"`
+	CustomPermissionsSchemes  *bool `json:"custom_permissions_schemes"`
 
 	// after we enabled more features for webrtc we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -73,11 +73,11 @@ func (f *Features) ToMap() map[string]interface{} {
 		"custom_brand":                *f.CustomBrand,
 		"mhpns":                       *f.MHPNS,
 		"saml":                        *f.SAML,
-		"password":                    *f.PasswordRequirements,
 		"elastic_search":              *f.Elasticsearch,
 		"email_notification_contents": *f.EmailNotificationContents,
 		"data_retention":              *f.DataRetention,
 		"message_export":              *f.MessageExport,
+		"custom_permissions_schemes":  *f.CustomPermissionsSchemes,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -131,10 +131,6 @@ func (f *Features) SetDefaults() {
 		f.SAML = NewBool(*f.FutureFeatures)
 	}
 
-	if f.PasswordRequirements == nil {
-		f.PasswordRequirements = NewBool(*f.FutureFeatures)
-	}
-
 	if f.Elasticsearch == nil {
 		f.Elasticsearch = NewBool(*f.FutureFeatures)
 	}
@@ -157,6 +153,10 @@ func (f *Features) SetDefaults() {
 
 	if f.MessageExport == nil {
 		f.MessageExport = NewBool(*f.FutureFeatures)
+	}
+
+	if f.CustomPermissionsSchemes == nil {
+		f.CustomPermissionsSchemes = NewBool(*f.FutureFeatures)
 	}
 }
 

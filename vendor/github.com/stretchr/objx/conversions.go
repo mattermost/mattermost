@@ -9,10 +9,6 @@ import (
 	"net/url"
 )
 
-// SignatureSeparator is the character that is used to
-// separate the Base64 string from the security signature.
-const SignatureSeparator = "_"
-
 // JSON converts the contained object to a JSON string
 // representation
 func (m Map) JSON() (string, error) {
@@ -44,7 +40,10 @@ func (m Map) Base64() (string, error) {
 	}
 
 	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
-	_, _ = encoder.Write([]byte(jsonData))
+	_, err = encoder.Write([]byte(jsonData))
+	if err != nil {
+		return "", err
+	}
 	_ = encoder.Close()
 
 	return buf.String(), nil

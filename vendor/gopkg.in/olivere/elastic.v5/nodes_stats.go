@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // NodesStatsService returns node statistics.
@@ -165,7 +165,7 @@ func (s *NodesStatsService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if len(s.completionFields) > 0 {
 		params.Set("completion_fields", strings.Join(s.completionFields, ","))
@@ -213,11 +213,7 @@ func (s *NodesStatsService) Do(ctx context.Context) (*NodesStatsResponse, error)
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -320,21 +316,26 @@ type NodesStatsDocsStats struct {
 }
 
 type NodesStatsStoreStats struct {
-	Size        string `json:"size"`
-	SizeInBytes int64  `json:"size_in_bytes"`
+	Size                 string `json:"size"`
+	SizeInBytes          int64  `json:"size_in_bytes"`
+	ThrottleTime         string `json:"throttle_time"`
+	ThrottleTimeInMillis int64  `json:"throttle_time_in_millis"`
 }
 
 type NodesStatsIndexingStats struct {
-	IndexTotal         int64  `json:"index_total"`
-	IndexTime          string `json:"index_time"`
-	IndexTimeInMillis  int64  `json:"index_time_in_millis"`
-	IndexCurrent       int64  `json:"index_current"`
-	IndexFailed        int64  `json:"index_failed"`
-	DeleteTotal        int64  `json:"delete_total"`
-	DeleteTime         string `json:"delete_time"`
-	DeleteTimeInMillis int64  `json:"delete_time_in_millis"`
-	DeleteCurrent      int64  `json:"delete_current"`
-	NoopUpdateTotal    int64  `json:"noop_update_total"`
+	IndexTotal           int64  `json:"index_total"`
+	IndexTime            string `json:"index_time"`
+	IndexTimeInMillis    int64  `json:"index_time_in_millis"`
+	IndexCurrent         int64  `json:"index_current"`
+	IndexFailed          int64  `json:"index_failed"`
+	DeleteTotal          int64  `json:"delete_total"`
+	DeleteTime           string `json:"delete_time"`
+	DeleteTimeInMillis   int64  `json:"delete_time_in_millis"`
+	DeleteCurrent        int64  `json:"delete_current"`
+	NoopUpdateTotal      int64  `json:"noop_update_total"`
+	IsThrottled          bool   `json:"is_throttled"`
+	ThrottleTime         string `json:"throttle_time"`
+	ThrottleTimeInMillis int64  `json:"throttle_time_in_millis"`
 
 	Types map[string]*NodesStatsIndexingStats `json:"types"` // stats for individual types
 }
@@ -494,8 +495,10 @@ type NodesStatsRequestCacheStats struct {
 }
 
 type NodesStatsRecoveryStats struct {
-	CurrentAsSource int `json:"current_as_source"`
-	CurrentAsTarget int `json:"current_as_target"`
+	CurrentAsSource      int    `json:"current_as_source"`
+	CurrentAsTarget      int    `json:"current_as_target"`
+	ThrottleTime         string `json:"throttle_time"`
+	ThrottleTimeInMillis int64  `json:"throttle_time_in_millis"`
 }
 
 type NodesStatsNodeOS struct {

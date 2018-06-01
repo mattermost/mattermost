@@ -13,6 +13,7 @@ import (
 
 	"encoding/base64"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
@@ -539,22 +540,25 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
 	team, _ = Client.CreateTeam(team)
 
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = false })
+
+	// Does not error when deletion is disabled, just soft deletes
 	ok, resp := Client.PermanentDeleteTeam(team.Id)
 	CheckNoError(t, resp)
+	assert.True(t, ok)
 
-	if !ok {
-		t.Fatal("should have returned true")
-	}
-
-	// The team is deleted in the background, its only soft deleted at this
-	// time
 	rteam, err := th.App.GetTeam(team.Id)
-	if err != nil {
-		t.Fatal("should have returned archived team")
-	}
-	if rteam.DeleteAt == 0 {
-		t.Fatal("should have not set to zero")
-	}
+	assert.Nil(t, err)
+	assert.True(t, rteam.DeleteAt > 0)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = true })
+
+	ok, resp = Client.PermanentDeleteTeam(team.Id)
+	CheckNoError(t, resp)
+	assert.True(t, ok)
+
+	_, err = th.App.GetTeam(team.Id)
+	assert.NotNil(t, err)
 
 	ok, resp = Client.PermanentDeleteTeam("junk")
 	CheckBadRequestStatus(t, resp)
@@ -1361,17 +1365,16 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
-	// by hash and data
+	// by token
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	dataObject := make(map[string]string)
-	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis())
-	dataObject["id"] = team.Id
+	token := model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"teamId": team.Id}),
+	)
+	<-th.App.Srv.Store.Token().Save(token)
 
-	data := model.MapToJson(dataObject)
-	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
-
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1386,36 +1389,42 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMemberFromInvite("junk", data, "")
+	if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+		t.Fatal("The token must be deleted after be used")
+	}
+
+	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
 
-	_, resp = Client.AddTeamMemberFromInvite(hashed, "junk", "")
-	CheckBadRequestStatus(t, resp)
+	// expired token of more than 50 hours
+	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	token.CreateAt = model.GetMillis() - 1000*60*60*50
+	<-th.App.Srv.Store.Token().Save(token)
 
-	// expired data of more than 50 hours
-	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
-	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
-
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
+	th.App.DeleteToken(token)
 
 	// invalid team id
-	dataObject["id"] = GenerateTestId()
-	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, *th.App.Config().EmailSettings.InviteSalt))
+	testId := GenerateTestId()
+	token = model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"teamId": testId}),
+	)
+	<-th.App.Srv.Store.Token().Save(token)
 
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
-	CheckBadRequestStatus(t, resp)
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
+	CheckNotFoundStatus(t, resp)
+	th.App.DeleteToken(token)
 
 	// by invite_id
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	tm, resp = Client.AddTeamMemberFromInvite("", "", team.InviteId)
+	tm, resp = Client.AddTeamMemberFromInvite("", team.InviteId)
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1430,7 +1439,7 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMemberFromInvite("", "", "junk")
+	tm, resp = Client.AddTeamMemberFromInvite("", "junk")
 	CheckNotFoundStatus(t, resp)
 
 	if tm != nil {
@@ -1666,7 +1675,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// user 1 (team admin) tries to demote system admin (not member of a team)
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
@@ -1692,7 +1701,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// user 1 (team admin) tries to promote a random user
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TEAM_ADMIN)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "junk")
@@ -2007,5 +2016,114 @@ func TestGetTeamIcon(t *testing.T) {
 	Client.Logout()
 
 	_, resp = Client.GetTeamIcon(team.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestRemoveTeamIcon(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	th.LoginTeamAdmin()
+	data, _ := readTestFile("test.png")
+	Client.SetTeamIcon(team.Id, data)
+
+	_, resp := Client.RemoveTeamIcon(team.Id)
+	CheckNoError(t, resp)
+	teamAfter, _ := th.App.GetTeam(team.Id)
+	if teamAfter.LastTeamIconUpdate != 0 {
+		t.Fatal("should update LastTeamIconUpdate to 0")
+	}
+
+	Client.SetTeamIcon(team.Id, data)
+
+	_, resp = th.SystemAdminClient.RemoveTeamIcon(team.Id)
+	CheckNoError(t, resp)
+	teamAfter, _ = th.App.GetTeam(team.Id)
+	if teamAfter.LastTeamIconUpdate != 0 {
+		t.Fatal("should update LastTeamIconUpdate to 0")
+	}
+
+	Client.SetTeamIcon(team.Id, data)
+	Client.Logout()
+
+	_, resp = Client.RemoveTeamIcon(team.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic()
+	_, resp = Client.RemoveTeamIcon(team.Id)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestUpdateTeamScheme(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team, _ = th.SystemAdminClient.CreateTeam(team)
+
+	teamScheme := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme, _ = th.SystemAdminClient.CreateScheme(teamScheme)
+	channelScheme := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme, _ = th.SystemAdminClient.CreateScheme(channelScheme)
+
+	// Test the setup/base case.
+	_, resp := th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckNoError(t, resp)
+
+	// Test the return to default scheme
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "")
+	CheckNoError(t, resp)
+
+	// Test various invalid team and scheme id combinations.
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme("x", teamScheme.Id)
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme("x", "x")
+	CheckBadRequestStatus(t, resp)
+
+	// Test that permissions are required.
+	_, resp = th.Client.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// Test that a license is requried.
+	th.App.SetLicense(nil)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckNotImplementedStatus(t, resp)
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	// Test an invalid scheme scope.
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
+	fmt.Printf("resp: %+v\n", resp)
+	CheckBadRequestStatus(t, resp)
+
+	// Test that an unauthenticated user gets rejected.
+	th.SystemAdminClient.Logout()
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
 	CheckUnauthorizedStatus(t, resp)
 }

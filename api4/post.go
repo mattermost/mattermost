@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,6 +16,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("", api.ApiSessionRequired(createPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(getPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(deletePost)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ephemeral", api.ApiSessionRequired(createEphemeralPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/thread", api.ApiSessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.ApiSessionRequired(getFileInfosForPost)).Methods("GET")
 	api.BaseRoutes.PostsForChannel.Handle("", api.ApiSessionRequired(getPostsForChannel)).Methods("GET")
@@ -64,6 +66,34 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 	c.App.UpdateLastActivityAtIfNeeded(c.Session)
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+}
+
+func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	ephRequest := model.PostEphemeral{}
+
+	json.NewDecoder(r.Body).Decode(&ephRequest)
+	if ephRequest.UserID == "" {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	if ephRequest.Post == nil {
+		c.SetInvalidParam("post")
+		return
+	}
+
+	ephRequest.Post.UserId = c.Session.UserId
+	ephRequest.Post.CreateAt = model.GetMillis()
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_POST_EPHEMERAL) {
+		c.SetPermissionError(model.PERMISSION_CREATE_POST_EPHEMERAL)
+		return
+	}
+
+	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
@@ -216,12 +246,25 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_DELETE_OTHERS_POSTS) {
-		c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
+	post, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.SetPermissionError(model.PERMISSION_DELETE_POST)
 		return
 	}
 
-	if _, err := c.App.DeletePost(c.Params.PostId); err != nil {
+	if c.Session.UserId == post.UserId {
+		if !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_POST) {
+			c.SetPermissionError(model.PERMISSION_DELETE_POST)
+			return
+		}
+	} else {
+		if !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_OTHERS_POSTS) {
+			c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
+			return
+		}
+	}
+
+	if _, err := c.App.DeletePost(c.Params.PostId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -334,9 +377,17 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
+	}
+
+	if c.Session.UserId != originalPost.UserId {
+		if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+			return
+		}
 	}
 
 	post.Id = c.Params.PostId
@@ -368,9 +419,17 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
+	}
+
+	if c.Session.UserId != originalPost.UserId {
+		if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+			return
+		}
 	}
 
 	patchedPost, err := c.App.PatchPost(c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(post))

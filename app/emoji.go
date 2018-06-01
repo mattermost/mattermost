@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -14,17 +15,15 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"image/color/palette"
 
 	"github.com/disintegration/imaging"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
-	MaxEmojiFileSize = 1000 * 1024 // 1 MB
+	MaxEmojiFileSize = 1 << 20 // 1 MB
 	MaxEmojiWidth    = 128
 	MaxEmojiHeight   = 128
 )
@@ -99,7 +98,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 				if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
 					return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest)
 				}
-				if err := a.WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
+				if _, err := a.WriteFile(newbuf, getEmojiImagePath(id)); err != nil {
 					return err
 				}
 			}
@@ -111,14 +110,15 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 				if err := png.Encode(newbuf, resized_image); err != nil {
 					return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest)
 				}
-				if err := a.WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
+				if _, err := a.WriteFile(newbuf, getEmojiImagePath(id)); err != nil {
 					return err
 				}
 			}
 		}
 	}
 
-	return a.WriteFile(buf.Bytes(), getEmojiImagePath(id))
+	_, appErr := a.WriteFile(buf, getEmojiImagePath(id))
+	return appErr
 }
 
 func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
@@ -242,13 +242,13 @@ func imageToPaletted(img image.Image) *image.Paletted {
 
 func (a *App) deleteEmojiImage(id string) {
 	if err := a.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
-		l4g.Error("Failed to rename image when deleting emoji %v", id)
+		mlog.Error(fmt.Sprintf("Failed to rename image when deleting emoji %v", id))
 	}
 }
 
 func (a *App) deleteReactionsForEmoji(emojiName string) {
 	if result := <-a.Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); result.Err != nil {
-		l4g.Warn(utils.T("api.emoji.delete.delete_reactions.app_error"), emojiName)
-		l4g.Warn(result.Err)
+		mlog.Warn(fmt.Sprintf("Unable to delete reactions when deleting emoji with emoji name %v", emojiName))
+		mlog.Warn(fmt.Sprint(result.Err))
 	}
 }

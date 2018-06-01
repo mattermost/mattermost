@@ -4,13 +4,14 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
 	"strings"
 	"unicode/utf8"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -107,7 +108,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				req.Header.Set("Content-Type", contentType)
 				req.Header.Set("Accept", "application/json")
 				if resp, err := a.HTTPClient(false).Do(req); err != nil {
-					l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
+					mlog.Error(fmt.Sprintf("Event POST failed, err=%s", err.Error()))
 				} else {
 					defer consumeAndClose(resp)
 
@@ -134,7 +135,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 						}
 
 						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
-							l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
+							mlog.Error(fmt.Sprintf("Failed to create response post, err=%v", err))
 						}
 					}
 				}
@@ -630,6 +631,10 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		} else {
 			channel = result.Data.(*model.Channel)
 		}
+	}
+
+	if hook.ChannelLocked && hook.ChannelId != channel.Id {
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel_locked.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&

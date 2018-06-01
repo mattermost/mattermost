@@ -8,9 +8,10 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // CountService is a convenient service for determining the
@@ -35,6 +36,7 @@ type CountService struct {
 	q                      string
 	query                  Query
 	routing                string
+	terminateAfter         *int
 	bodyJson               interface{}
 	bodyString             string
 }
@@ -158,6 +160,13 @@ func (s *CountService) Routing(routing string) *CountService {
 	return s
 }
 
+// TerminateAfter indicates the maximum count for each shard, upon reaching
+// which the query execution will terminate early.
+func (s *CountService) TerminateAfter(terminateAfter int) *CountService {
+	s.terminateAfter = &terminateAfter
+	return s
+}
+
 // Pretty indicates that the JSON response be indented and human readable.
 func (s *CountService) Pretty(pretty bool) *CountService {
 	s.pretty = pretty
@@ -207,7 +216,7 @@ func (s *CountService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.allowNoIndices != nil {
 		params.Set("allow_no_indices", fmt.Sprintf("%v", *s.allowNoIndices))
@@ -248,6 +257,9 @@ func (s *CountService) buildURL() (string, url.Values, error) {
 	if s.routing != "" {
 		params.Set("routing", s.routing)
 	}
+	if s.terminateAfter != nil {
+		params.Set("terminate_after", strconv.Itoa(*s.terminateAfter))
+	}
 	return path, params, nil
 }
 
@@ -286,12 +298,7 @@ func (s *CountService) Do(ctx context.Context) (int64, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
 	if err != nil {
 		return 0, err
 	}

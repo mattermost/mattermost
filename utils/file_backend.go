@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -15,7 +16,7 @@ type FileBackend interface {
 	ReadFile(path string) ([]byte, *model.AppError)
 	CopyFile(oldPath, newPath string) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
-	WriteFile(f []byte, path string) *model.AppError
+	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 	RemoveFile(path string) *model.AppError
 
 	ListDirectory(path string) (*[]string, *model.AppError)

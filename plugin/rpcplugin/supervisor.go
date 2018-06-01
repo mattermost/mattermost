@@ -12,19 +12,27 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+)
+
+const (
+	MaxProcessRestarts = 3
 )
 
 // Supervisor implements a plugin.Supervisor that launches the plugin in a separate process and
 // communicates via RPC.
 //
-// If the plugin unexpectedly exists, the supervisor will relaunch it after a short delay.
+// If the plugin unexpectedly exits, the supervisor will relaunch it after a short delay, but will
+// only restart a plugin at most three times.
 type Supervisor struct {
 	hooks      atomic.Value
 	done       chan bool
 	cancel     context.CancelFunc
 	newProcess func(context.Context) (Process, io.ReadWriteCloser, error)
+	pluginId   string
+	pluginErr  error
 }
 
 var _ plugin.Supervisor = (*Supervisor)(nil)
@@ -48,6 +56,13 @@ func (s *Supervisor) Start(api plugin.API) error {
 	}
 }
 
+// Waits for the supervisor to stop (on demand or of its own accord), returning any error that
+// triggered the supervisor to stop.
+func (s *Supervisor) Wait() error {
+	<-s.done
+	return s.pluginErr
+}
+
 // Stops the plugin.
 func (s *Supervisor) Stop() error {
 	s.cancel()
@@ -63,22 +78,32 @@ func (s *Supervisor) Hooks() plugin.Hooks {
 
 func (s *Supervisor) run(ctx context.Context, start chan<- error, api plugin.API) {
 	defer func() {
-		s.done <- true
+		close(s.done)
 	}()
 	done := ctx.Done()
-	for {
+	for i := 0; i <= MaxProcessRestarts; i++ {
 		s.runPlugin(ctx, start, api)
 		select {
 		case <-done:
 			return
 		default:
 			start = nil
-			time.Sleep(time.Second)
+			if i < MaxProcessRestarts {
+				mlog.Error("Plugin terminated unexpectedly", mlog.String("plugin_id", s.pluginId))
+				time.Sleep(time.Duration((1 + i*i)) * time.Second)
+			} else {
+				s.pluginErr = fmt.Errorf("plugin terminated unexpectedly too many times")
+				mlog.Error("Plugin shutdown", mlog.String("plugin_id", s.pluginId), mlog.Int("max_process_restarts", MaxProcessRestarts), mlog.Err(s.pluginErr))
+			}
 		}
 	}
 }
 
 func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error, api plugin.API) error {
+	if start == nil {
+		mlog.Debug("Restarting plugin", mlog.String("plugin_id", s.pluginId))
+	}
+
 	p, ipc, err := s.newProcess(ctx)
 	if err != nil {
 		if start != nil {
@@ -100,7 +125,7 @@ func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error, api plug
 		muxerClosed <- muxer.Close()
 	}()
 
-	hooks, err := ConnectMain(muxer)
+	hooks, err := ConnectMain(muxer, s.pluginId)
 	if err == nil {
 		err = hooks.OnActivate(api)
 	}
@@ -147,5 +172,5 @@ func SupervisorWithNewProcessFunc(bundle *model.BundleInfo, newProcess func(cont
 	if strings.HasPrefix(executable, "..") {
 		return nil, fmt.Errorf("invalid backend executable")
 	}
-	return &Supervisor{newProcess: newProcess}, nil
+	return &Supervisor{pluginId: bundle.Manifest.Id, newProcess: newProcess}, nil
 }

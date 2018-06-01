@@ -4,9 +4,10 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -18,7 +19,7 @@ func (a *App) SyncLdap() {
 			if ldapI := a.Ldap; ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {
-				l4g.Error("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error())
+				mlog.Error(fmt.Sprintf("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error()))
 			}
 		}
 	})
@@ -39,7 +40,7 @@ func (a *App) TestLdap() *model.AppError {
 	return nil
 }
 
-func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword string) (string, *model.AppError) {
+func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
 	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -62,13 +63,13 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword stri
 		return "", model.NewAppError("SwitchEmailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.SwitchToLdap(user.Id, ldapId, ldapPassword); err != nil {
+	if err := ldapInterface.SwitchToLdap(user.Id, ldapLoginId, ldapPassword); err != nil {
 		return "", err
 	}
 
 	a.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 
@@ -94,7 +95,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.CheckPassword(*user.AuthData, ldapPassword); err != nil {
+	if err := ldapInterface.CheckPasswordAuthData(*user.AuthData, ldapPassword); err != nil {
 		return "", err
 	}
 
@@ -114,7 +115,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 	a.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 

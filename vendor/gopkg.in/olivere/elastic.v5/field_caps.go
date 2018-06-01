@@ -11,12 +11,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // FieldCapsService allows retrieving the capabilities of fields among multiple indices.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-field-caps.html
+// See http://www.elastic.co/guide/en/elasticsearch/reference/5.x/search-field-caps.html
 // for details
 type FieldCapsService struct {
 	client            *Client
@@ -152,13 +152,7 @@ func (s *FieldCapsService) Do(ctx context.Context) (*FieldCapsResponse, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method:       "POST",
-		Path:         path,
-		Params:       params,
-		Body:         body,
-		IgnoreErrors: []int{http.StatusNotFound},
-	})
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body, http.StatusNotFound)
 	if err != nil {
 		return nil, err
 	}

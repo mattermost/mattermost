@@ -24,10 +24,11 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["custom_brand"].(bool))
 	CheckTrue(t, m["mhpns"].(bool))
 	CheckTrue(t, m["saml"].(bool))
-	CheckTrue(t, m["password"].(bool))
 	CheckTrue(t, m["elastic_search"].(bool))
 	CheckTrue(t, m["email_notification_contents"].(bool))
 	CheckTrue(t, m["data_retention"].(bool))
+	CheckTrue(t, m["message_export"].(bool))
+	CheckTrue(t, m["custom_permissions_schemes"].(bool))
 	CheckTrue(t, m["future"].(bool))
 }
 
@@ -46,10 +47,11 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.CustomBrand)
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
-	CheckTrue(t, *f.PasswordRequirements)
 	CheckTrue(t, *f.Elasticsearch)
 	CheckTrue(t, *f.EmailNotificationContents)
 	CheckTrue(t, *f.DataRetention)
+	CheckTrue(t, *f.MessageExport)
+	CheckTrue(t, *f.CustomPermissionsSchemes)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -67,9 +69,10 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.CustomBrand = true
 	*f.MHPNS = true
 	*f.SAML = true
-	*f.PasswordRequirements = true
 	*f.Elasticsearch = true
 	*f.DataRetention = true
+	*f.MessageExport = true
+	*f.CustomPermissionsSchemes = true
 	*f.EmailNotificationContents = true
 
 	f.SetDefaults()
@@ -85,10 +88,11 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.CustomBrand)
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
-	CheckTrue(t, *f.PasswordRequirements)
 	CheckTrue(t, *f.Elasticsearch)
 	CheckTrue(t, *f.EmailNotificationContents)
 	CheckTrue(t, *f.DataRetention)
+	CheckTrue(t, *f.MessageExport)
+	CheckTrue(t, *f.CustomPermissionsSchemes)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
@@ -168,9 +172,10 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.CustomBrand, *f.CustomBrand)
 	CheckBool(t, *f1.MHPNS, *f.MHPNS)
 	CheckBool(t, *f1.SAML, *f.SAML)
-	CheckBool(t, *f1.PasswordRequirements, *f.PasswordRequirements)
 	CheckBool(t, *f1.Elasticsearch, *f.Elasticsearch)
 	CheckBool(t, *f1.DataRetention, *f.DataRetention)
+	CheckBool(t, *f1.MessageExport, *f.MessageExport)
+	CheckBool(t, *f1.CustomPermissionsSchemes, *f.CustomPermissionsSchemes)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`

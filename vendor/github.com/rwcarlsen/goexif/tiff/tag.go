@@ -41,17 +41,17 @@ type DataType uint16
 
 const (
 	DTByte      DataType = 1
-	DTAscii              = 2
-	DTShort              = 3
-	DTLong               = 4
-	DTRational           = 5
-	DTSByte              = 6
-	DTUndefined          = 7
-	DTSShort             = 8
-	DTSLong              = 9
-	DTSRational          = 10
-	DTFloat              = 11
-	DTDouble             = 12
+	DTAscii     DataType = 2
+	DTShort     DataType = 3
+	DTLong      DataType = 4
+	DTRational  DataType = 5
+	DTSByte     DataType = 6
+	DTUndefined DataType = 7
+	DTSShort    DataType = 8
+	DTSLong     DataType = 9
+	DTSRational DataType = 10
+	DTFloat     DataType = 11
+	DTDouble    DataType = 12
 )
 
 var typeNames = map[DataType]string{

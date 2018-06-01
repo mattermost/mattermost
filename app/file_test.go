@@ -5,10 +5,16 @@ package app
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -99,4 +105,59 @@ func TestDoUploadFile(t *testing.T) {
 	if info4.Path != fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info4.Id, filename) {
 		t.Fatal("stored file at incorrect path", info4.Path)
 	}
+}
+
+func TestGetInfoForFilename(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	post := th.BasicPost
+	teamId := th.BasicTeam.Id
+
+	info := th.App.GetInfoForFilename(post, teamId, "sometestfile")
+	assert.Nil(t, info, "Test bad filename")
+
+	info = th.App.GetInfoForFilename(post, teamId, "/somechannel/someuser/someid/somefile.png")
+	assert.Nil(t, info, "Test non-existent file")
+}
+
+func TestFindTeamIdForFilename(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	teamId := th.App.FindTeamIdForFilename(th.BasicPost, fmt.Sprintf("/%v/%v/%v/blargh.png", th.BasicChannel.Id, th.BasicUser.Id, "someid"))
+	assert.Equal(t, th.BasicTeam.Id, teamId)
+
+	_, err := th.App.CreateTeamWithUser(&model.Team{Email: th.BasicUser.Email, Name: "zz" + model.NewId(), DisplayName: "Joram's Test Team", Type: model.TEAM_OPEN}, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	teamId = th.App.FindTeamIdForFilename(th.BasicPost, fmt.Sprintf("/%v/%v/%v/blargh.png", th.BasicChannel.Id, th.BasicUser.Id, "someid"))
+	assert.Equal(t, "", teamId)
+}
+
+func TestMigrateFilenamesToFileInfos(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	post := th.BasicPost
+	infos := th.App.MigrateFilenamesToFileInfos(post)
+	assert.Equal(t, 0, len(infos))
+
+	post.Filenames = []string{fmt.Sprintf("/%v/%v/%v/blargh.png", th.BasicChannel.Id, th.BasicUser.Id, "someid")}
+	infos = th.App.MigrateFilenamesToFileInfos(post)
+	assert.Equal(t, 0, len(infos))
+
+	path, _ := utils.FindDir("tests")
+	file, fileErr := os.Open(filepath.Join(path, "test.png"))
+	require.Nil(t, fileErr)
+	defer file.Close()
+
+	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "someid")
+	_, err := th.App.WriteFile(file, fpath)
+	require.Nil(t, err)
+	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, "someid")}}, th.BasicChannel, false)
+	require.Nil(t, err)
+
+	infos = th.App.MigrateFilenamesToFileInfos(rpost)
+	assert.Equal(t, 1, len(infos))
 }

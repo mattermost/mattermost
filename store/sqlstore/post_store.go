@@ -12,8 +12,8 @@ import (
 	"strings"
 	"sync"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -398,11 +398,24 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.Stor
 	})
 }
 
-func (s *SqlPostStore) Delete(postId string, time int64) store.StoreChannel {
+func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId})
+
+		appErr := func(errMsg string) *model.AppError {
+			return model.NewAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+errMsg, http.StatusInternalServerError)
+		}
+
+		var post model.Post
+		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+err.Error(), http.StatusInternalServerError)
+			result.Err = appErr(err.Error())
+		}
+
+		post.Props[model.POST_PROPS_DELETE_BY] = deleteByID
+
+		_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.Props)})
+		if err != nil {
+			result.Err = appErr(err.Error())
 		}
 	})
 }
@@ -715,70 +728,31 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) sto
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, `
-			SELECT
-			    *
+		_, err := s.GetReplica().Select(&posts,
+			`SELECT
+			    q2.*
 			FROM
-			    Posts
+			    Posts q2
+			        INNER JOIN
+			    (SELECT DISTINCT
+			        q3.RootId
+			    FROM
+			        (SELECT
+			        RootId
+			    FROM
+			        Posts
+			    WHERE
+			        ChannelId = :ChannelId1
+			            AND DeleteAt = 0
+			    ORDER BY CreateAt DESC
+			    LIMIT :Limit OFFSET :Offset) q3
+			    WHERE q3.RootId != '') q1
+			    ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
 			WHERE
-			    Id IN (SELECT * FROM (
-				-- The root post of any replies in the window
-				(SELECT * FROM (
-				    SELECT
-					CASE RootId
-					    WHEN '' THEN NULL
-					    ELSE RootId
-					END
-				    FROM
-					Posts
-				    WHERE
-					ChannelId = :ChannelId1
-				    AND DeleteAt = 0
-				    ORDER BY 
-					CreateAt DESC
-				    LIMIT :Limit1 OFFSET :Offset1
-				) x )
-
-				UNION
-
-				-- The reply posts to all threads intersecting with the window, including replies
-				-- to root posts in the window itself.
-				(
-				    SELECT
-					Id
-				    FROM
-					Posts
-				    WHERE RootId IN (SELECT * FROM (
-					SELECT
-					    CASE RootId
-						-- If there is no RootId, return the post id itself to be considered
-						-- as a root post.
-						WHEN '' THEN Id
-						-- If there is a RootId, this post isn't a root post and return its
-						-- root to be considered as a root post.
-						ELSE RootId
-					    END
-					FROM
-					    Posts
-					WHERE
-					    ChannelId = :ChannelId2
-					AND DeleteAt = 0
-					ORDER BY 
-					    CreateAt DESC
-					LIMIT :Limit2 OFFSET :Offset2
-				    ) x )
-				)
-			    ) x )
-			AND 
-			    DeleteAt = 0
-		`, map[string]interface{}{
-			"ChannelId1": channelId,
-			"ChannelId2": channelId,
-			"Offset1":    offset,
-			"Offset2":    offset,
-			"Limit1":     limit,
-			"Limit2":     limit,
-		})
+			    ChannelId = :ChannelId2
+			        AND DeleteAt = 0
+			ORDER BY CreateAt`,
+			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
 		} else {
@@ -947,7 +921,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 		_, err := s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
 		if err != nil {
-			l4g.Warn(utils.T("store.sql_post.search.warn"), err.Error())
+			mlog.Warn(fmt.Sprintf("Query error searching posts: %v", err.Error()))
 			// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 		} else {
 			for _, p := range posts {
@@ -1147,7 +1121,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 		_, err := s.GetReplica().Select(&posts, query, params)
 
 		if err != nil {
-			l4g.Error(err)
+			mlog.Error(fmt.Sprint(err))
 			result.Err = model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
 		} else {
 			result.Data = posts
@@ -1247,7 +1221,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 				table_name = 'posts'
 			AND	column_name = 'message'
 		`); err != nil {
-			l4g.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
+			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		// The Post.Message column in MySQL has historically been TEXT, with a maximum
@@ -1263,10 +1237,10 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			AND	column_name = 'Message'
 			LIMIT 0, 1
 		`); err != nil {
-			l4g.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
+			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else {
-		l4g.Warn(utils.T("store.sql_post.query_max_post_size.unrecognized_driver"))
+		mlog.Warn("No implementation found to determine the maximum supported post size")
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
@@ -1279,7 +1253,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
 	}
 
-	l4g.Info(utils.T("store.sql_post.query_max_post_size.max_post_size_bytes"), maxPostSize, maxPostSizeBytes)
+	mlog.Info(fmt.Sprintf("Post.Message supports at most %d characters (%d bytes)", maxPostSize, maxPostSizeBytes))
 
 	return maxPostSize
 }

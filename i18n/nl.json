@@ -216,6 +216,14 @@
     "translation": "This kanaal is omgezet naar een privékanaal."
   },
   {
+    "id": "api.channel.convert_channel_to_private.default_channel_error",
+    "translation": "This default channel cannot be converted into a private channel."
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.private_channel_error",
+    "translation": "The channel requested to convert is already a private channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "U moet de 'createDirectChannel' API service gebruiken om een direct kanaal aan te maken"
   },
@@ -330,18 +338,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v heeft het kanaal verlaten."
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "Failed to post channel conversion to private message"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "Failed to retrieve user while converting the channel from public to private"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s converted the channel from public to private"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -787,6 +783,58 @@
     "translation": "help"
   },
   {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "Error to retrieve the current channel."
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Invite a user to a channel"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "You can't add someone to a direct message channel."
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Er is een fout opgetreden tijdens het deelnemen aan het kanaal."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[username] ~[channel]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Missing Username and Channel."
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "De gebruiker kan niet gevonden worden"
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "invite"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} added to {{.Channel}} channel."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} is already in the channel."
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "Neem deel aan het open kanaal"
   },
@@ -796,7 +844,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[kanaal-naam]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -904,15 +952,23 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[channel]"
+    "translation": "~[channel]"
   },
   {
     "id": "api.command_mute.name",
     "translation": "mute"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Could not mute channel {{.Channel}} as you are not a member."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -1697,20 +1753,12 @@
     "translation": "Missing file in multipart/form request"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "add them to this private channel"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "add them to the channel"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "{{.Usernames}} en {{.LastUsername}} zijn genoemd, maar ze hebben geen notificatie gekregen, omdat ze niet deelnemen aan dit kanaal."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "{{.Username}} zijn genoemd, maar ze hebben geen notificatie gekregen, omdat ze niet deelnemen aan dit kanaal."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -2391,6 +2439,10 @@
     "translation": "Team %v is permanent verwijderd, id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "De gebruiker is geen onderdeel van dit team"
   },
@@ -2447,6 +2499,10 @@
     "translation": "Team aanmelding via e-mail is uitgeschakeld."
   },
   {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "An error occurred updating the team icon"
+  },
+  {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Specified user is not a member of specified team."
   },
@@ -2457,6 +2513,18 @@
   {
     "id": "api.templates.channel_name.group",
     "translation": "Group Message"
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -2803,12 +2871,12 @@
     "translation": "Er is een fout opgetreden tijdens het deelnemen aan de standaard kanalen user_id=%s, team_id=%s, fout=%v"
   },
   {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Missing Hash or URL query data."
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "Missing Invite Id."
+  },
+  {
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "Missing Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2857,6 +2925,10 @@
   {
     "id": "api.user.get_me.getting.error",
     "translation": "Probleem bij het ophalen van het gebruikersprofiel voor id=%v, uitlog actie geforceerd"
+  },
+  {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "Unable to get profile image, user not found."
   },
   {
     "id": "api.user.init.debug",
@@ -2963,6 +3035,10 @@
     "translation": "SAML wordt niet ondersteund, of is niet geconfigureerd op deze server."
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Aanpassings mail voor notificatie kon niet verstuurd worden"
   },
@@ -3009,6 +3085,10 @@
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "Je kan niet de activatie status veranderen van AD/LDAP account. Wijzig dit via de AD/LDAP server."
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3249,6 +3329,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Ongeldige {{.Name}} parameter"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "Connection unsuccessful: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3655,10 +3739,6 @@
     "translation": "Invalid Comment Trigger Notify Prop for user."
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "Invalid Desktop Duration Notify Prop value for user."
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "Invalid Desktop Notify Prop value for user."
   },
@@ -3716,7 +3796,15 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new direct message from {{.SenderName}}"
+    "translation": "You have a new Direct Message from @{{.SenderName}}"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.full",
+    "translation": "U heeft een nieuw bericht."
+  },
+  {
+    "id": "app.notification.body.intro.group_message.generic",
+    "translation": "You have a new Group Message from @{{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3724,7 +3812,7 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from {{.SenderName}}"
+    "translation": "You have a new notification from @{{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
@@ -3732,6 +3820,14 @@
   },
   {
     "id": "app.notification.body.text.direct.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.full",
+    "translation": "KANAAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.generic",
     "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
@@ -3747,12 +3843,20 @@
     "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
   },
   {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{.SiteName}}] Nieuwe Notificatie voor {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
+    "translation": "Unable to activate extracted plugin."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3765,6 +3869,10 @@
   {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Unable to deactivate plugin"
+  },
+  {
+    "id": "app.plugin.delete_plugin_status_state.app_error",
+    "translation": "Unable to delete plugin status state."
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3787,16 +3895,16 @@
     "translation": "Unable to get active plugins"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "Plugin Id must be less than {{.Max}} characters."
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3811,8 +3919,16 @@
     "translation": "Plugin is not installed"
   },
   {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "Cannot install prepackaged plugin"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Unable to delete plugin"
+  },
+  {
+    "id": "app.plugin.set_plugin_status_state.app_error",
+    "translation": "Unable to set plugin status state."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -4639,6 +4755,10 @@
     "translation": "Ongeldige gebruikers id"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "Kan binnenkomende data niet verwerken"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "Er is een probleem opgetreden tijdens het verbinden met de server"
   },
@@ -4705,6 +4825,10 @@
   {
     "id": "model.client.writer.app_error",
     "translation": "Unable to build multipart request"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "Ongeldig Id"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4957,6 +5081,10 @@
   {
     "id": "model.config.is_valid.ldap_lastname",
     "translation": "AD/LDAP veld \"Last Name Attribute\" is verplicht."
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP veld \"ID Attribute\" is verplicht."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -5719,10 +5847,6 @@
     "translation": "Afsluiten van Sql opslag"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "Fout bij controle of de kolom bestaat %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "Stuurprogramma mist bij het controleren of de kolom bestaat"
   },
@@ -5751,10 +5875,6 @@
     "translation": "Stuurprogramma mist bij het aanmaken van de kolom"
   },
   {
-    "id": "store.sql.create_index.critical",
-    "translation": "Fout bij het aanmaken van een index %v"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "Stuurprogramma mist bij het aanmaken van een index"
   },
@@ -5779,10 +5899,6 @@
     "translation": "Fout bij het bepalen van de maximale lengte van kolom %v"
   },
   {
-    "id": "store.sql.open_conn.critical",
-    "translation": "Fout bij het starten van sql verbinding, fout; %v"
-  },
-  {
     "id": "store.sql.open_conn.panic",
     "translation": "Fout bij het openen van de sql verbinding %v"
   },
@@ -5803,10 +5919,6 @@
     "translation": "Database schema versie %v lijkt niet bijgewerkt te zijn"
   },
   {
-    "id": "store.sql.schema_set.info",
-    "translation": "Het database schema is gezet op versie %v"
-  },
-  {
     "id": "store.sql.schema_upgrade_attempt.warn",
     "translation": "Poging om de database schema te upgraden naar versie %v"
   },
@@ -5821,10 +5933,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "Fout bij het ophalen van data type voor kolom %s uit tabel %s: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "Fout bij controle of de tabel bestaat %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",
@@ -5877,10 +5985,6 @@
   {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "Het kanaal kan niet verwijderd worden"
-  },
-  {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "Probleem bij het bijwerken van de leden laatst bijgewerkte tijd"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -6539,10 +6643,6 @@
     "translation": "Er is een probleem opgetreden tijden het verwijderen van voorkeuren"
   },
   {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "Verdijderen van alle ongebruikte pre-release mogelijkheden"
-  },
-  {
     "id": "store.sql_preference.get.app_error",
     "translation": "Er is een probleem opgestreden tijdens het opzoeken van voorkeuren"
   },
@@ -6649,6 +6749,10 @@
   {
     "id": "store.sql_role.get_by_names.app_error",
     "translation": "Bericht kan niet opgehaald worden"
+  },
+  {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
@@ -6765,6 +6869,10 @@
   {
     "id": "store.sql_system.get_version.app_error",
     "translation": "We konden de database versie niet ophalen"
+  },
+  {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7336,7 +7444,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Notification From Address setting is missing or invalid."
+    "translation": "Error setting \"From Address\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7352,7 +7460,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Notification To Address setting is missing or invalid."
+    "translation": "Error setting \"To Address\""
   },
   {
     "id": "utils.mail.test.configured.error",
@@ -7449,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Het kanaal kan niet gevonden worden"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "This webhook is not permitted to post to the requested channel"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",

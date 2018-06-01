@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
@@ -159,7 +159,7 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 			numPosts, _ = strconv.Atoi(tokens[numArgs+2])
 		}
 	}
-	client := model.NewClient(args.SiteURL)
+	client := model.NewAPIv4Client(args.SiteURL)
 
 	if doTeams {
 		if err := a.CreateBasicUser(client); err != nil {
@@ -177,10 +177,10 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		if !err {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		} else {
-			l4g.Info("Testing environment created")
+			mlog.Info("Testing environment created")
 			for i := 0; i < len(environment.Teams); i++ {
-				l4g.Info("Team Created: " + environment.Teams[i].Name)
-				l4g.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
+				mlog.Info("Team Created: " + environment.Teams[i].Name)
+				mlog.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
 			}
 		}
 	} else {
@@ -193,7 +193,6 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		}
 
 		client.MockSession(args.Session.Token)
-		client.SetTeamId(args.TeamId)
 		CreateTestEnvironmentInTeam(
 			a,
 			client,
@@ -228,8 +227,7 @@ func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, messag
 		team = tr.Data.(*model.Team)
 	}
 
-	client := model.NewClient(args.SiteURL)
-	client.SetTeamId(team.Id)
+	client := model.NewAPIv4Client(args.SiteURL)
 	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = doFuzz
 	userCreator.CreateTestUsers(usersr)
@@ -258,8 +256,7 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 		team = tr.Data.(*model.Team)
 	}
 
-	client := model.NewClient(args.SiteURL)
-	client.SetTeamId(team.Id)
+	client := model.NewAPIv4Client(args.SiteURL)
 	client.MockSession(args.Session.Token)
 	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = doFuzz
@@ -301,8 +298,7 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 		}
 	}
 
-	client := model.NewClient(args.SiteURL)
-	client.SetTeamId(args.TeamId)
+	client := model.NewAPIv4Client(args.SiteURL)
 	client.MockSession(args.Session.Token)
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = doFuzz

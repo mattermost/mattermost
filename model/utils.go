@@ -15,9 +15,11 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 	"unicode"
 
@@ -144,6 +146,14 @@ func NewRandomString(length int) string {
 // GetMillis is a convience method to get milliseconds since epoch.
 func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
+func CopyStringMap(originalMap map[string]string) map[string]string {
+	copyMap := make(map[string]string)
+	for k, v := range originalMap {
+		copyMap[k] = v
+	}
+	return copyMap
 }
 
 // MapToJson converts a map to a json string
@@ -468,4 +478,61 @@ func IsValidId(value string) bool {
 	}
 
 	return true
+}
+
+// checkNowhereNil checks that the given interface value is not nil, and if a struct, that all of
+// its public fields are also nowhere nil
+func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
+	if value == nil {
+		return false
+	}
+
+	v := reflect.ValueOf(value)
+	switch v.Type().Kind() {
+	case reflect.Ptr:
+		if v.IsNil() {
+			t.Logf("%s was nil", name)
+			return false
+		}
+
+		return checkNowhereNil(t, fmt.Sprintf("(*%s)", name), v.Elem().Interface())
+
+	case reflect.Map:
+		if v.IsNil() {
+			t.Logf("%s was nil", name)
+			return false
+		}
+
+		// Don't check map values
+		return true
+
+	case reflect.Struct:
+		nowhereNil := true
+		for i := 0; i < v.NumField(); i++ {
+			f := v.Field(i)
+			// Ignore unexported fields
+			if v.Type().Field(i).PkgPath != "" {
+				continue
+			}
+
+			nowhereNil = nowhereNil && checkNowhereNil(t, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), f.Interface())
+		}
+
+		return nowhereNil
+
+	case reflect.Array:
+		fallthrough
+	case reflect.Chan:
+		fallthrough
+	case reflect.Func:
+		fallthrough
+	case reflect.Interface:
+		fallthrough
+	case reflect.UnsafePointer:
+		t.Logf("unhandled field %s, type: %s", name, v.Type().Kind())
+		return false
+
+	default:
+		return true
+	}
 }

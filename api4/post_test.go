@@ -116,6 +116,47 @@ func TestCreatePost(t *testing.T) {
 	}
 }
 
+func TestCreatePostEphemeral(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.SystemAdminClient
+
+	ephemeralPost := &model.PostEphemeral{
+		UserID: th.BasicUser2.Id,
+		Post:   &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", Props: model.StringInterface{model.PROPS_ADD_CHANNEL_MEMBER: "no good"}},
+	}
+
+	rpost, resp := Client.CreatePostEphemeral(ephemeralPost)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	if rpost.Message != ephemeralPost.Post.Message {
+		t.Fatal("message didn't match")
+	}
+
+	if rpost.EditAt != 0 {
+		t.Fatal("newly created ephemeral post shouldn't have EditAt set")
+	}
+
+	if r, err := Client.DoApiPost("/posts/ephemeral", "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
+
+	Client.Logout()
+	_, resp = Client.CreatePostEphemeral(ephemeralPost)
+	CheckUnauthorizedStatus(t, resp)
+
+	Client = th.Client
+	rpost, resp = Client.CreatePostEphemeral(ephemeralPost)
+	CheckForbiddenStatus(t, resp)
+}
+
 func testCreatePostWithOutgoingHook(
 	t *testing.T,
 	hookContentType, expectedContentType, message, triggerWord string,

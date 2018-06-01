@@ -4,20 +4,16 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
-	if !a.RolesGrantPermission(session.GetUserRoles(), permission.Id) {
-		a.ClearSessionCacheForUser(session.UserId)
-		return false
-	}
-
-	return true
+	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
 /// DO NOT USE: LEGACY
@@ -96,19 +92,6 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 	}
 
 	return false
-}
-
-func (a *App) SessionHasPermissionToPost(session model.Session, postId string, permission *model.Permission) bool {
-	post, err := a.GetSinglePost(postId)
-	if err != nil {
-		return false
-	}
-
-	if post.UserId == session.UserId {
-		return true
-	}
-
-	return a.SessionHasPermissionToChannel(session, post.ChannelId, permission)
 }
 
 func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
@@ -198,12 +181,16 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 	if err != nil {
 		// This should only happen if something is very broken. We can't realistically
 		// recover the situation, so deny permission and log an error.
-		l4g.Error("Failed to get roles from database with role names: " + strings.Join(roleNames, ","))
-		l4g.Error(err)
+		mlog.Error("Failed to get roles from database with role names: " + strings.Join(roleNames, ","))
+		mlog.Error(fmt.Sprint(err))
 		return false
 	}
 
 	for _, role := range roles {
+		if role.DeleteAt != 0 {
+			continue
+		}
+
 		permissions := role.Permissions
 		for _, permission := range permissions {
 			if permission == permissionId {

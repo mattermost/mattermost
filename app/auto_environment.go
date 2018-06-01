@@ -16,7 +16,7 @@ type TestEnvironment struct {
 	Environments []TeamEnvironment
 }
 
-func CreateTestEnvironmentWithTeams(a *App, client *model.Client, rangeTeams utils.Range, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TestEnvironment, bool) {
+func CreateTestEnvironmentWithTeams(a *App, client *model.Client4, rangeTeams utils.Range, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TestEnvironment, bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	teamCreator := NewAutoTeamCreator(client)
@@ -36,7 +36,6 @@ func CreateTestEnvironmentWithTeams(a *App, client *model.Client, rangeTeams uti
 			return TestEnvironment{}, false
 		}
 		client.LoginById(randomUser.Id, USER_PASSWORD)
-		client.SetTeamId(team.Id)
 		teamEnvironment, err := CreateTestEnvironmentInTeam(a, client, team, rangeChannels, rangeUsers, rangePosts, fuzzy)
 		if !err {
 			return TestEnvironment{}, false
@@ -47,7 +46,7 @@ func CreateTestEnvironmentWithTeams(a *App, client *model.Client, rangeTeams uti
 	return environment, true
 }
 
-func CreateTestEnvironmentInTeam(a *App, client *model.Client, team *model.Team, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TeamEnvironment, bool) {
+func CreateTestEnvironmentInTeam(a *App, client *model.Client4, team *model.Team, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TeamEnvironment, bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	// We need to create at least one user
@@ -74,7 +73,7 @@ func CreateTestEnvironmentInTeam(a *App, client *model.Client, team *model.Team,
 	for _, user := range users {
 		for _, channel := range channels {
 			client.LoginById(user.Id, USER_PASSWORD)
-			client.JoinChannel(channel.Id)
+			client.AddChannelMember(channel.Id, user.Id)
 		}
 	}
 

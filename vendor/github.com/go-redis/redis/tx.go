@@ -1,12 +1,12 @@
 package redis
 
 import (
-	"github.com/go-redis/redis/internal"
 	"github.com/go-redis/redis/internal/pool"
+	"github.com/go-redis/redis/internal/proto"
 )
 
 // TxFailedErr transaction redis failed.
-const TxFailedErr = internal.RedisError("redis: transaction failed")
+const TxFailedErr = proto.RedisError("redis: transaction failed")
 
 // Tx implements Redis transactions as described in
 // http://redis.io/topics/transactions. It's NOT safe for concurrent use

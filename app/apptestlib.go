@@ -11,9 +11,8 @@ import (
 	"path/filepath"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
@@ -30,6 +29,8 @@ type TestHelper struct {
 	BasicUser2   *model.User
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
+
+	SystemAdminUser *model.User
 
 	tempConfigPath string
 	tempWorkspace  string
@@ -109,6 +110,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	th.App.DoAdvancedPermissionsMigration()
+	th.App.DoEmojisPermissionsMigration()
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
@@ -143,6 +145,14 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	return me
 }
 
+func (me *TestHelper) InitSystemAdmin() *TestHelper {
+	me.SystemAdminUser = me.CreateUser()
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+
+	return me
+}
+
 func (me *TestHelper) MakeEmail() string {
 	return "success_" + model.NewId() + "@simulator.amazonses.com"
 }
@@ -159,8 +169,8 @@ func (me *TestHelper) CreateTeam() *model.Team {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if team, err = me.App.CreateTeam(team); err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -182,8 +192,8 @@ func (me *TestHelper) CreateUser() *model.User {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if user, err = me.App.CreateUser(user); err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -209,8 +219,45 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if channel, err = me.App.CreateChannel(channel, true); err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return channel
+}
+
+func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType, userId string) *model.Channel {
+	id := model.NewId()
+
+	channel := &model.Channel{
+		DisplayName: "dn_" + id,
+		Name:        "name_" + id,
+		Type:        channelType,
+		TeamId:      team.Id,
+		CreatorId:   userId,
+	}
+
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	if channel, err = me.App.CreateChannel(channel, true); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return channel
+}
+
+func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	var channel *model.Channel
+	if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -231,8 +278,8 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if post, err = me.App.CreatePost(post, channel, false); err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -245,8 +292,8 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 	err := me.App.JoinUserToTeam(team, user, "")
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -259,8 +306,8 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 
 	member, err := me.App.AddUserToChannel(user, channel)
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -268,6 +315,40 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 	utils.EnableDebugLogForTest()
 
 	return member
+}
+
+func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
+	utils.DisableDebugLogForTest()
+
+	scheme, err := me.App.CreateScheme(&model.Scheme{
+		DisplayName: "Test Scheme Display Name",
+		Name:        model.NewId(),
+		Description: "Test scheme description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	roleNames := []string{
+		scheme.DefaultTeamAdminRole,
+		scheme.DefaultTeamUserRole,
+		scheme.DefaultChannelAdminRole,
+		scheme.DefaultChannelUserRole,
+	}
+
+	var roles []*model.Role
+	for _, roleName := range roleNames {
+		role, err := me.App.GetRoleByName(roleName)
+		if err != nil {
+			panic(err)
+		}
+		roles = append(roles, role)
+	}
+
+	utils.EnableDebugLogForTest()
+
+	return scheme, roles
 }
 
 func (me *TestHelper) TearDown() {
@@ -290,6 +371,10 @@ func (s *mockPluginSupervisor) Start(api plugin.API) error {
 	return s.hooks.OnActivate(api)
 }
 
+func (s *mockPluginSupervisor) Wait() error {
+	return nil
+}
+
 func (s *mockPluginSupervisor) Stop() error {
 	return nil
 }
@@ -307,17 +392,6 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 		me.tempWorkspace = dir
 	}
 
-	pluginDir := filepath.Join(me.tempWorkspace, "plugins")
-	webappDir := filepath.Join(me.tempWorkspace, "webapp")
-	me.App.InitPlugins(pluginDir, webappDir, func(bundle *model.BundleInfo) (plugin.Supervisor, error) {
-		if hooks, ok := me.pluginHooks[bundle.Manifest.Id]; ok {
-			return &mockPluginSupervisor{hooks}, nil
-		}
-		return pluginenv.DefaultSupervisorProvider(bundle)
-	})
-
-	me.pluginHooks[manifest.Id] = hooks
-
 	manifestCopy := *manifest
 	if manifestCopy.Backend == nil {
 		manifestCopy.Backend = &model.ManifestBackend{}
@@ -327,6 +401,9 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 		panic(err)
 	}
 
+	pluginDir := filepath.Join(me.tempWorkspace, "plugins")
+	webappDir := filepath.Join(me.tempWorkspace, "webapp")
+
 	if err := os.MkdirAll(filepath.Join(pluginDir, manifest.Id), 0700); err != nil {
 		panic(err)
 	}
@@ -334,6 +411,15 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 	if err := ioutil.WriteFile(filepath.Join(pluginDir, manifest.Id, "plugin.json"), manifestBytes, 0600); err != nil {
 		panic(err)
 	}
+
+	me.App.InitPlugins(pluginDir, webappDir, func(bundle *model.BundleInfo) (plugin.Supervisor, error) {
+		if hooks, ok := me.pluginHooks[bundle.Manifest.Id]; ok {
+			return &mockPluginSupervisor{hooks}, nil
+		}
+		return pluginenv.DefaultSupervisorProvider(bundle)
+	})
+
+	me.pluginHooks[manifest.Id] = hooks
 }
 
 func (me *TestHelper) ResetRoleMigration() {
@@ -344,6 +430,18 @@ func (me *TestHelper) ResetRoleMigration() {
 	testClusterInterface.sendClearRoleCacheMessage()
 
 	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+		panic(err)
+	}
+}
+
+func (me *TestHelper) ResetEmojisMigration() {
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
+		panic(err)
+	}
+
+	testClusterInterface.sendClearRoleCacheMessage()
+
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }
@@ -368,6 +466,9 @@ func (me *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model
 }
 func (me *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return []string{}, nil
+}
+func (me *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	return nil, nil
 }
 func (me *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil

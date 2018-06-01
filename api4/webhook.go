@@ -4,16 +4,9 @@
 package api4
 
 import (
-	"io"
 	"net/http"
-	"strings"
 
-	l4g "github.com/alecthomas/log4go"
-
-	"github.com/gorilla/mux"
-	"github.com/gorilla/schema"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitWebhook() {
@@ -29,12 +22,6 @@ func (api *API) InitWebhook() {
 	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
 	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
 	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
-
-	api.BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", api.ApiHandler(commandWebhook)).Methods("POST")
-	api.BaseRoutes.Root.Handle("/hooks/{id:[A-Za-z0-9]+}", api.ApiHandler(incomingWebhook)).Methods("POST")
-
-	// Old endpoint for backwards compatibility
-	api.BaseRoutes.Root.Handle("/api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks/{id:[A-Za-z0-9]+}", api.ApiHandler(incomingWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -454,79 +441,4 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	ReturnStatusOK(w)
-}
-
-func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-
-	r.ParseForm()
-
-	var err *model.AppError
-	incomingWebhookPayload := &model.IncomingWebhookRequest{}
-	contentType := r.Header.Get("Content-Type")
-	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
-		payload := strings.NewReader(r.FormValue("payload"))
-
-		incomingWebhookPayload, err = decodePayload(payload)
-		if err != nil {
-			c.Err = err
-			return
-		}
-	} else if strings.HasPrefix(contentType, "multipart/form-data") {
-		r.ParseMultipartForm(0)
-
-		decoder := schema.NewDecoder()
-		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
-
-		if err != nil {
-			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, err.Error(), http.StatusBadRequest)
-			return
-		}
-	} else {
-		incomingWebhookPayload, err = decodePayload(r.Body)
-		if err != nil {
-			c.Err = err
-			return
-		}
-	}
-
-	if *c.App.Config().LogSettings.EnableWebhookDebugging {
-		l4g.Debug(utils.T("api.webhook.incoming.debug"), incomingWebhookPayload.ToJson())
-	}
-
-	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
-}
-
-func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-
-	response := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
-
-	err := c.App.HandleCommandWebhook(id, response)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
-}
-
-func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, *model.AppError) {
-	incomingWebhookPayload, decodeError := model.IncomingWebhookRequestFromJson(payload)
-
-	if decodeError != nil {
-		return nil, decodeError
-	}
-
-	return incomingWebhookPayload, nil
 }

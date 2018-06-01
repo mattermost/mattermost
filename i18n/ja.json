@@ -216,6 +216,14 @@
     "translation": "このチャンネルは非公開チャンネルに変更されました。"
   },
   {
+    "id": "api.channel.convert_channel_to_private.default_channel_error",
+    "translation": "このデフォルトチャンネルは非公開チャンネルに変更できません。"
+  },
+  {
+    "id": "api.channel.convert_channel_to_private.private_channel_error",
+    "translation": "変更しようとしているチャンネルはすでに非公開チャンネルです。"
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "ダイレクトメッセージチャンネルを作成するにはcreateDirectChannel APIを使用してください"
   },
@@ -330,18 +338,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v がチャンネルから脱退しました。"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.create_post.error",
-    "translation": "チャンネル変更を非公開メッセージとして投稿できませんでした"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.retrieve_user.error",
-    "translation": "公開チャンネルを非公開チャンネルに変更する際にユーザーを取得できませんでした"
-  },
-  {
-    "id": "api.channel.post_convert_channel_to_private.updated_from",
-    "translation": "%s がチャンネルを公開から非公開に変更しました"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -517,11 +513,11 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "離席状態に設定します"
+    "translation": "離席状態に設定する"
   },
   {
     "id": "api.command_away.name",
-    "translation": "離席"
+    "translation": "離席中"
   },
   {
     "id": "api.command_away.success",
@@ -637,7 +633,7 @@
   },
   {
     "id": "api.command_code.desc",
-    "translation": "テキストをコードブロックとして表示します"
+    "translation": "テキストをコードブロックとして表示する"
   },
   {
     "id": "api.command_code.hint",
@@ -653,7 +649,7 @@
   },
   {
     "id": "api.command_collapse.desc",
-    "translation": "画像プレビューの自動折りたたみをオンにします"
+    "translation": "画像プレビューの自動折りたたみをオンにする"
   },
   {
     "id": "api.command_collapse.name",
@@ -713,7 +709,7 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "画像プレビューの自動折りたたみをオフにします"
+    "translation": "画像プレビューの自動折りたたみをオフにする"
   },
   {
     "id": "api.command_expand.name",
@@ -787,6 +783,58 @@
     "translation": "ヘルプ"
   },
   {
+    "id": "api.command_invite.channel.app_error",
+    "translation": "現在のチャンネルを取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "チャンネル {{.Channel}} が見つかりませんでした。チャンネルの指定には[チャンネルのハンドル名](https://about.mattermost.com/default-channel-handle-documentation)を使用してください"
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "ユーザーをチャンネルに招待する"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "ダイレクトメッセージチャンネルにメンバーを追加できません。"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "チャンネルに参加する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[ユーザー名] ~[チャンネル]"
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "ユーザー名とチャンネルが存在しません。"
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "ユーザーが見付かりませんでした。"
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "招待"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "{{.User}} を {{.Channel}} に追加する権限がありません。"
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "チャンネル {{.Channel}} が見つかりませんでした。チャンネルの指定にはチャンネルのハンドル名を使用してください。"
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} がチャンネル {{.Channel}} に追加されました。"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": "{{.User}} は既にチャンネルに追加されています。"
+  },
+  {
     "id": "api.command_join.desc",
     "translation": "公開されているチャンネルに参加する"
   },
@@ -796,7 +844,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "[チャンネル名]"
+    "translation": "~[チャンネル]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -900,19 +948,27 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "現在のチャンネルか指定された [チャンネル] のデスクトップ、電子メール、プッシュ通知をオフにします"
+    "translation": "現在のチャンネル、もしくは指定された [チャンネル] のデスクトップ、電子メール、プッシュ通知をオフにする。"
   },
   {
     "id": "api.command_mute.error",
-    "translation": "チャンネル {{.Channel}} が見つかりませんでした。"
+    "translation": "チャンネル {{.Channel}} が見つかりませんでした。チャンネルの指定には[チャンネルのハンドル名](https://about.mattermost.com/default-channel-handle-documentation)を使用してください"
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "[チャンネル]"
+    "translation": "~[チャンネル]"
   },
   {
     "id": "api.command_mute.name",
     "translation": "ミュート"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "指定したチャンネルが見つかりませんでした。チャンネルの指定には[チャンネルのハンドル名](https://about.mattermost.com/default-channel-handle-documentation)を使用してください"
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "あなたはメンバーではないため、チャンネル {{.Channel}} をミュートできません。"
   },
   {
     "id": "api.command_mute.success_mute",
@@ -924,15 +980,15 @@
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} のミュートはオフになっています。"
+    "translation": "{{.Channel}} はミュートされていません。"
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
-    "translation": "このチャンネルのミュートはオフになっています。"
+    "translation": "このチャンネルはミュートされていません。"
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "オフライン状態に設定します"
+    "translation": "オフライン状態に設定する"
   },
   {
     "id": "api.command_offline.name",
@@ -944,7 +1000,7 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "オンライン状態に設定します"
+    "translation": "オンライン状態に設定する"
   },
   {
     "id": "api.command_online.name",
@@ -1697,20 +1753,12 @@
     "translation": "multipart/formリクエストにファイルが存在しません"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "彼らを非公開チャンネルに追加する"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "彼らをチャンネルに追加する"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} と @{{.LastUsername}} についての投稿が行われましたが、彼らはチャンネルにいません。{{.Phrase}}しますか? 彼らは全てのメッセージ履歴にアクセスできるようになります。"
+    "translation": "@{{.Usernames}}と@{{.LastUsername}}についての投稿が行われましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} についての投稿が行われましたが、彼らはチャンネルにいません。{{.Phrase}}しますか?彼らは全てのメッセージにアクセスできるようになります。"
+    "translation": "@{{.Usernames}}についての投稿が行われましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -2391,6 +2439,10 @@
     "translation": "チーム%vを完全に削除しました id=%v"
   },
   {
+    "id": "api.team.remove_team_icon.get_team.app_error",
+    "translation": "チームの取得中にエラーが発生しました"
+  },
+  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "ユーザーはこのチームの一員ではありません。"
   },
@@ -2447,6 +2499,10 @@
     "translation": "電子メールによるチームへの利用登録は無効です。"
   },
   {
+    "id": "api.team.team_icon.update.app_error",
+    "translation": "チームアイコンの取得中にエラーが発生しました"
+  },
+  {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "指定されたユーザーは指定されたチームに所属していません。"
   },
@@ -2457,6 +2513,18 @@
   {
     "id": "api.templates.channel_name.group",
     "translation": "グループメッセージ"
+  },
+  {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -2803,12 +2871,12 @@
     "translation": "デフォルトのチャンネルへの参加に問題が発生しました user_id=%s, team_id=%s, err=%v"
   },
   {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "クエリデータのハッシュ、もしくはURLが見つかりません。"
-  },
-  {
     "id": "api.user.create_user.missing_invite_id.app_error",
     "translation": "招待IDが存在しません。"
+  },
+  {
+    "id": "api.user.create_user.missing_token.app_error",
+    "translation": "トークンが存在しません。"
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2857,6 +2925,10 @@
   {
     "id": "api.user.get_me.getting.error",
     "translation": "id=%vのユーザーのプロフィールを取得できません。強制的にログアウトします"
+  },
+  {
+    "id": "api.user.get_profile_image.not_found.app_error",
+    "translation": "ユーザーが見付からないため、プロフィール画像を取得できませんでした。"
   },
   {
     "id": "api.user.init.debug",
@@ -2912,7 +2984,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "AD/LDAPはこのサーバーでは有効ではありません"
+    "translation": "AD/LDAPはこのサーバーでは有効化されていません"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2963,6 +3035,10 @@
     "translation": "SAML 2.0 は、このサーバーでは設定されていないかサポートされていません。"
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "電子メールアドレス変更通知の電子メールを送信できませんでした"
   },
@@ -3009,6 +3085,10 @@
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "シングルサインオンアカウントのアクティベーション状態を変更することはできません。シングルサインオンサーバーを通じて変更してください。"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3249,6 +3329,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "不正な{{.Name}}パラメーターです"
+  },
+  {
+    "id": "app.admin.test_email.failure",
+    "translation": "接続できませんでした: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3655,10 +3739,6 @@
     "translation": "ユーザーのコメント通知トリガーの設定が不正です。"
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "ユーザーのデスクトップ通知持続時間の設定値が不正です。"
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "ユーザーのデスクトップ通知の設定値が不正です。"
   },
@@ -3716,7 +3796,15 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "{{.SenderName}} からの新しいダイレクトメッセージがあります"
+    "translation": "@{{.SenderName}} からの新しいダイレクトメッセージがあります"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.full",
+    "translation": "新しいグループメッセージがあります。"
+  },
+  {
+    "id": "app.notification.body.intro.group_message.generic",
+    "translation": "@{{.SenderName}} からの新しいグループメッセージがあります"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3724,19 +3812,27 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "{{.SenderName}} からの新しい通知があります"
+    "translation": "@{{.SenderName}} からの新しい通知があります"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
     "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
+    "id": "app.notification.body.text.group_message.full",
+    "translation": "チャンネル: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
     "id": "app.notification.body.text.notification.full",
-    "translation": "チャンネル: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "チャンネル: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3744,7 +3840,15 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{ .SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.SenderDisplayName}} からの新しいダイレクトメッセージ"
+    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} @{{.SenderDisplayName}} からの新しいダイレクトメッセージ"
+  },
+  {
+    "id": "app.notification.subject.group_message.full",
+    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{.ChannelName}}の新しいグループメッセージ"
+  },
+  {
+    "id": "app.notification.subject.group_message.generic",
+    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} 新しいグループメッセージ"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3752,7 +3856,7 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "抽出されたプラグインを有効化できませんでした。プラグインが既に存在し、有効化されている可能性があります。"
+    "translation": "抽出されたプラグインを有効化できませんでした。"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3765,6 +3869,10 @@
   {
     "id": "app.plugin.deactivate.app_error",
     "translation": "プラグインを無効化できませんでした"
+  },
+  {
+    "id": "app.plugin.delete_plugin_status_state.app_error",
+    "translation": "プラグインステータスの状態を削除できませんでした。"
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3787,16 +3895,16 @@
     "translation": "有効なプラグインを取得できませんでした"
   },
   {
-    "id": "app.plugin.id_length.app_error",
-    "translation": "プラグインIDは{{.Max}}文字未満でなくてはなりません。"
-  },
-  {
     "id": "app.plugin.install.app_error",
     "translation": "プラグインをインストールできません。"
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "プラグインをインストールできません。同じIDを持つプラグインがすでにインストールされています。"
+  },
+  {
+    "id": "app.plugin.invalid_id.app_error",
+    "translation": "プラグインIDは {{.Min}} 文字以上 {{.Max}} 文字以下で、{{.Regex}}にマッチしなければなりません。"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3811,8 +3919,16 @@
     "translation": "プラグインはインストールされていません"
   },
   {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "パッケージング済みプラグインはインストールできません"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "プラグインを削除できませんでした"
+  },
+  {
+    "id": "app.plugin.set_plugin_status_state.app_error",
+    "translation": "プラスインステータスの状態を設定できませんでした。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -4116,7 +4232,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "このサーバーではElasticsearchによる検索は無効です。"
+    "translation": "このサーバーではElasticsearchによる検索は有効化されていません"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -4639,6 +4755,10 @@
     "translation": "不正なユーザーIDです"
   },
   {
+    "id": "model.client.command.parse.app_error",
+    "translation": "外部からのデータを解析できません"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "サーバーに接続中にエラーになりました"
   },
@@ -4705,6 +4825,10 @@
   {
     "id": "model.client.writer.app_error",
     "translation": "マルチパートリクエストを構築できませんでした"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "不正なIDです"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4944,19 +5068,23 @@
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "AD/LDAP項目 \"電子メール属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"電子メール属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "AD/LDAP項目 \"名前(ファーストネーム)の属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"名前(ファーストネーム)の属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "AD/LDAP項目 \"ID属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"ID属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "AD/LDAP項目 \"苗字(ラストネーム)の属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"苗字(ラストネーム)の属性\" は必須です。"
+  },
+  {
+    "id": "model.config.is_valid.ldap_login_id",
+    "translation": "AD/LDAP項目 \"ログインID属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -4984,7 +5112,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "AD/LDAP項目 \"ユーザー名の属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"ユーザー名の属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -5132,7 +5260,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "サイトURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
+    "translation": "サイトURLにhttp://またはhttps://で始まるURLを設定する必要があります"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -5719,10 +5847,6 @@
     "translation": "SqlStoreを閉じています"
   },
   {
-    "id": "store.sql.column_exists.critical",
-    "translation": "列が存在するか確認できませんでした %v"
-  },
-  {
     "id": "store.sql.column_exists_missing_driver.critical",
     "translation": "ドライバーがなかったので列が存在するか確認できませんでした"
   },
@@ -5751,10 +5875,6 @@
     "translation": "ドライバーが不足しているため列の作成ができませんでした"
   },
   {
-    "id": "store.sql.create_index.critical",
-    "translation": "インデックス%vが作成できませんでした"
-  },
-  {
     "id": "store.sql.create_index_missing_driver.critical",
     "translation": "ドライバーが不足しているためインデックスが作成できませんでした"
   },
@@ -5779,10 +5899,6 @@
     "translation": "列%vの最大長を取得できませんでした"
   },
   {
-    "id": "store.sql.open_conn.critical",
-    "translation": "SQL接続を開けませんでした: %v"
-  },
-  {
     "id": "store.sql.open_conn.panic",
     "translation": "SQL接続%vを開けませんでした"
   },
@@ -5803,10 +5919,6 @@
     "translation": "%vのデータベーススキーマのバージョンは古くなっています"
   },
   {
-    "id": "store.sql.schema_set.info",
-    "translation": "データベーススキーマはバージョン%vに設定されました"
-  },
-  {
     "id": "store.sql.schema_upgrade_attempt.warn",
     "translation": "データベーススキームのバージョンを%vにアップグレードしようとしています"
   },
@@ -5821,10 +5933,6 @@
   {
     "id": "store.sql.table_column_type.critical",
     "translation": "列%s(テーブル%s)のデータ形式を取得できません: %v"
-  },
-  {
-    "id": "store.sql.table_exists.critical",
-    "translation": "テーブルが存在するか確認できませんでした %v"
   },
   {
     "id": "store.sql.too_short_ciphertext",
@@ -5877,10 +5985,6 @@
   {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "チャンネルを削除できませんでした"
-  },
-  {
-    "id": "store.sql_channel.extra_updated.app_error",
-    "translation": "メンバーの最終更新時刻の更新に問題があります"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -6539,10 +6643,6 @@
     "translation": "設定を削除する際にエラーが発生しました"
   },
   {
-    "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "未使用のプリリリースの機能を削除しています"
-  },
-  {
     "id": "store.sql_preference.get.app_error",
     "translation": "設定を探す際にエラーが発生しました"
   },
@@ -6651,6 +6751,10 @@
     "translation": "役割を取得できませんでした"
   },
   {
+    "id": "store.sql_role.permanent_delete_all.app_error",
+    "translation": "すべての役割を完全に削除できませんでした"
+  },
+  {
     "id": "store.sql_role.save.insert.app_error",
     "translation": "新しい役割を保存できませんでした"
   },
@@ -6700,7 +6804,7 @@
   },
   {
     "id": "store.sql_session.save.cleanup.error",
-    "translation": "Saveにおけるセッションを クリーンアップできませんでした err=%v"
+    "translation": "保存する際のセッションをクリーンアップできませんでした err=%v"
   },
   {
     "id": "store.sql_session.save.existing.app_error",
@@ -6765,6 +6869,10 @@
   {
     "id": "store.sql_system.get_version.app_error",
     "translation": "データベースのバージョンを取得できませんでした"
+  },
+  {
+    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "translation": "システムテーブルのエントリーを完全に削除できませんでした"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -7336,7 +7444,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "通知の送信元電子メールアドレス設定が存在しないか不正です。"
+    "translation": "設定エラー \"送信元電子メールアドレス\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7352,7 +7460,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "通知の送信先電子メールアドレス設定が存在しないか不正です。"
+    "translation": "設定エラー \"宛先電子メールアドレス\""
   },
   {
     "id": "utils.mail.test.configured.error",
@@ -7449,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "チャンネルが見付かりません"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "このウェブフックは要求されたチャンネルに投稿する権限がありません"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",

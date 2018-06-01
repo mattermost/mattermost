@@ -4,10 +4,11 @@
 package sqlstore
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -223,7 +224,7 @@ func (me SqlSessionStore) AnalyticsSessionCount() store.StoreChannel {
 }
 
 func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
-	l4g.Debug("Cleaning up session store.")
+	mlog.Debug("Cleaning up session store.")
 
 	var query string
 	if me.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -236,13 +237,13 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 
 	for rowsAffected > 0 {
 		if sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize}); err != nil {
-			l4g.Error("Unable to cleanup session store. err=%v", err.Error())
+			mlog.Error(fmt.Sprintf("Unable to cleanup session store. err=%v", err.Error()))
 			return
 		} else {
 			var rowErr error
 			rowsAffected, rowErr = sqlResult.RowsAffected()
 			if rowErr != nil {
-				l4g.Error("Unable to cleanup session store. err=%v", err.Error())
+				mlog.Error(fmt.Sprintf("Unable to cleanup session store. err=%v", err.Error()))
 				return
 			}
 		}

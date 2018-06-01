@@ -7,7 +7,37 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
+
+func TestSessionDeepCopy(t *testing.T) {
+	sessionId := NewId()
+	userId := NewId()
+	mapKey := "key"
+	mapValue := "val"
+
+	session := &Session{Id: sessionId, Props: map[string]string{mapKey: mapValue}, TeamMembers: []*TeamMember{&TeamMember{UserId: userId, TeamId: "someteamId"}}}
+
+	copySession := session.DeepCopy()
+	copySession.Id = "changed"
+	copySession.Props[mapKey] = "changed"
+	copySession.TeamMembers[0].UserId = "changed"
+
+	assert.Equal(t, sessionId, session.Id)
+	assert.Equal(t, mapValue, session.Props[mapKey])
+	assert.Equal(t, userId, session.TeamMembers[0].UserId)
+
+	session = &Session{Id: sessionId}
+	copySession = session.DeepCopy()
+
+	assert.Equal(t, sessionId, session.Id)
+
+	session = &Session{TeamMembers: []*TeamMember{}}
+	copySession = session.DeepCopy()
+
+	assert.Equal(t, 0, len(copySession.TeamMembers))
+}
 
 func TestSessionJson(t *testing.T) {
 	session := Session{}

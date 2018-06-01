@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -17,7 +18,7 @@ import (
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServer(cfg); err != nil {
@@ -40,7 +41,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServerAdvanced(
@@ -90,7 +91,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
 
@@ -132,7 +133,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
 
@@ -154,8 +155,10 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	filePath2 := fmt.Sprintf("test2/%s", fileName)
 	fileContents1 := []byte("hello world")
 	fileContents2 := []byte("foo bar")
-	assert.Nil(t, fileBackend.WriteFile(fileContents1, filePath1))
-	assert.Nil(t, fileBackend.WriteFile(fileContents2, filePath2))
+	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents1), filePath1)
+	assert.Nil(t, err)
+	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents2), filePath2)
+	assert.Nil(t, err)
 	defer fileBackend.RemoveFile(filePath1)
 	defer fileBackend.RemoveFile(filePath2)
 

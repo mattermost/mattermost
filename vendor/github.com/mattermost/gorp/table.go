@@ -87,12 +87,29 @@ func (t *TableMap) SetUniqueTogether(fieldNames ...string) *TableMap {
 			"gorp: SetUniqueTogether: must provide at least two fieldNames to set uniqueness constraint."))
 	}
 
-	columns := make([]string, 0)
+	columns := make([]string, 0, len(fieldNames))
 	for _, name := range fieldNames {
 		columns = append(columns, name)
 	}
-	t.uniqueTogether = append(t.uniqueTogether, columns)
-	t.ResetSql()
+
+	alreadyExists := false
+checkDuplicates:
+	for _, existingColumns := range t.uniqueTogether {
+		if len(existingColumns) == len(columns) {
+			for i := range columns {
+				if existingColumns[i] != columns[i] {
+					continue checkDuplicates
+				}
+			}
+
+			alreadyExists = true
+			break checkDuplicates
+		}
+	}
+	if !alreadyExists {
+		t.uniqueTogether = append(t.uniqueTogether, columns)
+		t.ResetSql()
+	}
 
 	return t
 }

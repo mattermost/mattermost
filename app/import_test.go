@@ -430,10 +430,6 @@ func TestImportValidateUserImportData(t *testing.T) {
 	checkError(t, validateUserImportData(&data))
 
 	data.NotifyProps.Desktop = ptrStr(model.USER_NOTIFY_ALL)
-	data.NotifyProps.DesktopDuration = ptrStr("invalid")
-	checkError(t, validateUserImportData(&data))
-
-	data.NotifyProps.DesktopDuration = ptrStr("5")
 	data.NotifyProps.DesktopSound = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
@@ -1980,7 +1976,6 @@ func TestImportImportUser(t *testing.T) {
 	// Set Notify Props
 	data.NotifyProps = &UserNotifyPropsImportData{
 		Desktop:          ptrStr(model.USER_NOTIFY_ALL),
-		DesktopDuration:  ptrStr("5"),
 		DesktopSound:     ptrStr("true"),
 		Email:            ptrStr("true"),
 		Mobile:           ptrStr(model.USER_NOTIFY_ALL),
@@ -1999,7 +1994,6 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_ALL)
-	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "5")
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "true")
 	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "true")
 	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_ALL)
@@ -2011,7 +2005,6 @@ func TestImportImportUser(t *testing.T) {
 	// Change Notify Props
 	data.NotifyProps = &UserNotifyPropsImportData{
 		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
-		DesktopDuration:  ptrStr("3"),
 		DesktopSound:     ptrStr("false"),
 		Email:            ptrStr("false"),
 		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
@@ -2030,7 +2023,6 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
-	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "3")
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
@@ -2047,7 +2039,6 @@ func TestImportImportUser(t *testing.T) {
 	}
 	data.NotifyProps = &UserNotifyPropsImportData{
 		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
-		DesktopDuration:  ptrStr("3"),
 		DesktopSound:     ptrStr("false"),
 		Email:            ptrStr("false"),
 		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
@@ -2067,7 +2058,6 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
-	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "3")
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)

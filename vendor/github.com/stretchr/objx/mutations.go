@@ -5,7 +5,14 @@ package objx
 func (m Map) Exclude(exclude []string) Map {
 	excluded := make(Map)
 	for k, v := range m {
-		if !contains(exclude, k) {
+		var shouldInclude = true
+		for _, toExclude := range exclude {
+			if k == toExclude {
+				shouldInclude = false
+				break
+			}
+		}
+		if shouldInclude {
 			excluded[k] = v
 		}
 	}
@@ -14,11 +21,11 @@ func (m Map) Exclude(exclude []string) Map {
 
 // Copy creates a shallow copy of the Obj.
 func (m Map) Copy() Map {
-	copied := Map{}
+	copied := make(map[string]interface{})
 	for k, v := range m {
 		copied[k] = v
 	}
-	return copied
+	return New(copied)
 }
 
 // Merge blends the specified map with a copy of this map and returns the result.
@@ -45,12 +52,12 @@ func (m Map) MergeHere(merge Map) Map {
 // to change the keys and values as it goes. This method requires that
 // the wrapped object be a map[string]interface{}
 func (m Map) Transform(transformer func(key string, value interface{}) (string, interface{})) Map {
-	newMap := Map{}
+	newMap := make(map[string]interface{})
 	for k, v := range m {
 		modifiedKey, modifiedVal := transformer(k, v)
 		newMap[modifiedKey] = modifiedVal
 	}
-	return newMap
+	return New(newMap)
 }
 
 // TransformKeys builds a new map using the specified key mapping.
@@ -64,14 +71,4 @@ func (m Map) TransformKeys(mapping map[string]string) Map {
 		}
 		return key, value
 	})
-}
-
-// Checks if a string slice contains a string
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }

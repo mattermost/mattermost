@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -463,7 +463,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		err.Translate(c.T)
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 		if action == model.OAUTH_ACTION_MOBILE {
 			w.Write([]byte(err.ToJson()))
 		} else {
@@ -475,7 +475,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.CompleteOAuth(service, body, teamId, props)
 	if err != nil {
 		err.Translate(c.T)
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 		if action == model.OAUTH_ACTION_MOBILE {
 			w.Write([]byte(err.ToJson()))
 		} else {

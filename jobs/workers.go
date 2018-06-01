@@ -6,7 +6,7 @@ package jobs
 import (
 	"sync"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -20,6 +20,7 @@ type Workers struct {
 	ElasticsearchIndexing    model.Worker
 	ElasticsearchAggregation model.Worker
 	LdapSync                 model.Worker
+	Migrations               model.Worker
 
 	listenerId string
 }
@@ -50,11 +51,15 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.LdapSync = ldapSyncInterface.MakeWorker()
 	}
 
+	if migrationsInterface := srv.Migrations; migrationsInterface != nil {
+		workers.Migrations = migrationsInterface.MakeWorker()
+	}
+
 	return workers
 }
 
 func (workers *Workers) Start() *Workers {
-	l4g.Info("Starting workers")
+	mlog.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
 		if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
@@ -75,6 +80,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.LdapSync != nil && *workers.ConfigService.Config().LdapSettings.EnableSync {
 			go workers.LdapSync.Run()
+		}
+
+		if workers.Migrations != nil {
+			go workers.Migrations.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -152,7 +161,11 @@ func (workers *Workers) Stop() *Workers {
 		workers.LdapSync.Stop()
 	}
 
-	l4g.Info("Stopped workers")
+	if workers.Migrations != nil {
+		workers.Migrations.Stop()
+	}
+
+	mlog.Info("Stopped workers")
 
 	return workers
 }

@@ -6,8 +6,6 @@ package store
 import (
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -32,7 +30,7 @@ func Do(f func(result *StoreResult)) StoreChannel {
 func Must(sc StoreChannel) interface{} {
 	r := <-sc
 	if r.Err != nil {
-		l4g.Close()
+
 		time.Sleep(time.Second)
 		panic(r.Err)
 	}
@@ -62,6 +60,7 @@ type Store interface {
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
 	Role() RoleStore
+	Scheme() SchemeStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
@@ -105,6 +104,9 @@ type TeamStore interface {
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) StoreChannel
+	GetTeamsByScheme(schemeId string, offset int, limit int) StoreChannel
+	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
+	ResetAllTeamSchemes() StoreChannel
 }
 
 type ChannelStore interface {
@@ -162,6 +164,9 @@ type ChannelStore interface {
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
 	ClearCaches()
+	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
+	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
+	ResetAllChannelSchemes() StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -176,7 +181,7 @@ type PostStore interface {
 	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
 	Get(id string) StoreChannel
 	GetSingle(id string) StoreChannel
-	Delete(postId string, time int64) StoreChannel
+	Delete(postId string, time int64, deleteByID string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	PermanentDeleteByChannel(channelId string) StoreChannel
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
@@ -230,7 +235,7 @@ type UserStore interface {
 	GetByAuth(authData *string, authService string) StoreChannel
 	GetAllUsingAuthService(authService string) StoreChannel
 	GetByUsername(username string) StoreChannel
-	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel
+	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
@@ -322,6 +327,7 @@ type SystemStore interface {
 	Update(system *model.System) StoreChannel
 	Get() StoreChannel
 	GetByName(name string) StoreChannel
+	PermanentDeleteByName(name string) StoreChannel
 }
 
 type WebhookStore interface {
@@ -476,4 +482,14 @@ type RoleStore interface {
 	Get(roleId string) StoreChannel
 	GetByName(name string) StoreChannel
 	GetByNames(names []string) StoreChannel
+	Delete(roldId string) StoreChannel
+	PermanentDeleteAll() StoreChannel
+}
+
+type SchemeStore interface {
+	Save(scheme *model.Scheme) StoreChannel
+	Get(schemeId string) StoreChannel
+	GetAllPage(scope string, offset int, limit int) StoreChannel
+	Delete(schemeId string) StoreChannel
+	PermanentDeleteAll() StoreChannel
 }

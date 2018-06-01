@@ -9,9 +9,9 @@ import (
 
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/nicksnyder/go-i18n/i18n"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -270,22 +270,29 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": siteURL + "/" + team.Name})
 
+			token := model.NewToken(
+				TOKEN_TYPE_TEAM_INVITATION,
+				model.MapToJson(map[string]string{"teamId": team.Id, "email": invite}),
+			)
+
 			props := make(map[string]string)
 			props["email"] = invite
-			props["id"] = team.Id
 			props["display_name"] = team.DisplayName
 			props["name"] = team.Name
-			props["time"] = fmt.Sprintf("%v", model.GetMillis())
 			data := model.MapToJson(props)
-			hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, *a.Config().EmailSettings.InviteSalt))
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(hash))
 
-			if !*a.Config().EmailSettings.SendEmailNotifications {
-				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
+			if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
+				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", result.Err))
+				continue
+			}
+			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
+
+			if !a.Config().EmailSettings.SendEmailNotifications {
+				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
 			}
 
 			if err := a.SendMail(invite, subject, bodyPage.Render()); err != nil {
-				l4g.Error(utils.T("api.team.invite_members.send.error"), err)
+				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
 			}
 		}
 	}
@@ -313,6 +320,28 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 		map[string]interface{}{"SupportEmail": *a.Config().SupportSettings.SupportEmail, "SiteName": a.Config().TeamSettings.SiteName})
 
 	return t
+}
+
+func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+
+	rawUrl, _ := url.Parse(siteURL)
+
+	subject := T("api.templates.deactivate_subject",
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
+			"ServerURL": rawUrl.Host})
+
+	bodyPage := a.NewEmailTemplate("deactivate_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.deactivate_body.title", map[string]interface{}{"ServerURL": rawUrl.Host})
+	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.deactivate_body.info",
+		map[string]interface{}{"SiteURL": siteURL})
+
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendDeactivateEmail", "api.user.send_deactivate_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {

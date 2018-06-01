@@ -1,6 +1,6 @@
 {
     "ServiceSettings": {
-        "SiteURL": "http://localhost:8065",
+        "SiteURL": "",
         "WebsocketURL": "",
         "LicenseFileLocation": "",
         "ListenAddress": ":8065",
@@ -62,7 +62,8 @@
         "ExperimentalGroupUnreadChannels": "disabled",
         "ImageProxyType": "",
         "ImageProxyOptions": "",
-        "ImageProxyURL": ""
+        "ImageProxyURL": "",
+        "EnableAPITeamDeletion": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -70,6 +71,7 @@
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
         "EnableOpenServer": false,
+        "EnableUserDeactivation": false,
         "RestrictCreationToDomains": "",
         "EnableCustomBrand": false,
         "CustomBrandText": "",
@@ -89,10 +91,13 @@
         "MaxNotificationsPerChannel": 1000,
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
+        "ExperimentalEnableAutomaticReplies": false,
+        "ExperimentalHideTownSquareinLHS": false,
         "ExperimentalTownSquareIsReadOnly": false,
         "ExperimentalPrimaryTeam": ""
     },
     "DisplaySettings": {
+        "CustomUrlSchemes": [],
         "ExperimentalTimezone": false
     },
     "ClientRequirements": {
@@ -117,9 +122,10 @@
     "LogSettings": {
         "EnableConsole": true,
         "ConsoleLevel": "DEBUG",
+        "ConsoleJson": true,
         "EnableFile": true,
         "FileLevel": "INFO",
-        "FileFormat": "",
+        "FileJson": true,
         "FileLocation": "",
         "EnableWebhookDebugging": true,
         "EnableDiagnostics": true
@@ -174,6 +180,7 @@
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,
+        "EnablePreviewModeBanner": true,
         "SkipServerCertificateVerification": false,
         "EmailNotificationContentsType": "full",
         "LoginButtonColor": "#0000",
@@ -261,6 +268,7 @@
         "NicknameAttribute": "",
         "IdAttribute": "",
         "PositionAttribute": "",
+        "LoginIdAttribute": "",
         "SyncIntervalMinutes": 60,
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
@@ -318,7 +326,10 @@
         "UseExperimentalGossip": false,
         "ReadOnlyConfig": true,
         "GossipPort": 8074,
-        "StreamingPort": 8075
+        "StreamingPort": 8075,
+        "MaxIdleConns": 100,
+        "MaxIdleConnsPerHost": 128,
+        "IdleConnTimeoutMilliseconds": 90000
     },
     "MetricsSettings": {
         "Enable": false,

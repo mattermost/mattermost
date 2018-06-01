@@ -4,12 +4,19 @@
 package api4
 
 import (
+	"encoding/base64"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
@@ -725,4 +732,410 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.DeauthorizeOAuthApp(rapp.Id)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestOAuthAccessToken(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	Client := th.Client
+
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
+	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+	oauthApp = Client.Must(Client.CreateOAuthApp(oauthApp)).(*model.OAuthApp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
+
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Log(resp.StatusCode)
+		t.Fatal("should have failed - oauth providing turned off")
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
+		ClientId:     oauthApp.Id,
+		RedirectUri:  oauthApp.CallbackUrls[0],
+		Scope:        "all",
+		State:        "123",
+	}
+
+	redirect, resp := Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+	rurl, _ := url.Parse(redirect)
+
+	Client.Logout()
+
+	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
+
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - bad grant type")
+	}
+
+	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
+	data.Set("client_id", "")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - missing client id")
+	}
+	data.Set("client_id", "junk")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - bad client id")
+	}
+
+	data.Set("client_id", oauthApp.Id)
+	data.Set("client_secret", "")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - missing client secret")
+	}
+
+	data.Set("client_secret", "junk")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - bad client secret")
+	}
+
+	data.Set("client_secret", oauthApp.ClientSecret)
+	data.Set("code", "")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - missing code")
+	}
+
+	data.Set("code", "junk")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - bad code")
+	}
+
+	data.Set("code", rurl.Query().Get("code"))
+	data.Set("redirect_uri", "junk")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - non-matching redirect uri")
+	}
+
+	// reset data for successful request
+	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
+	data.Set("client_id", oauthApp.Id)
+	data.Set("client_secret", oauthApp.ClientSecret)
+	data.Set("code", rurl.Query().Get("code"))
+	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
+
+	token := ""
+	refreshToken := ""
+	if rsp, resp := Client.GetOAuthAccessToken(data); resp.Error != nil {
+		t.Fatal(resp.Error)
+	} else {
+		if len(rsp.AccessToken) == 0 {
+			t.Fatal("access token not returned")
+		} else if len(rsp.RefreshToken) == 0 {
+			t.Fatal("refresh token not returned")
+		} else {
+			token = rsp.AccessToken
+			refreshToken = rsp.RefreshToken
+		}
+		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
+			t.Fatal("access token type incorrect")
+		}
+	}
+
+	if _, err := Client.DoApiGet("/users?page=0&per_page=100&access_token="+token, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, resp := Client.GetUsers(0, 100, ""); resp.Error == nil {
+		t.Fatal("should have failed - no access token provided")
+	}
+
+	if _, resp := Client.GetUsers(0, 100, ""); resp.Error == nil {
+		t.Fatal("should have failed - bad access token provided")
+	}
+
+	Client.SetOAuthToken(token)
+	if users, resp := Client.GetUsers(0, 100, ""); resp.Error != nil {
+		t.Fatal(resp.Error)
+	} else {
+		if len(users) == 0 {
+			t.Fatal("users empty - did not get results correctly")
+		}
+	}
+
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("should have failed - tried to reuse auth code")
+	}
+
+	data.Set("grant_type", model.REFRESH_TOKEN_GRANT_TYPE)
+	data.Set("client_id", oauthApp.Id)
+	data.Set("client_secret", oauthApp.ClientSecret)
+	data.Set("refresh_token", "")
+	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
+	data.Del("code")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("Should have failed - refresh token empty")
+	}
+
+	data.Set("refresh_token", refreshToken)
+	if rsp, resp := Client.GetOAuthAccessToken(data); resp.Error != nil {
+		t.Fatal(resp.Error)
+	} else {
+		if len(rsp.AccessToken) == 0 {
+			t.Fatal("access token not returned")
+		} else if len(rsp.RefreshToken) == 0 {
+			t.Fatal("refresh token not returned")
+		} else if rsp.RefreshToken == refreshToken {
+			t.Fatal("refresh token did not update")
+		}
+
+		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
+			t.Fatal("access token type incorrect")
+		}
+		Client.SetOAuthToken(rsp.AccessToken)
+		_, resp = Client.GetMe("")
+		if resp.Error != nil {
+			t.Fatal(resp.Error)
+		}
+
+		data.Set("refresh_token", rsp.RefreshToken)
+	}
+
+	if rsp, resp := Client.GetOAuthAccessToken(data); resp.Error != nil {
+		t.Fatal(resp.Error)
+	} else {
+		if len(rsp.AccessToken) == 0 {
+			t.Fatal("access token not returned")
+		} else if len(rsp.RefreshToken) == 0 {
+			t.Fatal("refresh token not returned")
+		} else if rsp.RefreshToken == refreshToken {
+			t.Fatal("refresh token did not update")
+		}
+
+		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
+			t.Fatal("access token type incorrect")
+		}
+		Client.SetOAuthToken(rsp.AccessToken)
+		_, resp = Client.GetMe("")
+		if resp.Error != nil {
+			t.Fatal(resp.Error)
+		}
+	}
+
+	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
+	<-th.App.Srv.Store.OAuth().SaveAuthData(authData)
+
+	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
+	data.Set("client_id", oauthApp.Id)
+	data.Set("client_secret", oauthApp.ClientSecret)
+	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
+	data.Set("code", authData.Code)
+	data.Del("refresh_token")
+	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
+		t.Fatal("Should have failed - code is expired")
+	}
+
+	Client.ClearOAuthToken()
+}
+
+func TestOAuthComplete(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	Client := th.Client
+
+	r, err := HttpGet(Client.Url+"/login/gitlab/complete?code=123", Client.HttpClient, "", true)
+	assert.NotNil(t, err)
+	closeBody(r)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
+	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state=!#$#F@#Yˆ&~ñ", Client.HttpClient, "", true)
+	assert.NotNil(t, err)
+	closeBody(r)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = model.NewId() })
+
+	stateProps := map[string]string{}
+	stateProps["action"] = model.OAUTH_ACTION_LOGIN
+	stateProps["team_id"] = th.BasicTeam.Id
+	stateProps["redirect_to"] = th.App.Config().GitLabSettings.AuthEndpoint
+
+	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true)
+	assert.NotNil(t, err)
+	closeBody(r)
+
+	stateProps["hash"] = utils.HashSha256(th.App.Config().GitLabSettings.Id)
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true)
+	assert.NotNil(t, err)
+	closeBody(r)
+
+	// We are going to use mattermost as the provider emulating gitlab
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
+	oauthApp := &model.OAuthApp{
+		Name:        "TestApp5" + model.NewId(),
+		Homepage:    "https://nowhere.com",
+		Description: "test",
+		CallbackUrls: []string{
+			Client.Url + "/signup/" + model.SERVICE_GITLAB + "/complete",
+			Client.Url + "/login/" + model.SERVICE_GITLAB + "/complete",
+		},
+		IsTrusted: true,
+	}
+	oauthApp = Client.Must(Client.CreateOAuthApp(oauthApp)).(*model.OAuthApp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = oauthApp.Id })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.TokenEndpoint = Client.Url + "/oauth/access_token" })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.UserApiEndpoint = Client.ApiUrl + "/users/me" })
+
+	provider := &MattermostTestProvider{}
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
+		ClientId:     oauthApp.Id,
+		RedirectUri:  oauthApp.CallbackUrls[0],
+		Scope:        "all",
+		State:        "123",
+	}
+
+	redirect, resp := Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+	rurl, _ := url.Parse(redirect)
+
+	code := rurl.Query().Get("code")
+	stateProps["action"] = model.OAUTH_ACTION_EMAIL_TO_SSO
+	delete(stateProps, "team_id")
+	stateProps["redirect_to"] = th.App.Config().GitLabSettings.AuthEndpoint
+	stateProps["hash"] = utils.HashSha256(th.App.Config().GitLabSettings.Id)
+	stateProps["redirect_to"] = "/oauth/authorize"
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {
+		closeBody(r)
+	}
+
+	einterfaces.RegisterOauthProvider(model.SERVICE_GITLAB, provider)
+
+	redirect, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+	rurl, _ = url.Parse(redirect)
+
+	code = rurl.Query().Get("code")
+	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {
+		closeBody(r)
+	}
+
+	if result := <-th.App.Srv.Store.User().UpdateAuthData(
+		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	redirect, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+	rurl, _ = url.Parse(redirect)
+
+	code = rurl.Query().Get("code")
+	stateProps["action"] = model.OAUTH_ACTION_LOGIN
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {
+		closeBody(r)
+	}
+
+	redirect, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+	rurl, _ = url.Parse(redirect)
+
+	code = rurl.Query().Get("code")
+	delete(stateProps, "action")
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {
+		closeBody(r)
+	}
+
+	redirect, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+	rurl, _ = url.Parse(redirect)
+
+	code = rurl.Query().Get("code")
+	stateProps["action"] = model.OAUTH_ACTION_SIGNUP
+	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {
+		closeBody(r)
+	}
+}
+
+func HttpGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, *model.AppError) {
+	rq, _ := http.NewRequest("GET", url, nil)
+	rq.Close = true
+
+	if len(authToken) > 0 {
+		rq.Header.Set(model.HEADER_AUTH, authToken)
+	}
+
+	if !followRedirect {
+		httpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
+
+	if rp, err := httpClient.Do(rq); err != nil {
+		return nil, model.NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
+	} else if rp.StatusCode == 304 {
+		return rp, nil
+	} else if rp.StatusCode == 307 {
+		return rp, nil
+	} else if rp.StatusCode >= 300 {
+		defer closeBody(rp)
+		return rp, model.AppErrorFromJson(rp.Body)
+	} else {
+		return rp, nil
+	}
+}
+
+func closeBody(r *http.Response) {
+	if r != nil && r.Body != nil {
+		ioutil.ReadAll(r.Body)
+		r.Body.Close()
+	}
+}
+
+type MattermostTestProvider struct {
+}
+
+func (m *MattermostTestProvider) GetIdentifier() string {
+	return model.SERVICE_GITLAB
+}
+
+func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) *model.User {
+	return model.UserFromJson(data)
+}
+
+func (m *MattermostTestProvider) GetAuthDataFromJson(data io.Reader) string {
+	authData := model.UserFromJson(data)
+	return authData.Email
 }

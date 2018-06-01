@@ -22,7 +22,6 @@ const (
 	USER_NOTIFY_NONE             = "none"
 	DESKTOP_NOTIFY_PROP          = "desktop"
 	DESKTOP_SOUND_NOTIFY_PROP    = "desktop_sound"
-	DESKTOP_DURATION_NOTIFY_PROP = "desktop_duration"
 	MARK_UNREAD_NOTIFY_PROP      = "mark_unread"
 	PUSH_NOTIFY_PROP             = "push"
 	PUSH_STATUS_NOTIFY_PROP      = "push_status"
@@ -94,6 +93,23 @@ type UserAuth struct {
 	Password    string  `json:"password,omitempty"`
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
+}
+
+func (u *User) DeepCopy() *User {
+	copyUser := *u
+	if u.AuthData != nil {
+		copyUser.AuthData = NewString(*u.AuthData)
+	}
+	if u.Props != nil {
+		copyUser.Props = CopyStringMap(u.Props)
+	}
+	if u.NotifyProps != nil {
+		copyUser.NotifyProps = CopyStringMap(u.NotifyProps)
+	}
+	if u.Timezone != nil {
+		copyUser.Timezone = CopyStringMap(u.Timezone)
+	}
+	return &copyUser
 }
 
 // IsValid validates the user and returns an error if it isn't configured

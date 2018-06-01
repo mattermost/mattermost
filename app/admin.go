@@ -13,7 +13,7 @@ import (
 
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -137,7 +137,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 }
 
 func (a *App) InvalidateAllCachesSkipSend() {
-	l4g.Info(utils.T("api.context.invalidate_all_caches"))
+	mlog.Info("Purging all caches")
 	a.sessionCache.Purge()
 	ClearStatusCache()
 	a.Srv.Store.Channel().ClearCaches()
@@ -154,6 +154,10 @@ func (a *App) GetConfig() *model.Config {
 	cfg.Sanitize()
 
 	return cfg
+}
+
+func (a *App) GetEnvironmentConfig() map[string]interface{} {
+	return a.EnvironmentConfig()
 }
 
 func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
@@ -205,7 +209,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
-	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
+	mlog.Warn("Attempting to recycle the database connection.")
 	a.Srv.Store = a.newStore()
 	a.Jobs.Store = a.Srv.Store
 
@@ -214,7 +218,7 @@ func (a *App) RecycleDatabaseConnection() {
 		oldStore.Close()
 	}
 
-	l4g.Warn(utils.T("api.admin.recycle_db_end.warn"))
+	mlog.Warn("Finished recycling the database connection.")
 }
 
 func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
@@ -239,7 +243,7 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 		T := utils.GetUserTranslations(user.Locale)
 		license := a.License()
 		if err := utils.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance); err != nil {
-			return err
+			return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 		}
 	}
 

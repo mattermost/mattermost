@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // NodesInfoService allows to retrieve one or more or all of the
 // cluster nodes information.
-// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.0/cluster-nodes-info.html.
+// It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/5.2/cluster-nodes-info.html.
 type NodesInfoService struct {
 	client       *Client
 	pretty       bool
@@ -89,7 +89,7 @@ func (s *NodesInfoService) buildURL() (string, url.Values, error) {
 		params.Set("human", fmt.Sprintf("%v", *s.human))
 	}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	return path, params, nil
 }
@@ -113,11 +113,7 @@ func (s *NodesInfoService) Do(ctx context.Context) (*NodesInfoResponse, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -153,6 +149,9 @@ type NodesInfoNode struct {
 	HTTPAddress string `json:"http_address"`
 	// HTTPSAddress, e.g. "127.0.0.1:9200"
 	HTTPSAddress string `json:"https_address"`
+
+	// Roles of the node, e.g. [master, ingest, data]
+	Roles []string `json:"roles"`
 
 	// Attributes of the node.
 	Attributes map[string]interface{} `json:"attributes"`

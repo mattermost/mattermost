@@ -4,10 +4,56 @@
 package model
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestConfigDefaults(t *testing.T) {
+	t.Parallel()
+
+	t.Run("somewhere nil when uninitialized", func(t *testing.T) {
+		c := Config{}
+		require.False(t, checkNowhereNil(t, "config", c))
+	})
+
+	t.Run("nowhere nil when initialized", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.True(t, checkNowhereNil(t, "config", c))
+	})
+
+	t.Run("nowhere nil when partially initialized", func(t *testing.T) {
+		var recursivelyUninitialize func(*Config, string, reflect.Value)
+		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
+			if v.Type().Kind() == reflect.Ptr {
+				// Set every pointer we find in the tree to nil
+				v.Set(reflect.Zero(v.Type()))
+				require.True(t, v.IsNil())
+
+				// SetDefaults on the root config should make it non-nil, otherwise
+				// it means that SetDefaults isn't being called recursively in
+				// all cases.
+				config.SetDefaults()
+				if assert.False(t, v.IsNil(), "%s should be non-nil after SetDefaults()", name) {
+					recursivelyUninitialize(config, fmt.Sprintf("(*%s)", name), v.Elem())
+				}
+
+			} else if v.Type().Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					recursivelyUninitialize(config, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), v.Field(i))
+				}
+			}
+		}
+
+		c := Config{}
+		c.SetDefaults()
+		recursivelyUninitialize(&c, "config", reflect.ValueOf(&c).Elem())
+	})
+}
 
 func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
@@ -389,4 +435,87 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *tes
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
+}
+
+func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
+	tests := []struct {
+		name  string
+		value []string
+		valid bool
+	}{
+		{
+			name:  "empty",
+			value: []string{},
+			valid: true,
+		},
+		{
+			name:  "custom protocol",
+			value: []string{"steam"},
+			valid: true,
+		},
+		{
+			name:  "multiple custom protocols",
+			value: []string{"bitcoin", "rss", "redis"},
+			valid: true,
+		},
+		{
+			name:  "containing numbers",
+			value: []string{"ut2004", "ts3server", "h323"},
+			valid: true,
+		},
+		{
+			name:  "containing period",
+			value: []string{"iris.beep"},
+			valid: true,
+		},
+		{
+			name:  "containing hyphen",
+			value: []string{"ms-excel"},
+			valid: true,
+		},
+		{
+			name:  "containing plus",
+			value: []string{"coap+tcp", "coap+ws"},
+			valid: true,
+		},
+		{
+			name:  "starting with number",
+			value: []string{"4four"},
+			valid: false,
+		},
+		{
+			name:  "starting with period",
+			value: []string{"data", ".dot"},
+			valid: false,
+		},
+		{
+			name:  "starting with hyphen",
+			value: []string{"-hyphen", "dns"},
+			valid: false,
+		},
+		{
+			name:  "invalid symbols",
+			value: []string{"!!fun!!"},
+			valid: false,
+		},
+		{
+			name:  "invalid letters",
+			value: []string{"école"},
+			valid: false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ds := &DisplaySettings{}
+			ds.SetDefaults()
+
+			ds.CustomUrlSchemes = &test.value
+
+			if err := ds.isValid(); err != nil && test.valid {
+				t.Error("Expected CustomUrlSchemes to be valid but got error:", err)
+			} else if err == nil && !test.valid {
+				t.Error("Expected CustomUrlSchemes to be invalid but got no error")
+			}
+		})
+	}
 }

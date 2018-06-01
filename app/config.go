@@ -17,8 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -28,6 +27,13 @@ func (a *App) Config() *model.Config {
 		return cfg.(*model.Config)
 	}
 	return &model.Config{}
+}
+
+func (a *App) EnvironmentConfig() map[string]interface{} {
+	if a.envConfig != nil {
+		return a.envConfig
+	}
+	return map[string]interface{}{}
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
@@ -46,17 +52,15 @@ func (a *App) PersistConfig() {
 func (a *App) LoadConfig(configFile string) *model.AppError {
 	old := a.Config()
 
-	cfg, configPath, err := utils.LoadConfig(configFile)
+	cfg, configPath, envConfig, err := utils.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
 
 	a.configFile = configPath
 
-	utils.ConfigureLog(&cfg.LogSettings)
-	l4g.Info("Using config file at %s", configPath)
-
 	a.config.Store(cfg)
+	a.envConfig = envConfig
 
 	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
 
@@ -93,7 +97,7 @@ func (a *App) EnableConfigWatch() {
 			a.ReloadConfig()
 		})
 		if err != nil {
-			l4g.Error(err)
+			mlog.Error(fmt.Sprint(err))
 		}
 		a.configWatcher = configWatcher
 	}

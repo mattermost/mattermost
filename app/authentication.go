@@ -36,10 +36,7 @@ func (tl TokenLocation) String() string {
 }
 
 func (a *App) IsPasswordValid(password string) *model.AppError {
-	if license := a.License(); license != nil && *license.Features.PasswordRequirements {
-		return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
-	}
-	return utils.IsPasswordValid(password)
+	return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
 }
 
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {

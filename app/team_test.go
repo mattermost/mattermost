@@ -105,6 +105,84 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 }
 
+func TestAddUserToTeamByToken(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ := th.App.CreateUser(&user)
+
+	t.Run("invalid token", func(t *testing.T) {
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, "123"); err == nil {
+			t.Fatal("Should fail on unexisting token")
+		}
+	})
+
+	t.Run("invalid token type", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_VERIFY_EMAIL,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
+			t.Fatal("Should fail on bad token type")
+		}
+	})
+
+	t.Run("expired token", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
+			t.Fatal("Should fail on expired token")
+		}
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": model.NewId()}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
+			t.Fatal("Should fail on bad team id")
+		}
+	})
+
+	t.Run("invalid user id", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.AddUserToTeamByToken(model.NewId(), token.Token); err == nil {
+			t.Fatal("Should fail on bad user id")
+		}
+	})
+
+	t.Run("valid request", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+			t.Fatal("The token must be deleted after be used")
+		}
+	})
+}
+
 func TestAddUserToTeamByTeamId(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -480,4 +558,22 @@ func TestJoinUserToTeam(t *testing.T) {
 			t.Fatal("Should fail")
 		}
 	})
+}
+
+func TestAppUpdateTeamScheme(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	team := th.BasicTeam
+	mockID := model.NewString("x")
+	team.SchemeId = mockID
+
+	updatedTeam, err := th.App.UpdateTeamScheme(th.BasicTeam)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updatedTeam.SchemeId != mockID {
+		t.Fatal("Wrong Team SchemeId")
+	}
 }

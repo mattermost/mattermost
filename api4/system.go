@@ -5,11 +5,12 @@ package api4
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"runtime"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -23,6 +24,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(updateConfig)).Methods("PUT")
 	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiSessionRequired(configReload)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/config/client", api.ApiHandler(getClientConfig)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/config/environment", api.ApiSessionRequired(getEnvironmentConfig)).Methods("GET")
 
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(addLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(removeLicense)).Methods("DELETE")
@@ -60,7 +62,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		rdata := map[string]string{}
 		rdata["status"] = "unhealthy"
 
-		l4g.Warn(utils.T("api.system.go_routines"), actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold)
+		mlog.Warn(fmt.Sprintf("The number of running goroutines is over the health threshold %v of %v", actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(model.MapToJson(rdata)))
@@ -228,7 +230,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		err.Where = "client"
 		c.LogError(err)
 	} else {
-		l4g.Debug(msg)
+		mlog.Debug(fmt.Sprint(msg))
 	}
 
 	m["message"] = msg
@@ -249,6 +251,18 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.MapToJson(c.App.ClientConfigWithComputed())))
+}
+
+func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	envConfig := c.App.GetEnvironmentConfig()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Write([]byte(model.StringInterfaceToJson(envConfig)))
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {

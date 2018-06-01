@@ -19,13 +19,14 @@ import (
 	"testing"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 
 	s3 "github.com/minio/minio-go"
@@ -119,10 +120,12 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	Init(th.App, th.App.Srv.Router, true)
+	Init(th.App, th.App.Srv.Router)
+	web.NewWeb(th.App, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 	th.App.DoAdvancedPermissionsMigration()
+	th.App.DoEmojisPermissionsMigration()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
@@ -156,13 +159,13 @@ func (me *TestHelper) TearDown() {
 		options := map[string]bool{}
 		options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 		if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
-			l4g.Error("Error tearing down test users")
+			mlog.Error("Error tearing down test users")
 		} else {
 			users := result.Data.([]*model.User)
 
 			for _, u := range users {
 				if err := me.App.PermanentDeleteUser(u); err != nil {
-					l4g.Error(err.Error())
+					mlog.Error(err.Error())
 				}
 			}
 		}
@@ -171,13 +174,13 @@ func (me *TestHelper) TearDown() {
 	go func() {
 		defer wg.Done()
 		if result := <-me.App.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
-			l4g.Error("Error tearing down test teams")
+			mlog.Error("Error tearing down test teams")
 		} else {
 			teams := result.Data.([]*model.Team)
 
 			for _, t := range teams {
 				if err := me.App.PermanentDeleteTeam(t); err != nil {
-					l4g.Error(err.Error())
+					mlog.Error(err.Error())
 				}
 			}
 		}
@@ -186,7 +189,7 @@ func (me *TestHelper) TearDown() {
 	go func() {
 		defer wg.Done()
 		if result := <-me.App.Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
-			l4g.Error("Error tearing down test oauth apps")
+			mlog.Error("Error tearing down test oauth apps")
 		} else {
 			apps := result.Data.([]*model.OAuthApp)
 
@@ -450,8 +453,8 @@ func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 
 	_, err := me.App.UpdateActive(user, active)
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -464,8 +467,8 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 	err := me.App.JoinUserToTeam(team, user, "")
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -478,8 +481,8 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 
 	member, err := me.App.AddUserToChannel(user, channel)
 	if err != nil {
-		l4g.Error(err.Error())
-		l4g.Close()
+		mlog.Error(err.Error())
+
 		time.Sleep(time.Second)
 		panic(err)
 	}
@@ -765,7 +768,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 
 	if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
 		cm := cmr.Data.(*model.ChannelMember)
-		cm.Roles = "channel_admin channel_user"
+		cm.SchemeAdmin = true
 		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
 			panic(sr.Err)
@@ -781,28 +784,42 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID}
-	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+	if tmr := <-me.App.Srv.Store.Team().GetMember(team.Id, user.Id); tmr.Err == nil {
+		tm := tmr.Data.(*model.TeamMember)
+		tm.SchemeAdmin = true
+		if sr := <-me.App.Srv.Store.Team().UpdateMember(tm); sr.Err != nil {
+			utils.EnableDebugLogForTest()
+			panic(sr.Err)
+		}
+	} else {
 		utils.EnableDebugLogForTest()
-		l4g.Error(tmr.Err.Error())
-		l4g.Close()
+		mlog.Error(tmr.Err.Error())
+
 		time.Sleep(time.Second)
 		panic(tmr.Err)
 	}
+
 	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID}
-	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+	if tmr := <-me.App.Srv.Store.Team().GetMember(team.Id, user.Id); tmr.Err == nil {
+		tm := tmr.Data.(*model.TeamMember)
+		tm.SchemeAdmin = false
+		if sr := <-me.App.Srv.Store.Team().UpdateMember(tm); sr.Err != nil {
+			utils.EnableDebugLogForTest()
+			panic(sr.Err)
+		}
+	} else {
 		utils.EnableDebugLogForTest()
-		l4g.Error(tmr.Err.Error())
-		l4g.Close()
+		mlog.Error(tmr.Err.Error())
+
 		time.Sleep(time.Second)
 		panic(tmr.Err)
 	}
+
 	utils.EnableDebugLogForTest()
 }
 

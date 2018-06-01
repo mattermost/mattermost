@@ -27,6 +27,9 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+// FParseErrWhitelist configures Flag parse errors to be ignored
+type FParseErrWhitelist flag.ParseErrorsWhitelist
+
 // Command is just that, a command for your application.
 // E.g.  'go run ...' - 'run' is the command. Cobra requires
 // you to define the usage and description as part of your command
@@ -136,6 +139,9 @@ type Command struct {
 
 	// TraverseChildren parses flags on all parents before executing child command.
 	TraverseChildren bool
+
+	//FParseErrWhitelist flag parse errors to be ignored
+	FParseErrWhitelist FParseErrWhitelist
 
 	// commands is the list of commands supported by this program.
 	commands []*Command
@@ -475,6 +481,9 @@ Loop:
 		s := args[0]
 		args = args[1:]
 		switch {
+		case s == "--":
+			// "--" terminates the flags
+			break Loop
 		case strings.HasPrefix(s, "--") && !strings.Contains(s, "=") && !hasNoOptDefVal(s[2:], flags):
 			// If '--flag arg' then
 			// delete arg from args.
@@ -1460,6 +1469,10 @@ func (c *Command) ParseFlags(args []string) error {
 	}
 	beforeErrorBufLen := c.flagErrorBuf.Len()
 	c.mergePersistentFlags()
+
+	//do it here after merging all flags and just before parse
+	c.Flags().ParseErrorsWhitelist = flag.ParseErrorsWhitelist(c.FParseErrWhitelist)
+
 	err := c.Flags().Parse(args)
 	// Print warnings if they occurred (e.g. deprecated flag messages).
 	if c.flagErrorBuf.Len()-beforeErrorBufLen > 0 && err == nil {

@@ -25,6 +25,7 @@ const (
 	POST_LEAVE_CHANNEL          = "system_leave_channel"
 	POST_JOIN_TEAM              = "system_join_team"
 	POST_LEAVE_TEAM             = "system_leave_team"
+	POST_AUTO_RESPONDER         = "system_auto_responder"
 	POST_ADD_REMOVE             = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL         = "system_add_to_channel"
 	POST_REMOVE_FROM_CHANNEL    = "system_remove_from_channel"
@@ -48,6 +49,8 @@ const (
 	POST_PROPS_MAX_USER_RUNES   = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
 	POST_CUSTOM_TYPE_PREFIX     = "custom_"
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
+	POST_PROPS_ADDED_USER_ID    = "addedUserId"
+	POST_PROPS_DELETE_BY        = "deleteBy"
 )
 
 type Post struct {
@@ -77,6 +80,11 @@ type Post struct {
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
+}
+
+type PostEphemeral struct {
+	UserID string `json:"user_id"`
+	Post   *Post  `json:"post"`
 }
 
 type PostPatch struct {
@@ -194,6 +202,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	case
 		POST_DEFAULT,
 		POST_JOIN_LEAVE,
+		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,
 		POST_JOIN_CHANNEL,
 		POST_LEAVE_CHANNEL,
@@ -428,6 +437,11 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 		copy.MessageSource = o.Message
 	}
 	return &copy
+}
+
+func (o *PostEphemeral) ToUnsanitizedJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced
