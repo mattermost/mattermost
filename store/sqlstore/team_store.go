@@ -440,8 +440,8 @@ func (s SqlTeamStore) AnalyticsTeamCount() store.StoreChannel {
 var TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 	SELECT
 		TeamMembers.*,
-		TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-		TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole
+		TeamScheme.DefaultTeamUserRole TeamSchemeDefaultUserRole,
+		TeamScheme.DefaultTeamAdminRole TeamSchemeDefaultAdminRole
 	FROM 
 		TeamMembers
 	LEFT JOIN

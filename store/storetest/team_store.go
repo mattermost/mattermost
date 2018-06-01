@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamStore(t *testing.T, ss store.Store) {
@@ -823,6 +824,37 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	if r := <-ss.Team().GetMember("", m1.UserId); r.Err == nil {
 		t.Fatal("empty team id - should have failed")
 	}
+
+	// Test with a custom team scheme.
+	s2 := &model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+	t.Log(s2)
+
+	t2 := store.Must(ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "z-z-z" + model.NewId() + "b",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s2.Id,
+	})).(*model.Team)
+
+	defer func() {
+		<-ss.Team().PermanentDelete(t2.Id)
+	}()
+
+	m2 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeUser: true}
+	store.Must(ss.Team().SaveMember(m2, -1))
+
+	r2 := <-ss.Team().GetMember(m2.TeamId, m2.UserId)
+	require.Nil(t, r2.Err)
+	m3 := r2.Data.(*model.TeamMember)
+	t.Log(m3)
+
+	assert.Equal(t, s2.DefaultTeamUserRole, m3.Roles)
 }
 
 func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
