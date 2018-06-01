@@ -44,8 +44,6 @@ const (
 	WEBSOCKET_EVENT_RESPONSE                = "response"
 	WEBSOCKET_EVENT_EMOJI_ADDED             = "emoji_added"
 	WEBSOCKET_EVENT_CHANNEL_VIEWED          = "channel_viewed"
-	WEBSOCKET_EVENT_PLUGIN_ACTIVATED        = "plugin_activated"        // EXPERIMENTAL - SUBJECT TO CHANGE
-	WEBSOCKET_EVENT_PLUGIN_DEACTIVATED      = "plugin_deactivated"      // EXPERIMENTAL - SUBJECT TO CHANGE
 	WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED = "plugin_statuses_changed" // EXPERIMENTAL - SUBJECT TO CHANGE
 	WEBSOCKET_EVENT_ROLE_UPDATED            = "role_updated"
 	WEBSOCKET_EVENT_LICENSE_CHANGED         = "license_changed"

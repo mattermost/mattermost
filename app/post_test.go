@@ -46,6 +46,8 @@ func TestUpdatePostEditAt(t *testing.T) {
 	} else if saved.EditAt == post.EditAt {
 		t.Fatal("should have updated post.EditAt when updating post message")
 	}
+
+	time.Sleep(time.Millisecond * 200)
 }
 
 func TestUpdatePostTimeLimit(t *testing.T) {

@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -104,17 +105,18 @@ type API interface {
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
-	// KeyValueStore returns an object for accessing the persistent key value storage.
-	KeyValueStore() KeyValueStore
-}
-
-type KeyValueStore interface {
 	// Set will store a key-value pair, unique per plugin.
-	Set(key string, value []byte) *model.AppError
+	KVSet(key string, value []byte) *model.AppError
 
 	// Get will retrieve a value based on the key. Returns nil for non-existent keys.
-	Get(key string) ([]byte, *model.AppError)
+	KVGet(key string) ([]byte, *model.AppError)
 
 	// Delete will remove a key-value pair. Returns nil for non-existent keys.
-	Delete(key string) *model.AppError
+	KVDelete(key string) *model.AppError
+}
+
+var Handshake = plugin.HandshakeConfig{
+	ProtocolVersion:  1,
+	MagicCookieKey:   "MATTERMOST_PLUGIN",
+	MagicCookieValue: "Securely message teams, anywhere.",
 }
