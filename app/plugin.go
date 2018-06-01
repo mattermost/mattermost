@@ -566,12 +566,7 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 		}),
 	}
 
-	if err := sandbox.CheckSupport(); err != nil {
-		a.IsPluginSandboxSupported = false
-		mlog.Warn("plugin sandboxing is not supported. plugins will run with the same access level as the server. See documentation to learn more: https://developers.mattermost.com/extend/plugins/security/", mlog.Err(err))
-	} else {
-		a.IsPluginSandboxSupported = true
-	}
+	a.IsPluginSandboxSupported = sandbox.CheckSupport() == nil
 
 	if supervisorOverride != nil {
 		options = append(options, pluginenv.SupervisorProvider(supervisorOverride))
