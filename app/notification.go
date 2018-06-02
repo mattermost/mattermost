@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -971,6 +971,7 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 			ret.MentionedUserIds[id] = true
 		}
 	}
+
 	checkForMention := func(word string) bool {
 		isMention := false
 
@@ -1000,51 +1001,71 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 
 		return isMention
 	}
+
+	var triggers []*regexp.Regexp
+	triggers = append(triggers, regexp.MustCompile(`@[0-9A-Za-z\.\-_]{1,21}[0-9A-Za-z]\.?`))
+
+	var keys []string
+	for key := range keywords {
+		keys = append(keys, key)
+	}
+
+	// Longer keyword takes precedence
+	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
+	for _, key := range keys {
+		re := regexp.MustCompile(`(?i:)` + key)
+		triggers = append(triggers, re)
+	}
+
 	processText := func(text string) {
-		for _, word := range strings.FieldsFunc(text, func(c rune) bool {
-			// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
-			return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
-		}) {
-			// skip word with format ':word:' with an assumption that it is an emoji format only
-			if word[0] == ':' && word[len(word)-1] == ':' {
-				continue
-			}
+		var mentions [][]int
+		for _, trigger := range triggers {
+			if indices := trigger.FindAllStringIndex(text, -1); indices != nil {
+				alreadyMentioned := false
 
-			word = strings.TrimLeft(word, ":.-_")
+				for _, i := range indices {
+					s := i[0]
+					e := i[1]
 
-			if checkForMention(word) {
-				continue
-			}
-
-			foundWithoutSuffix := false
-			wordWithoutSuffix := word
-			for strings.LastIndexAny(wordWithoutSuffix, ".-:_") != -1 {
-				wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
-
-				if checkForMention(wordWithoutSuffix) {
-					foundWithoutSuffix = true
-					break
-				}
-			}
-
-			if foundWithoutSuffix {
-				continue
-			}
-
-			if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-				ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, word[1:])
-			} else if strings.ContainsAny(word, ".-:") {
-				// This word contains a character that may be the end of a sentence, so split further
-				splitWords := strings.FieldsFunc(word, func(c rune) bool {
-					return c == '.' || c == '-' || c == ':'
-				})
-
-				for _, splitWord := range splitWords {
-					if checkForMention(splitWord) {
-						continue
+					if s > 0 && e < len(text) {
+						// skip word that is surrounded by ':' with an assumption that it is an emoji format only
+						if text[s-1] == ':' && text[e] == ':' {
+							continue
+						}
 					}
-					if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, splitWord[1:])
+
+					// if found within another mention, skip it
+					for _, x := range mentions {
+						if s >= x[0] && e <= x[1] {
+							alreadyMentioned = true
+							break
+						}
+					}
+
+					if !alreadyMentioned {
+						word := text[s:e]
+
+						if checkForMention(word) {
+							mentions = append(mentions, i)
+						} else {
+							// remove trailing '.' or ':' , as that is the end of a sentence
+							foundWithSuffix := false
+							for _, suffixPunctuation := range []string{".", ":"} {
+								if strings.HasSuffix(word, suffixPunctuation) {
+									word = strings.TrimSuffix(word, suffixPunctuation)
+									if checkForMention(word) {
+										foundWithSuffix = true
+										break
+									}
+								}
+							}
+
+							if !foundWithSuffix {
+								if _, ok := systemMentions[word]; !ok {
+									ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, word[1:])
+								}
+							}
+						}
 					}
 				}
 			}
