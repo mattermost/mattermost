@@ -53,7 +53,6 @@ type App struct {
 	Jobs *jobs.JobServer
 
 	AccountMigration einterfaces.AccountMigrationInterface
-	Brand            einterfaces.BrandInterface
 	Cluster          einterfaces.ClusterInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
@@ -258,12 +257,6 @@ func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigration
 	accountMigrationInterface = f
 }
 
-var brandInterface func(*App) einterfaces.BrandInterface
-
-func RegisterBrandInterface(f func(*App) einterfaces.BrandInterface) {
-	brandInterface = f
-}
-
 var clusterInterface func(*App) einterfaces.ClusterInterface
 
 func RegisterClusterInterface(f func(*App) einterfaces.ClusterInterface) {
@@ -357,9 +350,6 @@ func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
 func (a *App) initEnterprise() {
 	if accountMigrationInterface != nil {
 		a.AccountMigration = accountMigrationInterface(a)
-	}
-	if brandInterface != nil {
-		a.Brand = brandInterface(a)
 	}
 	if clusterInterface != nil {
 		a.Cluster = clusterInterface(a)

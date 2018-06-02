@@ -46,7 +46,6 @@ type Features struct {
 	Compliance                *bool `json:"compliance"`
 	Cluster                   *bool `json:"cluster"`
 	Metrics                   *bool `json:"metrics"`
-	CustomBrand               *bool `json:"custom_brand"`
 	MHPNS                     *bool `json:"mhpns"`
 	SAML                      *bool `json:"saml"`
 	Elasticsearch             *bool `json:"elastic_search"`
@@ -70,7 +69,6 @@ func (f *Features) ToMap() map[string]interface{} {
 		"compliance":                  *f.Compliance,
 		"cluster":                     *f.Cluster,
 		"metrics":                     *f.Metrics,
-		"custom_brand":                *f.CustomBrand,
 		"mhpns":                       *f.MHPNS,
 		"saml":                        *f.SAML,
 		"elastic_search":              *f.Elasticsearch,
@@ -117,10 +115,6 @@ func (f *Features) SetDefaults() {
 
 	if f.Metrics == nil {
 		f.Metrics = NewBool(*f.FutureFeatures)
-	}
-
-	if f.CustomBrand == nil {
-		f.CustomBrand = NewBool(*f.FutureFeatures)
 	}
 
 	if f.MHPNS == nil {
