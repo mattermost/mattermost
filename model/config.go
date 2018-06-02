@@ -986,16 +986,15 @@ func (s *EmailSettings) SetDefaults() {
 	}
 
 	if s.EnableSMTPAuth == nil {
-		s.EnableSMTPAuth = new(bool)
-		if s.ConnectionSecurity == CONN_SECURITY_NONE {
-			*s.EnableSMTPAuth = false
+		if *s.ConnectionSecurity == CONN_SECURITY_NONE {
+			s.EnableSMTPAuth = NewBool(false)
 		} else {
-			*s.EnableSMTPAuth = true
+			s.EnableSMTPAuth = NewBool(true)
 		}
 	}
 
-	if s.ConnectionSecurity == CONN_SECURITY_PLAIN {
-		s.ConnectionSecurity = CONN_SECURITY_NONE
+	if *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
+		*s.ConnectionSecurity = CONN_SECURITY_NONE
 	}
 
 	if s.SkipServerCertificateVerification == nil {

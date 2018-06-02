@@ -748,7 +748,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -760,14 +760,14 @@ func TestOAuthAccessToken(t *testing.T) {
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = Client.Must(Client.CreateOAuthApp(oauthApp)).(*model.OAuthApp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
 	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
 		t.Log(resp.StatusCode)
 		t.Fatal("should have failed - oauth providing turned off")
 	}
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
@@ -962,32 +962,32 @@ func TestOAuthComplete(t *testing.T) {
 	assert.NotNil(t, err)
 	closeBody(r)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state=!#$#F@#Yˆ&~ñ", Client.HttpClient, "", true)
 	assert.NotNil(t, err)
 	closeBody(r)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = model.NewId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = model.NewId() })
 
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAUTH_ACTION_LOGIN
 	stateProps["team_id"] = th.BasicTeam.Id
-	stateProps["redirect_to"] = th.App.Config().GitLabSettings.AuthEndpoint
+	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
 
 	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true)
 	assert.NotNil(t, err)
 	closeBody(r)
 
-	stateProps["hash"] = utils.HashSha256(th.App.Config().GitLabSettings.Id)
+	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true)
 	assert.NotNil(t, err)
 	closeBody(r)
 
 	// We are going to use mattermost as the provider emulating gitlab
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -1008,11 +1008,11 @@ func TestOAuthComplete(t *testing.T) {
 	}
 	oauthApp = Client.Must(Client.CreateOAuthApp(oauthApp)).(*model.OAuthApp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = oauthApp.Id })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.TokenEndpoint = Client.Url + "/oauth/access_token" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.UserApiEndpoint = Client.ApiUrl + "/users/me" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = oauthApp.Id })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.TokenEndpoint = Client.Url + "/oauth/access_token" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.UserApiEndpoint = Client.ApiUrl + "/users/me" })
 
 	provider := &MattermostTestProvider{}
 
@@ -1031,8 +1031,8 @@ func TestOAuthComplete(t *testing.T) {
 	code := rurl.Query().Get("code")
 	stateProps["action"] = model.OAUTH_ACTION_EMAIL_TO_SSO
 	delete(stateProps, "team_id")
-	stateProps["redirect_to"] = th.App.Config().GitLabSettings.AuthEndpoint
-	stateProps["hash"] = utils.HashSha256(th.App.Config().GitLabSettings.Id)
+	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
+	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	stateProps["redirect_to"] = "/oauth/authorize"
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {

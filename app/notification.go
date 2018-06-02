@@ -440,9 +440,9 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 
 	var subjectText string
 	if channel.Type == model.CHANNEL_DIRECT {
-		subjectText = getDirectMessageNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, senderName)
+		subjectText = getDirectMessageNotificationEmailSubject(post, translateFunc, *a.Config().TeamSettings.SiteName, senderName)
 	} else if channel.Type == model.CHANNEL_GROUP {
-		subjectText = getGroupMessageNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType)
+		subjectText = getGroupMessageNotificationEmailSubject(post, translateFunc, *a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType)
 	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
 		subjectText = getNotificationEmailSubject(post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channel.DisplayName+")")
 	} else {

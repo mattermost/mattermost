@@ -624,7 +624,7 @@ func TestS3TestConnection(t *testing.T) {
 		t.Fatal("should return error ")
 	}
 
-	config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+	*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 

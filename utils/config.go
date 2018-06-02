@@ -66,13 +66,13 @@ func FindDir(dir string) (string, bool) {
 
 func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
 	return &mlog.LoggerConfiguration{
-		EnableConsole: s.EnableConsole,
+		EnableConsole: *s.EnableConsole,
 		ConsoleJson:   *s.ConsoleJson,
-		ConsoleLevel:  strings.ToLower(s.ConsoleLevel),
-		EnableFile:    s.EnableFile,
+		ConsoleLevel:  strings.ToLower(*s.ConsoleLevel),
+		EnableFile:    *s.EnableFile,
 		FileJson:      *s.FileJson,
-		FileLevel:     strings.ToLower(s.FileLevel),
-		FileLocation:  GetLogFileLocation(s.FileLocation),
+		FileLevel:     strings.ToLower(*s.FileLevel),
+		FileLocation:  GetLogFileLocation(*s.FileLocation),
 	}
 }
 

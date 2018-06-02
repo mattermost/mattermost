@@ -20,7 +20,7 @@ func TestIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if !th.App.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
 		_, err := http.Post(ApiClient.Url+"/hooks/123", "", strings.NewReader("123"))
 		assert.NotNil(t, err, "should have errored - webhooks turned off")
 		return
@@ -206,7 +206,7 @@ func TestIncomingWebhook(t *testing.T) {
 	})
 
 	t.Run("DisableWebhooks", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 		resp, err := http.Post(url, "application/json", strings.NewReader("{\"text\":\"this is a test\"}"))
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusNotImplemented)

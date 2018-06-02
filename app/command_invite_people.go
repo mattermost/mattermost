@@ -28,7 +28,7 @@ func (me *InvitePeopleProvider) GetTrigger() string {
 
 func (me *InvitePeopleProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	autoComplete := true
-	if !a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation {
+	if !*a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation {
 		autoComplete = false
 	}
 	return &model.Command{
