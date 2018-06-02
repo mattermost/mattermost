@@ -1888,7 +1888,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
   {
     "id": "api.templates.user_access_token_body.title",

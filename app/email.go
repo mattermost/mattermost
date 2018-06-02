@@ -225,8 +225,9 @@ func (a *App) SendUserAccessTokenAddedEmail(email, locale, siteURL string) *mode
 	bodyPage := a.NewEmailTemplate("password_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.user_access_token_body.title")
-	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.user_access_token_body.info",
+	bodyPage.Props["Info"] = T("api.templates.user_access_token_body.info",
 		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "SiteURL": siteURL})
+	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
 	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error(), http.StatusInternalServerError)
