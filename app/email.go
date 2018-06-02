@@ -216,17 +216,17 @@ func (a *App) SendPasswordChangeEmail(email, method, locale, siteURL string) *mo
 	return nil
 }
 
-func (a *App) SendUserAccessTokenAddedEmail(email, locale string) *model.AppError {
+func (a *App) SendUserAccessTokenAddedEmail(email, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.user_access_token_subject",
 		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
 
 	bodyPage := a.NewEmailTemplate("password_change_body", locale)
-	bodyPage.Props["SiteURL"] = a.GetSiteURL()
+	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.user_access_token_body.title")
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.user_access_token_body.info",
-		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "SiteURL": a.GetSiteURL()})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "SiteURL": siteURL})
 
 	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error(), http.StatusInternalServerError)

@@ -261,7 +261,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 		mlog.Error(result.Err.Error())
 	} else {
 		user := result.Data.(*model.User)
-		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale); err != nil {
+		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
 	}
