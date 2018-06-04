@@ -18,7 +18,7 @@ import (
 
 	"net/http"
 
-	"github.com/mattermost/html2text"
+	"github.com/jaytaylor/html2text"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
