@@ -1736,7 +1736,11 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "You deactivated your account on {{ .SiteURL }}."
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
   },
   {
     "id": "api.templates.deactivate_body.title",
@@ -1821,6 +1825,10 @@
   {
     "id": "api.templates.mfa_activated_body.title",
     "translation": "Multi-factor authentication was added"
+  },
+  {
+    "id": "api.templates.mfa_change_extra",
+    "translation": "If this change was not initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.mfa_change_subject",
