@@ -44,7 +44,7 @@ type Channel struct {
 	Purpose       string  `json:"purpose"`
 	LastPostAt    int64   `json:"last_post_at"`
 	TotalMsgCount int64   `json:"total_msg_count"`
-	ExtraUpdateAt int64   `json:"extra_update_at"`
+	ExtraUpdateAt int64   `json:"extra_update_at" db:"-"`
 	CreatorId     string  `json:"creator_id"`
 	SchemeId      *string `json:"scheme_id"`
 }
