@@ -784,7 +784,9 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUserForLogin("", loginId); err == nil {
+	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
+		resp["mfa_required"] = true
+	} else if user, err := c.App.GetUserForLogin("", loginId); err == nil {
 		resp["mfa_required"] = user.MfaActive
 	}
 
@@ -936,7 +938,11 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sent, err := c.App.SendPasswordReset(email, c.App.GetSiteURL()); err != nil {
-		c.Err = err
+		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
+			ReturnStatusOK(w)
+		} else {
+			c.Err = err
+		}
 		return
 	} else if sent {
 		c.LogAudit("sent=" + email)
@@ -946,6 +952,13 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
+	// For hardened mode, translate all login errors to generic.
+	defer func() {
+		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err != nil {
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials", nil, "", http.StatusUnauthorized)
+		}
+	}()
+
 	props := model.MapFromJson(r.Body)
 
 	id := props["id"]
@@ -982,11 +995,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
-	data := make(map[string]string)
-	data["user_id"] = c.Session.UserId
-
 	Logout(c, w, r)
-
 }
 
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
