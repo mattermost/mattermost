@@ -584,12 +584,12 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 				})
 			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.group_message.full2",
 				map[string]interface{}{
-					"SenderName":  senderName,
-					"Hour":        t.Hour,
-					"Minute":      t.Minute,
-					"TimeZone":    t.TimeZone,
-					"Month":       t.Month,
-					"Day":         t.Day,
+					"SenderName": senderName,
+					"Hour":       t.Hour,
+					"Minute":     t.Minute,
+					"TimeZone":   t.TimeZone,
+					"Month":      t.Month,
+					"Day":        t.Day,
 				})
 		} else {
 			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.group_message.generic", map[string]interface{}{
@@ -613,12 +613,12 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 				})
 			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.notification.full2",
 				map[string]interface{}{
-					"SenderName":  senderName,
-					"Hour":        t.Hour,
-					"Minute":      t.Minute,
-					"TimeZone":    t.TimeZone,
-					"Month":       t.Month,
-					"Day":         t.Day,
+					"SenderName": senderName,
+					"Hour":       t.Hour,
+					"Minute":     t.Minute,
+					"TimeZone":   t.TimeZone,
+					"Month":      t.Month,
+					"Day":        t.Day,
 				})
 		} else {
 			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.notification.generic", map[string]interface{}{

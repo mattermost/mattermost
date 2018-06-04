@@ -102,7 +102,6 @@ func (a *App) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *
 	bodyPage.Props["Title"] = T("api.templates.email_change_body.title")
 	bodyPage.Props["Info"] = T("api.templates.email_change_body.info",
 		map[string]interface{}{"TeamDisplayName": a.Config().TeamSettings.SiteName, "NewEmail": newEmail})
-	
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
 
 	if err := a.SendMail(oldEmail, subject, bodyPage.Render()); err != nil {
@@ -373,7 +372,6 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 	t.Props["EmailInfo3"] = localT("api.templates.email_info3",
 		map[string]interface{}{"SiteName": a.Config().TeamSettings.SiteName})
 	t.Props["SupportEmail"] = *a.Config().SupportSettings.SupportEmail
-
 
 	return t
 }
