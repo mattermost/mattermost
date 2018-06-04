@@ -48,54 +48,6 @@
     "translation": "September"
   },
   {
-    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": "Migration failed due to invalid progress data."
-  },
-  {
-    "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Cannot run migration job due to unknown migration key."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "Failed to roll back the database transaction"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Failed to update the channel member"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Failed to select the batch of team members"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "Failed to roll back the database transaction"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.update.app_error",
-    "translation": "Failed to update the team member"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -244,10 +196,6 @@
     "translation": "Private Channel management and creation is restricted to System Administrators."
   },
   {
-    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
-    "translation": "This API endpoint is not accessible as required migrations have not yet completed."
-  },
-  {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
     "translation": "Private Channel management and creation is restricted to Team and System Administrators."
   },
@@ -274,18 +222,6 @@
   {
     "id": "api.channel.convert_channel_to_private.private_channel_error",
     "translation": "The channel requested to convert is already a private channel."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes"
-  },
-  {
-    "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete the schemes"
-  },
-  {
-    "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "We could not reset the team schemes"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -476,8 +412,24 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "License does not support updating a channel's scheme"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+  },
+  {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
   },
   {
     "id": "api.cluster.init.debug",
@@ -1955,6 +1907,18 @@
     "translation": "Unable to get profile for channel member, user_id=%v"
   },
   {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " notified the channel."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " commented on your post."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " commented on a thread you participated in."
+  },
+  {
     "id": "api.post.send_notifications.user_id.debug",
     "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
   },
@@ -1975,32 +1939,20 @@
     "translation": "New Mention"
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " attached a file."
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
     "translation": " mentioned you."
   },
   {
-    "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": " notified the channel."
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": " posted a message."
   },
   {
-    "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " commented on your post."
-  },
-  {
-    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": " commented on a thread you participated in."
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " attached a file."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "sent you a message."
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_general_message",
-    "translation": " posted a message."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -2097,6 +2049,14 @@
   {
     "id": "api.saml.save_certificate.app_error",
     "translation": "Certificate did not save properly."
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "Unable to get the channels for scheme because the supplied scheme is not a channel scheme."
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "Unable to get the teams for scheme because the supplied scheme is not a team scheme."
   },
   {
     "id": "api.server.new_server.init.info",
@@ -3999,6 +3959,10 @@
     "translation": "The provided role does not exist"
   },
   {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
   },
@@ -4665,6 +4629,14 @@
   {
     "id": "mattermost.working_dir",
     "translation": "Current working directory is %v"
+  },
+  {
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "Migration failed due to invalid progress data."
+  },
+  {
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "Cannot run migration job due to unknown migration key."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -6071,6 +6043,10 @@
     "translation": "Channel does not exist"
   },
   {
+    "id": "store.sql_channel.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme"
+  },
+  {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
     "translation": "We couldn't get the channel counts"
   },
@@ -6147,6 +6123,26 @@
     "translation": "We couldn't increment the mention count"
   },
   {
+    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
+    "translation": "Failed to open the database transaction"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
+    "translation": "Failed to roll back the database transaction"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.select.app_error",
+    "translation": "Failed to select the batch of channel members"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.update.app_error",
+    "translation": "Failed to update the channel member"
+  },
+  {
     "id": "store.sql_channel.permanent_delete.app_error",
     "translation": "We couldn't delete the channel"
   },
@@ -6165,6 +6161,10 @@
   {
     "id": "store.sql_channel.remove_member.app_error",
     "translation": "We couldn't remove the channel member"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
+    "translation": "We could not reset the channel schemes"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -6771,14 +6771,6 @@
     "translation": "Unable to delete reaction"
   },
   {
-    "id": "api.scheme.get_teams_for_scheme.scope.error",
-    "translation": "Unable to get the teams for scheme because the supplied scheme is not a team scheme."
-  },
-  {
-    "id": "api.scheme.get_channels_for_scheme.scope.error",
-    "translation": "Unable to get the channels for scheme because the supplied scheme is not a channel scheme."
-  },
-  {
     "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
     "translation": "Unable to delete reactions with the given emoji name"
   },
@@ -6811,100 +6803,16 @@
     "translation": "Unable to save reaction"
   },
   {
+    "id": "store.sql_role.delete.update.app_error",
+    "translation": "Unable to delete the role"
+  },
+  {
     "id": "store.sql_role.get.app_error",
     "translation": "Unable to get role"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
     "translation": "Unable to get role"
-  },
-  {
-    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
-  },
-  {
-    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
-  },
-  {
-    "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "License does not support updating a channel's scheme"
-  },
-  {
-    "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
-  },
-  {
-    "id": "store.sql_team.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
-  },
-  {
-    "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role"
-  },
-  {
-    "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role"
-  },
-  {
-    "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "The provided role is invalid"
-  },
-  {
-    "id": "store.sql_role.delete.update.app_error",
-    "translation": "Unable to delete the role"
-  },
-  {
-    "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme"
-  },
-  {
-    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme"
-  },
-  {
-    "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "The provided scheme is invalid"
-  },
-  {
-    "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Unable to update the scheme"
-  },
-  {
-    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Unable to retrieve the default scheme roles"
-  },
-  {
-    "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Unable to create the scheme"
-  },
-  {
-    "id": "store.sql_scheme.get.app_error",
-    "translation": "Unable to get the scheme"
-  },
-  {
-    "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme"
-  },
-  {
-    "id": "store.sql_scheme.delete.scheme_in_use.app_error",
-    "translation": "Unable to delete the scheme as it in use by 1 or more teams or channels"
-  },
-  {
-    "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Unable to reset all channels using this scheme to the default scheme"
-  },
-  {
-    "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme"
-  },
-  {
-    "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Unable to delete the scheme"
   },
   {
     "id": "store.sql_role.get_by_names.app_error",
@@ -6920,11 +6828,75 @@
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "The provided role is invalid"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
     "translation": "The role was not valid"
+  },
+  {
+    "id": "store.sql_role.save.open_transaction.app_error",
+    "translation": "Failed to open the transaction to save the role"
   },
   {
     "id": "store.sql_role.save.update.app_error",
     "translation": "Unable to update role"
+  },
+  {
+    "id": "store.sql_role.save_role.commit_transaction.app_error",
+    "translation": "Failed to commit the transaction to save the role"
+  },
+  {
+    "id": "store.sql_scheme.delete.role_update.app_error",
+    "translation": "Unable to delete the roles belonging to this scheme"
+  },
+  {
+    "id": "store.sql_scheme.delete.scheme_in_use.app_error",
+    "translation": "Unable to delete the scheme as it in use by 1 or more teams or channels"
+  },
+  {
+    "id": "store.sql_scheme.delete.update.app_error",
+    "translation": "Unable to delete the scheme"
+  },
+  {
+    "id": "store.sql_scheme.get.app_error",
+    "translation": "Unable to get the scheme"
+  },
+  {
+    "id": "store.sql_scheme.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete the schemes"
+  },
+  {
+    "id": "store.sql_scheme.reset_channels.app_error",
+    "translation": "Unable to reset all channels using this scheme to the default scheme"
+  },
+  {
+    "id": "store.sql_scheme.reset_teams.app_error",
+    "translation": "Unable to reset all teams using this scheme to the default scheme"
+  },
+  {
+    "id": "store.sql_scheme.save.insert.app_error",
+    "translation": "Unable to create the scheme"
+  },
+  {
+    "id": "store.sql_scheme.save.invalid_scheme.app_error",
+    "translation": "The provided scheme is invalid"
+  },
+  {
+    "id": "store.sql_scheme.save.open_transaction.app_error",
+    "translation": "Failed to open the transaction to save the scheme"
+  },
+  {
+    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
+    "translation": "Unable to retrieve the default scheme roles"
+  },
+  {
+    "id": "store.sql_scheme.save.update.app_error",
+    "translation": "Unable to update the scheme"
+  },
+  {
+    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
+    "translation": "Failed to commit the transaction to save the scheme"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -7075,6 +7047,10 @@
     "translation": "We couldn't find the existing team"
   },
   {
+    "id": "store.sql_team.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme"
+  },
+  {
     "id": "store.sql_team.get_member.app_error",
     "translation": "We couldn't get the team member"
   },
@@ -7103,12 +7079,36 @@
     "translation": "We couldn't get the teams unread messages"
   },
   {
+    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
+    "translation": "Failed to open the database transaction"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
+    "translation": "Failed to roll back the database transaction"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.select.app_error",
+    "translation": " Failed to select the batch of team members"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.update.app_error",
+    "translation": "Failed to update the team member"
+  },
+  {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "We couldn't delete the existing team"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
     "translation": "We couldn't remove the team member"
+  },
+  {
+    "id": "store.sql_team.reset_all_team_schemes.app_error",
+    "translation": "We could not reset the team schemes"
   },
   {
     "id": "store.sql_team.save.app_error",
