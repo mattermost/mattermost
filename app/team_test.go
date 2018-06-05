@@ -559,3 +559,21 @@ func TestJoinUserToTeam(t *testing.T) {
 		}
 	})
 }
+
+func TestAppUpdateTeamScheme(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	team := th.BasicTeam
+	mockID := model.NewString("x")
+	team.SchemeId = mockID
+
+	updatedTeam, err := th.App.UpdateTeamScheme(th.BasicTeam)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updatedTeam.SchemeId != mockID {
+		t.Fatal("Wrong Team SchemeId")
+	}
+}

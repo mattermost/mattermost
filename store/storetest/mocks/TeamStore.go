@@ -237,6 +237,22 @@ func (_m *TeamStore) GetMembersByIds(teamId string, userIds []string) store.Stor
 	return r0
 }
 
+// GetTeamsByScheme provides a mock function with given fields: schemeId, offset, limit
+func (_m *TeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(schemeId, offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(schemeId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetTeamsByUserId provides a mock function with given fields: userId
 func (_m *TeamStore) GetTeamsByUserId(userId string) store.StoreChannel {
 	ret := _m.Called(userId)
@@ -276,6 +292,22 @@ func (_m *TeamStore) GetTotalMemberCount(teamId string) store.StoreChannel {
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
 		r0 = rf(teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// MigrateTeamMembers provides a mock function with given fields: fromTeamId, fromUserId
+func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) store.StoreChannel {
+	ret := _m.Called(fromTeamId, fromUserId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(fromTeamId, fromUserId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -340,6 +372,22 @@ func (_m *TeamStore) RemoveMember(teamId string, userId string) store.StoreChann
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
 		r0 = rf(teamId, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// ResetAllTeamSchemes provides a mock function with given fields:
+func (_m *TeamStore) ResetAllTeamSchemes() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

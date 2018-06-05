@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -225,6 +226,7 @@ type ServiceSettings struct {
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
 	EnableAPITeamDeletion                             *bool
+	ExperimentalEnableHardenedMode                    *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -456,6 +458,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnableAPITeamDeletion == nil {
 		s.EnableAPITeamDeletion = NewBool(false)
+	}
+
+	if s.ExperimentalEnableHardenedMode == nil {
+		s.ExperimentalEnableHardenedMode = NewBool(false)
 	}
 }
 
@@ -1002,6 +1008,7 @@ type TeamSettings struct {
 	EnableTeamCreation                  *bool
 	EnableUserCreation                  *bool
 	EnableOpenServer                    *bool
+	EnableUserDeactivation              *bool
 	RestrictCreationToDomains           string
 	EnableCustomBrand                   *bool
 	CustomBrandText                     *string
@@ -1034,6 +1041,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableCustomBrand == nil {
 		s.EnableCustomBrand = NewBool(false)
+	}
+
+	if s.EnableUserDeactivation == nil {
+		s.EnableUserDeactivation = NewBool(false)
 	}
 
 	if s.CustomBrandText == nil {
@@ -1767,10 +1778,16 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
+	CustomUrlSchemes     *[]string
 	ExperimentalTimezone *bool
 }
 
 func (s *DisplaySettings) SetDefaults() {
+	if s.CustomUrlSchemes == nil {
+		customUrlSchemes := []string{}
+		s.CustomUrlSchemes = &customUrlSchemes
+	}
+
 	if s.ExperimentalTimezone == nil {
 		s.ExperimentalTimezone = NewBool(false)
 	}
@@ -1895,8 +1912,16 @@ func (o *Config) SetDefaults() {
 }
 
 func (o *Config) IsValid() *AppError {
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
@@ -1952,6 +1977,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
+		return err
+	}
+
+	if err := o.DisplaySettings.isValid(); err != nil {
 		return err
 	}
 
@@ -2204,6 +2233,12 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if len(*ss.SiteURL) != 0 {
+		if _, err := url.ParseRequestURI(*ss.SiteURL); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if len(*ss.WebsocketURL) != 0 {
 		if _, err := url.ParseRequestURI(*ss.WebsocketURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
@@ -2326,6 +2361,26 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			}
 		}
 	}
+	return nil
+}
+
+func (ds *DisplaySettings) isValid() *AppError {
+	if len(*ds.CustomUrlSchemes) != 0 {
+		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9+.-]*\s*$`)
+
+		for _, scheme := range *ds.CustomUrlSchemes {
+			if !validProtocolPattern.MatchString(scheme) {
+				return NewAppError(
+					"Config.IsValid",
+					"model.config.is_valid.display.custom_url_schemes.app_error",
+					map[string]interface{}{"Protocol": scheme},
+					"",
+					http.StatusBadRequest,
+				)
+			}
+		}
+	}
+
 	return nil
 }
 

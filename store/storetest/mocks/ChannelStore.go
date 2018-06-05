@@ -258,6 +258,22 @@ func (_m *ChannelStore) GetChannels(teamId string, userId string) store.StoreCha
 	return r0
 }
 
+// GetChannelsByScheme provides a mock function with given fields: schemeId, offset, limit
+func (_m *ChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(schemeId, offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(schemeId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetDeleted provides a mock function with given fields: team_id, offset, limit
 func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int) store.StoreChannel {
 	ret := _m.Called(team_id, offset, limit)
@@ -567,6 +583,22 @@ func (_m *ChannelStore) IsUserInChannelUseCache(userId string, channelId string)
 	return r0
 }
 
+// MigrateChannelMembers provides a mock function with given fields: fromChannelId, fromUserId
+func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) store.StoreChannel {
+	ret := _m.Called(fromChannelId, fromUserId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(fromChannelId, fromUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // PermanentDelete provides a mock function with given fields: channelId
 func (_m *ChannelStore) PermanentDelete(channelId string) store.StoreChannel {
 	ret := _m.Called(channelId)
@@ -638,6 +670,22 @@ func (_m *ChannelStore) RemoveMember(channelId string, userId string) store.Stor
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
 		r0 = rf(channelId, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// ResetAllChannelSchemes provides a mock function with given fields:
+func (_m *ChannelStore) ResetAllChannelSchemes() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

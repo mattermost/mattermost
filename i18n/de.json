@@ -2515,6 +2515,18 @@
     "translation": "Gruppennachricht"
   },
   {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "Ihre E-Mail-Adresse für {{.TeamDisplayName}} wurde in {{.NewEmail}} geändert.<br>Wenn Sie diese Änderungen nicht durchgeführt haben, kontaktieren Sie bitte den Systemadministrator."
   },
@@ -3023,6 +3035,10 @@
     "translation": "SAML 2.0 ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Die E-Mail-Änderungsbenachrichtigung konnte nicht erfolgreich versendet werden"
   },
@@ -3069,6 +3085,10 @@
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "Sie können den Aktivitätsstatus des SSO-Kontos nicht ändern. Bitte ändern Sie diesen über den SSO-Server."
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3719,10 +3739,6 @@
     "translation": "Ungültige Kommentar-Auslöser-Benachrichtigungs-Eigenschaft des Benutzers."
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "Ungültiger Wert für Desktop-Benachrichtigungdauer-Eigenschaft des Benutzers."
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "Ungültiger Wert für Desktop-Benachrichtigungs-Eigenschaft des Benutzers."
   },
@@ -3855,6 +3871,10 @@
     "translation": "Konnte Plugin nicht deaktivieren"
   },
   {
+    "id": "app.plugin.delete_plugin_status_state.app_error",
+    "translation": "Unable to delete plugin status state."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "Plugins wurden deaktiviert. Bitte prüfen Sie Ihre Logs für Details."
   },
@@ -3899,8 +3919,16 @@
     "translation": "Plugin ist nicht installiert"
   },
   {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "Cannot install prepackaged plugin"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Konnte Plugin nicht löschen"
+  },
+  {
+    "id": "app.plugin.set_plugin_status_state.app_error",
+    "translation": "Unable to set plugin status state."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -4797,6 +4825,10 @@
   {
     "id": "model.client.writer.app_error",
     "translation": "Konnte Multipart-Anfrage nicht erstellen"
+  },
+  {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "Ungültige Id"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -7525,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Der Kanal konnte nicht gefunden werden"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "This webhook is not permitted to post to the requested channel"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",

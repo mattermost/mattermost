@@ -449,6 +449,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
+	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
@@ -553,6 +554,8 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
 
+	props["RunJobs"] = strconv.FormatBool(*c.JobSettings.RunJobs)
+
 	// Set default values for all options that require a license.
 	props["ExperimentalHideTownSquareinLHS"] = "false"
 	props["ExperimentalTownSquareIsReadOnly"] = "false"
@@ -608,17 +611,15 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
 	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
+	props["CustomUrlSchemes"] = strings.Join(*c.DisplaySettings.CustomUrlSchemes, ",")
+	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
+	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
+	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
-
-		if *license.Features.CustomBrand {
-			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
-			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
-			props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
-		}
 
 		if *license.Features.LDAP {
 			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)

@@ -110,6 +110,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	th.App.DoAdvancedPermissionsMigration()
+	th.App.DoEmojisPermissionsMigration()
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
@@ -316,6 +317,40 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 	return member
 }
 
+func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
+	utils.DisableDebugLogForTest()
+
+	scheme, err := me.App.CreateScheme(&model.Scheme{
+		DisplayName: "Test Scheme Display Name",
+		Name:        model.NewId(),
+		Description: "Test scheme description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	roleNames := []string{
+		scheme.DefaultTeamAdminRole,
+		scheme.DefaultTeamUserRole,
+		scheme.DefaultChannelAdminRole,
+		scheme.DefaultChannelUserRole,
+	}
+
+	var roles []*model.Role
+	for _, roleName := range roleNames {
+		role, err := me.App.GetRoleByName(roleName)
+		if err != nil {
+			panic(err)
+		}
+		roles = append(roles, role)
+	}
+
+	utils.EnableDebugLogForTest()
+
+	return scheme, roles
+}
+
 func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
 	os.Remove(me.tempConfigPath)
@@ -395,6 +430,18 @@ func (me *TestHelper) ResetRoleMigration() {
 	testClusterInterface.sendClearRoleCacheMessage()
 
 	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+		panic(err)
+	}
+}
+
+func (me *TestHelper) ResetEmojisMigration() {
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
+		panic(err)
+	}
+
+	testClusterInterface.sendClearRoleCacheMessage()
+
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

@@ -23,6 +23,7 @@ func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	}
 
 	a.DoAdvancedPermissionsMigration()
+	a.DoEmojisPermissionsMigration()
 
 	return a, nil
 }

@@ -63,7 +63,8 @@
         "ImageProxyType": "",
         "ImageProxyOptions": "",
         "ImageProxyURL": "",
-        "EnableAPITeamDeletion": false
+        "EnableAPITeamDeletion": false,
+        "ExperimentalEnableHardenedMode": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -71,6 +72,7 @@
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
         "EnableOpenServer": false,
+        "EnableUserDeactivation": false,
         "RestrictCreationToDomains": "",
         "EnableCustomBrand": false,
         "CustomBrandText": "",
@@ -96,6 +98,7 @@
         "ExperimentalPrimaryTeam": ""
     },
     "DisplaySettings": {
+        "CustomUrlSchemes": [],
         "ExperimentalTimezone": false
     },
     "ClientRequirements": {

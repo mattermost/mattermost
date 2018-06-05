@@ -824,7 +824,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+    "translation": "チャンネル {{.Channel}} が見つかりませんでした。チャンネルの指定にはチャンネルのハンドル名を使用してください。"
   },
   {
     "id": "api.command_invite.success",
@@ -2515,6 +2515,18 @@
     "translation": "グループメッセージ"
   },
   {
+    "id": "api.templates.deactivate_body.info",
+    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+  },
+  {
+    "id": "api.templates.deactivate_body.title",
+    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_subject",
+    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "あなたの{{.TeamDisplayName}}用の電子メールアドレスが{{.NewEmail}}に変更されました。<br>あなたが変更したのでなければ、システム管理者に問い合わせてください。"
   },
@@ -3023,6 +3035,10 @@
     "translation": "SAML 2.0 は、このサーバーでは設定されていないかサポートされていません。"
   },
   {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "電子メールアドレス変更通知の電子メールを送信できませんでした"
   },
@@ -3069,6 +3085,10 @@
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "シングルサインオンアカウントのアクティベーション状態を変更することはできません。シングルサインオンサーバーを通じて変更してください。"
+  },
+  {
+    "id": "api.user.update_active.not_enable.app_error",
+    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3719,10 +3739,6 @@
     "translation": "ユーザーのコメント通知トリガーの設定が不正です。"
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "ユーザーのデスクトップ通知持続時間の設定値が不正です。"
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "ユーザーのデスクトップ通知の設定値が不正です。"
   },
@@ -3780,15 +3796,15 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "{{.SenderName}} からの新しいダイレクトメッセージがあります"
+    "translation": "@{{.SenderName}} からの新しいダイレクトメッセージがあります"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
-    "translation": "新しいダイレクトメッセージがあります。"
+    "translation": "新しいグループメッセージがあります。"
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "{{.SenderName}} からの新しいダイレクトメッセージがあります"
+    "translation": "@{{.SenderName}} からの新しいグループメッセージがあります"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3796,11 +3812,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "{{.SenderName}} からの新しい通知があります"
+    "translation": "@{{.SenderName}} からの新しい通知があります"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3808,7 +3824,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "チャンネル: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "チャンネル: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3816,7 +3832,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "チャンネル: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "チャンネル: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3824,15 +3840,15 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{ .SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.SenderDisplayName}} からの新しいダイレクトメッセージ"
+    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} @{{.SenderDisplayName}} からの新しいダイレクトメッセージ"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.TeamName}}の通知"
+    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{.ChannelName}}の新しいグループメッセージ"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知"
+    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} 新しいグループメッセージ"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3853,6 +3869,10 @@
   {
     "id": "app.plugin.deactivate.app_error",
     "translation": "プラグインを無効化できませんでした"
+  },
+  {
+    "id": "app.plugin.delete_plugin_status_state.app_error",
+    "translation": "プラグインステータスの状態を削除できませんでした。"
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3899,8 +3919,16 @@
     "translation": "プラグインはインストールされていません"
   },
   {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "パッケージング済みプラグインはインストールできません"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "プラグインを削除できませんでした"
+  },
+  {
+    "id": "app.plugin.set_plugin_status_state.app_error",
+    "translation": "プラスインステータスの状態を設定できませんでした。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -4799,6 +4827,10 @@
     "translation": "マルチパートリクエストを構築できませんでした"
   },
   {
+    "id": "model.cluster.is_valid.id.app_error",
+    "translation": "不正なIDです"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "作成日時は有効な時刻にしてください"
   },
@@ -5036,23 +5068,23 @@
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "AD/LDAP項目 \"電子メール属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"電子メール属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "AD/LDAP項目 \"名前(ファーストネーム)の属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"名前(ファーストネーム)の属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "AD/LDAP項目 \"ID属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"ID属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "AD/LDAP項目 \"苗字(ラストネーム)の属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"苗字(ラストネーム)の属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_login_id",
-    "translation": "AD/LDAP項目 \"ID属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"ログインID属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -5080,7 +5112,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "AD/LDAP項目 \"ユーザー名の属性値\" は必須です。"
+    "translation": "AD/LDAP項目 \"ユーザー名の属性\" は必須です。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -5228,7 +5260,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "サイトURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
+    "translation": "サイトURLにhttp://またはhttps://で始まるURLを設定する必要があります"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -7525,6 +7557,10 @@
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "チャンネルが見付かりません"
+  },
+  {
+    "id": "web.incoming_webhook.channel_locked.app_error",
+    "translation": "このウェブフックは要求されたチャンネルに投稿する権限がありません"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",

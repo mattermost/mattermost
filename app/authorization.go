@@ -94,19 +94,6 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 	return false
 }
 
-func (a *App) SessionHasPermissionToPost(session model.Session, postId string, permission *model.Permission) bool {
-	post, err := a.GetSinglePost(postId)
-	if err != nil {
-		return false
-	}
-
-	if post.UserId == session.UserId {
-		return true
-	}
-
-	return a.SessionHasPermissionToChannel(session, post.ChannelId, permission)
-}
-
 func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
 	user, err := a.GetUser(askingUserId)
 	if err != nil {
@@ -200,6 +187,10 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 	}
 
 	for _, role := range roles {
+		if role.DeleteAt != 0 {
+			continue
+		}
+
 		permissions := role.Permissions
 		for _, permission := range permissions {
 			if permission == permissionId {
