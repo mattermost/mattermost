@@ -78,8 +78,10 @@ func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bo
 		if err != nil {
 			continue
 		} else if fileInfo, err := os.Stat(found); err == nil {
-			if filter != nil && filter(fileInfo) {
-				return found
+			if filter != nil {
+				if filter(fileInfo) {
+					return found
+				}
 			} else {
 				return found
 			}
