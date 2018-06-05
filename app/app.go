@@ -228,6 +228,7 @@ func (a *App) Shutdown() {
 
 	mlog.Info("Stopping Server...")
 
+	a.DisableConfigWatch()
 	a.StopServer()
 	a.HubStop()
 
@@ -247,8 +248,6 @@ func (a *App) Shutdown() {
 	a.RemoveLicenseListener(a.licenseListenerId)
 	a.RemoveConfigListener(a.logListenerId)
 	mlog.Info("Server stopped")
-
-	a.DisableConfigWatch()
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
