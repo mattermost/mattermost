@@ -41,7 +41,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!"
+    "translation": "It appears your Mattermost email is setup correctly!"
   },
   {
     "id": "api.admin.test_email.missing_server",
