@@ -277,11 +277,11 @@
   },
   {
     "id": "api.channel.delete_channel.incoming_webhook.error",
-    "translation": "刪除傳入的 Webhook 遇到錯誤 id=%v"
+    "translation": "刪除內送 Webhook 遇到錯誤 id=%v"
   },
   {
     "id": "api.channel.delete_channel.outgoing_webhook.error",
-    "translation": "刪除傳出的 Webhook 遇到錯誤 id=%v"
+    "translation": "刪除外寄 Webhook 遇到錯誤 id=%v"
   },
   {
     "id": "api.channel.delete_channel.permissions.app_error",
@@ -412,8 +412,24 @@
     "translation": "已對預設頻道 {{.Channel}} 嘗試執行無效的更新"
   },
   {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "提供的角色受配置管理，無法直接套用於頻道成員"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "授權不支援更新頻道的配置"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "由於提供的配置不是頻道配置，無法設定頻道配置。"
+  },
+  {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "無法取得未讀訊息數量：user_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "提供的角色受配置管理，無法直接套用於團隊成員"
   },
   {
     "id": "api.cluster.init.debug",
@@ -824,7 +840,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+    "translation": "找不到頻道 {{.Channel}}。請用頻道識別以識別頻道。"
   },
   {
     "id": "api.command_invite.success",
@@ -1273,10 +1289,6 @@
     "translation": "刪除名為 %v 的繪文字時無法刪除互動"
   },
   {
-    "id": "api.emoji.delete.permissions.app_error",
-    "translation": "沒有適當的權限刪除繪文字。"
-  },
-  {
     "id": "api.emoji.disabled.app_error",
     "translation": "自訂繪文字已被系統管理員停用。"
   },
@@ -1542,7 +1554,7 @@
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
-    "translation": "傳入的 Webhook 已被系統管理員停用。"
+    "translation": "內送 Webhook 已被系統管理員停用。"
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
@@ -1895,6 +1907,18 @@
     "translation": "無法取得頻道成員資訊 user_id=%v"
   },
   {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " 頻道已通知。"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " 已在您的訊息上註記。"
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " 已在您參與的討論串註記。"
+  },
+  {
     "id": "api.post.send_notifications.user_id.debug",
     "translation": "此訊息的發起人不在頻道，將不發送通知 post_id=%v channel_id=%v user_id=%v"
   },
@@ -1915,40 +1939,20 @@
     "translation": "新的提及"
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": "已上傳一個或更多檔案至"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": "在直接傳訊中已上傳一個或更多檔案"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
-    "translation": "已上傳一個或更多檔案"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_in",
-    "translation": " 於 "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_mention",
-    "translation": " 提及您於 "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
     "translation": " 提及您 "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": " 已傳送直接訊息給您"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_non_mention",
-    "translation": " 張貼於 "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
+    "id": "api.post.send_notifications_and_forget.push_general_message",
     "translation": " 發布了訊息"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " 檔案已附加。"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_message",
+    "translation": "送出一個訊息給您"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -2045,6 +2049,14 @@
   {
     "id": "api.saml.save_certificate.app_error",
     "translation": "憑證沒有正確的儲存。"
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "由於提供的配置不是頻道配置，無法取得配置的頻道。"
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "由於提供的配置不是團隊配置，無法取得配置的團隊。"
   },
   {
     "id": "api.server.new_server.init.info",
@@ -2511,20 +2523,28 @@
     "translation": "您沒有適當的權限"
   },
   {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "授權不支援更新團隊的配置"
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "由於提供的配置不是團隊配置，無法設定團隊配置。"
+  },
+  {
     "id": "api.templates.channel_name.group",
     "translation": "群組訊息"
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "您在 {{.SiteURL}} 的帳號已被您所停用。<br>如果此變更不是由您所發起或是想要重新啟用帳號，請聯絡系統管理員。"
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+    "translation": "您在 {{.ServerURL }} 的帳號已被停用"
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+    "translation": "[{{ .SiteName }}] 您在 {{.ServerURL }} 的帳號已被停用"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -3036,7 +3056,7 @@
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Failed to send the deactivate account email successfully"
+    "translation": "發送停用帳號郵件時失敗"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -3088,7 +3108,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
+    "translation": "由於此功能沒有啟用，無法停用您的帳號。請聯絡系統管理員。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3224,19 +3244,19 @@
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
-    "translation": "傳出的 Webhook 已被系統管理員停用。"
+    "translation": "外寄 Webhook 已被系統管理員停用。"
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "同一頻道的傳出的 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
+    "translation": "同一頻道的外寄 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "只有公開頻道可以建立傳出的 Webhook。"
+    "translation": "只有公開頻道可以建立外寄 Webhook。"
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "沒有適當的權限建立傳出的 Webhook。"
+    "translation": "沒有適當的權限建立外寄 Webhook。"
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -3244,31 +3264,31 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_error",
-    "translation": "傳入的 Webhook 已被系統管理員停用。"
+    "translation": "內送 Webhook 已被系統管理員停用。"
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_error",
-    "translation": "沒有權限刪除傳入的 Webhook"
+    "translation": "沒有權限刪除內送 Webhook"
   },
   {
     "id": "api.webhook.delete_outgoing.disabled.app_error",
-    "translation": "傳出的 Webhook 已被系統管理員停用"
+    "translation": "外寄 Webhook 已被系統管理員停用"
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
-    "translation": "沒有適當的權限刪除傳出的 Webhook"
+    "translation": "沒有適當的權限刪除外寄 Webhook"
   },
   {
     "id": "api.webhook.incoming.debug",
-    "translation": "收到傳入的 Webhook。內容="
+    "translation": "收到內送 Webhook。內容="
   },
   {
     "id": "api.webhook.incoming.debug.error",
-    "translation": "無法讀取傳入的 Webhook 的內容。"
+    "translation": "無法讀取內送 Webhook 的內容。"
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "無法解碼 Incoming Webhook 的 multipart 內容。"
+    "translation": "無法解碼內送 Webhook 的 multipart 內容。"
   },
   {
     "id": "api.webhook.init.debug",
@@ -3276,7 +3296,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "沒有適當的權限重新產生傳出的 Webhook Token"
+    "translation": "沒有適當的權限重新產生外寄 Webhook Token"
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -3284,27 +3304,27 @@
   },
   {
     "id": "api.webhook.update_incoming.disabled.app_error",
-    "translation": "傳入的 Webhook 已被系統管理員停用。"
+    "translation": "內送 Webhook 已被系統管理員停用。"
   },
   {
     "id": "api.webhook.update_incoming.permissions.app_error",
-    "translation": "沒有適當的權限更新傳入的 Webhook"
+    "translation": "沒有適當的權限更新內送 Webhook"
   },
   {
     "id": "api.webhook.update_outgoing.disabled.app_error",
-    "translation": "傳出的 Webhook 已被系統管理員停用。"
+    "translation": "外寄 Webhook 已被系統管理員停用。"
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "同一頻道的傳出的 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
+    "translation": "同一頻道的外寄 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
   },
   {
     "id": "api.webhook.update_outgoing.not_open.app_error",
-    "translation": "只有公開頻道可以更新傳出的 Webhook。"
+    "translation": "只有公開頻道可以更新外寄 Webhook。"
   },
   {
     "id": "api.webhook.update_outgoing.permissions.app_error",
-    "translation": "沒有適當的權限更新傳出的 Webhook。"
+    "translation": "沒有適當的權限更新外寄 Webhook。"
   },
   {
     "id": "api.webhook.update_outgoing.triggers.app_error",
@@ -3796,15 +3816,15 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "您有 1 筆新的直接傳訊，來自{{.SenderName}}。"
+    "translation": "您有 1 筆新的直接傳訊，來自@{{.SenderName}}。"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
-    "translation": "您有 1 筆新的直接傳訊。"
+    "translation": "您有 1 筆新的群組訊息。"
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "您有 1 筆新的直接傳訊，來自{{.SenderName}}。"
+    "translation": "您有 1 筆新的群組訊息，來自@{{.SenderName}}。"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3812,11 +3832,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "您有一筆新通知，來自 {{.SenderName}}。"
+    "translation": "您有一筆新通知，來自 @{{.SenderName}}。"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3824,7 +3844,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "頻道：{{.ChannelName}}<br>{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "頻道：{{.ChannelName}}<br>@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3832,7 +3852,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "頻道：{{.ChannelName}}<br>{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
+    "translation": "頻道：{{.ChannelName}}<br>@{{.SenderName}} - {{.Month}} {{.Day}}，{{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3840,15 +3860,15 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] 來自 {{.SenderDisplayName}} 的直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{.SiteName}}] 來自 @{{.SenderDisplayName}} 的新直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{.SiteName}}] {{.ChannelName}} 的新群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知"
+    "translation": "[{{.SiteName}}] 發於 {{.Year}} {{.Month}} {{.Day}} 的新群組訊息"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3872,7 +3892,7 @@
   },
   {
     "id": "app.plugin.delete_plugin_status_state.app_error",
-    "translation": "Unable to delete plugin status state."
+    "translation": "無法刪除模組狀態。"
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3920,7 +3940,7 @@
   },
   {
     "id": "app.plugin.prepackaged.app_error",
-    "translation": "Cannot install prepackaged plugin"
+    "translation": "無法安裝預先包裝好的模組"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3928,7 +3948,7 @@
   },
   {
     "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "Unable to set plugin status state."
+    "translation": "無法設定模組狀態。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3937,6 +3957,10 @@
   {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "提供的角色不存在"
+  },
+  {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "必須執行的資料移轉尚未完成，無法存取此 API 端點。"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -4607,6 +4631,14 @@
     "translation": "目前的工作目錄為 %v"
   },
   {
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "由於無效的進度資料，移轉失敗"
+  },
+  {
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "由於未知的移轉索引碼，無法執行移轉工作。"
+  },
+  {
     "id": "model.access.is_valid.access_token.app_error",
     "translation": "無效的存取 Token"
   },
@@ -4951,6 +4983,10 @@
     "translation": "訊息保留需至少一天。"
   },
   {
+    "id": "model.config.is_valid.display.custom_url_schemes.app_error",
+    "translation": "自訂網址配置 {{.Scheme}} 無效。自訂網址配置必須以字母起始且只帶有字母、數字、\"+\"、\".\"跟\"-\"。"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch 設定 AggregatePostsAfterDays 必須為大於或等於 1 的數字"
   },
@@ -5084,7 +5120,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_login_id",
-    "translation": "AD/LDAP 欄位 \"ID 的屬性\" 為必須欄位。"
+    "translation": "AD/LDAP 欄位 \"登入 ID 的屬性\" 為必須欄位。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -6007,6 +6043,10 @@
     "translation": "頻道不存在"
   },
   {
+    "id": "store.sql_channel.get_by_scheme.app_error",
+    "translation": "無法取得提供的配置當中的頻道"
+  },
+  {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
     "translation": "無法取得頻道數"
   },
@@ -6083,6 +6123,26 @@
     "translation": "無法遞增提及計數"
   },
   {
+    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
+    "translation": "認可資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
+    "translation": "開啟資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
+    "translation": "復原資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.select.app_error",
+    "translation": "批次選取頻道成員時失敗"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.update.app_error",
+    "translation": "更新頻道成員時失敗"
+  },
+  {
     "id": "store.sql_channel.permanent_delete.app_error",
     "translation": "無法刪除頻道"
   },
@@ -6101,6 +6161,10 @@
   {
     "id": "store.sql_channel.remove_member.app_error",
     "translation": "無法移除頻道成員"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
+    "translation": "無法重置頻道配置"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -6739,6 +6803,10 @@
     "translation": "無法儲存互動"
   },
   {
+    "id": "store.sql_role.delete.update.app_error",
+    "translation": "無法刪除角色"
+  },
+  {
     "id": "store.sql_role.get.app_error",
     "translation": "無法取得角色"
   },
@@ -6763,8 +6831,72 @@
     "translation": "該角色無效"
   },
   {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "該角色無效"
+  },
+  {
+    "id": "store.sql_role.save.open_transaction.app_error",
+    "translation": "開啟交易以儲存角色時失敗"
+  },
+  {
     "id": "store.sql_role.save.update.app_error",
     "translation": "無法更新角色"
+  },
+  {
+    "id": "store.sql_role.save_role.commit_transaction.app_error",
+    "translation": "認可交易以儲存角色時失敗"
+  },
+  {
+    "id": "store.sql_scheme.delete.role_update.app_error",
+    "translation": "無法刪除屬於此配置的角色"
+  },
+  {
+    "id": "store.sql_scheme.delete.scheme_in_use.app_error",
+    "translation": "無法刪除配置，有團隊或頻道正在使用中"
+  },
+  {
+    "id": "store.sql_scheme.delete.update.app_error",
+    "translation": "無法刪除配置"
+  },
+  {
+    "id": "store.sql_scheme.get.app_error",
+    "translation": "無法取得配置"
+  },
+  {
+    "id": "store.sql_scheme.permanent_delete_all.app_error",
+    "translation": "無法永久刪除配置"
+  },
+  {
+    "id": "store.sql_scheme.reset_channels.app_error",
+    "translation": "無法將使用此配置的所有頻道重置成預設配置"
+  },
+  {
+    "id": "store.sql_scheme.reset_teams.app_error",
+    "translation": "無法將使用此配置的所有團隊重置成預設配置"
+  },
+  {
+    "id": "store.sql_scheme.save.insert.app_error",
+    "translation": "無法建立配置"
+  },
+  {
+    "id": "store.sql_scheme.save.invalid_scheme.app_error",
+    "translation": "提供的配置無效"
+  },
+  {
+    "id": "store.sql_scheme.save.open_transaction.app_error",
+    "translation": "開啟交易以儲存配置時失敗"
+  },
+  {
+    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
+    "translation": "無法取得預設配置角色"
+  },
+  {
+    "id": "store.sql_scheme.save.update.app_error",
+    "translation": "無法更新配置"
+  },
+  {
+    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
+    "translation": "認可交易以儲存配置時失敗"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6915,6 +7047,10 @@
     "translation": "找不到已存在的團隊"
   },
   {
+    "id": "store.sql_team.get_by_scheme.app_error",
+    "translation": "無法取得提供的配置當中的頻道"
+  },
+  {
     "id": "store.sql_team.get_member.app_error",
     "translation": "無法取得團隊成員"
   },
@@ -6943,12 +7079,36 @@
     "translation": "無法取得團隊未讀訊息"
   },
   {
+    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
+    "translation": "認可資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
+    "translation": "開啟資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
+    "translation": "復原資料庫交易時失敗"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.select.app_error",
+    "translation": " 批次選取頻道成員時失敗"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.update.app_error",
+    "translation": "更新團隊成員時失敗"
+  },
+  {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "無法刪除已存在的團隊"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
     "translation": "無法移除團隊成員"
+  },
+  {
+    "id": "store.sql_team.reset_all_team_schemes.app_error",
+    "translation": "無法重置團隊配置"
   },
   {
     "id": "store.sql_team.save.app_error",
@@ -7216,11 +7376,11 @@
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "無法計算傳入的 Webhook"
+    "translation": "無法計算內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "無法計算傳出的 Webhook"
+    "translation": "無法計算外寄 Webhook"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
@@ -7272,23 +7432,23 @@
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "無法儲存傳入的 Webhook"
+    "translation": "無法儲存內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
-    "translation": "無法覆蓋一個已存在的傳入的 Webhook"
+    "translation": "無法覆蓋一個已存在的內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "無法儲存傳出的 Webhook"
+    "translation": "無法儲存外寄 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
-    "translation": "無法複蓋一個已存在的傳出的 Webhook"
+    "translation": "無法複蓋一個已存在的外寄 Webhook"
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "無法更新傳入的 Webhook"
+    "translation": "無法更新內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
@@ -7560,11 +7720,11 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
+    "translation": "此 Webhook 不被允許發布消息至指定的頻道"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "傳入的 Webhook已被系統管理員停用"
+    "translation": "內送 Webhook已被系統管理員停用"
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
