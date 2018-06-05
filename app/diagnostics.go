@@ -119,7 +119,8 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 
 func (a *App) trackActivity() {
 	var userCount int64
-	var activeUserCount int64
+	var activeUsersDailyCount int64
+	var activeUsersMonthlyCount int64
 	var inactiveUserCount int64
 	var teamCount int64
 	var publicChannelCount int64
@@ -129,12 +130,19 @@ func (a *App) trackActivity() {
 	var deletedPrivateChannelCount int64
 	var postsCount int64
 
-	if ucr := <-a.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
+	dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+	monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+
+	if r := <-dailyActiveChan; r.Err == nil {
+		activeUsersDailyCount = r.Data.(int64)
 	}
 
-	if ucr := <-a.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-		activeUserCount = ucr.Data.(int64)
+	if r := <-monthlyActiveChan; r.Err == nil {
+		activeUsersMonthlyCount = r.Data.(int64)
+	}
+
+	if ucr := <-a.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+		userCount = ucr.Data.(int64)
 	}
 
 	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
@@ -171,7 +179,8 @@ func (a *App) trackActivity() {
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
-		"active_users":                 activeUserCount,
+		"active_users_daily":           activeUsersDailyCount,
+		"active_users_monthly":         activeUsersMonthlyCount,
 		"registered_deactivated_users": inactiveUserCount,
 		"teams":                    teamCount,
 		"public_channels":          publicChannelCount,
