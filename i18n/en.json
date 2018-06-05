@@ -1827,10 +1827,6 @@
     "translation": "Multi-factor authentication was added"
   },
   {
-    "id": "api.templates.mfa_change_extra",
-    "translation": "If this change was not initiated by you, please contact your system administrator."
-  },
-  {
     "id": "api.templates.mfa_change_subject",
     "translation": "[{{ .SiteName }}] Your MFA has been updated"
   },
