@@ -45,6 +45,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMember.Handle("", api.ApiSessionRequired(getChannelMember)).Methods("GET")
 	api.BaseRoutes.ChannelMember.Handle("", api.ApiSessionRequired(removeChannelMember)).Methods("DELETE")
 	api.BaseRoutes.ChannelMember.Handle("/roles", api.ApiSessionRequired(updateChannelMemberRoles)).Methods("PUT")
+	api.BaseRoutes.ChannelMember.Handle("/schemeRoles", api.ApiSessionRequired(updateChannelMemberSchemeRoles)).Methods("PUT")
 	api.BaseRoutes.ChannelMember.Handle("/notify_props", api.ApiSessionRequired(updateChannelMemberNotifyProps)).Methods("PUT")
 }
 
@@ -804,6 +805,31 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if _, err := c.App.UpdateChannelMemberRoles(c.Params.ChannelId, c.Params.UserId, newRoles); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	schemeRoles := model.SchemeRolesFromJson(r.Body)
+	if schemeRoles == nil {
+		c.SetInvalidParam("scheme_roles")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_CHANNEL_ROLES) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_CHANNEL_ROLES)
+		return
+	}
+
+	if _, err := c.App.UpdateChannelMemberSchemeRoles(c.Params.ChannelId, c.Params.UserId, schemeRoles.SchemeUser, schemeRoles.SchemeAdmin); err != nil {
 		c.Err = err
 		return
 	}
