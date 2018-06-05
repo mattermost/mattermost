@@ -404,7 +404,7 @@ func (a *App) trackConfig() {
 		"isdefault_nickname_attribute":        isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
 		"isdefault_id_attribute":              isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
 		"isdefault_position_attribute":        isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
-		"isdefault_login_id_attribute":        isDefault(*cfg.LdapSettings.LoginIdAttribute, model.""),
+		"isdefault_login_id_attribute":        isDefault(*cfg.LdapSettings.LoginIdAttribute, ""),
 		"isdefault_login_field_name":          isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
 		"isdefault_login_button_color":        isDefault(*cfg.LdapSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color": isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
@@ -520,8 +520,8 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
-		"experimental_timezone": *cfg.DisplaySettings.ExperimentalTimezone,
-		"custom_url_schemes":    isDefault(*cfg.DisplaySettings.CustomUrlSchemes, ""),
+		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
+		"isdefault_custom_url_schemes": len(*cfg.DisplaySettings.CustomUrlSchemes) != 0,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
