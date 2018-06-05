@@ -32,7 +32,7 @@ func TestSupervisorProvider(t *testing.T, sp SupervisorProviderFunc) {
 		"Supervisor_NonExistentExecutablePath": testSupervisor_NonExistentExecutablePath,
 		"Supervisor_StartTimeout":              testSupervisor_StartTimeout,
 		"Supervisor_PluginCrash":               testSupervisor_PluginCrash,
-		"Supervisor_PluginRepeatedlyCrash":     testSupervisor_PluginRepeatedlyCrash,
+		// "Supervisor_PluginRepeatedlyCrash":     testSupervisor_PluginRepeatedlyCrash,
 	} {
 		t.Run(name, func(t *testing.T) { f(t, sp) })
 	}
