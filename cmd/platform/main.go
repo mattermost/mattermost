@@ -27,11 +27,12 @@ The platform binary will be removed in a future version.
 
 	realMattermost := utils.FindFile("mattermost")
 	if realMattermost == "" {
-		// This will still fail, of course.
-		realMattermost = "./mattermost"
+		realMattermost = utils.FindFile("bin/mattermost")
 	}
 
-	if err := syscall.Exec(utils.FindFile("mattermost"), args, nil); err != nil {
-		fmt.Println("Could not start Mattermost, use the mattermost command directly.")
+	if realMattermost == "" {
+		fmt.Println("Could not start Mattermost, use the mattermost command directly: failed to find mattermost")
+	} else if err := syscall.Exec(realMattermost, args, nil); err != nil {
+		fmt.Printf("Could not start Mattermost, use the mattermost command directly: %s\n", err.Error())
 	}
 }
