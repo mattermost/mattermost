@@ -489,6 +489,7 @@ type RoleStore interface {
 type SchemeStore interface {
 	Save(scheme *model.Scheme) StoreChannel
 	Get(schemeId string) StoreChannel
+	GetByName(schemeName string) StoreChannel
 	GetAllPage(scope string, offset int, limit int) StoreChannel
 	Delete(schemeId string) StoreChannel
 	PermanentDeleteAll() StoreChannel

@@ -22,6 +22,18 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 	}
 }
 
+func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	if err := a.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
+	if result := <-a.Srv.Store.Scheme().GetByName(name); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Scheme), nil
+	}
+}
+
 func (a *App) GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
