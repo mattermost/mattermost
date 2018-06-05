@@ -540,6 +540,30 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 	return member, nil
 }
 
+func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+	member, err := a.GetChannelMember(channelId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	member.SchemeAdmin = isSchemeAdmin
+	member.SchemeUser = isSchemeUser
+
+	// If the migration is not completed, we also need to check the default channel_admin/channel_user roles are not present in the roles field.
+	if err = a.IsPhase2MigrationCompleted(); err != nil {
+		member.ExplicitRoles = RemoveRoles([]string{model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID}, member.ExplicitRoles)
+	}
+
+	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {
+		return nil, result.Err
+	} else {
+		member = result.Data.(*model.ChannelMember)
+	}
+
+	a.InvalidateCacheForUser(userId)
+	return member, nil
+}
+
 func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError

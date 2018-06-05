@@ -1712,6 +1712,81 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	SystemAdminClient := th.SystemAdminClient
+	th.LoginBasic()
+
+	s1 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  false,
+	}
+	_, r1 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s1)
+	CheckNoError(t, r1)
+
+	tm1, rtm1 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm1)
+	assert.Equal(t, false, tm1.SchemeUser)
+	assert.Equal(t, false, tm1.SchemeAdmin)
+
+	s2 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  true,
+	}
+	_, r2 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s2)
+	CheckNoError(t, r2)
+
+	tm2, rtm2 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm2)
+	assert.Equal(t, true, tm2.SchemeUser)
+	assert.Equal(t, false, tm2.SchemeAdmin)
+
+	s3 := &model.SchemeRoles{
+		SchemeAdmin: true,
+		SchemeUser:  false,
+	}
+	_, r3 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s3)
+	CheckNoError(t, r3)
+
+	tm3, rtm3 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm3)
+	assert.Equal(t, false, tm3.SchemeUser)
+	assert.Equal(t, true, tm3.SchemeAdmin)
+
+	s4 := &model.SchemeRoles{
+		SchemeAdmin: true,
+		SchemeUser:  true,
+	}
+	_, r4 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s4)
+	CheckNoError(t, r4)
+
+	tm4, rtm4 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm4)
+	assert.Equal(t, true, tm4.SchemeUser)
+	assert.Equal(t, true, tm4.SchemeAdmin)
+
+	_, resp := SystemAdminClient.UpdateTeamMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, model.NewId(), s4)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles("ASDF", th.BasicUser.Id, s4)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, "ASDF", s4)
+	CheckBadRequestStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = th.Client.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s4)
+	CheckForbiddenStatus(t, resp)
+
+	SystemAdminClient.Logout()
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, s4)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetMyTeamsUnread(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()

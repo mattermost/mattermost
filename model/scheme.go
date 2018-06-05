@@ -69,6 +69,11 @@ func (sc *SchemeConveyor) Scheme() *Scheme {
 	}
 }
 
+type SchemeRoles struct {
+	SchemeAdmin bool `json:"scheme_admin"`
+	SchemeUser  bool `json:"scheme_user"`
+}
+
 func (scheme *Scheme) ToJson() string {
 	b, _ := json.Marshal(scheme)
 	return string(b)
@@ -189,4 +194,15 @@ func (p *SchemeIDPatch) ToJson() string {
 func IsValidSchemeName(name string) bool {
 	re := regexp.MustCompile(fmt.Sprintf("^[a-z0-9_]{0,%d}$", SCHEME_NAME_MAX_LENGTH))
 	return re.MatchString(name)
+}
+
+func (schemeRoles *SchemeRoles) ToJson() string {
+	b, _ := json.Marshal(schemeRoles)
+	return string(b)
+}
+
+func SchemeRolesFromJson(data io.Reader) *SchemeRoles {
+	var schemeRoles *SchemeRoles
+	json.NewDecoder(data).Decode(&schemeRoles)
+	return schemeRoles
 }

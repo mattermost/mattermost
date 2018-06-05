@@ -1320,6 +1320,16 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 	}
 }
 
+// UpdateTeamMemberSchemeRoles will update the scheme-derived roles on a team for a user.
+func (c *Client4) UpdateTeamMemberSchemeRoles(teamId string, userId string, schemeRoles *SchemeRoles) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamMemberRoute(teamId, userId)+"/schemeRoles", schemeRoles.ToJson()); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // UpdateTeam will update a team.
 func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
 	if r, err := c.DoApiPut(c.GetTeamRoute(team.Id), team.ToJson()); err != nil {
@@ -1842,6 +1852,16 @@ func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *R
 func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}
 	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/roles", MapToJson(requestBody)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateChannelMemberSchemeRoles will update the scheme-derived roles on a channel for a user.
+func (c *Client4) UpdateChannelMemberSchemeRoles(channelId string, userId string, schemeRoles *SchemeRoles) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/schemeRoles", schemeRoles.ToJson()); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

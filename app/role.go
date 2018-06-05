@@ -4,9 +4,9 @@
 package app
 
 import (
-	"reflect"
-
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -89,4 +89,24 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) {
 	a.Go(func() {
 		a.Publish(message)
 	})
+}
+
+func RemoveRoles(rolesToRemove []string, roles string) string {
+	roleList := strings.Fields(roles)
+	newRoles := make([]string, 0)
+
+	for _, role := range roleList {
+		shouldRemove := false
+		for _, roleToRemove := range rolesToRemove {
+			if role == roleToRemove {
+				shouldRemove = true
+				break
+			}
+		}
+		if !shouldRemove {
+			newRoles = append(newRoles, role)
+		}
+	}
+
+	return strings.Join(newRoles, " ")
 }
