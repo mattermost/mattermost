@@ -412,8 +412,24 @@
     "translation": "{{.Channel}} varsayılan kanalı için geçersiz bir güncelleme denendi"
   },
   {
+    "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
+    "translation": "Belirtilen rol bir şema tarafından yönetildiğinden doğrudan bir kanal üyesine uygulanamaz"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.license.error",
+    "translation": "Bu lisans sürümünde kanal şemalarını güncelleme özelliği bulunmuyor"
+  },
+  {
+    "id": "api.channel.update_channel_scheme.scheme_scope.error",
+    "translation": "Belirtilen şema bir kanal şeması olmadığından kanal şeması ayarlanamadı."
+  },
+  {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "%v kullanıcı kodu ve %v kanal kodu için okunmamış ileti sayısı alınamadı. Hata: %v"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.scheme_role.app_error",
+    "translation": "Belirtilen rol bir şema tarafından yönetildiğinden doğrudan bir takım üyesine uygulanamaz"
   },
   {
     "id": "api.cluster.init.debug",
@@ -1273,10 +1289,6 @@
     "translation": "%v emoji adı için emoji silinirken tepkiler silinemedi"
   },
   {
-    "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Emoji silmek için izinleriniz yeterli değil."
-  },
-  {
     "id": "api.emoji.disabled.app_error",
     "translation": "Özel emoji özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
   },
@@ -1895,6 +1907,18 @@
     "translation": "Kanal üyesinin profili alınamadı. Kullanıcı Kodu: %v"
   },
   {
+    "id": "api.post.send_notification_and_forget.push_channel_mention",
+    "translation": " kanala bildirim gönderdi."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_post",
+    "translation": " iletinize yorum yaptı."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_thread",
+    "translation": " katıldığınız bir konuya yorum yaptı."
+  },
+  {
     "id": "api.post.send_notifications.user_id.debug",
     "translation": "İletiyi oluşturan ileti için kanalda olmadığından bildirim gönderilmedi. İleti Kodu: %v, Kanal Kodu: %v, Kullanıcı Kodu: %v"
   },
@@ -1915,40 +1939,20 @@
     "translation": "Yeni Anma"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_explicit_mention",
+    "translation": " sizi andı."
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_general_message",
+    "translation": " bir ileti gönderdi."
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " şuraya bir ya da bir kaç dosya yükledi "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " bir doğrudan ileti içine bir ya da bir kaç dosya yükledi"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_image_only_no_channel",
-    "translation": " bir ya da bir kaç dosya yükledi "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_in",
-    "translation": " içinde "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_mention",
-    "translation": " sizi şurada andı "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
-    "translation": " sizi andı "
+    "translation": " bir dosya ekledi."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": " size doğrudan ileti gönderdi"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_non_mention",
-    "translation": " şuraya gönderildi "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
-    "translation": " bir ileti gönderdi"
+    "translation": "size bir ileti gönderdi."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -2045,6 +2049,14 @@
   {
     "id": "api.saml.save_certificate.app_error",
     "translation": "Sertifika doğru şekilde kaydedilemedi."
+  },
+  {
+    "id": "api.scheme.get_channels_for_scheme.scope.error",
+    "translation": "Belirtilen şema bir kanal şeması olmadığından, şemanın uygulanabileceği kanallar alınamadı."
+  },
+  {
+    "id": "api.scheme.get_teams_for_scheme.scope.error",
+    "translation": "Belirtilen şema bir takım şeması olmadığından, şemanın uygulanabileceği takımlar alınamadı."
   },
   {
     "id": "api.server.new_server.init.info",
@@ -2511,20 +2523,28 @@
     "translation": "İzinleriniz yeterli değil"
   },
   {
+    "id": "api.team.update_team_scheme.license.error",
+    "translation": "Bu lisans sürümünde takım şemalarını güncelleme özelliği bulunmuyor"
+  },
+  {
+    "id": "api.team.update_team_scheme.scheme_scope.error",
+    "translation": "Belirtilen şema bir takım şeması olmadığından takım şeması ayarlanamadı."
+  },
+  {
     "id": "api.templates.channel_name.group",
     "translation": "Grup İletisi"
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "{{ .SiteURL }} üzerindeki hesabınızı devre dışı bıraktınız.<br>Bu işlemi siz yapmadıysanız ya da hesabınızı yeniden etkinleştirmek istiyorsanız, sistem yöneticisi ile görüşün."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+    "translation": "{{ .ServerURL }} üzerindeki hesabınız devre dışı bırakıldı"
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+    "translation": "[{{ .SiteName }}] {{ .ServerURL }} üzerindeki hesabınız devre dışı bırakıldı"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -3036,7 +3056,7 @@
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Failed to send the deactivate account email successfully"
+    "translation": "Hesabı devre dışı bırakma bildirimi e-postası gönderilemedi"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -3088,7 +3108,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
+    "translation": "Bu özellik etkinleştirilmemiş olduğundan kendi hesabınızı devre dışı bırakamazsınız. Lütfen sistem yöneticisi ile görüşün."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3939,6 +3959,10 @@
     "translation": "Belirtilen rol bulunamadı"
   },
   {
+    "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
+    "translation": "API bağlantı noktasına erişilemediğinden istenilen aktarımlar yapılamadı."
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticinizle görüşün."
   },
@@ -4607,6 +4631,14 @@
     "translation": "Geçerli çalışma klasörü: %v"
   },
   {
+    "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
+    "translation": "İşlenen verilerin geçersiz olması nedeniyle aktarım tamamlanamadı."
+  },
+  {
+    "id": "migrations.worker.run_migration.unknown_key",
+    "translation": "Aktarım anahtarı bilinmediğinden aktarım görevi çalıştırılamadı."
+  },
+  {
     "id": "model.access.is_valid.access_token.app_error",
     "translation": "Erişim kodu geçersiz"
   },
@@ -4951,6 +4983,10 @@
     "translation": "İleti saklama değeri bir ya da daha fazla gün olmalıdır."
   },
   {
+    "id": "model.config.is_valid.display.custom_url_schemes.app_error",
+    "translation": "{{.Scheme}} özel adres biçimi geçersiz. Özel adres biçimleri bir harf ile başlamalı ve yalnız harf, rakam artı (+), nokta (.) ve tire (-) karakterlerini içermelidir."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch toplayıcı AggregatePostsAfterDays ayarının değeri 1 ya da daha büyük bir sayı olmalıdır"
   },
@@ -5260,7 +5296,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Site adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır"
+    "translation": "Site adresi http:// yada https:// ile başlayan geçerli bir adres olmalıdır."
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -6007,6 +6043,10 @@
     "translation": "Kanal bulunamadı"
   },
   {
+    "id": "store.sql_channel.get_by_scheme.app_error",
+    "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı"
+  },
+  {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
     "translation": "Kanal sayıları alınamadı"
   },
@@ -6083,6 +6123,26 @@
     "translation": "Anma sayısı arttırılamadı"
   },
   {
+    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
+    "translation": "Veritabanı hareketi işlenemedi"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
+    "translation": "Veritabanı hareketi açılamadı"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
+    "translation": "Veritabanı hareketi geri alınamadı"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.select.app_error",
+    "translation": "Kanal üyeleri topluluğu seçilemedi"
+  },
+  {
+    "id": "store.sql_channel.migrate_channel_members.update.app_error",
+    "translation": "Kanal üyesi güncellenemedi"
+  },
+  {
     "id": "store.sql_channel.permanent_delete.app_error",
     "translation": "Kanal silinemedi"
   },
@@ -6101,6 +6161,10 @@
   {
     "id": "store.sql_channel.remove_member.app_error",
     "translation": "Üye kanaldan çıkarılamadı"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
+    "translation": "Kanal şemaları sıfırlanamadı"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -6739,6 +6803,10 @@
     "translation": "Tepki kaydedilemedi"
   },
   {
+    "id": "store.sql_role.delete.update.app_error",
+    "translation": "Rol silinemedi"
+  },
+  {
     "id": "store.sql_role.get.app_error",
     "translation": "Rol alınamadı"
   },
@@ -6763,8 +6831,72 @@
     "translation": "Rol geçersiz"
   },
   {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "Rol geçersiz"
+  },
+  {
+    "id": "store.sql_role.save.open_transaction.app_error",
+    "translation": "Rolü kaydedecek hareket açılamadı"
+  },
+  {
     "id": "store.sql_role.save.update.app_error",
     "translation": "Rol güncellenemedi"
+  },
+  {
+    "id": "store.sql_role.save_role.commit_transaction.app_error",
+    "translation": "Rolü kaydedecek hareket işlenemedi"
+  },
+  {
+    "id": "store.sql_scheme.delete.role_update.app_error",
+    "translation": "Bu şemaya ait roller silinemedi"
+  },
+  {
+    "id": "store.sql_scheme.delete.scheme_in_use.app_error",
+    "translation": "1 ya da daha fazla takım ya da kanal tarafından kullanılmakta olduğundan bu şema silinemedi"
+  },
+  {
+    "id": "store.sql_scheme.delete.update.app_error",
+    "translation": "Şema silinemedi"
+  },
+  {
+    "id": "store.sql_scheme.get.app_error",
+    "translation": "Şema alınamadı"
+  },
+  {
+    "id": "store.sql_scheme.permanent_delete_all.app_error",
+    "translation": "Şemalar kalıcı olarak silinemedi"
+  },
+  {
+    "id": "store.sql_scheme.reset_channels.app_error",
+    "translation": "Bu şemayı kullanan tüm kanallara varsayılan tema atanamadı"
+  },
+  {
+    "id": "store.sql_scheme.reset_teams.app_error",
+    "translation": "Bu şemayı kullanan tüm takımlara varsayılan tema atanamadı"
+  },
+  {
+    "id": "store.sql_scheme.save.insert.app_error",
+    "translation": "Şema oluşturulamadı"
+  },
+  {
+    "id": "store.sql_scheme.save.invalid_scheme.app_error",
+    "translation": "Belirtilen şema geçersiz"
+  },
+  {
+    "id": "store.sql_scheme.save.open_transaction.app_error",
+    "translation": "Şemayı kaydedecek hareket açılamadı"
+  },
+  {
+    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
+    "translation": "Varsayılan şema rolleri alınamadı"
+  },
+  {
+    "id": "store.sql_scheme.save.update.app_error",
+    "translation": "Şema güncellenemedi"
+  },
+  {
+    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
+    "translation": "Şemayı kaydedecek hareket işlenemedi"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6915,6 +7047,10 @@
     "translation": "Var olan takım bulunamadı"
   },
   {
+    "id": "store.sql_team.get_by_scheme.app_error",
+    "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı"
+  },
+  {
     "id": "store.sql_team.get_member.app_error",
     "translation": "Takım üyesi alınamadı"
   },
@@ -6943,12 +7079,36 @@
     "translation": "Takımların okunmamış iletileri alınamadı"
   },
   {
+    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
+    "translation": "Veritabanı hareketi işlenemedi"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
+    "translation": "Veritabanı hareketi açılamadı"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
+    "translation": "Veritabanı hareketi geri alınamadı"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.select.app_error",
+    "translation": " Takım üyeleri topluluğu seçilemedi"
+  },
+  {
+    "id": "store.sql_team.migrate_team_members.update.app_error",
+    "translation": "Takım üyesi güncellenemedi"
+  },
+  {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "Var olan takım silinemedi"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
     "translation": "Üye takımdan çıkarılamadı"
+  },
+  {
+    "id": "store.sql_team.reset_all_team_schemes.app_error",
+    "translation": "Takım şemaları sıfırlanamadı"
   },
   {
     "id": "store.sql_team.save.app_error",
