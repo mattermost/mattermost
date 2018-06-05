@@ -241,6 +241,8 @@ func (a *App) trackConfig() {
 		"isdefault_image_proxy_options":                           isDefault(*cfg.ServiceSettings.ImageProxyOptions, ""),
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
+		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
+		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -254,6 +256,7 @@ func (a *App) trackConfig() {
 		"restrict_public_channel_deletion":          *cfg.TeamSettings.RestrictPublicChannelDeletion,
 		"restrict_private_channel_deletion":         *cfg.TeamSettings.RestrictPrivateChannelDeletion,
 		"enable_open_server":                        *cfg.TeamSettings.EnableOpenServer,
+		"enable_user_deactivation":                  *cfg.TeamSettings.EnableUserDeactivation,
 		"enable_custom_brand":                       *cfg.TeamSettings.EnableCustomBrand,
 		"restrict_direct_message":                   *cfg.TeamSettings.RestrictDirectMessage,
 		"max_notifications_per_channel":             *cfg.TeamSettings.MaxNotificationsPerChannel,
@@ -401,6 +404,7 @@ func (a *App) trackConfig() {
 		"isdefault_nickname_attribute":        isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
 		"isdefault_id_attribute":              isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
 		"isdefault_position_attribute":        isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
+		"isdefault_login_id_attribute":        isDefault(*cfg.LdapSettings.LoginIdAttribute, model.""),
 		"isdefault_login_field_name":          isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
 		"isdefault_login_button_color":        isDefault(*cfg.LdapSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color": isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
@@ -517,6 +521,7 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone": *cfg.DisplaySettings.ExperimentalTimezone,
+		"custom_url_schemes":    isDefault(*cfg.DisplaySettings.CustomUrlSchemes, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
