@@ -2373,7 +2373,7 @@ func (ds *DisplaySettings) isValid() *AppError {
 				return NewAppError(
 					"Config.IsValid",
 					"model.config.is_valid.display.custom_url_schemes.app_error",
-					map[string]interface{}{"Protocol": scheme},
+					map[string]interface{}{"Scheme": scheme},
 					"",
 					http.StatusBadRequest,
 				)
