@@ -862,22 +862,6 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) UpdateNonSSOUserActive(userId string, active bool) (*model.User, *model.AppError) {
-	var user *model.User
-	var err *model.AppError
-	if user, err = a.GetUser(userId); err != nil {
-		return nil, err
-	}
-
-	if user.IsSSOUser() {
-		err := model.NewAppError("UpdateActive", "api.user.update_active.no_deactivate_sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
-		err.StatusCode = http.StatusBadRequest
-		return nil, err
-	}
-
-	return a.UpdateActive(user, active)
-}
-
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
 		user.DeleteAt = 0
