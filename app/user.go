@@ -879,9 +879,6 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		}
 
 		ruser := result.Data.([2]*model.User)[0]
-		options := a.Config().GetSanitizeOptions()
-		options["passwordupdate"] = false
-		ruser.Sanitize(options)
 
 		if !active {
 			a.SetStatusOffline(ruser.Id, false)
