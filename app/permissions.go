@@ -14,6 +14,7 @@ import (
 )
 
 const permissionsExportBatchSize = 100
+const systemSchemeName = "MATTERMOST_BUILTIN_SYSTEM_SCHEME"
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
@@ -101,6 +102,31 @@ func (a *App) ExportPermissions(w io.Writer) error {
 
 	}
 
+	defaultRoleNames := []string{}
+	for _, dr := range model.MakeDefaultRoles() {
+		defaultRoleNames = append(defaultRoleNames, dr.Name)
+	}
+
+	roles, appErr := a.GetRolesByNames(defaultRoleNames)
+	if appErr != nil {
+		return errors.New(appErr.Message)
+	}
+
+	schemeExport, err := json.Marshal(&model.SchemeConveyor{
+		Name:  systemSchemeName,
+		Roles: roles,
+	})
+	if err != nil {
+		return err
+	}
+
+	schemeExport = append(schemeExport, []byte("\n")...)
+
+	_, err = w.Write(schemeExport)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -114,6 +140,25 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 		err := json.Unmarshal(scanner.Bytes(), &schemeConveyor)
 		if err != nil {
 			return err
+		}
+
+		if schemeConveyor.Name == systemSchemeName {
+			for _, roleIn := range schemeConveyor.Roles {
+				dbRole, err := a.GetRoleByName(roleIn.Name)
+				if err != nil {
+					return errors.New(err.Message)
+				}
+				_, err = a.PatchRole(dbRole, &model.RolePatch{
+					Permissions: &roleIn.Permissions,
+				})
+				if err != nil {
+					for _, schemeID := range createdSchemeIDs {
+						a.DeleteScheme(schemeID)
+					}
+					return err
+				}
+			}
+			continue
 		}
 
 		// Create the new Scheme. The new Roles are created automatically.
