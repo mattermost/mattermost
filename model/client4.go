@@ -392,6 +392,10 @@ func (c *Client4) GetTeamSchemeRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/scheme", teamId)
 }
 
+func (c *Client4) GetTotalUsersStatsRoute() string {
+	return fmt.Sprintf(c.GetUsersRoute() + "/stats")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -1465,6 +1469,17 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
 	} else {
 		defer closeBody(r)
 		return TeamStatsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTotalUsersStats returns a total system user stats.
+// Must be authenticated.
+func (c *Client4) GetTotalUsersStats(etag string) (*UsersStats, *Response) {
+	if r, err := c.DoApiGet(c.GetTotalUsersStatsRoute(), etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UsersStatsFromJson(r.Body), BuildResponse(r)
 	}
 }
 
