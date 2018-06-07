@@ -139,6 +139,7 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 		var schemeConveyor *model.SchemeConveyor
 		err := json.Unmarshal(scanner.Bytes(), &schemeConveyor)
 		if err != nil {
+			rollback(a, createdSchemeIDs)
 			return err
 		}
 
@@ -146,15 +147,14 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 			for _, roleIn := range schemeConveyor.Roles {
 				dbRole, err := a.GetRoleByName(roleIn.Name)
 				if err != nil {
+					rollback(a, createdSchemeIDs)
 					return errors.New(err.Message)
 				}
 				_, err = a.PatchRole(dbRole, &model.RolePatch{
 					Permissions: &roleIn.Permissions,
 				})
 				if err != nil {
-					for _, schemeID := range createdSchemeIDs {
-						a.DeleteScheme(schemeID)
-					}
+					rollback(a, createdSchemeIDs)
 					return err
 				}
 			}
@@ -165,6 +165,7 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 		var appErr *model.AppError
 		schemeCreated, appErr := a.CreateScheme(schemeConveyor.Scheme())
 		if appErr != nil {
+			rollback(a, createdSchemeIDs)
 			return errors.New(appErr.Message)
 		}
 		createdSchemeIDs = append(createdSchemeIDs, schemeCreated.Id)
@@ -184,19 +185,24 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 			err = updateRole(a, schemeConveyor, roleNameTuple[0], roleNameTuple[1])
 			if err != nil {
 				// Delete the new Schemes. The new Roles are deleted automatically.
-				for _, schemeID := range createdSchemeIDs {
-					a.DeleteScheme(schemeID)
-				}
+				rollback(a, createdSchemeIDs)
 				return err
 			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
+		rollback(a, createdSchemeIDs)
 		return err
 	}
 
 	return nil
+}
+
+func rollback(a *App, createdSchemeIDs []string) {
+	for _, schemeID := range createdSchemeIDs {
+		a.DeleteScheme(schemeID)
+	}
 }
 
 func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
