@@ -14,7 +14,7 @@ import (
 )
 
 const permissionsExportBatchSize = 100
-const systemSchemeName = "MATTERMOST_BUILTIN_SYSTEM_SCHEME"
+const systemSchemeName = "9CE2A3E8-D8EA-4621-BCC0-27DED244D37B" // Prevents collisions with user-created schemes.
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
