@@ -410,7 +410,6 @@ func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
 	rq, _ := http.NewRequest(method, url, strings.NewReader(data))
-	rq.Close = true
 
 	if len(etag) > 0 {
 		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
@@ -435,7 +434,6 @@ func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, 
 func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*FileUploadResponse, *Response) {
 	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -457,7 +455,6 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response) {
 	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -479,7 +476,6 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response) {
 	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -1102,7 +1098,6 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -1553,7 +1548,6 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -2410,7 +2404,6 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -2798,7 +2791,6 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) 
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
 	var rq *http.Request
 	rq, _ = http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
@@ -2903,7 +2895,6 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -3056,7 +3047,6 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Response) {
 	rq, _ := http.NewRequest(http.MethodPost, c.Url+"/oauth/access_token", strings.NewReader(data.Encode()))
 	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -3612,7 +3602,6 @@ func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
