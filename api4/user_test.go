@@ -909,6 +909,21 @@ func TestGetUsersByUsernames(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetTotalUsersStat(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	total := <-th.App.Srv.Store.User().GetTotalUsersCount()
+
+	rstats, resp := Client.GetTotalUsersStats("")
+	CheckNoError(t, resp)
+
+	if rstats.TotalUsersCount != total.Data.(int64) {
+		t.Fatal("wrong count")
+	}
+}
+
 func TestUpdateUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
@@ -1749,30 +1764,23 @@ func TestUpdateUserPassword(t *testing.T) {
 /*func TestResetPassword(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.Client
-
 	Client.Logout()
-
 	user := th.BasicUser
-
 	// Delete all the messages before check the reset password
 	utils.DeleteMailBox(user.Email)
-
 	success, resp := Client.SendPasswordResetEmail(user.Email)
 	CheckNoError(t, resp)
 	if !success {
 		t.Fatal("should have succeeded")
 	}
-
 	_, resp = Client.SendPasswordResetEmail("")
 	CheckBadRequestStatus(t, resp)
-
 	// Should not leak whether the email is attached to an account or not
 	success, resp = Client.SendPasswordResetEmail("notreal@example.com")
 	CheckNoError(t, resp)
 	if !success {
 		t.Fatal("should have succeeded")
 	}
-
 	// Check if the email was send to the right email address and the recovery key match
 	var resultsMailbox utils.JSONMessageHeaderInbucket
 	err := utils.RetryInbucket(5, func() error {
@@ -1784,7 +1792,6 @@ func TestUpdateUserPassword(t *testing.T) {
 		t.Log(err)
 		t.Log("No email was received, maybe due load on the server. Disabling this verification")
 	}
-
 	var recoveryTokenString string
 	if err == nil && len(resultsMailbox) > 0 {
 		if !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
@@ -1801,7 +1808,6 @@ func TestUpdateUserPassword(t *testing.T) {
 			}
 		}
 	}
-
 	var recoveryToken *model.Token
 	if result := <-th.App.Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
 		t.Log(recoveryTokenString)
@@ -1809,44 +1815,33 @@ func TestUpdateUserPassword(t *testing.T) {
 	} else {
 		recoveryToken = result.Data.(*model.Token)
 	}
-
 	_, resp = Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
-
 	_, resp = Client.ResetPassword(recoveryToken.Token, "newp")
 	CheckBadRequestStatus(t, resp)
-
 	_, resp = Client.ResetPassword("", "newpwd")
 	CheckBadRequestStatus(t, resp)
-
 	_, resp = Client.ResetPassword("junk", "newpwd")
 	CheckBadRequestStatus(t, resp)
-
 	code := ""
 	for i := 0; i < model.TOKEN_SIZE; i++ {
 		code += "a"
 	}
-
 	_, resp = Client.ResetPassword(code, "newpwd")
 	CheckBadRequestStatus(t, resp)
-
 	success, resp = Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckNoError(t, resp)
 	if !success {
 		t.Fatal("should have succeeded")
 	}
-
 	Client.Login(user.Email, "newpwd")
 	Client.Logout()
-
 	_, resp = Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckBadRequestStatus(t, resp)
-
 	authData := model.NewId()
 	if result := <-app.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
-
 	_, resp = Client.SendPasswordResetEmail(user.Email)
 	CheckBadRequestStatus(t, resp)
 }*/

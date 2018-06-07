@@ -22,6 +22,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/usernames", api.ApiSessionRequired(getUsersByNames)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequired(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequiredTrustRequester(getProfileImage)).Methods("GET")
@@ -276,6 +277,20 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("")
 	ReturnStatusOK(w)
+}
+
+func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.Err != nil {
+		return
+	}
+
+	if stats, err := c.App.GetTotalUsersStats(); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(stats.ToJson()))
+		return
+	}
 }
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {

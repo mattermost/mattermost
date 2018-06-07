@@ -1392,6 +1392,17 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 	}
 }
 
+func (a *App) GetTotalUsersStats() (*model.UsersStats, *model.AppError) {
+	stats := &model.UsersStats{}
+
+	if result := <-a.Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
+		return nil, result.Err
+	} else {
+		stats.TotalUsersCount = result.Data.(int64)
+	}
+	return stats, nil
+}
+
 func (a *App) VerifyUserEmail(userId string) *model.AppError {
 	return (<-a.Srv.Store.User().VerifyEmail(userId)).Err
 }
