@@ -752,6 +752,11 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, senderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	for _, session := range sessions {
+
+		if session.IsExpired() {
+			continue
+		}
+
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 
