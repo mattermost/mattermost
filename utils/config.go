@@ -32,36 +32,96 @@ const (
 	LOG_FILENAME    = "mattermost.log"
 )
 
+var (
+	commonBaseSearchPaths = []string{
+		".",
+		"..",
+		"../..",
+		"../../..",
+	}
+)
+
+func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
+	if filepath.IsAbs(path) {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+
+		return ""
+	}
+
+	searchPaths := []string{}
+	for _, baseSearchPath := range baseSearchPaths {
+		searchPaths = append(searchPaths, baseSearchPath)
+	}
+
+	// Additionally attempt to search relative to the location of the running binary.
+	var binaryDir string
+	if exe, err := os.Executable(); err == nil {
+		if exe, err = filepath.EvalSymlinks(exe); err == nil {
+			if exe, err = filepath.Abs(exe); err == nil {
+				binaryDir = filepath.Dir(exe)
+			}
+		}
+	}
+	if binaryDir != "" {
+		for _, baseSearchPath := range baseSearchPaths {
+			searchPaths = append(
+				searchPaths,
+				filepath.Join(binaryDir, baseSearchPath),
+			)
+		}
+	}
+
+	for _, parent := range searchPaths {
+		found, err := filepath.Abs(filepath.Join(parent, path))
+		if err != nil {
+			continue
+		} else if fileInfo, err := os.Stat(found); err == nil {
+			if filter != nil {
+				if filter(fileInfo) {
+					return found
+				}
+			} else {
+				return found
+			}
+		}
+	}
+
+	return ""
+}
+
 // FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
 // relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
 // string is returned if no configuration is found.
 func FindConfigFile(fileName string) (path string) {
-	if filepath.IsAbs(fileName) {
-		if _, err := os.Stat(fileName); err == nil {
-			return fileName
-		}
-	} else {
-		for _, dir := range []string{"./config", "../config", "../../config", "."} {
-			path, _ := filepath.Abs(filepath.Join(dir, fileName))
-			if _, err := os.Stat(path); err == nil {
-				return path
-			}
-		}
+	found := FindFile(filepath.Join("config", fileName))
+	if found == "" {
+		found = FindPath(fileName, []string{"."}, nil)
 	}
-	return ""
+
+	return found
 }
 
-// FindDir looks for the given directory in nearby ancestors, falling back to `./` if not found.
+// FindFile looks for the given file in nearby ancestors relative to the current working
+// directory as well as the directory of the executable.
+func FindFile(path string) string {
+	return FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return !fileInfo.IsDir()
+	})
+}
+
+// FindDir looks for the given directory in nearby ancestors relative to the current working
+// directory as well as the directory of the executable, falling back to `./` if not found.
 func FindDir(dir string) (string, bool) {
-	for _, parent := range []string{".", "..", "../.."} {
-		foundDir, err := filepath.Abs(filepath.Join(parent, dir))
-		if err != nil {
-			continue
-		} else if _, err := os.Stat(foundDir); err == nil {
-			return foundDir, true
-		}
+	found := FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return fileInfo.IsDir()
+	})
+	if found == "" {
+		return "./", false
 	}
-	return "./", false
+
+	return found, true
 }
 
 func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
@@ -448,8 +508,8 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
-	props["EnableAPIv3"] = strconv.FormatBool(*c.ServiceSettings.EnableAPIv3)
-	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
+	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
+	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
@@ -502,6 +562,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
+	props["EnablePreviewModeBanner"] = strconv.FormatBool(*c.EmailSettings.EnablePreviewModeBanner)
 	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
 	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
@@ -553,7 +614,10 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
 
+	props["RunJobs"] = strconv.FormatBool(*c.JobSettings.RunJobs)
+
 	// Set default values for all options that require a license.
+	props["ExperimentalHideTownSquareinLHS"] = "false"
 	props["ExperimentalTownSquareIsReadOnly"] = "false"
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["EnableCustomBrand"] = "false"
@@ -602,16 +666,20 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
+	props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
+	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
+	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
+	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
+	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
+	props["CustomUrlSchemes"] = strings.Join(*c.DisplaySettings.CustomUrlSchemes, ",")
+	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
+	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
+	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 
 	if license != nil {
+		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
-
-		if *license.Features.CustomBrand {
-			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
-			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
-			props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
-		}
 
 		if *license.Features.LDAP {
 			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
@@ -664,14 +732,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 		if *license.Features.Office365OAuth {
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
-		}
-
-		if *license.Features.PasswordRequirements {
-			props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
-			props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
-			props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
-			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
-			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
 
 		if *license.Features.Announcement {

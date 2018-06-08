@@ -88,30 +88,12 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	th.App.PermanentDeleteUser(user)
 
-	th.App.Config().TeamSettings.EnableUserCreation = false
+	*th.App.Config().TeamSettings.EnableUserCreation = false
 
 	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
 	if err == nil {
 		t.Fatal("should have failed - user creation disabled")
 	}
-}
-
-func TestDeactivateSSOUser(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	glUser := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
-
-	json := glUser.ToJson()
-	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer th.App.PermanentDeleteUser(user)
-
-	_, err = th.App.UpdateNonSSOUserActive(user.Id, false)
-	assert.Equal(t, "api.user.update_active.no_deactivate_sso.app_error", err.Id)
 }
 
 func TestCreateProfileImage(t *testing.T) {

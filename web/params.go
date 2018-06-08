@@ -47,6 +47,8 @@ type Params struct {
 	ActionId       string
 	RoleId         string
 	RoleName       string
+	SchemeId       string
+	Scope          string
 	Page           int
 	PerPage        int
 	LogsPerPage    int
@@ -167,13 +169,19 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.RoleName = val
 	}
 
+	if val, ok := props["scheme_id"]; ok {
+		params.SchemeId = val
+	}
+
+	params.Scope = query.Get("scope")
+
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
 		params.Page = PAGE_DEFAULT
 	} else {
 		params.Page = val
 	}
 
-	if val, err := strconv.ParseBool(query.Get("permanent")); err != nil {
+	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {
 		params.Permanent = val
 	}
 

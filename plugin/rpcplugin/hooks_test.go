@@ -91,6 +91,30 @@ func TestHooks(t *testing.T) {
 		})
 		assert.Equal(t, "bar", commandResponse.Text)
 		assert.Nil(t, appErr)
+
+		hooks.On("MessageWillBePosted", mock.AnythingOfType("*model.Post")).Return(func(post *model.Post) *model.Post {
+			post.Message += "_testing"
+			return post
+		}, "changemessage")
+		post, changemessage := remote.MessageWillBePosted(&model.Post{Id: "1", Message: "base"})
+		assert.Equal(t, "changemessage", changemessage)
+		assert.Equal(t, "base_testing", post.Message)
+		assert.Equal(t, "1", post.Id)
+
+		hooks.On("MessageWillBeUpdated", mock.AnythingOfType("*model.Post"), mock.AnythingOfType("*model.Post")).Return(func(newPost, oldPost *model.Post) *model.Post {
+			newPost.Message += "_testing"
+			return newPost
+		}, "changemessage2")
+		post2, changemessage2 := remote.MessageWillBeUpdated(&model.Post{Id: "2", Message: "base2"}, &model.Post{Id: "OLD", Message: "OLDMESSAGE"})
+		assert.Equal(t, "changemessage2", changemessage2)
+		assert.Equal(t, "base2_testing", post2.Message)
+		assert.Equal(t, "2", post2.Id)
+
+		hooks.On("MessageHasBeenPosted", mock.AnythingOfType("*model.Post")).Return(nil)
+		remote.MessageHasBeenPosted(&model.Post{})
+
+		hooks.On("MessageHasBeenUpdated", mock.AnythingOfType("*model.Post"), mock.AnythingOfType("*model.Post")).Return(nil)
+		remote.MessageHasBeenUpdated(&model.Post{}, &model.Post{})
 	}))
 }
 

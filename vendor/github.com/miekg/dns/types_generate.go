@@ -226,7 +226,7 @@ func main() {
 			continue
 		}
 		fmt.Fprintf(b, "func (rr *%s) copy() RR {\n", name)
-		fields := []string{"*rr.Hdr.copyHeader()"}
+		fields := []string{"rr.Hdr"}
 		for i := 1; i < st.NumFields(); i++ {
 			f := st.Field(i).Name()
 			if sl, ok := st.Field(i).Type().(*types.Slice); ok {

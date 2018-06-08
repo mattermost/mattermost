@@ -13,6 +13,33 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
+)
+
+const (
+	HEADER_REQUEST_ID         = "X-Request-ID"
+	HEADER_VERSION_ID         = "X-Version-ID"
+	HEADER_CLUSTER_ID         = "X-Cluster-ID"
+	HEADER_ETAG_SERVER        = "ETag"
+	HEADER_ETAG_CLIENT        = "If-None-Match"
+	HEADER_FORWARDED          = "X-Forwarded-For"
+	HEADER_REAL_IP            = "X-Real-IP"
+	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
+	HEADER_TOKEN              = "token"
+	HEADER_BEARER             = "BEARER"
+	HEADER_AUTH               = "Authorization"
+	HEADER_REQUESTED_WITH     = "X-Requested-With"
+	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
+	STATUS                    = "status"
+	STATUS_OK                 = "OK"
+	STATUS_FAIL               = "FAIL"
+	STATUS_REMOVE             = "REMOVE"
+
+	CLIENT_DIR = "client"
+
+	API_URL_SUFFIX_V1 = "/api/v1"
+	API_URL_SUFFIX_V4 = "/api/v4"
+	API_URL_SUFFIX    = API_URL_SUFFIX_V4
 )
 
 type Response struct {
@@ -30,6 +57,24 @@ type Client4 struct {
 	HttpClient *http.Client // The http client
 	AuthToken  string
 	AuthType   string
+}
+
+func closeBody(r *http.Response) {
+	if r.Body != nil {
+		ioutil.ReadAll(r.Body)
+		r.Body.Close()
+	}
+}
+
+// Must is a convenience function used for testing.
+func (c *Client4) Must(result interface{}, resp *Response) interface{} {
+	if resp.Error != nil {
+
+		time.Sleep(time.Second)
+		panic(resp.Error)
+	}
+
+	return result
 }
 
 func NewAPIv4Client(url string) *Client4 {
@@ -62,6 +107,11 @@ func BuildResponse(r *http.Response) *Response {
 		ServerVersion: r.Header.Get(HEADER_VERSION_ID),
 		Header:        r.Header,
 	}
+}
+
+func (c *Client4) MockSession(sessionToken string) {
+	c.AuthToken = sessionToken
+	c.AuthType = HEADER_BEARER
 }
 
 func (c *Client4) SetOAuthToken(token string) {
@@ -318,12 +368,32 @@ func (c *Client4) GetRolesRoute() string {
 	return fmt.Sprintf("/roles")
 }
 
+func (c *Client4) GetSchemesRoute() string {
+	return fmt.Sprintf("/schemes")
+}
+
+func (c *Client4) GetSchemeRoute(id string) string {
+	return c.GetSchemesRoute() + fmt.Sprintf("/%v", id)
+}
+
 func (c *Client4) GetAnalyticsRoute() string {
 	return fmt.Sprintf("/analytics")
 }
 
 func (c *Client4) GetTimezonesRoute() string {
 	return fmt.Sprintf(c.GetSystemRoute() + "/timezones")
+}
+
+func (c *Client4) GetChannelSchemeRoute(channelId string) string {
+	return fmt.Sprintf(c.GetChannelsRoute()+"/%v/scheme", channelId)
+}
+
+func (c *Client4) GetTeamSchemeRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/scheme", teamId)
+}
+
+func (c *Client4) GetTotalUsersStatsRoute() string {
+	return fmt.Sprintf(c.GetUsersRoute() + "/stats")
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -344,7 +414,6 @@ func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
 	rq, _ := http.NewRequest(method, url, strings.NewReader(data))
-	rq.Close = true
 
 	if len(etag) > 0 {
 		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
@@ -369,7 +438,6 @@ func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, 
 func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*FileUploadResponse, *Response) {
 	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -391,7 +459,6 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response) {
 	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -413,7 +480,6 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response) {
 	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -1036,7 +1102,6 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -1254,6 +1319,16 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 	}
 }
 
+// UpdateTeamMemberSchemeRoles will update the scheme-derived roles on a team for a user.
+func (c *Client4) UpdateTeamMemberSchemeRoles(teamId string, userId string, schemeRoles *SchemeRoles) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamMemberRoute(teamId, userId)+"/schemeRoles", schemeRoles.ToJson()); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // UpdateTeam will update a team.
 func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
 	if r, err := c.DoApiPut(c.GetTeamRoute(team.Id), team.ToJson()); err != nil {
@@ -1397,6 +1472,17 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
 	}
 }
 
+// GetTotalUsersStats returns a total system user stats.
+// Must be authenticated.
+func (c *Client4) GetTotalUsersStats(etag string) (*UsersStats, *Response) {
+	if r, err := c.DoApiGet(c.GetTotalUsersStatsRoute(), etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UsersStatsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamUnread will return a TeamUnread object that contains the amount of
 // unread messages and mentions the user has for the specified team.
 // Must be authenticated.
@@ -1477,7 +1563,6 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -1776,6 +1861,16 @@ func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *R
 func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}
 	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/roles", MapToJson(requestBody)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateChannelMemberSchemeRoles will update the scheme-derived roles on a channel for a user.
+func (c *Client4) UpdateChannelMemberSchemeRoles(channelId string, userId string, schemeRoles *SchemeRoles) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/schemeRoles", schemeRoles.ToJson()); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -2324,7 +2419,6 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -2712,7 +2806,6 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) 
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
 	var rq *http.Request
 	rq, _ = http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
@@ -2817,7 +2910,6 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -2963,6 +3055,27 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
+func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Response) {
+	rq, _ := http.NewRequest(http.MethodPost, c.Url+"/oauth/access_token", strings.NewReader(data.Encode()))
+	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.Url+"/oauth/access_token", "model.client.connecting.app_error", nil, err.Error(), 403)}
+	} else {
+		defer closeBody(rp)
+		if rp.StatusCode >= 300 {
+			return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
+		} else {
+			return AccessResponseFromJson(rp.Body), BuildResponse(rp)
+		}
 	}
 }
 
@@ -3412,6 +3525,78 @@ func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response) 
 	}
 }
 
+// Schemes Section
+
+// CreateScheme creates a new Scheme.
+func (c *Client4) CreateScheme(scheme *Scheme) (*Scheme, *Response) {
+	if r, err := c.DoApiPost(c.GetSchemesRoute(), scheme.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemeFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetScheme gets a single scheme by ID.
+func (c *Client4) GetScheme(id string) (*Scheme, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemeRoute(id), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemeFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Get all schemes, sorted with the most recently created first, optionally filtered by scope.
+func (c *Client4) GetSchemes(scope string, page int, perPage int) ([]*Scheme, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemesRoute()+fmt.Sprintf("?scope=%v&page=%v&per_page=%v", scope, page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemesFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DeleteScheme deletes a single scheme by ID.
+func (c *Client4) DeleteScheme(id string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetSchemeRoute(id)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// PatchScheme partially updates a scheme in the system. Any missing fields are not updated.
+func (c *Client4) PatchScheme(id string, patch *SchemePatch) (*Scheme, *Response) {
+	if r, err := c.DoApiPut(c.GetSchemeRoute(id)+"/patch", patch.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return SchemeFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Get the teams using this scheme, sorted alphabetically by display name.
+func (c *Client4) GetTeamsForScheme(schemeId string, page int, perPage int) ([]*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/teams?page=%v&per_page=%v", page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Get the channels using this scheme, sorted alphabetically by display name.
+func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (ChannelList, *Response) {
+	if r, err := c.DoApiGet(c.GetSchemeRoute(schemeId)+fmt.Sprintf("/channels?page=%v&per_page=%v", page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return *ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Plugin Section
 
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
@@ -3432,7 +3617,6 @@ func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
-	rq.Close = true
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
@@ -3459,6 +3643,18 @@ func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {
 	} else {
 		defer closeBody(r)
 		return PluginsResponseFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPluginStatuses will return the plugins installed on any server in the cluster, for reporting
+// to the administrator via the system console.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response) {
+	if r, err := c.DoApiGet(c.GetPluginsRoute(), "/statuses"); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return PluginStatusesFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -3499,6 +3695,28 @@ func (c *Client4) ActivatePlugin(id string) (bool, *Response) {
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) DeactivatePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/deactivate", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateChannelScheme will update a channel's scheme.
+func (c *Client4) UpdateChannelScheme(channelId, schemeId string) (bool, *Response) {
+	sip := &SchemeIDPatch{SchemeID: &schemeId}
+	if r, err := c.DoApiPut(c.GetChannelSchemeRoute(channelId), sip.ToJson()); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateTeamScheme will update a team's scheme.
+func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (bool, *Response) {
+	sip := &SchemeIDPatch{SchemeID: &schemeId}
+	if r, err := c.DoApiPut(c.GetTeamSchemeRoute(teamId), sip.ToJson()); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

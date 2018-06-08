@@ -11,9 +11,11 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -933,11 +935,41 @@ func TestConvertChannelToPrivate(t *testing.T) {
 		t.Fatal("should not return a channel")
 	}
 
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	WebSocketClient.Listen()
+
 	publicChannel2 := th.CreatePublicChannel()
 	rchannel, resp = th.SystemAdminClient.ConvertChannelToPrivate(publicChannel2.Id)
 	CheckOKStatus(t, resp)
 	if rchannel.Type != model.CHANNEL_PRIVATE {
 		t.Fatal("channel should be converted from public to private")
+	}
+
+	stop := make(chan bool)
+	eventHit := false
+
+	go func() {
+		for {
+			select {
+			case resp := <-WebSocketClient.EventChannel:
+				if resp.Event == model.WEBSOCKET_EVENT_CHANNEL_CONVERTED && resp.Data["channel_id"].(string) == publicChannel2.Id {
+					eventHit = true
+				}
+			case <-stop:
+				return
+			}
+		}
+	}()
+
+	time.Sleep(400 * time.Millisecond)
+
+	stop <- true
+
+	if !eventHit {
+		t.Fatal("did not receive channel_converted event")
 	}
 }
 
@@ -1432,7 +1464,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	const CHANNEL_ADMIN = "channel_admin channel_user"
+	const CHANNEL_ADMIN = "channel_user channel_admin"
 	const CHANNEL_MEMBER = "channel_user"
 
 	// User 1 creates a channel, making them channel admin by default.
@@ -1504,6 +1536,81 @@ func TestUpdateChannelRoles(t *testing.T) {
 
 	_, resp = Client.UpdateChannelRoles(model.NewId(), th.BasicUser.Id, CHANNEL_MEMBER)
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	SystemAdminClient := th.SystemAdminClient
+	th.LoginBasic()
+
+	s1 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  false,
+	}
+	_, r1 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s1)
+	CheckNoError(t, r1)
+
+	tm1, rtm1 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm1)
+	assert.Equal(t, false, tm1.SchemeUser)
+	assert.Equal(t, false, tm1.SchemeAdmin)
+
+	s2 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  true,
+	}
+	_, r2 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s2)
+	CheckNoError(t, r2)
+
+	tm2, rtm2 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm2)
+	assert.Equal(t, true, tm2.SchemeUser)
+	assert.Equal(t, false, tm2.SchemeAdmin)
+
+	s3 := &model.SchemeRoles{
+		SchemeAdmin: true,
+		SchemeUser:  false,
+	}
+	_, r3 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s3)
+	CheckNoError(t, r3)
+
+	tm3, rtm3 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm3)
+	assert.Equal(t, false, tm3.SchemeUser)
+	assert.Equal(t, true, tm3.SchemeAdmin)
+
+	s4 := &model.SchemeRoles{
+		SchemeAdmin: true,
+		SchemeUser:  true,
+	}
+	_, r4 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s4)
+	CheckNoError(t, r4)
+
+	tm4, rtm4 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm4)
+	assert.Equal(t, true, tm4.SchemeUser)
+	assert.Equal(t, true, tm4.SchemeAdmin)
+
+	_, resp := SystemAdminClient.UpdateChannelMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, model.NewId(), s4)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateChannelMemberSchemeRoles("ASDF", th.BasicUser.Id, s4)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, "ASDF", s4)
+	CheckBadRequestStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = th.Client.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s4)
+	CheckForbiddenStatus(t, resp)
+
+	SystemAdminClient.Logout()
+	_, resp = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.SystemAdminUser.Id, s4)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestUpdateChannelNotifyProps(t *testing.T) {
@@ -1882,4 +1989,80 @@ func TestAutocompleteChannels(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestUpdateChannelScheme(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team, _ = th.SystemAdminClient.CreateTeam(team)
+
+	channel := &model.Channel{
+		DisplayName: "Name",
+		Name:        "z-z-" + model.NewId() + "a",
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      team.Id,
+	}
+	channel, _ = th.SystemAdminClient.CreateChannel(channel)
+
+	channelScheme := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme, _ = th.SystemAdminClient.CreateScheme(channelScheme)
+	teamScheme := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme, _ = th.SystemAdminClient.CreateScheme(teamScheme)
+
+	// Test the setup/base case.
+	_, resp := th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	CheckNoError(t, resp)
+
+	// Test various invalid channel and scheme id combinations.
+	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, "x")
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateChannelScheme("x", channelScheme.Id)
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateChannelScheme("x", "x")
+	CheckBadRequestStatus(t, resp)
+
+	// Test that permissions are required.
+	_, resp = th.Client.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// Test that a license is requried.
+	th.App.SetLicense(nil)
+	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	CheckNotImplementedStatus(t, resp)
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	// Test an invalid scheme scope.
+	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, teamScheme.Id)
+	fmt.Printf("resp: %+v\n", resp)
+	CheckBadRequestStatus(t, resp)
+
+	// Test that an unauthenticated user gets rejected.
+	th.SystemAdminClient.Logout()
+	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	CheckUnauthorizedStatus(t, resp)
 }

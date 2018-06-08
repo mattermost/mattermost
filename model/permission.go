@@ -50,6 +50,8 @@ var PERMISSION_MANAGE_WEBHOOKS *Permission
 var PERMISSION_MANAGE_OTHERS_WEBHOOKS *Permission
 var PERMISSION_MANAGE_OAUTH *Permission
 var PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH *Permission
+var PERMISSION_MANAGE_EMOJIS *Permission
+var PERMISSION_MANAGE_OTHERS_EMOJIS *Permission
 var PERMISSION_CREATE_POST *Permission
 var PERMISSION_CREATE_POST_PUBLIC *Permission
 var PERMISSION_CREATE_POST_EPHEMERAL *Permission
@@ -286,6 +288,18 @@ func initializePermissions() {
 		"authentication.permissions.manage_system_wide_oauth.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	PERMISSION_MANAGE_EMOJIS = &Permission{
+		"manage_emojis",
+		"authentication.permissions.manage_emojis.name",
+		"authentication.permissions.manage_emojis.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_MANAGE_OTHERS_EMOJIS = &Permission{
+		"manage_others_emojis",
+		"authentication.permissions.manage_others_emojis.name",
+		"authentication.permissions.manage_others_emojis.description",
+		PERMISSION_SCOPE_TEAM,
+	}
 	PERMISSION_CREATE_POST = &Permission{
 		"create_post",
 		"authentication.permissions.create_post.name",
@@ -424,6 +438,8 @@ func initializePermissions() {
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_OAUTH,
 		PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH,
+		PERMISSION_MANAGE_EMOJIS,
+		PERMISSION_MANAGE_OTHERS_EMOJIS,
 		PERMISSION_CREATE_POST,
 		PERMISSION_CREATE_POST_PUBLIC,
 		PERMISSION_CREATE_POST_EPHEMERAL,

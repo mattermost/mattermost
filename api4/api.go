@@ -97,7 +97,8 @@ type Routes struct {
 
 	Reactions *mux.Router // 'api/v4/reactions'
 
-	Roles *mux.Router // 'api/v4/roles'
+	Roles   *mux.Router // 'api/v4/roles'
+	Schemes *mux.Router // 'api/v4/schemes'
 
 	Emojis      *mux.Router // 'api/v4/emoji'
 	Emoji       *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
@@ -113,7 +114,7 @@ type API struct {
 	BaseRoutes *Routes
 }
 
-func Init(a *app.App, root *mux.Router, full bool) *API {
+func Init(a *app.App, root *mux.Router) *API {
 	api := &API{
 		App:        a,
 		BaseRoutes: &Routes{},
@@ -198,6 +199,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
 
 	api.BaseRoutes.Roles = api.BaseRoutes.ApiRoot.PathPrefix("/roles").Subrouter()
+	api.BaseRoutes.Schemes = api.BaseRoutes.ApiRoot.PathPrefix("/schemes").Subrouter()
 
 	api.BaseRoutes.Image = api.BaseRoutes.ApiRoot.PathPrefix("/image").Subrouter()
 
@@ -227,14 +229,12 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitOpenGraph()
 	api.InitPlugin()
 	api.InitRole()
+	api.InitScheme()
 	api.InitImage()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
-	// REMOVE CONDITION WHEN APIv3 REMOVED
-	if full {
-		a.InitEmailBatching()
-	}
+	a.InitEmailBatching()
 
 	return api
 }

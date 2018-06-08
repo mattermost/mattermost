@@ -116,21 +116,6 @@ type Stat_t struct {
 	Ino     uint64
 }
 
-type Statfs_t struct {
-	Type    int32
-	Bsize   int32
-	Blocks  uint64
-	Bfree   uint64
-	Bavail  uint64
-	Files   uint64
-	Ffree   uint64
-	Fsid    Fsid
-	Namelen int32
-	Frsize  int32
-	Flags   int32
-	Spare   [4]int32
-}
-
 type StatxTimestamp struct {
 	Sec  int64
 	Nsec uint32
@@ -171,7 +156,7 @@ type Dirent struct {
 }
 
 type Fsid struct {
-	_ [2]int32
+	Val [2]int32
 }
 
 type Flock_t struct {
@@ -739,7 +724,7 @@ const (
 )
 
 type Sigset_t struct {
-	_ [32]uint32
+	Val [32]uint32
 }
 
 const RNDGETENTCNT = 0x80045200
@@ -896,6 +881,177 @@ const (
 	BDADDR_LE_RANDOM = 0x2
 )
 
+type PerfEventAttr struct {
+	Type               uint32
+	Size               uint32
+	Config             uint64
+	Sample             uint64
+	Sample_type        uint64
+	Read_format        uint64
+	Bits               uint64
+	Wakeup             uint32
+	Bp_type            uint32
+	Ext1               uint64
+	Ext2               uint64
+	Branch_sample_type uint64
+	Sample_regs_user   uint64
+	Sample_stack_user  uint32
+	Clockid            int32
+	Sample_regs_intr   uint64
+	Aux_watermark      uint32
+	_                  uint32
+}
+
+type PerfEventMmapPage struct {
+	Version        uint32
+	Compat_version uint32
+	Lock           uint32
+	Index          uint32
+	Offset         int64
+	Time_enabled   uint64
+	Time_running   uint64
+	Capabilities   uint64
+	Pmc_width      uint16
+	Time_shift     uint16
+	Time_mult      uint32
+	Time_offset    uint64
+	Time_zero      uint64
+	Size           uint32
+	_              [948]uint8
+	Data_head      uint64
+	Data_tail      uint64
+	Data_offset    uint64
+	Data_size      uint64
+	Aux_head       uint64
+	Aux_tail       uint64
+	Aux_offset     uint64
+	Aux_size       uint64
+}
+
+const (
+	PerfBitDisabled               uint64 = CBitFieldMaskBit0
+	PerfBitInherit                       = CBitFieldMaskBit1
+	PerfBitPinned                        = CBitFieldMaskBit2
+	PerfBitExclusive                     = CBitFieldMaskBit3
+	PerfBitExcludeUser                   = CBitFieldMaskBit4
+	PerfBitExcludeKernel                 = CBitFieldMaskBit5
+	PerfBitExcludeHv                     = CBitFieldMaskBit6
+	PerfBitExcludeIdle                   = CBitFieldMaskBit7
+	PerfBitMmap                          = CBitFieldMaskBit8
+	PerfBitComm                          = CBitFieldMaskBit9
+	PerfBitFreq                          = CBitFieldMaskBit10
+	PerfBitInheritStat                   = CBitFieldMaskBit11
+	PerfBitEnableOnExec                  = CBitFieldMaskBit12
+	PerfBitTask                          = CBitFieldMaskBit13
+	PerfBitWatermark                     = CBitFieldMaskBit14
+	PerfBitPreciseIPBit1                 = CBitFieldMaskBit15
+	PerfBitPreciseIPBit2                 = CBitFieldMaskBit16
+	PerfBitMmapData                      = CBitFieldMaskBit17
+	PerfBitSampleIDAll                   = CBitFieldMaskBit18
+	PerfBitExcludeHost                   = CBitFieldMaskBit19
+	PerfBitExcludeGuest                  = CBitFieldMaskBit20
+	PerfBitExcludeCallchainKernel        = CBitFieldMaskBit21
+	PerfBitExcludeCallchainUser          = CBitFieldMaskBit22
+	PerfBitMmap2                         = CBitFieldMaskBit23
+	PerfBitCommExec                      = CBitFieldMaskBit24
+	PerfBitUseClockID                    = CBitFieldMaskBit25
+	PerfBitContextSwitch                 = CBitFieldMaskBit26
+)
+
+const (
+	PERF_TYPE_HARDWARE   = 0x0
+	PERF_TYPE_SOFTWARE   = 0x1
+	PERF_TYPE_TRACEPOINT = 0x2
+	PERF_TYPE_HW_CACHE   = 0x3
+	PERF_TYPE_RAW        = 0x4
+	PERF_TYPE_BREAKPOINT = 0x5
+
+	PERF_COUNT_HW_CPU_CYCLES              = 0x0
+	PERF_COUNT_HW_INSTRUCTIONS            = 0x1
+	PERF_COUNT_HW_CACHE_REFERENCES        = 0x2
+	PERF_COUNT_HW_CACHE_MISSES            = 0x3
+	PERF_COUNT_HW_BRANCH_INSTRUCTIONS     = 0x4
+	PERF_COUNT_HW_BRANCH_MISSES           = 0x5
+	PERF_COUNT_HW_BUS_CYCLES              = 0x6
+	PERF_COUNT_HW_STALLED_CYCLES_FRONTEND = 0x7
+	PERF_COUNT_HW_STALLED_CYCLES_BACKEND  = 0x8
+	PERF_COUNT_HW_REF_CPU_CYCLES          = 0x9
+
+	PERF_COUNT_HW_CACHE_L1D  = 0x0
+	PERF_COUNT_HW_CACHE_L1I  = 0x1
+	PERF_COUNT_HW_CACHE_LL   = 0x2
+	PERF_COUNT_HW_CACHE_DTLB = 0x3
+	PERF_COUNT_HW_CACHE_ITLB = 0x4
+	PERF_COUNT_HW_CACHE_BPU  = 0x5
+	PERF_COUNT_HW_CACHE_NODE = 0x6
+
+	PERF_COUNT_HW_CACHE_OP_READ     = 0x0
+	PERF_COUNT_HW_CACHE_OP_WRITE    = 0x1
+	PERF_COUNT_HW_CACHE_OP_PREFETCH = 0x2
+
+	PERF_COUNT_HW_CACHE_RESULT_ACCESS = 0x0
+	PERF_COUNT_HW_CACHE_RESULT_MISS   = 0x1
+
+	PERF_COUNT_SW_CPU_CLOCK        = 0x0
+	PERF_COUNT_SW_TASK_CLOCK       = 0x1
+	PERF_COUNT_SW_PAGE_FAULTS      = 0x2
+	PERF_COUNT_SW_CONTEXT_SWITCHES = 0x3
+	PERF_COUNT_SW_CPU_MIGRATIONS   = 0x4
+	PERF_COUNT_SW_PAGE_FAULTS_MIN  = 0x5
+	PERF_COUNT_SW_PAGE_FAULTS_MAJ  = 0x6
+	PERF_COUNT_SW_ALIGNMENT_FAULTS = 0x7
+	PERF_COUNT_SW_EMULATION_FAULTS = 0x8
+	PERF_COUNT_SW_DUMMY            = 0x9
+
+	PERF_SAMPLE_IP           = 0x1
+	PERF_SAMPLE_TID          = 0x2
+	PERF_SAMPLE_TIME         = 0x4
+	PERF_SAMPLE_ADDR         = 0x8
+	PERF_SAMPLE_READ         = 0x10
+	PERF_SAMPLE_CALLCHAIN    = 0x20
+	PERF_SAMPLE_ID           = 0x40
+	PERF_SAMPLE_CPU          = 0x80
+	PERF_SAMPLE_PERIOD       = 0x100
+	PERF_SAMPLE_STREAM_ID    = 0x200
+	PERF_SAMPLE_RAW          = 0x400
+	PERF_SAMPLE_BRANCH_STACK = 0x800
+
+	PERF_SAMPLE_BRANCH_USER       = 0x1
+	PERF_SAMPLE_BRANCH_KERNEL     = 0x2
+	PERF_SAMPLE_BRANCH_HV         = 0x4
+	PERF_SAMPLE_BRANCH_ANY        = 0x8
+	PERF_SAMPLE_BRANCH_ANY_CALL   = 0x10
+	PERF_SAMPLE_BRANCH_ANY_RETURN = 0x20
+	PERF_SAMPLE_BRANCH_IND_CALL   = 0x40
+
+	PERF_FORMAT_TOTAL_TIME_ENABLED = 0x1
+	PERF_FORMAT_TOTAL_TIME_RUNNING = 0x2
+	PERF_FORMAT_ID                 = 0x4
+	PERF_FORMAT_GROUP              = 0x8
+
+	PERF_RECORD_MMAP       = 0x1
+	PERF_RECORD_LOST       = 0x2
+	PERF_RECORD_COMM       = 0x3
+	PERF_RECORD_EXIT       = 0x4
+	PERF_RECORD_THROTTLE   = 0x5
+	PERF_RECORD_UNTHROTTLE = 0x6
+	PERF_RECORD_FORK       = 0x7
+	PERF_RECORD_READ       = 0x8
+	PERF_RECORD_SAMPLE     = 0x9
+
+	PERF_CONTEXT_HV     = -0x20
+	PERF_CONTEXT_KERNEL = -0x80
+	PERF_CONTEXT_USER   = -0x200
+
+	PERF_CONTEXT_GUEST        = -0x800
+	PERF_CONTEXT_GUEST_KERNEL = -0x880
+	PERF_CONTEXT_GUEST_USER   = -0xa00
+
+	PERF_FLAG_FD_NO_GROUP = 0x1
+	PERF_FLAG_FD_OUTPUT   = 0x2
+	PERF_FLAG_PID_CGROUP  = 0x4
+)
+
 const (
 	CBitFieldMaskBit0  = 0x1
 	CBitFieldMaskBit1  = 0x2
@@ -961,4 +1117,241 @@ const (
 	CBitFieldMaskBit61 = 0x2000000000000000
 	CBitFieldMaskBit62 = 0x4000000000000000
 	CBitFieldMaskBit63 = 0x8000000000000000
+)
+
+type SockaddrStorage struct {
+	Family uint16
+	_      [122]int8
+	_      uint32
+}
+
+type TCPMD5Sig struct {
+	Addr      SockaddrStorage
+	Flags     uint8
+	Prefixlen uint8
+	Keylen    uint16
+	_         uint32
+	Key       [80]uint8
+}
+
+type HDDriveCmdHdr struct {
+	Command uint8
+	Number  uint8
+	Feature uint8
+	Count   uint8
+}
+
+type HDGeometry struct {
+	Heads     uint8
+	Sectors   uint8
+	Cylinders uint16
+	Start     uint32
+}
+
+type HDDriveID struct {
+	Config         uint16
+	Cyls           uint16
+	Reserved2      uint16
+	Heads          uint16
+	Track_bytes    uint16
+	Sector_bytes   uint16
+	Sectors        uint16
+	Vendor0        uint16
+	Vendor1        uint16
+	Vendor2        uint16
+	Serial_no      [20]uint8
+	Buf_type       uint16
+	Buf_size       uint16
+	Ecc_bytes      uint16
+	Fw_rev         [8]uint8
+	Model          [40]uint8
+	Max_multsect   uint8
+	Vendor3        uint8
+	Dword_io       uint16
+	Vendor4        uint8
+	Capability     uint8
+	Reserved50     uint16
+	Vendor5        uint8
+	TPIO           uint8
+	Vendor6        uint8
+	TDMA           uint8
+	Field_valid    uint16
+	Cur_cyls       uint16
+	Cur_heads      uint16
+	Cur_sectors    uint16
+	Cur_capacity0  uint16
+	Cur_capacity1  uint16
+	Multsect       uint8
+	Multsect_valid uint8
+	Lba_capacity   uint32
+	Dma_1word      uint16
+	Dma_mword      uint16
+	Eide_pio_modes uint16
+	Eide_dma_min   uint16
+	Eide_dma_time  uint16
+	Eide_pio       uint16
+	Eide_pio_iordy uint16
+	Words69_70     [2]uint16
+	Words71_74     [4]uint16
+	Queue_depth    uint16
+	Words76_79     [4]uint16
+	Major_rev_num  uint16
+	Minor_rev_num  uint16
+	Command_set_1  uint16
+	Command_set_2  uint16
+	Cfsse          uint16
+	Cfs_enable_1   uint16
+	Cfs_enable_2   uint16
+	Csf_default    uint16
+	Dma_ultra      uint16
+	Trseuc         uint16
+	TrsEuc         uint16
+	CurAPMvalues   uint16
+	Mprc           uint16
+	Hw_config      uint16
+	Acoustic       uint16
+	Msrqs          uint16
+	Sxfert         uint16
+	Sal            uint16
+	Spg            uint32
+	Lba_capacity_2 uint64
+	Words104_125   [22]uint16
+	Last_lun       uint16
+	Word127        uint16
+	Dlf            uint16
+	Csfo           uint16
+	Words130_155   [26]uint16
+	Word156        uint16
+	Words157_159   [3]uint16
+	Cfa_power      uint16
+	Words161_175   [15]uint16
+	Words176_205   [30]uint16
+	Words206_254   [49]uint16
+	Integrity_word uint16
+}
+
+type Statfs_t struct {
+	Type    int32
+	Bsize   int32
+	Blocks  uint64
+	Bfree   uint64
+	Bavail  uint64
+	Files   uint64
+	Ffree   uint64
+	Fsid    Fsid
+	Namelen int32
+	Frsize  int32
+	Flags   int32
+	Spare   [4]int32
+}
+
+const (
+	ST_MANDLOCK    = 0x40
+	ST_NOATIME     = 0x400
+	ST_NODEV       = 0x4
+	ST_NODIRATIME  = 0x800
+	ST_NOEXEC      = 0x8
+	ST_NOSUID      = 0x2
+	ST_RDONLY      = 0x1
+	ST_RELATIME    = 0x1000
+	ST_SYNCHRONOUS = 0x10
+)
+
+type TpacketHdr struct {
+	Status  uint32
+	Len     uint32
+	Snaplen uint32
+	Mac     uint16
+	Net     uint16
+	Sec     uint32
+	Usec    uint32
+}
+
+type Tpacket2Hdr struct {
+	Status    uint32
+	Len       uint32
+	Snaplen   uint32
+	Mac       uint16
+	Net       uint16
+	Sec       uint32
+	Nsec      uint32
+	Vlan_tci  uint16
+	Vlan_tpid uint16
+	_         [4]uint8
+}
+
+type Tpacket3Hdr struct {
+	Next_offset uint32
+	Sec         uint32
+	Nsec        uint32
+	Snaplen     uint32
+	Len         uint32
+	Status      uint32
+	Mac         uint16
+	Net         uint16
+	Hv1         TpacketHdrVariant1
+	_           [8]uint8
+}
+
+type TpacketHdrVariant1 struct {
+	Rxhash    uint32
+	Vlan_tci  uint32
+	Vlan_tpid uint16
+	_         uint16
+}
+
+type TpacketBlockDesc struct {
+	Version uint32
+	To_priv uint32
+	Hdr     [40]byte
+}
+
+type TpacketReq struct {
+	Block_size uint32
+	Block_nr   uint32
+	Frame_size uint32
+	Frame_nr   uint32
+}
+
+type TpacketReq3 struct {
+	Block_size       uint32
+	Block_nr         uint32
+	Frame_size       uint32
+	Frame_nr         uint32
+	Retire_blk_tov   uint32
+	Sizeof_priv      uint32
+	Feature_req_word uint32
+}
+
+type TpacketStats struct {
+	Packets uint32
+	Drops   uint32
+}
+
+type TpacketStatsV3 struct {
+	Packets      uint32
+	Drops        uint32
+	Freeze_q_cnt uint32
+}
+
+type TpacketAuxdata struct {
+	Status    uint32
+	Len       uint32
+	Snaplen   uint32
+	Mac       uint16
+	Net       uint16
+	Vlan_tci  uint16
+	Vlan_tpid uint16
+}
+
+const (
+	TPACKET_V1 = 0x0
+	TPACKET_V2 = 0x1
+	TPACKET_V3 = 0x2
+)
+
+const (
+	SizeofTpacketHdr  = 0x18
+	SizeofTpacket2Hdr = 0x20
+	SizeofTpacket3Hdr = 0x30
 )

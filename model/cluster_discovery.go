@@ -86,7 +86,7 @@ func FilterClusterDiscovery(vs []*ClusterDiscovery, f func(*ClusterDiscovery) bo
 
 func (o *ClusterDiscovery) IsValid() *AppError {
 	if len(o.Id) != 26 {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.ClusterName) == 0 {

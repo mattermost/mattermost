@@ -229,7 +229,7 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subje
 }
 
 func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend FileBackend, date time.Time) *model.AppError {
-	mlog.Debug(fmt.Sprintf("sending mail to %v with subject of '%v'", mimeTo, subject))
+	mlog.Debug(fmt.Sprintf("sending mail to %v with subject of '%v'", smtpTo, subject))
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
 

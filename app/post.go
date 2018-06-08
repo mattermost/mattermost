@@ -160,11 +160,25 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, err
 	}
 
+	if a.PluginsReady() {
+		if newPost, rejectionReason := a.PluginEnv.Hooks().MessageWillBePosted(post); newPost == nil {
+			return nil, model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		} else {
+			post = newPost
+		}
+	}
+
 	var rpost *model.Post
 	if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err
 	} else {
 		rpost = result.Data.(*model.Post)
+	}
+
+	if a.PluginsReady() {
+		a.Go(func() {
+			a.PluginEnv.Hooks().MessageHasBeenPosted(rpost)
+		})
 	}
 
 	esInterface := a.Elasticsearch
@@ -371,10 +385,24 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, err
 	}
 
+	if a.PluginsReady() {
+		if pluginModifiedPost, rejectionReason := a.PluginEnv.Hooks().MessageWillBeUpdated(newPost, oldPost); pluginModifiedPost == nil {
+			return nil, model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		} else {
+			newPost = pluginModifiedPost
+		}
+	}
+
 	if result := <-a.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
 		return nil, result.Err
 	} else {
 		rpost := result.Data.(*model.Post)
+
+		if a.PluginsReady() {
+			a.Go(func() {
+				a.PluginEnv.Hooks().MessageHasBeenUpdated(newPost, oldPost)
+			})
+		}
 
 		esInterface := a.Elasticsearch
 		if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
@@ -541,14 +569,14 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 	}
 }
 
-func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
+func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
 	if result := <-a.Srv.Store.Post().GetSingle(postId); result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		post := result.Data.(*model.Post)
 
-		if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis()); result.Err != nil {
+		if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
 			return nil, result.Err
 		}
 

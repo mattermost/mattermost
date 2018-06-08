@@ -11,10 +11,13 @@ import (
 )
 
 type TeamMember struct {
-	TeamId   string `json:"team_id"`
-	UserId   string `json:"user_id"`
-	Roles    string `json:"roles"`
-	DeleteAt int64  `json:"delete_at"`
+	TeamId        string `json:"team_id"`
+	UserId        string `json:"user_id"`
+	Roles         string `json:"roles"`
+	DeleteAt      int64  `json:"delete_at"`
+	SchemeUser    bool   `json:"scheme_user"`
+	SchemeAdmin   bool   `json:"scheme_admin"`
+	ExplicitRoles string `json:"explicit_roles"`
 }
 
 type TeamUnread struct {

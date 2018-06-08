@@ -540,22 +540,25 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
 	team, _ = Client.CreateTeam(team)
 
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = false })
+
+	// Does not error when deletion is disabled, just soft deletes
 	ok, resp := Client.PermanentDeleteTeam(team.Id)
 	CheckNoError(t, resp)
+	assert.True(t, ok)
 
-	if !ok {
-		t.Fatal("should have returned true")
-	}
-
-	// The team is deleted in the background, its only soft deleted at this
-	// time
 	rteam, err := th.App.GetTeam(team.Id)
-	if err != nil {
-		t.Fatal("should have returned archived team")
-	}
-	if rteam.DeleteAt == 0 {
-		t.Fatal("should have not set to zero")
-	}
+	assert.Nil(t, err)
+	assert.True(t, rteam.DeleteAt > 0)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = true })
+
+	ok, resp = Client.PermanentDeleteTeam(team.Id)
+	CheckNoError(t, resp)
+	assert.True(t, ok)
+
+	_, err = th.App.GetTeam(team.Id)
+	assert.NotNil(t, err)
 
 	ok, resp = Client.PermanentDeleteTeam("junk")
 	CheckBadRequestStatus(t, resp)
@@ -1672,7 +1675,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// user 1 (team admin) tries to demote system admin (not member of a team)
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
@@ -1698,7 +1701,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// user 1 (team admin) tries to promote a random user
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TEAM_ADMIN)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "junk")
@@ -1707,6 +1710,81 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	// user 1 (team admin) demotes himself
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_MEMBER)
 	CheckNoError(t, resp)
+}
+
+func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	SystemAdminClient := th.SystemAdminClient
+	th.LoginBasic()
+
+	s1 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  false,
+	}
+	_, r1 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s1)
+	CheckNoError(t, r1)
+
+	tm1, rtm1 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm1)
+	assert.Equal(t, false, tm1.SchemeUser)
+	assert.Equal(t, false, tm1.SchemeAdmin)
+
+	s2 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  true,
+	}
+	_, r2 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s2)
+	CheckNoError(t, r2)
+
+	tm2, rtm2 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm2)
+	assert.Equal(t, true, tm2.SchemeUser)
+	assert.Equal(t, false, tm2.SchemeAdmin)
+
+	s3 := &model.SchemeRoles{
+		SchemeAdmin: true,
+		SchemeUser:  false,
+	}
+	_, r3 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s3)
+	CheckNoError(t, r3)
+
+	tm3, rtm3 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm3)
+	assert.Equal(t, false, tm3.SchemeUser)
+	assert.Equal(t, true, tm3.SchemeAdmin)
+
+	s4 := &model.SchemeRoles{
+		SchemeAdmin: true,
+		SchemeUser:  true,
+	}
+	_, r4 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s4)
+	CheckNoError(t, r4)
+
+	tm4, rtm4 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm4)
+	assert.Equal(t, true, tm4.SchemeUser)
+	assert.Equal(t, true, tm4.SchemeAdmin)
+
+	_, resp := SystemAdminClient.UpdateTeamMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, model.NewId(), s4)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles("ASDF", th.BasicUser.Id, s4)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, "ASDF", s4)
+	CheckBadRequestStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = th.Client.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s4)
+	CheckForbiddenStatus(t, resp)
+
+	SystemAdminClient.Logout()
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, s4)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetMyTeamsUnread(t *testing.T) {
@@ -2051,4 +2129,76 @@ func TestRemoveTeamIcon(t *testing.T) {
 	th.LoginBasic()
 	_, resp = Client.RemoveTeamIcon(team.Id)
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestUpdateTeamScheme(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team, _ = th.SystemAdminClient.CreateTeam(team)
+
+	teamScheme := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme, _ = th.SystemAdminClient.CreateScheme(teamScheme)
+	channelScheme := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme, _ = th.SystemAdminClient.CreateScheme(channelScheme)
+
+	// Test the setup/base case.
+	_, resp := th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckNoError(t, resp)
+
+	// Test the return to default scheme
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "")
+	CheckNoError(t, resp)
+
+	// Test various invalid team and scheme id combinations.
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme("x", teamScheme.Id)
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme("x", "x")
+	CheckBadRequestStatus(t, resp)
+
+	// Test that permissions are required.
+	_, resp = th.Client.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// Test that a license is requried.
+	th.App.SetLicense(nil)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckNotImplementedStatus(t, resp)
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	// Test an invalid scheme scope.
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
+	fmt.Printf("resp: %+v\n", resp)
+	CheckBadRequestStatus(t, resp)
+
+	// Test that an unauthenticated user gets rejected.
+	th.SystemAdminClient.Logout()
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckUnauthorizedStatus(t, resp)
 }

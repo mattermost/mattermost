@@ -99,11 +99,15 @@ func (c Client) MakeBucket(bucketName string, location string) (err error) {
 }
 
 // SetBucketPolicy set the access permissions on an existing bucket.
-//
 func (c Client) SetBucketPolicy(bucketName, policy string) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
+	}
+
+	// If policy is empty then delete the bucket policy.
+	if policy == "" {
+		return c.removeBucketPolicy(bucketName)
 	}
 
 	// Save the updated policies.

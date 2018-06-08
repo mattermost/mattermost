@@ -158,7 +158,7 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 }
 
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
-	_, err := api.app.DeletePost(postId)
+	_, err := api.app.DeletePost(postId, api.id)
 	return err
 }
 
