@@ -179,7 +179,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 		if appErr != nil {
 			panic(appErr)
 		}
-		expected = len(results) + 1
+		expected = len(results)
 
 		err := th.App.ImportPermissions(r)
 		if err == nil {
