@@ -57,6 +57,7 @@ type Client4 struct {
 	HttpClient *http.Client // The http client
 	AuthToken  string
 	AuthType   string
+	HttpHeader map[string]string // Headers to be copied over for each request
 }
 
 func closeBody(r *http.Response) {
@@ -78,7 +79,7 @@ func (c *Client4) Must(result interface{}, resp *Response) interface{} {
 }
 
 func NewAPIv4Client(url string) *Client4 {
-	return &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", ""}
+	return &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", "", map[string]string{}}
 }
 
 func BuildErrorResponse(r *http.Response, err *AppError) *Response {
@@ -421,6 +422,13 @@ func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, 
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if c.HttpHeader != nil && len(c.HttpHeader) > 0 {
+
+		for k, v := range c.HttpHeader {
+			rq.Header.Set(k, v)
+		}
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {

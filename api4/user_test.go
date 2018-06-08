@@ -2235,6 +2235,58 @@ func TestSetProfileImage(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func TestCBALogin(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	Client.Logout()
+
+	th.App.SetLicense(model.NewTestLicense("saml"))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.ClientSideCertEnable = true
+		*cfg.ExperimentalSettings.ClientSideCertCheck = model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH
+	})
+
+	user, resp := Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	if resp.Error.StatusCode != 400 && user == nil {
+		t.Fatal("Should have failed because it's missing the cert header")
+	}
+
+	Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
+	user, resp = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	if resp.Error.StatusCode != 400 && user == nil {
+		t.Fatal("Should have failed because it's missing the cert header")
+	}
+
+	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
+	user, resp = Client.Login(th.BasicUser.Email, "")
+	if resp.Error.StatusCode != 400 && user == nil {
+		t.Fatal("Should have failed because it's missing the cert header")
+	}
+
+	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+	user, resp = Client.Login(th.BasicUser.Email, "")
+	if !(user != nil && user.Email == th.BasicUser.Email) {
+		t.Fatal("Should have been able to login")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.ClientSideCertEnable = true
+		*cfg.ExperimentalSettings.ClientSideCertCheck = model.CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH
+	})
+
+	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+	user, resp = Client.Login(th.BasicUser.Email, "")
+	if resp.Error.StatusCode != 400 && user == nil {
+		t.Fatal("Should have failed because it's missing the cert header")
+	}
+
+	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+	user, resp = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	if !(user != nil && user.Email == th.BasicUser.Email) {
+		t.Fatal("Should have been able to login")
+	}
+}
 
 func TestSwitchAccount(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
