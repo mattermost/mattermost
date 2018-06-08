@@ -14,6 +14,7 @@ import (
 )
 
 const permissionsExportBatchSize = 100
+const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents collisions with user-created schemes.
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
@@ -101,6 +102,31 @@ func (a *App) ExportPermissions(w io.Writer) error {
 
 	}
 
+	defaultRoleNames := []string{}
+	for _, dr := range model.MakeDefaultRoles() {
+		defaultRoleNames = append(defaultRoleNames, dr.Name)
+	}
+
+	roles, appErr := a.GetRolesByNames(defaultRoleNames)
+	if appErr != nil {
+		return errors.New(appErr.Message)
+	}
+
+	schemeExport, err := json.Marshal(&model.SchemeConveyor{
+		Name:  systemSchemeName,
+		Roles: roles,
+	})
+	if err != nil {
+		return err
+	}
+
+	schemeExport = append(schemeExport, []byte("\n")...)
+
+	_, err = w.Write(schemeExport)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -113,13 +139,33 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 		var schemeConveyor *model.SchemeConveyor
 		err := json.Unmarshal(scanner.Bytes(), &schemeConveyor)
 		if err != nil {
+			rollback(a, createdSchemeIDs)
 			return err
+		}
+
+		if schemeConveyor.Name == systemSchemeName {
+			for _, roleIn := range schemeConveyor.Roles {
+				dbRole, err := a.GetRoleByName(roleIn.Name)
+				if err != nil {
+					rollback(a, createdSchemeIDs)
+					return errors.New(err.Message)
+				}
+				_, err = a.PatchRole(dbRole, &model.RolePatch{
+					Permissions: &roleIn.Permissions,
+				})
+				if err != nil {
+					rollback(a, createdSchemeIDs)
+					return err
+				}
+			}
+			continue
 		}
 
 		// Create the new Scheme. The new Roles are created automatically.
 		var appErr *model.AppError
 		schemeCreated, appErr := a.CreateScheme(schemeConveyor.Scheme())
 		if appErr != nil {
+			rollback(a, createdSchemeIDs)
 			return errors.New(appErr.Message)
 		}
 		createdSchemeIDs = append(createdSchemeIDs, schemeCreated.Id)
@@ -139,19 +185,24 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 			err = updateRole(a, schemeConveyor, roleNameTuple[0], roleNameTuple[1])
 			if err != nil {
 				// Delete the new Schemes. The new Roles are deleted automatically.
-				for _, schemeID := range createdSchemeIDs {
-					a.DeleteScheme(schemeID)
-				}
+				rollback(a, createdSchemeIDs)
 				return err
 			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
+		rollback(a, createdSchemeIDs)
 		return err
 	}
 
 	return nil
+}
+
+func rollback(a *App, createdSchemeIDs []string) {
+	for _, schemeID := range createdSchemeIDs {
+		a.DeleteScheme(schemeID)
+	}
 }
 
 func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
