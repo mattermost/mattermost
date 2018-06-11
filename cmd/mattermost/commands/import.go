@@ -74,9 +74,18 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
-	a.SlackImport(fileReader, fileInfo.Size(), team.Id)
+	importErr, log := a.SlackImport(fileReader, fileInfo.Size(), team.Id)
+
+	if importErr != nil {
+		return err
+	}
+
+	CommandPrettyPrintln("")
+	CommandPrintln(log.String())
+	CommandPrettyPrintln("")
 
 	CommandPrettyPrintln("Finished Slack Import.")
+	CommandPrettyPrintln("")
 
 	return nil
 }
