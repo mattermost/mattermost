@@ -1733,8 +1733,12 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 		for _, member := range channelMembers {
 			roles := strings.Fields(member.Roles)
 			var newRoles []string
-			member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
-			member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
+			if !member.SchemeAdmin.Valid {
+				member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
+			}
+			if !member.SchemeUser.Valid {
+				member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
+			}
 			for _, role := range roles {
 				if role == model.CHANNEL_ADMIN_ROLE_ID {
 					member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
