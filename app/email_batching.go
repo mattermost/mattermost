@@ -198,7 +198,7 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
-		mlog.Warn("api.email_batching.send_batched_email_notification.user.app_error")
+		mlog.Warn("Unable to find recipient for batched email notification")
 		return
 	} else {
 		user = result.Data.(*model.User)
