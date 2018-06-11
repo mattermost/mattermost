@@ -755,8 +755,12 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 		for _, member := range teamMembers {
 			roles := strings.Fields(member.Roles)
 			var newRoles []string
-			member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
-			member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
+			if !member.SchemeAdmin.Valid {
+				member.SchemeAdmin = sql.NullBool{Bool: false, Valid: true}
+			}
+			if !member.SchemeUser.Valid {
+				member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
+			}
 			for _, role := range roles {
 				if role == model.TEAM_ADMIN_ROLE_ID {
 					member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
