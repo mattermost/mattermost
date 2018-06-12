@@ -1407,7 +1407,7 @@ func TestUpdateUserActive(t *testing.T) {
 		}()
 
 		// Verify that both admins and regular users see the email when privacy settings allow same.
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = model.NewBool(true) })
 		_, resp := SystemAdminClient.UpdateUserActive(user.Id, false)
 		CheckNoError(t, resp)
 
@@ -1415,7 +1415,7 @@ func TestUpdateUserActive(t *testing.T) {
 		assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
 
 		// Verify that only admins see the email when privacy settings hide emails.
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = model.NewBool(false) })
 		_, resp = SystemAdminClient.UpdateUserActive(user.Id, true)
 		CheckNoError(t, resp)
 

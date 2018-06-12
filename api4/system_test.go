@@ -405,6 +405,9 @@ func TestEmailTest(t *testing.T) {
 	Client := th.Client
 
 	config := model.Config{
+		ServiceSettings: model.ServiceSettings{
+			SiteURL: model.NewString(""),
+		},
 		EmailSettings: model.EmailSettings{
 			SMTPServer: model.NewString(""),
 			SMTPPort:   model.NewString(""),

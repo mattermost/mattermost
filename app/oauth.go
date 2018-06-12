@@ -190,7 +190,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 }
 
 func (a *App) GetOAuthAccessTokenForImplicitFlow(userId string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableOAuthServiceProvider {
+	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
