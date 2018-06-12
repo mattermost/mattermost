@@ -385,8 +385,8 @@ func TestGetUser(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	ruser, resp = Client.GetUser(user.Id, "")
 	CheckNoError(t, resp)
@@ -447,8 +447,8 @@ func TestGetUserByUsername(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	ruser, resp = Client.GetUserByUsername(th.BasicUser2.Username, "")
 	CheckNoError(t, resp)
@@ -518,8 +518,8 @@ func TestGetUserByEmail(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	ruser, resp = Client.GetUserByEmail(user.Email, "")
 	CheckNoError(t, resp)
@@ -686,8 +686,8 @@ func TestSearchUsers(t *testing.T) {
 
 	search.Term = th.BasicUser.Username
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	_, err = th.App.UpdateActive(th.BasicUser2, true)
 	if err != nil {
@@ -843,7 +843,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	th.LoginBasic()
 
@@ -1407,7 +1407,7 @@ func TestUpdateUserActive(t *testing.T) {
 		}()
 
 		// Verify that both admins and regular users see the email when privacy settings allow same.
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
 		_, resp := SystemAdminClient.UpdateUserActive(user.Id, false)
 		CheckNoError(t, resp)
 
@@ -1415,7 +1415,7 @@ func TestUpdateUserActive(t *testing.T) {
 		assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
 
 		// Verify that only admins see the email when privacy settings hide emails.
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 		_, resp = SystemAdminClient.UpdateUserActive(user.Id, true)
 		CheckNoError(t, resp)
 
@@ -2357,7 +2357,7 @@ func TestSwitchAccount(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 
 	Client.Logout()
 

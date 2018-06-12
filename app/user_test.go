@@ -123,7 +123,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	defer th.App.PermanentDeleteUser(user)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
+		*cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
 	})
 
 	_, err := th.App.UpdateUser(user, false)

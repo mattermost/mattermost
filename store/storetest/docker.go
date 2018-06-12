@@ -83,8 +83,8 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		MaxIdleConns:                new(int),
 		ConnMaxLifetimeMilliseconds: new(int),
 		MaxOpenConns:                new(int),
-		Trace:                       false,
-		AtRestEncryptKey:            model.NewRandomString(32),
+		Trace:                       model.NewBool(false),
+		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
 		QueryTimeout:                new(int),
 	}
 	*settings.MaxIdleConns = 10

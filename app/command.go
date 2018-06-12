@@ -279,7 +279,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 
 	isBotPost := !builtIn
 
-	if a.Config().ServiceSettings.EnablePostUsernameOverride {
+	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
 		if len(command.Username) != 0 {
 			post.AddProp("override_username", command.Username)
 			isBotPost = true
@@ -289,7 +289,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 		}
 	}
 
-	if a.Config().ServiceSettings.EnablePostIconOverride {
+	if *a.Config().ServiceSettings.EnablePostIconOverride {
 		if len(command.IconURL) != 0 {
 			post.AddProp("override_icon_url", command.IconURL)
 			isBotPost = true

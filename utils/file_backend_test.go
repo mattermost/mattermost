@@ -41,7 +41,7 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 	suite.Run(t, &FileBackendTestSuite{
 		settings: model.FileSettings{
 			DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
-			Directory:  dir,
+			Directory:  &dir,
 		},
 	})
 }
@@ -70,10 +70,11 @@ func runBackendTest(t *testing.T, encrypt bool) {
 	suite.Run(t, &FileBackendTestSuite{
 		settings: model.FileSettings{
 			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
-			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
-			AmazonS3Bucket:          model.MINIO_BUCKET,
-			AmazonS3Endpoint:        s3Endpoint,
+			AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
+			AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+			AmazonS3Bucket:          model.NewString(model.MINIO_BUCKET),
+			AmazonS3Region:          model.NewString(""),
+			AmazonS3Endpoint:        model.NewString(s3Endpoint),
 			AmazonS3SSL:             model.NewBool(false),
 			AmazonS3SSE:             model.NewBool(encrypt),
 		},

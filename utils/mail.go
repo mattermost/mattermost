@@ -117,11 +117,11 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 	return ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
-			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
+			ConnectionSecurity:   *config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       config.EmailSettings.SMTPServer,
-			SmtpServerHost:       config.EmailSettings.SMTPServer,
-			SmtpPort:             config.EmailSettings.SMTPPort,
+			SmtpServerName:       *config.EmailSettings.SMTPServer,
+			SmtpServerHost:       *config.EmailSettings.SMTPServer,
+			SmtpPort:             *config.EmailSettings.SMTPPort,
 		},
 	)
 }
@@ -162,20 +162,20 @@ func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		conn,
 		GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL),
 		&SmtpConnectionInfo{
-			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
+			ConnectionSecurity:   *config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       config.EmailSettings.SMTPServer,
-			SmtpServerHost:       config.EmailSettings.SMTPServer,
-			SmtpPort:             config.EmailSettings.SMTPPort,
+			SmtpServerName:       *config.EmailSettings.SMTPServer,
+			SmtpServerHost:       *config.EmailSettings.SMTPServer,
+			SmtpPort:             *config.EmailSettings.SMTPPort,
 			Auth:                 *config.EmailSettings.EnableSMTPAuth,
-			SmtpUsername:         config.EmailSettings.SMTPUsername,
-			SmtpPassword:         config.EmailSettings.SMTPPassword,
+			SmtpUsername:         *config.EmailSettings.SMTPUsername,
+			SmtpPassword:         *config.EmailSettings.SMTPPassword,
 		},
 	)
 }
 
 func TestConnection(config *model.Config) {
-	if !config.EmailSettings.SendEmailNotifications {
+	if !*config.EmailSettings.SendEmailNotifications {
 		return
 	}
 
@@ -196,14 +196,14 @@ func TestConnection(config *model.Config) {
 }
 
 func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
+	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
 
 	return SendMailUsingConfigAdvanced(to, to, fromMail, subject, htmlBody, nil, nil, config, enableComplianceFeatures)
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
 func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
+	if !*config.EmailSettings.SendEmailNotifications || len(*config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
 

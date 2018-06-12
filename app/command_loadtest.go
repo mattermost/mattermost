@@ -74,7 +74,7 @@ func (me *LoadTestProvider) GetTrigger() string {
 }
 
 func (me *LoadTestProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
-	if !a.Config().ServiceSettings.EnableTesting {
+	if !*a.Config().ServiceSettings.EnableTesting {
 		return nil
 	}
 	return &model.Command{
@@ -88,7 +88,7 @@ func (me *LoadTestProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Co
 
 func (me *LoadTestProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	//This command is only available when EnableTesting is true
-	if !a.Config().ServiceSettings.EnableTesting {
+	if !*a.Config().ServiceSettings.EnableTesting {
 		return &model.CommandResponse{}
 	}
 

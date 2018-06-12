@@ -139,7 +139,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 }
 
 func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
-	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
+	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 

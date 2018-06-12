@@ -79,7 +79,7 @@ const (
 
 	SITENAME_MAX_LENGTH = 30
 
-	SERVICE_SETTINGS_DEFAULT_SITE_URL           = ""
+	SERVICE_SETTINGS_DEFAULT_SITE_URL           = "http://localhost:8065"
 	SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE      = ""
 	SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE       = ""
 	SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT       = 300
@@ -90,6 +90,7 @@ const (
 	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_KEY     = "2_KtH_W5"
 	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
 
+	TEAM_SETTINGS_DEFAULT_SITE_NAME                = "Mattermost"
 	TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM       = 50
 	TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT        = ""
 	TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT  = ""
@@ -139,9 +140,9 @@ const (
 
 	TEAM_SETTINGS_DEFAULT_TEAM_TEXT = "default"
 
-	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                    = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                          = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                          = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                    = "http://dockerhost:9200"
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                          = "elastic"
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                          = "changeme"
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS               = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS                 = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS        = 365
@@ -185,16 +186,16 @@ type ServiceSettings struct {
 	WriteTimeout                                      *int
 	MaximumLoginAttempts                              *int
 	GoroutineHealthThreshold                          *int
-	GoogleDeveloperKey                                string
-	EnableOAuthServiceProvider                        bool
-	EnableIncomingWebhooks                            bool
-	EnableOutgoingWebhooks                            bool
+	GoogleDeveloperKey                                *string
+	EnableOAuthServiceProvider                        *bool
+	EnableIncomingWebhooks                            *bool
+	EnableOutgoingWebhooks                            *bool
 	EnableCommands                                    *bool
 	EnableOnlyAdminIntegrations                       *bool
-	EnablePostUsernameOverride                        bool
-	EnablePostIconOverride                            bool
+	EnablePostUsernameOverride                        *bool
+	EnablePostIconOverride                            *bool
 	EnableLinkPreviews                                *bool
-	EnableTesting                                     bool
+	EnableTesting                                     *bool
 	EnableDeveloper                                   *bool
 	EnableSecurityFixAlert                            *bool
 	EnableInsecureOutgoingConnections                 *bool
@@ -276,6 +277,10 @@ func (s *ServiceSettings) SetDefaults() {
 		s.EnableLinkPreviews = NewBool(false)
 	}
 
+	if s.EnableTesting == nil {
+		s.EnableTesting = NewBool(false)
+	}
+
 	if s.EnableDeveloper == nil {
 		s.EnableDeveloper = NewBool(false)
 	}
@@ -306,6 +311,26 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.GoroutineHealthThreshold == nil {
 		s.GoroutineHealthThreshold = NewInt(-1)
+	}
+
+	if s.GoogleDeveloperKey == nil {
+		s.GoogleDeveloperKey = NewString("")
+	}
+
+	if s.EnableOAuthServiceProvider == nil {
+		s.EnableOAuthServiceProvider = NewBool(false)
+	}
+
+	if s.EnableIncomingWebhooks == nil {
+		s.EnableIncomingWebhooks = NewBool(true)
+	}
+
+	if s.EnableIncomingWebhooks == nil {
+		s.EnableIncomingWebhooks = NewBool(true)
+	}
+
+	if s.EnableOutgoingWebhooks == nil {
+		s.EnableOutgoingWebhooks = NewBool(true)
 	}
 
 	if s.ConnectionSecurity == nil {
@@ -397,11 +422,19 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.EnableCommands == nil {
-		s.EnableCommands = NewBool(false)
+		s.EnableCommands = NewBool(true)
 	}
 
 	if s.EnableOnlyAdminIntegrations == nil {
 		s.EnableOnlyAdminIntegrations = NewBool(true)
+	}
+
+	if s.EnablePostUsernameOverride == nil {
+		s.EnablePostUsernameOverride = NewBool(false)
+	}
+
+	if s.EnablePostIconOverride == nil {
+		s.EnablePostIconOverride = NewBool(false)
 	}
 
 	if s.WebsocketPort == nil {
@@ -630,13 +663,43 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable          bool
-	Secret          string
-	Id              string
-	Scope           string
-	AuthEndpoint    string
-	TokenEndpoint   string
-	UserApiEndpoint string
+	Enable          *bool
+	Secret          *string
+	Id              *string
+	Scope           *string
+	AuthEndpoint    *string
+	TokenEndpoint   *string
+	UserApiEndpoint *string
+}
+
+func (s *SSOSettings) setDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewBool(false)
+	}
+
+	if s.Secret == nil {
+		s.Secret = NewString("")
+	}
+
+	if s.Id == nil {
+		s.Id = NewString("")
+	}
+
+	if s.Scope == nil {
+		s.Scope = NewString("")
+	}
+
+	if s.AuthEndpoint == nil {
+		s.AuthEndpoint = NewString("")
+	}
+
+	if s.TokenEndpoint == nil {
+		s.TokenEndpoint = NewString("")
+	}
+
+	if s.UserApiEndpoint == nil {
+		s.UserApiEndpoint = NewString("")
+	}
 }
 
 type SqlSettings struct {
@@ -647,8 +710,8 @@ type SqlSettings struct {
 	MaxIdleConns                *int
 	ConnMaxLifetimeMilliseconds *int
 	MaxOpenConns                *int
-	Trace                       bool
-	AtRestEncryptKey            string
+	Trace                       *bool
+	AtRestEncryptKey            *string
 	QueryTimeout                *int
 }
 
@@ -661,8 +724,16 @@ func (s *SqlSettings) SetDefaults() {
 		s.DataSource = NewString(SQL_SETTINGS_DEFAULT_DATA_SOURCE)
 	}
 
-	if len(s.AtRestEncryptKey) == 0 {
-		s.AtRestEncryptKey = NewRandomString(32)
+	if s.DataSourceReplicas == nil {
+		s.DataSourceReplicas = []string{}
+	}
+
+	if s.DataSourceSearchReplicas == nil {
+		s.DataSourceSearchReplicas = []string{}
+	}
+
+	if s.AtRestEncryptKey == nil {
+		s.AtRestEncryptKey = NewString(NewRandomString(32))
 	}
 
 	if s.MaxIdleConns == nil {
@@ -677,24 +748,57 @@ func (s *SqlSettings) SetDefaults() {
 		s.ConnMaxLifetimeMilliseconds = NewInt(3600000)
 	}
 
+	if s.Trace == nil {
+		s.Trace = NewBool(false)
+	}
+
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewInt(30)
 	}
 }
 
 type LogSettings struct {
-	EnableConsole          bool
-	ConsoleLevel           string
+	EnableConsole          *bool
+	ConsoleLevel           *string
 	ConsoleJson            *bool
-	EnableFile             bool
-	FileLevel              string
+	EnableFile             *bool
+	FileLevel              *string
 	FileJson               *bool
-	FileLocation           string
-	EnableWebhookDebugging bool
+	FileFormat             *string
+	FileLocation           *string
+	EnableWebhookDebugging *bool
 	EnableDiagnostics      *bool
 }
 
 func (s *LogSettings) SetDefaults() {
+	if s.EnableConsole == nil {
+		s.EnableConsole = NewBool(true)
+	}
+
+	if s.ConsoleLevel == nil {
+		s.ConsoleLevel = NewString("DEBUG")
+	}
+
+	if s.EnableFile == nil {
+		s.EnableFile = NewBool(true)
+	}
+
+	if s.FileLevel == nil {
+		s.FileLevel = NewString("INFO")
+	}
+
+	if s.FileFormat == nil {
+		s.FileFormat = NewString("")
+	}
+
+	if s.FileLocation == nil {
+		s.FileLocation = NewString("")
+	}
+
+	if s.EnableWebhookDebugging == nil {
+		s.EnableWebhookDebugging = NewBool(true)
+	}
+
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
 	}
@@ -744,15 +848,15 @@ type FileSettings struct {
 	EnableMobileDownload    *bool
 	MaxFileSize             *int64
 	DriverName              *string
-	Directory               string
-	EnablePublicLink        bool
+	Directory               *string
+	EnablePublicLink        *bool
 	PublicLinkSalt          *string
-	InitialFont             string
-	AmazonS3AccessKeyId     string
-	AmazonS3SecretAccessKey string
-	AmazonS3Bucket          string
-	AmazonS3Region          string
-	AmazonS3Endpoint        string
+	InitialFont             *string
+	AmazonS3AccessKeyId     *string
+	AmazonS3SecretAccessKey *string
+	AmazonS3Bucket          *string
+	AmazonS3Region          *string
+	AmazonS3Endpoint        *string
 	AmazonS3SSL             *bool
 	AmazonS3SignV2          *bool
 	AmazonS3SSE             *bool
@@ -760,13 +864,62 @@ type FileSettings struct {
 }
 
 func (s *FileSettings) SetDefaults() {
+	if s.EnableFileAttachments == nil {
+		s.EnableFileAttachments = NewBool(true)
+	}
+
+	if s.EnableMobileUpload == nil {
+		s.EnableMobileUpload = NewBool(true)
+	}
+
+	if s.EnableMobileDownload == nil {
+		s.EnableMobileDownload = NewBool(true)
+	}
+
+	if s.MaxFileSize == nil {
+		s.MaxFileSize = NewInt64(52428800) // 50 MB
+	}
+
 	if s.DriverName == nil {
 		s.DriverName = NewString(IMAGE_DRIVER_LOCAL)
 	}
 
-	if s.AmazonS3Endpoint == "" {
+	if s.Directory == nil {
+		s.Directory = NewString(FILE_SETTINGS_DEFAULT_DIRECTORY)
+	}
+
+	if s.EnablePublicLink == nil {
+		s.EnablePublicLink = NewBool(false)
+	}
+
+	if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
+		s.PublicLinkSalt = NewString(NewRandomString(32))
+	}
+
+	if s.InitialFont == nil {
+		// Defaults to "nunito-bold.ttf"
+		s.InitialFont = NewString("nunito-bold.ttf")
+	}
+
+	if s.AmazonS3AccessKeyId == nil {
+		s.AmazonS3AccessKeyId = NewString("")
+	}
+
+	if s.AmazonS3SecretAccessKey == nil {
+		s.AmazonS3SecretAccessKey = NewString("")
+	}
+
+	if s.AmazonS3Bucket == nil {
+		s.AmazonS3Bucket = NewString("")
+	}
+
+	if s.AmazonS3Region == nil {
+		s.AmazonS3Region = NewString("")
+	}
+
+	if s.AmazonS3Endpoint == nil || len(*s.AmazonS3Endpoint) == 0 {
 		// Defaults to "s3.amazonaws.com"
-		s.AmazonS3Endpoint = "s3.amazonaws.com"
+		s.AmazonS3Endpoint = NewString("s3.amazonaws.com")
 	}
 
 	if s.AmazonS3SSL == nil {
@@ -785,54 +938,25 @@ func (s *FileSettings) SetDefaults() {
 	if s.AmazonS3Trace == nil {
 		s.AmazonS3Trace = NewBool(false)
 	}
-
-	if s.EnableFileAttachments == nil {
-		s.EnableFileAttachments = NewBool(true)
-	}
-
-	if s.EnableMobileUpload == nil {
-		s.EnableMobileUpload = NewBool(true)
-	}
-
-	if s.EnableMobileDownload == nil {
-		s.EnableMobileDownload = NewBool(true)
-	}
-
-	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(52428800) // 50 MB
-	}
-
-	if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
-		s.PublicLinkSalt = NewString(NewRandomString(32))
-	}
-
-	if s.InitialFont == "" {
-		// Defaults to "nunito-bold.ttf"
-		s.InitialFont = "nunito-bold.ttf"
-	}
-
-	if s.Directory == "" {
-		s.Directory = FILE_SETTINGS_DEFAULT_DIRECTORY
-	}
 }
 
 type EmailSettings struct {
-	EnableSignUpWithEmail             bool
+	EnableSignUpWithEmail             *bool
 	EnableSignInWithEmail             *bool
 	EnableSignInWithUsername          *bool
-	SendEmailNotifications            bool
+	SendEmailNotifications            *bool
 	UseChannelInEmailNotifications    *bool
-	RequireEmailVerification          bool
-	FeedbackName                      string
-	FeedbackEmail                     string
+	RequireEmailVerification          *bool
+	FeedbackName                      *string
+	FeedbackEmail                     *string
 	FeedbackOrganization              *string
 	EnableSMTPAuth                    *bool
-	SMTPUsername                      string
-	SMTPPassword                      string
-	SMTPServer                        string
-	SMTPPort                          string
-	ConnectionSecurity                string
-	InviteSalt                        string
+	SMTPUsername                      *string
+	SMTPPassword                      *string
+	SMTPServer                        *string
+	SMTPPort                          *string
+	ConnectionSecurity                *string
+	InviteSalt                        *string
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
@@ -848,20 +972,72 @@ type EmailSettings struct {
 }
 
 func (s *EmailSettings) SetDefaults() {
-	if len(s.InviteSalt) == 0 {
-		s.InviteSalt = NewRandomString(32)
+	if s.EnableSignUpWithEmail == nil {
+		s.EnableSignUpWithEmail = NewBool(true)
 	}
 
 	if s.EnableSignInWithEmail == nil {
-		s.EnableSignInWithEmail = NewBool(s.EnableSignUpWithEmail)
+		s.EnableSignInWithEmail = NewBool(*s.EnableSignUpWithEmail)
 	}
 
 	if s.EnableSignInWithUsername == nil {
-		s.EnableSignInWithUsername = NewBool(false)
+		s.EnableSignInWithUsername = NewBool(true)
+	}
+
+	if s.SendEmailNotifications == nil {
+		s.SendEmailNotifications = NewBool(true)
 	}
 
 	if s.UseChannelInEmailNotifications == nil {
 		s.UseChannelInEmailNotifications = NewBool(false)
+	}
+
+	if s.RequireEmailVerification == nil {
+		s.RequireEmailVerification = NewBool(false)
+	}
+
+	if s.FeedbackName == nil {
+		s.FeedbackName = NewString("")
+	}
+
+	if s.FeedbackEmail == nil {
+		s.FeedbackEmail = NewString("test@example.com")
+	}
+
+	if s.FeedbackOrganization == nil {
+		s.FeedbackOrganization = NewString(EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION)
+	}
+
+	if s.EnableSMTPAuth == nil {
+		if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_NONE {
+			s.EnableSMTPAuth = NewBool(false)
+		} else {
+			s.EnableSMTPAuth = NewBool(true)
+		}
+	}
+
+	if s.SMTPUsername == nil {
+		s.SMTPUsername = NewString("")
+	}
+
+	if s.SMTPPassword == nil {
+		s.SMTPPassword = NewString("")
+	}
+
+	if s.SMTPServer == nil || len(*s.SMTPServer) == 0 {
+		s.SMTPServer = NewString("dockerhost")
+	}
+
+	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
+		s.SMTPPort = NewString("2500")
+	}
+
+	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
+		s.ConnectionSecurity = NewString(CONN_SECURITY_NONE)
+	}
+
+	if s.InviteSalt == nil || len(*s.InviteSalt) == 0 {
+		s.InviteSalt = NewString(NewRandomString(32))
 	}
 
 	if s.SendPushNotifications == nil {
@@ -874,10 +1050,6 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.PushNotificationContents == nil {
 		s.PushNotificationContents = NewString(GENERIC_NOTIFICATION)
-	}
-
-	if s.FeedbackOrganization == nil {
-		s.FeedbackOrganization = NewString(EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION)
 	}
 
 	if s.EnableEmailBatching == nil {
@@ -897,16 +1069,15 @@ func (s *EmailSettings) SetDefaults() {
 	}
 
 	if s.EnableSMTPAuth == nil {
-		s.EnableSMTPAuth = new(bool)
-		if s.ConnectionSecurity == CONN_SECURITY_NONE {
-			*s.EnableSMTPAuth = false
+		if *s.ConnectionSecurity == CONN_SECURITY_NONE {
+			s.EnableSMTPAuth = NewBool(false)
 		} else {
-			*s.EnableSMTPAuth = true
+			s.EnableSMTPAuth = NewBool(true)
 		}
 	}
 
-	if s.ConnectionSecurity == CONN_SECURITY_PLAIN {
-		s.ConnectionSecurity = CONN_SECURITY_NONE
+	if *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
+		*s.ConnectionSecurity = CONN_SECURITY_NONE
 	}
 
 	if s.SkipServerCertificateVerification == nil {
@@ -982,8 +1153,18 @@ func (s *RateLimitSettings) SetDefaults() {
 }
 
 type PrivacySettings struct {
-	ShowEmailAddress bool
-	ShowFullName     bool
+	ShowEmailAddress *bool
+	ShowFullName     *bool
+}
+
+func (s *PrivacySettings) setDefaults() {
+	if s.ShowEmailAddress == nil {
+		s.ShowEmailAddress = NewBool(true)
+	}
+
+	if s.ShowFullName == nil {
+		s.ShowFullName = NewBool(true)
+	}
 }
 
 type SupportSettings struct {
@@ -1097,13 +1278,13 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                            string
+	SiteName                            *string
 	MaxUsersPerTeam                     *int
 	EnableTeamCreation                  *bool
 	EnableUserCreation                  *bool
 	EnableOpenServer                    *bool
 	EnableUserDeactivation              *bool
-	RestrictCreationToDomains           string
+	RestrictCreationToDomains           *string
 	EnableCustomBrand                   *bool
 	CustomBrandText                     *string
 	CustomDescriptionText               *string
@@ -1130,8 +1311,29 @@ type TeamSettings struct {
 }
 
 func (s *TeamSettings) SetDefaults() {
+
+	if s.SiteName == nil {
+		s.SiteName = NewString(TEAM_SETTINGS_DEFAULT_SITE_NAME)
+	}
+
 	if s.MaxUsersPerTeam == nil {
 		s.MaxUsersPerTeam = NewInt(TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM)
+	}
+
+	if s.EnableTeamCreation == nil {
+		s.EnableTeamCreation = NewBool(true)
+	}
+
+	if s.EnableUserCreation == nil {
+		s.EnableUserCreation = NewBool(true)
+	}
+
+	if s.EnableOpenServer == nil {
+		s.EnableOpenServer = NewBool(false)
+	}
+
+	if s.RestrictCreationToDomains == nil {
+		s.RestrictCreationToDomains = NewString("")
 	}
 
 	if s.EnableCustomBrand == nil {
@@ -1148,10 +1350,6 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.CustomDescriptionText == nil {
 		s.CustomDescriptionText = NewString(TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT)
-	}
-
-	if s.EnableOpenServer == nil {
-		s.EnableOpenServer = NewBool(false)
 	}
 
 	if s.RestrictDirectMessage == nil {
@@ -1988,6 +2186,10 @@ func (o *Config) SetDefaults() {
 	o.SqlSettings.SetDefaults()
 	o.FileSettings.SetDefaults()
 	o.EmailSettings.SetDefaults()
+	o.PrivacySettings.setDefaults()
+	o.Office365Settings.setDefaults()
+	o.GitLabSettings.setDefaults()
+	o.GoogleSettings.setDefaults()
 	o.ServiceSettings.SetDefaults()
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
@@ -2111,7 +2313,7 @@ func (ts *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ts.SiteName) > SITENAME_MAX_LENGTH {
+	if len(*ts.SiteName) > SITENAME_MAX_LENGTH {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "", http.StatusBadRequest)
 	}
 
@@ -2119,7 +2321,7 @@ func (ts *TeamSettings) isValid() *AppError {
 }
 
 func (ss *SqlSettings) isValid() *AppError {
-	if len(ss.AtRestEncryptKey) < 32 {
+	if len(*ss.AtRestEncryptKey) < 32 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2167,11 +2369,11 @@ func (fs *FileSettings) isValid() *AppError {
 }
 
 func (es *EmailSettings) isValid() *AppError {
-	if !(es.ConnectionSecurity == CONN_SECURITY_NONE || es.ConnectionSecurity == CONN_SECURITY_TLS || es.ConnectionSecurity == CONN_SECURITY_STARTTLS || es.ConnectionSecurity == CONN_SECURITY_PLAIN) {
+	if !(*es.ConnectionSecurity == CONN_SECURITY_NONE || *es.ConnectionSecurity == CONN_SECURITY_TLS || *es.ConnectionSecurity == CONN_SECURITY_STARTTLS || *es.ConnectionSecurity == CONN_SECURITY_PLAIN) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(es.InviteSalt) < 32 {
+	if len(*es.InviteSalt) < 32 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2493,8 +2695,8 @@ func (ds *DisplaySettings) isValid() *AppError {
 
 func (o *Config) GetSanitizeOptions() map[string]bool {
 	options := map[string]bool{}
-	options["fullname"] = o.PrivacySettings.ShowFullName
-	options["email"] = o.PrivacySettings.ShowEmailAddress
+	options["fullname"] = *o.PrivacySettings.ShowFullName
+	options["email"] = *o.PrivacySettings.ShowEmailAddress
 
 	return options
 }
@@ -2505,21 +2707,21 @@ func (o *Config) Sanitize() {
 	}
 
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
-	if len(o.FileSettings.AmazonS3SecretAccessKey) > 0 {
-		o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
+	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
+		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
 	}
 
-	o.EmailSettings.InviteSalt = FAKE_SETTING
-	if len(o.EmailSettings.SMTPPassword) > 0 {
-		o.EmailSettings.SMTPPassword = FAKE_SETTING
+	*o.EmailSettings.InviteSalt = FAKE_SETTING
+	if len(*o.EmailSettings.SMTPPassword) > 0 {
+		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
-	if len(o.GitLabSettings.Secret) > 0 {
-		o.GitLabSettings.Secret = FAKE_SETTING
+	if len(*o.GitLabSettings.Secret) > 0 {
+		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
 	*o.SqlSettings.DataSource = FAKE_SETTING
-	o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
+	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING

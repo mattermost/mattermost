@@ -237,25 +237,25 @@ func (a *App) Desanitize(cfg *model.Config) {
 	if *cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
 		*cfg.FileSettings.PublicLinkSalt = *actual.FileSettings.PublicLinkSalt
 	}
-	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
 		cfg.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
 
-	if cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
+	if *cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
 		cfg.EmailSettings.InviteSalt = actual.EmailSettings.InviteSalt
 	}
-	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
 		cfg.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
 	}
 
-	if cfg.GitLabSettings.Secret == model.FAKE_SETTING {
-		cfg.GitLabSettings.Secret = actual.GitLabSettings.Secret
+	if *cfg.GitLabSettings.Secret == model.FAKE_SETTING {
+		*cfg.GitLabSettings.Secret = *actual.GitLabSettings.Secret
 	}
 
 	if *cfg.SqlSettings.DataSource == model.FAKE_SETTING {
 		*cfg.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
-	if cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
+	if *cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
 		cfg.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
 	}
 

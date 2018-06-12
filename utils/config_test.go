@@ -348,7 +348,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
-		if cfg.TeamSettings.SiteName != "From Environment" {
+		if *cfg.TeamSettings.SiteName != "From Environment" {
 			t.Fatal("Couldn't read config from environment var")
 		}
 
@@ -376,7 +376,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		cfg, envCfg, err = ReadConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
-		if cfg.TeamSettings.SiteName != "Mattermost" {
+		if *cfg.TeamSettings.SiteName != "Mattermost" {
 			t.Fatal("should have been reset")
 		}
 

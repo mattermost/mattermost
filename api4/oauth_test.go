@@ -36,7 +36,7 @@ func TestCreateOAuthApp(t *testing.T) {
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
@@ -87,7 +87,7 @@ func TestCreateOAuthApp(t *testing.T) {
 	_, resp = Client.CreateOAuthApp(oapp)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	oapp.Name = GenerateTestAppName()
 	_, resp = AdminClient.CreateOAuthApp(oapp)
 	CheckNotImplementedStatus(t, resp)
@@ -108,7 +108,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{
 		Name:         "oapp",
@@ -196,7 +196,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckNotImplementedStatus(t, resp)
@@ -225,7 +225,7 @@ func TestGetOAuthApps(t *testing.T) {
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -279,7 +279,7 @@ func TestGetOAuthApps(t *testing.T) {
 	_, resp = Client.GetOAuthApps(0, 1000)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthApps(0, 1000)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -299,7 +299,7 @@ func TestGetOAuthApp(t *testing.T) {
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -355,7 +355,7 @@ func TestGetOAuthApp(t *testing.T) {
 	_, resp = AdminClient.GetOAuthApp(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthApp(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -375,7 +375,7 @@ func TestGetOAuthAppInfo(t *testing.T) {
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -431,7 +431,7 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	_, resp = AdminClient.GetOAuthAppInfo(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthAppInfo(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -451,7 +451,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -501,7 +501,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 	_, resp = AdminClient.DeleteOAuthApp(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.DeleteOAuthApp(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -521,7 +521,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -575,7 +575,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	_, resp = AdminClient.RegenerateOAuthAppSecret(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.RegenerateOAuthAppSecret(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -590,7 +590,7 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -646,12 +646,12 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	enableOAuth := *th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -739,7 +739,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -789,7 +789,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -801,14 +801,14 @@ func TestOAuthAccessToken(t *testing.T) {
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = Client.Must(Client.CreateOAuthApp(oauthApp)).(*model.OAuthApp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
 	if _, resp := Client.GetOAuthAccessToken(data); resp.Error == nil {
 		t.Log(resp.StatusCode)
 		t.Fatal("should have failed - oauth providing turned off")
 	}
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	authRequest := &model.AuthorizeRequest{
 		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
@@ -1020,32 +1020,32 @@ func TestOAuthComplete(t *testing.T) {
 	assert.NotNil(t, err)
 	closeBody(r)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state=!#$#F@#Yˆ&~ñ", Client.HttpClient, "", true)
 	assert.NotNil(t, err)
 	closeBody(r)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = model.NewId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = model.NewId() })
 
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAUTH_ACTION_LOGIN
 	stateProps["team_id"] = th.BasicTeam.Id
-	stateProps["redirect_to"] = th.App.Config().GitLabSettings.AuthEndpoint
+	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
 
 	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true)
 	assert.NotNil(t, err)
 	closeBody(r)
 
-	stateProps["hash"] = utils.HashSha256(th.App.Config().GitLabSettings.Id)
+	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	r, err = HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true)
 	assert.NotNil(t, err)
 	closeBody(r)
 
 	// We are going to use mattermost as the provider emulating gitlab
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -1066,11 +1066,11 @@ func TestOAuthComplete(t *testing.T) {
 	}
 	oauthApp = Client.Must(Client.CreateOAuthApp(oauthApp)).(*model.OAuthApp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = oauthApp.Id })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.TokenEndpoint = Client.Url + "/oauth/access_token" })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.UserApiEndpoint = Client.ApiUrl + "/users/me" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Id = oauthApp.Id })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Secret = oauthApp.ClientSecret })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.AuthEndpoint = Client.Url + "/oauth/authorize" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.TokenEndpoint = Client.Url + "/oauth/access_token" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.UserApiEndpoint = Client.ApiUrl + "/users/me" })
 
 	provider := &MattermostTestProvider{}
 
@@ -1089,8 +1089,8 @@ func TestOAuthComplete(t *testing.T) {
 	code := rurl.Query().Get("code")
 	stateProps["action"] = model.OAUTH_ACTION_EMAIL_TO_SSO
 	delete(stateProps, "team_id")
-	stateProps["redirect_to"] = th.App.Config().GitLabSettings.AuthEndpoint
-	stateProps["hash"] = utils.HashSha256(th.App.Config().GitLabSettings.Id)
+	stateProps["redirect_to"] = *th.App.Config().GitLabSettings.AuthEndpoint
+	stateProps["hash"] = utils.HashSha256(*th.App.Config().GitLabSettings.Id)
 	stateProps["redirect_to"] = "/oauth/authorize"
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {

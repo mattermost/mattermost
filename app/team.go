@@ -64,7 +64,7 @@ func (a *App) isTeamEmailAddressAllowed(email string) bool {
 	email = strings.ToLower(email)
 	// commas and @ signs are optional
 	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
-	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(a.Config().TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
+	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(*a.Config().TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
 
 	matched := false
 	for _, d := range domains {
@@ -74,7 +74,7 @@ func (a *App) isTeamEmailAddressAllowed(email string) bool {
 		}
 	}
 
-	if len(a.Config().TeamSettings.RestrictCreationToDomains) > 0 && !matched {
+	if len(*a.Config().TeamSettings.RestrictCreationToDomains) > 0 && !matched {
 		return false
 	}
 
