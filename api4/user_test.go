@@ -2255,13 +2255,13 @@ func TestCBALogin(t *testing.T) {
 	Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
 	user, resp = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	if resp.Error.StatusCode != 400 && user == nil {
-		t.Fatal("Should have failed because it's missing the cert header")
+		t.Fatal("Should have failed because it's missing the cert subject")
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
 	user, resp = Client.Login(th.BasicUser.Email, "")
 	if resp.Error.StatusCode != 400 && user == nil {
-		t.Fatal("Should have failed because it's missing the cert header")
+		t.Fatal("Should have failed because the emails mismatch")
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
@@ -2278,7 +2278,7 @@ func TestCBALogin(t *testing.T) {
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
 	user, resp = Client.Login(th.BasicUser.Email, "")
 	if resp.Error.StatusCode != 400 && user == nil {
-		t.Fatal("Should have failed because it's missing the cert header")
+		t.Fatal("Should have failed because password is required")
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
