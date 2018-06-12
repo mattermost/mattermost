@@ -82,6 +82,18 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 	return nil
 }
 
+func (b *S3FileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
+	s3Clnt, err := b.s3New()
+	if err != nil {
+		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	minioObject, err := s3Clnt.GetObject(b.bucket, path, s3.GetObjectOptions{})
+	if err != nil {
+		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return minioObject, nil
+}
+
 func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
