@@ -1699,10 +1699,12 @@ func (a *App) OldImportFile(timestamp time.Time, file io.Reader, teamId string, 
 		return nil, err
 	}
 
-	img, width, height := prepareImage(data)
-	if img != nil {
-		a.generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
-		a.generatePreviewImage(*img, fileInfo.PreviewPath, width)
+	if fileInfo.IsImage() && fileInfo.MimeType != "image/svg+xml" {
+		img, width, height := prepareImage(data)
+		if img != nil {
+			a.generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
+			a.generatePreviewImage(*img, fileInfo.PreviewPath, width)
+		}
 	}
 
 	return fileInfo, nil
