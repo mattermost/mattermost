@@ -2843,6 +2843,10 @@
     "translation": "Blank email"
   },
   {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+  },
+  {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
     "translation": "Could not parse auth data out of {{.Service}} user object"
   },
