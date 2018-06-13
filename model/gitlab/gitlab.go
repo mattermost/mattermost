@@ -98,13 +98,3 @@ func (m *GitLabProvider) GetUserFromJson(data io.Reader) *model.User {
 
 	return &model.User{}
 }
-
-func (m *GitLabProvider) GetAuthDataFromJson(data io.Reader) string {
-	glu := gitLabUserFromJson(data)
-
-	if glu.IsValid() {
-		return glu.getAuthData()
-	}
-
-	return ""
-}

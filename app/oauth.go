@@ -457,7 +457,13 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
 			map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
 	} else {
-		authData = provider.GetAuthDataFromJson(bytes.NewReader(buf.Bytes()))
+		authUser := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
+
+		if authUser.AuthData != nil {
+			authData = *authUser.AuthData
+		} else {
+			authData = ""
+		}
 	}
 
 	if len(authData) == 0 {

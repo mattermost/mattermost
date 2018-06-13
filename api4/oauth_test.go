@@ -1128,10 +1128,7 @@ type MattermostTestProvider struct {
 }
 
 func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) *model.User {
-	return model.UserFromJson(data)
-}
-
-func (m *MattermostTestProvider) GetAuthDataFromJson(data io.Reader) string {
-	authData := model.UserFromJson(data)
-	return authData.Email
+	user := model.UserFromJson(data)
+	user.AuthData = &user.Email
+	return user
 }
