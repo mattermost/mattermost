@@ -90,10 +90,6 @@ func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
 
-func (m *GitLabProvider) GetIdentifier() string {
-	return model.USER_AUTH_SERVICE_GITLAB
-}
-
 func (m *GitLabProvider) GetUserFromJson(data io.Reader) *model.User {
 	glu := gitLabUserFromJson(data)
 	if glu.IsValid() {
