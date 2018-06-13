@@ -19,6 +19,8 @@ func handlerForTest(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
 	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch)
+	defer a.Shutdown()
+
 	web := NewWeb(a, a.Srv.Router)
 	if err != nil {
 		panic(err)
