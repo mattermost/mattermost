@@ -47,7 +47,7 @@ func userFromGitLabUser(glu *GitLabUser) *model.User {
 		user.FirstName = glu.Name
 	}
 	user.Email = glu.Email
-	userId := strconv.FormatInt(glu.Id, 10)
+	userId := glu.getAuthData()
 	user.AuthData = &userId
 	user.AuthService = model.USER_AUTH_SERVICE_GITLAB
 
