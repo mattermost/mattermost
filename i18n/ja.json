@@ -421,7 +421,7 @@
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "与えられたスキームがチャンネルスキーマでないため、チャンネルへスキームを設定できません。"
+    "translation": "与えられたスキームがチャンネルスキームでないため、チャンネルへスキームを設定できません。"
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
@@ -6156,7 +6156,7 @@
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "ピン止めされた投稿が見付かりません"
+    "translation": "ピン留めされた投稿が見付かりません"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
