@@ -18,6 +18,8 @@ import (
 
 func (w *Web) InitStatic() {
 	if *w.App.Config().ServiceSettings.WebserverMode != "disabled" {
+		UpdateAssetsSubpathFromConfig(w.App.Config())
+
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
 		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
 

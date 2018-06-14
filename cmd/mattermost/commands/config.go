@@ -5,12 +5,14 @@ package commands
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
+
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/spf13/cobra"
+	"github.com/mattermost/mattermost-server/web"
 )
 
 var ConfigCmd = &cobra.Command{
@@ -25,9 +27,22 @@ var ValidateConfigCmd = &cobra.Command{
 	RunE:  configValidateCmdF,
 }
 
+var ConfigSubpathCmd = &cobra.Command{
+	Use:   "subpath",
+	Short: "Update client asset loading to use the configured subpath",
+	Long:  "Update the hard-coded production client asset paths to take into account Mattermost running on a subpath.",
+	Example: `  config subpath
+  config subpath --path /mattermost
+  config subpath --path /`,
+	RunE: configSubpathCmdF,
+}
+
 func init() {
+	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
+
 	ConfigCmd.AddCommand(
 		ValidateConfigCmd,
+		ConfigSubpathCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -63,5 +78,24 @@ func configValidateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	CommandPrettyPrintln("The document is valid")
+	return nil
+}
+
+func configSubpathCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	path, err := command.Flags().GetString("path")
+	if err != nil {
+		return errors.Wrap(err, "failed reading path")
+	} else if path == "" {
+		return web.UpdateAssetsSubpathFromConfig(a.Config())
+	} else if err := web.UpdateAssetsSubpath(path); err != nil {
+		return errors.Wrap(err, "failed to update assets subpath")
+	}
+
 	return nil
 }
