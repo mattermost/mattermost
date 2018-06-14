@@ -468,7 +468,7 @@
 
 [[projects]]
   branch = "env-settings"
-  name = "github.com/spf13/viper"
+  name = "github.com/mattermost/viper"
   packages = ["."]
   revision = "4f5003aa93559718c866d86fbc795439079484f5"
   source = "https://github.com/mattermost/viper"

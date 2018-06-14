@@ -16,8 +16,8 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/mattermost/viper"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 
 	"net/http"
 
