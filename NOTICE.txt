@@ -1516,10 +1516,10 @@ MIT license
 
 ## html2text
 
-This product contains a modified portion of 'html2text', an HTML to raw text converter by Carlos Tadeu Panato Junior based on `html2text`, built by Jay Taylor.
+This product contains a modified portion of `html2text`, an HTML to raw text converter, built by Jay Taylor.
 
 * HOMEPAGE
-  * https://github.com/mattermost/html2text
+  * https://github.com/jaytaylor/html2text
 
 * LICENSE
 
