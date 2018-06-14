@@ -413,15 +413,15 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um Membro do Canal."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "License does not support updating a channel's scheme"
+    "translation": "A licença não suporta a atualização do esquema de um canal"
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+    "translation": "Não é possível definir o esquema para o canal porque o esquema fornecido não é um esquema de canal."
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
@@ -429,7 +429,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
+    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um integrante da equipe"
   },
   {
     "id": "api.cluster.init.debug",
@@ -1908,15 +1908,15 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": " notified the channel."
+    "translation": "  notificou o canal."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " commented on your post."
+    "translation": " comentou no no seu post."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": " commented on a thread you participated in."
+    "translation": "  comentou sobre um tópico em que você participou."
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
@@ -1940,19 +1940,19 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
-    "translation": " mencionou você"
+    "translation": " mencionou você."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
-    "translation": " postou uma mensagem"
+    "translation": " postou uma mensagem."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " attached a file."
+    "translation": " anexou um arquivo."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": "sent you a message."
+    "translation": "enviou-lhe uma mensagem."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -2052,11 +2052,11 @@
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
-    "translation": "Unable to get the channels for scheme because the supplied scheme is not a channel scheme."
+    "translation": "Não é possível obter os canais para o esquema porque o esquema fornecido não é um esquema de canal."
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
-    "translation": "Unable to get the teams for scheme because the supplied scheme is not a team scheme."
+    "translation": "Não é possível obter as equipes para o esquema porque o esquema fornecido não é um esquema de equipe."
   },
   {
     "id": "api.server.new_server.init.info",
@@ -2524,11 +2524,11 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "License does not support updating a team's scheme"
+    "translation": "A licença não suporta a atualização do esquema de uma equipe"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+    "translation": "Não é possível definir o esquema para a equipe porque o esquema fornecido não é um esquema de equipe."
   },
   {
     "id": "api.templates.channel_name.group",
@@ -2536,15 +2536,15 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "Você desativou a sua conta em {{ .SiteURL }}.<br>Se esta mudança não foi iniciada por você ou deseja reativar a conta, entre em contato com o administrador."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+    "translation": "Sua conta foi desativada em {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+    "translation": "[{{ .SiteName }}] A sua conta em {{ .ServerURL }} foi desativada"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -3044,7 +3044,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Não foi possível resetar a senha para conta SSO"
+    "translation": "Não foi possível redefinir a senha para conta SSO"
   },
   {
     "id": "api.user.reset_password.wrong_team.app_error",
@@ -3056,7 +3056,7 @@
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Failed to send the deactivate account email successfully"
+    "translation": "Erro ao enviar o email de conta desativada"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -3084,7 +3084,7 @@
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Não foi possível resetar a senha para conta SSO"
+    "translation": "Não foi possível redefinir a senha para conta SSO"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -3108,7 +3108,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
+    "translation": "Você não pode desativar a sua conta pois esta funcionalidade não está ativa. Por favor entre em contato com o Administrador do sistema."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3892,7 +3892,7 @@
   },
   {
     "id": "app.plugin.delete_plugin_status_state.app_error",
-    "translation": "Unable to delete plugin status state."
+    "translation": "Não foi possível apagar o status do estado do plugin."
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3940,7 +3940,7 @@
   },
   {
     "id": "app.plugin.prepackaged.app_error",
-    "translation": "Cannot install prepackaged plugin"
+    "translation": "Não foi possível install o plugin prepackaged"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3948,7 +3948,7 @@
   },
   {
     "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "Unable to set plugin status state."
+    "translation": "Não foi possível ajustar o status do estado do plugin."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3960,7 +3960,7 @@
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
-    "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+    "translation": "Este endpoint da API não está acessível, pois as migrações exigidas ainda não foram concluídas."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -4632,11 +4632,11 @@
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": "Migration failed due to invalid progress data."
+    "translation": "A migração falhou devido a dados de progresso inválidos."
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Cannot run migration job due to unknown migration key."
+    "translation": "Não foi possível executar a tarefa de migração a uma desconhecida chave de migração."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -4860,7 +4860,7 @@
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
-    "translation": "ID inválida"
+    "translation": "Id inválida"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4984,7 +4984,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.), and hyphen (-)."
+    "translation": "O esquema de URL personalizado {{.Scheme}} é inválido. Os esquemas de URL personalizados devem começar com uma letra e conter apenas letras, números, mais (+), ponto (.) e hífen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5296,7 +5296,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "URL do ícone deve ser uma URL válida e começar com http:// ou https://."
+    "translation": "URL do site deve ser uma URL válida e começar com http:// ou https://"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -6044,7 +6044,7 @@
   },
   {
     "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
+    "translation": "Não foi possível obter os canais para o esquema fornecido"
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
@@ -6124,23 +6124,23 @@
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Falha ao confirmar a transação do banco de dados"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
+    "translation": "Falha ao abrir a transação com o bando de dados"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "Failed to roll back the database transaction"
+    "translation": "Falha ao reverter a transação com o banco de dados"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members"
+    "translation": "Falha ao selecionar o lote de membros do canal"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Falha ao atualizar o cabeçalho do canal direto"
+    "translation": "Falha ao atualizar o membro do canal"
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
@@ -6164,7 +6164,7 @@
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes"
+    "translation": "Não foi possível redefinir os esquemas de canal"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -6804,7 +6804,7 @@
   },
   {
     "id": "store.sql_role.delete.update.app_error",
-    "translation": "Unable to delete the role"
+    "translation": "Não foi possível excluir a função."
   },
   {
     "id": "store.sql_role.get.app_error",
@@ -6836,7 +6836,7 @@
   },
   {
     "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role"
+    "translation": "Falha ao abrir a transação para salvar a função"
   },
   {
     "id": "store.sql_role.save.update.app_error",
@@ -6844,59 +6844,59 @@
   },
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role"
+    "translation": "Falha ao confirmar a transação para salvar a função"
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme"
+    "translation": "Não foi possível excluir as funções pertencentes a este esquema"
   },
   {
     "id": "store.sql_scheme.delete.scheme_in_use.app_error",
-    "translation": "Unable to delete the scheme as it in use by 1 or more teams or channels"
+    "translation": "Não é possível excluir o esquema em uso por 1 ou mais equipes ou canais."
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Unable to delete the scheme"
+    "translation": "Não foi possível excluir o esquema"
   },
   {
     "id": "store.sql_scheme.get.app_error",
-    "translation": "Unable to get the scheme"
+    "translation": "Não foi possível excluir o esquema"
   },
   {
     "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "Não podemos apagar permanentemente todas as funções"
+    "translation": "Não podemos apagar permanentemente os esquemas"
   },
   {
     "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Unable to reset all channels using this scheme to the default scheme"
+    "translation": "Não foi possível redefinir todos os canais para usar este esquema como esquema padrão"
   },
   {
     "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme"
+    "translation": "Não foi possível redefinir todas as equipes para usar este esquema como esquema padrão"
   },
   {
     "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Unable to create the scheme"
+    "translation": "Não foi possível criar o esquema"
   },
   {
     "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "The provided scheme is invalid"
+    "translation": "O esquema fornecido é inválido"
   },
   {
     "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme"
+    "translation": "Falha ao abrir a transação para salvar o esquema"
   },
   {
     "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Unable to retrieve the default scheme roles"
+    "translation": "Não foi possível obter o esquema padrão para funções"
   },
   {
     "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Unable to update the scheme"
+    "translation": "Não foi possível atualizar o esquema"
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme"
+    "translation": "Falha ao confirmar a transação para salvar o esquema"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6980,7 +6980,7 @@
   },
   {
     "id": "store.sql_status.reset_all.app_error",
-    "translation": "Encontrado um erro ao resetar todos os status"
+    "translation": "Encontrado um erro ao redefinir todos os status"
   },
   {
     "id": "store.sql_status.save.app_error",
@@ -7048,7 +7048,7 @@
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
+    "translation": "Não foi possível obter os canais para o esquema fornecido"
   },
   {
     "id": "store.sql_team.get_member.app_error",
@@ -7080,23 +7080,23 @@
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Falha ao confirmar a transação com o banco de dados"
   },
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
+    "translation": "Falha ao abrir o transação com o bando de dados"
   },
   {
     "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "Failed to roll back the database transaction"
+    "translation": "Falha ao reverter a transação com o banco de dados"
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Failed to select the batch of team members"
+    "translation": " Falha ao selecionar o lote de membros da equipe"
   },
   {
     "id": "store.sql_team.migrate_team_members.update.app_error",
-    "translation": "Falha ao atualizar o cabeçalho do canal direto"
+    "translation": "Falha ao atualizar o membro da equipe"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
@@ -7108,7 +7108,7 @@
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "We could not reset the team schemes"
+    "translation": "Não foi possível redefinir os esquemas de equipe"
   },
   {
     "id": "store.sql_team.save.app_error",
@@ -7720,7 +7720,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
+    "translation": "Este webhook não tem permissão para postar no canal solicitado"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",

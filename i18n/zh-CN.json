@@ -413,7 +413,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+    "translation": "提供的角色由方案管理，因此无法直接应用到频道成员"
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -429,7 +429,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
+    "translation": "提供的角色由方案管理，因此无法直接应用到团队成员"
   },
   {
     "id": "api.cluster.init.debug",
@@ -1912,11 +1912,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " commented on your post."
+    "translation": " 在您的消息发布了评论。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": " commented on a thread you participated in."
+    "translation": " 在您参与的讨论串发布了评论。"
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
@@ -2536,7 +2536,7 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "您已注销在 {{ .SiteURL }} 的帐号。<br>如果这不是您的操作或者您想重新激活您的帐号，请联系您的系统管理员。"
   },
   {
     "id": "api.templates.deactivate_body.title",
@@ -3960,7 +3960,7 @@
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
-    "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+    "translation": "API 无法访问因为需要的数据转移未完成。"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -4636,7 +4636,7 @@
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Cannot run migration job due to unknown migration key."
+    "translation": "由于未知转移键，无法运行转移任务。"
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -4984,7 +4984,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.), and hyphen (-)."
+    "translation": "无效的自定义 URL 方案 {{.Scheme}}。自定义 URL 方案必须以字母开头并且只能含有字母、数字、加号 (+)、句号 (.) 以及横杠 (-)。"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -6132,11 +6132,11 @@
   },
   {
     "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "打开数据库事务失败。"
+    "translation": "回滚数据库事务失败。"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members"
+    "translation": "批量选择频道成员失败"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
@@ -6836,7 +6836,7 @@
   },
   {
     "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role"
+    "translation": "打开事务以保存角色失败"
   },
   {
     "id": "store.sql_role.save.update.app_error",
@@ -6844,7 +6844,7 @@
   },
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role"
+    "translation": "提交事务以保存角色失败"
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
@@ -6884,7 +6884,7 @@
   },
   {
     "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme"
+    "translation": "打开事务以保存方案失败"
   },
   {
     "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
@@ -6896,7 +6896,7 @@
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme"
+    "translation": "提交事务以保存方案失败"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -7088,11 +7088,11 @@
   },
   {
     "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "打开数据库事务失败。"
+    "translation": "回滚数据库事务失败。"
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Failed to select the batch of team members"
+    "translation": " 批量选择团队成员失败"
   },
   {
     "id": "store.sql_team.migrate_team_members.update.app_error",
@@ -7720,7 +7720,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
+    "translation": "此 webhook 不允许发消息到指定的频道"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
