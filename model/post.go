@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -343,20 +342,8 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	return &post
 }
 
-var channelMentionRegexp = regexp.MustCompile(`\B~[a-zA-Z0-9\-_]+`)
-
-func (o *Post) ChannelMentions() (names []string) {
-	if strings.Contains(o.Message, "~") {
-		alreadyMentioned := make(map[string]bool)
-		for _, match := range channelMentionRegexp.FindAllString(o.Message, -1) {
-			name := match[1:]
-			if !alreadyMentioned[name] {
-				names = append(names, name)
-				alreadyMentioned[name] = true
-			}
-		}
-	}
-	return
+func (o *Post) ChannelMentions() []string {
+	return ChannelMentions(o.Message)
 }
 
 func (r *PostActionIntegrationRequest) ToJson() string {

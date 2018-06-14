@@ -361,6 +361,12 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	err = c.App.FillInChannelProps(channel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	w.Write([]byte(channel.ToJson()))
 }
 
@@ -444,13 +450,19 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if channels, err := c.App.GetPublicChannelsForTeam(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage); err != nil {
+	channels, err := c.App.GetPublicChannelsForTeam(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(channels.ToJson()))
+	}
+
+	err = c.App.FillInChannelsProps(channels)
+	if err != nil {
+		c.Err = err
 		return
 	}
+
+	w.Write([]byte(channels.ToJson()))
 }
 
 func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -464,13 +476,19 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if channels, err := c.App.GetDeletedChannels(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage); err != nil {
+	channels, err := c.App.GetDeletedChannels(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(channels.ToJson()))
+	}
+
+	err = c.App.FillInChannelsProps(channels)
+	if err != nil {
+		c.Err = err
 		return
 	}
+
+	w.Write([]byte(channels.ToJson()))
 }
 
 func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -497,12 +515,19 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if channels, err := c.App.GetPublicChannelsByIdsForTeam(c.Params.TeamId, channelIds); err != nil {
+	channels, err := c.App.GetPublicChannelsByIdsForTeam(c.Params.TeamId, channelIds)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(channels.ToJson()))
 	}
+
+	err = c.App.FillInChannelsProps(channels)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(channels.ToJson()))
 }
 
 func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -521,15 +546,24 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId); err != nil {
+	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else if c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
-		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, channels.Etag())
-		w.Write([]byte(channels.ToJson()))
 	}
+
+	if c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
+		return
+	}
+
+	err = c.App.FillInChannelsProps(channels)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, channels.Etag())
+	w.Write([]byte(channels.ToJson()))
 }
 
 func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -545,12 +579,15 @@ func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Requ
 
 	name := r.URL.Query().Get("name")
 
-	if channels, err := c.App.AutocompleteChannels(c.Params.TeamId, name); err != nil {
+	channels, err := c.App.AutocompleteChannels(c.Params.TeamId, name)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(channels.ToJson()))
 	}
+
+	// Don't fill in channels props, since unused by client and potentially expensive.
+
+	w.Write([]byte(channels.ToJson()))
 }
 
 func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -570,12 +607,15 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channels, err := c.App.SearchChannels(c.Params.TeamId, props.Term); err != nil {
+	channels, err := c.App.SearchChannels(c.Params.TeamId, props.Term)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(channels.ToJson()))
 	}
+
+	// Don't fill in channels props, since unused by client and potentially expensive.
+
+	w.Write([]byte(channels.ToJson()))
 }
 
 func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -638,6 +678,12 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	err = c.App.FillInChannelProps(channel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	w.Write([]byte(channel.ToJson()))
 }
 
@@ -657,6 +703,12 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 
 	if !c.App.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	err = c.App.FillInChannelProps(channel)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
