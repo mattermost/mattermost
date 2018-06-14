@@ -46,7 +46,7 @@
 
 # Fork for adding our own method to viper EnvSettings
 [[constraint]]
-  name = "github.com/spf13/viper"
+  name = "github.com/mattermost/viper"
   source = "https://github.com/mattermost/viper"
   branch = "env-settings"
 
