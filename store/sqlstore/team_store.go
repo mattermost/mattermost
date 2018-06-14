@@ -342,7 +342,7 @@ func (s SqlTeamStore) GetAll() store.StoreChannel {
 func (s SqlTeamStore) GetAllPage(offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams ORDER BY DisplayName LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
