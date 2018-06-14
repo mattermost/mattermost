@@ -563,7 +563,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
 	props["EnablePreviewModeBanner"] = strconv.FormatBool(*c.EmailSettings.EnablePreviewModeBanner)
-	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
 	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
 	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
@@ -754,6 +753,108 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
+		}
+	}
+
+	return props
+}
+func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
+	props := make(map[string]string)
+
+	props["Version"] = model.CurrentVersion
+	props["BuildNumber"] = model.BuildNumber
+	props["BuildDate"] = model.BuildDate
+	props["BuildHash"] = model.BuildHash
+	props["BuildHashEnterprise"] = model.BuildHashEnterprise
+	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
+
+	props["SiteName"] = c.TeamSettings.SiteName
+	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
+	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
+	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
+
+	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
+	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
+	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
+	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
+	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
+	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
+
+	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+
+	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
+	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
+	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
+
+	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
+	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
+	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
+
+	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
+
+	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
+	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
+	props["AboutLink"] = *c.SupportSettings.AboutLink
+	props["HelpLink"] = *c.SupportSettings.HelpLink
+	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
+	props["SupportEmail"] = *c.SupportSettings.SupportEmail
+
+	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
+
+	props["DiagnosticId"] = diagnosticId
+	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+
+	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
+	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
+
+	// Set default values for all options that require a license.
+	props["EnableCustomBrand"] = "false"
+	props["CustomBrandText"] = ""
+	props["CustomDescriptionText"] = ""
+	props["EnableLdap"] = "false"
+	props["LdapLoginFieldName"] = ""
+	props["LdapLoginButtonColor"] = ""
+	props["LdapLoginButtonBorderColor"] = ""
+	props["LdapLoginButtonTextColor"] = ""
+	props["EnableMultifactorAuthentication"] = "false"
+	props["EnableSaml"] = "false"
+	props["SamlLoginButtonText"] = ""
+	props["SamlLoginButtonColor"] = ""
+	props["SamlLoginButtonBorderColor"] = ""
+	props["SamlLoginButtonTextColor"] = ""
+	props["EnableSignUpWithGoogle"] = "false"
+	props["EnableSignUpWithOffice365"] = "false"
+	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
+	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
+	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
+
+	if license != nil {
+		if *license.Features.LDAP {
+			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
+			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
+			props["LdapLoginButtonColor"] = *c.LdapSettings.LoginButtonColor
+			props["LdapLoginButtonBorderColor"] = *c.LdapSettings.LoginButtonBorderColor
+			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
+		}
+
+		if *license.Features.MFA {
+			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
+		}
+
+		if *license.Features.SAML {
+			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
+			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
+			props["SamlLoginButtonColor"] = *c.SamlSettings.LoginButtonColor
+			props["SamlLoginButtonBorderColor"] = *c.SamlSettings.LoginButtonBorderColor
+			props["SamlLoginButtonTextColor"] = *c.SamlSettings.LoginButtonTextColor
+		}
+
+		if *license.Features.GoogleOAuth {
+			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
+		}
+
+		if *license.Features.Office365OAuth {
+			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
 		}
 	}
 
