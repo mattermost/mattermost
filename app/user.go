@@ -1288,6 +1288,31 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
+	fchan := a.Srv.Store.FileInfo().GetForUser(user.Id)
+	var infos []*model.FileInfo
+	if result := <-fchan; result.Err != nil {
+		mlog.Warn("Error getting file list for user from FileInfoStore")
+	} else {
+		infos = result.Data.([]*model.FileInfo)
+		for _, info := range infos {
+			res, err := a.FileExists(info.Path)
+
+			if err != nil {
+				mlog.Warn(fmt.Sprintf("Error checking existence of file '%s': %s", info.Path, err))
+				continue
+			}
+
+			if res {
+				a.RemoveFile(info.Path)
+			}
+
+		}
+	}
+
+	if result := <-a.Srv.Store.FileInfo().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
 	if result := <-a.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
 		return result.Err
 	}

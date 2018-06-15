@@ -41,6 +41,18 @@ func (b *LocalFileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 }
 
+func (b *LocalFileBackend) FileExists(path string) (bool, *model.AppError) {
+	_, err := os.Stat(filepath.Join(b.directory, path))
+
+	if os.IsNotExist(err) {
+		return false, nil
+	} else if err == nil {
+		return true, nil
+	}
+
+	return false, model.NewAppError("ReadFile", "api.file.file_exists.exists_local.app_error", nil, err.Error(), http.StatusInternalServerError)
+}
+
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	if err := CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
 		return model.NewAppError("copyFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
