@@ -563,6 +563,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
 	props["EnablePreviewModeBanner"] = strconv.FormatBool(*c.EmailSettings.EnablePreviewModeBanner)
+	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
 	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
 	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
@@ -758,6 +759,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 	return props
 }
+
 func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
 	props := make(map[string]string)
 
