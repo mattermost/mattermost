@@ -111,6 +111,25 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 }
 
+func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
+	s3Clnt, err := b.s3New()
+
+	if err != nil {
+		return false, model.NewAppError("FileExists", "api.file.file_exists.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	_, err = s3Clnt.StatObject(b.bucket, path, s3.StatObjectOptions{})
+
+	if err == nil {
+		return true, nil
+	}
+
+	if err.(s3.ErrorResponse).Code == "NoSuchKey" {
+		return false, nil
+	}
+
+	return false, model.NewAppError("FileExists", "api.file.file_exists.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+}
+
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	s3Clnt, err := b.s3New()
 	if err != nil {

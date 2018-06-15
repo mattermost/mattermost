@@ -15,10 +15,12 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, ss) })
 	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, ss) })
 	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, ss) })
+	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, ss) })
 	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, ss) })
 	t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, ss) })
 	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, ss) })
 	t.Run("FileInfoPermanentDeleteBatch", func(t *testing.T) { testFileInfoPermanentDeleteBatch(t, ss) })
+	t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, ss store.Store) {
@@ -150,6 +152,54 @@ func testFileInfoGetForPost(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 2 {
 		t.Fatal("should've returned exactly 2 file infos")
+	}
+}
+
+func testFileInfoGetForUser(t *testing.T, ss store.Store) {
+	userId := model.NewId()
+	userId2 := model.NewId()
+	postId := model.NewId()
+
+	infos := []*model.FileInfo{
+		{
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
+		},
+		{
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
+		},
+		{
+			PostId:    postId,
+			CreatorId: userId,
+			Path:      "file.txt",
+		},
+		{
+			PostId:    model.NewId(),
+			CreatorId: userId2,
+			Path:      "file.txt",
+		},
+	}
+
+	for i, info := range infos {
+		infos[i] = store.Must(ss.FileInfo().Save(info)).(*model.FileInfo)
+		defer func(id string) {
+			<-ss.FileInfo().PermanentDelete(id)
+		}(infos[i].Id)
+	}
+
+	if result := <-ss.FileInfo().GetForUser(userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 3 {
+		t.Fatal("should've returned exactly 3 file infos")
+	}
+
+	if result := <-ss.FileInfo().GetForUser(userId2); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 1 {
+		t.Fatal("should've returned exactly 1 file infos")
 	}
 }
 
@@ -292,5 +342,20 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	} else if len(result.Data.([]*model.FileInfo)) != 1 {
 		t.Fatal("Expected 3 fileInfos")
+	}
+}
+
+func testFileInfoPermanentDeleteByUser(t *testing.T, ss store.Store) {
+	userId := model.NewId()
+	postId := model.NewId()
+
+	store.Must(ss.FileInfo().Save(&model.FileInfo{
+		PostId:    postId,
+		CreatorId: userId,
+		Path:      "file.txt",
+	}))
+
+	if result := <-ss.FileInfo().PermanentDeleteByUser(userId); result.Err != nil {
+		t.Fatal(result.Err)
 	}
 }
