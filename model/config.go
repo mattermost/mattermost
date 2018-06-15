@@ -774,8 +774,8 @@ func (s *FileSettings) SetDefaults() {
 	}
 
 	if s.InitialFont == "" {
-		// Defaults to "luximbi.ttf"
-		s.InitialFont = "luximbi.ttf"
+		// Defaults to "nunito-bold.ttf"
+		s.InitialFont = "nunito-bold.ttf"
 	}
 
 	if s.Directory == "" {
