@@ -719,7 +719,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/6, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
+	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/5, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
