@@ -1941,7 +1941,7 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
-		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
