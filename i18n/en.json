@@ -4411,11 +4411,11 @@
     "translation": "Invalid MFA token"
   },
   {
-    "id": "ent.mfa.activate.save_active.app_erro",
+    "id": "ent.mfa.activate.save_active.app_error",
     "translation": "Unable to update MFA active status for the user"
   },
   {
-    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "id": "ent.mfa.deactivate.save_active.app_error",
     "translation": "Unable to update MFA active status for the user"
   },
   {
@@ -6423,7 +6423,7 @@
     "translation": "We couldn't get the jobs"
   },
   {
-    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
     "translation": "We couldn't get the job count by status and type"
   },
   {
