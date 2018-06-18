@@ -90,9 +90,10 @@ type App struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig     map[string]string
-	clientConfigHash string
-	diagnosticId     string
+	clientConfig        map[string]string
+	clientConfigHash    string
+	limitedClientConfig map[string]string
+	diagnosticId        string
 
 	phase2PermissionsMigrationComplete bool
 }
