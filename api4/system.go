@@ -250,7 +250,14 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.MapToJson(c.App.ClientConfigWithComputed())))
+	var config map[string]string
+	if *c.App.Config().ServiceSettings.ExperimentalLimitClientConfig && len(c.Session.UserId) == 0 {
+		config = c.App.LimitedClientConfigWithComputed()
+	} else {
+		config = c.App.ClientConfigWithComputed()
+	}
+
+	w.Write([]byte(model.MapToJson(config)))
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {

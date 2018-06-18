@@ -645,7 +645,9 @@ func TestGetClientConfig(t *testing.T) {
 
 			configMap := GenerateClientConfig(testCase.config, testCase.diagnosticId, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
-				assert.Equal(t, expectedValue, configMap[expectedField])
+				actualValue, ok := configMap[expectedField]
+				assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField))
+				assert.Equal(t, expectedValue, actualValue)
 			}
 		})
 	}
