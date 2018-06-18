@@ -320,7 +320,7 @@ func TestGetOldClientConfig(t *testing.T) {
 		}
 	})
 
-	t.Run("missing format", func(t *testing.T) {
+	t.Run("invalid format", func(t *testing.T) {
 		Client := th.Client
 
 		if _, err := Client.DoApiGet("/config/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
