@@ -355,8 +355,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	results = model.MakePostSearchResults(c.App.PostListWithProxyAddedToImageURLs(results.PostList), results.Matches)
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(results.PostList).ToJson()))
+	w.Write([]byte(results.ToJson()))
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
