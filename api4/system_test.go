@@ -696,9 +696,7 @@ func TestS3TestConnection(t *testing.T) {
 	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckInternalErrorStatus(t, resp)
-	if resp.Error.Message != "Unable to create bucket" {
-		t.Fatal("should return error ")
-	}
+	assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
 
 	config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
