@@ -26,10 +26,11 @@ func (a *App) AddStatusCache(status *model.Status) {
 	a.AddStatusCacheSkipClusterSend(status)
 
 	if a.Cluster != nil {
+		clusterStatus := model.NewUserStatusClusterMessage(status)
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     status.ToJson(),
+			Data:     clusterStatus.ToJson(),
 		}
 		a.Cluster.SendClusterMessage(msg)
 	}

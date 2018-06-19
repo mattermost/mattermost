@@ -27,6 +27,31 @@ type Status struct {
 	ActiveChannel  string `json:"-" db:"-"`
 }
 
+type UserStatusClusterMessage struct {
+	*Status
+	ActiveChannel string `json:"active_channel"`
+}
+
+func NewUserStatusClusterMessage(status *Status) *UserStatusClusterMessage {
+	return &UserStatusClusterMessage{Status: status, ActiveChannel: status.ActiveChannel}
+}
+
+func (s *UserStatusClusterMessage) ToJson() string {
+	b, _ := json.Marshal(s)
+	return string(b)
+}
+
+func UserStatusClusterMessageFromJson(data io.Reader) *UserStatusClusterMessage {
+	var s *UserStatusClusterMessage
+	json.NewDecoder(data).Decode(&s)
+	return s
+}
+
+func (s *UserStatusClusterMessage) ToStatus() *Status {
+	s.Status.ActiveChannel = s.ActiveChannel
+	return s.Status
+}
+
 func (o *Status) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
