@@ -341,7 +341,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	posts, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
@@ -355,8 +355,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	results = model.MakePostSearchResults(c.App.PostListWithProxyAddedToImageURLs(results.PostList), results.Matches)
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	w.Write([]byte(results.ToJson()))
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
