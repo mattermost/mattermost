@@ -101,3 +101,68 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 		}
 	})
 }
+
+func TestGetSubpathFromConfig(t *testing.T) {
+	testCases := []struct {
+		Description     string
+		SiteURL         string
+		ExpectedError   bool
+		ExpectedSubpath string
+	}{
+		{
+			"empty SiteURL",
+			"",
+			false,
+			"",
+		},
+		{
+			"invalid SiteURL",
+			"cache_object:foo/bar",
+			true,
+			"",
+		},
+		{
+			"no trailing slash",
+			"http://localhost:8065",
+			false,
+			"",
+		},
+		{
+			"trailing slash",
+			"http://localhost:8065/",
+			false,
+			"/",
+		},
+		{
+			"subpath, no trailing slash",
+			"http://localhost:8065/subpath",
+			false,
+			"/subpath",
+		},
+		{
+			"trailing slash",
+			"http://localhost:8065/subpath/",
+			false,
+			"/subpath/",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			config := &model.Config{
+				ServiceSettings: model.ServiceSettings{
+					SiteURL: &testCase.SiteURL,
+				},
+			}
+
+			subpath, err := web.GetSubpathFromConfig(config)
+			if testCase.ExpectedError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			require.Equal(t, testCase.ExpectedSubpath, subpath)
+		})
+	}
+}

@@ -121,10 +121,19 @@ func UpdateAssetsSubpathFromConfig(config *model.Config) error {
 		return nil
 	}
 
-	u, err := url.Parse(*config.ServiceSettings.SiteURL)
+	subpath, err := GetSubpathFromConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse SiteURL from config")
+		return err
 	}
 
-	return UpdateAssetsSubpath(u.Path)
+	return UpdateAssetsSubpath(subpath)
+}
+
+func GetSubpathFromConfig(config *model.Config) (string, error) {
+	u, err := url.Parse(*config.ServiceSettings.SiteURL)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to parse SiteURL from config")
+	}
+
+	return u.Path, nil
 }
