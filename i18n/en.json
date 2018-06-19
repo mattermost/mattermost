@@ -2827,10 +2827,6 @@
     "translation": "Blank email"
   },
   {
-    "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
-  },
-  {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
     "translation": "Could not parse auth data out of {{.Service}} user object"
   },
@@ -4275,12 +4271,12 @@
     "translation": "Elasticsearch searching is disabled on this server"
   },
   {
-    "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
     "translation": "Failed to parse search result matches"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Search failed to complete"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
@@ -5857,6 +5853,10 @@
   {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode"
+  },
+  {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
     "id": "plugin.rpcplugin.invocation.error",

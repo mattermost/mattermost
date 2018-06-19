@@ -2275,22 +2275,6 @@
     "translation": "Slack 导入：部分 Slack 消息导入时发送错误。导入可能仍然可用。"
   },
   {
-    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack 导入：频道 {{.ChannelName}} 的名称过长。导入时会被截断。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack 导入：频道 {{.ChannelName}} 的标题过长。导入时会被截断。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack 导入：频道 {{.ChannelName}} 的识别过长。导入时会被截断。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack 导入：频道 {{.ChannelName}} 的用途过长。导入时会被截断。"
-  },
-  {
     "id": "api.status.init.debug",
     "translation": "正在初始化状态 API 路由"
   },
@@ -4287,6 +4271,10 @@
     "translation": "ElasticSearch 搜索已在本服务器禁用"
   },
   {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Failed to parse search result matches"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "搜索无法完成"
   },
@@ -4423,11 +4411,11 @@
     "translation": "无效的多重验证令牌"
   },
   {
-    "id": "ent.mfa.activate.save_active.app_erro",
+    "id": "ent.mfa.activate.save_active.app_error",
     "translation": "无法为用户更新多重验证启用状态"
   },
   {
-    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "id": "ent.mfa.deactivate.save_active.app_error",
     "translation": "无法为用户更新多重验证启用状态"
   },
   {
@@ -5867,6 +5855,10 @@
     "translation": "无法解码"
   },
   {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "GitLab 的使用条款已更新。请到 gitlab.com 接受新的使用条款后再尝试登入 Mattermost。"
+  },
+  {
     "id": "plugin.rpcplugin.invocation.error",
     "translation": "调用插件 RPC 错误"
   },
@@ -6435,7 +6427,7 @@
     "translation": "我们无法获取任务"
   },
   {
-    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
     "translation": "我们无法以状态和类型获取任务数"
   },
   {

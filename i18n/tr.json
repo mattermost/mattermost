@@ -549,7 +549,7 @@
   },
   {
     "id": "api.command_channel_header.hint",
-    "translation": "[text]"
+    "translation": "[metin]"
   },
   {
     "id": "api.command_channel_header.message.app_error",
@@ -585,7 +585,7 @@
   },
   {
     "id": "api.command_channel_purpose.hint",
-    "translation": "[text]"
+    "translation": "[metin]"
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
@@ -617,7 +617,7 @@
   },
   {
     "id": "api.command_channel_rename.hint",
-    "translation": "[text]"
+    "translation": "[metin]"
   },
   {
     "id": "api.command_channel_rename.message.app_error",
@@ -653,7 +653,7 @@
   },
   {
     "id": "api.command_code.hint",
-    "translation": "[text]"
+    "translation": "[metin]"
   },
   {
     "id": "api.command_code.message.app_error",
@@ -820,7 +820,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[kullanıcıadı] ~[kanal]"
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -860,7 +860,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "~[channel]"
+    "translation": "~[kanal]"
   },
   {
     "id": "api.command_join.list.app_error",
@@ -944,7 +944,7 @@
   },
   {
     "id": "api.command_msg.hint",
-    "translation": "@[kullaniciadi] 'ileti'"
+    "translation": "@[kullanıcıadı] 'ileti'"
   },
   {
     "id": "api.command_msg.list.app_error",
@@ -964,7 +964,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Geçerli kanal ya da belirtilen [channel] için masaüstü, e-posta ve anlık bildirimlerini kapatır."
+    "translation": "Geçerli kanal ya da belirtilen [kanal] için masaüstü, e-posta ve anlık bildirimlerini kapatır."
   },
   {
     "id": "api.command_mute.error",
@@ -972,7 +972,7 @@
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "~[channel]"
+    "translation": "~[kanal]"
   },
   {
     "id": "api.command_mute.name",
@@ -1040,7 +1040,7 @@
   },
   {
     "id": "api.command_remove.hint",
-    "translation": "@[username]"
+    "translation": "@[kullanıcıadı]"
   },
   {
     "id": "api.command_remove.message.app_error",
@@ -1068,7 +1068,7 @@
   },
   {
     "id": "api.command_search.hint",
-    "translation": "[text]"
+    "translation": "[metin]"
   },
   {
     "id": "api.command_search.name",
@@ -2273,22 +2273,6 @@
   {
     "id": "api.slackimport.slack_parse_posts.error",
     "translation": "Slack İçe Aktarma: Bazı Slack iletileri işlenirken sorun çıktı. Buna rağmen belki içe aktarım yapılabilir."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack İçe Aktarma: {{.ChannelName}} kanalının adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack İçe Aktarma: {{.ChannelName}} kanalının adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack İçe Aktarma: {{.ChannelName}} kanalının adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack İçe Aktarma: {{.ChannelName}} kanalının amacı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.status.init.debug",
@@ -4287,6 +4271,10 @@
     "translation": "Elasticsearch araması bu sunucu üzerinde devre dışı bırakılmış"
   },
   {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Failed to parse search result matches"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "Search failed to complete"
   },
@@ -4423,11 +4411,11 @@
     "translation": "MFA kodu geçersiz"
   },
   {
-    "id": "ent.mfa.activate.save_active.app_erro",
+    "id": "ent.mfa.activate.save_active.app_error",
     "translation": "Kullanıcının MFA etkin durumu güncellenemedi"
   },
   {
-    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "id": "ent.mfa.deactivate.save_active.app_error",
     "translation": "Kullanıcının MFA etkin durumu güncellenemedi"
   },
   {
@@ -5867,6 +5855,10 @@
     "translation": "kod çözülemedi"
   },
   {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "GitLab Hizmet Koşulları güncellendi. Lütfen gitlab.com adresine giderek yeni hizmet koşullarını onayladıktan sonra yeniden Mattermost oturumu açmayı deneyin."
+  },
+  {
     "id": "plugin.rpcplugin.invocation.error",
     "translation": "Uygulama eki RPC eklenirken sorun çıktı"
   },
@@ -6435,7 +6427,7 @@
     "translation": "İşler alınamadı"
   },
   {
-    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
     "translation": "Durum ve türe göre görev sayısı alınamadı"
   },
   {

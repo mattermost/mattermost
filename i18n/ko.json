@@ -2275,22 +2275,6 @@
     "translation": "Slack Import: Error occurred when parsing some Slack posts. Import may work anyway."
   },
   {
-    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack Import: Channel {{.ChannelName}} display name exceeds the maximum length. It will be truncated when imported."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack Import: Channel {{.ChannelName}} header exceeds the maximum length. It will be truncated when imported."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack Import: Channel {{.ChannelName}} handle exceeds the maximum length. It will be truncated when imported."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack Import: Channel {{.ChannelName}} purpose exceeds the maximum length. It will be truncated when imported."
-  },
-  {
     "id": "api.status.init.debug",
     "translation": "상태 API 루트를 초기화 중"
   },
@@ -4287,6 +4271,10 @@
     "translation": "Elasticsearch searching is disabled on this server"
   },
   {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Failed to parse search result matches"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "Search failed to complete"
   },
@@ -4423,11 +4411,11 @@
     "translation": "올바르지 않은 MFA 토큰"
   },
   {
-    "id": "ent.mfa.activate.save_active.app_erro",
+    "id": "ent.mfa.activate.save_active.app_error",
     "translation": "Unable to update MFA active status for the user"
   },
   {
-    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "id": "ent.mfa.deactivate.save_active.app_error",
     "translation": "Unable to update MFA active status for the user"
   },
   {
@@ -5867,6 +5855,10 @@
     "translation": "could not decode"
   },
   {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+  },
+  {
     "id": "plugin.rpcplugin.invocation.error",
     "translation": "Error invoking plugin RPC"
   },
@@ -6435,7 +6427,7 @@
     "translation": "채널을 찾을 수 없습니다"
   },
   {
-    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
     "translation": "We couldn't get the job count by status and type"
   },
   {
