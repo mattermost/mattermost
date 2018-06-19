@@ -103,47 +103,57 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 }
 
 func TestGetSubpathFromConfig(t *testing.T) {
+	sToP := func(s string) *string {
+		return &s
+	}
+
 	testCases := []struct {
 		Description     string
-		SiteURL         string
+		SiteURL         *string
 		ExpectedError   bool
 		ExpectedSubpath string
 	}{
 		{
 			"empty SiteURL",
-			"",
+			sToP(""),
 			false,
-			"",
+			"/",
 		},
 		{
 			"invalid SiteURL",
-			"cache_object:foo/bar",
+			sToP("cache_object:foo/bar"),
 			true,
 			"",
 		},
 		{
-			"no trailing slash",
-			"http://localhost:8065",
+			"nil SiteURL",
+			nil,
 			false,
-			"",
+			"/",
+		},
+		{
+			"no trailing slash",
+			sToP("http://localhost:8065"),
+			false,
+			"/",
 		},
 		{
 			"trailing slash",
-			"http://localhost:8065/",
+			sToP("http://localhost:8065/"),
 			false,
 			"/",
 		},
 		{
 			"subpath, no trailing slash",
-			"http://localhost:8065/subpath",
+			sToP("http://localhost:8065/subpath"),
 			false,
 			"/subpath",
 		},
 		{
 			"trailing slash",
-			"http://localhost:8065/subpath/",
+			sToP("http://localhost:8065/subpath/"),
 			false,
-			"/subpath/",
+			"/subpath",
 		},
 	}
 
@@ -151,7 +161,7 @@ func TestGetSubpathFromConfig(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			config := &model.Config{
 				ServiceSettings: model.ServiceSettings{
-					SiteURL: &testCase.SiteURL,
+					SiteURL: testCase.SiteURL,
 				},
 			}
 
