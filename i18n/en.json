@@ -1477,6 +1477,10 @@
     "translation": "Unable to move file locally."
   },
   {
+    "id": "api.file.no_driver.app_error",
+    "translation": "No file driver selected."
+  },
+  {
     "id": "api.file.read_file.configured.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -1487,6 +1491,22 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Encountered an error reading from local server storage"
+  },
+  {
+    "id": "api.file.test_connection.local.connection.app_error",
+    "translation": "Don't have permissions to write to local path specified or other error."
+  },
+  {
+    "id": "api.file.test_connection.s3.connection.app_error",
+    "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_exists.app_error",
+    "translation": "Error checking if bucket exists."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucked_create.app_error",
+    "translation": "Unable to create bucket."
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
@@ -2953,6 +2973,14 @@
   {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "Password field must not be blank"
+  },
+  {
+    "id": "api.user.login.client_side_cert.license.app_error",
+    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
+  },
+  {
+    "id": "api.user.login.client_side_cert.certificate.app_error",
+    "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -4851,8 +4879,28 @@
     "translation": "Unable to build multipart request"
   },
   {
+    "id": "model.cluster.is_valid.create_at.app_error",
+    "translation": "CreateAt must be set"
+  },
+  {
+    "id": "model.cluster.is_valid.hostname.app_error",
+    "translation": "Hostname must be set"
+  },
+  {
     "id": "model.cluster.is_valid.id.app_error",
     "translation": "Invalid Id"
+  },
+  {
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "translation": "LastPingAt must be set"
+  },
+  {
+    "id": "model.cluster.is_valid.name.app_error",
+    "translation": "ClusterName must be set"
+  },
+  {
+    "id": "model.cluster.is_valid.type.app_error",
+    "translation": "Type must be set"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4953,6 +5001,10 @@
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
     "translation": "To must be greater than From"
+  },
+  {
+    "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
+    "translation": "Allowing cookies for subdomains requires SiteURL to be set."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -5413,6 +5465,10 @@
   {
     "id": "model.incoming_hook.id.app_error",
     "translation": "Invalid Id"
+  },
+  {
+    "id": "model.incoming_hook.parse_data.app_error",
+    "translation": "Unable to parse incoming data"
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
@@ -6285,6 +6341,30 @@
   {
     "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
     "translation": "Failed to purge records"
+  },
+  {
+    "id": "store.sql_cluster_discovery.save.app_error",
+    "translation": "Failed to save ClusterDiscovery row"
+  },
+  {
+    "id": "store.sql_cluster_discovery.delete.app_error",
+    "translation": "Failed to delete"
+  },
+  {
+    "id": "store.sql_cluster_discovery.exists.app_error",
+    "translation": "Failed to check if it exists"
+  },
+  {
+    "id": "store.sql_cluster_discovery.get_all.app_error",
+    "translation": "Failed to get all disoery rows"
+  },
+  {
+    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
+    "translation": "Failed to update last ping at"
+  },
+  {
+    "id": "store.sql_cluster_discovery.cleanup.app_error",
+    "translation": "Failed to save ClusterDiscovery row"
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",

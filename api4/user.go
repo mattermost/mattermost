@@ -985,14 +985,14 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
 		if license := c.App.License(); license == nil || !*license.Features.SAML {
-			c.Err = model.NewAppError("ClientSideCertNotAllowed", "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
 		} else {
 			certPem, certSubject, certEmail := c.App.CheckForClienSideCert(r)
 			mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
 
 			if len(certPem) == 0 || len(certEmail) == 0 {
-				c.Err = model.NewAppError("ClientSideCertMissing", "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate", nil, "", http.StatusBadRequest)
+				c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
 				return
 			} else if *c.App.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
 				loginId = certEmail

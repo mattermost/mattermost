@@ -62,12 +62,12 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 func (b *S3FileBackend) TestConnection() *model.AppError {
 	s3Clnt, err := b.s3New()
 	if err != nil {
-		return model.NewAppError("TestFileConnection", "Bad connection to S3 or minio.", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	exists, err := s3Clnt.BucketExists(b.bucket)
 	if err != nil {
-		return model.NewAppError("TestFileConnection", "Error checking if bucket exists.", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucket_exists.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if !exists {
@@ -75,7 +75,7 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 		err := s3Clnt.MakeBucket(b.bucket, b.region)
 		if err != nil {
 			mlog.Error("Unable to create bucket.")
-			return model.NewAppError("TestFileConnection", "Unable to create bucket", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucked_create.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	mlog.Info("Connection to S3 or minio is good. Bucket exists.")
