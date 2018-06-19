@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
 )
 
 var ConfigCmd = &cobra.Command{
@@ -92,8 +91,8 @@ func configSubpathCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed reading path")
 	} else if path == "" {
-		return web.UpdateAssetsSubpathFromConfig(a.Config())
-	} else if err := web.UpdateAssetsSubpath(path); err != nil {
+		return utils.UpdateAssetsSubpathFromConfig(a.Config())
+	} else if err := utils.UpdateAssetsSubpath(path); err != nil {
 		return errors.Wrap(err, "failed to update assets subpath")
 	}
 
