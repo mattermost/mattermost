@@ -161,7 +161,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
-			utils.RenderWebAppError(w, r, c.Err, c.App.AsymmetricSigningKey())
+			utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		}
 
 		if c.App.Metrics != nil {

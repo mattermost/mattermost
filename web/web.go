@@ -66,7 +66,7 @@ func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
 	} else {
-		utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
+		utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
 	}
 }
 

@@ -520,7 +520,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 
 	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
-	utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
+	utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
 }
 
 // This function migrates the default built in roles from code/config to the database.
