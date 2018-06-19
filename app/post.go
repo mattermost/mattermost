@@ -621,7 +621,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostList, *model.AppError) {
+func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostSearchResults, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := a.Elasticsearch
@@ -656,7 +656,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 
 		// If the processed search params are empty, return empty search results.
 		if len(finalParamsList) == 0 {
-			return model.NewPostList(), nil
+			return model.MakePostSearchResults(model.NewPostList(), nil), nil
 		}
 
 		// We only allow the user to search in channels they are a member of.
@@ -666,7 +666,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			return nil, err
 		}
 
-		postIds, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList)
+		postIds, matches, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList)
 		if err != nil {
 			return nil, err
 		}
@@ -684,7 +684,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			}
 		}
 
-		return postList, nil
+		return model.MakePostSearchResults(postList, matches), nil
 	} else {
 		if !*a.Config().ServiceSettings.EnablePostSearch {
 			return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
@@ -712,7 +712,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 
 		posts.SortByCreateAt()
 
-		return posts, nil
+		return model.MakePostSearchResults(posts, nil), nil
 	}
 }
 
