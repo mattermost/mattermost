@@ -108,10 +108,12 @@ func New(options ...Option) (outApp *App, outErr error) {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 	}
 
+	rootRouter := mux.NewRouter()
+
 	app := &App{
 		goroutineExitSignal: make(chan struct{}, 1),
 		Srv: &Server{
-			Router: mux.NewRouter(),
+			RootRouter: rootRouter,
 		},
 		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
 		configFile:       "config.json",
@@ -206,16 +208,24 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 	app.initJobs()
 
-	app.initBuiltInPlugins()
+	// Always register the not found handler on the root router, in case the server is setup
+	// with a subpath, but the proxy server is misconfigured.
+	app.Srv.RootRouter.NotFoundHandler = http.HandlerFunc(app.Handle404)
+
+	subpath, err := utils.GetSubpathFromConfig(app.Config())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
+	}
+	app.Srv.Router = app.Srv.RootRouter.PathPrefix(subpath).Subrouter()
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", app.ServePluginRequest)
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", app.ServePluginRequest)
-
-	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
 	app.Srv.WebSocketRouter = &WebSocketRouter{
 		app:      app,
 		handlers: make(map[string]webSocketHandler),
 	}
+
+	app.initBuiltInPlugins()
 
 	return app, nil
 }

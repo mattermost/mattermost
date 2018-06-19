@@ -6,6 +6,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -23,8 +24,10 @@ func (w *Web) InitStatic() {
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
 		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
 
-		staticHandler := staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
-		pluginHandler := pluginHandler(w.App.Config, http.StripPrefix("/static/plugins/", http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
+		subpath, _ := utils.GetSubpathFromConfig(w.App.Config())
+
+		staticHandler := staticHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
+		pluginHandler := pluginHandler(w.App.Config, http.StripPrefix(path.Join(subpath, "plugins"), http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
 
 		if *w.App.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
@@ -48,7 +51,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if IsApiCall(r) {
+	if IsApiCall(c.App, r) {
 		Handle404(c.App, w, r)
 		return
 	}
