@@ -70,7 +70,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	// for now, format is hard-coded to actiance. In time, we'll have to support other formats and inject them into job data
 	if format, err := command.Flags().GetString("format"); err != nil {
 		return errors.New("format flag error")
-	} else if format != model.COMPLIANCE_EXPORT_TYPE_ACTIANCE && format != model.COMPLIANCE_EXPORT_TYPE_CSV && format != model.COMPLIANCE_EXPORT_TYPE_GLOBALRELAY {
+	} else if format != "actiance" {
 		return errors.New("unsupported export format")
 	}
 
