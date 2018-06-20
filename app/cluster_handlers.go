@@ -29,8 +29,8 @@ func (a *App) ClusterPublishHandler(msg *model.ClusterMessage) {
 }
 
 func (a *App) ClusterUpdateStatusHandler(msg *model.ClusterMessage) {
-	clusterStatus := model.UserStatusClusterMessageFromJson(strings.NewReader(msg.Data))
-	a.AddStatusCacheSkipClusterSend(clusterStatus.ToStatus())
+	status := model.StatusFromJson(strings.NewReader(msg.Data))
+	a.AddStatusCacheSkipClusterSend(status)
 }
 
 func (a *App) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
