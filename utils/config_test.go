@@ -335,6 +335,9 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		"TeamSettings": {
 			"SiteName": "Mattermost",
 			"CustomBrandText": ""
+		},
+		"SupportSettings": {
+			"TermsOfServiceLink": "https://about.mattermost.com/default-terms/"
 		}
 	}`
 
@@ -444,6 +447,28 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		} else {
 			if siteURLInEnv, ok := serviceSettingsAsMap["SiteURL"].(bool); !ok || !siteURLInEnv {
 				t.Fatal("SiteURL should be in envConfig")
+			}
+		}
+	})
+
+	t.Run("empty string setting", func(t *testing.T) {
+		os.Setenv("MM_SUPPORTSETTINGS_TERMSOFSERVICELINK", "")
+		defer os.Unsetenv("MM_SUPPORTSETTINGS_TERMSOFSERVICELINK")
+
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		if *cfg.SupportSettings.TermsOfServiceLink != "" {
+			t.Fatal("Couldn't read empty TermsOfServiceLink from environment var")
+		}
+
+		if supportSettings, ok := envCfg["SupportSettings"]; !ok {
+			t.Fatal("SupportSettings is missing from envConfig")
+		} else if supportSettingsAsMap, ok := supportSettings.(map[string]interface{}); !ok {
+			t.Fatal("SupportSettings is not a map in envConfig")
+		} else {
+			if termsOfServiceLinkInEnv, ok := supportSettingsAsMap["TermsOfServiceLink"].(bool); !ok || !termsOfServiceLinkInEnv {
+				t.Fatal("TermsOfServiceLink should be in envConfig")
 			}
 		}
 	})
