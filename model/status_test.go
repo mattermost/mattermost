@@ -53,6 +53,7 @@ func TestStatusListToJson(t *testing.T) {
 
 	_, ok := dat[0]["active_channel"]
 	assert.False(t, ok)
+	assert.Equal(t, statuses[0].ActiveChannel, "123")
 	assert.Equal(t, statuses[0].UserId, dat[0]["user_id"])
 	assert.Equal(t, statuses[1].UserId, dat[1]["user_id"])
 }
