@@ -106,7 +106,7 @@ func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
 func (a *App) StartServer() error {
 	mlog.Info("Starting Server...")
 
-	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.Router}
+	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.RootRouter}
 
 	if *a.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")

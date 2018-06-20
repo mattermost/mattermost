@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"net"
 	"net/http"
+	"path"
 	"reflect"
 	"strings"
 	"sync"
@@ -208,10 +209,6 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 	app.initJobs()
 
-	// Always register the not found handler on the root router, in case the server is setup
-	// with a subpath, but the proxy server is misconfigured.
-	app.Srv.RootRouter.NotFoundHandler = http.HandlerFunc(app.Handle404)
-
 	subpath, err := utils.GetSubpathFromConfig(app.Config())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
@@ -219,6 +216,18 @@ func New(options ...Option) (outApp *App, outErr error) {
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix(subpath).Subrouter()
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", app.ServePluginRequest)
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", app.ServePluginRequest)
+
+	// If configured with a subpath, redirect 404s at the root back into the subpath.
+	if subpath != "/" {
+		app.Srv.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = path.Join(subpath, r.URL.Path)
+			if !strings.HasSuffix(r.URL.Path, "/") {
+				r.URL.Path += "/"
+			}
+			http.Redirect(w, r, r.URL.String(), http.StatusFound)
+		})
+	}
+	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
 	app.Srv.WebSocketRouter = &WebSocketRouter{
 		app:      app,
