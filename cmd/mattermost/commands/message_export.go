@@ -33,7 +33,7 @@ var CsvExportCmd = &cobra.Command{
 	Short:   "Export data from Mattermost in CSV format",
 	Long:    "Export data from Mattermost in CSV format (this will export the data directly)",
 	Example: "export csv --exportFrom=12345",
-	RunE:    csvExportCmdF,
+	RunE:    buildExportCmdF("csv"),
 }
 
 var ActianceExportCmd = &cobra.Command{
@@ -41,7 +41,7 @@ var ActianceExportCmd = &cobra.Command{
 	Short:   "Export data from Mattermost in Actiance format",
 	Long:    "Export data from Mattermost in Actiance format (this will export the data directly)",
 	Example: "export actiance --exportFrom=12345",
-	RunE:    actianceExportCmdF,
+	RunE:    buildExportCmdF("actiance"),
 }
 
 func init() {
@@ -107,56 +107,31 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func csvExportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
-	if err != nil {
-		return err
+func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
+	return func(command *cobra.Command, args []string) error {
+		a, err := InitDBCommandContextCobra(command)
+		if err != nil {
+			return err
+		}
+		defer a.Shutdown()
+
+		startTime, err := command.Flags().GetInt64("exportFrom")
+		if err != nil {
+			return errors.New("exportFrom flag error")
+		} else if startTime < 0 {
+			return errors.New("exportFrom must be a positive integer")
+		}
+
+		if a.MessageExport == nil {
+			CommandPrettyPrintln("MessageExport feature not available")
+		}
+
+		err2 := a.MessageExport.RunExport(format, startTime)
+		if err2 != nil {
+			return err2
+		}
+		CommandPrettyPrintln("SUCCESS: Your data was exported.")
+
+		return nil
 	}
-	defer a.Shutdown()
-
-	startTime, err := command.Flags().GetInt64("exportFrom")
-	if err != nil {
-		return errors.New("exportFrom flag error")
-	} else if startTime < 0 {
-		return errors.New("exportFrom must be a positive integer")
-	}
-
-	if a.MessageExport == nil {
-		CommandPrettyPrintln("MessageExport feature not available")
-	}
-
-	err2 := a.MessageExport.RunExport("csv", startTime)
-	if err2 != nil {
-		return err2
-	}
-	CommandPrettyPrintln("SUCCESS: Your data was exported.")
-
-	return nil
-}
-
-func actianceExportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
-	if err != nil {
-		return err
-	}
-	defer a.Shutdown()
-
-	startTime, err := command.Flags().GetInt64("exportFrom")
-	if err != nil {
-		return errors.New("exportFrom flag error")
-	} else if startTime < 0 {
-		return errors.New("exportFrom must be a positive integer")
-	}
-
-	if a.MessageExport == nil {
-		CommandPrettyPrintln("MessageExport feature not available")
-	}
-
-	err2 := a.MessageExport.RunExport("actiance", startTime)
-	if err2 != nil {
-		return err2
-	}
-	CommandPrettyPrintln("SUCCESS: Your data was exported.")
-
-	return nil
 }
