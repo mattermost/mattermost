@@ -22,8 +22,8 @@ var MessageExportCmd = &cobra.Command{
 
 var ScheduleExportCmd = &cobra.Command{
 	Use:     "schedule",
-	Short:   "Schedule a Export data job in Mattermost",
-	Long:    "Schedule a Export data job in Mattermost (this will use the workers to run the export)",
+	Short:   "Schedule an export data job in Mattermost",
+	Long:    "Schedule an export data job in Mattermost (this will run asynchronously via a background worker)",
 	Example: "export schedule --format=actiance --exportFrom=12345 --timeoutSeconds=12345",
 	RunE:    scheduleExportCmdF,
 }
@@ -31,7 +31,7 @@ var ScheduleExportCmd = &cobra.Command{
 var CsvExportCmd = &cobra.Command{
 	Use:     "csv",
 	Short:   "Export data from Mattermost in CSV format",
-	Long:    "Export data from Mattermost in CSV format (this will export the data directly)",
+	Long:    "Export data from Mattermost in CSV format",
 	Example: "export csv --exportFrom=12345",
 	RunE:    buildExportCmdF("csv"),
 }
@@ -39,13 +39,13 @@ var CsvExportCmd = &cobra.Command{
 var ActianceExportCmd = &cobra.Command{
 	Use:     "actiance",
 	Short:   "Export data from Mattermost in Actiance format",
-	Long:    "Export data from Mattermost in Actiance format (this will export the data directly)",
+	Long:    "Export data from Mattermost in Actiance format",
 	Example: "export actiance --exportFrom=12345",
 	RunE:    buildExportCmdF("actiance"),
 }
 
 func init() {
-	ScheduleExportCmd.Flags().String("format", "actiance", "The format to export data in")
+	ScheduleExportCmd.Flags().String("format", "actiance", "The format to export data")
 	ScheduleExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
