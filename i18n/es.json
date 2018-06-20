@@ -2275,22 +2275,6 @@
     "translation": "Slack Import: Ocurrió un error al analizar los mensajes de Slack. De igual forma puede que la importación funcione."
   },
   {
-    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack Import: El canal: {{.ChannelName}} tiene un nombre que supera la longitud máxima. Se truncará cuando sea importado."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack Import: El canal: {{.ChannelName}} tiene un encabezado que supera la longitud máxima. Se truncará cuando sea importado."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack Import: El canal: {{.ChannelName}} tiene un nombre que supera la longitud máxima. Se truncará cuando sea importado."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack Import: El canal: {{.ChannelName}} tiene una propósito que supera la longitud máxima. Se truncará cuando sea importado."
-  },
-  {
     "id": "api.status.init.debug",
     "translation": "Inicializando rutas del API para los estatus"
   },
@@ -4287,6 +4271,10 @@
     "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
   },
   {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Failed to parse search result matches"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "La búsqueda no se pudo completar"
   },
@@ -4423,12 +4411,12 @@
     "translation": "Token MFA inválido"
   },
   {
-    "id": "ent.mfa.activate.save_active.app_erro",
-    "translation": "No se pudo actualizar el estado activo MFA para el usuario"
+    "id": "ent.mfa.activate.save_active.app_error",
+    "translation": "No se pudo actualizar el estado activo de MFA para el usuario"
   },
   {
-    "id": "ent.mfa.deactivate.save_active.app_erro",
-    "translation": "No se pudo actualizar el estado activo MFA para el usuario"
+    "id": "ent.mfa.deactivate.save_active.app_error",
+    "translation": "No se pudo actualizar el estado activo de MFA para el usuario"
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
@@ -5867,6 +5855,10 @@
     "translation": "no se puede decodificar"
   },
   {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "Los Términos de Servicio de GitLab se han actualizado. Por favor, vaya a gitlab.com a aceptar y, a continuación, intente iniciar sesión en Mattermost de nuevo."
+  },
+  {
     "id": "plugin.rpcplugin.invocation.error",
     "translation": "Error al invocar el plugin de RPC"
   },
@@ -6435,7 +6427,7 @@
     "translation": "No pudimos obtener los trabajos"
   },
   {
-    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
     "translation": "No pudimos obtener la cantidad de trabajos según estado y tipo"
   },
   {

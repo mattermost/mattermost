@@ -2275,22 +2275,6 @@
     "translation": "Slack Import: Errore durante l'analisi di alcune pubblicazioni Slack. L'importazione potrebbe continuare senza problemi."
   },
   {
-    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Importazione Slack: il canale {{.ChannelName}} ha un nome troppo lungo. Verrà troncato durante l'importazione."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Importazione Slack: il canale {{.ChannelName}} ha un header troppo lungo. Verrà troncato durante l'importazione."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Importazione Slack: il canale {{.ChannelName}} ha un nome troppo lungo. Verrà troncato durante l'importazione."
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Importazione Slack: il canale {{.ChannelName}} ha il testo \"scopo\" troppo lungo. Verrà troncato durante l'importazione."
-  },
-  {
     "id": "api.status.init.debug",
     "translation": "Inizializzazione API Routes per lo stato"
   },
@@ -4287,6 +4271,10 @@
     "translation": "La ricerca Elasticsearch è disabilitata su questo server"
   },
   {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Failed to parse search result matches"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "La ricerca non è stata completata"
   },
@@ -4423,11 +4411,11 @@
     "translation": "Token MFA invalido"
   },
   {
-    "id": "ent.mfa.activate.save_active.app_erro",
+    "id": "ent.mfa.activate.save_active.app_error",
     "translation": "Impossibile aggiornare lo stato MFA attivo per l'utente"
   },
   {
-    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "id": "ent.mfa.deactivate.save_active.app_error",
     "translation": "Impossibile aggiornare lo stato MFA attivo per l'utente"
   },
   {
@@ -5867,6 +5855,10 @@
     "translation": "impossibile decodificare"
   },
   {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "I Termini del Servizio di GitLab sono stati aggiornati. Per favore visita gitlab.com per accettarli e poi eseguire il login su Mattermost."
+  },
+  {
     "id": "plugin.rpcplugin.invocation.error",
     "translation": "Errore nella chiamata al plugin RPC"
   },
@@ -6435,7 +6427,7 @@
     "translation": "Impossibile recuperare i lavori"
   },
   {
-    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
     "translation": "Impossibile recuperare il numero di lavori per stato e tipo"
   },
   {
