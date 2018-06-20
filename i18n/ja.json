@@ -2275,22 +2275,6 @@
     "translation": "Slackインポート: Slack投稿を解析する際にエラーが発生しました。インポート自体は動作している可能性があります。"
   },
   {
-    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slackインポート: チャンネル {{.ChannelName}}の名前が長すぎます。インポートの際に切り詰められます。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slackインポート: チャンネル {{.ChannelName}}のヘッダーが長すぎます。インポートの際に切り詰められます。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slackインポート: チャンネル {{.ChannelName}}のハンドルが長すぎます。インポートの際に切り詰められます。"
-  },
-  {
-    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slackインポート: チャンネル {{.ChannelName}}の目的が長すぎます。インポートの際に切り詰められます。"
-  },
-  {
     "id": "api.status.init.debug",
     "translation": "状態APIルートを初期化しています"
   },
@@ -4287,6 +4271,10 @@
     "translation": "このサーバーではElasticsearchによる検索は無効です。"
   },
   {
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "translation": "Failed to parse search result matches"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "検索を完了できませんでした"
   },
@@ -4423,11 +4411,11 @@
     "translation": "不正な多要素認証トークンです"
   },
   {
-    "id": "ent.mfa.activate.save_active.app_erro",
+    "id": "ent.mfa.activate.save_active.app_error",
     "translation": "ユーザーの多要素認証の活動状態を更新できませんでした"
   },
   {
-    "id": "ent.mfa.deactivate.save_active.app_erro",
+    "id": "ent.mfa.deactivate.save_active.app_error",
     "translation": "ユーザーの多要素認証の活動状態を更新できませんでした"
   },
   {
@@ -5867,6 +5855,10 @@
     "translation": "デコードできませんでした"
   },
   {
+    "id": "oauth.gitlab.tos.error",
+    "translation": "GitLabの使用条件が更新されました。gitlab.comで新しい使用条件に同意してから、もう一度Mattermostへログインしてみてください。"
+  },
+  {
     "id": "plugin.rpcplugin.invocation.error",
     "translation": "プラグインRPC呼出エラー"
   },
@@ -6435,7 +6427,7 @@
     "translation": "ジョブを取得できませんでした"
   },
   {
-    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "id": "store.sql_job.get_count_by_status_and_type.app_error",
     "translation": "状態と種類からジョブ数を取得することができませんでした"
   },
   {
