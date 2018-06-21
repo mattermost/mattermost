@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"net"
 	"net/http"
+	"path"
 	"reflect"
 	"strings"
 	"sync"
@@ -108,10 +109,12 @@ func New(options ...Option) (outApp *App, outErr error) {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 	}
 
+	rootRouter := mux.NewRouter()
+
 	app := &App{
 		goroutineExitSignal: make(chan struct{}, 1),
 		Srv: &Server{
-			Router: mux.NewRouter(),
+			RootRouter: rootRouter,
 		},
 		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
 		configFile:       "config.json",
@@ -206,16 +209,29 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 	app.initJobs()
 
-	app.initBuiltInPlugins()
+	subpath, err := utils.GetSubpathFromConfig(app.Config())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
+	}
+	app.Srv.Router = app.Srv.RootRouter.PathPrefix(subpath).Subrouter()
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", app.ServePluginRequest)
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", app.ServePluginRequest)
 
+	// If configured with a subpath, redirect 404s at the root back into the subpath.
+	if subpath != "/" {
+		app.Srv.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = path.Join(subpath, r.URL.Path)
+			http.Redirect(w, r, r.URL.String(), http.StatusFound)
+		})
+	}
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
 	app.Srv.WebSocketRouter = &WebSocketRouter{
 		app:      app,
 		handlers: make(map[string]webSocketHandler),
 	}
+
+	app.initBuiltInPlugins()
 
 	return app, nil
 }
@@ -510,7 +526,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 
 	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
-	utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
+	utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
 }
 
 // This function migrates the default built in roles from code/config to the database.

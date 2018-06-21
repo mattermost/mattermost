@@ -29,10 +29,17 @@ import (
 type Server struct {
 	Store           store.Store
 	WebSocketRouter *WebSocketRouter
-	Router          *mux.Router
-	Server          *http.Server
-	ListenAddr      *net.TCPAddr
-	RateLimiter     *RateLimiter
+
+	// RootRouter is the starting point for all HTTP requests to the server.
+	RootRouter *mux.Router
+
+	// Router is the starting point for all web, api4 and ws requests to the server. It differs
+	// from RootRouter only if the SiteURL contains a /subpath.
+	Router *mux.Router
+
+	Server      *http.Server
+	ListenAddr  *net.TCPAddr
+	RateLimiter *RateLimiter
 
 	didFinishListen chan struct{}
 }
@@ -99,7 +106,7 @@ func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
 func (a *App) StartServer() error {
 	mlog.Info("Starting Server...")
 
-	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.Router}
+	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.RootRouter}
 
 	if *a.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")

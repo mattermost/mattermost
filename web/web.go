@@ -6,6 +6,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/avct/uasurfer"
@@ -60,17 +61,19 @@ func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
 
 	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
-	if IsApiCall(r) {
+	if IsApiCall(a, r) {
 		w.WriteHeader(err.StatusCode)
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
 	} else {
-		utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
+		utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
 	}
 }
 
-func IsApiCall(r *http.Request) bool {
-	return strings.Index(r.URL.Path, "/api/") == 0
+func IsApiCall(a *app.App, r *http.Request) bool {
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
+	return strings.Index(r.URL.Path, path.Join(subpath, "api")+"/") == 0
 }
 
 func ReturnStatusOK(w http.ResponseWriter) {
