@@ -6428,7 +6428,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Failed to get all disoery rows"
+    "translation": "Failed to get all discovery rows"
   },
   {
     "id": "store.sql_cluster_discovery.set_last_ping.app_error",

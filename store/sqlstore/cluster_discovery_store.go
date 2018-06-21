@@ -47,7 +47,7 @@ func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscover
 
 		if count, err := s.GetMaster().SelectInt(
 			`
-			DELETE 
+			DELETE
 			FROM
 				ClusterDiscovery
 			WHERE
@@ -76,7 +76,7 @@ func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscover
 
 		if count, err := s.GetMaster().SelectInt(
 			`
-			SELECT 
+			SELECT
 				COUNT(*)
 			FROM
 				ClusterDiscovery
@@ -108,7 +108,7 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 		if _, err := s.GetMaster().Select(
 			&list,
 			`
-			SELECT 
+			SELECT
 				*
 			FROM
 				ClusterDiscovery
@@ -134,8 +134,8 @@ func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterD
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Exec(
 			`
-			UPDATE ClusterDiscovery 
-			SET 
+			UPDATE ClusterDiscovery
+			SET
 				LastPingAt = :LastPingAt
 			WHERE
 				Type = :Type
@@ -158,7 +158,7 @@ func (s sqlClusterDiscoveryStore) Cleanup() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Exec(
 			`
-			DELETE FROM ClusterDiscovery 
+			DELETE FROM ClusterDiscovery
 				WHERE
 					LastPingAt < :LastPingAt
 			`,
