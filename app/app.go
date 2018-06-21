@@ -221,9 +221,6 @@ func New(options ...Option) (outApp *App, outErr error) {
 	if subpath != "/" {
 		app.Srv.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.URL.Path = path.Join(subpath, r.URL.Path)
-			if !strings.HasSuffix(r.URL.Path, "/") {
-				r.URL.Path += "/"
-			}
 			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		})
 	}
