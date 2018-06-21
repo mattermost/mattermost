@@ -1497,16 +1497,16 @@
     "translation": "Don't have permissions to write to local path specified or other error."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Bad connection to S3 or minio."
+    "id": "api.file.test_connection.s3.bucked_create.app_error",
+    "translation": "Unable to create bucket."
   },
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Error checking if bucket exists."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Unable to create bucket."
+    "id": "api.file.test_connection.s3.connection.app_error",
+    "translation": "Bad connection to S3 or minio."
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
@@ -2612,7 +2612,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>{{.TeamDisplayName}}</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you\u2019ve joined <strong>{{.TeamDisplayName}}</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -2971,12 +2971,12 @@
     "translation": "Password field must not be blank"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
-  },
-  {
     "id": "api.user.login.client_side_cert.certificate.app_error",
     "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate"
+  },
+  {
+    "id": "api.user.login.client_side_cert.license.app_error",
+    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -3403,6 +3403,14 @@
     "translation": "JSON decode of line failed."
   },
   {
+    "id": "app.import.import_channel.scheme_deleted.error",
+    "translation": "Cannot set a channel to use a deleted scheme."
+  },
+  {
+    "id": "app.import.import_channel.scheme_wrong_scope.error",
+    "translation": "Channel must be assigned to a Channel-scoped scheme."
+  },
+  {
     "id": "app.import.import_channel.team_not_found.error",
     "translation": "Error importing channel. Team with name \"{{.TeamName}}\" could not be found."
   },
@@ -3447,14 +3455,6 @@
     "translation": "Import data line has type \"channel\" but the channel object is null."
   },
   {
-    "id": "app.import.import_line.null_scheme.error",
-    "translation": "Import data line has type \"scheme\" but the scheme object is null."
-  },
-  {
-    "id": "app.import.import_scheme.scope_change.error",
-    "translation": "The bulk importer cannot change the scope of an already-existing scheme."
-  },
-  {
     "id": "app.import.import_line.null_direct_channel.error",
     "translation": "Import data line has type \"direct_channel\" but the direct_channel object is null."
   },
@@ -3467,76 +3467,16 @@
     "translation": "Import data line has type \"post\" but the post object is null."
   },
   {
+    "id": "app.import.import_line.null_scheme.error",
+    "translation": "Import data line has type \"scheme\" but the scheme object is null."
+  },
+  {
     "id": "app.import.import_line.null_team.error",
     "translation": "Import data line has type \"team\" but the team object is null."
   },
   {
     "id": "app.import.import_line.null_user.error",
     "translation": "Import data line has type \"user\" but the user object is null."
-  },
-  {
-    "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": "Scheme scope is required."
-  },
-  {
-    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": "The wrong roles were provided for a scheme with this scope."
-  },
-  {
-    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": "Unknown scheme scope."
-  },
-  {
-    "id": "app.import.validate_scheme_import_data.name_invalid.error",
-    "translation": "Invalid scheme name."
-  },
-  {
-    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": "Invalid scheme display name."
-  },
-  {
-    "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": "Invalid scheme description."
-  },
-  {
-    "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": "Invalid role name."
-  },
-  {
-    "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "Invalid role display name."
-  },
-  {
-    "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "Invalid role description."
-  },
-  {
-    "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "Invalid permission on role."
-  },
-  {
-    "id": "app.import.validate_team_import_data.scheme_invalid.error",
-    "translation": "Invalid scheme name for team."
-  },
-  {
-    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
-    "translation": "Invalid scheme name for channel."
-  },
-  {
-    "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Cannot set a team to use a deleted scheme."
-  },
-  {
-    "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": "Team must be assigned to a Team-scoped scheme."
-  },
-  {
-    "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Cannot set a channel to use a deleted scheme."
-  },
-  {
-    "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": "Channel must be assigned to a Channel-scoped scheme."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
@@ -3557,6 +3497,18 @@
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Error importing post. User with username \"{{.Username}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_scheme.scope_change.error",
+    "translation": "The bulk importer cannot change the scope of an already-existing scheme."
+  },
+  {
+    "id": "app.import.import_team.scheme_deleted.error",
+    "translation": "Cannot set a team to use a deleted scheme."
+  },
+  {
+    "id": "app.import.import_team.scheme_wrong_scope.error",
+    "translation": "Team must be assigned to a Team-scoped scheme."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -3593,6 +3545,10 @@
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
     "translation": "Channel purpose is too long."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
+    "translation": "Invalid scheme name for channel."
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
@@ -3739,6 +3695,46 @@
     "translation": "Missing required Reply property: User."
   },
   {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "Invalid role description."
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "Invalid role display name."
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "Invalid permission on role."
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "Invalid role name."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "Invalid scheme description."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "Invalid scheme display name."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "Invalid scheme name."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.null_scope.error",
+    "translation": "Scheme scope is required."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
+    "translation": "Unknown scheme scope."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
+    "translation": "The wrong roles were provided for a scheme with this scope."
+  },
+  {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
     "translation": "Team allowed_domains is too long."
   },
@@ -3773,6 +3769,10 @@
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
     "translation": "Team name contains reserved words."
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "Invalid scheme name for team."
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
@@ -6415,7 +6415,7 @@
     "translation": "Failed to purge records"
   },
   {
-    "id": "store.sql_cluster_discovery.save.app_error",
+    "id": "store.sql_cluster_discovery.cleanup.app_error",
     "translation": "Failed to save ClusterDiscovery row"
   },
   {
@@ -6431,12 +6431,12 @@
     "translation": "Failed to get all discovery rows"
   },
   {
-    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Failed to update last ping at"
+    "id": "store.sql_cluster_discovery.save.app_error",
+    "translation": "Failed to save ClusterDiscovery row"
   },
   {
-    "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
+    "translation": "Failed to update last ping at"
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
