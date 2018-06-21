@@ -11,17 +11,16 @@ bench:
 
 lint:
 	gofmt -l .
-ifneq ($(TRAVIS_GO_VERSION),1.3)  # go vet doesn't play nicely on 1.3
 	go vet ./...
-endif
 	which golint # Fail if golint doesn't exist
 	-golint . # Don't fail on golint warnings themselves
 	-golint store # Don't fail on golint warnings themselves
 
 get-deps:
-	go get github.com/garyburd/redigo/redis
+	go get github.com/gomodule/redigo/redis
 	go get github.com/hashicorp/golang-lru
 	go get github.com/golang/lint/golint
+	go get github.com/go-redis/redis
 
 .go-test:
 	go test ./...

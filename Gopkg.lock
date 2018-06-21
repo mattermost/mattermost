@@ -281,6 +281,13 @@
   revision = "bbaefb05eaa0389ea712340066837c8ce4d287f9"
 
 [[projects]]
+  branch = "mattermost"
+  name = "github.com/mattermost/viper"
+  packages = ["."]
+  revision = "1b00ce64485c7a2449f239de3cbc9040a9c46aa0"
+  source = "https://github.com/mattermost/viper"
+
+[[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
@@ -473,13 +480,6 @@
   version = "v1.0.1"
 
 [[projects]]
-  branch = "mattermost"
-  name = "github.com/mattermost/viper"
-  packages = ["."]
-  revision = "1b00ce64485c7a2449f239de3cbc9040a9c46aa0"
-  source = "https://github.com/mattermost/viper"
-
-[[projects]]
   branch = "master"
   name = "github.com/ssor/bom"
   packages = ["."]
@@ -501,6 +501,15 @@
   ]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
+
+[[projects]]
+  name = "github.com/throttled/throttled"
+  packages = [
+    ".",
+    "store/memstore"
+  ]
+  revision = "aeea1c7338e6dd1e1b309afe07fb7bbcfa83c2fa"
+  version = "v2.2.1"
 
 [[projects]]
   name = "github.com/tylerb/graceful"
@@ -668,15 +677,6 @@
   version = "v5.0.68"
 
 [[projects]]
-  name = "gopkg.in/throttled/throttled.v2"
-  packages = [
-    ".",
-    "store/memstore"
-  ]
-  revision = "b5675e93f9d999b22f92d859a5bf2138d3641af4"
-  version = "v2.0.3"
-
-[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
@@ -685,6 +685,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "463ec98eba9cac751c2702ca1ecae98740d7dd9a1dc8b615b484ea4bdb41f6b5"
+  inputs-digest = "76d5a63bc94bc0a75fe311cbc1df579fdd77b5d039a006236c00ee122ab69c1b"
   solver-name = "gps-cdcl"
   solver-version = 1
