@@ -29,7 +29,7 @@ func (a *App) AddStatusCache(status *model.Status) {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     status.ToJson(),
+			Data:     status.ToClusterJson(),
 		}
 		a.Cluster.SendClusterMessage(msg)
 	}
