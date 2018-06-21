@@ -50,6 +50,21 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 	return role, err
 }
 
+func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
+	role.Id = ""
+	role.CreateAt = 0
+	role.UpdateAt = 0
+	role.DeleteAt = 0
+	role.BuiltIn = false
+	role.SchemeManaged = false
+
+	if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Role), nil
+	}
+}
+
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
 		return nil, result.Err

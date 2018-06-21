@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
+	"testing"
 )
 
 type TestHelper struct {
@@ -442,6 +443,54 @@ func (me *TestHelper) ResetEmojisMigration() {
 	testClusterInterface.sendClearRoleCacheMessage()
 
 	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
+		panic(err)
+	}
+}
+
+func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
+	if r := <-me.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
+		if r.Data.(int64) != expected {
+			t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, r.Data.(int64))
+		}
+	} else {
+		t.Fatalf("Failed to get team count.")
+	}
+}
+
+func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
+	if r := <-me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+		if r.Data.(int64) != expected {
+			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, r.Data.(int64))
+		}
+	} else {
+		t.Fatalf("Failed to get channel count.")
+	}
+}
+
+func (me *TestHelper) SetupTeamScheme() *model.Scheme {
+	scheme := model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+
+	if scheme, err := me.App.CreateScheme(&scheme); err == nil {
+		return scheme
+	} else {
+		panic(err)
+	}
+}
+
+func (me *TestHelper) SetupChannelScheme() *model.Scheme {
+	scheme := model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+
+	if scheme, err := me.App.CreateScheme(&scheme); err == nil {
+		return scheme
+	} else {
 		panic(err)
 	}
 }

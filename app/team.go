@@ -105,13 +105,22 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.AllowedDomains = team.AllowedDomains
 	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
 
-	if result := <-a.Srv.Store.Team().Update(oldTeam); result.Err != nil {
-		return nil, result.Err
+	oldTeam, err = a.updateTeamUnsanitized(oldTeam)
+	if err != nil {
+		return team, err
 	}
 
 	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 
 	return oldTeam, nil
+}
+
+func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppError) {
+	if result := <-a.Srv.Store.Team().Update(team); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Team), nil
+	}
 }
 
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
