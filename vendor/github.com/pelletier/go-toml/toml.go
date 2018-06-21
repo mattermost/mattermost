@@ -14,6 +14,7 @@ type tomlValue struct {
 	value     interface{} // string, int64, uint64, float64, bool, time.Time, [] of any of this list
 	comment   string
 	commented bool
+	multiline bool
 	position  Position
 }
 
@@ -173,6 +174,63 @@ func (t *Tree) GetDefault(key string, def interface{}) interface{} {
 		return def
 	}
 	return val
+}
+
+// SetOptions arguments are supplied to the SetWithOptions and SetPathWithOptions functions to modify marshalling behaviour.
+// The default values within the struct are valid default options.
+type SetOptions struct {
+	Comment   string
+	Commented bool
+	Multiline bool
+}
+
+// SetWithOptions is the same as Set, but allows you to provide formatting
+// instructions to the key, that will be used by Marshal().
+func (t *Tree) SetWithOptions(key string, opts SetOptions, value interface{}) {
+	t.SetPathWithOptions(strings.Split(key, "."), opts, value)
+}
+
+// SetPathWithOptions is the same as SetPath, but allows you to provide
+// formatting instructions to the key, that will be reused by Marshal().
+func (t *Tree) SetPathWithOptions(keys []string, opts SetOptions, value interface{}) {
+	subtree := t
+	for _, intermediateKey := range keys[:len(keys)-1] {
+		nextTree, exists := subtree.values[intermediateKey]
+		if !exists {
+			nextTree = newTree()
+			subtree.values[intermediateKey] = nextTree // add new element here
+		}
+		switch node := nextTree.(type) {
+		case *Tree:
+			subtree = node
+		case []*Tree:
+			// go to most recent element
+			if len(node) == 0 {
+				// create element if it does not exist
+				subtree.values[intermediateKey] = append(node, newTree())
+			}
+			subtree = node[len(node)-1]
+		}
+	}
+
+	var toInsert interface{}
+
+	switch value.(type) {
+	case *Tree:
+		tt := value.(*Tree)
+		tt.comment = opts.Comment
+		toInsert = value
+	case []*Tree:
+		toInsert = value
+	case *tomlValue:
+		tt := value.(*tomlValue)
+		tt.comment = opts.Comment
+		toInsert = tt
+	default:
+		toInsert = &tomlValue{value: value, comment: opts.Comment, commented: opts.Commented, multiline: opts.Multiline}
+	}
+
+	subtree.values[keys[len(keys)-1]] = toInsert
 }
 
 // Set an element in the tree.

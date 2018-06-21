@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/armon/go-metrics"
   packages = ["."]
-  revision = "783273d703149aaeb9897cf58613d5af48861c25"
+  revision = "58588f401c2cc130a7308a52ca3bc6c0a76db04b"
 
 [[projects]]
   branch = "master"
@@ -70,8 +70,8 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "6529cf7c58879c08d927016dde4477f18a0634cb"
-  version = "v1.36.0"
+  revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
+  version = "v1.37.0"
 
 [[projects]]
   name = "github.com/go-ldap/ldap"
@@ -91,14 +91,14 @@
     "internal/singleflight",
     "internal/util"
   ]
-  revision = "877867d2845fbaf86798befe410b6ceb6f5c29a3"
-  version = "v6.10.2"
+  revision = "83fb42932f6145ce52df09860384a4653d2d332a"
+  version = "v6.12.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
-  revision = "3287d94d4c6a48a63e16fffaabf27ab20203af2a"
+  revision = "749ddf1598b47e3cd909414bda735fe790ef3d30"
 
 [[projects]]
   branch = "master"
@@ -144,13 +144,13 @@
   branch = "master"
   name = "github.com/gorilla/websocket"
   packages = ["."]
-  revision = "21ab95fa12b9bdd8fecf5fa3586aad941cc98785"
+  revision = "5ed622c449da6d44c3c8329331ff47a9e5844f71"
 
 [[projects]]
   branch = "master"
   name = "github.com/hako/durafmt"
   packages = ["."]
-  revision = "fddaacea1c7eb9c0aa2ec13a6f92e0a4ced16618"
+  revision = "7b7ae1e72eade09dbc9c2cfba3e6c4bae7b8bcac"
 
 [[projects]]
   branch = "master"
@@ -230,7 +230,7 @@
   branch = "master"
   name = "github.com/jaytaylor/html2text"
   packages = ["."]
-  revision = "64a82a6d140778896f13303121a49d8cb8007034"
+  revision = "57d518f124b0cf46ea2021f25a01396b3522e6fb"
 
 [[projects]]
   branch = "master"
@@ -245,7 +245,7 @@
     ".",
     "oid"
   ]
-  revision = "d34b9ff171c21ad295489235aec8b6626023cd04"
+  revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
 
 [[projects]]
   name = "github.com/magiconair/properties"
@@ -262,7 +262,7 @@
     "jlexer",
     "jwriter"
   ]
-  revision = "8b799c424f57fa123fc63a99d6383bc6e4c02578"
+  revision = "3fdea8d05856a0c8df22ed4bc71b3219245e4485"
 
 [[projects]]
   branch = "master"
@@ -296,20 +296,20 @@
 [[projects]]
   name = "github.com/mattn/go-sqlite3"
   packages = ["."]
-  revision = "6c771bb9887719704b210e87e934f08be014bdb1"
-  version = "v1.6.0"
+  revision = "25ecb14adfc7543176f7d85291ec7dba82c6f7e4"
+  version = "v1.9.0"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
-  revision = "3247c84500bff8d9fb6d579d800f20b3e091582c"
-  version = "v1.0.0"
+  revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
+  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/miekg/dns"
   packages = ["."]
-  revision = "e57bf427e68187a27e22adceac868350d7a7079b"
-  version = "v1.0.7"
+  revision = "5a2b9fab83ff0f8bfc99684bd5f43a37abe560f1"
+  version = "v1.0.8"
 
 [[projects]]
   name = "github.com/minio/minio-go"
@@ -321,14 +321,14 @@
     "pkg/s3utils",
     "pkg/set"
   ]
-  revision = "c6108c47ba5d86548404ebf9e51c5ca18769fe79"
-  version = "6.0.1"
+  revision = "33b767f5638ccaf7cc30516ec54024d3e58a8209"
+  version = "v6.0.3"
 
 [[projects]]
   branch = "master"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
-  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
+  revision = "3864e76763d94a6df2f9960b16a20a33da9f9a66"
 
 [[projects]]
   branch = "master"
@@ -362,8 +362,8 @@
 [[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
-  revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
-  version = "v1.1.0"
+  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -400,7 +400,7 @@
     "internal/bitbucket.org/ww/goautoneg",
     "model"
   ]
-  revision = "d811d2e9bf898806ecfb6ef6296774b13ffc314c"
+  revision = "7600349dcfe1abd18d72d3a1770870d9800a7801"
 
 [[projects]]
   branch = "master"
@@ -411,7 +411,7 @@
     "nfs",
     "xfs"
   ]
-  revision = "8b1c2da0d56deffdbb9e48d4414b4e674bd8083e"
+  revision = "7d6f385de8bea29190f15ba9931442a0eaef9af7"
 
 [[projects]]
   branch = "go1"
@@ -420,7 +420,7 @@
     "exif",
     "tiff"
   ]
-  revision = "fb35d3c3290d09f3524b684b5d42d0063c227158"
+  revision = "8d986c03457a2057c7b0fb0a48113f7dd48f9619"
 
 [[projects]]
   branch = "master"
@@ -452,8 +452,8 @@
     ".",
     "mem"
   ]
-  revision = "63644898a8da0bc22138abf860edaf5277b6102e"
-  version = "v1.1.0"
+  revision = "787d034dfe70e44075ccc060d346146ef53270ad"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/spf13/cast"
@@ -488,8 +488,8 @@
 [[projects]]
   name = "github.com/stretchr/objx"
   packages = ["."]
-  revision = "facf9a85c22f48d2f52f2380e4efce1768749a89"
-  version = "v0.1"
+  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
+  version = "v0.1.1"
 
 [[projects]]
   name = "github.com/stretchr/testify"
@@ -499,8 +499,8 @@
     "require",
     "suite"
   ]
-  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
-  version = "v1.2.1"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
   name = "github.com/throttled/throttled"
@@ -562,7 +562,7 @@
     "ed25519/internal/edwards25519",
     "ssh/terminal"
   ]
-  revision = "1a580b3eff7814fc9b40602fd35256c63b50f491"
+  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
@@ -574,24 +574,24 @@
     "tiff",
     "tiff/lzw"
   ]
-  revision = "f315e440302883054d0c2bd85486878cb4f8572c"
+  revision = "af66defab954cb421ca110193eed9477c8541e2a"
 
 [[projects]]
-  branch = "release-branch.go1.10"
+  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "bpf",
     "html",
     "html/atom",
     "html/charset",
+    "http/httpguts",
     "idna",
     "internal/iana",
     "internal/socket",
     "ipv4",
-    "ipv6",
-    "lex/httplex"
+    "ipv6"
   ]
-  revision = "0ed95abb35c445290478a5348a7b38bb154135fd"
+  revision = "afe8f62b1d6bbd81f31868121a50b06d8188e1f9"
 
 [[projects]]
   branch = "master"
@@ -601,7 +601,7 @@
     "unix",
     "windows"
   ]
-  revision = "7c87d13f8e835d2fb3a70a2912c811ed0c1d241b"
+  revision = "ad87a3a340fa7f3bed189293fbfa7a9b7e021ae1"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -639,8 +639,8 @@
 [[projects]]
   name = "google.golang.org/appengine"
   packages = ["cloudsql"]
-  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
-  version = "v1.0.0"
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "v3"
@@ -673,8 +673,8 @@
     "config",
     "uritemplates"
   ]
-  revision = "2562d7254d4655c3bcf34810cdb4ca45e944d53f"
-  version = "v5.0.68"
+  revision = "b708306d715bea9b983685e94ab4602cdc9f988b"
+  version = "v5.0.69"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"

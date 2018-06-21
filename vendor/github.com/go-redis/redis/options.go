@@ -68,8 +68,7 @@ type Options struct {
 	// Default is 5 minutes.
 	IdleTimeout time.Duration
 	// Frequency of idle checks.
-	// Default is 1 minute.
-	// When minus value is set, then idle check is disabled.
+	// Default is 1 minute. -1 disables idle check.
 	IdleCheckFrequency time.Duration
 
 	// Enables read only queries on slave nodes.

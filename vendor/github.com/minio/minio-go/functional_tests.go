@@ -2623,8 +2623,14 @@ func testCopyObject() {
 		return
 	}
 
+	oi, err := c.StatObject(bucketName, objectName, minio.StatObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject failed", err)
+		return
+	}
+
 	stOpts := minio.StatObjectOptions{}
-	stOpts.SetMatchETag(objInfo.ETag)
+	stOpts.SetMatchETag(oi.ETag)
 	objInfo, err = c.StatObject(bucketName, objectName, stOpts)
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CopyObject ETag should match and not fail", err)
@@ -3491,13 +3497,9 @@ func testFunctional() {
 	args = map[string]interface{}{
 		"bucketName": bucketName,
 	}
-	readOnlyPolicyRet, err := c.GetBucketPolicy(bucketName)
+	_, err = c.GetBucketPolicy(bucketName)
 	if err != nil {
 		logError(testName, function, args, startTime, "", "GetBucketPolicy failed", err)
-		return
-	}
-	if readOnlyPolicyRet == "" {
-		logError(testName, function, args, startTime, "", "policy should be set", err)
 		return
 	}
 
@@ -3523,14 +3525,9 @@ func testFunctional() {
 		"bucketName": bucketName,
 	}
 
-	writeOnlyPolicyRet, err := c.GetBucketPolicy(bucketName)
+	_, err = c.GetBucketPolicy(bucketName)
 	if err != nil {
 		logError(testName, function, args, startTime, "", "GetBucketPolicy failed", err)
-		return
-	}
-
-	if writeOnlyPolicyRet == "" {
-		logError(testName, function, args, startTime, "", "policy should be set", err)
 		return
 	}
 
@@ -3556,14 +3553,9 @@ func testFunctional() {
 	args = map[string]interface{}{
 		"bucketName": bucketName,
 	}
-	readWritePolicyRet, err := c.GetBucketPolicy(bucketName)
+	_, err = c.GetBucketPolicy(bucketName)
 	if err != nil {
 		logError(testName, function, args, startTime, "", "GetBucketPolicy failed", err)
-		return
-	}
-
-	if readWritePolicyRet == "" {
-		logError(testName, function, args, startTime, "", "policy should be set", err)
 		return
 	}
 
@@ -7389,12 +7381,12 @@ func testListObjects() {
 			return
 		}
 		if objInfo.Key == objectName1 && objInfo.StorageClass != "STANDARD" {
-			logError(testName, function, args, startTime, "", "ListObjects doesn't return expected storage class", err)
-			return
+			// Ignored as Gateways (Azure/GCS etc) wont return storage class
+			ignoredLog(testName, function, args, startTime, "ListObjects doesn't return expected storage class").Info()
 		}
 		if objInfo.Key == objectName2 && objInfo.StorageClass != "REDUCED_REDUNDANCY" {
-			logError(testName, function, args, startTime, "", "ListObjects doesn't return expected storage class", err)
-			return
+			// Ignored as Gateways (Azure/GCS etc) wont return storage class
+			ignoredLog(testName, function, args, startTime, "ListObjects doesn't return expected storage class").Info()
 		}
 	}
 
@@ -7405,12 +7397,12 @@ func testListObjects() {
 			return
 		}
 		if objInfo.Key == objectName1 && objInfo.StorageClass != "STANDARD" {
-			logError(testName, function, args, startTime, "", "ListObjectsV2 doesn't return expected storage class", err)
-			return
+			// Ignored as Gateways (Azure/GCS etc) wont return storage class
+			ignoredLog(testName, function, args, startTime, "ListObjectsV2 doesn't return expected storage class").Info()
 		}
 		if objInfo.Key == objectName2 && objInfo.StorageClass != "REDUCED_REDUNDANCY" {
-			logError(testName, function, args, startTime, "", "ListObjectsV2 doesn't return expected storage class", err)
-			return
+			// Ignored as Gateways (Azure/GCS etc) wont return storage class
+			ignoredLog(testName, function, args, startTime, "ListObjectsV2 doesn't return expected storage class").Info()
 		}
 	}
 
