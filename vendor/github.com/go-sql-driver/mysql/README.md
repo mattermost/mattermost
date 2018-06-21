@@ -259,6 +259,7 @@ Default:        false
 ```
 
 `parseTime=true` changes the output type of `DATE` and `DATETIME` values to `time.Time` instead of `[]byte` / `string`
+The date or datetime like `0000-00-00 00:00:00` is converted into zero value of `time.Time`.
 
 
 ##### `readTimeout`
@@ -298,6 +299,19 @@ Note that ERROR 1290 can be returned for a `read-only` server and this option wi
 cause a retry for that error. However the same error number is used for some
 other cases. You should ensure your application will never cause an ERROR 1290
 except for `read-only` mode when enabling this option.
+
+
+##### `serverPubKey`
+
+```
+Type:           string
+Valid Values:   <name>
+Default:        none
+```
+
+Server public keys can be registered with [`mysql.RegisterServerPubKey`](https://godoc.org/github.com/go-sql-driver/mysql#RegisterServerPubKey), which can then be used by the assigned name in the DSN.
+Public keys are used to transmit encrypted data, e.g. for authentication.
+If the server's public key is known, it should be set manually to avoid expensive and potentially insecure transmissions of the public key from the server to the client each time it is required.
 
 
 ##### `timeout`

@@ -23,11 +23,6 @@ import (
 	"sync"
 )
 
-// watcher interface is used for context support (From Go 1.8)
-type watcher interface {
-	startWatcher()
-}
-
 // MySQLDriver is exported to make the driver directly accessible.
 // In general the driver is used via the database/sql package.
 type MySQLDriver struct{}
@@ -96,9 +91,7 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	}
 
 	// Call startWatcher for context support (From Go 1.8)
-	if s, ok := interface{}(mc).(watcher); ok {
-		s.startWatcher()
-	}
+	mc.startWatcher()
 
 	mc.buf = newBuffer(mc.netConn)
 
@@ -107,20 +100,31 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	mc.writeTimeout = mc.cfg.WriteTimeout
 
 	// Reading Handshake Initialization Packet
-	cipher, err := mc.readInitPacket()
+	authData, plugin, err := mc.readHandshakePacket()
 	if err != nil {
 		mc.cleanup()
 		return nil, err
 	}
 
 	// Send Client Authentication Packet
-	if err = mc.writeAuthPacket(cipher); err != nil {
+	authResp, addNUL, err := mc.auth(authData, plugin)
+	if err != nil {
+		// try the default auth plugin, if using the requested plugin failed
+		errLog.Print("could not use requested auth plugin '"+plugin+"': ", err.Error())
+		plugin = defaultAuthPlugin
+		authResp, addNUL, err = mc.auth(authData, plugin)
+		if err != nil {
+			mc.cleanup()
+			return nil, err
+		}
+	}
+	if err = mc.writeHandshakeResponsePacket(authResp, addNUL, plugin); err != nil {
 		mc.cleanup()
 		return nil, err
 	}
 
 	// Handle response to auth packet, switch methods if possible
-	if err = handleAuthResult(mc, cipher); err != nil {
+	if err = mc.handleAuthResult(authData, plugin); err != nil {
 		// Authentication failed and MySQL has already closed the connection
 		// (https://dev.mysql.com/doc/internals/en/authentication-fails.html).
 		// Do not send COM_QUIT, just cleanup and return the error.
@@ -151,50 +155,6 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	}
 
 	return mc, nil
-}
-
-func handleAuthResult(mc *mysqlConn, oldCipher []byte) error {
-	// Read Result Packet
-	cipher, err := mc.readResultOK()
-	if err == nil {
-		return nil // auth successful
-	}
-
-	if mc.cfg == nil {
-		return err // auth failed and retry not possible
-	}
-
-	// Retry auth if configured to do so.
-	if mc.cfg.AllowOldPasswords && err == ErrOldPassword {
-		// Retry with old authentication method. Note: there are edge cases
-		// where this should work but doesn't; this is currently "wontfix":
-		// https://github.com/go-sql-driver/mysql/issues/184
-
-		// If CLIENT_PLUGIN_AUTH capability is not supported, no new cipher is
-		// sent and we have to keep using the cipher sent in the init packet.
-		if cipher == nil {
-			cipher = oldCipher
-		}
-
-		if err = mc.writeOldAuthPacket(cipher); err != nil {
-			return err
-		}
-		_, err = mc.readResultOK()
-	} else if mc.cfg.AllowCleartextPasswords && err == ErrCleartextPassword {
-		// Retry with clear text password for
-		// http://dev.mysql.com/doc/refman/5.7/en/cleartext-authentication-plugin.html
-		// http://dev.mysql.com/doc/refman/5.7/en/pam-authentication-plugin.html
-		if err = mc.writeClearAuthPacket(); err != nil {
-			return err
-		}
-		_, err = mc.readResultOK()
-	} else if mc.cfg.AllowNativePasswords && err == ErrNativePassword {
-		if err = mc.writeNativeAuthPacket(cipher); err != nil {
-			return err
-		}
-		_, err = mc.readResultOK()
-	}
-	return err
 }
 
 func init() {

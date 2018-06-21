@@ -331,8 +331,18 @@ func callbackRetText(ctx *C.sqlite3_context, v reflect.Value) error {
 	return nil
 }
 
+func callbackRetNil(ctx *C.sqlite3_context, v reflect.Value) error {
+	return nil
+}
+
 func callbackRet(typ reflect.Type) (callbackRetConverter, error) {
 	switch typ.Kind() {
+	case reflect.Interface:
+		errorInterface := reflect.TypeOf((*error)(nil)).Elem()
+		if typ.Implements(errorInterface) {
+			return callbackRetNil, nil
+		}
+		fallthrough
 	case reflect.Slice:
 		if typ.Elem().Kind() != reflect.Uint8 {
 			return nil, errors.New("the only supported slice type is []byte")

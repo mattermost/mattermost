@@ -12,11 +12,12 @@ update-deps:
   cmds:
     - dep ensure
     - dep ensure -update
-    - dep prune
 
 lint:
   desc: Runs golint
   cmds:
+    - go fmt $(go list ./... | grep -v /vendor/)
+    - go vet $(go list ./... | grep -v /vendor/)
     - golint $(ls *.go | grep -v "doc.go")
   silent: true
 
@@ -24,3 +25,8 @@ test:
   desc: Runs go tests
   cmds:
     - go test -race  .
+
+test-coverage:
+  desc: Runs go tests and calucates test coverage
+  cmds:
+    - go test -coverprofile=c.out .

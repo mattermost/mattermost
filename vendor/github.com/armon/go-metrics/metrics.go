@@ -35,10 +35,11 @@ func (m *Metrics) SetGaugeWithLabels(key []string, val float32, labels []Label) 
 			key = insert(0, m.ServiceName, key)
 		}
 	}
-	if !m.allowMetric(key) {
+	allowed, labelsFiltered := m.allowMetric(key, labels)
+	if !allowed {
 		return
 	}
-	m.sink.SetGaugeWithLabels(key, val, labels)
+	m.sink.SetGaugeWithLabels(key, val, labelsFiltered)
 }
 
 func (m *Metrics) EmitKey(key []string, val float32) {
@@ -48,7 +49,8 @@ func (m *Metrics) EmitKey(key []string, val float32) {
 	if m.ServiceName != "" {
 		key = insert(0, m.ServiceName, key)
 	}
-	if !m.allowMetric(key) {
+	allowed, _ := m.allowMetric(key, nil)
+	if !allowed {
 		return
 	}
 	m.sink.EmitKey(key, val)
@@ -72,10 +74,11 @@ func (m *Metrics) IncrCounterWithLabels(key []string, val float32, labels []Labe
 			key = insert(0, m.ServiceName, key)
 		}
 	}
-	if !m.allowMetric(key) {
+	allowed, labelsFiltered := m.allowMetric(key, labels)
+	if !allowed {
 		return
 	}
-	m.sink.IncrCounterWithLabels(key, val, labels)
+	m.sink.IncrCounterWithLabels(key, val, labelsFiltered)
 }
 
 func (m *Metrics) AddSample(key []string, val float32) {
@@ -96,10 +99,11 @@ func (m *Metrics) AddSampleWithLabels(key []string, val float32, labels []Label)
 			key = insert(0, m.ServiceName, key)
 		}
 	}
-	if !m.allowMetric(key) {
+	allowed, labelsFiltered := m.allowMetric(key, labels)
+	if !allowed {
 		return
 	}
-	m.sink.AddSampleWithLabels(key, val, labels)
+	m.sink.AddSampleWithLabels(key, val, labelsFiltered)
 }
 
 func (m *Metrics) MeasureSince(key []string, start time.Time) {
@@ -120,22 +124,44 @@ func (m *Metrics) MeasureSinceWithLabels(key []string, start time.Time, labels [
 			key = insert(0, m.ServiceName, key)
 		}
 	}
-	if !m.allowMetric(key) {
+	allowed, labelsFiltered := m.allowMetric(key, labels)
+	if !allowed {
 		return
 	}
 	now := time.Now()
 	elapsed := now.Sub(start)
 	msec := float32(elapsed.Nanoseconds()) / float32(m.TimerGranularity)
-	m.sink.AddSampleWithLabels(key, msec, labels)
+	m.sink.AddSampleWithLabels(key, msec, labelsFiltered)
 }
 
 // UpdateFilter overwrites the existing filter with the given rules.
 func (m *Metrics) UpdateFilter(allow, block []string) {
+	m.UpdateFilterAndLabels(allow, block, m.AllowedLabels, m.BlockedLabels)
+}
+
+// UpdateFilterAndLabels overwrites the existing filter with the given rules.
+func (m *Metrics) UpdateFilterAndLabels(allow, block, allowedLabels, blockedLabels []string) {
 	m.filterLock.Lock()
 	defer m.filterLock.Unlock()
 
 	m.AllowedPrefixes = allow
 	m.BlockedPrefixes = block
+
+	if allowedLabels == nil {
+		// Having a white list means we take only elements from it
+		m.allowedLabels = nil
+	} else {
+		m.allowedLabels = make(map[string]bool)
+		for _, v := range allowedLabels {
+			m.allowedLabels[v] = true
+		}
+	}
+	m.blockedLabels = make(map[string]bool)
+	for _, v := range blockedLabels {
+		m.blockedLabels[v] = true
+	}
+	m.AllowedLabels = allowedLabels
+	m.BlockedLabels = blockedLabels
 
 	m.filter = iradix.New()
 	for _, prefix := range m.AllowedPrefixes {
@@ -146,20 +172,56 @@ func (m *Metrics) UpdateFilter(allow, block []string) {
 	}
 }
 
+// labelIsAllowed return true if a should be included in metric
+// the caller should lock m.filterLock while calling this method
+func (m *Metrics) labelIsAllowed(label *Label) bool {
+	labelName := (*label).Name
+	if m.blockedLabels != nil {
+		_, ok := m.blockedLabels[labelName]
+		if ok {
+			// If present, let's remove this label
+			return false
+		}
+	}
+	if m.allowedLabels != nil {
+		_, ok := m.allowedLabels[labelName]
+		return ok
+	}
+	// Allow by default
+	return true
+}
+
+// filterLabels return only allowed labels
+// the caller should lock m.filterLock while calling this method
+func (m *Metrics) filterLabels(labels []Label) []Label {
+	if labels == nil {
+		return nil
+	}
+	toReturn := labels[:0]
+	for _, label := range labels {
+		if m.labelIsAllowed(&label) {
+			toReturn = append(toReturn, label)
+		}
+	}
+	return toReturn
+}
+
 // Returns whether the metric should be allowed based on configured prefix filters
-func (m *Metrics) allowMetric(key []string) bool {
+// Also return the applicable labels
+func (m *Metrics) allowMetric(key []string, labels []Label) (bool, []Label) {
 	m.filterLock.RLock()
 	defer m.filterLock.RUnlock()
 
 	if m.filter == nil || m.filter.Len() == 0 {
-		return m.Config.FilterDefault
+		return m.Config.FilterDefault, m.filterLabels(labels)
 	}
 
 	_, allowed, ok := m.filter.Root().LongestPrefix([]byte(strings.Join(key, ".")))
 	if !ok {
-		return m.Config.FilterDefault
+		return m.Config.FilterDefault, m.filterLabels(labels)
 	}
-	return allowed.(bool)
+
+	return allowed.(bool), m.filterLabels(labels)
 }
 
 // Periodically collects runtime stats to publish
