@@ -1,6 +1,9 @@
 package redis
 
-import "time"
+import (
+	"crypto/tls"
+	"time"
+)
 
 // UniversalOptions information is required by UniversalClient to establish
 // connections.
@@ -27,6 +30,7 @@ type UniversalOptions struct {
 
 	// Common options
 
+	OnConnect          func(*Conn) error
 	MaxRetries         int
 	Password           string
 	DialTimeout        time.Duration
@@ -36,6 +40,7 @@ type UniversalOptions struct {
 	PoolTimeout        time.Duration
 	IdleTimeout        time.Duration
 	IdleCheckFrequency time.Duration
+	TLSConfig          *tls.Config
 }
 
 func (o *UniversalOptions) cluster() *ClusterOptions {
@@ -49,6 +54,7 @@ func (o *UniversalOptions) cluster() *ClusterOptions {
 		RouteByLatency: o.RouteByLatency,
 		ReadOnly:       o.ReadOnly,
 
+		OnConnect:          o.OnConnect,
 		MaxRetries:         o.MaxRetries,
 		Password:           o.Password,
 		DialTimeout:        o.DialTimeout,
@@ -58,6 +64,7 @@ func (o *UniversalOptions) cluster() *ClusterOptions {
 		PoolTimeout:        o.PoolTimeout,
 		IdleTimeout:        o.IdleTimeout,
 		IdleCheckFrequency: o.IdleCheckFrequency,
+		TLSConfig:          o.TLSConfig,
 	}
 }
 
@@ -71,6 +78,7 @@ func (o *UniversalOptions) failover() *FailoverOptions {
 		MasterName:    o.MasterName,
 		DB:            o.DB,
 
+		OnConnect:          o.OnConnect,
 		MaxRetries:         o.MaxRetries,
 		Password:           o.Password,
 		DialTimeout:        o.DialTimeout,
@@ -80,6 +88,7 @@ func (o *UniversalOptions) failover() *FailoverOptions {
 		PoolTimeout:        o.PoolTimeout,
 		IdleTimeout:        o.IdleTimeout,
 		IdleCheckFrequency: o.IdleCheckFrequency,
+		TLSConfig:          o.TLSConfig,
 	}
 }
 
@@ -93,6 +102,7 @@ func (o *UniversalOptions) simple() *Options {
 		Addr: addr,
 		DB:   o.DB,
 
+		OnConnect:          o.OnConnect,
 		MaxRetries:         o.MaxRetries,
 		Password:           o.Password,
 		DialTimeout:        o.DialTimeout,
@@ -102,6 +112,7 @@ func (o *UniversalOptions) simple() *Options {
 		PoolTimeout:        o.PoolTimeout,
 		IdleTimeout:        o.IdleTimeout,
 		IdleCheckFrequency: o.IdleCheckFrequency,
+		TLSConfig:          o.TLSConfig,
 	}
 }
 
@@ -113,6 +124,7 @@ func (o *UniversalOptions) simple() *Options {
 // applications locally.
 type UniversalClient interface {
 	Cmdable
+	Watch(fn func(*Tx) error, keys ...string) error
 	Process(cmd Cmder) error
 	WrapProcess(fn func(oldProcess func(cmd Cmder) error) func(cmd Cmder) error)
 	Subscribe(channels ...string) *PubSub

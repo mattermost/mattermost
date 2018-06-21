@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
-	throttled "gopkg.in/throttled/throttled.v2"
-	"gopkg.in/throttled/throttled.v2/store/memstore"
+	"github.com/throttled/throttled"
+	"github.com/throttled/throttled/store/memstore"
 )
 
 type RateLimiter struct {

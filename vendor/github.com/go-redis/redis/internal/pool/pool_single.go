@@ -20,29 +20,27 @@ func (p *SingleConnPool) CloseConn(*Conn) error {
 	panic("not implemented")
 }
 
-func (p *SingleConnPool) Get() (*Conn, bool, error) {
-	return p.cn, false, nil
+func (p *SingleConnPool) Get() (*Conn, error) {
+	return p.cn, nil
 }
 
-func (p *SingleConnPool) Put(cn *Conn) error {
+func (p *SingleConnPool) Put(cn *Conn) {
 	if p.cn != cn {
 		panic("p.cn != cn")
 	}
-	return nil
 }
 
-func (p *SingleConnPool) Remove(cn *Conn) error {
+func (p *SingleConnPool) Remove(cn *Conn) {
 	if p.cn != cn {
 		panic("p.cn != cn")
 	}
-	return nil
 }
 
 func (p *SingleConnPool) Len() int {
 	return 1
 }
 
-func (p *SingleConnPool) FreeLen() int {
+func (p *SingleConnPool) IdleLen() int {
 	return 0
 }
 

@@ -266,6 +266,8 @@ type Cmdable interface {
 	GeoDist(key string, member1, member2, unit string) *FloatCmd
 	GeoHash(key string, members ...string) *StringSliceCmd
 	Command() *CommandsInfoCmd
+	ReadOnly() *StatusCmd
+	ReadWrite() *StatusCmd
 }
 
 type StatefulCmdable interface {
@@ -274,8 +276,6 @@ type StatefulCmdable interface {
 	Select(index int) *StatusCmd
 	SwapDB(index1, index2 int) *StatusCmd
 	ClientSetName(name string) *BoolCmd
-	ReadOnly() *StatusCmd
-	ReadWrite() *StatusCmd
 }
 
 var _ Cmdable = (*Client)(nil)
@@ -2054,13 +2054,13 @@ func (c *cmdable) ClusterSlaves(nodeID string) *StringSliceCmd {
 	return cmd
 }
 
-func (c *statefulCmdable) ReadOnly() *StatusCmd {
+func (c *cmdable) ReadOnly() *StatusCmd {
 	cmd := NewStatusCmd("readonly")
 	c.process(cmd)
 	return cmd
 }
 
-func (c *statefulCmdable) ReadWrite() *StatusCmd {
+func (c *cmdable) ReadWrite() *StatusCmd {
 	cmd := NewStatusCmd("readwrite")
 	c.process(cmd)
 	return cmd

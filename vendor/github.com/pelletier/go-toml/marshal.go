@@ -11,10 +11,13 @@ import (
 	"time"
 )
 
+const tagKeyMultiline = "multiline"
+
 type tomlOpts struct {
 	name      string
 	comment   string
 	commented bool
+	multiline bool
 	include   bool
 	omitempty bool
 }
@@ -187,7 +190,7 @@ func (e *Encoder) QuoteMapKeys(v bool) *Encoder {
 //   A = [
 //     1,
 //     2,
-//     3
+//     3,
 //   ]
 func (e *Encoder) ArraysWithOneElementPerLine(v bool) *Encoder {
 	e.arraysOneElementPerLine = v
@@ -230,7 +233,12 @@ func (e *Encoder) valueToTree(mtype reflect.Type, mval reflect.Value) (*Tree, er
 				if err != nil {
 					return nil, err
 				}
-				tval.SetWithComment(opts.name, opts.comment, opts.commented, val)
+
+				tval.SetWithOptions(opts.name, SetOptions{
+					Comment:   opts.comment,
+					Commented: opts.commented,
+					Multiline: opts.multiline,
+				}, val)
 			}
 		}
 	case reflect.Map:
@@ -559,7 +567,8 @@ func tomlOptions(vf reflect.StructField) tomlOpts {
 		comment = c
 	}
 	commented, _ := strconv.ParseBool(vf.Tag.Get("commented"))
-	result := tomlOpts{name: vf.Name, comment: comment, commented: commented, include: true, omitempty: false}
+	multiline, _ := strconv.ParseBool(vf.Tag.Get(tagKeyMultiline))
+	result := tomlOpts{name: vf.Name, comment: comment, commented: commented, multiline: multiline, include: true, omitempty: false}
 	if parse[0] != "" {
 		if parse[0] == "-" && len(parse) == 1 {
 			result.include = false
