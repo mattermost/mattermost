@@ -24,10 +24,18 @@ type Status struct {
 	Status         string `json:"status"`
 	Manual         bool   `json:"manual"`
 	LastActivityAt int64  `json:"last_activity_at"`
-	ActiveChannel  string `json:"-" db:"-"`
+	ActiveChannel  string `json:"active_channel,omitempty" db:"-"`
 }
 
 func (o *Status) ToJson() string {
+	tempChannelId := o.ActiveChannel
+	o.ActiveChannel = ""
+	b, _ := json.Marshal(o)
+	o.ActiveChannel = tempChannelId
+	return string(b)
+}
+
+func (o *Status) ToClusterJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
 }
@@ -39,7 +47,18 @@ func StatusFromJson(data io.Reader) *Status {
 }
 
 func StatusListToJson(u []*Status) string {
+	activeChannels := make([]string, len(u))
+	for index, s := range u {
+		activeChannels[index] = s.ActiveChannel
+		s.ActiveChannel = ""
+	}
+
 	b, _ := json.Marshal(u)
+
+	for index, s := range u {
+		s.ActiveChannel = activeChannels[index]
+	}
+
 	return string(b)
 }
 
