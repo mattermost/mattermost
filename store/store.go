@@ -107,6 +107,7 @@ type TeamStore interface {
 	GetTeamsByScheme(schemeId string, offset int, limit int) StoreChannel
 	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
 	ResetAllTeamSchemes() StoreChannel
+	ClearAllCustomRoleAssignments() StoreChannel
 }
 
 type ChannelStore interface {
@@ -167,6 +168,7 @@ type ChannelStore interface {
 	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
 	ResetAllChannelSchemes() StoreChannel
+	ClearAllCustomRoleAssignments() StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -258,6 +260,7 @@ type UserStore interface {
 	AnalyticsGetSystemAdminCount() StoreChannel
 	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
+	ClearAllCustomRoleAssignments() StoreChannel
 }
 
 type SessionStore interface {

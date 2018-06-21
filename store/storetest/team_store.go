@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestTeamStore(t *testing.T, ss store.Store) {
@@ -43,6 +43,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetTeamsByScheme", func(t *testing.T) { testGetTeamsByScheme(t, ss) })
 	t.Run("MigrateTeamMembers", func(t *testing.T) { testTeamStoreMigrateTeamMembers(t, ss) })
 	t.Run("ResetAllTeamSchemes", func(t *testing.T) { testResetAllTeamSchemes(t, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testTeamStoreClearAllCustomRoleAssignments(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1244,4 +1245,50 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 
 	assert.Equal(t, "", *t1.SchemeId)
 	assert.Equal(t, "", *t2.SchemeId)
+}
+
+func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
+	m1 := &model.TeamMember{
+		TeamId:        model.NewId(),
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_user team_admin team_post_all_public",
+	}
+	m2 := &model.TeamMember{
+		TeamId:        model.NewId(),
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_user custom_role team_admin another_custom_role",
+	}
+	m3 := &model.TeamMember{
+		TeamId:        model.NewId(),
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_user",
+	}
+	m4 := &model.TeamMember{
+		TeamId:        model.NewId(),
+		UserId:        model.NewId(),
+		ExplicitRoles: "custom_only",
+	}
+
+	store.Must(ss.Team().SaveMember(m1, -1))
+	store.Must(ss.Team().SaveMember(m2, -1))
+	store.Must(ss.Team().SaveMember(m3, -1))
+	store.Must(ss.Team().SaveMember(m4, -1))
+
+	require.Nil(t, (<-ss.Team().ClearAllCustomRoleAssignments()).Err)
+
+	r1 := <-ss.Team().GetMember(m1.TeamId, m1.UserId)
+	require.Nil(t, r1.Err)
+	assert.Equal(t, m1.ExplicitRoles, r1.Data.(*model.TeamMember).Roles)
+
+	r2 := <-ss.Team().GetMember(m2.TeamId, m2.UserId)
+	require.Nil(t, r2.Err)
+	assert.Equal(t, "team_user team_admin", r2.Data.(*model.TeamMember).Roles)
+
+	r3 := <-ss.Team().GetMember(m3.TeamId, m3.UserId)
+	require.Nil(t, r3.Err)
+	assert.Equal(t, m3.ExplicitRoles, r3.Data.(*model.TeamMember).Roles)
+
+	r4 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
+	require.Nil(t, r4.Err)
+	assert.Equal(t, "", r4.Data.(*model.TeamMember).Roles)
 }

@@ -1784,3 +1784,72 @@ func (s SqlChannelStore) ResetAllChannelSchemes() store.StoreChannel {
 		}
 	})
 }
+
+func (s SqlChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		builtInRoles := model.MakeDefaultRoles()
+		lastUserId := strings.Repeat("0", 26)
+		lastChannelId := strings.Repeat("0", 26)
+
+		for true {
+			var transaction *gorp.Transaction
+			var err error
+
+			if transaction, err = s.GetMaster().Begin(); err != nil {
+				result.Err = model.NewAppError("SqlChannelStore.ClearAllCustomRoleAssignments", "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			var channelMembers []*channelMember
+			if _, err := transaction.Select(&channelMembers, "SELECT * from ChannelMembers WHERE (ChannelId, UserId) > (:ChannelId, :UserId) ORDER BY ChannelId, UserId LIMIT 1000", map[string]interface{}{"ChannelId": lastChannelId, "UserId": lastUserId}); err != nil {
+				if err2 := transaction.Rollback(); err2 != nil {
+					result.Err = model.NewAppError("SqlChannelStore.ClearAllCustomRoleAssignments", "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
+					return
+				}
+				result.Err = model.NewAppError("SqlChannelStore.ClearAllCustomRoleAssignments", "store.sql_channel.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if len(channelMembers) == 0 {
+				break
+			}
+
+			for _, member := range channelMembers {
+				lastUserId = member.UserId
+				lastChannelId = member.ChannelId
+
+				var newRoles []string
+
+				for _, role := range strings.Fields(member.Roles) {
+					for name := range builtInRoles {
+						if name == role {
+							newRoles = append(newRoles, role)
+							break
+						}
+					}
+				}
+
+				newRolesString := strings.Join(newRoles, " ")
+				if newRolesString != member.Roles {
+					if _, err := transaction.Exec("UPDATE ChannelMembers SET Roles = :Roles WHERE UserId = :UserId AND ChannelId = :ChannelId", map[string]interface{}{"Roles": newRolesString, "ChannelId": member.ChannelId, "UserId": member.UserId}); err != nil {
+						if err2 := transaction.Rollback(); err2 != nil {
+							result.Err = model.NewAppError("SqlChannelStore.ClearAllCustomRoleAssignments", "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
+							return
+						}
+						result.Err = model.NewAppError("SqlChannelStore.ClearAllCustomRoleAssignments", "store.sql_channel.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+						return
+					}
+				}
+			}
+
+			if err := transaction.Commit(); err != nil {
+				if err2 := transaction.Rollback(); err2 != nil {
+					result.Err = model.NewAppError("SqlChannelStore.ClearAllCustomRoleAssignments", "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
+					return
+				}
+				result.Err = model.NewAppError("SqlChannelStore.ClearAllCustomRoleAssignments", "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+	})
+}

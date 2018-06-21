@@ -1535,6 +1535,66 @@
     "translation": "Unable to open the Slack export zip file.\r\n"
   },
   {
+    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "Failed to rollback the database transaction"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the users"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
+    "translation": "Failed to update the user"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "Failed to rollback the database transaction"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the team members"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
+    "translation": "Failed to update the team member"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "Failed to rollback the database transaction"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the channel members"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
+    "translation": "Failed to update the channel member"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "User not found"
   },

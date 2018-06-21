@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -49,6 +50,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -2117,4 +2119,50 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 			t.Fatalf("etag should be the same")
 		}
 	}
+}
+
+func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
+	u1 := model.User{
+		Email:    model.NewId(),
+		Username: model.NewId(),
+		Roles:    "system_user system_admin system_post_all",
+	}
+	u2 := model.User{
+		Email:    model.NewId(),
+		Username: model.NewId(),
+		Roles:    "system_user custom_role system_admin another_custom_role",
+	}
+	u3 := model.User{
+		Email:    model.NewId(),
+		Username: model.NewId(),
+		Roles:    "system_user",
+	}
+	u4 := model.User{
+		Email:    model.NewId(),
+		Username: model.NewId(),
+		Roles:    "custom_only",
+	}
+
+	store.Must(ss.User().Save(&u1))
+	store.Must(ss.User().Save(&u2))
+	store.Must(ss.User().Save(&u3))
+	store.Must(ss.User().Save(&u4))
+
+	require.Nil(t, (<-ss.User().ClearAllCustomRoleAssignments()).Err)
+
+	r1 := <-ss.User().GetByUsername(u1.Username)
+	require.Nil(t, r1.Err)
+	assert.Equal(t, u1.Roles, r1.Data.(*model.User).Roles)
+
+	r2 := <-ss.User().GetByUsername(u2.Username)
+	require.Nil(t, r2.Err)
+	assert.Equal(t, "system_user system_admin", r2.Data.(*model.User).Roles)
+
+	r3 := <-ss.User().GetByUsername(u3.Username)
+	require.Nil(t, r3.Err)
+	assert.Equal(t, u3.Roles, r3.Data.(*model.User).Roles)
+
+	r4 := <-ss.User().GetByUsername(u4.Username)
+	require.Nil(t, r4.Err)
+	assert.Equal(t, "", r4.Data.(*model.User).Roles)
 }
