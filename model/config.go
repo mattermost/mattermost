@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -159,6 +160,9 @@ const (
 	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
 	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
 	GLOBALRELAY_CUSTOMER_TYPE_A10      = "A10"
+
+	CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH   = "primary"
+	CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH = "secondary"
 )
 
 type ServiceSettings struct {
@@ -225,6 +229,8 @@ type ServiceSettings struct {
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
 	EnableAPITeamDeletion                             *bool
+	ExperimentalEnableHardenedMode                    *bool
+	ExperimentalLimitClientConfig                     *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -457,17 +463,28 @@ func (s *ServiceSettings) SetDefaults() {
 	if s.EnableAPITeamDeletion == nil {
 		s.EnableAPITeamDeletion = NewBool(false)
 	}
+
+	if s.ExperimentalEnableHardenedMode == nil {
+		s.ExperimentalEnableHardenedMode = NewBool(false)
+	}
+
+	if s.ExperimentalLimitClientConfig == nil {
+		s.ExperimentalLimitClientConfig = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
-	Enable                *bool
-	ClusterName           *string
-	OverrideHostname      *string
-	UseIpAddress          *bool
-	UseExperimentalGossip *bool
-	ReadOnlyConfig        *bool
-	GossipPort            *int
-	StreamingPort         *int
+	Enable                      *bool
+	ClusterName                 *string
+	OverrideHostname            *string
+	UseIpAddress                *bool
+	UseExperimentalGossip       *bool
+	ReadOnlyConfig              *bool
+	GossipPort                  *int
+	StreamingPort               *int
+	MaxIdleConns                *int
+	MaxIdleConnsPerHost         *int
+	IdleConnTimeoutMilliseconds *int
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -502,6 +519,18 @@ func (s *ClusterSettings) SetDefaults() {
 	if s.StreamingPort == nil {
 		s.StreamingPort = NewInt(8075)
 	}
+
+	if s.MaxIdleConns == nil {
+		s.MaxIdleConns = NewInt(100)
+	}
+
+	if s.MaxIdleConnsPerHost == nil {
+		s.MaxIdleConnsPerHost = NewInt(128)
+	}
+
+	if s.IdleConnTimeoutMilliseconds == nil {
+		s.IdleConnTimeoutMilliseconds = NewInt(90000)
+	}
 }
 
 type MetricsSettings struct {
@@ -521,6 +550,21 @@ func (s *MetricsSettings) SetDefaults() {
 
 	if s.BlockProfileRate == nil {
 		s.BlockProfileRate = NewInt(0)
+	}
+}
+
+type ExperimentalSettings struct {
+	ClientSideCertEnable *bool
+	ClientSideCertCheck  *string
+}
+
+func (s *ExperimentalSettings) SetDefaults() {
+	if s.ClientSideCertEnable == nil {
+		s.ClientSideCertEnable = NewBool(false)
+	}
+
+	if s.ClientSideCertCheck == nil {
+		s.ClientSideCertCheck = NewString(CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH)
 	}
 }
 
@@ -739,6 +783,7 @@ type EmailSettings struct {
 	EnableEmailBatching               *bool
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
+	EnablePreviewModeBanner           *bool
 	SkipServerCertificateVerification *bool
 	EmailNotificationContentsType     *string
 	LoginButtonColor                  *string
@@ -789,6 +834,10 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.EmailBatchingInterval == nil {
 		s.EmailBatchingInterval = NewInt(EMAIL_BATCHING_INTERVAL)
+	}
+
+	if s.EnablePreviewModeBanner == nil {
+		s.EnablePreviewModeBanner = NewBool(true)
 	}
 
 	if s.EnableSMTPAuth == nil {
@@ -982,6 +1031,7 @@ type TeamSettings struct {
 	EnableTeamCreation                  *bool
 	EnableUserCreation                  *bool
 	EnableOpenServer                    *bool
+	EnableUserDeactivation              *bool
 	RestrictCreationToDomains           string
 	EnableCustomBrand                   *bool
 	CustomBrandText                     *string
@@ -1002,6 +1052,7 @@ type TeamSettings struct {
 	EnableConfirmNotificationsToChannel *bool
 	TeammateNameDisplay                 *string
 	ExperimentalEnableAutomaticReplies  *bool
+	ExperimentalHideTownSquareinLHS     *bool
 	ExperimentalTownSquareIsReadOnly    *bool
 	ExperimentalPrimaryTeam             *string
 }
@@ -1013,6 +1064,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableCustomBrand == nil {
 		s.EnableCustomBrand = NewBool(false)
+	}
+
+	if s.EnableUserDeactivation == nil {
+		s.EnableUserDeactivation = NewBool(false)
 	}
 
 	if s.CustomBrandText == nil {
@@ -1098,6 +1153,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.ExperimentalEnableAutomaticReplies == nil {
 		s.ExperimentalEnableAutomaticReplies = NewBool(false)
+	}
+
+	if s.ExperimentalHideTownSquareinLHS == nil {
+		s.ExperimentalHideTownSquareinLHS = NewBool(false)
 	}
 
 	if s.ExperimentalTownSquareIsReadOnly == nil {
@@ -1742,10 +1801,16 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
+	CustomUrlSchemes     *[]string
 	ExperimentalTimezone *bool
 }
 
 func (s *DisplaySettings) SetDefaults() {
+	if s.CustomUrlSchemes == nil {
+		customUrlSchemes := []string{}
+		s.CustomUrlSchemes = &customUrlSchemes
+	}
+
 	if s.ExperimentalTimezone == nil {
 		s.ExperimentalTimezone = NewBool(false)
 	}
@@ -1787,6 +1852,7 @@ type Config struct {
 	NativeAppSettings     NativeAppSettings
 	ClusterSettings       ClusterSettings
 	MetricsSettings       MetricsSettings
+	ExperimentalSettings  ExperimentalSettings
 	AnalyticsSettings     AnalyticsSettings
 	WebrtcSettings        WebrtcSettings
 	ElasticsearchSettings ElasticsearchSettings
@@ -1849,6 +1915,7 @@ func (o *Config) SetDefaults() {
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
 	o.MetricsSettings.SetDefaults()
+	o.ExperimentalSettings.SetDefaults()
 	o.SupportSettings.SetDefaults()
 	o.AnnouncementSettings.SetDefaults()
 	o.ThemeSettings.SetDefaults()
@@ -1870,8 +1937,16 @@ func (o *Config) SetDefaults() {
 }
 
 func (o *Config) IsValid() *AppError {
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
@@ -1927,6 +2002,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
+		return err
+	}
+
+	if err := o.DisplaySettings.isValid(); err != nil {
 		return err
 	}
 
@@ -2179,6 +2258,12 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if len(*ss.SiteURL) != 0 {
+		if _, err := url.ParseRequestURI(*ss.SiteURL); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if len(*ss.WebsocketURL) != 0 {
 		if _, err := url.ParseRequestURI(*ss.WebsocketURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
@@ -2301,6 +2386,26 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			}
 		}
 	}
+	return nil
+}
+
+func (ds *DisplaySettings) isValid() *AppError {
+	if len(*ds.CustomUrlSchemes) != 0 {
+		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9+.-]*\s*$`)
+
+		for _, scheme := range *ds.CustomUrlSchemes {
+			if !validProtocolPattern.MatchString(scheme) {
+				return NewAppError(
+					"Config.IsValid",
+					"model.config.is_valid.display.custom_url_schemes.app_error",
+					map[string]interface{}{"Scheme": scheme},
+					"",
+					http.StatusBadRequest,
+				)
+			}
+		}
+	}
+
 	return nil
 }
 

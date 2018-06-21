@@ -32,6 +32,7 @@ type Supervisor struct {
 	cancel     context.CancelFunc
 	newProcess func(context.Context) (Process, io.ReadWriteCloser, error)
 	pluginId   string
+	pluginErr  error
 }
 
 var _ plugin.Supervisor = (*Supervisor)(nil)
@@ -55,6 +56,13 @@ func (s *Supervisor) Start(api plugin.API) error {
 	}
 }
 
+// Waits for the supervisor to stop (on demand or of its own accord), returning any error that
+// triggered the supervisor to stop.
+func (s *Supervisor) Wait() error {
+	<-s.done
+	return s.pluginErr
+}
+
 // Stops the plugin.
 func (s *Supervisor) Stop() error {
 	s.cancel()
@@ -70,7 +78,7 @@ func (s *Supervisor) Hooks() plugin.Hooks {
 
 func (s *Supervisor) run(ctx context.Context, start chan<- error, api plugin.API) {
 	defer func() {
-		s.done <- true
+		close(s.done)
 	}()
 	done := ctx.Done()
 	for i := 0; i <= MaxProcessRestarts; i++ {
@@ -81,10 +89,11 @@ func (s *Supervisor) run(ctx context.Context, start chan<- error, api plugin.API
 		default:
 			start = nil
 			if i < MaxProcessRestarts {
-				mlog.Debug("Plugin terminated unexpectedly", mlog.String("plugin_id", s.pluginId))
+				mlog.Error("Plugin terminated unexpectedly", mlog.String("plugin_id", s.pluginId))
 				time.Sleep(time.Duration((1 + i*i)) * time.Second)
 			} else {
-				mlog.Debug("Plugin terminated unexpectedly too many times", mlog.String("plugin_id", s.pluginId), mlog.Int("max_process_restarts", MaxProcessRestarts))
+				s.pluginErr = fmt.Errorf("plugin terminated unexpectedly too many times")
+				mlog.Error("Plugin shutdown", mlog.String("plugin_id", s.pluginId), mlog.Int("max_process_restarts", MaxProcessRestarts), mlog.Err(s.pluginErr))
 			}
 		}
 	}

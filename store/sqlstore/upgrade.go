@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_5_1_0            = "5.1.0"
 	VERSION_5_0_0            = "5.0.0"
 	VERSION_4_10_0           = "4.10.0"
 	VERSION_4_9_0            = "4.9.0"
@@ -78,6 +79,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion49(sqlStore)
 	UpgradeDatabaseToVersion410(sqlStore)
 	UpgradeDatabaseToVersion50(sqlStore)
+	UpgradeDatabaseToVersion51(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -425,8 +427,33 @@ func UpgradeDatabaseToVersion410(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion50(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 3.10.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_4_10_0, VERSION_5_0_0) {
-	//	saveSchemaVersion(sqlStore, VERSION_5_0_0)
-	//}
+	// This version of Mattermost includes an App-Layer migration which migrates from hard-coded emojis configured
+	// in `config.json` to a `Permission` in the database. The migration code can be seen
+	// in the file `app/app.go` in the function `DoEmojisPermissionsMigration()`.
+
+	if shouldPerformUpgrade(sqlStore, VERSION_4_10_0, VERSION_5_0_0) {
+
+		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "SchemeId", "varchar(26)", "varchar(26)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "SchemeId", "varchar(26)", "varchar(26)")
+
+		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeUser", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeAdmin", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeUser", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeAdmin", "boolean", "boolean")
+
+		sqlStore.CreateColumnIfNotExists("Roles", "BuiltIn", "boolean", "boolean", "0")
+		sqlStore.GetMaster().Exec("UPDATE Roles SET BuiltIn=true")
+		sqlStore.GetMaster().Exec("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
+		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "ChannelLocked", "boolean", "boolean", "0")
+
+		saveSchemaVersion(sqlStore, VERSION_5_0_0)
+	}
+}
+
+func UpgradeDatabaseToVersion51(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.1.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_0_0, VERSION_5_1_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_1_0)
+	// }
 }

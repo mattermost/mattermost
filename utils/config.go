@@ -16,8 +16,8 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/mattermost/viper"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 
 	"net/http"
 
@@ -32,36 +32,96 @@ const (
 	LOG_FILENAME    = "mattermost.log"
 )
 
+var (
+	commonBaseSearchPaths = []string{
+		".",
+		"..",
+		"../..",
+		"../../..",
+	}
+)
+
+func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
+	if filepath.IsAbs(path) {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+
+		return ""
+	}
+
+	searchPaths := []string{}
+	for _, baseSearchPath := range baseSearchPaths {
+		searchPaths = append(searchPaths, baseSearchPath)
+	}
+
+	// Additionally attempt to search relative to the location of the running binary.
+	var binaryDir string
+	if exe, err := os.Executable(); err == nil {
+		if exe, err = filepath.EvalSymlinks(exe); err == nil {
+			if exe, err = filepath.Abs(exe); err == nil {
+				binaryDir = filepath.Dir(exe)
+			}
+		}
+	}
+	if binaryDir != "" {
+		for _, baseSearchPath := range baseSearchPaths {
+			searchPaths = append(
+				searchPaths,
+				filepath.Join(binaryDir, baseSearchPath),
+			)
+		}
+	}
+
+	for _, parent := range searchPaths {
+		found, err := filepath.Abs(filepath.Join(parent, path))
+		if err != nil {
+			continue
+		} else if fileInfo, err := os.Stat(found); err == nil {
+			if filter != nil {
+				if filter(fileInfo) {
+					return found
+				}
+			} else {
+				return found
+			}
+		}
+	}
+
+	return ""
+}
+
 // FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
 // relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
 // string is returned if no configuration is found.
 func FindConfigFile(fileName string) (path string) {
-	if filepath.IsAbs(fileName) {
-		if _, err := os.Stat(fileName); err == nil {
-			return fileName
-		}
-	} else {
-		for _, dir := range []string{"./config", "../config", "../../config", "../../../config", "."} {
-			path, _ := filepath.Abs(filepath.Join(dir, fileName))
-			if _, err := os.Stat(path); err == nil {
-				return path
-			}
-		}
+	found := FindFile(filepath.Join("config", fileName))
+	if found == "" {
+		found = FindPath(fileName, []string{"."}, nil)
 	}
-	return ""
+
+	return found
 }
 
-// FindDir looks for the given directory in nearby ancestors, falling back to `./` if not found.
+// FindFile looks for the given file in nearby ancestors relative to the current working
+// directory as well as the directory of the executable.
+func FindFile(path string) string {
+	return FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return !fileInfo.IsDir()
+	})
+}
+
+// FindDir looks for the given directory in nearby ancestors relative to the current working
+// directory as well as the directory of the executable, falling back to `./` if not found.
 func FindDir(dir string) (string, bool) {
-	for _, parent := range []string{".", "..", "../..", "../../.."} {
-		foundDir, err := filepath.Abs(filepath.Join(parent, dir))
-		if err != nil {
-			continue
-		} else if _, err := os.Stat(foundDir); err == nil {
-			return foundDir, true
-		}
+	found := FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
+		return fileInfo.IsDir()
+	})
+	if found == "" {
+		return "./", false
 	}
-	return "./", false
+
+	return found, true
 }
 
 func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
@@ -435,21 +495,11 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 }
 
 func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
-	props := make(map[string]string)
-
-	props["Version"] = model.CurrentVersion
-	props["BuildNumber"] = model.BuildNumber
-	props["BuildDate"] = model.BuildDate
-	props["BuildHash"] = model.BuildHash
-	props["BuildHashEnterprise"] = model.BuildHashEnterprise
-	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
+	props := GenerateLimitedClientConfig(c, diagnosticId, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
-	props["SiteName"] = c.TeamSettings.SiteName
-	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
-	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
-	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
+	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
 	props["RestrictPublicChannelCreation"] = *c.TeamSettings.RestrictPublicChannelCreation
@@ -463,13 +513,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
 
-	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
-	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
-	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
-	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
-	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
-	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
-
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
@@ -482,7 +525,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableLinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnableLinkPreviews)
 	props["EnableTesting"] = strconv.FormatBool(c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
-	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 	props["RestrictPostDelete"] = *c.ServiceSettings.RestrictPostDelete
 	props["AllowEditPost"] = *c.ServiceSettings.AllowEditPost
 	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
@@ -496,27 +538,12 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
-	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
-	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
-	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
+	props["EnablePreviewModeBanner"] = strconv.FormatBool(*c.EmailSettings.EnablePreviewModeBanner)
 	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
-	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
-	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
-	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
-
-	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
-
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
-
-	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
-	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
-	props["AboutLink"] = *c.SupportSettings.AboutLink
-	props["HelpLink"] = *c.SupportSettings.HelpLink
-	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
-	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
@@ -524,17 +551,12 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
 	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 
-	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
-	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
 	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
 	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
-	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
-	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
-	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
 	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
 
@@ -544,45 +566,26 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableUserTypingMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableUserTypingMessages)
 	props["EnableChannelViewedMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableChannelViewedMessages)
 
-	props["DiagnosticId"] = diagnosticId
-	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
-
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
 
-	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
-	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
+	props["RunJobs"] = strconv.FormatBool(*c.JobSettings.RunJobs)
 
 	// Set default values for all options that require a license.
+	props["ExperimentalHideTownSquareinLHS"] = "false"
 	props["ExperimentalTownSquareIsReadOnly"] = "false"
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
-	props["EnableCustomBrand"] = "false"
-	props["CustomBrandText"] = ""
-	props["CustomDescriptionText"] = ""
-	props["EnableLdap"] = "false"
-	props["LdapLoginFieldName"] = ""
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
 	props["LdapLastNameAttributeSet"] = "false"
-	props["LdapLoginButtonColor"] = ""
-	props["LdapLoginButtonBorderColor"] = ""
-	props["LdapLoginButtonTextColor"] = ""
-	props["EnableMultifactorAuthentication"] = "false"
 	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableCompliance"] = "false"
 	props["EnableMobileFileDownload"] = "true"
 	props["EnableMobileFileUpload"] = "true"
-	props["EnableSaml"] = "false"
-	props["SamlLoginButtonText"] = ""
 	props["SamlFirstNameAttributeSet"] = "false"
 	props["SamlLastNameAttributeSet"] = "false"
 	props["SamlNicknameAttributeSet"] = "false"
-	props["SamlLoginButtonColor"] = ""
-	props["SamlLoginButtonBorderColor"] = ""
-	props["SamlLoginButtonTextColor"] = ""
 	props["EnableCluster"] = "false"
 	props["EnableMetrics"] = "false"
-	props["EnableSignUpWithGoogle"] = "false"
-	props["EnableSignUpWithOffice365"] = "false"
 	props["PasswordMinimumLength"] = "0"
 	props["PasswordRequireLowercase"] = "false"
 	props["PasswordRequireUppercase"] = "false"
@@ -601,30 +604,25 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
+	props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
+	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
+	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
+	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
+	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
+	props["CustomUrlSchemes"] = strings.Join(*c.DisplaySettings.CustomUrlSchemes, ",")
 
 	if license != nil {
+		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 
-		if *license.Features.CustomBrand {
-			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
-			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
-			props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
-		}
-
 		if *license.Features.LDAP {
-			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
-			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
 			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 			props["LdapFirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
 			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
-			props["LdapLoginButtonColor"] = *c.LdapSettings.LoginButtonColor
-			props["LdapLoginButtonBorderColor"] = *c.LdapSettings.LoginButtonBorderColor
-			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
 		}
 
 		if *license.Features.MFA {
-			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 
@@ -635,14 +633,13 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 		}
 
 		if *license.Features.SAML {
-			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
-			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
 			props["SamlFirstNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.FirstNameAttribute != "")
 			props["SamlLastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
 			props["SamlNicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
-			props["SamlLoginButtonColor"] = *c.SamlSettings.LoginButtonColor
-			props["SamlLoginButtonBorderColor"] = *c.SamlSettings.LoginButtonBorderColor
-			props["SamlLoginButtonTextColor"] = *c.SamlSettings.LoginButtonTextColor
+
+			// do this under the correct licensed feature
+			props["ExperimentalClientSideCertEnable"] = strconv.FormatBool(*c.ExperimentalSettings.ClientSideCertEnable)
+			props["ExperimentalClientSideCertCheck"] = *c.ExperimentalSettings.ClientSideCertCheck
 		}
 
 		if *license.Features.Cluster {
@@ -651,22 +648,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 		if *license.Features.Cluster {
 			props["EnableMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable)
-		}
-
-		if *license.Features.GoogleOAuth {
-			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
-		}
-
-		if *license.Features.Office365OAuth {
-			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
-		}
-
-		if *license.Features.PasswordRequirements {
-			props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
-			props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
-			props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
-			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
-			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
 
 		if *license.Features.Announcement {
@@ -689,6 +670,114 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
+		}
+	}
+
+	return props
+}
+
+func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
+	props := make(map[string]string)
+
+	props["Version"] = model.CurrentVersion
+	props["BuildNumber"] = model.BuildNumber
+	props["BuildDate"] = model.BuildDate
+	props["BuildHash"] = model.BuildHash
+	props["BuildHashEnterprise"] = model.BuildHashEnterprise
+	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
+
+	props["SiteName"] = c.TeamSettings.SiteName
+	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
+	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
+	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
+
+	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
+	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
+	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
+	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
+	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
+	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
+
+	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+
+	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
+	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
+	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
+
+	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
+	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
+	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
+
+	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
+
+	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
+	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
+	props["AboutLink"] = *c.SupportSettings.AboutLink
+	props["HelpLink"] = *c.SupportSettings.HelpLink
+	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
+	props["SupportEmail"] = *c.SupportSettings.SupportEmail
+
+	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
+
+	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
+	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
+	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
+	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
+
+	props["DiagnosticId"] = diagnosticId
+	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+
+	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
+	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
+
+	// Set default values for all options that require a license.
+	props["EnableCustomBrand"] = "false"
+	props["CustomBrandText"] = ""
+	props["CustomDescriptionText"] = ""
+	props["EnableLdap"] = "false"
+	props["LdapLoginFieldName"] = ""
+	props["LdapLoginButtonColor"] = ""
+	props["LdapLoginButtonBorderColor"] = ""
+	props["LdapLoginButtonTextColor"] = ""
+	props["EnableMultifactorAuthentication"] = "false"
+	props["EnableSaml"] = "false"
+	props["SamlLoginButtonText"] = ""
+	props["SamlLoginButtonColor"] = ""
+	props["SamlLoginButtonBorderColor"] = ""
+	props["SamlLoginButtonTextColor"] = ""
+	props["EnableSignUpWithGoogle"] = "false"
+	props["EnableSignUpWithOffice365"] = "false"
+	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
+	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
+	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
+
+	if license != nil {
+		if *license.Features.LDAP {
+			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
+			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
+			props["LdapLoginButtonColor"] = *c.LdapSettings.LoginButtonColor
+			props["LdapLoginButtonBorderColor"] = *c.LdapSettings.LoginButtonBorderColor
+			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
+		}
+
+		if *license.Features.MFA {
+			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
+		}
+
+		if *license.Features.SAML {
+			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
+			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
+			props["SamlLoginButtonColor"] = *c.SamlSettings.LoginButtonColor
+			props["SamlLoginButtonBorderColor"] = *c.SamlSettings.LoginButtonBorderColor
+			props["SamlLoginButtonTextColor"] = *c.SamlSettings.LoginButtonTextColor
+		}
+
+		if *license.Features.GoogleOAuth {
+			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
+		}
+
+		if *license.Features.Office365OAuth {
+			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
 		}
 	}
 

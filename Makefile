@@ -127,7 +127,7 @@ start-docker: ## Starts the docker containers for local development.
 	@if [ $(shell docker ps -a | grep -ci mattermost-minio) -eq 0 ]; then \
 		echo starting mattermost-minio; \
 		docker run --name mattermost-minio -p 9001:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
-		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:latest server /data > /dev/null; \
+		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:RELEASE.2018-05-25T19-49-13Z server /data > /dev/null; \
 		docker exec -it mattermost-minio /bin/sh -c "mkdir -p /data/mattermost-test" > /dev/null; \
 	elif [ $(shell docker ps | grep -ci mattermost-minio) -eq 0 ]; then \
 		echo restarting mattermost-minio; \

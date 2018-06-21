@@ -110,6 +110,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	th.App.DoAdvancedPermissionsMigration()
+	th.App.DoEmojisPermissionsMigration()
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
@@ -316,6 +317,40 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 	return member
 }
 
+func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
+	utils.DisableDebugLogForTest()
+
+	scheme, err := me.App.CreateScheme(&model.Scheme{
+		DisplayName: "Test Scheme Display Name",
+		Name:        model.NewId(),
+		Description: "Test scheme description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	roleNames := []string{
+		scheme.DefaultTeamAdminRole,
+		scheme.DefaultTeamUserRole,
+		scheme.DefaultChannelAdminRole,
+		scheme.DefaultChannelUserRole,
+	}
+
+	var roles []*model.Role
+	for _, roleName := range roleNames {
+		role, err := me.App.GetRoleByName(roleName)
+		if err != nil {
+			panic(err)
+		}
+		roles = append(roles, role)
+	}
+
+	utils.EnableDebugLogForTest()
+
+	return scheme, roles
+}
+
 func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
 	os.Remove(me.tempConfigPath)
@@ -336,6 +371,10 @@ func (s *mockPluginSupervisor) Start(api plugin.API) error {
 	return s.hooks.OnActivate(api)
 }
 
+func (s *mockPluginSupervisor) Wait() error {
+	return nil
+}
+
 func (s *mockPluginSupervisor) Stop() error {
 	return nil
 }
@@ -353,17 +392,6 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 		me.tempWorkspace = dir
 	}
 
-	pluginDir := filepath.Join(me.tempWorkspace, "plugins")
-	webappDir := filepath.Join(me.tempWorkspace, "webapp")
-	me.App.InitPlugins(pluginDir, webappDir, func(bundle *model.BundleInfo) (plugin.Supervisor, error) {
-		if hooks, ok := me.pluginHooks[bundle.Manifest.Id]; ok {
-			return &mockPluginSupervisor{hooks}, nil
-		}
-		return pluginenv.DefaultSupervisorProvider(bundle)
-	})
-
-	me.pluginHooks[manifest.Id] = hooks
-
 	manifestCopy := *manifest
 	if manifestCopy.Backend == nil {
 		manifestCopy.Backend = &model.ManifestBackend{}
@@ -373,6 +401,9 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 		panic(err)
 	}
 
+	pluginDir := filepath.Join(me.tempWorkspace, "plugins")
+	webappDir := filepath.Join(me.tempWorkspace, "webapp")
+
 	if err := os.MkdirAll(filepath.Join(pluginDir, manifest.Id), 0700); err != nil {
 		panic(err)
 	}
@@ -380,6 +411,15 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 	if err := ioutil.WriteFile(filepath.Join(pluginDir, manifest.Id, "plugin.json"), manifestBytes, 0600); err != nil {
 		panic(err)
 	}
+
+	me.App.InitPlugins(pluginDir, webappDir, func(bundle *model.BundleInfo) (plugin.Supervisor, error) {
+		if hooks, ok := me.pluginHooks[bundle.Manifest.Id]; ok {
+			return &mockPluginSupervisor{hooks}, nil
+		}
+		return pluginenv.DefaultSupervisorProvider(bundle)
+	})
+
+	me.pluginHooks[manifest.Id] = hooks
 }
 
 func (me *TestHelper) ResetRoleMigration() {
@@ -390,6 +430,18 @@ func (me *TestHelper) ResetRoleMigration() {
 	testClusterInterface.sendClearRoleCacheMessage()
 
 	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+		panic(err)
+	}
+}
+
+func (me *TestHelper) ResetEmojisMigration() {
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
+		panic(err)
+	}
+
+	testClusterInterface.sendClearRoleCacheMessage()
+
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }
@@ -414,6 +466,9 @@ func (me *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model
 }
 func (me *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return []string{}, nil
+}
+func (me *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	return nil, nil
 }
 func (me *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil

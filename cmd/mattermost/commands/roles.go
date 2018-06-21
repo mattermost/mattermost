@@ -5,8 +5,11 @@ package commands
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 var RolesCmd = &cobra.Command{
@@ -55,7 +58,27 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if _, err := a.UpdateUserRoles(user.Id, "system_admin system_user", true); err != nil {
+		systemAdmin := false
+		systemUser := false
+
+		roles := strings.Fields(user.Roles)
+		for _, role := range roles {
+			switch role {
+			case model.SYSTEM_ADMIN_ROLE_ID:
+				systemAdmin = true
+			case model.SYSTEM_USER_ROLE_ID:
+				systemUser = true
+			}
+		}
+
+		if !systemUser {
+			roles = append(roles, model.SYSTEM_USER_ROLE_ID)
+		}
+		if !systemAdmin {
+			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
+		}
+
+		if _, err := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true); err != nil {
 			return err
 		}
 	}
@@ -80,7 +103,26 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if _, err := a.UpdateUserRoles(user.Id, "system_user", true); err != nil {
+		systemUser := false
+		var newRoles []string
+
+		roles := strings.Fields(user.Roles)
+		for _, role := range roles {
+			switch role {
+			case model.SYSTEM_ADMIN_ROLE_ID:
+			default:
+				if role == model.SYSTEM_USER_ROLE_ID {
+					systemUser = true
+				}
+				newRoles = append(newRoles, role)
+			}
+		}
+
+		if !systemUser {
+			newRoles = append(roles, model.SYSTEM_USER_ROLE_ID)
+		}
+
+		if _, err := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true); err != nil {
 			return err
 		}
 	}

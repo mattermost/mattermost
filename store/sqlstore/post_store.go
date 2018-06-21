@@ -398,11 +398,24 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.Stor
 	})
 }
 
-func (s *SqlPostStore) Delete(postId string, time int64) store.StoreChannel {
+func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId})
+
+		appErr := func(errMsg string) *model.AppError {
+			return model.NewAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+errMsg, http.StatusInternalServerError)
+		}
+
+		var post model.Post
+		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+err.Error(), http.StatusInternalServerError)
+			result.Err = appErr(err.Error())
+		}
+
+		post.Props[model.POST_PROPS_DELETE_BY] = deleteByID
+
+		_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.Props)})
+		if err != nil {
+			result.Err = appErr(err.Error())
 		}
 	})
 }

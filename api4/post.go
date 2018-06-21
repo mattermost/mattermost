@@ -246,12 +246,25 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_DELETE_OTHERS_POSTS) {
-		c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
+	post, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.SetPermissionError(model.PERMISSION_DELETE_POST)
 		return
 	}
 
-	if _, err := c.App.DeletePost(c.Params.PostId); err != nil {
+	if c.Session.UserId == post.UserId {
+		if !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_POST) {
+			c.SetPermissionError(model.PERMISSION_DELETE_POST)
+			return
+		}
+	} else {
+		if !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_OTHERS_POSTS) {
+			c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
+			return
+		}
+	}
+
+	if _, err := c.App.DeletePost(c.Params.PostId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -328,7 +341,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	posts, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
@@ -342,8 +355,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	results = model.MakePostSearchResults(c.App.PostListWithProxyAddedToImageURLs(results.PostList), results.Matches)
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	w.Write([]byte(results.ToJson()))
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -364,9 +379,17 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
+	}
+
+	if c.Session.UserId != originalPost.UserId {
+		if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+			return
+		}
 	}
 
 	post.Id = c.Params.PostId
@@ -398,9 +421,17 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
+	}
+
+	if c.Session.UserId != originalPost.UserId {
+		if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+			return
+		}
 	}
 
 	patchedPost, err := c.App.PatchPost(c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(post))

@@ -137,9 +137,7 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["GoogleOAuth"] = strconv.FormatBool(*l.Features.GoogleOAuth)
 		props["Office365OAuth"] = strconv.FormatBool(*l.Features.Office365OAuth)
 		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
-		props["CustomBrand"] = strconv.FormatBool(*l.Features.CustomBrand)
 		props["MHPNS"] = strconv.FormatBool(*l.Features.MHPNS)
-		props["PasswordRequirements"] = strconv.FormatBool(*l.Features.PasswordRequirements)
 		props["Announcement"] = strconv.FormatBool(*l.Features.Announcement)
 		props["Elasticsearch"] = strconv.FormatBool(*l.Features.Elasticsearch)
 		props["DataRetention"] = strconv.FormatBool(*l.Features.DataRetention)
@@ -152,6 +150,7 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["PhoneNumber"] = l.Customer.PhoneNumber
 		props["EmailNotificationContents"] = strconv.FormatBool(*l.Features.EmailNotificationContents)
 		props["MessageExport"] = strconv.FormatBool(*l.Features.MessageExport)
+		props["CustomPermissionsSchemes"] = strconv.FormatBool(*l.Features.CustomPermissionsSchemes)
 	}
 
 	return props

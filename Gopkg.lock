@@ -44,12 +44,6 @@
   revision = "fd153d5969d30bd701e10f3530228f001213047c"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/dimchansky/utfbom"
-  packages = ["."]
-  revision = "6c6132ff69f0f6c088739067407b5d32c52e1d0f"
-
-[[projects]]
   name = "github.com/disintegration/imaging"
   packages = ["."]
   revision = "bbcee2f5c9d5e94ca42c8b50ec847fec64a6c134"
@@ -234,6 +228,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/jaytaylor/html2text"
+  packages = ["."]
+  revision = "64a82a6d140778896f13303121a49d8cb8007034"
+
+[[projects]]
+  branch = "master"
   name = "github.com/jehiah/go-strftime"
   packages = ["."]
   revision = "1d33003b386959af197ba96475f198c114627b5e"
@@ -272,12 +272,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/mattermost/html2text"
-  packages = ["."]
-  revision = "d47a5532a7bc36ad7b2b8ec3eebe24e975154f94"
-
-[[projects]]
-  branch = "master"
   name = "github.com/mattermost/rsc"
   packages = [
     "gf256",
@@ -285,6 +279,12 @@
     "qr/coding"
   ]
   revision = "bbaefb05eaa0389ea712340066837c8ce4d287f9"
+
+[[projects]]
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
 
 [[projects]]
   name = "github.com/mattn/go-sqlite3"
@@ -339,6 +339,12 @@
   ]
   revision = "0dc1626d56435e9d605a29875701721c54bc9bbd"
   version = "v1.10.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/olekukonko/tablewriter"
+  packages = ["."]
+  revision = "d4647c9c7a84d847478d890b816b7d8b62b0b279"
 
 [[projects]]
   name = "github.com/pborman/uuid"
@@ -468,10 +474,16 @@
 
 [[projects]]
   branch = "env-settings"
-  name = "github.com/spf13/viper"
+  name = "github.com/mattermost/viper"
   packages = ["."]
   revision = "4f5003aa93559718c866d86fbc795439079484f5"
   source = "https://github.com/mattermost/viper"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/ssor/bom"
+  packages = ["."]
+  revision = "6386211fdfcf24c0bfbdaceafd02849ed9a8a509"
 
 [[projects]]
   name = "github.com/stretchr/objx"
@@ -673,6 +685,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2c81384fe2861bebdef3a2e44059201880756a17e630bc44f592b9f0f5d9fac8"
+  inputs-digest = "463ec98eba9cac751c2702ca1ecae98740d7dd9a1dc8b615b484ea4bdb41f6b5"
   solver-name = "gps-cdcl"
   solver-version = 1

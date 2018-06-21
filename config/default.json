@@ -63,7 +63,9 @@
         "ImageProxyType": "",
         "ImageProxyOptions": "",
         "ImageProxyURL": "",
-        "EnableAPITeamDeletion": false
+        "EnableAPITeamDeletion": false,
+        "ExperimentalEnableHardenedMode": false,
+        "ExperimentalLimitClientConfig": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -71,6 +73,7 @@
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
         "EnableOpenServer": false,
+        "EnableUserDeactivation": false,
         "RestrictCreationToDomains": "",
         "EnableCustomBrand": false,
         "CustomBrandText": "",
@@ -91,10 +94,12 @@
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
         "ExperimentalEnableAutomaticReplies": false,
+        "ExperimentalHideTownSquareinLHS": false,
         "ExperimentalTownSquareIsReadOnly": false,
         "ExperimentalPrimaryTeam": ""
     },
     "DisplaySettings": {
+        "CustomUrlSchemes": [],
         "ExperimentalTimezone": false
     },
     "ClientRequirements": {
@@ -177,6 +182,7 @@
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,
+        "EnablePreviewModeBanner": true,
         "SkipServerCertificateVerification": false,
         "EmailNotificationContentsType": "full",
         "LoginButtonColor": "",
@@ -322,12 +328,19 @@
         "UseExperimentalGossip": false,
         "ReadOnlyConfig": true,
         "GossipPort": 8074,
-        "StreamingPort": 8075
+        "StreamingPort": 8075,
+        "MaxIdleConns": 100,
+        "MaxIdleConnsPerHost": 128,
+        "IdleConnTimeoutMilliseconds": 90000
     },
     "MetricsSettings": {
         "Enable": false,
         "BlockProfileRate": 0,
         "ListenAddress": ":8067"
+    },
+    "ExperimentalSettings": {
+        "ClientSideCertEnable": false,
+        "ClientSideCertCheck": "secondary"
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500

@@ -91,6 +91,10 @@ func (a *App) ClientConfigHash() string {
 	return a.clientConfigHash
 }
 
+func (a *App) LimitedClientConfig() map[string]string {
+	return a.limitedClientConfig
+}
+
 func (a *App) EnableConfigWatch() {
 	if a.configWatcher == nil && !a.disableConfigWatch {
 		configWatcher, err := utils.NewConfigWatcher(a.ConfigFileName(), func() {
@@ -211,10 +215,14 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
 		a.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
+
 	clientConfigJSON, _ := json.Marshal(a.clientConfig)
 	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
@@ -288,6 +296,20 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
 	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
+
+	return respCfg
+}
+
+// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *App) LimitedClientConfigWithComputed() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range a.LimitedClientConfig() {
+		respCfg[k] = v
+	}
+
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
 
 	return respCfg
 }

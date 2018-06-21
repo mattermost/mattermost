@@ -107,6 +107,13 @@ func (watcher *Watcher) PollAndNotify() {
 					default:
 					}
 				}
+			} else if job.Type == model.JOB_TYPE_MIGRATIONS {
+				if watcher.workers.Migrations != nil {
+					select {
+					case watcher.workers.Migrations.JobChannel() <- *job:
+					default:
+					}
+				}
 			}
 		}
 	}

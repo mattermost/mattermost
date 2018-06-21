@@ -32,7 +32,7 @@ func (a *App) CreateDefaultChannels(teamId string) ([]*model.Channel, *model.App
 	return channels, nil
 }
 
-func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole string, userRequestorId string) *model.AppError {
+func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
 	var err *model.AppError = nil
 
 	var requestor *model.User
@@ -52,7 +52,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 		cm := &model.ChannelMember{
 			ChannelId:   townSquare.Id,
 			UserId:      user.Id,
-			Roles:       channelRole,
+			SchemeUser:  true,
+			SchemeAdmin: shouldBeAdmin,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
 
@@ -85,7 +86,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 		cm := &model.ChannelMember{
 			ChannelId:   offTopic.Id,
 			UserId:      user.Id,
-			Roles:       channelRole,
+			SchemeUser:  true,
+			SchemeAdmin: shouldBeAdmin,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
 
@@ -166,7 +168,8 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			cm := &model.ChannelMember{
 				ChannelId:   sc.Id,
 				UserId:      channel.CreatorId,
-				Roles:       model.CHANNEL_USER_ROLE_ID + " " + model.CHANNEL_ADMIN_ROLE_ID,
+				SchemeUser:  true,
+				SchemeAdmin: true,
 				NotifyProps: model.GetDefaultChannelNotifyProps(),
 			}
 
@@ -322,7 +325,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 				UserId:      user.Id,
 				ChannelId:   group.Id,
 				NotifyProps: model.GetDefaultChannelNotifyProps(),
-				Roles:       model.CHANNEL_USER_ROLE_ID,
+				SchemeUser:  true,
 			}
 
 			if result := <-a.Srv.Store.Channel().SaveMember(cm); result.Err != nil {
@@ -351,6 +354,23 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	}
 }
 
+func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+	var oldChannel *model.Channel
+	var err *model.AppError
+	if oldChannel, err = a.GetChannel(channel.Id); err != nil {
+		return nil, err
+	}
+
+	oldChannel.SchemeId = channel.SchemeId
+
+	newChannel, err := a.UpdateChannel(oldChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return newChannel, nil
+}
+
 func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
 	if channel, err := a.UpdateChannel(oldChannel); err != nil {
 		return channel, err
@@ -365,6 +385,12 @@ func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) 
 			a.UpdateChannel(channel)
 			return channel, err
 		}
+
+		a.InvalidateCacheForChannel(channel)
+
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_CONVERTED, channel.TeamId, "", "", nil)
+		messageWs.Add("channel_id", channel.Id)
+		a.Publish(messageWs)
 
 		return channel, nil
 	}
@@ -432,6 +458,39 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 	return channel, err
 }
 
+func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, *model.AppError) {
+	var channel *model.Channel
+	var err *model.AppError
+
+	if channel, err = a.GetChannel(channelId); err != nil {
+		return "", "", err
+	}
+
+	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+		if scheme, err := a.GetScheme(*channel.SchemeId); err != nil {
+			return "", "", err
+		} else {
+			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+		}
+	}
+
+	var team *model.Team
+
+	if team, err = a.GetTeam(channel.TeamId); err != nil {
+		return "", "", err
+	}
+
+	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
+		if scheme, err := a.GetScheme(*team.SchemeId); err != nil {
+			return "", "", err
+		} else {
+			return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+		}
+	}
+
+	return model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, nil
+}
+
 func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
@@ -439,14 +498,66 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
-	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+	schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(channelId)
+	if err != nil {
 		return nil, err
 	}
 
-	member.Roles = newRoles
+	var newExplicitRoles []string
+	member.SchemeUser = false
+	member.SchemeAdmin = false
+
+	for _, roleName := range strings.Fields(newRoles) {
+		if role, err := a.GetRoleByName(roleName); err != nil {
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		} else if !role.SchemeManaged {
+			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
+			newExplicitRoles = append(newExplicitRoles, roleName)
+		} else {
+			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
+			switch roleName {
+			case schemeAdminRole:
+				member.SchemeAdmin = true
+			case schemeUserRole:
+				member.SchemeUser = true
+			default:
+				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
+				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+			}
+		}
+	}
+
+	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
 	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {
 		return nil, result.Err
+	} else {
+		member = result.Data.(*model.ChannelMember)
+	}
+
+	a.InvalidateCacheForUser(userId)
+	return member, nil
+}
+
+func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+	member, err := a.GetChannelMember(channelId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	member.SchemeAdmin = isSchemeAdmin
+	member.SchemeUser = isSchemeUser
+
+	// If the migration is not completed, we also need to check the default channel_admin/channel_user roles are not present in the roles field.
+	if err = a.IsPhase2MigrationCompleted(); err != nil {
+		member.ExplicitRoles = RemoveRoles([]string{model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID}, member.ExplicitRoles)
+	}
+
+	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {
+		return nil, result.Err
+	} else {
+		member = result.Data.(*model.ChannelMember)
 	}
 
 	a.InvalidateCacheForUser(userId)
@@ -591,7 +702,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.CHANNEL_USER_ROLE_ID,
+		SchemeUser:  true,
 	}
 	if result := <-a.Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
 		mlog.Error(fmt.Sprintf("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err), mlog.String("user_id", user.Id))

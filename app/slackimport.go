@@ -157,7 +157,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 		if email == "" {
 			email = sUser.Username + "@example.com"
 			importerLog.WriteString(utils.T("api.slackimport.slack_add_users.missing_email_address", map[string]interface{}{"Email": email, "Username": sUser.Username}))
-			mlog.Warn("Slack Import: User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.")
+			mlog.Warn(fmt.Sprintf("Slack Import: User %v does not have an email address in the Slack export. Used %v as a placeholder. The user should update their email address once logged in to the system.", email, sUser.Username))
 		}
 
 		password := model.NewId()
@@ -396,7 +396,7 @@ func (a *App) SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, tea
 		if file, ok := uploads[sPost.File.Id]; ok {
 			openFile, err := file.Open()
 			if err != nil {
-				mlog.Warn("Slack Import: Unable to open the file {{.FileId}} from the Slack export: {{.Error}}.")
+				mlog.Warn(fmt.Sprintf("Slack Import: Unable to open the file %v from the Slack export: %v.", sPost.File.Id, err.Error()))
 				return nil, false
 			}
 			defer openFile.Close()
@@ -404,13 +404,13 @@ func (a *App) SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, tea
 			timestamp := utils.TimeFromMillis(SlackConvertTimeStamp(sPost.TimeStamp))
 			uploadedFile, err := a.OldImportFile(timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
 			if err != nil {
-				mlog.Warn("Slack Import: An error occurred when uploading file {{.FileId}}: {{.Error}}.")
+				mlog.Warn(fmt.Sprintf("Slack Import: An error occurred when uploading file %v: %v.", sPost.File.Id, err.Error()))
 				return nil, false
 			}
 
 			return uploadedFile, true
 		} else {
-			mlog.Warn("Slack Import: Unable to import file {{.FileId}} as the file is missing from the Slack export zip file.")
+			mlog.Warn(fmt.Sprintf("Slack Import: Unable to import file %v as the file is missing from the Slack export zip file.", sPost.File.Id))
 			return nil, false
 		}
 	} else {
@@ -440,22 +440,22 @@ func (a *App) addSlackUsersToChannel(members []string, users map[string]*model.U
 
 func SlackSanitiseChannelProperties(channel model.Channel) model.Channel {
 	if utf8.RuneCountInString(channel.DisplayName) > model.CHANNEL_DISPLAY_NAME_MAX_RUNES {
-		mlog.Warn(fmt.Sprint("api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn", map[string]interface{}{"ChannelName": channel.DisplayName}))
+		mlog.Warn(fmt.Sprintf("Slack Import: Channel %v display name exceeds the maximum length. It will be truncated when imported.", channel.DisplayName))
 		channel.DisplayName = truncateRunes(channel.DisplayName, model.CHANNEL_DISPLAY_NAME_MAX_RUNES)
 	}
 
 	if len(channel.Name) > model.CHANNEL_NAME_MAX_LENGTH {
-		mlog.Warn(fmt.Sprint("api.slackimport.slack_sanitise_channel_properties.name_too_long.warn", map[string]interface{}{"ChannelName": channel.DisplayName}))
+		mlog.Warn(fmt.Sprintf("Slack Import: Channel %v handle exceeds the maximum length. It will be truncated when imported.", channel.DisplayName))
 		channel.Name = channel.Name[0:model.CHANNEL_NAME_MAX_LENGTH]
 	}
 
 	if utf8.RuneCountInString(channel.Purpose) > model.CHANNEL_PURPOSE_MAX_RUNES {
-		mlog.Warn(fmt.Sprint("api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn", map[string]interface{}{"ChannelName": channel.DisplayName}))
+		mlog.Warn(fmt.Sprintf("Slack Import: Channel %v purpose exceeds the maximum length. It will be truncated when imported.", channel.DisplayName))
 		channel.Purpose = truncateRunes(channel.Purpose, model.CHANNEL_PURPOSE_MAX_RUNES)
 	}
 
 	if utf8.RuneCountInString(channel.Header) > model.CHANNEL_HEADER_MAX_RUNES {
-		mlog.Warn(fmt.Sprint("api.slackimport.slack_sanitise_channel_properties.header_too_long.warn", map[string]interface{}{"ChannelName": channel.DisplayName}))
+		mlog.Warn(fmt.Sprintf("Slack Import: Channel %v header exceeds the maximum length. It will be truncated when imported.", channel.DisplayName))
 		channel.Header = truncateRunes(channel.Header, model.CHANNEL_HEADER_MAX_RUNES)
 	}
 
@@ -514,7 +514,7 @@ func SlackConvertUserMentions(users []SlackUser, posts map[string][]SlackPost) m
 	for _, user := range users {
 		r, err := regexp.Compile("<@" + user.Id + `(\|` + user.Username + ")?>")
 		if err != nil {
-			mlog.Warn(fmt.Sprint("Slack Import: Unable to compile the @mention, matching regular expression for the Slack user {{.Username}} (id={{.UserID}}).", user.Id, user.Username), mlog.String("user_id", user.Id))
+			mlog.Warn(fmt.Sprintf("Slack Import: Unable to compile the @mention, matching regular expression for the Slack user %v (id=%v).", user.Id, user.Username), mlog.String("user_id", user.Id))
 			continue
 		}
 		regexes["@"+user.Username] = r
@@ -542,7 +542,7 @@ func SlackConvertChannelMentions(channels []SlackChannel, posts map[string][]Sla
 	for _, channel := range channels {
 		r, err := regexp.Compile("<#" + channel.Id + `(\|` + channel.Name + ")?>")
 		if err != nil {
-			mlog.Warn(fmt.Sprint("Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel {{.ChannelName}} (id={{.ChannelID}}).", channel.Id, channel.Name))
+			mlog.Warn(fmt.Sprintf("Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel %v (id=%v).", channel.Id, channel.Name))
 			continue
 		}
 		regexes["~"+channel.Name] = r
