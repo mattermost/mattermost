@@ -473,10 +473,10 @@
   version = "v1.0.1"
 
 [[projects]]
-  branch = "env-settings"
+  branch = "mattermost"
   name = "github.com/mattermost/viper"
   packages = ["."]
-  revision = "4f5003aa93559718c866d86fbc795439079484f5"
+  revision = "1b00ce64485c7a2449f239de3cbc9040a9c46aa0"
   source = "https://github.com/mattermost/viper"
 
 [[projects]]
