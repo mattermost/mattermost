@@ -3447,6 +3447,14 @@
     "translation": "Import data line has type \"channel\" but the channel object is null."
   },
   {
+    "id": "app.import.import_line.null_scheme.error",
+    "translation": "Import data line has type \"scheme\" but the scheme object is null."
+  },
+  {
+    "id": "app.import.import_scheme.scope_change.error",
+    "translation": "The bulk importer cannot change the scope of an already-existing scheme."
+  },
+  {
     "id": "app.import.import_line.null_direct_channel.error",
     "translation": "Import data line has type \"direct_channel\" but the direct_channel object is null."
   },
@@ -3465,6 +3473,70 @@
   {
     "id": "app.import.import_line.null_user.error",
     "translation": "Import data line has type \"user\" but the user object is null."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.null_scope.error",
+    "translation": "Scheme scope is required."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
+    "translation": "The wrong roles were provided for a scheme with this scope."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
+    "translation": "Unknown scheme scope."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "Invalid scheme name."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "Invalid scheme display name."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "Invalid scheme description."
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "Invalid role name."
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "Invalid role display name."
+  },
+  {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "Invalid role description."
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "Invalid permission on role."
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "Invalid scheme name for team."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.scheme_invalid.error",
+    "translation": "Invalid scheme name for channel."
+  },
+  {
+    "id": "app.import.import_team.scheme_deleted.error",
+    "translation": "Cannot set a team to use a deleted scheme."
+  },
+  {
+    "id": "app.import.import_team.scheme_wrong_scope.error",
+    "translation": "Team must be assigned to a Team-scoped scheme."
+  },
+  {
+    "id": "app.import.import_channel.scheme_deleted.error",
+    "translation": "Cannot set a channel to use a deleted scheme."
+  },
+  {
+    "id": "app.import.import_channel.scheme_wrong_scope.error",
+    "translation": "Channel must be assigned to a Channel-scoped scheme."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",

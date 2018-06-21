@@ -179,6 +179,42 @@ func testSchemeStoreGet(t *testing.T, ss store.Store) {
 	assert.NotNil(t, res3.Err)
 }
 
+func testSchemeStoreGetByName(t *testing.T, ss store.Store) {
+	// Save a scheme to test with.
+	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+
+	res1 := <-ss.Scheme().Save(s1)
+	assert.Nil(t, res1.Err)
+	d1 := res1.Data.(*model.Scheme)
+	assert.Len(t, d1.Id, 26)
+
+	// Get a valid scheme
+	res2 := <-ss.Scheme().GetByName(d1.Name)
+	assert.Nil(t, res2.Err)
+	d2 := res1.Data.(*model.Scheme)
+	assert.Equal(t, d1.Id, d2.Id)
+	assert.Equal(t, s1.DisplayName, d2.DisplayName)
+	assert.Equal(t, s1.Name, d2.Name)
+	assert.Equal(t, d1.Description, d2.Description)
+	assert.NotZero(t, d2.CreateAt)
+	assert.NotZero(t, d2.UpdateAt)
+	assert.Zero(t, d2.DeleteAt)
+	assert.Equal(t, s1.Scope, d2.Scope)
+	assert.Equal(t, d1.DefaultTeamAdminRole, d2.DefaultTeamAdminRole)
+	assert.Equal(t, d1.DefaultTeamUserRole, d2.DefaultTeamUserRole)
+	assert.Equal(t, d1.DefaultChannelAdminRole, d2.DefaultChannelAdminRole)
+	assert.Equal(t, d1.DefaultChannelUserRole, d2.DefaultChannelUserRole)
+
+	// Get an invalid scheme
+	res3 := <-ss.Scheme().GetByName(model.NewId())
+	assert.NotNil(t, res3.Err)
+}
+
 func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
 	// Save a scheme to test with.
 	schemes := []*model.Scheme{

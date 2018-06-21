@@ -26,6 +26,7 @@ import (
 
 type LineImportData struct {
 	Type          string                   `json:"type"`
+	Scheme        *SchemeImportData        `json:"scheme"`
 	Team          *TeamImportData          `json:"team"`
 	Channel       *ChannelImportData       `json:"channel"`
 	User          *UserImportData          `json:"user"`
@@ -41,6 +42,7 @@ type TeamImportData struct {
 	Type            *string `json:"type"`
 	Description     *string `json:"description"`
 	AllowOpenInvite *bool   `json:"allow_open_invite"`
+	Scheme          *string `json:"scheme"`
 }
 
 type ChannelImportData struct {
@@ -50,6 +52,7 @@ type ChannelImportData struct {
 	Type        *string `json:"type"`
 	Header      *string `json:"header"`
 	Purpose     *string `json:"purpose"`
+	Scheme      *string `json:"scheme"`
 }
 
 type UserImportData struct {
@@ -157,6 +160,24 @@ type DirectPostImportData struct {
 	FlaggedBy *[]string             `json:"flagged_by"`
 	Reactions *[]ReactionImportData `json:"reactions"`
 	Replies   *[]ReplyImportData    `json:"replies"`
+}
+
+type SchemeImportData struct {
+	Name                    *string         `json:"name"`
+	DisplayName             *string         `json:"display_name"`
+	Description             *string         `json:"description"`
+	Scope                   *string         `json:"scope"`
+	DefaultTeamAdminRole    *RoleImportData `json:"default_team_admin_role"`
+	DefaultTeamUserRole     *RoleImportData `json:"default_team_user_role"`
+	DefaultChannelAdminRole *RoleImportData `json:"default_channel_admin_role"`
+	DefaultChannelUserRole  *RoleImportData `json:"default_channel_user_role"`
+}
+
+type RoleImportData struct {
+	Name        *string   `json:"name"`
+	DisplayName *string   `json:"display_name"`
+	Description *string   `json:"description"`
+	Permissions *[]string `json:"permissions"`
 }
 
 type LineImportWorkerData struct {
@@ -271,6 +292,12 @@ func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError
 
 func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
 	switch {
+	case line.Type == "scheme":
+		if line.Scheme == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_scheme.error", nil, "", http.StatusBadRequest)
+		} else {
+			return a.ImportScheme(line.Scheme, dryRun)
+		}
 	case line.Type == "team":
 		if line.Team == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_team.error", nil, "", http.StatusBadRequest)
@@ -312,6 +339,205 @@ func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
 	}
 }
 
+func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError {
+	if err := validateSchemeImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	scheme, err := a.GetSchemeByName(*data.Name)
+	if err != nil {
+		scheme = new(model.Scheme)
+	} else if scheme.Scope != *data.Scope {
+		return model.NewAppError("BulkImport", "app.import.import_scheme.scope_change.error", map[string]interface{}{"SchemeName": scheme.Name}, "", http.StatusBadRequest)
+	}
+
+	scheme.Name = *data.Name
+	scheme.DisplayName = *data.DisplayName
+	scheme.Scope = *data.Scope
+
+	if data.Description != nil {
+		scheme.Description = *data.Description
+	}
+
+	if len(scheme.Id) == 0 {
+		scheme, err = a.CreateScheme(scheme)
+	} else {
+		scheme, err = a.UpdateScheme(scheme)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
+		data.DefaultTeamAdminRole.Name = &scheme.DefaultTeamAdminRole
+		if err := a.ImportRole(data.DefaultTeamAdminRole, dryRun, true); err != nil {
+			return err
+		}
+
+		data.DefaultTeamUserRole.Name = &scheme.DefaultTeamUserRole
+		if err := a.ImportRole(data.DefaultTeamUserRole, dryRun, true); err != nil {
+			return err
+		}
+	}
+
+	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
+		data.DefaultChannelAdminRole.Name = &scheme.DefaultChannelAdminRole
+		if err := a.ImportRole(data.DefaultChannelAdminRole, dryRun, true); err != nil {
+			return err
+		}
+
+		data.DefaultChannelUserRole.Name = &scheme.DefaultChannelUserRole
+		if err := a.ImportRole(data.DefaultChannelUserRole, dryRun, true); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *App) ImportRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
+	if !isSchemeRole {
+		if err := validateRoleImportData(data); err != nil {
+			return err
+		}
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	role, err := a.GetRoleByName(*data.Name)
+	if err != nil {
+		role = new(model.Role)
+	}
+
+	role.Name = *data.Name
+
+	if data.DisplayName != nil {
+		role.DisplayName = *data.DisplayName
+	}
+
+	if data.Description != nil {
+		role.Description = *data.Description
+	}
+
+	if data.Permissions != nil {
+		role.Permissions = *data.Permissions
+	}
+
+	if isSchemeRole {
+		role.SchemeManaged = true
+	} else {
+		role.SchemeManaged = false
+	}
+
+	if len(role.Id) == 0 {
+		role, err = a.CreateRole(role)
+	} else {
+		role, err = a.UpdateRole(role)
+	}
+
+	return err
+}
+
+func validateSchemeImportData(data *SchemeImportData) *model.AppError {
+
+	if data.Scope == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.null_scope.error", nil, "", http.StatusBadRequest)
+	}
+
+	switch *data.Scope {
+	case model.SCHEME_SCOPE_TEAM:
+		if data.DefaultTeamAdminRole == nil || data.DefaultTeamUserRole == nil || data.DefaultChannelAdminRole == nil || data.DefaultChannelUserRole == nil {
+			return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.wrong_roles_for_scope.error", nil, "", http.StatusBadRequest)
+		}
+	case model.SCHEME_SCOPE_CHANNEL:
+		if data.DefaultTeamAdminRole != nil || data.DefaultTeamUserRole != nil || data.DefaultChannelAdminRole == nil || data.DefaultChannelUserRole == nil {
+			return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.wrong_roles_for_scope.error", nil, "", http.StatusBadRequest)
+		}
+	default:
+		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.unknown_scheme.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Name == nil || !model.IsValidSchemeName(*data.Name) {
+		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.DisplayName == nil || len(*data.DisplayName) == 0 || len(*data.DisplayName) > model.SCHEME_DISPLAY_NAME_MAX_LENGTH {
+		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.display_name_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Description != nil && len(*data.Description) > model.SCHEME_DESCRIPTION_MAX_LENGTH {
+		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.description_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.DefaultTeamAdminRole != nil {
+		if err := validateRoleImportData(data.DefaultTeamAdminRole); err != nil {
+			return err
+		}
+	}
+
+	if data.DefaultTeamUserRole != nil {
+		if err := validateRoleImportData(data.DefaultTeamUserRole); err != nil {
+			return err
+		}
+	}
+
+	if data.DefaultChannelAdminRole != nil {
+		if err := validateRoleImportData(data.DefaultChannelAdminRole); err != nil {
+			return err
+		}
+	}
+
+	if data.DefaultChannelUserRole != nil {
+		if err := validateRoleImportData(data.DefaultChannelUserRole); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateRoleImportData(data *RoleImportData) *model.AppError {
+
+	if data.Name == nil || !model.IsValidRoleName(*data.Name) {
+		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.DisplayName == nil || len(*data.DisplayName) == 0 || len(*data.DisplayName) > model.ROLE_DISPLAY_NAME_MAX_LENGTH {
+		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.display_name_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Description != nil && len(*data.Description) > model.ROLE_DESCRIPTION_MAX_LENGTH {
+		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.description_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Permissions != nil {
+		for _, permission := range *data.Permissions {
+			permissionValidated := false
+			for _, p := range model.ALL_PERMISSIONS {
+				if permission == p.Id {
+					permissionValidated = true
+					break
+				}
+			}
+
+			if !permissionValidated {
+				return model.NewAppError("BulkImport", "app.import.validate_role_import_data.invalid_permission.error", nil, "permission"+permission, http.StatusBadRequest)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 	if err := validateTeamImportData(data); err != nil {
 		return err
@@ -341,12 +567,29 @@ func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 		team.AllowOpenInvite = *data.AllowOpenInvite
 	}
 
+	if data.Scheme != nil {
+		scheme, err := a.GetSchemeByName(*data.Scheme)
+		if err != nil {
+			return err
+		}
+
+		if scheme.DeleteAt != 0 {
+			return model.NewAppError("BulkImport", "app.import.import_team.scheme_deleted.error", nil, "", http.StatusBadRequest)
+		}
+
+		if scheme.Scope != model.SCHEME_SCOPE_TEAM {
+			return model.NewAppError("BulkImport", "app.import.import_team.scheme_wrong_scope.error", nil, "", http.StatusBadRequest)
+		}
+
+		team.SchemeId = &scheme.Id
+	}
+
 	if team.Id == "" {
 		if _, err := a.CreateTeam(team); err != nil {
 			return err
 		}
 	} else {
-		if _, err := a.UpdateTeam(team); err != nil {
+		if _, err := a.updateTeamUnsanitized(team); err != nil {
 			return err
 		}
 	}
@@ -380,6 +623,10 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 
 	if data.Description != nil && len(*data.Description) > model.TEAM_DESCRIPTION_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.description_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Scheme != nil && !model.IsValidSchemeName(*data.Scheme) {
+		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.scheme_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -420,6 +667,23 @@ func (a *App) ImportChannel(data *ChannelImportData, dryRun bool) *model.AppErro
 
 	if data.Purpose != nil {
 		channel.Purpose = *data.Purpose
+	}
+
+	if data.Scheme != nil {
+		scheme, err := a.GetSchemeByName(*data.Scheme)
+		if err != nil {
+			return err
+		}
+
+		if scheme.DeleteAt != 0 {
+			return model.NewAppError("BulkImport", "app.import.import_channel.scheme_deleted.error", nil, "", http.StatusBadRequest)
+		}
+
+		if scheme.Scope != model.SCHEME_SCOPE_CHANNEL {
+			return model.NewAppError("BulkImport", "app.import.import_channel.scheme_wrong_scope.error", nil, "", http.StatusBadRequest)
+		}
+
+		channel.SchemeId = &scheme.Id
 	}
 
 	if channel.Id == "" {
@@ -467,6 +731,10 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 
 	if data.Purpose != nil && utf8.RuneCountInString(*data.Purpose) > model.CHANNEL_PURPOSE_MAX_RUNES {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.purpose_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Scheme != nil && !model.IsValidSchemeName(*data.Scheme) {
+		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.scheme_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
