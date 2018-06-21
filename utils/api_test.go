@@ -18,6 +18,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestRenderWebError(t *testing.T) {
@@ -25,7 +27,7 @@ func TestRenderWebError(t *testing.T) {
 	w := httptest.NewRecorder()
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
-	RenderWebError(w, r, http.StatusTemporaryRedirect, url.Values{
+	RenderWebError(&model.Config{}, w, r, http.StatusTemporaryRedirect, url.Values{
 		"foo": []string{"bar"},
 	}, key)
 

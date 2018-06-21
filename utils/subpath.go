@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package web
+package utils
 
 import (
 	"crypto/sha256"
@@ -19,7 +19,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 // UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
@@ -29,7 +28,7 @@ func UpdateAssetsSubpath(subpath string) error {
 		subpath = "/"
 	}
 
-	staticDir, found := utils.FindDir(model.CLIENT_DIR)
+	staticDir, found := FindDir(model.CLIENT_DIR)
 	if !found {
 		return errors.New("failed to find client dir")
 	}
@@ -121,10 +120,29 @@ func UpdateAssetsSubpathFromConfig(config *model.Config) error {
 		return nil
 	}
 
-	u, err := url.Parse(*config.ServiceSettings.SiteURL)
+	subpath, err := GetSubpathFromConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse SiteURL from config")
+		return err
 	}
 
-	return UpdateAssetsSubpath(u.Path)
+	return UpdateAssetsSubpath(subpath)
+}
+
+func GetSubpathFromConfig(config *model.Config) (string, error) {
+	if config == nil {
+		return "", errors.New("no config provided")
+	} else if config.ServiceSettings.SiteURL == nil {
+		return "/", nil
+	}
+
+	u, err := url.Parse(*config.ServiceSettings.SiteURL)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to parse SiteURL from config")
+	}
+
+	if u.Path == "" {
+		return "/", nil
+	}
+
+	return path.Clean(u.Path), nil
 }
