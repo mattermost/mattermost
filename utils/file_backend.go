@@ -13,6 +13,7 @@ import (
 type FileBackend interface {
 	TestConnection() *model.AppError
 
+	Reader(path string) (io.ReadCloser, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	CopyFile(oldPath, newPath string) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError

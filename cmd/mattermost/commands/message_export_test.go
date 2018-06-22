@@ -24,7 +24,7 @@ func TestMessageExportNotEnabled(t *testing.T) {
 	defer os.RemoveAll(filepath.Dir(configPath))
 
 	// should fail fast because the feature isn't enabled
-	require.Error(t, RunCommand(t, "--config", configPath, "export"))
+	require.Error(t, RunCommand(t, "--config", configPath, "export", "schedule"))
 }
 
 func TestMessageExportInvalidFormat(t *testing.T) {
@@ -32,7 +32,7 @@ func TestMessageExportInvalidFormat(t *testing.T) {
 	defer os.RemoveAll(filepath.Dir(configPath))
 
 	// should fail fast because format isn't supported
-	require.Error(t, RunCommand(t, "--config", configPath, "--format", "not_actiance", "export"))
+	require.Error(t, RunCommand(t, "--config", configPath, "--format", "not_actiance", "export", "schedule"))
 }
 
 func TestMessageExportNegativeExportFrom(t *testing.T) {
@@ -40,7 +40,7 @@ func TestMessageExportNegativeExportFrom(t *testing.T) {
 	defer os.RemoveAll(filepath.Dir(configPath))
 
 	// should fail fast because export from must be a valid timestamp
-	require.Error(t, RunCommand(t, "--config", configPath, "--format", "actiance", "--exportFrom", "-1", "export"))
+	require.Error(t, RunCommand(t, "--config", configPath, "--format", "actiance", "--exportFrom", "-1", "export", "schedule"))
 }
 
 func TestMessageExportNegativeTimeoutSeconds(t *testing.T) {
@@ -48,7 +48,7 @@ func TestMessageExportNegativeTimeoutSeconds(t *testing.T) {
 	defer os.RemoveAll(filepath.Dir(configPath))
 
 	// should fail fast because timeout seconds must be a positive int
-	require.Error(t, RunCommand(t, "--config", configPath, "--format", "actiance", "--exportFrom", "0", "--timeoutSeconds", "-1", "export"))
+	require.Error(t, RunCommand(t, "--config", configPath, "--format", "actiance", "--exportFrom", "0", "--timeoutSeconds", "-1", "export", "schedule"))
 }
 
 func writeTempConfig(t *testing.T, isMessageExportEnabled bool) string {

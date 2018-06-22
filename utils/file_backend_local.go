@@ -33,6 +33,14 @@ func (b *LocalFileBackend) TestConnection() *model.AppError {
 	return nil
 }
 
+func (b *LocalFileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
+	if f, err := os.Open(filepath.Join(b.directory, path)); err != nil {
+		return nil, model.NewAppError("Reader", "api.file.reader.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		return f, nil
+	}
+}
+
 func (b *LocalFileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	if f, err := ioutil.ReadFile(filepath.Join(b.directory, path)); err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)

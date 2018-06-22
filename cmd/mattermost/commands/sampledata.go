@@ -56,7 +56,7 @@ func sliceIncludes(vs []string, t string) bool {
 func randomPastTime(seconds int) int64 {
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.FixedZone("UTC", 0))
-	return today.Unix() - int64(rand.Intn(seconds*1000))
+	return (today.Unix() * 1000) - int64(rand.Intn(seconds*1000))
 }
 
 func randomEmoji() string {

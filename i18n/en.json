@@ -1046,11 +1046,19 @@
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
-    "translation": "Encountered an error reading from local server storage"
+    "translation": "Encountered an error reading from local server file storage"
   },
   {
     "id": "api.file.read_file.s3.app_error",
-    "translation": ""
+    "translation": "Encountered an error reading from S3 storage"
+  },
+  {
+    "id": "api.file.reader.reading_local.app_error",
+    "translation": "Encountered an error opening a reader from local server file storage"
+  },
+  {
+    "id": "api.file.reader.s3.app_error",
+    "translation": "Encountered an error opening a reader from S3 storage"
   },
   {
     "id": "api.file.test_connection.local.connection.app_error",
@@ -3580,27 +3588,27 @@
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
-    "translation": ""
+    "translation": "Unknown output format {{.ExportType}}"
   },
   {
     "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": ""
+    "translation": "Unable to copy the attachment into the zip file."
   },
   {
     "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": ""
+    "translation": "Unable to add attachment to the CSV export."
   },
   {
     "id": "ent.compliance.csv.file.creation.appError",
-    "translation": ""
+    "translation": "Unable to create temporary CSV export file."
   },
   {
     "id": "ent.compliance.csv.header.export.appError",
-    "translation": ""
+    "translation": "Unable to add header to the CSV export."
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": ""
+    "translation": "Unable to add metadata file to the zip file."
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
@@ -4444,7 +4452,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+    "translation": "Message export job ExportFormat must be one of 'actiance', 'csv' or 'globalrelay'"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
