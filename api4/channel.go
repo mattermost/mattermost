@@ -209,13 +209,20 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rchannel, err := c.App.PatchChannel(oldChannel, patch, c.Session.UserId); err != nil {
+	rchannel, err := c.App.PatchChannel(oldChannel, patch, c.Session.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		c.LogAudit("")
-		w.Write([]byte(rchannel.ToJson()))
 	}
+
+	err = c.App.FillInChannelProps(rchannel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	w.Write([]byte(rchannel.ToJson()))
 }
 
 func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
