@@ -15,21 +15,48 @@ import (
 )
 
 var MessageExportCmd = &cobra.Command{
-	Use:     "export",
-	Short:   "Export data from Mattermost",
-	Long:    "Export data from Mattermost in a format suitable for import into a third-party application",
-	Example: "export --format=actiance --exportFrom=12345",
-	RunE:    messageExportCmdF,
+	Use:   "export",
+	Short: "Export data from Mattermost",
+	Long:  "Export data from Mattermost in a format suitable for import into a third-party application",
+}
+
+var ScheduleExportCmd = &cobra.Command{
+	Use:     "schedule",
+	Short:   "Schedule an export data job in Mattermost",
+	Long:    "Schedule an export data job in Mattermost (this will run asynchronously via a background worker)",
+	Example: "export schedule --format=actiance --exportFrom=12345 --timeoutSeconds=12345",
+	RunE:    scheduleExportCmdF,
+}
+
+var CsvExportCmd = &cobra.Command{
+	Use:     "csv",
+	Short:   "Export data from Mattermost in CSV format",
+	Long:    "Export data from Mattermost in CSV format",
+	Example: "export csv --exportFrom=12345",
+	RunE:    buildExportCmdF("csv"),
+}
+
+var ActianceExportCmd = &cobra.Command{
+	Use:     "actiance",
+	Short:   "Export data from Mattermost in Actiance format",
+	Long:    "Export data from Mattermost in Actiance format",
+	Example: "export actiance --exportFrom=12345",
+	RunE:    buildExportCmdF("actiance"),
 }
 
 func init() {
-	MessageExportCmd.Flags().String("format", "actiance", "The format to export data in")
-	MessageExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
-	MessageExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
+	ScheduleExportCmd.Flags().String("format", "actiance", "The format to export data")
+	ScheduleExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
+	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	MessageExportCmd.AddCommand(ScheduleExportCmd)
+	MessageExportCmd.AddCommand(CsvExportCmd)
+	MessageExportCmd.AddCommand(ActianceExportCmd)
 	RootCmd.AddCommand(MessageExportCmd)
 }
 
-func messageExportCmdF(command *cobra.Command, args []string) error {
+func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -78,4 +105,33 @@ func messageExportCmdF(command *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
+	return func(command *cobra.Command, args []string) error {
+		a, err := InitDBCommandContextCobra(command)
+		if err != nil {
+			return err
+		}
+		defer a.Shutdown()
+
+		startTime, err := command.Flags().GetInt64("exportFrom")
+		if err != nil {
+			return errors.New("exportFrom flag error")
+		} else if startTime < 0 {
+			return errors.New("exportFrom must be a positive integer")
+		}
+
+		if a.MessageExport == nil {
+			CommandPrettyPrintln("MessageExport feature not available")
+		}
+
+		err2 := a.MessageExport.RunExport(format, startTime)
+		if err2 != nil {
+			return err2
+		}
+		CommandPrettyPrintln("SUCCESS: Your data was exported.")
+
+		return nil
+	}
 }
