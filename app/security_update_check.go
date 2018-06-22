@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	SECURITY_URL           = "https://d7zmvsa9e04kk.cloudfront.net"
+	SECURITY_URL           = "https://securityupdatecheck.mattermost.com"
 	SECURITY_UPDATE_PERIOD = 86400000 // 24 hours in milliseconds.
 
 	PROP_SECURITY_ID                = "id"
