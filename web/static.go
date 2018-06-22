@@ -6,6 +6,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -18,13 +19,15 @@ import (
 
 func (w *Web) InitStatic() {
 	if *w.App.Config().ServiceSettings.WebserverMode != "disabled" {
-		UpdateAssetsSubpathFromConfig(w.App.Config())
+		utils.UpdateAssetsSubpathFromConfig(w.App.Config())
 
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
 		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
 
-		staticHandler := staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
-		pluginHandler := pluginHandler(w.App.Config, http.StripPrefix("/static/plugins/", http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
+		subpath, _ := utils.GetSubpathFromConfig(w.App.Config())
+
+		staticHandler := staticHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
+		pluginHandler := pluginHandler(w.App.Config, http.StripPrefix(path.Join(subpath, "plugins"), http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
 
 		if *w.App.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
@@ -34,6 +37,13 @@ func (w *Web) InitStatic() {
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
 		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods("GET")
+
+		// When a subpath is defined, it's necessary to handle redirects without a
+		// trailing slash. We don't want to use StrictSlash on the w.MainRouter and affect
+		// all routes, just /subpath -> /subpath/.
+		w.MainRouter.HandleFunc("", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, r.URL.String()+"/", http.StatusFound)
+		}))
 	}
 }
 
@@ -48,7 +58,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if IsApiCall(r) {
+	if IsApiCall(c.App, r) {
 		Handle404(c.App, w, r)
 		return
 	}

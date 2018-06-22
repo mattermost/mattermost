@@ -156,6 +156,7 @@ const (
 
 	TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH = "timezones.json"
 
+	COMPLIANCE_EXPORT_TYPE_CSV         = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
 	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
 	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
@@ -230,6 +231,7 @@ type ServiceSettings struct {
 	ImageProxyOptions                                 *string
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
+	ExperimentalLimitClientConfig                     *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -465,6 +467,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalEnableHardenedMode == nil {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
+	}
+
+	if s.ExperimentalLimitClientConfig == nil {
+		s.ExperimentalLimitClientConfig = NewBool(false)
 	}
 }
 
@@ -1941,7 +1947,7 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
-		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
@@ -2361,7 +2367,7 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
 		} else if mes.BatchSize == nil || *mes.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
-		} else if mes.ExportFormat == nil || (*mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_ACTIANCE && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_GLOBALRELAY) {
+		} else if mes.ExportFormat == nil || (*mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_ACTIANCE && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_GLOBALRELAY && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_CSV) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_type.app_error", nil, "", http.StatusBadRequest)
 		}
 

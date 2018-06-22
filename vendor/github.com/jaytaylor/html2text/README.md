@@ -23,7 +23,7 @@ It requires go 1.x or newer ;)
 ## Download the package
 
 ```bash
-go get github.com/jaytaylor/html2text
+go get jaytaylor.com/html2text
 ```
 
 ## Example usage
@@ -34,7 +34,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/jaytaylor/html2text"
+	"jaytaylor.com/html2text"
 )
 
 func main() {

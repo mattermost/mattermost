@@ -13,6 +13,7 @@ import (
 type FileBackend interface {
 	TestConnection() *model.AppError
 
+	Reader(path string) (io.ReadCloser, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	CopyFile(oldPath, newPath string) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
@@ -42,5 +43,5 @@ func NewFileBackend(settings *model.FileSettings, enableComplianceFeatures bool)
 			directory: settings.Directory,
 		}, nil
 	}
-	return nil, model.NewAppError("NewFileBackend", "No file driver selected.", nil, "", http.StatusInternalServerError)
+	return nil, model.NewAppError("NewFileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError)
 }

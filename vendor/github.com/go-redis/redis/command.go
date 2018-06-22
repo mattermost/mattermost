@@ -1027,17 +1027,21 @@ func (cmd *CommandsInfoCmd) readReply(cn *pool.Conn) error {
 //------------------------------------------------------------------------------
 
 type cmdsInfoCache struct {
+	fn func() (map[string]*CommandInfo, error)
+
 	once internal.Once
 	cmds map[string]*CommandInfo
 }
 
-func newCmdsInfoCache() *cmdsInfoCache {
-	return &cmdsInfoCache{}
+func newCmdsInfoCache(fn func() (map[string]*CommandInfo, error)) *cmdsInfoCache {
+	return &cmdsInfoCache{
+		fn: fn,
+	}
 }
 
-func (c *cmdsInfoCache) Do(fn func() (map[string]*CommandInfo, error)) (map[string]*CommandInfo, error) {
+func (c *cmdsInfoCache) Get() (map[string]*CommandInfo, error) {
 	err := c.once.Do(func() error {
-		cmds, err := fn()
+		cmds, err := c.fn()
 		if err != nil {
 			return err
 		}

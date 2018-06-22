@@ -48,7 +48,7 @@
 [[constraint]]
   name = "github.com/mattermost/viper"
   source = "https://github.com/mattermost/viper"
-  branch = "env-settings"
+  branch = "mattermost"
 
 # Keep back because of breaking API changes
 [[constraint]]

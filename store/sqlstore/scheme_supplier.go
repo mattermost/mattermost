@@ -48,7 +48,7 @@ func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hint
 		}
 	} else {
 		if !scheme.IsValid() {
-			result.Err = model.NewAppError("SqlSchemeStore.Save", "store.sql_scheme.save.invalid_scheme.app_error", nil, "", http.StatusBadRequest)
+			result.Err = model.NewAppError("SqlSchemeStore.Save", "store.sql_scheme.save.invalid_scheme.app_error", nil, "schemeId="+scheme.Id, http.StatusBadRequest)
 			return result
 		}
 
@@ -191,6 +191,24 @@ func (s *SqlSupplier) SchemeGet(ctx context.Context, schemeId string, hints ...s
 			result.Err = model.NewAppError("SqlSchemeStore.Get", "store.sql_scheme.get.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusNotFound)
 		} else {
 			result.Err = model.NewAppError("SqlSchemeStore.Get", "store.sql_scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	result.Data = &scheme
+
+	return result
+}
+
+func (s *SqlSupplier) SchemeGetByName(ctx context.Context, schemeName string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	var scheme model.Scheme
+
+	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Name = :Name", map[string]interface{}{"Name": schemeName}); err != nil {
+		if err == sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlSchemeStore.GetByName", "store.sql_scheme.get.app_error", nil, "Name="+schemeName+", "+err.Error(), http.StatusNotFound)
+		} else {
+			result.Err = model.NewAppError("SqlSchemeStore.GetByName", "store.sql_scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 

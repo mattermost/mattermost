@@ -192,7 +192,7 @@ func (p *SchemeIDPatch) ToJson() string {
 }
 
 func IsValidSchemeName(name string) bool {
-	re := regexp.MustCompile(fmt.Sprintf("^[a-z0-9_]{0,%d}$", SCHEME_NAME_MAX_LENGTH))
+	re := regexp.MustCompile(fmt.Sprintf("^[a-z0-9_]{2,%d}$", SCHEME_NAME_MAX_LENGTH))
 	return re.MatchString(name)
 }
 

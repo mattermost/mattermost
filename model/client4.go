@@ -2127,6 +2127,17 @@ func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*Po
 	}
 }
 
+// SearchPosts returns any posts with matching terms string, including .
+func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response) {
+	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", StringInterfaceToJson(requestBody)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return PostSearchResultsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // DoPostAction performs a post action.
 func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, ""); err != nil {

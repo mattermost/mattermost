@@ -5,6 +5,7 @@ package web
 
 import (
 	"net/http"
+	"path"
 	"regexp"
 	"strings"
 
@@ -126,7 +127,8 @@ func (c *Context) MfaRequired() {
 		}
 
 		// Special case to let user get themself
-		if c.Path == "/api/v4/users/me" {
+		subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+		if c.Path == path.Join(subpath, "/api/v4/users/me") {
 			return
 		}
 

@@ -61,6 +61,22 @@ func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) store.Sto
 	return r0
 }
 
+// GetByName provides a mock function with given fields: schemeName
+func (_m *SchemeStore) GetByName(schemeName string) store.StoreChannel {
+	ret := _m.Called(schemeName)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(schemeName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // PermanentDeleteAll provides a mock function with given fields:
 func (_m *SchemeStore) PermanentDeleteAll() store.StoreChannel {
 	ret := _m.Called()

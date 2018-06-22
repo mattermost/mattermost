@@ -36,6 +36,10 @@ func (s *LocalCacheSupplier) SchemeGet(ctx context.Context, schemeId string, hin
 	return result
 }
 
+func (s *LocalCacheSupplier) SchemeGetByName(ctx context.Context, schemeName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().SchemeGetByName(ctx, schemeName, hints...)
+}
+
 func (s *LocalCacheSupplier) SchemeDelete(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	defer s.doInvalidateCacheCluster(s.schemeCache, schemeId)
 	defer s.doClearCacheCluster(s.roleCache)
