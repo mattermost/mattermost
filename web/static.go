@@ -27,7 +27,7 @@ func (w *Web) InitStatic() {
 		subpath, _ := utils.GetSubpathFromConfig(w.App.Config())
 
 		staticHandler := staticHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
-		pluginHandler := pluginHandler(w.App.Config, http.StripPrefix(path.Join(subpath, "plugins"), http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
+		pluginHandler := pluginHandler(w.App.Config, http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
 
 		if *w.App.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
