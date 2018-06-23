@@ -432,6 +432,8 @@ func TestFillInChannelProps(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(channelOtherTeam)
 
+	// Note that purpose is intentionally plaintext below.
+
 	t.Run("single channels", func(t *testing.T) {
 		testCases := []struct {
 			Description          string
@@ -458,9 +460,6 @@ func TestFillInChannelProps(t *testing.T) {
 					"channel_mentions": map[string]interface{}{
 						"public1": map[string]interface{}{
 							"display_name": "Public 1",
-						},
-						"public2": map[string]interface{}{
-							"display_name": "Public 2",
 						},
 					},
 				},
@@ -514,9 +513,6 @@ func TestFillInChannelProps(t *testing.T) {
 							"public1": map[string]interface{}{
 								"display_name": "Public 1",
 							},
-							"public2": map[string]interface{}{
-								"display_name": "Public 2",
-							},
 						},
 					},
 				},
@@ -549,18 +545,9 @@ func TestFillInChannelProps(t *testing.T) {
 							"public1": map[string]interface{}{
 								"display_name": "Public 1",
 							},
-							"public2": map[string]interface{}{
-								"display_name": "Public 2",
-							},
 						},
 					},
-					"test2": map[string]interface{}{
-						"channel_mentions": map[string]interface{}{
-							"public2": map[string]interface{}{
-								"display_name": "Public 2",
-							},
-						},
-					},
+					"test2": map[string]interface{}(nil),
 					"test3": map[string]interface{}(nil),
 				},
 			},
@@ -591,9 +578,6 @@ func TestFillInChannelProps(t *testing.T) {
 						"channel_mentions": map[string]interface{}{
 							"public1": map[string]interface{}{
 								"display_name": "Public 1",
-							},
-							"public2": map[string]interface{}{
-								"display_name": "Public 2",
 							},
 						},
 					},

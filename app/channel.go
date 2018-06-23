@@ -1609,10 +1609,7 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 
 		// Collect mentions across the channels so as to query just once for this team.
 		for _, channel := range channelList {
-			channelMentions[channel] = append(
-				model.ChannelMentions(channel.Header),
-				model.ChannelMentions(channel.Purpose)...,
-			)
+			channelMentions[channel] = model.ChannelMentions(channel.Header)
 
 			for _, channelMention := range channelMentions[channel] {
 				allChannelMentions[channelMention] = true
