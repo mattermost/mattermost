@@ -32,20 +32,20 @@ var PluginDeleteCmd = &cobra.Command{
 	RunE:    pluginDeleteCmdF,
 }
 
-var PluginActivateCmd = &cobra.Command{
-	Use:     "activate",
-	Short:   "Activate a plugin",
-	Long:    "Activate a plugin or multiple plugins",
-	Example: `  plugin activate hovercardexample.tar.gz pluginexample.tar.gz`,
-	RunE:    pluginActivateCmdF,
+var PluginEnableCmd = &cobra.Command{
+	Use:     "enable",
+	Short:   "Enable a plugin",
+	Long:    "Enable a plugin or multiple plugins",
+	Example: `  plugin enable hovercardexample.tar.gz pluginexample.tar.gz`,
+	RunE:    pluginEnableCmdF,
 }
 
-var PluginDeactivateCmd = &cobra.Command{
-	Use:     "deactivate",
-	Short:   "Deactivate a plugin",
-	Long:    "Deactivate a plugin",
-	Example: `  plugin deactivate hovercardexample`,
-	RunE:    pluginDeactivateCmdF,
+var PluginDisableCmd = &cobra.Command{
+	Use:     "disable",
+	Short:   "Disable a plugin",
+	Long:    "Disable a plugin",
+	Example: `  plugin disable hovercardexample`,
+	RunE:    pluginDisableCmdF,
 }
 
 var PluginListCmd = &cobra.Command{
@@ -60,8 +60,8 @@ func init() {
 	PluginCmd.AddCommand(
 		PluginCreateCmd,
 		PluginDeleteCmd,
-		PluginActivateCmd,
-		PluginDeactivateCmd,
+		PluginEnableCmd,
+		PluginDisableCmd,
 		PluginListCmd,
 	)
 	RootCmd.AddCommand(PluginCmd)
@@ -115,7 +115,7 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginActivateCmdF(command *cobra.Command, args []string) error {
+func pluginEnableCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -128,16 +128,16 @@ func pluginActivateCmdF(command *cobra.Command, args []string) error {
 
 	for i, pluginID := range args {
 		if err := a.EnablePlugin(pluginID); err != nil {
-			return errors.New("Unable to activate plugin: " + args[i])
+			return errors.New("Unable to enable plugin: " + args[i])
 		}
 	}
 
-	CommandPrettyPrintln("Activated plugin(s)")
+	CommandPrettyPrintln("Enabled plugin(s)")
 
 	return nil
 }
 
-func pluginDeactivateCmdF(command *cobra.Command, args []string) error {
+func pluginDisableCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -149,10 +149,10 @@ func pluginDeactivateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if err := a.DisablePlugin(args[0]); err != nil {
-		return errors.New("Unable to deactivate plugin: " + args[0])
+		return errors.New("Unable to disable plugin: " + args[0])
 	}
 
-	CommandPrettyPrintln("Deactivated plugin")
+	CommandPrettyPrintln("Disabled plugin")
 
 	return nil
 }
