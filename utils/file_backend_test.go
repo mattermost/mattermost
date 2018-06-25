@@ -124,6 +124,23 @@ func (s *FileBackendTestSuite) TestReadWriteFileImage() {
 	s.EqualValues(readString, "testimage")
 }
 
+func (s *FileBackendTestSuite) TestFileExists() {
+	b := []byte("testimage")
+	path := "tests/" + model.NewId() + ".png"
+
+	_, err := s.backend.WriteFile(bytes.NewReader(b), path)
+	s.Nil(err)
+	defer s.backend.RemoveFile(path)
+
+	res, err := s.backend.FileExists(path)
+	s.Nil(err)
+	s.True(res)
+
+	res, err = s.backend.FileExists("tests/idontexist.png")
+	s.Nil(err)
+	s.False(res)
+}
+
 func (s *FileBackendTestSuite) TestCopyFile() {
 	b := []byte("test")
 	path1 := "tests/" + model.NewId()

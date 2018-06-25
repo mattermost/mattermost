@@ -430,11 +430,13 @@ type FileInfoStore interface {
 	Get(id string) StoreChannel
 	GetByPath(path string) StoreChannel
 	GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel
+	GetForUser(userId string) StoreChannel
 	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
 	PermanentDelete(fileId string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	PermanentDeleteByUser(userId string) StoreChannel
 	ClearCaches()
 }
 

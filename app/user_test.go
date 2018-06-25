@@ -480,3 +480,47 @@ func TestCreateUserWithToken(t *testing.T) {
 		}
 	})
 }
+
+func TestPermanentDeleteUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	b := []byte("testimage")
+
+	finfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b)
+
+	if err != nil {
+		t.Log(err)
+		t.Fatal("Unable to upload file")
+	}
+
+	err = th.App.PermanentDeleteUser(th.BasicUser)
+	if err != nil {
+		t.Log(err)
+		t.Fatal("Unable to delete user")
+	}
+
+	res, err := th.App.FileExists(finfo.Path)
+
+	if err != nil {
+		t.Log(err)
+		t.Fatal("Unable to check whether file exists")
+	}
+
+	if res {
+		t.Log(err)
+		t.Fatal("File was not deleted on FS")
+	}
+
+	finfo, err = th.App.GetFileInfo(finfo.Id)
+
+	if finfo != nil {
+		t.Log(err)
+		t.Fatal("Unable to find finfo")
+	}
+
+	if err == nil {
+		t.Log(err)
+		t.Fatal("GetFileInfo after DeleteUser is nil")
+	}
+}
