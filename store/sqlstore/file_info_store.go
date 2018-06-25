@@ -177,6 +177,30 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 	})
 }
 
+func (fs SqlFileInfoStore) GetForUser(userId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var infos []*model.FileInfo
+
+		dbmap := fs.GetReplica()
+
+		if _, err := dbmap.Select(&infos,
+			`SELECT
+				*
+			FROM
+				FileInfo
+			WHERE
+				CreatorId = :CreatorId
+				AND DeleteAt = 0
+			ORDER BY
+				CreateAt`, map[string]interface{}{"CreatorId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlFileInfoStore.GetForPost",
+				"store.sql_file_info.get_for_user_id.app_error", nil, "creator_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = infos
+		}
+	})
+}
+
 func (fs SqlFileInfoStore) AttachToPost(fileId, postId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := fs.GetMaster().Exec(
@@ -239,6 +263,25 @@ func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) store
 			rowsAffected, err1 := sqlResult.RowsAffected()
 			if err1 != nil {
 				result.Err = model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+				result.Data = int64(0)
+			} else {
+				result.Data = rowsAffected
+			}
+		}
+	})
+}
+
+func (s SqlFileInfoStore) PermanentDeleteByUser(userId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := "DELETE from FileInfo WHERE CreatorId = :CreatorId"
+
+		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"CreatorId": userId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlFileInfoStore.PermanentDeleteByUser", "store.sql_file_info.PermanentDeleteByUser.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		} else {
+			rowsAffected, err1 := sqlResult.RowsAffected()
+			if err1 != nil {
+				result.Err = model.NewAppError("SqlFileInfoStore.PermanentDeleteByUser", "store.sql_file_info.PermanentDeleteByUser.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 				result.Data = int64(0)
 			} else {
 				result.Data = rowsAffected
