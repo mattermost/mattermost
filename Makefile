@@ -282,31 +282,10 @@ ldap-mocks: ## Creates mock files for ldap.
 plugin-mocks: ## Creates mock files for plugins.
 	go get github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOPATH)/bin/mockery -dir plugin -name KeyValueStore -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	@sed -i'' -e 's|API|APIMOCKINTERNAL|g' plugin/plugintest/api.go
 
-update-jira-plugin: ## Updates Jira plugin.
-	go get github.com/mattermost/go-bindata/...
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_darwin_amd64.go plugin.tar.gz
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_linux_amd64.go plugin.tar.gz
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep windows-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_windows_amd64.go plugin.tar.gz
-	rm plugin.tar.gz
-	gofmt -s -w ./app/plugin/jira
-
-update-zoom-plugin: ## Updates Zoom plugin.
-	go get github.com/mattermost/go-bindata/...
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_darwin_amd64.go plugin.tar.gz
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_linux_amd64.go plugin.tar.gz
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep windows-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_windows_amd64.go plugin.tar.gz
-	rm plugin.tar.gz
-	gofmt -s -w ./app/plugin/zoom
+pluginapi: ## Generates api and hooks glue code for plugins
+	go generate ./plugin
 
 check-licenses: ## Checks license status.
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
