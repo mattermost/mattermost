@@ -1101,3 +1101,30 @@ func (s *APIRPCServer) KVDelete(args *KVDeleteArgs, returns *KVDeleteReturns) er
 	}
 	return nil
 }
+
+type PublishWebSocketEventArgs struct {
+	A string
+	B map[string]interface{}
+	C *model.WebsocketBroadcast
+}
+
+type PublishWebSocketEventReturns struct {
+}
+
+func (g *APIRPCClient) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+	_args := &PublishWebSocketEventArgs{event, payload, broadcast}
+	_returns := &PublishWebSocketEventReturns{}
+	if err := g.client.Call("Plugin.PublishWebSocketEvent", _args, _returns); err != nil {
+		g.log.Error("RPC call to PublishWebSocketEvent API failed.", mlog.Err(err))
+	}
+	return
+}
+
+func (s *APIRPCServer) PublishWebSocketEvent(args *PublishWebSocketEventArgs, returns *PublishWebSocketEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+	}); ok {
+		hook.PublishWebSocketEvent(args.A, args.B, args.C)
+	}
+	return nil
+}
