@@ -116,7 +116,7 @@ type API interface {
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_"
-	// payload is the data sent with the event
+	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
 	// broadcast determines which users to send the event too
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 }
