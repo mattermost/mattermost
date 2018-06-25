@@ -1197,7 +1197,7 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 	}
 
 	if data.Password != nil && len(*data.Password) == 0 {
-		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.pasword_length.error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.password_length.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Password != nil && len(*data.Password) > model.USER_PASSWORD_MAX_LENGTH {

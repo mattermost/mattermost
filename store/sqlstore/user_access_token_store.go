@@ -245,7 +245,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) store.StoreC
 	return store.Do(func(result *store.StoreResult) {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
-			result.Err = model.NewAppError("SqlUserAccessTokenStore.UpdateTokenDisable", "store.sql_user_access_token.update_token_disble.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlUserAccessTokenStore.UpdateTokenDisable", "store.sql_user_access_token.update_token_disable.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			if extrasResult := s.deleteSessionsAndDisableToken(transaction, tokenId); extrasResult.Err != nil {
 				*result = extrasResult
