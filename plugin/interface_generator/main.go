@@ -45,7 +45,6 @@ func FieldListToFuncList(fieldList *ast.FieldList, fileset *token.FileSet) strin
 			panic(err)
 		}
 		typeName := typeNameBuffer.String()
-		//typeName := field.Type.(*ast.Ident).Name
 		names := []string{}
 		for _, name := range field.Names {
 			names = append(names, name.Name)

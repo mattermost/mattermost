@@ -33,7 +33,6 @@ type TestHelper struct {
 
 	tempConfigPath string
 	tempWorkspace  string
-	//pluginHooks    map[string]plugin.Hooks
 }
 
 type persistentTestStore struct {

@@ -67,8 +67,8 @@ func init() {
 	gob.Register(map[string]interface{}{})
 }
 
-// These enforce compile time checks to make sure types implemnt the interface
-// If your getting an error here, you probably need to run `make pluginapi` to
+// These enforce compile time checks to make sure types implement the interface
+// If you are getting an error here, you probably need to run `make pluginapi` to
 // autogenerate RPC glue code
 var _ plugin.Plugin = &HooksPlugin{}
 var _ Hooks = &HooksRPCClient{}
@@ -167,7 +167,7 @@ func (s *HooksRPCServer) OnActivate(args *OnActivateArgs, returns *OnActivateRet
 		ConsoleLevel:  mlog.LevelDebug,
 		EnableFile:    false,
 	})
-	logger = logger.With(mlog.String("plugin_subprocess", ""))
+	logger = logger.With(mlog.Bool("plugin_subprocess", true))
 
 	s.log = logger
 

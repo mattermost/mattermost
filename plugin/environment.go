@@ -65,8 +65,6 @@ func ScanSearchPath(path string) ([]*model.BundleInfo, error) {
 		}
 		if info := model.BundleInfoForPath(filepath.Join(path, file.Name())); info.ManifestPath != "" {
 			ret = append(ret, info)
-		} else {
-			fmt.Println(info)
 		}
 	}
 	return ret, nil

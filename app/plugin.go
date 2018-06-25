@@ -28,27 +28,27 @@ func (a *App) SyncPluginsActiveState() {
 
 		// Deactivate any plugins that have been disabled.
 		for _, plugin := range a.Plugins.Active() {
-			// Determine if plugin is enabed
+			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
 			if state, ok := config.PluginStates[pluginId]; ok {
 				pluginEnabled = state.Enable
 			}
 
-			// If it's not enabled we need to stop it
+			// If it's not enabled we need to deactivate it
 			if !pluginEnabled {
 				a.Plugins.Deactivate(pluginId)
 			}
 		}
 
-		// Activate any plugins that have been enabed
+		// Activate any plugins that have been enabled
 		for _, plugin := range availablePlugins {
 			if plugin.Manifest == nil {
 				plugin.WrapLogger(a.Log).Error("Plugin manifest could not be loaded", mlog.Err(plugin.ManifestError))
 				continue
 			}
 
-			// Determine if plugin is enabed
+			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
 			if state, ok := config.PluginStates[pluginId]; ok {
@@ -85,10 +85,12 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 	if err := os.Mkdir(pluginDir, 0744); err != nil && !os.IsExist(err) {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
+		return
 	}
 
 	if err := os.Mkdir(webappPluginDir, 0744); err != nil && !os.IsExist(err) {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
+		return
 	}
 
 	if env, err := plugin.NewEnvironment(a.NewPluginAPI, pluginDir, webappPluginDir, a.Log); err != nil {

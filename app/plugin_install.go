@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-// InstallPlugin unpacks and installs a plugin but does not enabled or activate it.
+// InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
 	return a.installPlugin(pluginFile)
 }
