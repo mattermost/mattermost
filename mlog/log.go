@@ -28,9 +28,11 @@ type Field = zapcore.Field
 
 var Int64 = zap.Int64
 var Int = zap.Int
+var Uint32 = zap.Uint32
 var String = zap.String
 var Any = zap.Any
 var Err = zap.Error
+var Bool = zap.Bool
 
 type LoggerConfiguration struct {
 	EnableConsole bool
