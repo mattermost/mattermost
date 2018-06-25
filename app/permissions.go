@@ -27,6 +27,21 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 		return result.Err
 	}
 
+	// Reset all Custom Role assignments to Users.
+	if result := <-a.Srv.Store.User().ClearAllCustomRoleAssignments(); result.Err != nil {
+		return result.Err
+	}
+
+	// Reset all Custom Role assignments to TeamMembers.
+	if result := <-a.Srv.Store.Team().ClearAllCustomRoleAssignments(); result.Err != nil {
+		return result.Err
+	}
+
+	// Reset all Custom Role assignments to ChannelMembers.
+	if result := <-a.Srv.Store.Channel().ClearAllCustomRoleAssignments(); result.Err != nil {
+		return result.Err
+	}
+
 	// Purge all schemes from the database.
 	if result := <-a.Srv.Store.Scheme().PermanentDeleteAll(); result.Err != nil {
 		return result.Err
