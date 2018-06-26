@@ -54,7 +54,7 @@ const (
 	MaxImageSize                 = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
 	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
-	IMAGE_PREVIEW_PIXEL_WIDTH    = 1024
+	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
 )
 
 func (a *App) FileBackend() (utils.FileBackend, *model.AppError) {
