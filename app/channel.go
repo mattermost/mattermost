@@ -691,6 +691,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 
 	if result := <-cmchan; result.Err != nil {
 		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
+			mlog.Debug("HIT")
 			return nil, result.Err
 		}
 	} else {
