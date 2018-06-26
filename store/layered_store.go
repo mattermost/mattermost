@@ -181,6 +181,14 @@ func (s *LayeredStore) Close() {
 	s.DatabaseLayer.Close()
 }
 
+func (s *LayeredStore) LockToMaster() {
+	s.DatabaseLayer.LockToMaster()
+}
+
+func (s *LayeredStore) UnlockFromMaster() {
+	s.DatabaseLayer.UnlockFromMaster()
+}
+
 func (s *LayeredStore) DropAllTables() {
 	s.DatabaseLayer.DropAllTables()
 }

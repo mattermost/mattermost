@@ -65,6 +65,8 @@ type SqlStore interface {
 	RemoveIndexIfExists(indexName string, tableName string) bool
 	GetAllConns() []*gorp.DbMap
 	Close()
+	LockToMaster()
+	UnlockFromMaster()
 	Team() store.TeamStore
 	Channel() store.ChannelStore
 	Post() store.PostStore
