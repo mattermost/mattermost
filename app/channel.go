@@ -495,6 +495,7 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 	var member *model.ChannelMember
 	var err *model.AppError
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
+		mlog.Info("HIT2")
 		return nil, err
 	}
 
