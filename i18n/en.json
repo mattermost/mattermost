@@ -1,7 +1,7 @@
 [
   {
     "id": "actiance.xml.output.formatter.marshalToXml.appError",
-    "translation": "Unable to convert to XML"
+    "translation": "Unable to convert export to XML"
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -954,7 +954,7 @@
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": "Unable to create emoji. CreatorID must be equal to the User ID who creates it."
+    "translation": "Invalid user id"
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -1392,7 +1392,7 @@
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": "Unable to delete other user preferences."
+    "translation": "Unable to delete user preferences."
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
@@ -1400,7 +1400,7 @@
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": "Unable to set other user preferences."
+    "translation": "Unable to set user preferences."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -2028,7 +2028,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server"
+    "translation": "Authentication Transfer not configured or available on this server."
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2096,19 +2096,19 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server"
+    "translation": "Authentication Transfer not configured or available on this server."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
-    "translation": "The reset password token does not appear to be valid"
+    "translation": "The reset password token does not appear to be valid."
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "The reset password link does not appear to be valid"
+    "translation": "The reset password link does not appear to be valid."
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "The password reset link has expired"
+    "translation": "The password reset link has expired."
   },
   {
     "id": "api.user.reset_password.method",
@@ -2484,7 +2484,7 @@
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": "Unable to read the version of the import data file."
+    "translation": "Unable to read the version of the data import file."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2800,7 +2800,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": "Invalid Comments Trigger Prop value for user."
+    "translation": "Invalid Comments Prop value for user."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -2948,7 +2948,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "Unable to get cluster plugin statuses."
+    "translation": "Unable to get plugin statuses from the cluster."
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3028,7 +3028,7 @@
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": "Unable to convert the image data to PNG format."
+    "translation": "Unable to convert the image data to PNG format. Please try again."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
@@ -3088,7 +3088,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata into json."
+    "translation": "Unable to convert metadata to json."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
