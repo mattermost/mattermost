@@ -446,6 +446,8 @@ func UpgradeDatabaseToVersion50(sqlStore SqlStore) {
 		sqlStore.GetMaster().Exec("UPDATE Roles SET SchemeManaged=false WHERE Name NOT IN ('system_user', 'system_admin', 'team_user', 'team_admin', 'channel_user', 'channel_admin')")
 		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "ChannelLocked", "boolean", "boolean", "0")
 
+		sqlStore.RemoveIndexIfExists("idx_channels_txt", "Channels")
+
 		saveSchemaVersion(sqlStore, VERSION_5_0_0)
 	}
 }
