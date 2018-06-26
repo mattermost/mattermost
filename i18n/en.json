@@ -3588,11 +3588,11 @@
   },
   {
     "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": "No file under 'image' in request"
+    "translation": "No file under 'image' in request."
   },
   {
     "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "Unable to write request"
+    "translation": "Unable to write the request."
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
@@ -4120,15 +4120,15 @@
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "Invalid value for post_id"
+    "translation": "Invalid value for post_id."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "Invalid value for update_at"
+    "translation": "Invalid value for update_at."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "Invalid value for user_id"
+    "translation": "Invalid value for user_id."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4192,11 +4192,11 @@
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at"
+    "translation": "Invalid value for create_at when uploading a license."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": "Invalid value for id"
+    "translation": "Invalid value for id when uploading a license."
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4492,7 +4492,7 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": "Unable to connect to the web socket server."
+    "translation": "Unable to connect to the WebSocket server."
   },
   {
     "id": "oauth.gitlab.tos.error",
