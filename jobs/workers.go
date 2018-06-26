@@ -95,6 +95,8 @@ func (workers *Workers) Start() *Workers {
 }
 
 func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+	mlog.Debug("Workers received config change.")
+
 	if workers.DataRetention != nil {
 		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
