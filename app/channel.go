@@ -397,13 +397,13 @@ func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) 
 }
 
 func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel) *model.AppError {
-	privacy := (map[string]string{
-		model.CHANNEL_OPEN:    "private_to_public",
-		model.CHANNEL_PRIVATE: "public_to_private",
+	message := (map[string]string{
+		model.CHANNEL_OPEN:    utils.T("api.channel.change_channel_privacy.private_to_public"),
+		model.CHANNEL_PRIVATE: utils.T("api.channel.change_channel_privacy.public_to_private"),
 	})[channel.Type]
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   utils.T("api.channel.change_channel_privacy." + privacy),
+		Message:   message,
 		Type:      model.POST_CHANGE_CHANNEL_PRIVACY,
 		UserId:    user.Id,
 		Props: model.StringInterface{

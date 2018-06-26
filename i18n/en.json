@@ -100,6 +100,14 @@
     "translation": "Can not add user to this channel type"
   },
   {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "This channel has been converted to a Private Channel."
+  },
+  {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
     "translation": "This default channel cannot be converted into a private channel."
   },
