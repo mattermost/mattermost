@@ -475,8 +475,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
  * Computes the subject line for direct notification email messages
  */
 func getDirectMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, senderName string, useMilitaryTime bool) string {
-	t := getFormattedPostTime(post, translateFunc)
-	t = getLocalTime(user, t, useMilitaryTime, translateFunc)
+	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
 	var subjectParameters = map[string]interface{}{
 		"SiteName":          siteName,
 		"SenderDisplayName": senderName,
@@ -491,8 +490,7 @@ func getDirectMessageNotificationEmailSubject(user *model.User, post *model.Post
  * Computes the subject line for group, public, and private email messages
  */
 func getNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, teamName string, useMilitaryTime bool) string {
-	t := getFormattedPostTime(post, translateFunc)
-	t = getLocalTime(user, t, useMilitaryTime, translateFunc)
+	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
 	var subjectParameters = map[string]interface{}{
 		"SiteName": siteName,
 		"TeamName": teamName,
@@ -507,8 +505,7 @@ func getNotificationEmailSubject(user *model.User, post *model.Post, translateFu
  * Computes the subject line for group email messages
  */
 func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, channelName string, emailNotificationContentsType string, useMilitaryTime bool) string {
-	t := getFormattedPostTime(post, translateFunc)
-	t = getLocalTime(user, t, useMilitaryTime, translateFunc)
+	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
 	var subjectText string
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 		var subjectParameters = map[string]interface{}{
@@ -551,8 +548,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		bodyPage.Props["TeamLink"] = teamURL
 	}
 
-	t := getFormattedPostTime(post, translateFunc)
-	t = getLocalTime(recipient, t, useMilitaryTime, translateFunc)
+	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
 
 	var bodyText string
 	var info template.HTML
@@ -652,34 +648,19 @@ type formattedPostTime struct {
 	TimeZone string
 }
 
-func getFormattedPostTime(post *model.Post, translateFunc i18n.TranslateFunc) formattedPostTime {
-	tm := time.Unix(post.CreateAt/1000, 0)
-	zone, _ := tm.Zone()
-
-	return formattedPostTime{
-		Time:     tm,
-		Year:     fmt.Sprintf("%d", tm.Year()),
-		Month:    translateFunc(tm.Month().String()),
-		Day:      fmt.Sprintf("%d", tm.Day()),
-		Hour:     fmt.Sprintf("%02d", tm.Hour()),
-		Minute:   fmt.Sprintf("%02d", tm.Minute()),
-		TimeZone: zone,
-	}
-}
-
-func getLocalTime(user *model.User, postTime formattedPostTime, useMilitaryTime bool, translateFunc i18n.TranslateFunc) formattedPostTime {
+func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bool, translateFunc i18n.TranslateFunc) formattedPostTime {
 	preferredTimezone := user.GetPreferredTimezone()
-	if preferredTimezone == "" {
-		return postTime
-	}
+	postTime := time.Unix(post.CreateAt/1000, 0)
+	zone, _ := postTime.Zone()
 
-	loc, err := time.LoadLocation(preferredTimezone)
-	if err != nil {
-		return postTime
+	localTime := postTime
+	if preferredTimezone != "" {
+		loc, _ := time.LoadLocation(preferredTimezone)
+		if loc != nil {
+			localTime = postTime.In(loc)
+			zone, _ = localTime.Zone()
+		}
 	}
-
-	localTime := postTime.Time.In(loc)
-	zone, _ := localTime.Zone()
 
 	hour := localTime.Format("15")
 	period := ""
