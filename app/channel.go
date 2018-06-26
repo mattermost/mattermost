@@ -1591,3 +1591,67 @@ func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelM
 	a.Srv.Store.Channel().UpdateMember(member)
 	return member
 }
+
+func (a *App) FillInChannelProps(channel *model.Channel) *model.AppError {
+	return a.FillInChannelsProps(&model.ChannelList{channel})
+}
+
+func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppError {
+	// Group the channels by team and call GetChannelsByNames just once per team.
+	channelsByTeam := make(map[string]model.ChannelList)
+	for _, channel := range *channelList {
+		channelsByTeam[channel.TeamId] = append(channelsByTeam[channel.TeamId], channel)
+	}
+
+	for teamId, channelList := range channelsByTeam {
+		allChannelMentions := make(map[string]bool)
+		channelMentions := make(map[*model.Channel][]string, len(channelList))
+
+		// Collect mentions across the channels so as to query just once for this team.
+		for _, channel := range channelList {
+			channelMentions[channel] = model.ChannelMentions(channel.Header)
+
+			for _, channelMention := range channelMentions[channel] {
+				allChannelMentions[channelMention] = true
+			}
+		}
+
+		allChannelMentionNames := make([]string, 0, len(allChannelMentions))
+		for channelName := range allChannelMentions {
+			allChannelMentionNames = append(allChannelMentionNames, channelName)
+		}
+
+		if len(allChannelMentionNames) > 0 {
+			mentionedChannels, err := a.GetChannelsByNames(allChannelMentionNames, teamId)
+			if err != nil {
+				return err
+			}
+
+			mentionedChannelsByName := make(map[string]*model.Channel)
+			for _, channel := range mentionedChannels {
+				mentionedChannelsByName[channel.Name] = channel
+			}
+
+			for _, channel := range channelList {
+				channelMentionsProp := make(map[string]interface{}, len(channelMentions[channel]))
+				for _, channelMention := range channelMentions[channel] {
+					if mentioned, ok := mentionedChannelsByName[channelMention]; ok {
+						if mentioned.Type == model.CHANNEL_OPEN {
+							channelMentionsProp[mentioned.Name] = map[string]interface{}{
+								"display_name": mentioned.DisplayName,
+							}
+						}
+					}
+				}
+
+				if len(channelMentionsProp) > 0 {
+					channel.AddProp("channel_mentions", channelMentionsProp)
+				} else if channel.Props != nil {
+					delete(channel.Props, "channel_mentions")
+				}
+			}
+		}
+	}
+
+	return nil
+}
