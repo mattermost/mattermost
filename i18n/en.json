@@ -1,7 +1,7 @@
 [
   {
     "id": "actiance.xml.output.formatter.marshalToXml.appError",
-    "translation": "Unable to convert export to XML"
+    "translation": "Unable to convert export to XML."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -181,7 +181,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": "Failed to post channel privacy update message"
+    "translation": "Failed to post channel privacy update message."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -245,7 +245,7 @@
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "License does not support updating a channel's scheme"
+    "translation": "Your license does not support updating a channel's scheme"
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
@@ -1002,7 +1002,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Unable to upload the emoji. An error ocurred when tyring to open the attached image."
+    "translation": "Unable to create the emoji. An error ocurred when trying to open the attached image."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1396,7 +1396,7 @@
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": "Unable to get user preferences"
+    "translation": "Unable to get user preferences."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
@@ -1412,15 +1412,15 @@
   },
   {
     "id": "api.roles.patch_roles.license.error",
-    "translation": "Your current license does not support advanced permissions."
+    "translation": "Your license does not support advanced permissions."
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": "License does not support create permissions schemes"
+    "translation": "Your license does not support creating permissions schemes."
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "License does not support delete permissions schemes"
+    "translation": "Your license not support delete permissions schemes"
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
@@ -1432,7 +1432,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "License does not support update permissions schemes"
+    "translation": "Your license does not support update permissions schemes"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -1688,7 +1688,7 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "License does not support updating a team's scheme"
+    "translation": "Your license does not support updating a team's scheme"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -2264,11 +2264,11 @@
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": "Unknown websocket action."
+    "translation": "Unknown WebSocket action."
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": "Invalid websocket message sequence."
+    "translation": "Invalid sequence for WebSocket message."
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
@@ -2276,7 +2276,7 @@
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": "Not authenticated websocket connection."
+    "translation": "WebSocket connection is not authenticated. Please log in and try again."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2352,7 +2352,7 @@
   },
   {
     "id": "app.cluster.404.app_error",
-    "translation": "Cluster API: Endpoint not found."
+    "translation": "Cluster API endpoint not found."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2364,7 +2364,7 @@
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": "Unsupported import data format version."
+    "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -3008,7 +3008,7 @@
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Unable to complete the SAML login with an empty email."
+    "translation": "Unable to complete SAML login with an empty email address."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3024,7 +3024,7 @@
   },
   {
     "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get the image file information."
+    "translation": "Unable to get image metadata."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
@@ -3032,15 +3032,15 @@
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": "Unable to open the brand image file."
+    "translation": "Unable to upload the custom brand image. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Unable to write the image file."
+    "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. The image is too big."
+    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",
@@ -3096,11 +3096,11 @@
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the export zip file."
+    "translation": "Unable to create the zip export file."
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Removed attachment during export to global relay."
+    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3108,7 +3108,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load templates."
+    "translation": "Unable to load export templates. Please try again."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3116,7 +3116,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "License does not support Data Retention."
+    "translation": "Your license does not support Data Retention."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3216,7 +3216,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "License does not support Elasticsearch."
+    "translation": "Your license does not support Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
@@ -3268,7 +3268,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Failed to search users in AD/LDAP."
+    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3392,11 +3392,11 @@
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
-    "translation": "Unable to parse the Job batch size."
+    "translation": "Could not parse message export job BatchSize."
   },
   {
     "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Unable to parse the Job start timestamp."
+    "translation": "Could not parse message export job ExportFromTimestamp."
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -3408,7 +3408,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Start sychronization Job timeout reached."
+    "translation": "Reached AD/LDAP sychronization job timeout."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
