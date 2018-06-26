@@ -76,17 +76,19 @@ func NewPostgreSQLContainer() (*RunningContainer, *model.SqlSettings, error) {
 
 func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	settings := &model.SqlSettings{
-		DriverName:               &driver,
-		DataSource:               &dataSource,
-		DataSourceReplicas:       []string{},
-		DataSourceSearchReplicas: []string{},
-		MaxIdleConns:             new(int),
-		MaxOpenConns:             new(int),
-		Trace:                    false,
-		AtRestEncryptKey:         model.NewRandomString(32),
-		QueryTimeout:             new(int),
+		DriverName:                  &driver,
+		DataSource:                  &dataSource,
+		DataSourceReplicas:          []string{},
+		DataSourceSearchReplicas:    []string{},
+		MaxIdleConns:                new(int),
+		ConnMaxLifetimeMilliseconds: new(int),
+		MaxOpenConns:                new(int),
+		Trace:                       false,
+		AtRestEncryptKey:            model.NewRandomString(32),
+		QueryTimeout:                new(int),
 	}
 	*settings.MaxIdleConns = 10
+	*settings.ConnMaxLifetimeMilliseconds = 3600000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 10
 	return settings
