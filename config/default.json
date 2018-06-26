@@ -45,6 +45,8 @@
         "EnableCustomEmoji": false,
         "EnableEmojiPicker": true,
         "EnableGifPicker": true,
+        "GfycatApiKey": "",
+        "GfycatApiSecret": "",
         "RestrictCustomEmojiCreation": "all",
         "RestrictPostDelete": "all",
         "AllowEditPost": "always",
