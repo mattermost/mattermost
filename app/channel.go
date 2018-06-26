@@ -569,6 +569,7 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 	var member *model.ChannelMember
 	var err *model.AppError
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
+		mlog.Info("HIT3")
 		return nil, err
 	}
 
