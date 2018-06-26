@@ -36,6 +36,7 @@ const (
 	TRACK_CONFIG_WEBRTC         = "config_webrtc"
 	TRACK_CONFIG_SUPPORT        = "config_support"
 	TRACK_CONFIG_NATIVEAPP      = "config_nativeapp"
+	TRACK_CONFIG_EXPERIMENTAL   = "config_experimental"
 	TRACK_CONFIG_ANALYTICS      = "config_analytics"
 	TRACK_CONFIG_ANNOUNCEMENT   = "config_announcement"
 	TRACK_CONFIG_ELASTICSEARCH  = "config_elasticsearch"
@@ -252,6 +253,7 @@ func (a *App) trackConfig() {
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
+		"experimental_limit_client_config":                        *cfg.ServiceSettings.ExperimentalLimitClientConfig,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -473,6 +475,11 @@ func (a *App) trackConfig() {
 		"enable":             *cfg.WebrtcSettings.Enable,
 		"isdefault_stun_uri": isDefault(*cfg.WebrtcSettings.StunURI, model.WEBRTC_SETTINGS_DEFAULT_STUN_URI),
 		"isdefault_turn_uri": isDefault(*cfg.WebrtcSettings.TurnURI, model.WEBRTC_SETTINGS_DEFAULT_TURN_URI),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
+		"client_side_cert_enable":          *cfg.ExperimentalSettings.ClientSideCertEnable,
+		"isdefault_client_side_cert_check": isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
