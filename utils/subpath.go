@@ -89,14 +89,14 @@ func UpdateAssetsSubpath(subpath string) error {
 		return errors.Wrapf(err, "failed to update root.html with subpath %s", subpath)
 	}
 
-	// Rewrite the *.css references to `/static/*` (or a previously rewritten subpath).
+	// Rewrite the manifest.json and *.css references to `/static/*` (or a previously rewritten subpath).
 	err = filepath.Walk(staticDir, func(walkPath string, info os.FileInfo, err error) error {
-		if filepath.Ext(walkPath) == ".css" {
-			if oldCss, err := ioutil.ReadFile(walkPath); err != nil {
+		if filepath.Base(walkPath) == "manifest.json" || filepath.Ext(walkPath) == ".css" {
+			if old, err := ioutil.ReadFile(walkPath); err != nil {
 				return errors.Wrapf(err, "failed to open %s", walkPath)
 			} else {
-				newCss := strings.Replace(string(oldCss), pathToReplace, newPath, -1)
-				if err = ioutil.WriteFile(walkPath, []byte(newCss), 0); err != nil {
+				new := strings.Replace(string(old), pathToReplace, newPath, -1)
+				if err = ioutil.WriteFile(walkPath, []byte(new), 0); err != nil {
 					return errors.Wrapf(err, "failed to update %s with subpath %s", walkPath, subpath)
 				}
 			}
