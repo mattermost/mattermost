@@ -67,6 +67,8 @@ type Store interface {
 	Plugin() PluginStore
 	MarkSystemRanUnitTests()
 	Close()
+	LockToMaster()
+	UnlockFromMaster()
 	DropAllTables()
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int

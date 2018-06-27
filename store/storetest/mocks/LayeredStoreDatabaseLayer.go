@@ -200,6 +200,11 @@ func (_m *LayeredStoreDatabaseLayer) License() store.LicenseStore {
 	return r0
 }
 
+// LockToMaster provides a mock function with given fields:
+func (_m *LayeredStoreDatabaseLayer) LockToMaster() {
+	_m.Called()
+}
+
 // MarkSystemRanUnitTests provides a mock function with given fields:
 func (_m *LayeredStoreDatabaseLayer) MarkSystemRanUnitTests() {
 	_m.Called()
@@ -849,6 +854,11 @@ func (_m *LayeredStoreDatabaseLayer) TotalSearchDbConnections() int {
 	}
 
 	return r0
+}
+
+// UnlockFromMaster provides a mock function with given fields:
+func (_m *LayeredStoreDatabaseLayer) UnlockFromMaster() {
+	_m.Called()
 }
 
 // User provides a mock function with given fields:
