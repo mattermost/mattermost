@@ -555,6 +555,9 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
 	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
+	props["EnableGifPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableGifPicker)
+	props["GfycatApiKey"] = *c.ServiceSettings.GfycatApiKey
+	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatApiSecret
 	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 
