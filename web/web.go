@@ -73,7 +73,13 @@ func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
 func IsApiCall(a *app.App, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
-	return strings.Index(r.URL.Path, path.Join(subpath, "api")+"/") == 0
+	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "api")+"/")
+}
+
+func IsWebhookCall(a *app.App, r *http.Request) bool {
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
+	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "hooks")+"/")
 }
 
 func ReturnStatusOK(w http.ResponseWriter) {

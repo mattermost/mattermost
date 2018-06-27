@@ -206,6 +206,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	app.initJobs()
+	app.AddLicenseListener(func() {
+		app.initJobs()
+	})
 
 	subpath, err := utils.GetSubpathFromConfig(app.Config())
 	if err != nil {

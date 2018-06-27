@@ -100,6 +100,14 @@
     "translation": "Can not add user to this channel type"
   },
   {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "This channel has been converted to a Private Channel."
+  },
+  {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
     "translation": "This default channel cannot be converted into a private channel."
   },
@@ -1533,66 +1541,6 @@
   {
     "id": "api.slackimport.slack_import.zip.app_error",
     "translation": "Unable to open the Slack export zip file.\r\n"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the user"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the team members"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the team member"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the channel members"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the channel member"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -5127,6 +5075,26 @@
     "translation": "We couldn't get channel type counts"
   },
   {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "Failed to rollback the database transaction"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the channel members"
+  },
+  {
+    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
+    "translation": "Failed to update the channel member"
+  },
+  {
     "id": "store.sql_channel.delete.channel.app_error",
     "translation": "We couldn't delete the channel"
   },
@@ -6111,6 +6079,26 @@
     "translation": "We couldn't count the teams"
   },
   {
+    "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "Failed to rollback the database transaction"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the team members"
+  },
+  {
+    "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
+    "translation": "Failed to update the team member"
+  },
+  {
     "id": "store.sql_team.get.find.app_error",
     "translation": "We couldn't find the existing team"
   },
@@ -6265,6 +6253,26 @@
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "We couldn't get the unique user count"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
+    "translation": "Failed to rollback the database transaction"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the users"
+  },
+  {
+    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
+    "translation": "Failed to update the user"
   },
   {
     "id": "store.sql_user.get.app_error",

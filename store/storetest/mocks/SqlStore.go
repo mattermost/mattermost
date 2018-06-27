@@ -411,6 +411,11 @@ func (_m *SqlStore) License() store.LicenseStore {
 	return r0
 }
 
+// LockToMaster provides a mock function with given fields:
+func (_m *SqlStore) LockToMaster() {
+	_m.Called()
+}
+
 // MarkSystemRanUnitTests provides a mock function with given fields:
 func (_m *SqlStore) MarkSystemRanUnitTests() {
 	_m.Called()
@@ -704,6 +709,11 @@ func (_m *SqlStore) TotalSearchDbConnections() int {
 	}
 
 	return r0
+}
+
+// UnlockFromMaster provides a mock function with given fields:
+func (_m *SqlStore) UnlockFromMaster() {
+	_m.Called()
 }
 
 // User provides a mock function with given fields:

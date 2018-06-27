@@ -105,6 +105,7 @@ type SqlSupplier struct {
 	searchReplicas []*gorp.DbMap
 	oldStores      SqlSupplierOldStores
 	settings       *model.SqlSettings
+	lockedToMaster bool
 }
 
 func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
@@ -283,7 +284,7 @@ func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
 		return ss.GetMaster()
 	}
 
@@ -799,6 +800,14 @@ func (ss *SqlSupplier) Close() {
 	for _, replica := range ss.replicas {
 		replica.Db.Close()
 	}
+}
+
+func (ss *SqlSupplier) LockToMaster() {
+	ss.lockedToMaster = true
+}
+
+func (ss *SqlSupplier) UnlockFromMaster() {
+	ss.lockedToMaster = false
 }
 
 func (ss *SqlSupplier) Team() store.TeamStore {

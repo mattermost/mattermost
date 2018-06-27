@@ -298,7 +298,7 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
 
-	s.CreateFullTextIndexIfNotExists("idx_channels_txt", "Channels", "Name, DisplayName")
+	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
 }
 
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
@@ -1573,7 +1573,7 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) s
 
 func (s SqlChannelStore) buildLIKEClause(term string) (likeClause, likeTerm string) {
 	likeTerm = term
-	searchColumns := "Name, DisplayName"
+	searchColumns := "Name, DisplayName, Purpose"
 
 	// These chars must be removed from the like query.
 	for _, c := range ignoreLikeSearchChar {
@@ -1608,7 +1608,7 @@ func (s SqlChannelStore) buildFulltextClause(term string) (fulltextClause, fullt
 	// Copy the terms as we will need to prepare them differently for each search type.
 	fulltextTerm = term
 
-	searchColumns := "Name, DisplayName"
+	searchColumns := "Name, DisplayName, Purpose"
 
 	// These chars must be treated as spaces in the fulltext query.
 	for _, c := range spaceFulltextSearchChar {

@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -398,4 +399,209 @@ func TestAppUpdateChannelScheme(t *testing.T) {
 	if updatedChannel.SchemeId != mockID {
 		t.Fatal("Wrong Channel SchemeId")
 	}
+}
+
+func TestFillInChannelProps(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channelPublic1, err := th.App.CreateChannel(&model.Channel{DisplayName: "Public 1", Name: "public1", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channelPublic1)
+
+	channelPublic2, err := th.App.CreateChannel(&model.Channel{DisplayName: "Public 2", Name: "public2", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channelPublic2)
+
+	channelPrivate, err := th.App.CreateChannel(&model.Channel{DisplayName: "Private", Name: "private", Type: model.CHANNEL_PRIVATE, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channelPrivate)
+
+	otherTeamId := model.NewId()
+	otherTeam := &model.Team{
+		DisplayName: "dn_" + otherTeamId,
+		Name:        "name" + otherTeamId,
+		Email:       "success+" + otherTeamId + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+	otherTeam, err = th.App.CreateTeam(otherTeam)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteTeam(otherTeam)
+
+	channelOtherTeam, err := th.App.CreateChannel(&model.Channel{DisplayName: "Other Team Channel", Name: "other-team", Type: model.CHANNEL_OPEN, TeamId: otherTeam.Id}, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channelOtherTeam)
+
+	// Note that purpose is intentionally plaintext below.
+
+	t.Run("single channels", func(t *testing.T) {
+		testCases := []struct {
+			Description          string
+			Channel              *model.Channel
+			ExpectedChannelProps map[string]interface{}
+		}{
+			{
+				"channel on basic team without references",
+				&model.Channel{
+					TeamId:  th.BasicTeam.Id,
+					Header:  "No references",
+					Purpose: "No references",
+				},
+				nil,
+			},
+			{
+				"channel on basic team",
+				&model.Channel{
+					TeamId:  th.BasicTeam.Id,
+					Header:  "~public1, ~private, ~other-team",
+					Purpose: "~public2, ~private, ~other-team",
+				},
+				map[string]interface{}{
+					"channel_mentions": map[string]interface{}{
+						"public1": map[string]interface{}{
+							"display_name": "Public 1",
+						},
+					},
+				},
+			},
+			{
+				"channel on other team",
+				&model.Channel{
+					TeamId:  otherTeam.Id,
+					Header:  "~public1, ~private, ~other-team",
+					Purpose: "~public2, ~private, ~other-team",
+				},
+				map[string]interface{}{
+					"channel_mentions": map[string]interface{}{
+						"other-team": map[string]interface{}{
+							"display_name": "Other Team Channel",
+						},
+					},
+				},
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				err = th.App.FillInChannelProps(testCase.Channel)
+				require.Nil(t, err)
+
+				assert.Equal(t, testCase.ExpectedChannelProps, testCase.Channel.Props)
+			})
+		}
+	})
+
+	t.Run("multiple channels", func(t *testing.T) {
+		testCases := []struct {
+			Description          string
+			Channels             *model.ChannelList
+			ExpectedChannelProps map[string]interface{}
+		}{
+			{
+				"single channel on basic team",
+				&model.ChannelList{
+					{
+						Name:    "test",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "~public1, ~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+				},
+				map[string]interface{}{
+					"test": map[string]interface{}{
+						"channel_mentions": map[string]interface{}{
+							"public1": map[string]interface{}{
+								"display_name": "Public 1",
+							},
+						},
+					},
+				},
+			},
+			{
+				"multiple channels on basic team",
+				&model.ChannelList{
+					{
+						Name:    "test",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "~public1, ~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+					{
+						Name:    "test2",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+					{
+						Name:    "test3",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "No references",
+						Purpose: "No references",
+					},
+				},
+				map[string]interface{}{
+					"test": map[string]interface{}{
+						"channel_mentions": map[string]interface{}{
+							"public1": map[string]interface{}{
+								"display_name": "Public 1",
+							},
+						},
+					},
+					"test2": map[string]interface{}(nil),
+					"test3": map[string]interface{}(nil),
+				},
+			},
+			{
+				"multiple channels across teams",
+				&model.ChannelList{
+					{
+						Name:    "test",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "~public1, ~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+					{
+						Name:    "test2",
+						TeamId:  otherTeam.Id,
+						Header:  "~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+					{
+						Name:    "test3",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "No references",
+						Purpose: "No references",
+					},
+				},
+				map[string]interface{}{
+					"test": map[string]interface{}{
+						"channel_mentions": map[string]interface{}{
+							"public1": map[string]interface{}{
+								"display_name": "Public 1",
+							},
+						},
+					},
+					"test2": map[string]interface{}{
+						"channel_mentions": map[string]interface{}{
+							"other-team": map[string]interface{}{
+								"display_name": "Other Team Channel",
+							},
+						},
+					},
+					"test3": map[string]interface{}(nil),
+				},
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				err = th.App.FillInChannelsProps(testCase.Channels)
+				require.Nil(t, err)
+
+				for _, channel := range *testCase.Channels {
+					assert.Equal(t, testCase.ExpectedChannelProps[channel.Name], channel.Props)
+				}
+			})
+		}
+	})
 }
