@@ -1124,6 +1124,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 		}
 
 		if member.Roles != roles {
+			mlog.Info(fmt.Sprintf("roles don't match, memberRoles=%v, roles=%v", member.Roles, roles))
 			if _, err := a.UpdateChannelMemberRoles(channel.Id, user.Id, roles); err != nil {
 				return err
 			}

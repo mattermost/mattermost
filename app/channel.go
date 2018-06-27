@@ -495,6 +495,7 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 	var member *model.ChannelMember
 	var err *model.AppError
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
+		mlog.Info("HIT2")
 		return nil, err
 	}
 
@@ -568,6 +569,7 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 	var member *model.ChannelMember
 	var err *model.AppError
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
+		mlog.Info("HIT3")
 		return nil, err
 	}
 
@@ -691,6 +693,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 
 	if result := <-cmchan; result.Err != nil {
 		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
+			mlog.Info("HIT")
 			return nil, result.Err
 		}
 	} else {
