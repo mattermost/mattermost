@@ -6,6 +6,7 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"strings"
 )
 
 type JoinProvider struct {
@@ -34,12 +35,18 @@ func (me *JoinProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Comman
 }
 
 func (me *JoinProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if result := <-a.Srv.Store.Channel().GetByName(args.TeamId, message, true); result.Err != nil {
+	channelName := message
+
+	if strings.HasPrefix(message, "~") {
+		channelName = message[1:]
+	}
+
+	if result := <-a.Srv.Store.Channel().GetByName(args.TeamId, channelName, true); result.Err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.list.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		channel := result.Data.(*model.Channel)
 
-		if channel.Name == message {
+		if channel.Name == channelName {
 			allowed := false
 			if (channel.Type == model.CHANNEL_PRIVATE && a.SessionHasPermissionToChannel(args.Session, channel.Id, model.PERMISSION_READ_CHANNEL)) || channel.Type == model.CHANNEL_OPEN {
 				allowed = true
