@@ -209,6 +209,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	scanner := bufio.NewScanner(fileReader)
 	lineNumber := 0
 
+	a.Srv.Store.LockToMaster()
+	defer a.Srv.Store.UnlockFromMaster()
+
 	errorsChan := make(chan LineImportWorkerError, (2*workers)+1) // size chosen to ensure it never gets filled up completely.
 	var wg sync.WaitGroup
 	var linesChan chan LineImportWorkerData
