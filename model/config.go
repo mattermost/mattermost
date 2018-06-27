@@ -210,6 +210,9 @@ type ServiceSettings struct {
 	WebserverMode                                     *string
 	EnableCustomEmoji                                 *bool
 	EnableEmojiPicker                                 *bool
+	EnableGifPicker                                   *bool
+	GfycatApiKey                                      *string
+	GfycatApiSecret                                   *string
 	RestrictCustomEmojiCreation                       *string
 	RestrictPostDelete                                *string
 	AllowEditPost                                     *string
@@ -411,6 +414,18 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnableEmojiPicker == nil {
 		s.EnableEmojiPicker = NewBool(true)
+	}
+
+	if s.EnableGifPicker == nil {
+		s.EnableGifPicker = NewBool(true)
+	}
+
+	if s.GfycatApiKey == nil {
+		s.GfycatApiKey = NewString("")
+	}
+
+	if s.GfycatApiSecret == nil {
+		s.GfycatApiSecret = NewString("")
 	}
 
 	if s.RestrictCustomEmojiCreation == nil {
