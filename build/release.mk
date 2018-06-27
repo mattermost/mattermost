@@ -3,27 +3,15 @@ dist: | check-style test package
 
 build-linux:
 	@echo Build Linux amd64
-ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
-else
-	env GOOS=linux GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
-endif
 
 build-osx: 
 	@echo Build OSX amd64
-ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 	env GOOS=darwin GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
-else
-	env GOOS=darwin GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
-endif
 
 build-windows: 
 	@echo Build Windows amd64
-ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	env GOOS=windows GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
-else
-	env GOOS=windows GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
-endif
 
 build: build-linux build-windows build-osx
 
