@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"encoding/json"
 	"errors"
 	"os"
 
@@ -85,7 +84,7 @@ func pluginCreateCmdF(command *cobra.Command, args []string) error {
 		}
 
 		if _, err := a.InstallPlugin(fileReader); err != nil {
-			return errors.New("Unable to create plugin: " + args[i])
+			return errors.New("Unable to create plugin: " + args[i] + ". Error: " + err.Error())
 		}
 		fileReader.Close()
 	}
@@ -107,7 +106,7 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if err := a.RemovePlugin(args[0]); err != nil {
-		return errors.New("Unable to delete plugin: " + args[0])
+		return errors.New("Unable to delete plugin: " + args[0] + ". Error: " + err.Error())
 	}
 
 	CommandPrettyPrintln("Deleted plugin")
@@ -126,9 +125,9 @@ func pluginEnableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	for i, pluginID := range args {
-		if err := a.EnablePlugin(pluginID); err != nil {
-			return errors.New("Unable to enable plugin: " + args[i])
+	for i, plugin := range args {
+		if err := a.EnablePlugin(plugin); err != nil {
+			return errors.New("Unable to enable plugin: " + args[i] + ". Error: " + err.Error())
 		}
 	}
 
@@ -149,7 +148,7 @@ func pluginDisableCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if err := a.DisablePlugin(args[0]); err != nil {
-		return errors.New("Unable to disable plugin: " + args[0])
+		return errors.New("Unable to disable plugin: " + args[0] + ". Error: " + err.Error())
 	}
 
 	CommandPrettyPrintln("Disabled plugin")
@@ -164,19 +163,19 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	plugins, err := a.GetPlugins()
-	if err != nil {
-		return errors.New("Unable to get plugins. Error: " + err.Error())
+	pluginsResp, _ := a.GetPlugins()
+
+	if pluginsResp != nil {
+		CommandPrettyPrintln("Listing active plugins")
+		for _, plugin := range pluginsResp.Active {
+			CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
+		}
+
+		CommandPrettyPrintln("Listing inactive plugins")
+		for _, plugin := range pluginsResp.Inactive {
+			CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
+		}
 	}
-
-	CommandPrettyPrintln("Listing plugins")
-
-	pluginList, err := json.MarshalIndent(plugins, "", "  ")
-	if err != nil {
-		return errors.New("Unable to list plugins. Error: " + err.Error())
-	}
-
-	CommandPrettyPrintln(pluginList)
 
 	return nil
 }
