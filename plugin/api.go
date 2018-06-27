@@ -113,6 +113,12 @@ type API interface {
 
 	// Delete will remove a key-value pair. Returns nil for non-existent keys.
 	KVDelete(key string) *model.AppError
+
+	// PublishWebSocketEvent sends an event to WebSocket connections.
+	// event is the type and will be prepended with "custom_<pluginid>_"
+	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
+	// broadcast determines to which users to send the event
+	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 }
 
 var Handshake = plugin.HandshakeConfig{

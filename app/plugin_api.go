@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -175,4 +176,12 @@ func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {
 
 func (api *PluginAPI) KVDelete(key string) *model.AppError {
 	return api.app.DeletePluginKey(api.id, key)
+}
+
+func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+	api.app.Publish(&model.WebSocketEvent{
+		Event:     fmt.Sprintf("custom_%v_%v", api.id, event),
+		Data:      payload,
+		Broadcast: broadcast,
+	})
 }
