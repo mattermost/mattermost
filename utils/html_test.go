@@ -28,7 +28,7 @@ func init() {
 	htmlTestTranslationBundle = bundle.New()
 	fooBold, _ := translation.NewTranslation(map[string]interface{}{
 		"id":          "foo.bold",
-		"translation": "<b>{{ .Foo }}</b>",
+		"translation": "<p>[[{{ .Foo }}]]</p>",
 	})
 	htmlTestTranslationBundle.AddTranslation(&language.Language{Tag: "en"}, fooBold)
 }
@@ -103,7 +103,7 @@ func TestHTMLTemplate_RenderError(t *testing.T) {
 }
 
 func TestTranslateAsHtml(t *testing.T) {
-	assert.EqualValues(t, "<b>&lt;i&gt;foo&lt;/i&gt;</b>", TranslateAsHtml(i18n.TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
+	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHtml(i18n.TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
 		"Foo": "<i>foo</i>",
 	}))
 }

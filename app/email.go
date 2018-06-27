@@ -319,7 +319,8 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			bodyPage.Props["Info"] = map[string]interface{}{}
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
 			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
-				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": siteURL + "/" + team.Name})
+				map[string]interface{}{"TeamDisplayName": team.DisplayName})
+			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
 			token := model.NewToken(
 				TOKEN_TYPE_TEAM_INVITATION,
