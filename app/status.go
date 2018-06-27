@@ -161,6 +161,22 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	return statusMap, nil
 }
 
+// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
+// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
+// while an 'away' device is still connected
+func (a *App) SetStatusLastActivityAt(userId string, activityAt int64) {
+	var status *model.Status
+	var err *model.AppError
+	if status, err = a.GetStatus(userId); err != nil {
+		return
+	}
+
+	status.LastActivityAt = activityAt
+
+	a.AddStatusCacheSkipClusterSend(status)
+	a.SetStatusAwayIfNeeded(userId, false)
+}
+
 func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
