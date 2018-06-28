@@ -765,6 +765,9 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
 
+	// The URL should be the link the user provided in their message, not a redirected one.
+	og.URL = requestURL
+
 	return og
 }
 
