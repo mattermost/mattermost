@@ -605,15 +605,16 @@ type SSOSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName               *string
-	DataSource               *string
-	DataSourceReplicas       []string
-	DataSourceSearchReplicas []string
-	MaxIdleConns             *int
-	MaxOpenConns             *int
-	Trace                    bool
-	AtRestEncryptKey         string
-	QueryTimeout             *int
+	DriverName                  *string
+	DataSource                  *string
+	DataSourceReplicas          []string
+	DataSourceSearchReplicas    []string
+	MaxIdleConns                *int
+	ConnMaxLifetimeMilliseconds *int
+	MaxOpenConns                *int
+	Trace                       bool
+	AtRestEncryptKey            string
+	QueryTimeout                *int
 }
 
 func (s *SqlSettings) SetDefaults() {
@@ -635,6 +636,10 @@ func (s *SqlSettings) SetDefaults() {
 
 	if s.MaxOpenConns == nil {
 		s.MaxOpenConns = NewInt(300)
+	}
+
+	if s.ConnMaxLifetimeMilliseconds == nil {
+		s.ConnMaxLifetimeMilliseconds = NewInt(3600000)
 	}
 
 	if s.QueryTimeout == nil {
@@ -2067,6 +2072,10 @@ func (ss *SqlSettings) isValid() *AppError {
 
 	if *ss.MaxIdleConns <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_idle.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.ConnMaxLifetimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *ss.QueryTimeout <= 0 {

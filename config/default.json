@@ -119,6 +119,7 @@
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
+        "ConnMaxLifetimeMilliseconds": 3600000,
         "MaxOpenConns": 300,
         "Trace": false,
         "AtRestEncryptKey": "",

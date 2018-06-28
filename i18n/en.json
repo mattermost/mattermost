@@ -3064,11 +3064,11 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id={{ .id }}.  The cluster may become unstable and a restart is required.  To ensure the cluster is configured correctly you should perform a rolling restart immediately."
+    "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled  unless ReadOnlyConfig is disabled in the configuration file."
+    "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3812,11 +3812,11 @@
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+    "translation": "Invalid email batching buffer size for email settings. Must be zero or a positive number."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+    "translation": "Invalid email batching interval for email settings. Must be 30 seconds or more."
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
@@ -3824,23 +3824,23 @@
   },
   {
     "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Invalid invite salt for email settings.  Must be 32 chars or more."
+    "translation": "Invalid invite salt for email settings. Must be 32 chars or more."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'"
+    "translation": "Invalid connection security for email settings. Must be '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more."
+    "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Invalid driver name for file settings.  Must be 'local' or 'amazons3'"
+    "translation": "Invalid driver name for file settings. Must be 'local' or 'amazons3'"
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
-    "translation": "Invalid public link salt for file settings.  Must be 32 chars or more."
+    "translation": "Invalid public link salt for file settings. Must be 32 chars or more."
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
@@ -3872,7 +3872,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Invalid connection security for AD/LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
+    "translation": "Invalid connection security for AD/LDAP settings. Must be '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -3896,7 +3896,7 @@
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
-    "translation": "Invalid maximum login attempts for service settings.  Must be a positive number."
+    "translation": "Invalid maximum login attempts for service settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
@@ -3904,7 +3904,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
+    "translation": "Invalid maximum channels per team for team settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3912,11 +3912,11 @@
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
-    "translation": "Invalid maximum notifications per channel for team settings.  Must be a positive number."
+    "translation": "Invalid maximum notifications per channel for team settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
+    "translation": "Invalid maximum users per team for team settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -3964,11 +3964,11 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Invalid memory store size for rate limit settings.  Must be a positive number"
+    "translation": "Invalid memory store size for rate limit settings. Must be a positive number"
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Invalid per sec for rate limit settings.  Must be a positive number"
+    "translation": "Invalid per sec for rate limit settings. Must be a positive number"
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
@@ -3976,7 +3976,7 @@
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Invalid direct message restriction.  Must be 'any', or 'team'"
+    "translation": "Invalid direct message restriction. Must be 'any', or 'team'"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -4024,27 +4024,31 @@
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
-    "translation": "Invalid data source for SQL settings.  Must be set."
+    "translation": "Invalid data source for SQL settings. Must be set."
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Invalid driver name for SQL settings.  Must be 'mysql' or 'postgres'"
+    "translation": "Invalid driver name for SQL settings. Must be 'mysql' or 'postgres'"
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
-    "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
+    "translation": "Invalid maximum idle connection for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
-    "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+    "translation": "Invalid maximum open connection for SQL settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+    "translation": "Invalid query timeout for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Invalid teammate display. Must be 'full_name', 'nickname_full_name' or 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -6040,7 +6044,7 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
+    "translation": "Unable to load mattermost configuration file: Adding DefaultClientLocale to AvailableLocales."
   },
   {
     "id": "utils.config.load_config.decoding.panic",
@@ -6056,15 +6060,15 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+    "translation": "Unable to load mattermost configuration file: AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
+    "translation": "Unable to load mattermost configuration file: DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
+    "translation": "Unable to load mattermost configuration file: DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
