@@ -431,6 +431,19 @@ func UpgradeDatabaseToVersion50(sqlStore SqlStore) {
 	// in `config.json` to a `Permission` in the database. The migration code can be seen
 	// in the file `app/app.go` in the function `DoEmojisPermissionsMigration()`.
 
+	// This version of Mattermost also includes a online-migration which migrates some roles from the `Roles` columns of
+	// TeamMember and ChannelMember rows to the new SchemeAdmin and SchemeUser columns. If you need to downgrade to a
+	// version of Mattermost prior to 5.0, you should take your server offline and run the following SQL statements
+	// prior to launching the downgraded version:
+	//
+	//    UPDATE Teams SET SchemeId = NULL;
+	//    UPDATE Channels SET SchemeId = NULL;
+	//    UPDATE TeamMembers SET Roles = CONCAT(Roles, ' team_user'), SchemeUser = NULL where SchemeUser = 1;
+	//    UPDATE TeamMembers SET Roles = CONCAT(Roles, ' team_admin'), SchemeAdmin = NULL where SchemeAdmin = 1;
+	//    UPDATE ChannelMembers SET Roles = CONCAT(Roles, ' channel_user'), SchemeUser = NULL where SchemeUser = 1;
+	//    UPDATE ChannelMembers SET Roles = CONCAT(Roles, ' channel_admin'), SchemeAdmin = NULL where SchemeAdmin = 1;
+	//    DELETE from Systems WHERE Name = 'migration_advanced_permissions_phase_2';
+
 	if shouldPerformUpgrade(sqlStore, VERSION_4_10_0, VERSION_5_0_0) {
 
 		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "SchemeId", "varchar(26)", "varchar(26)")
