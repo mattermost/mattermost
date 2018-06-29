@@ -62,7 +62,7 @@ type Hooks interface {
 	//
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
-	MessageWillBePosted(post *model.Post) (*model.Post, string)
+	MessageWillBePosted(c *RequestContext, post *model.Post) (*model.Post, string)
 
 	// MessageWillBeUpdated is invoked when a message is updated by a user before it is commited
 	// to the database. If you also want to act on new posts, see MessageWillBePosted.
@@ -73,17 +73,17 @@ type Hooks interface {
 	//
 	// Note that this method will be called for posts updated by plugins, including the plugin that
 	// updated the post.
-	MessageWillBeUpdated(newPost, oldPost *model.Post) (*model.Post, string)
+	MessageWillBeUpdated(c *RequestContext, newPost, oldPost *model.Post) (*model.Post, string)
 
 	// MessageHasBeenPosted is invoked after the message has been commited to the databse.
 	// If you need to modify or reject the post, see MessageWillBePosted
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
-	MessageHasBeenPosted(post *model.Post)
+	MessageHasBeenPosted(c *RequestContext, post *model.Post)
 
 	// MessageHasBeenUpdated is invoked after a message is updated and has been updated in the databse.
 	// If you need to modify or reject the post, see MessageWillBeUpdated
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
-	MessageHasBeenUpdated(newPost, oldPost *model.Post)
+	MessageHasBeenUpdated(c *RequestContext, newPost, oldPost *model.Post)
 }
