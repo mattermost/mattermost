@@ -2598,6 +2598,126 @@ func TestImportImportUser(t *testing.T) {
 	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ANY)
 	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
+
+	// Test importing a user with roles set to a team and a channel which are affected by an override scheme.
+	// The import subsystem should translate `channel_admin/channel_user/team_admin/team_user`
+	// to the appropriate scheme-managed-role booleans.
+
+	// Mark the phase 2 permissions migration as completed.
+	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+
+	defer func() {
+		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	}()
+
+	teamSchemeData := &SchemeImportData{
+		Name:        ptrStr(model.NewId()),
+		DisplayName: ptrStr(model.NewId()),
+		Scope:       ptrStr("team"),
+		DefaultTeamUserRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultTeamAdminRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultChannelUserRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultChannelAdminRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		Description: ptrStr("description"),
+	}
+
+	if err := th.App.ImportScheme(teamSchemeData, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	var teamScheme *model.Scheme
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*teamSchemeData.Name); res.Err != nil {
+		t.Fatalf("Failed to import scheme: %v", res.Err)
+	} else {
+		teamScheme = res.Data.(*model.Scheme)
+	}
+
+	teamData := &TeamImportData{
+		Name:            ptrStr(model.NewId()),
+		DisplayName:     ptrStr("Display Name"),
+		Type:            ptrStr("O"),
+		Description:     ptrStr("The team description."),
+		AllowOpenInvite: ptrBool(true),
+		Scheme:          &teamScheme.Name,
+	}
+	if err := th.App.ImportTeam(teamData, false); err != nil {
+		t.Fatalf("Import should have succeeded: %v", err.Error())
+	}
+	team, err = th.App.GetTeamByName(teamName)
+	if err != nil {
+		t.Fatalf("Failed to get team from database.")
+	}
+
+	channelData := &ChannelImportData{
+		Team:        &teamName,
+		Name:        ptrStr(model.NewId()),
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+		Header:      ptrStr("Channe Header"),
+		Purpose:     ptrStr("Channel Purpose"),
+	}
+	if err := th.App.ImportChannel(channelData, false); err != nil {
+		t.Fatalf("Import should have succeeded.")
+	}
+	channel, err = th.App.GetChannelByName(*channelData.Name, team.Id)
+	if err != nil {
+		t.Fatalf("Failed to get channel from database: %v", err.Error())
+	}
+
+	// Test with a valid team & valid channel name in apply mode.
+	userData := &UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+		Teams: &[]UserTeamImportData{
+			{
+				Name:  &team.Name,
+				Roles: ptrStr("team_user team_admin"),
+				Channels: &[]UserChannelImportData{
+					{
+						Name:  &channel.Name,
+						Roles: ptrStr("channel_admin channel_user"),
+					},
+				},
+			},
+		},
+	}
+	if err := th.App.ImportUser(userData, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	user, err = th.App.GetUserByUsername(*userData.Username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	teamMember, err := th.App.GetTeamMember(team.Id, user.Id)
+	if err != nil {
+		t.Fatalf("Failed to get the team member")
+	}
+	assert.True(t, teamMember.SchemeAdmin)
+	assert.True(t, teamMember.SchemeUser)
+	assert.Equal(t, "", teamMember.ExplicitRoles)
+
+	channelMember, err := th.App.GetChannelMember(channel.Id, user.Id)
+	if err != nil {
+		t.Fatalf("Failed to get the channel member")
+	}
+	assert.True(t, channelMember.SchemeAdmin)
+	assert.True(t, channelMember.SchemeUser)
+	assert.Equal(t, "", channelMember.ExplicitRoles)
+
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
