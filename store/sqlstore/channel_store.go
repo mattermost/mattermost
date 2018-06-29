@@ -1617,6 +1617,8 @@ func (s SqlChannelStore) buildFulltextClause(term string) (fulltextClause, fullt
 
 	// Prepare the FULLTEXT portion of the query.
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		fulltextTerm = strings.Replace(fulltextTerm, "|", "", -1)
+
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
 			if i == len(splitTerm)-1 {
