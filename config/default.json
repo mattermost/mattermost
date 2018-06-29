@@ -44,7 +44,7 @@
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
         "EnableEmojiPicker": true,
-        "EnableGifPicker": true,
+        "EnableGifPicker": false,
         "GfycatApiKey": "",
         "GfycatApiSecret": "",
         "RestrictCustomEmojiCreation": "all",
