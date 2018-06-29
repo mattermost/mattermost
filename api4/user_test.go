@@ -411,7 +411,7 @@ func TestGetUserByUsername(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
 
-	ruser, resp = Client.GetUserByUsername(user.Username, "")
+	ruser, resp = Client.GetUserByUsername(th.BasicUser2.Username, "")
 	CheckNoError(t, resp)
 
 	if ruser.Email != "" {
@@ -422,6 +422,12 @@ func TestGetUserByUsername(t *testing.T) {
 	}
 	if ruser.LastName != "" {
 		t.Fatal("last name should be blank")
+	}
+
+	ruser, resp = Client.GetUserByUsername(th.BasicUser.Username, "")
+	CheckNoError(t, resp)
+	if len(ruser.NotifyProps) == 0 {
+		t.Fatal("notify props should be sent")
 	}
 
 	Client.Logout()
