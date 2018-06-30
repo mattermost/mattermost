@@ -1062,10 +1062,24 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 
 		var roles string
+		isSchemeUser := true
+		isSchemeAdmin := false
+
 		if tdata.Roles == nil {
-			roles = model.TEAM_USER_ROLE_ID
+			isSchemeUser = true
 		} else {
-			roles = *tdata.Roles
+			rawRoles := *tdata.Roles
+			explicitRoles := []string{}
+			for _, role := range strings.Fields(rawRoles) {
+				if role == model.TEAM_USER_ROLE_ID {
+					isSchemeUser = true
+				} else if role == model.TEAM_ADMIN_ROLE_ID {
+					isSchemeAdmin = true
+				} else {
+					explicitRoles = append(explicitRoles, role)
+				}
+			}
+			roles = strings.Join(explicitRoles, " ")
 		}
 
 		var member *model.TeamMember
@@ -1073,10 +1087,14 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			return err
 		}
 
-		if member.Roles != roles {
+		if member.ExplicitRoles != roles {
 			if _, err := a.UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
 				return err
 			}
+		}
+
+		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser {
+			a.UpdateTeamMemberSchemeRoles(team.Id, user.Id, isSchemeUser, isSchemeAdmin)
 		}
 
 		if defaultChannel, err := a.GetChannelByName(model.DEFAULT_CHANNEL, team.Id); err != nil {
@@ -1108,10 +1126,24 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 		}
 
 		var roles string
+		isSchemeUser := true
+		isSchemeAdmin := false
+
 		if cdata.Roles == nil {
-			roles = model.CHANNEL_USER_ROLE_ID
+			isSchemeUser = true
 		} else {
-			roles = *cdata.Roles
+			rawRoles := *cdata.Roles
+			explicitRoles := []string{}
+			for _, role := range strings.Fields(rawRoles) {
+				if role == model.CHANNEL_USER_ROLE_ID {
+					isSchemeUser = true
+				} else if role == model.CHANNEL_ADMIN_ROLE_ID {
+					isSchemeAdmin = true
+				} else {
+					explicitRoles = append(explicitRoles, role)
+				}
+			}
+			roles = strings.Join(explicitRoles, " ")
 		}
 
 		var member *model.ChannelMember
@@ -1123,10 +1155,14 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 			}
 		}
 
-		if member.Roles != roles {
+		if member.ExplicitRoles != roles {
 			if _, err := a.UpdateChannelMemberRoles(channel.Id, user.Id, roles); err != nil {
 				return err
 			}
+		}
+
+		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser {
+			a.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, isSchemeUser, isSchemeAdmin)
 		}
 
 		if cdata.NotifyProps != nil {
@@ -1200,7 +1236,7 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 	}
 
 	if data.Password != nil && len(*data.Password) == 0 {
-		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.pasword_length.error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.password_length.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Password != nil && len(*data.Password) > model.USER_PASSWORD_MAX_LENGTH {

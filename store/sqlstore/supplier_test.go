@@ -73,17 +73,19 @@ func TestGetReplica(t *testing.T) {
 			driverName := model.DATABASE_DRIVER_SQLITE
 			dataSource := ":memory:"
 			maxIdleConns := 1
+			connMaxLifetimeMilliseconds := 3600000
 			maxOpenConns := 1
 			queryTimeout := 5
 
 			settings := model.SqlSettings{
-				DriverName:               &driverName,
-				DataSource:               &dataSource,
-				MaxIdleConns:             &maxIdleConns,
-				MaxOpenConns:             &maxOpenConns,
-				QueryTimeout:             &queryTimeout,
-				DataSourceReplicas:       testCase.DataSourceReplicas,
-				DataSourceSearchReplicas: testCase.DataSourceSearchReplicas,
+				DriverName:                  &driverName,
+				DataSource:                  &dataSource,
+				MaxIdleConns:                &maxIdleConns,
+				ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
+				MaxOpenConns:                &maxOpenConns,
+				QueryTimeout:                &queryTimeout,
+				DataSourceReplicas:          testCase.DataSourceReplicas,
+				DataSourceSearchReplicas:    testCase.DataSourceSearchReplicas,
 			}
 			supplier := sqlstore.NewSqlSupplier(settings, nil)
 
@@ -209,17 +211,19 @@ func TestGetAllConns(t *testing.T) {
 			driverName := model.DATABASE_DRIVER_SQLITE
 			dataSource := ":memory:"
 			maxIdleConns := 1
+			connMaxLifetimeMilliseconds := 3600000
 			maxOpenConns := 1
 			queryTimeout := 5
 
 			settings := model.SqlSettings{
-				DriverName:               &driverName,
-				DataSource:               &dataSource,
-				MaxIdleConns:             &maxIdleConns,
-				MaxOpenConns:             &maxOpenConns,
-				QueryTimeout:             &queryTimeout,
-				DataSourceReplicas:       testCase.DataSourceReplicas,
-				DataSourceSearchReplicas: testCase.DataSourceSearchReplicas,
+				DriverName:                  &driverName,
+				DataSource:                  &dataSource,
+				MaxIdleConns:                &maxIdleConns,
+				ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
+				MaxOpenConns:                &maxOpenConns,
+				QueryTimeout:                &queryTimeout,
+				DataSourceReplicas:          testCase.DataSourceReplicas,
+				DataSourceSearchReplicas:    testCase.DataSourceSearchReplicas,
 			}
 			supplier := sqlstore.NewSqlSupplier(settings, nil)
 

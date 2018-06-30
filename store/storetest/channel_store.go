@@ -2028,6 +2028,19 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 					t.Fatal("wrong channel returned")
 				}
 			}
+
+			if result := <-search(o1.TeamId, "town square |"); result.Err != nil {
+				t.Fatal(result.Err)
+			} else {
+				channels := result.Data.(*model.ChannelList)
+				if len(*channels) != 1 {
+					t.Fatal("should return 1 channel")
+				}
+
+				if (*channels)[0].Name != o9.Name {
+					t.Fatal("wrong channel returned")
+				}
+			}
 		})
 	}
 }
