@@ -28,7 +28,6 @@ import (
 const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
-	MAX_DB_CONN_LIFETIME = 60
 	DB_PING_ATTEMPTS     = 18
 	DB_PING_TIMEOUT_SECS = 10
 )
@@ -218,7 +217,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 
 	db.SetMaxIdleConns(*settings.MaxIdleConns)
 	db.SetMaxOpenConns(*settings.MaxOpenConns)
-	db.SetConnMaxLifetime(time.Duration(MAX_DB_CONN_LIFETIME) * time.Minute)
+	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 
 	var dbmap *gorp.DbMap
 

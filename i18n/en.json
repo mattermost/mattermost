@@ -1,11 +1,11 @@
 [
   {
     "id": "actiance.xml.output.formatter.marshalToXml.appError",
-    "translation": ""
+    "translation": "Unable to convert export to XML."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": ""
+    "translation": "No file under 'certificate' in request."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -37,7 +37,7 @@
   },
   {
     "id": "api.admin.saml.not_available.app_error",
-    "translation": ""
+    "translation": "SAML 2.0 is not configured or supported on this server."
   },
   {
     "id": "api.admin.test_email.body",
@@ -189,7 +189,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": ""
+    "translation": "Failed to post channel privacy update message."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -253,7 +253,7 @@
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "License does not support updating a channel's scheme"
+    "translation": "Your license does not support updating a channel's scheme"
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
@@ -962,7 +962,7 @@
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": ""
+    "translation": "Invalid user id"
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -1010,7 +1010,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": ""
+    "translation": "Unable to create the emoji. An error ocurred when trying to open the attached image."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1266,7 +1266,7 @@
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
-    "translation": ""
+    "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1400,15 +1400,15 @@
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": ""
+    "translation": "Unable to delete user preferences."
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": ""
+    "translation": "Unable to get user preferences."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": ""
+    "translation": "Unable to set user preferences."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1420,15 +1420,15 @@
   },
   {
     "id": "api.roles.patch_roles.license.error",
-    "translation": "Your current license does not support advanced permissions."
+    "translation": "Your license does not support advanced permissions."
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": ""
+    "translation": "Your license does not support creating permissions schemes."
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": ""
+    "translation": "Your license not support delete permissions schemes"
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
@@ -1440,7 +1440,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": ""
+    "translation": "Your license does not support update permissions schemes"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -1560,11 +1560,11 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": ""
+    "translation": "Invalid driver name for file settings.  Must be 'local' or 'amazons3'"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": ""
+    "translation": "Unable to read the team icon file."
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -1696,7 +1696,7 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "License does not support updating a team's scheme"
+    "translation": "Your license does not support updating a team's scheme"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -2036,7 +2036,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": ""
+    "translation": "Authentication Transfer not configured or available on this server."
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2104,19 +2104,19 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": ""
+    "translation": "Authentication Transfer not configured or available on this server."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
-    "translation": ""
+    "translation": "The reset password token does not appear to be valid."
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "The reset password link does not appear to be valid"
+    "translation": "The reset password link does not appear to be valid."
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "The password reset link has expired"
+    "translation": "The password reset link has expired."
   },
   {
     "id": "api.user.reset_password.method",
@@ -2148,7 +2148,7 @@
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": ""
+    "translation": "Unable to send email notification for MFA change."
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -2264,7 +2264,7 @@
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": ""
+    "translation": "Bad verify email token type."
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2272,19 +2272,19 @@
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": ""
+    "translation": "Unknown WebSocket action."
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": ""
+    "translation": "Invalid sequence for WebSocket message."
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": ""
+    "translation": "No websocket action."
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": ""
+    "translation": "WebSocket connection is not authenticated. Please log in and try again."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2360,7 +2360,7 @@
   },
   {
     "id": "app.cluster.404.app_error",
-    "translation": ""
+    "translation": "Cluster API endpoint not found."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2372,7 +2372,7 @@
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": ""
+    "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2484,7 +2484,7 @@
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": ""
+    "translation": "Error importing user preferences. Failed to save preferences."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -2492,7 +2492,7 @@
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": ""
+    "translation": "Unable to read the version of the data import file."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2808,7 +2808,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": ""
+    "translation": "Invalid Comments Prop value for user."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -2832,10 +2832,6 @@
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
-    "translation": ""
-  },
-  {
-    "id": "app.import.validate_user_import_data.pasword_length.error",
     "translation": "User Password has invalid length."
   },
   {
@@ -2960,7 +2956,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": ""
+    "translation": "Unable to get plugin statuses from the cluster."
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3020,7 +3016,7 @@
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": ""
+    "translation": "Unable to complete SAML login with an empty email address."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3031,548 +3027,28 @@
     "translation": "Invalid or missing token"
   },
   {
-    "id": "authentication.permissions.add_reaction.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_reaction.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_user_to_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_user_to_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.assign_system_admin_role.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.assign_system_admin_role.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_direct_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_direct_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_group_channel.description",
-    "translation": "Ability to create new group message channels"
-  },
-  {
-    "id": "authentication.permissions.create_group_channel.name",
-    "translation": "Create Group Message"
-  },
-  {
-    "id": "authentication.permissions.create_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_ephemeral.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_ephemeral.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_public.description",
-    "translation": "Ability to create posts in public channels"
-  },
-  {
-    "id": "authentication.permissions.create_post_public.name",
-    "translation": "Create Posts in Public Channels"
-  },
-  {
-    "id": "authentication.permissions.create_private_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_private_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_public_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_public_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Ability to create personal access tokens"
-  },
-  {
-    "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Create Personal Access Token"
-  },
-  {
-    "id": "authentication.permissions.delete_others_posts.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_others_posts.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_private_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_private_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_public_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_public_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_other_users.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_other_users.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_others_posts.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_others_posts.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.get_public_link.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.get_public_link.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.import_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.import_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.join_public_channels.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.join_public_channels.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_team_channels.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_team_channels.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_users_without_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_users_without_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_channel_roles.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_channel_roles.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_emojis.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_emojis.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_oauth.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_oauth.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_emojis.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_emojis.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_slash_commands.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_slash_commands.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_webhooks.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_webhooks.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_members.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_members.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_properties.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_properties.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_members.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_members.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_properties.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_properties.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_roles.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_roles.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_slash_commands.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_slash_commands.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system_wide_oauth.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system_wide_oauth.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "Ability to change the roles of a team member"
-  },
-  {
-    "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "Manage Team Roles"
-  },
-  {
-    "id": "authentication.permissions.manage_webhooks.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_webhooks.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.permanent_delete_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.permanent_delete_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Ability to read public channels"
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.name",
-    "translation": "Read Public Channels"
-  },
-  {
-    "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "Ability to read personal access tokens' id, description and user_id fields"
-  },
-  {
-    "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Read Personal Access Tokens"
-  },
-  {
-    "id": "authentication.permissions.remove_others_reactions.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_others_reactions.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_reaction.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_reaction.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_user_from_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_user_from_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "Ability to revoke personal access tokens"
-  },
-  {
-    "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Revoke Personal Access Token"
-  },
-  {
-    "id": "authentication.permissions.team_invite_user.description",
-    "translation": "Ability to invite users to a team"
-  },
-  {
-    "id": "authentication.permissions.team_invite_user.name",
-    "translation": "Invite User"
-  },
-  {
-    "id": "authentication.permissions.team_use_slash_commands.description",
-    "translation": "Ability to use slash commands"
-  },
-  {
-    "id": "authentication.permissions.team_use_slash_commands.name",
-    "translation": "Use Slash Commands"
-  },
-  {
-    "id": "authentication.permissions.upload_file.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.upload_file.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.view_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.view_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permisssions.manage_jobs.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permisssions.manage_jobs.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.system_post_all.description",
-    "translation": "A role with the permission to post in any public, private or direct channel on the system"
-  },
-  {
-    "id": "authentication.roles.system_post_all.name",
-    "translation": "Post in Public, Private and Direct Channels"
-  },
-  {
-    "id": "authentication.roles.system_post_all_public.description",
-    "translation": "A role with the permission to post in any public channel on the system"
-  },
-  {
-    "id": "authentication.roles.system_post_all_public.name",
-    "translation": "Post in Public Channels"
-  },
-  {
-    "id": "authentication.roles.system_user_access_token.description",
-    "translation": "A role with the permissions to create, read and revoke personal access tokens"
-  },
-  {
-    "id": "authentication.roles.system_user_access_token.name",
-    "translation": "Personal Access Token"
-  },
-  {
-    "id": "authentication.roles.team_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_post_all.description",
-    "translation": "A role with the permission to post in any public or private channel on the team"
-  },
-  {
-    "id": "authentication.roles.team_post_all.name",
-    "translation": "Post in Public and Private Channels"
-  },
-  {
-    "id": "authentication.roles.team_post_all_public.description",
-    "translation": "A role with the permission to post in any public channel on the team"
-  },
-  {
-    "id": "authentication.roles.team_post_all_public.name",
-    "translation": "Post in Public Channels"
-  },
-  {
-    "id": "authentication.roles.team_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_user.name",
-    "translation": ""
-  },
-  {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": ""
+    "translation": "Unable to decode the image data."
   },
   {
     "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": ""
+    "translation": "Unable to get image metadata."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": ""
+    "translation": "Unable to convert the image data to PNG format. Please try again."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": ""
+    "translation": "Unable to upload the custom brand image. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": ""
+    "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
-    "translation": ""
+    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",
@@ -3580,19 +3056,19 @@
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": ""
+    "translation": "Unable to get users."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": ""
+    "translation": "Unable to get SAML users."
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id={{ .id }}.  The cluster may become unstable and a restart is required.  To ensure the cluster is configured correctly you should perform a rolling restart immediately."
+    "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled  unless ReadOnlyConfig is disabled in the configuration file."
+    "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3620,19 +3096,19 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": ""
+    "translation": "Unable to convert metadata to json."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": ""
+    "translation": "Unable to export a post."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": ""
+    "translation": "Unable to create the zip export file."
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": ""
+    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3640,7 +3116,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": ""
+    "translation": "Unable to load export templates. Please try again."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3648,7 +3124,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "License does not support Data Retention."
+    "translation": "Your license does not support Data Retention."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3748,7 +3224,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "License does not support Elasticsearch."
+    "translation": "Your license does not support Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
@@ -3800,7 +3276,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": ""
+    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3924,11 +3400,11 @@
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
-    "translation": ""
+    "translation": "Could not parse message export job BatchSize."
   },
   {
     "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": ""
+    "translation": "Could not parse message export job ExportFromTimestamp."
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -3940,7 +3416,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": ""
+    "translation": "Reached AD/LDAP sychronization job timeout."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -4104,7 +3580,7 @@
   },
   {
     "id": "model.client.get_team_icon.app_error",
-    "translation": ""
+    "translation": "Unable to read the team icon from the body response."
   },
   {
     "id": "model.client.read_file.app_error",
@@ -4120,11 +3596,11 @@
   },
   {
     "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": ""
+    "translation": "No file under 'image' in request."
   },
   {
     "id": "model.client.set_team_icon.writer.app_error",
-    "translation": ""
+    "translation": "Unable to write the request."
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
@@ -4336,11 +3812,11 @@
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Invalid email batching buffer size for email settings.  Must be zero or a positive number."
+    "translation": "Invalid email batching buffer size for email settings. Must be zero or a positive number."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+    "translation": "Invalid email batching interval for email settings. Must be 30 seconds or more."
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
@@ -4348,23 +3824,23 @@
   },
   {
     "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Invalid invite salt for email settings.  Must be 32 chars or more."
+    "translation": "Invalid invite salt for email settings. Must be 32 chars or more."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'"
+    "translation": "Invalid connection security for email settings. Must be '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more."
+    "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Invalid driver name for file settings.  Must be 'local' or 'amazons3'"
+    "translation": "Invalid driver name for file settings. Must be 'local' or 'amazons3'"
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
-    "translation": "Invalid public link salt for file settings.  Must be 32 chars or more."
+    "translation": "Invalid public link salt for file settings. Must be 32 chars or more."
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
@@ -4396,7 +3872,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Invalid connection security for AD/LDAP settings.  Must be '', 'TLS', or 'STARTTLS'"
+    "translation": "Invalid connection security for AD/LDAP settings. Must be '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4420,7 +3896,7 @@
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
-    "translation": "Invalid maximum login attempts for service settings.  Must be a positive number."
+    "translation": "Invalid maximum login attempts for service settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
@@ -4428,7 +3904,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Invalid maximum channels per team for team settings.  Must be a positive number."
+    "translation": "Invalid maximum channels per team for team settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4436,11 +3912,11 @@
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
-    "translation": "Invalid maximum notifications per channel for team settings.  Must be a positive number."
+    "translation": "Invalid maximum notifications per channel for team settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
+    "translation": "Invalid maximum users per team for team settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -4488,11 +3964,11 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Invalid memory store size for rate limit settings.  Must be a positive number"
+    "translation": "Invalid memory store size for rate limit settings. Must be a positive number"
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Invalid per sec for rate limit settings.  Must be a positive number"
+    "translation": "Invalid per sec for rate limit settings. Must be a positive number"
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
@@ -4500,7 +3976,7 @@
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Invalid direct message restriction.  Must be 'any', or 'team'"
+    "translation": "Invalid direct message restriction. Must be 'any', or 'team'"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -4548,27 +4024,31 @@
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
-    "translation": "Invalid data source for SQL settings.  Must be set."
+    "translation": "Invalid data source for SQL settings. Must be set."
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Invalid driver name for SQL settings.  Must be 'mysql' or 'postgres'"
+    "translation": "Invalid driver name for SQL settings. Must be 'mysql' or 'postgres'"
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
-    "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
+    "translation": "Invalid maximum idle connection for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
-    "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+    "translation": "Invalid maximum open connection for SQL settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+    "translation": "Invalid query timeout for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Invalid teammate display. Must be 'full_name', 'nickname_full_name' or 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4632,7 +4112,7 @@
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": ""
+    "translation": "Invalid creator id"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -4640,27 +4120,27 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Invalid value for create_at."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Invalid value for id."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": ""
+    "translation": "Invalid value for path."
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": ""
+    "translation": "Invalid value for post_id."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Invalid value for update_at."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Invalid value for user_id."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4724,11 +4204,11 @@
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Invalid value for create_at when uploading a license."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Invalid value for id when uploading a license."
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4780,7 +4260,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
-    "translation": ""
+    "translation": "Invalid value for content_type"
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
@@ -5008,7 +4488,7 @@
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Invalid value for id"
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -5024,7 +4504,7 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": ""
+    "translation": "Unable to connect to the WebSocket server."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -5144,11 +4624,11 @@
   },
   {
     "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": ""
+    "translation": "We couldn't find the existing deleted channel"
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": ""
+    "translation": "No deleted channels exist"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -5672,7 +5152,7 @@
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": ""
+    "translation": "We couldn't get the compliance export posts."
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -5684,7 +5164,7 @@
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": ""
+    "translation": "We couldn't get the flagged posts"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5832,7 +5312,7 @@
   },
   {
     "id": "store.sql_reaction.delete.app_error",
-    "translation": ""
+    "translation": "Unable to delete reaction"
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
@@ -5844,11 +5324,11 @@
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": ""
+    "translation": "Unable to delete all reactions with this emoji name"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": ""
+    "translation": "Unable to get all reactions with this emoji name"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
@@ -5872,15 +5352,15 @@
   },
   {
     "id": "store.sql_recover.delete.app_error",
-    "translation": ""
+    "translation": "Unable to delete token"
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
-    "translation": ""
+    "translation": "Unable to get a token with this code"
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": ""
+    "translation": "Unable to save the token"
   },
   {
     "id": "store.sql_role.delete.update.app_error",
@@ -6052,7 +5532,7 @@
   },
   {
     "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": ""
+    "translation": "Unable to update the last activity date and time of the user"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -6236,11 +5716,11 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": ""
+    "translation": "We couldn't update the date of the last team icon update"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": ""
+    "translation": "We couldn't get the active users during the requested period"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -6376,7 +5856,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": ""
+    "translation": "We couldn't find any user maching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6436,7 +5916,7 @@
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": ""
+    "translation": "We couldn't update the date of the last update of the user"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -6472,15 +5952,11 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": ""
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_disble.app_error",
-    "translation": ""
+    "translation": "We couldn't disable the access token"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": ""
+    "translation": "We couldn't enable the access token"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6568,7 +6044,7 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
+    "translation": "Unable to load mattermost configuration file: Adding DefaultClientLocale to AvailableLocales."
   },
   {
     "id": "utils.config.load_config.decoding.panic",
@@ -6584,15 +6060,15 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+    "translation": "Unable to load mattermost configuration file: AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
+    "translation": "Unable to load mattermost configuration file: DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
+    "translation": "Unable to load mattermost configuration file: DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
@@ -6680,7 +6156,7 @@
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": ""
+    "translation": "We couldn't update the user access data."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
