@@ -119,6 +119,30 @@ type API interface {
 	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
 	// broadcast determines to which users to send the event
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+
+	// Writes a log message to the Mattermost server log file.
+	// Appropriate context such as the plugin name will already be added as fields so plugins
+	// do not need to add that info.
+	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
+	LogDebug(msg string, keyValuePairs ...interface{})
+
+	// Writes a log message to the Mattermost server log file.
+	// Appropriate context such as the plugin name will already be added as fields so plugins
+	// do not need to add that info.
+	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
+	LogInfo(msg string, keyValuePairs ...interface{})
+
+	// Writes a log message to the Mattermost server log file.
+	// Appropriate context such as the plugin name will already be added as fields so plugins
+	// do not need to add that info.
+	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
+	LogError(msg string, keyValuePairs ...interface{})
+
+	// Writes a log message to the Mattermost server log file.
+	// Appropriate context such as the plugin name will already be added as fields so plugins
+	// do not need to add that info.
+	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
+	LogWarn(msg string, keyValuePairs ...interface{})
 }
 
 var Handshake = plugin.HandshakeConfig{

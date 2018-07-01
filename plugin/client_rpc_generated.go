@@ -1210,3 +1210,115 @@ func (s *APIRPCServer) PublishWebSocketEvent(args *PublishWebSocketEventArgs, re
 	}
 	return nil
 }
+
+type LogDebugArgs struct {
+	A string
+	B []interface{}
+}
+
+type LogDebugReturns struct {
+}
+
+func (g *APIRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
+	_args := &LogDebugArgs{msg, keyValuePairs}
+	_returns := &LogDebugReturns{}
+	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
+		g.log.Error("RPC call to LogDebug API failed.", mlog.Err(err))
+	}
+	return
+}
+
+func (s *APIRPCServer) LogDebug(args *LogDebugArgs, returns *LogDebugReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogDebug(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogDebug(args.A, args.B...)
+	} else {
+		return fmt.Errorf("API LogDebug called but not implemented.")
+	}
+	return nil
+}
+
+type LogInfoArgs struct {
+	A string
+	B []interface{}
+}
+
+type LogInfoReturns struct {
+}
+
+func (g *APIRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
+	_args := &LogInfoArgs{msg, keyValuePairs}
+	_returns := &LogInfoReturns{}
+	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
+		g.log.Error("RPC call to LogInfo API failed.", mlog.Err(err))
+	}
+	return
+}
+
+func (s *APIRPCServer) LogInfo(args *LogInfoArgs, returns *LogInfoReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogInfo(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogInfo(args.A, args.B...)
+	} else {
+		return fmt.Errorf("API LogInfo called but not implemented.")
+	}
+	return nil
+}
+
+type LogErrorArgs struct {
+	A string
+	B []interface{}
+}
+
+type LogErrorReturns struct {
+}
+
+func (g *APIRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
+	_args := &LogErrorArgs{msg, keyValuePairs}
+	_returns := &LogErrorReturns{}
+	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {
+		g.log.Error("RPC call to LogError API failed.", mlog.Err(err))
+	}
+	return
+}
+
+func (s *APIRPCServer) LogError(args *LogErrorArgs, returns *LogErrorReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogError(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogError(args.A, args.B...)
+	} else {
+		return fmt.Errorf("API LogError called but not implemented.")
+	}
+	return nil
+}
+
+type LogWarnArgs struct {
+	A string
+	B []interface{}
+}
+
+type LogWarnReturns struct {
+}
+
+func (g *APIRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
+	_args := &LogWarnArgs{msg, keyValuePairs}
+	_returns := &LogWarnReturns{}
+	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
+		g.log.Error("RPC call to LogWarn API failed.", mlog.Err(err))
+	}
+	return
+}
+
+func (s *APIRPCServer) LogWarn(args *LogWarnArgs, returns *LogWarnReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogWarn(msg string, keyValuePairs ...interface{})
+	}); ok {
+		hook.LogWarn(args.A, args.B...)
+	} else {
+		return fmt.Errorf("API LogWarn called but not implemented.")
+	}
+	return nil
+}

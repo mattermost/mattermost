@@ -143,6 +143,15 @@ func (l *Logger) WithCallerSkip(skip int) *Logger {
 	return &newlogger
 }
 
+// Made for the plugin interface, wraps mlog in a simpler interface
+// at the cost of performance
+func (l *Logger) Sugar() *SugarLogger {
+	return &SugarLogger{
+		wrappedLogger: l,
+		zapSugar:      l.zap.Sugar(),
+	}
+}
+
 func (l *Logger) Debug(message string, fields ...Field) {
 	l.zap.Debug(message, fields...)
 }
