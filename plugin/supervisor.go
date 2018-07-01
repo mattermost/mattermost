@@ -28,7 +28,7 @@ func NewSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	wrappedLogger := pluginInfo.WrapLogger(parentLogger)
 
 	hclogAdaptedLogger := &HclogAdapter{
-		wrappedLogger: wrappedLogger,
+		wrappedLogger: wrappedLogger.WithCallerSkip(1),
 		extrasKey:     "wrapped_extras",
 	}
 

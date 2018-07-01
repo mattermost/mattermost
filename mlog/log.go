@@ -137,6 +137,12 @@ func (l *Logger) StdLogWriter() io.Writer {
 	return &loggerWriter{f}
 }
 
+func (l *Logger) WithCallerSkip(skip int) *Logger {
+	newlogger := *l
+	newlogger.zap = newlogger.zap.WithOptions(zap.AddCallerSkip(skip))
+	return &newlogger
+}
+
 func (l *Logger) Debug(message string, fields ...Field) {
 	l.zap.Debug(message, fields...)
 }
