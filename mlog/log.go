@@ -4,6 +4,7 @@
 package mlog
 
 import (
+	"io"
 	"log"
 	"os"
 
@@ -101,7 +102,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	combinedCore := zapcore.NewTee(cores...)
 
 	logger.zap = zap.New(combinedCore,
-		zap.AddCallerSkip(2),
+		zap.AddCallerSkip(1),
 		zap.AddCaller(),
 	)
 
@@ -125,6 +126,15 @@ func (l *Logger) With(fields ...Field) *Logger {
 
 func (l *Logger) StdLog(fields ...Field) *log.Logger {
 	return zap.NewStdLog(l.With(fields...).zap.WithOptions(getStdLogOption()))
+}
+
+// Returns a writer that can be hooked up to the output of a golang standard logger
+// anything writern will be interprated as log entries accordingly
+func (l *Logger) StdLogWriter() io.Writer {
+	newLogger := *l
+	newLogger.zap = newLogger.zap.WithOptions(zap.AddCallerSkip(4), getStdLogOption())
+	f := newLogger.Info
+	return &loggerWriter{f}
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {

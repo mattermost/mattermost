@@ -5,7 +5,6 @@ package plugin
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -50,8 +49,8 @@ func NewSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		HandshakeConfig: Handshake,
 		Plugins:         pluginMap,
 		Cmd:             exec.Command(executable),
-		SyncStdout:      os.Stdout,
-		SyncStderr:      os.Stdout,
+		SyncStdout:      wrappedLogger.With(mlog.String("source", "plugin_stdout")).StdLogWriter(),
+		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
 	})

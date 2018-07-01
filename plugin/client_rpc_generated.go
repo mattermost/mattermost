@@ -7,6 +7,8 @@
 package plugin
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -38,6 +40,8 @@ func (s *HooksRPCServer) OnDeactivate(args *OnDeactivateArgs, returns *OnDeactiv
 		OnDeactivate() error
 	}); ok {
 		returns.A = hook.OnDeactivate()
+	} else {
+		return fmt.Errorf("Hook OnDeactivate called but not implemented.")
 	}
 	return nil
 }
@@ -69,6 +73,8 @@ func (s *HooksRPCServer) OnConfigurationChange(args *OnConfigurationChangeArgs, 
 		OnConfigurationChange() error
 	}); ok {
 		returns.A = hook.OnConfigurationChange()
+	} else {
+		return fmt.Errorf("Hook OnConfigurationChange called but not implemented.")
 	}
 	return nil
 }
@@ -102,6 +108,8 @@ func (s *HooksRPCServer) ExecuteCommand(args *ExecuteCommandArgs, returns *Execu
 		ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.ExecuteCommand(args.A)
+	} else {
+		return fmt.Errorf("Hook ExecuteCommand called but not implemented.")
 	}
 	return nil
 }
@@ -135,6 +143,8 @@ func (s *HooksRPCServer) MessageWillBePosted(args *MessageWillBePostedArgs, retu
 		MessageWillBePosted(post *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBePosted(args.A)
+	} else {
+		return fmt.Errorf("Hook MessageWillBePosted called but not implemented.")
 	}
 	return nil
 }
@@ -169,6 +179,8 @@ func (s *HooksRPCServer) MessageWillBeUpdated(args *MessageWillBeUpdatedArgs, re
 		MessageWillBeUpdated(newPost, oldPost *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBeUpdated(args.A, args.B)
+	} else {
+		return fmt.Errorf("Hook MessageWillBeUpdated called but not implemented.")
 	}
 	return nil
 }
@@ -200,6 +212,8 @@ func (s *HooksRPCServer) MessageHasBeenPosted(args *MessageHasBeenPostedArgs, re
 		MessageHasBeenPosted(post *model.Post)
 	}); ok {
 		hook.MessageHasBeenPosted(args.A)
+	} else {
+		return fmt.Errorf("Hook MessageHasBeenPosted called but not implemented.")
 	}
 	return nil
 }
@@ -232,6 +246,8 @@ func (s *HooksRPCServer) MessageHasBeenUpdated(args *MessageHasBeenUpdatedArgs, 
 		MessageHasBeenUpdated(newPost, oldPost *model.Post)
 	}); ok {
 		hook.MessageHasBeenUpdated(args.A, args.B)
+	} else {
+		return fmt.Errorf("Hook MessageHasBeenUpdated called but not implemented.")
 	}
 	return nil
 }
@@ -258,6 +274,8 @@ func (s *APIRPCServer) RegisterCommand(args *RegisterCommandArgs, returns *Regis
 		RegisterCommand(command *model.Command) error
 	}); ok {
 		returns.A = hook.RegisterCommand(args.A)
+	} else {
+		return fmt.Errorf("API RegisterCommand called but not implemented.")
 	}
 	return nil
 }
@@ -285,6 +303,8 @@ func (s *APIRPCServer) UnregisterCommand(args *UnregisterCommandArgs, returns *U
 		UnregisterCommand(teamId, trigger string) error
 	}); ok {
 		returns.A = hook.UnregisterCommand(args.A, args.B)
+	} else {
+		return fmt.Errorf("API UnregisterCommand called but not implemented.")
 	}
 	return nil
 }
@@ -312,6 +332,8 @@ func (s *APIRPCServer) CreateUser(args *CreateUserArgs, returns *CreateUserRetur
 		CreateUser(user *model.User) (*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreateUser(args.A)
+	} else {
+		return fmt.Errorf("API CreateUser called but not implemented.")
 	}
 	return nil
 }
@@ -338,6 +360,8 @@ func (s *APIRPCServer) DeleteUser(args *DeleteUserArgs, returns *DeleteUserRetur
 		DeleteUser(userId string) *model.AppError
 	}); ok {
 		returns.A = hook.DeleteUser(args.A)
+	} else {
+		return fmt.Errorf("API DeleteUser called but not implemented.")
 	}
 	return nil
 }
@@ -365,6 +389,8 @@ func (s *APIRPCServer) GetUser(args *GetUserArgs, returns *GetUserReturns) error
 		GetUser(userId string) (*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUser(args.A)
+	} else {
+		return fmt.Errorf("API GetUser called but not implemented.")
 	}
 	return nil
 }
@@ -392,6 +418,8 @@ func (s *APIRPCServer) GetUserByEmail(args *GetUserByEmailArgs, returns *GetUser
 		GetUserByEmail(email string) (*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUserByEmail(args.A)
+	} else {
+		return fmt.Errorf("API GetUserByEmail called but not implemented.")
 	}
 	return nil
 }
@@ -419,6 +447,8 @@ func (s *APIRPCServer) GetUserByUsername(args *GetUserByUsernameArgs, returns *G
 		GetUserByUsername(name string) (*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUserByUsername(args.A)
+	} else {
+		return fmt.Errorf("API GetUserByUsername called but not implemented.")
 	}
 	return nil
 }
@@ -446,6 +476,8 @@ func (s *APIRPCServer) UpdateUser(args *UpdateUserArgs, returns *UpdateUserRetur
 		UpdateUser(user *model.User) (*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateUser(args.A)
+	} else {
+		return fmt.Errorf("API UpdateUser called but not implemented.")
 	}
 	return nil
 }
@@ -473,6 +505,8 @@ func (s *APIRPCServer) CreateTeam(args *CreateTeamArgs, returns *CreateTeamRetur
 		CreateTeam(team *model.Team) (*model.Team, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreateTeam(args.A)
+	} else {
+		return fmt.Errorf("API CreateTeam called but not implemented.")
 	}
 	return nil
 }
@@ -499,6 +533,8 @@ func (s *APIRPCServer) DeleteTeam(args *DeleteTeamArgs, returns *DeleteTeamRetur
 		DeleteTeam(teamId string) *model.AppError
 	}); ok {
 		returns.A = hook.DeleteTeam(args.A)
+	} else {
+		return fmt.Errorf("API DeleteTeam called but not implemented.")
 	}
 	return nil
 }
@@ -526,6 +562,8 @@ func (s *APIRPCServer) GetTeam(args *GetTeamArgs, returns *GetTeamReturns) error
 		GetTeam(teamId string) (*model.Team, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeam(args.A)
+	} else {
+		return fmt.Errorf("API GetTeam called but not implemented.")
 	}
 	return nil
 }
@@ -553,6 +591,8 @@ func (s *APIRPCServer) GetTeamByName(args *GetTeamByNameArgs, returns *GetTeamBy
 		GetTeamByName(name string) (*model.Team, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetTeamByName(args.A)
+	} else {
+		return fmt.Errorf("API GetTeamByName called but not implemented.")
 	}
 	return nil
 }
@@ -580,6 +620,8 @@ func (s *APIRPCServer) UpdateTeam(args *UpdateTeamArgs, returns *UpdateTeamRetur
 		UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateTeam(args.A)
+	} else {
+		return fmt.Errorf("API UpdateTeam called but not implemented.")
 	}
 	return nil
 }
@@ -607,6 +649,8 @@ func (s *APIRPCServer) CreateChannel(args *CreateChannelArgs, returns *CreateCha
 		CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreateChannel(args.A)
+	} else {
+		return fmt.Errorf("API CreateChannel called but not implemented.")
 	}
 	return nil
 }
@@ -633,6 +677,8 @@ func (s *APIRPCServer) DeleteChannel(args *DeleteChannelArgs, returns *DeleteCha
 		DeleteChannel(channelId string) *model.AppError
 	}); ok {
 		returns.A = hook.DeleteChannel(args.A)
+	} else {
+		return fmt.Errorf("API DeleteChannel called but not implemented.")
 	}
 	return nil
 }
@@ -660,6 +706,8 @@ func (s *APIRPCServer) GetChannel(args *GetChannelArgs, returns *GetChannelRetur
 		GetChannel(channelId string) (*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannel(args.A)
+	} else {
+		return fmt.Errorf("API GetChannel called but not implemented.")
 	}
 	return nil
 }
@@ -688,6 +736,8 @@ func (s *APIRPCServer) GetChannelByName(args *GetChannelByNameArgs, returns *Get
 		GetChannelByName(name, teamId string) (*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelByName(args.A, args.B)
+	} else {
+		return fmt.Errorf("API GetChannelByName called but not implemented.")
 	}
 	return nil
 }
@@ -716,6 +766,8 @@ func (s *APIRPCServer) GetDirectChannel(args *GetDirectChannelArgs, returns *Get
 		GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetDirectChannel(args.A, args.B)
+	} else {
+		return fmt.Errorf("API GetDirectChannel called but not implemented.")
 	}
 	return nil
 }
@@ -743,6 +795,8 @@ func (s *APIRPCServer) GetGroupChannel(args *GetGroupChannelArgs, returns *GetGr
 		GetGroupChannel(userIds []string) (*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetGroupChannel(args.A)
+	} else {
+		return fmt.Errorf("API GetGroupChannel called but not implemented.")
 	}
 	return nil
 }
@@ -770,6 +824,8 @@ func (s *APIRPCServer) UpdateChannel(args *UpdateChannelArgs, returns *UpdateCha
 		UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannel(args.A)
+	} else {
+		return fmt.Errorf("API UpdateChannel called but not implemented.")
 	}
 	return nil
 }
@@ -798,6 +854,8 @@ func (s *APIRPCServer) AddChannelMember(args *AddChannelMemberArgs, returns *Add
 		AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.AddChannelMember(args.A, args.B)
+	} else {
+		return fmt.Errorf("API AddChannelMember called but not implemented.")
 	}
 	return nil
 }
@@ -826,6 +884,8 @@ func (s *APIRPCServer) GetChannelMember(args *GetChannelMemberArgs, returns *Get
 		GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMember(args.A, args.B)
+	} else {
+		return fmt.Errorf("API GetChannelMember called but not implemented.")
 	}
 	return nil
 }
@@ -855,6 +915,8 @@ func (s *APIRPCServer) UpdateChannelMemberRoles(args *UpdateChannelMemberRolesAr
 		UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannelMemberRoles(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API UpdateChannelMemberRoles called but not implemented.")
 	}
 	return nil
 }
@@ -884,6 +946,8 @@ func (s *APIRPCServer) UpdateChannelMemberNotifications(args *UpdateChannelMembe
 		UpdateChannelMemberNotifications(channelId, userId string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannelMemberNotifications(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API UpdateChannelMemberNotifications called but not implemented.")
 	}
 	return nil
 }
@@ -911,6 +975,8 @@ func (s *APIRPCServer) DeleteChannelMember(args *DeleteChannelMemberArgs, return
 		DeleteChannelMember(channelId, userId string) *model.AppError
 	}); ok {
 		returns.A = hook.DeleteChannelMember(args.A, args.B)
+	} else {
+		return fmt.Errorf("API DeleteChannelMember called but not implemented.")
 	}
 	return nil
 }
@@ -938,6 +1004,8 @@ func (s *APIRPCServer) CreatePost(args *CreatePostArgs, returns *CreatePostRetur
 		CreatePost(post *model.Post) (*model.Post, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.CreatePost(args.A)
+	} else {
+		return fmt.Errorf("API CreatePost called but not implemented.")
 	}
 	return nil
 }
@@ -964,6 +1032,8 @@ func (s *APIRPCServer) DeletePost(args *DeletePostArgs, returns *DeletePostRetur
 		DeletePost(postId string) *model.AppError
 	}); ok {
 		returns.A = hook.DeletePost(args.A)
+	} else {
+		return fmt.Errorf("API DeletePost called but not implemented.")
 	}
 	return nil
 }
@@ -991,6 +1061,8 @@ func (s *APIRPCServer) GetPost(args *GetPostArgs, returns *GetPostReturns) error
 		GetPost(postId string) (*model.Post, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPost(args.A)
+	} else {
+		return fmt.Errorf("API GetPost called but not implemented.")
 	}
 	return nil
 }
@@ -1018,6 +1090,8 @@ func (s *APIRPCServer) UpdatePost(args *UpdatePostArgs, returns *UpdatePostRetur
 		UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdatePost(args.A)
+	} else {
+		return fmt.Errorf("API UpdatePost called but not implemented.")
 	}
 	return nil
 }
@@ -1045,6 +1119,8 @@ func (s *APIRPCServer) KVSet(args *KVSetArgs, returns *KVSetReturns) error {
 		KVSet(key string, value []byte) *model.AppError
 	}); ok {
 		returns.A = hook.KVSet(args.A, args.B)
+	} else {
+		return fmt.Errorf("API KVSet called but not implemented.")
 	}
 	return nil
 }
@@ -1072,6 +1148,8 @@ func (s *APIRPCServer) KVGet(args *KVGetArgs, returns *KVGetReturns) error {
 		KVGet(key string) ([]byte, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.KVGet(args.A)
+	} else {
+		return fmt.Errorf("API KVGet called but not implemented.")
 	}
 	return nil
 }
@@ -1098,6 +1176,8 @@ func (s *APIRPCServer) KVDelete(args *KVDeleteArgs, returns *KVDeleteReturns) er
 		KVDelete(key string) *model.AppError
 	}); ok {
 		returns.A = hook.KVDelete(args.A)
+	} else {
+		return fmt.Errorf("API KVDelete called but not implemented.")
 	}
 	return nil
 }
@@ -1125,6 +1205,8 @@ func (s *APIRPCServer) PublishWebSocketEvent(args *PublishWebSocketEventArgs, re
 		PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 	}); ok {
 		hook.PublishWebSocketEvent(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API PublishWebSocketEvent called but not implemented.")
 	}
 	return nil
 }

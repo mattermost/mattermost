@@ -224,6 +224,8 @@ func (s *HooksRPCServer) {{.Name}}(args *{{.Name}}Args, returns *{{.Name}}Return
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
+	} else {
+		return fmt.Errorf("Hook {{.Name}} called but not implemented.")
 	}
 	return nil
 }
@@ -253,6 +255,8 @@ func (s *APIRPCServer) {{.Name}}(args *{{.Name}}Args, returns *{{.Name}}Returns)
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
+	} else {
+		return fmt.Errorf("API {{.Name}} called but not implemented.")
 	}
 	return nil
 }
