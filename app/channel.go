@@ -1011,16 +1011,26 @@ func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	}
 }
 
-func (a *App) GetChannelByName(channelName, teamId string) (*model.Channel, *model.AppError) {
-	if result := <-a.Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	var result store.StoreResult
+
+	if includeDeleted {
+		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(teamId, channelName, true)
+	} else {
+		result = <-a.Srv.Store.Channel().GetByName(teamId, channelName, true)
+	}
+
+	if result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
-	} else if result.Err != nil {
+	}
+
+	if result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Channel), nil
 	}
+
+	return result.Data.(*model.Channel), nil
 }
 
 func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
@@ -1035,7 +1045,7 @@ func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model
 	}
 }
 
-func (a *App) GetChannelByNameForTeamName(channelName, teamName string) (*model.Channel, *model.AppError) {
+func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var team *model.Team
 
 	if result := <-a.Srv.Store.Team().GetByName(teamName); result.Err != nil {
@@ -1045,19 +1055,28 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string) (*model.
 		team = result.Data.(*model.Team)
 	}
 
-	if result := <-a.Srv.Store.Channel().GetByName(team.Id, channelName, true); result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+	var result store.StoreResult
+	if includeDeleted {
+		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, true)
+	} else {
+		result = <-a.Srv.Store.Channel().GetByName(team.Id, channelName, true)
+	}
+
+	if result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
-	} else if result.Err != nil {
+	}
+
+	if result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Channel), nil
 	}
+
+	return result.Data.(*model.Channel), nil
 }
 
-func (a *App) GetChannelsForUser(teamId string, userId string) (*model.ChannelList, *model.AppError) {
-	if result := <-a.Srv.Store.Channel().GetChannels(teamId, userId); result.Err != nil {
+func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	if result := <-a.Srv.Store.Channel().GetChannels(teamId, userId, includeDeleted); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.ChannelList), nil

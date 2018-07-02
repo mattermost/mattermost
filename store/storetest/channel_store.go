@@ -493,7 +493,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(r.Err)
 	}
 
-	cresult := <-ss.Channel().GetChannels(o1.TeamId, m1.UserId)
+	cresult := <-ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
 	list := cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
@@ -509,7 +509,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 
 	<-ss.Channel().PermanentDelete(o2.Id)
 
-	cresult = <-ss.Channel().GetChannels(o1.TeamId, m1.UserId)
+	cresult = <-ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
 	t.Log(cresult.Err)
 	if cresult.Err.Id != "store.sql_channel.get_channels.not_found.app_error" {
 		t.Fatal("no channels should be found")
@@ -890,7 +890,7 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	cresult := <-ss.Channel().GetChannels(o1.TeamId, m1.UserId)
+	cresult := <-ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
 	list := cresult.Data.(*model.ChannelList)
 
 	if (*list)[0].Id != o1.Id {
