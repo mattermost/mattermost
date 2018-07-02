@@ -12,11 +12,12 @@ var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"]+`)
 var searchTermPuncEnd = regexp.MustCompile(`[^\pL\d\s*"]+$`)
 
 type SearchParams struct {
-	Terms      string
-	IsHashtag  bool
-	InChannels []string
-	FromUsers  []string
-	OrTerms    bool
+	Terms                  string
+	IsHashtag              bool
+	InChannels             []string
+	FromUsers              []string
+	OrTerms                bool
+	IncludeDeletedChannels bool
 }
 
 var searchFlags = [...]string{"from", "channel", "in"}

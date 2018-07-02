@@ -867,7 +867,7 @@ func TestDeleteChannel(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// default channel cannot be deleted.
-	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, team.Id)
+	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, team.Id, false)
 	pass, resp = Client.DeleteChannel(defaultChannel.Id)
 	CheckBadRequestStatus(t, resp)
 
@@ -998,7 +998,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id)
+	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
 	_, resp := Client.ConvertChannelToPrivate(defaultChannel.Id)
 	CheckForbiddenStatus(t, resp)
 
@@ -1098,47 +1098,47 @@ func TestGetChannelByName(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	channel, resp := Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	channel, resp := Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "", false)
 	CheckNoError(t, resp)
 
 	if channel.Name != th.BasicChannel.Name {
 		t.Fatal("names did not match")
 	}
 
-	channel, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
+	channel, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "", false)
 	CheckNoError(t, resp)
 
 	if channel.Name != th.BasicPrivateChannel.Name {
 		t.Fatal("names did not match")
 	}
 
-	_, resp = Client.GetChannelByName(strings.ToUpper(th.BasicPrivateChannel.Name), th.BasicTeam.Id, "")
+	_, resp = Client.GetChannelByName(strings.ToUpper(th.BasicPrivateChannel.Name), th.BasicTeam.Id, "", false)
 	CheckNoError(t, resp)
 
 	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
-	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "", false)
 	CheckNoError(t, resp)
 
 	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
-	_, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
+	_, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "", false)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "")
+	_, resp = Client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "", false)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetChannelByName(GenerateTestChannelName(), "junk", "")
+	_, resp = Client.GetChannelByName(GenerateTestChannelName(), "junk", "", false)
 	CheckBadRequestStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "", false)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
-	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "", false)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	_, resp = th.SystemAdminClient.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "", false)
 	CheckNoError(t, resp)
 }
 
@@ -1147,29 +1147,29 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	channel, resp := th.SystemAdminClient.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	channel, resp := th.SystemAdminClient.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "", false)
 	CheckNoError(t, resp)
 
 	if channel.Name != th.BasicChannel.Name {
 		t.Fatal("names did not match")
 	}
 
-	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "", false)
 	CheckNoError(t, resp)
 
-	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, model.NewRandomString(15), "")
+	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, model.NewRandomString(15), "", false)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetChannelByNameForTeamName(GenerateTestChannelName(), th.BasicTeam.Name, "")
+	_, resp = Client.GetChannelByNameForTeamName(GenerateTestChannelName(), th.BasicTeam.Name, "", false)
 	CheckNotFoundStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "", false)
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
-	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "", false)
 	CheckForbiddenStatus(t, resp)
 }
 

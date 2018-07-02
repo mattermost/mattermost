@@ -1122,6 +1122,7 @@ type TeamSettings struct {
 	MaxNotificationsPerChannel          *int64
 	EnableConfirmNotificationsToChannel *bool
 	TeammateNameDisplay                 *string
+	SearchArchivedChannels                *bool
 	ExperimentalEnableAutomaticReplies  *bool
 	ExperimentalHideTownSquareinLHS     *bool
 	ExperimentalTownSquareIsReadOnly    *bool
@@ -1251,6 +1252,9 @@ func (s *TeamSettings) SetDefaults() {
 		s.EnableUserCreation = NewBool(true)
 	}
 
+	if s.SearchArchivedChannels == nil {
+		s.SearchArchivedChannels = NewBool(false)
+	}
 }
 
 type ClientRequirements struct {

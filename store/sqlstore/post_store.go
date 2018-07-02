@@ -803,6 +803,11 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 		var posts []*model.Post
 
+		deletedQueryPart := "AND DeleteAt = 0"
+		if params.IncludeDeletedChannels {
+			deletedQueryPart = ""
+		}
+
 		searchQuery := `
 			SELECT
 				*
@@ -822,7 +827,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 						Id = ChannelId
 							AND (TeamId = :TeamId OR TeamId = '')
 							AND UserId = :UserId
-							AND DeleteAt = 0
+							` + deletedQueryPart + `
 							CHANNEL_FILTER)
 				SEARCH_CLAUSE
 				ORDER BY CreateAt DESC
