@@ -3779,6 +3779,9 @@ func TestImportBulkImport(t *testing.T) {
 	username := model.NewId()
 	username2 := model.NewId()
 	username3 := model.NewId()
+	emojiName := model.NewId()
+	testsDir, _ := utils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
 
 	// Run bulk import with a valid 1 of everything.
 	data1 := `{"type": "version", "version": 1}
@@ -3791,7 +3794,8 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `"]}}
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `", "` + username3 + `"]}}
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `"], "user": "` + username + `", "message": "Hello Direct Channel", "create_at": 123456789013}}
-{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789014}}`
+{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789014}}
+{"type": "emoji", "emoji": {"name": "` + emojiName + `", "image": "` + testImage + `"}}`
 
 	if err, line := th.App.BulkImport(strings.NewReader(data1), false, 2); err != nil || line != 0 {
 		t.Fatalf("BulkImport should have succeeded: %v, %v", err.Error(), line)
@@ -3832,4 +3836,74 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	if _, err := processImportDataFileVersionLine(data); err == nil {
 		t.Fatalf("Expected error on invalid version line.")
 	}
+}
+
+func TestImportValidateEmojiImportData(t *testing.T) {
+	data := EmojiImportData{
+		Name:  ptrStr("parrot"),
+		Image: ptrStr("/path/to/image"),
+	}
+
+	err := validateEmojiImportData(&data)
+	assert.Nil(t, err, "Validation should succeed")
+
+	*data.Name = "smiley"
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+
+	*data.Name = ""
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+
+	*data.Name = ""
+	*data.Image = ""
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+
+	*data.Image = "/path/to/image"
+	data.Name = nil
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+
+	data.Name = ptrStr("parrot")
+	data.Image = nil
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+}
+
+func TestImportImportEmoji(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	testsDir, _ := utils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+
+	data := EmojiImportData{Name: ptrStr(model.NewId())}
+	err := th.App.ImportEmoji(&data, true)
+	assert.NotNil(t, err, "Invalid emoji should have failed dry run")
+
+	result := <-th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	assert.Nil(t, result.Data, "Emoji should not have been imported")
+
+	data.Image = ptrStr(testImage)
+	err = th.App.ImportEmoji(&data, true)
+	assert.Nil(t, err, "Valid emoji should have passed dry run")
+
+	data = EmojiImportData{Name: ptrStr(model.NewId())}
+	err = th.App.ImportEmoji(&data, false)
+	assert.NotNil(t, err, "Invalid emoji should have failed apply mode")
+
+	data.Image = ptrStr("non-existent-file")
+	err = th.App.ImportEmoji(&data, false)
+	assert.NotNil(t, err, "Emoji with bad image file should have failed apply mode")
+
+	data.Image = ptrStr(testImage)
+	err = th.App.ImportEmoji(&data, false)
+	assert.Nil(t, err, "Valid emoji should have succeeded apply mode")
+
+	result = <-th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	assert.NotNil(t, result.Data, "Emoji should have been imported")
+
+	err = th.App.ImportEmoji(&data, false)
+	assert.Nil(t, err, "Second run should have succeeded apply mode")
 }
