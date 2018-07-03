@@ -76,12 +76,22 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 	}
 	nextLetter := 'A'
 	for _, field := range fieldList.List {
+		typeNameBuffer := &bytes.Buffer{}
+		err := printer.Fprint(typeNameBuffer, fileset, field.Type)
+		if err != nil {
+			panic(err)
+		}
+		typeName := typeNameBuffer.String()
+		suffix := ""
+		if strings.HasPrefix(typeName, "...") {
+			suffix = "..."
+		}
 		if len(field.Names) == 0 {
-			result = append(result, structPrefix+string(nextLetter))
+			result = append(result, structPrefix+string(nextLetter)+suffix)
 			nextLetter += 1
 		} else {
 			for range field.Names {
-				result = append(result, structPrefix+string(nextLetter))
+				result = append(result, structPrefix+string(nextLetter)+suffix)
 				nextLetter += 1
 			}
 		}
@@ -103,6 +113,9 @@ func FieldListToStructList(fieldList *ast.FieldList, fileset *token.FileSet) str
 			panic(err)
 		}
 		typeName := typeNameBuffer.String()
+		if strings.HasPrefix(typeName, "...") {
+			typeName = strings.Replace(typeName, "...", "[]", 1)
+		}
 		if len(field.Names) == 0 {
 			result = append(result, string(nextLetter)+" "+typeName)
 			nextLetter += 1
@@ -224,6 +237,8 @@ func (s *HooksRPCServer) {{.Name}}(args *{{.Name}}Args, returns *{{.Name}}Return
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
+	} else {
+		return fmt.Errorf("Hook {{.Name}} called but not implemented.")
 	}
 	return nil
 }
@@ -253,6 +268,8 @@ func (s *APIRPCServer) {{.Name}}(args *{{.Name}}Args, returns *{{.Name}}Returns)
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
+	} else {
+		return fmt.Errorf("API {{.Name}} called but not implemented.")
 	}
 	return nil
 }

@@ -7,18 +7,21 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 type PluginAPI struct {
-	id  string
-	app *App
+	id     string
+	app    *App
+	logger *mlog.SugarLogger
 }
 
 func NewPluginAPI(a *App, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
-		id:  manifest.Id,
-		app: a,
+		id:     manifest.Id,
+		app:    a,
+		logger: a.Log.With(mlog.String("plugin_id", manifest.Id)).Sugar(),
 	}
 }
 
@@ -184,4 +187,17 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]int
 		Data:      payload,
 		Broadcast: broadcast,
 	})
+}
+
+func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
+	api.logger.Debug(msg, keyValuePairs...)
+}
+func (api *PluginAPI) LogInfo(msg string, keyValuePairs ...interface{}) {
+	api.logger.Info(msg, keyValuePairs...)
+}
+func (api *PluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
+	api.logger.Error(msg, keyValuePairs...)
+}
+func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...interface{}) {
+	api.logger.Warn(msg, keyValuePairs...)
 }

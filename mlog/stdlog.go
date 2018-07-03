@@ -4,6 +4,7 @@
 package mlog
 
 import (
+	"bytes"
 	"strings"
 
 	"go.uber.org/zap"
@@ -71,4 +72,16 @@ func getStdLogOption() zap.Option {
 			return &stdLogLevelInterpreterCore{core}
 		},
 	)
+}
+
+type loggerWriter struct {
+	logFunc func(msg string, fields ...Field)
+}
+
+func (l *loggerWriter) Write(p []byte) (int, error) {
+	trimmed := string(bytes.TrimSpace(p))
+	for _, line := range strings.Split(trimmed, "\n") {
+		l.logFunc(string(line))
+	}
+	return len(p), nil
 }
