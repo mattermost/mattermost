@@ -21,6 +21,7 @@ type MessageExport struct {
 	PostCreateAt   *int64
 	PostMessage    *string
 	PostType       *string
+	PostRootId     *string
 	PostOriginalId *string
 	PostFileIds    StringArray
 }
