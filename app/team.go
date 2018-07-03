@@ -805,6 +805,10 @@ func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel
 }
 
 func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	if len(emailList) == 0 {
 		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
 		return err

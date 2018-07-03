@@ -1607,6 +1607,10 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Email invitations are disabled."
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your systems administrator for details."
   },
