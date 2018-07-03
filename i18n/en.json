@@ -4023,6 +4023,10 @@
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.sql_data_src.app_error",
     "translation": "Invalid data source for SQL settings. Must be set."
   },
@@ -4037,10 +4041,6 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
