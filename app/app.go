@@ -184,7 +184,6 @@ func New(options ...Option) (outApp *App, outErr error) {
 		})
 
 	})
-	app.regenerateClientConfig()
 
 	mlog.Info("Server is initializing...")
 
@@ -206,6 +205,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 	if err := app.ensureAsymmetricSigningKey(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
+
+	app.EnsureDiagnosticId()
+	app.regenerateClientConfig()
 
 	app.initJobs()
 	app.AddLicenseListener(func() {
