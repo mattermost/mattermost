@@ -1898,7 +1898,7 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount+1)
 
 	// Get the Channel and check all the fields are correct.
-	if channel, err := th.App.GetChannelByName(*data.Name, team.Id); err != nil {
+	if channel, err := th.App.GetChannelByName(*data.Name, team.Id, false); err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	} else {
 		assert.Equal(t, *data.Name, channel.Name)
@@ -1923,7 +1923,7 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount)
 
 	// Get the Channel and check all the fields are correct.
-	if channel, err := th.App.GetChannelByName(*data.Name, team.Id); err != nil {
+	if channel, err := th.App.GetChannelByName(*data.Name, team.Id, false); err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	} else {
 		assert.Equal(t, *data.Name, channel.Name)
@@ -2157,7 +2157,7 @@ func TestImportImportUser(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	channel, err := th.App.GetChannelByName(channelName, team.Id)
+	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	}
@@ -2671,7 +2671,7 @@ func TestImportImportUser(t *testing.T) {
 	if err := th.App.ImportChannel(channelData, false); err != nil {
 		t.Fatalf("Import should have succeeded.")
 	}
-	channel, err = th.App.GetChannelByName(*channelData.Name, team.Id)
+	channel, err = th.App.GetChannelByName(*channelData.Name, team.Id, false)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database: %v", err.Error())
 	}
@@ -2755,7 +2755,7 @@ func TestImportImportPost(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	channel, err := th.App.GetChannelByName(channelName, team.Id)
+	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	}
