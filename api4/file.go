@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -89,12 +91,17 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return
 		}
-
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		br := bytes.NewReader(body)
 		resStruct, appErr = c.App.UploadFiles(
 			FILE_TEAM_ID,
 			channelId,
 			c.Session.UserId,
-			[]io.ReadCloser{r.Body},
+			[]io.ReadSeeker{br},
 			[]string{filename},
 			[]string{},
 		)

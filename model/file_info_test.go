@@ -4,10 +4,11 @@
 package model
 
 import (
+	"bytes"
 	"encoding/base64"
 	_ "image/gif"
 	_ "image/png"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 )
@@ -76,7 +77,7 @@ func TestFileInfoIsImage(t *testing.T) {
 }
 
 func TestGetInfoForFile(t *testing.T) {
-	fakeFile := make([]byte, 1000)
+	fakeFile := bytes.NewReader(make([]byte, 1000))
 
 	if info, err := GetInfoForBytes("file.txt", fakeFile); err != nil {
 		t.Fatal(err)
@@ -96,7 +97,7 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
 
-	pngFile, err := ioutil.ReadFile("../tests/test.png")
+	pngFile, err := os.Open("../tests/test.png")
 	if err != nil {
 		t.Fatalf("Failed to load test.png: %v", err.Error())
 	}
@@ -120,7 +121,7 @@ func TestGetInfoForFile(t *testing.T) {
 
 	// base 64 encoded version of handtinywhite.gif from http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
 	gifFile, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
-	if info, err := GetInfoForBytes("handtinywhite.gif", gifFile); err != nil {
+	if info, err := GetInfoForBytes("handtinywhite.gif", bytes.NewReader(gifFile)); err != nil {
 		t.Fatal(err)
 	} else if info.Name != "handtinywhite.gif" {
 		t.Fatalf("Got incorrect filename: %v", info.Name)
@@ -137,8 +138,8 @@ func TestGetInfoForFile(t *testing.T) {
 	} else if !info.HasPreviewImage {
 		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
-
-	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
+	animatedGifFile, err := os.Open("../tests/testgif.gif")
+	defer animatedGifFile.Close()
 	if err != nil {
 		t.Fatalf("Failed to load testgif.gif: %v", err.Error())
 	}

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -48,7 +49,7 @@ func TestDoUploadFile(t *testing.T) {
 	channelId := model.NewId()
 	userId := model.NewId()
 	filename := "test"
-	data := []byte("abcd")
+	data := bytes.NewReader([]byte("abcd"))
 
 	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	if err != nil {
