@@ -128,8 +128,8 @@ func (l *Logger) StdLog(fields ...Field) *log.Logger {
 	return zap.NewStdLog(l.With(fields...).zap.WithOptions(getStdLogOption()))
 }
 
-// Returns a writer that can be hooked up to the output of a golang standard logger
-// anything writern will be interprated as log entries accordingly
+// StdLogWriter returns a writer that can be hooked up to the output of a golang standard logger
+// anything written will be interpreted as log entries accordingly
 func (l *Logger) StdLogWriter() io.Writer {
 	newLogger := *l
 	newLogger.zap = newLogger.zap.WithOptions(zap.AddCallerSkip(4), getStdLogOption())

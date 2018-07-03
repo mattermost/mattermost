@@ -120,25 +120,25 @@ type API interface {
 	// broadcast determines to which users to send the event
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 
-	// Writes a log message to the Mattermost server log file.
+	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	LogDebug(msg string, keyValuePairs ...interface{})
 
-	// Writes a log message to the Mattermost server log file.
+	// LogInfo writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	LogInfo(msg string, keyValuePairs ...interface{})
 
-	// Writes a log message to the Mattermost server log file.
+	// LogError writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	LogError(msg string, keyValuePairs ...interface{})
 
-	// Writes a log message to the Mattermost server log file.
+	// LogWarn writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
