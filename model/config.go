@@ -87,6 +87,8 @@ const (
 	SERVICE_SETTINGS_DEFAULT_MAX_LOGIN_ATTEMPTS = 10
 	SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM    = ""
 	SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS = ":8065"
+	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_KEY     = "2_KtH_W5"
+	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
 
 	TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM       = 50
 	TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT        = ""
@@ -417,15 +419,15 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.EnableGifPicker == nil {
-		s.EnableGifPicker = NewBool(true)
+		s.EnableGifPicker = NewBool(false)
 	}
 
-	if s.GfycatApiKey == nil {
-		s.GfycatApiKey = NewString("")
+	if s.GfycatApiKey == nil || *s.GfycatApiKey == "" {
+		s.GfycatApiKey = NewString(SERVICE_SETTINGS_DEFAULT_GFYCAT_API_KEY)
 	}
 
-	if s.GfycatApiSecret == nil {
-		s.GfycatApiSecret = NewString("")
+	if s.GfycatApiSecret == nil || *s.GfycatApiSecret == "" {
+		s.GfycatApiSecret = NewString(SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET)
 	}
 
 	if s.RestrictCustomEmojiCreation == nil {
