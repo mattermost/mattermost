@@ -126,7 +126,7 @@
         "QueryTimeout": 30
     },
     "LogSettings": {
-        "EnableConsole": true,
+        "EnableConsole": false,
         "ConsoleLevel": "DEBUG",
         "ConsoleJson": true,
         "EnableFile": true,
