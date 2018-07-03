@@ -1015,9 +1015,9 @@ func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) 
 	var result store.StoreResult
 
 	if includeDeleted {
-		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(teamId, channelName, true)
+		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(teamId, channelName, false)
 	} else {
-		result = <-a.Srv.Store.Channel().GetByName(teamId, channelName, true)
+		result = <-a.Srv.Store.Channel().GetByName(teamId, channelName, false)
 	}
 
 	if result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
@@ -1057,9 +1057,9 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 
 	var result store.StoreResult
 	if includeDeleted {
-		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, true)
+		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, false)
 	} else {
-		result = <-a.Srv.Store.Channel().GetByName(team.Id, channelName, true)
+		result = <-a.Srv.Store.Channel().GetByName(team.Id, channelName, false)
 	}
 
 	if result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {

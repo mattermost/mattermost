@@ -44,6 +44,7 @@ type TestHelper struct {
 	BasicTeam           *model.Team
 	BasicChannel        *model.Channel
 	BasicPrivateChannel *model.Channel
+	BasicDeletedChannel *model.Channel
 	BasicChannel2       *model.Channel
 	BasicPost           *model.Post
 
@@ -250,6 +251,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
+	me.BasicDeletedChannel = me.CreatePublicChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
 	me.BasicUser = me.CreateUser()
@@ -262,7 +264,10 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel2)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicPrivateChannel)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicPrivateChannel)
+	me.App.AddUserToChannel(me.BasicUser, me.BasicDeletedChannel)
+	me.App.AddUserToChannel(me.BasicUser2, me.BasicDeletedChannel)
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
+	me.Client.DeleteChannel(me.BasicDeletedChannel.Id)
 	me.LoginBasic()
 
 	return me

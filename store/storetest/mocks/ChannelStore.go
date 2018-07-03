@@ -147,12 +147,12 @@ func (_m *ChannelStore) GetAll(teamId string) store.StoreChannel {
 }
 
 // GetAllChannelMembersForUser provides a mock function with given fields: userId, allowFromCache
-func (_m *ChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool) store.StoreChannel {
+func (_m *ChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
 	ret := _m.Called(userId, allowFromCache)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
-		r0 = rf(userId, allowFromCache)
+	if rf, ok := ret.Get(0).(func(string, bool, bool) store.StoreChannel); ok {
+		r0 = rf(userId, allowFromCache, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

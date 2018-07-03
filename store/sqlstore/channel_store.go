@@ -1104,7 +1104,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 	}
 
-	result := <-s.GetAllChannelMembersForUser(userId, true)
+	result := <-s.GetAllChannelMembersForUser(userId, true, false)
 	if result.Err != nil {
 		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + result.Err.Error())
 		return false
@@ -1151,7 +1151,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.St
 	})
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool) store.StoreChannel {
+func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
@@ -1165,6 +1165,11 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 
 		if s.metrics != nil {
 			s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
+		}
+
+		var deletedClause string
+		if !includeDeleted {
+			deletedClause = "Channels.DeleteAt = 0 AND"
 		}
 
 		var data allChannelMembers
@@ -1186,8 +1191,8 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 			LEFT JOIN
 				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 			WHERE
-				Channels.DeleteAt = 0
-				AND ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
+				`+deletedClause+`
+				ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
