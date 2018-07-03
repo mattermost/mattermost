@@ -9,9 +9,12 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/rpc"
+	"os"
 	"reflect"
 
 	"github.com/hashicorp/go-plugin"
@@ -33,7 +36,6 @@ type HooksRPCServer struct {
 	impl         interface{}
 	muxBroker    *plugin.MuxBroker
 	apiRPCClient *APIRPCClient
-	log          *mlog.Logger
 }
 
 // Implements hashicorp/go-plugin/plugin.Plugin interface to connect the hooks of a plugin
@@ -156,24 +158,11 @@ func (g *HooksRPCClient) OnActivate() error {
 func (s *HooksRPCServer) OnActivate(args *OnActivateArgs, returns *OnActivateReturns) error {
 	connection, err := s.muxBroker.Dial(args.APIMuxId)
 	if err != nil {
-		return err // Where does this go?
+		return err
 	}
-
-	// Settings for this should come from the parent process, for now just set it up
-	// though stdout.
-	logger := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  mlog.LevelDebug,
-		EnableFile:    false,
-	})
-	logger = logger.With(mlog.Bool("plugin_subprocess", true))
-
-	s.log = logger
 
 	s.apiRPCClient = &APIRPCClient{
 		client: rpc.NewClient(connection),
-		log:    logger,
 	}
 
 	if mmplugin, ok := s.impl.(interface {
@@ -184,6 +173,10 @@ func (s *HooksRPCServer) OnActivate(args *OnActivateArgs, returns *OnActivateRet
 		mmplugin.SetAPI(s.apiRPCClient)
 		mmplugin.OnConfigurationChange()
 	}
+
+	// Capture output of standard logger because go-plugin
+	// redirects it.
+	log.SetOutput(os.Stderr)
 
 	if hook, ok := s.impl.(interface {
 		OnActivate() error
@@ -293,7 +286,7 @@ func (g *HooksRPCClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Request:              forwardedRequest,
 		RequestBodyStream:    requestBodyStreamId,
 	}, nil); err != nil {
-		mlog.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
+		g.log.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
 	}
 	return
@@ -302,7 +295,7 @@ func (g *HooksRPCClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *HooksRPCServer) ServeHTTP(args *ServeHTTPArgs, returns *struct{}) error {
 	connection, err := s.muxBroker.Dial(args.ResponseWriterStream)
 	if err != nil {
-		s.log.Debug("Can't connect to remote response writer stream", mlog.Err(err))
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response writer stream, error: %v", err.Error())
 		return err
 	}
 	w := ConnectHTTPResponseWriter(connection)
@@ -312,7 +305,7 @@ func (s *HooksRPCServer) ServeHTTP(args *ServeHTTPArgs, returns *struct{}) error
 	if args.RequestBodyStream != 0 {
 		connection, err := s.muxBroker.Dial(args.RequestBodyStream)
 		if err != nil {
-			s.log.Debug("Can't connect to remote response writer stream", mlog.Err(err))
+			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
 			return err
 		}
 		r.Body = ConnectIOReader(connection)
