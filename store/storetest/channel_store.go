@@ -555,7 +555,7 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Channel().Delete(r1.Data.(*model.Channel).Id, model.GetMillis()))
 
-	if err := (<-ss.Channel().GetByName(o1.TeamId, "", false)).Err; err == nil {
+	if err := (<-ss.Channel().GetByName(o1.TeamId, r1.Data.(*model.Channel).Name, false)).Err; err == nil {
 		t.Fatal("Deleted channel should not be returned by GetByName()")
 	}
 }
@@ -897,19 +897,19 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 		t.Fatal("missing channel")
 	}
 
-	acresult := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, false)
+	acresult := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
 	ids := acresult.Data.(map[string]string)
 	if _, ok := ids[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
 
-	acresult2 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true)
+	acresult2 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
 	ids2 := acresult2.Data.(map[string]string)
 	if _, ok := ids2[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
 
-	acresult3 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true)
+	acresult3 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
 	ids3 := acresult3.Data.(map[string]string)
 	if _, ok := ids3[o1.Id]; !ok {
 		t.Fatal("missing channel")

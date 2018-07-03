@@ -1115,6 +1115,16 @@ func TestGetChannelByName(t *testing.T) {
 	_, resp = Client.GetChannelByName(strings.ToUpper(th.BasicPrivateChannel.Name), th.BasicTeam.Id, "", false)
 	CheckNoError(t, resp)
 
+	_, resp = Client.GetChannelByName(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "", false)
+	CheckNotFoundStatus(t, resp)
+
+	channel, resp = Client.GetChannelByName(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "", true)
+	CheckNoError(t, resp)
+
+	if channel.Name != th.BasicDeletedChannel.Name {
+		t.Fatal("names did not match")
+	}
+
 	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "", false)
 	CheckNoError(t, resp)
@@ -1156,6 +1166,16 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "", false)
 	CheckNoError(t, resp)
+
+	_, resp = Client.GetChannelByNameForTeamName(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "", false)
+	CheckNotFoundStatus(t, resp)
+
+	channel, resp = Client.GetChannelByNameForTeamName(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "", true)
+	CheckNoError(t, resp)
+
+	if channel.Name != th.BasicDeletedChannel.Name {
+		t.Fatal("names did not match")
+	}
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, model.NewRandomString(15), "", false)
 	CheckNotFoundStatus(t, resp)
