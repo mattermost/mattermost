@@ -12,7 +12,8 @@ import (
 )
 
 func TestPlugin(t *testing.T) {
-	defer os.RemoveAll("../../../plugins")
+	os.MkdirAll("./test-plugins", os.ModePerm)
+	os.MkdirAll("./test-client-plugins", os.ModePerm)
 
 	th := api4.Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()

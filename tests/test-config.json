@@ -390,8 +390,8 @@
     "PluginSettings": {
         "Enable": true,
         "EnableUploads": true,
-        "Directory": "./plugins",
-        "ClientDirectory": "./client/plugins",
+        "Directory": "./test-plugins",
+        "ClientDirectory": "./test-client-plugins",
         "Plugins": {},
         "PluginStates": {
             "jira": {
