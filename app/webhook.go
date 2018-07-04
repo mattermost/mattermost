@@ -587,6 +587,8 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		hook = result.Data.(*model.IncomingWebhook)
 	}
 
+	uchan := a.Srv.Store.User().Get(hook.UserId)
+
 	if len(req.Props) == 0 {
 		req.Props = make(model.StringInterface)
 	}
@@ -637,8 +639,15 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel_locked.app_error", nil, "", http.StatusForbidden)
 	}
 
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message, http.StatusForbidden)
+	} else {
+		user = result.Data.(*model.User)
+	}
+
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		channel.Name == model.DEFAULT_CHANNEL {
+		channel.Name == model.DEFAULT_CHANNEL && !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
 		return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
