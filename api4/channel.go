@@ -389,11 +389,6 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.DeleteAt != 0 && !*c.App.Config().TeamSettings.ViewAchivedChannels {
-		c.Err = model.NewAppError("Api.Channels.GetChannel", "api.channels.get_channel.app_error", nil, "id="+c.Params.ChannelId, http.StatusNotFound)
-		return
-	}
-
 	if channel.Type == model.CHANNEL_OPEN {
 		if !c.App.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
