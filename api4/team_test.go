@@ -1889,13 +1889,13 @@ func TestImportTeam(t *testing.T) {
 		}
 
 		// Checking the imported Channels
-		importedChannel, resp := th.SystemAdminClient.GetChannelByName("testchannel", th.BasicTeam.Id, "", false)
+		importedChannel, resp := th.SystemAdminClient.GetChannelByName("testchannel", th.BasicTeam.Id, "")
 		CheckNoError(t, resp)
 		if importedChannel.Name != "testchannel" {
 			t.Fatal("names did not match expected: testchannel")
 		}
 
-		importedChannel, resp = th.SystemAdminClient.GetChannelByName("general", th.BasicTeam.Id, "", false)
+		importedChannel, resp = th.SystemAdminClient.GetChannelByName("general", th.BasicTeam.Id, "")
 		CheckNoError(t, resp)
 		if importedChannel.Name != "general" {
 			t.Fatal("names did not match expected: general")

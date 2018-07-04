@@ -1782,12 +1782,17 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
-func (c *Client4) GetChannelByName(channelName, teamId string, etag string, includeDeleted bool) (*Channel, *Response) {
-	var query string
-	if includeDeleted {
-		query = "?includeDeleted=true"
+func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Channel, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
 	}
-	if r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+query, etag); err != nil {
+}
+
+func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, etag string) (*Channel, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+"?includeDeleted=true", etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1796,12 +1801,17 @@ func (c *Client4) GetChannelByName(channelName, teamId string, etag string, incl
 }
 
 // GetChannelByNameForTeamName returns a channel based on the provided channel name and team name strings.
-func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string, includeDeleted bool) (*Channel, *Response) {
-	var query string
-	if includeDeleted {
-		query = "?includeDeleted=true"
+func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*Channel, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
 	}
-	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+query, etag); err != nil {
+}
+
+func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamName string, etag string) (*Channel, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+"?includeDeleted=true", etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

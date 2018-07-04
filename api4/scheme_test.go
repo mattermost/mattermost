@@ -690,7 +690,7 @@ func TestDeleteScheme(t *testing.T) {
 		assert.NotZero(t, role4.DeleteAt)
 
 		// Check the channel now uses the default scheme
-		c2, resp := th.SystemAdminClient.GetChannelByName(channel.Name, channel.TeamId, "", false)
+		c2, resp := th.SystemAdminClient.GetChannelByName(channel.Name, channel.TeamId, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, "", *c2.SchemeId)
 	})

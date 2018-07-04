@@ -1122,7 +1122,7 @@ type TeamSettings struct {
 	MaxNotificationsPerChannel          *int64
 	EnableConfirmNotificationsToChannel *bool
 	TeammateNameDisplay                 *string
-	SearchArchivedChannels                *bool
+	SearchArchivedChannels              *bool
 	ExperimentalEnableAutomaticReplies  *bool
 	ExperimentalHideTownSquareinLHS     *bool
 	ExperimentalTownSquareIsReadOnly    *bool
