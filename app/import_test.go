@@ -3774,6 +3774,8 @@ func TestImportBulkImport(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+
 	teamName := model.NewId()
 	channelName := model.NewId()
 	username := model.NewId()
@@ -3874,6 +3876,8 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 func TestImportImportEmoji(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	testsDir, _ := utils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
