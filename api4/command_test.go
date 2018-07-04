@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -423,7 +422,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	getCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
-		URL:       fmt.Sprintf("%s/%s/teams/command_test", ts.URL, model.API_URL_SUFFIX_V4),
+		URL:       ts.URL,
 		Method:    model.COMMAND_METHOD_GET,
 		Trigger:   "getcommand",
 	}
@@ -501,7 +500,7 @@ func TestExecuteGetCommand(t *testing.T) {
 	getCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
-		URL:       fmt.Sprintf("%s/%s/teams/command_test", ts.URL, model.API_URL_SUFFIX_V4),
+		URL:       ts.URL,
 		Method:    model.COMMAND_METHOD_GET,
 		Trigger:   "getcommand",
 		Token:     token,
@@ -556,16 +555,16 @@ func TestExecutePostCommand(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	getCmd := &model.Command{
+	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
-		URL:       fmt.Sprintf("%s/%s/teams/command_test", ts.URL, model.API_URL_SUFFIX_V4),
+		URL:       ts.URL,
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 		Token:     token,
 	}
 
-	if _, err := th.App.CreateCommand(getCmd); err != nil {
+	if _, err := th.App.CreateCommand(postCmd); err != nil {
 		t.Fatal("failed to create get command")
 	}
 
@@ -599,7 +598,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       "http://localhost",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -634,7 +633,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       "http://localhost",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -667,14 +666,32 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 		})
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
+
+	// create a team that the user isn't a part of
+	team2 := th.CreateTeam()
+
+	expectedCommandResponse := &model.CommandResponse{
+		Text:         "test post command response",
+		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		Type:         "custom_test",
+		Props:        map[string]interface{}{"someprop": "somevalue"},
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(expectedCommandResponse.ToJson()))
+	}))
+	defer ts.Close()
 
 	// create a slash command on some other team where we have permission to do so
-	team2 := th.CreateTeam()
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       ts.URL,
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -709,16 +726,35 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 		})
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
 
 	// create a team that the user isn't a part of
 	team2 := th.CreateTeam()
+
+	expectedCommandResponse := &model.CommandResponse{
+		Text:         "test post command response",
+		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		Type:         "custom_test",
+		Props:        map[string]interface{}{"someprop": "somevalue"},
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		r.ParseForm()
+		require.Equal(t, team2.Name, r.FormValue("team_domain"))
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(expectedCommandResponse.ToJson()))
+	}))
+	defer ts.Close()
 
 	// create a slash command on that team
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       ts.URL,
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
