@@ -1948,8 +1948,12 @@ func (a *App) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 	}
 
 	var emoji *model.Emoji
+	var err *model.AppError
 
-	emoji, _ = a.GetEmojiByName(*data.Name)
+	emoji, err = a.GetEmojiByName(*data.Name)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		return err
+	}
 
 	alreadyExists := emoji != nil
 
@@ -1960,8 +1964,8 @@ func (a *App) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 		emoji.PreSave()
 	}
 
-	file, err := os.Open(*data.Image)
-	if err != nil {
+	file, fileErr := os.Open(*data.Image)
+	if fileErr != nil {
 		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]interface{}{"EmojiName": *data.Name}, "", http.StatusBadRequest)
 	}
 
