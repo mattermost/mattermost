@@ -97,7 +97,7 @@ func TestCreateOAuthUser(t *testing.T) {
 }
 
 func TestCreateProfileImage(t *testing.T) {
-	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "luximbi.ttf")
+	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "nunito-bold.ttf")
 	if err != nil {
 		t.Fatal(err)
 	}
