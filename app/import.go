@@ -33,6 +33,7 @@ type LineImportData struct {
 	Post          *PostImportData          `json:"post"`
 	DirectChannel *DirectChannelImportData `json:"direct_channel"`
 	DirectPost    *DirectPostImportData    `json:"direct_post"`
+	Emoji         *EmojiImportData         `json:"emoji"`
 	Version       *int                     `json:"version"`
 }
 
@@ -112,6 +113,11 @@ type UserChannelNotifyPropsImportData struct {
 	Desktop    *string `json:"desktop"`
 	Mobile     *string `json:"mobile"`
 	MarkUnread *string `json:"mark_unread"`
+}
+
+type EmojiImportData struct {
+	Name  *string `json:"name"`
+	Image *string `json:"image"`
 }
 
 type ReactionImportData struct {
@@ -336,6 +342,12 @@ func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest)
 		} else {
 			return a.ImportDirectPost(line.DirectPost, dryRun)
+		}
+	case line.Type == "emoji":
+		if line.Emoji == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)
+		} else {
+			return a.ImportEmoji(line.Emoji, dryRun)
 		}
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "", http.StatusBadRequest)
@@ -1920,6 +1932,71 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 		for _, reply := range *data.Replies {
 			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
+	}
+
+	return nil
+}
+
+func (a *App) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
+	if err := validateEmojiImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	var emoji *model.Emoji
+	var err *model.AppError
+
+	emoji, err = a.GetEmojiByName(*data.Name)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		return err
+	}
+
+	alreadyExists := emoji != nil
+
+	if !alreadyExists {
+		emoji = &model.Emoji{
+			Name: *data.Name,
+		}
+		emoji.PreSave()
+	}
+
+	file, fileErr := os.Open(*data.Image)
+	if fileErr != nil {
+		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]interface{}{"EmojiName": *data.Name}, "", http.StatusBadRequest)
+	}
+
+	if _, err := a.WriteFile(file, getEmojiImagePath(emoji.Id)); err != nil {
+		return err
+	}
+
+	if !alreadyExists {
+		if result := <-a.Srv.Store.Emoji().Save(emoji); result.Err != nil {
+			return result.Err
+		}
+	}
+
+	return nil
+}
+
+func validateEmojiImportData(data *EmojiImportData) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.empty.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Name == nil || len(*data.Name) == 0 {
+		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.name_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := model.IsValidEmojiName(*data.Name); err != nil {
+		return err
+	}
+
+	if data.Image == nil || len(*data.Image) == 0 {
+		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.image_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
