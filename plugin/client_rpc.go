@@ -226,10 +226,11 @@ func init() {
 type ServeHTTPArgs struct {
 	ResponseWriterStream uint32
 	Request              *http.Request
+	Context              *Context
 	RequestBodyStream    uint32
 }
 
-func (g *HooksRPCClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (g *HooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !g.implemented[ServeHTTPId] {
 		http.NotFound(w, r)
 		return
@@ -282,6 +283,7 @@ func (g *HooksRPCClient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := g.client.Call("Plugin.ServeHTTP", ServeHTTPArgs{
+		Context:              c,
 		ResponseWriterStream: serveHTTPStreamId,
 		Request:              forwardedRequest,
 		RequestBodyStream:    requestBodyStreamId,
@@ -314,8 +316,10 @@ func (s *HooksRPCServer) ServeHTTP(args *ServeHTTPArgs, returns *struct{}) error
 	}
 	defer r.Body.Close()
 
-	if hook, ok := s.impl.(http.Handler); ok {
-		hook.ServeHTTP(w, r)
+	if hook, ok := s.impl.(interface {
+		ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
+	}); ok {
+		hook.ServeHTTP(args.Context, w, r)
 	} else {
 		http.NotFound(w, r)
 	}

@@ -48,11 +48,11 @@ type Hooks interface {
 	//
 	// The Mattermost-User-Id header will be present if (and only if) the request is by an
 	// authenticated user.
-	ServeHTTP(w http.ResponseWriter, r *http.Request)
+	ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
 
 	// ExecuteCommand executes a command that has been previously registered via the RegisterCommand
 	// API.
-	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 
 	// MessageWillBePosted is invoked when a message is posted by a user before it is commited
 	// to the database. If you also want to act on edited posts, see MessageWillBeUpdated.

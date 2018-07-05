@@ -84,7 +84,8 @@ func init() {
 }
 
 type ExecuteCommandArgs struct {
-	A *model.CommandArgs
+	A *Context
+	B *model.CommandArgs
 }
 
 type ExecuteCommandReturns struct {
@@ -92,8 +93,8 @@ type ExecuteCommandReturns struct {
 	B *model.AppError
 }
 
-func (g *HooksRPCClient) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	_args := &ExecuteCommandArgs{args}
+func (g *HooksRPCClient) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	_args := &ExecuteCommandArgs{c, args}
 	_returns := &ExecuteCommandReturns{}
 	if g.implemented[ExecuteCommandId] {
 		if err := g.client.Call("Plugin.ExecuteCommand", _args, _returns); err != nil {
@@ -105,9 +106,9 @@ func (g *HooksRPCClient) ExecuteCommand(args *model.CommandArgs) (*model.Command
 
 func (s *HooksRPCServer) ExecuteCommand(args *ExecuteCommandArgs, returns *ExecuteCommandReturns) error {
 	if hook, ok := s.impl.(interface {
-		ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+		ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.ExecuteCommand(args.A)
+		returns.A, returns.B = hook.ExecuteCommand(args.A, args.B)
 	} else {
 		return fmt.Errorf("Hook ExecuteCommand called but not implemented.")
 	}

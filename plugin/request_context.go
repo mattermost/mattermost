@@ -5,3 +5,7 @@ package plugin
 
 type Context struct {
 }
+
+func NewBlankContext() *Context {
+	return &Context{}
+}
