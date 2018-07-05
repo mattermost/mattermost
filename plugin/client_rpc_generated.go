@@ -119,7 +119,7 @@ func init() {
 }
 
 type MessageWillBePostedArgs struct {
-	A *RequestContext
+	A *Context
 	B *model.Post
 }
 
@@ -128,7 +128,7 @@ type MessageWillBePostedReturns struct {
 	B string
 }
 
-func (g *HooksRPCClient) MessageWillBePosted(c *RequestContext, post *model.Post) (*model.Post, string) {
+func (g *HooksRPCClient) MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string) {
 	_args := &MessageWillBePostedArgs{c, post}
 	_returns := &MessageWillBePostedReturns{}
 	if g.implemented[MessageWillBePostedId] {
@@ -141,7 +141,7 @@ func (g *HooksRPCClient) MessageWillBePosted(c *RequestContext, post *model.Post
 
 func (s *HooksRPCServer) MessageWillBePosted(args *MessageWillBePostedArgs, returns *MessageWillBePostedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageWillBePosted(c *RequestContext, post *model.Post) (*model.Post, string)
+		MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBePosted(args.A, args.B)
 	} else {
@@ -155,7 +155,7 @@ func init() {
 }
 
 type MessageWillBeUpdatedArgs struct {
-	A *RequestContext
+	A *Context
 	B *model.Post
 	C *model.Post
 }
@@ -165,7 +165,7 @@ type MessageWillBeUpdatedReturns struct {
 	B string
 }
 
-func (g *HooksRPCClient) MessageWillBeUpdated(c *RequestContext, newPost, oldPost *model.Post) (*model.Post, string) {
+func (g *HooksRPCClient) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
 	_args := &MessageWillBeUpdatedArgs{c, newPost, oldPost}
 	_returns := &MessageWillBeUpdatedReturns{}
 	if g.implemented[MessageWillBeUpdatedId] {
@@ -178,7 +178,7 @@ func (g *HooksRPCClient) MessageWillBeUpdated(c *RequestContext, newPost, oldPos
 
 func (s *HooksRPCServer) MessageWillBeUpdated(args *MessageWillBeUpdatedArgs, returns *MessageWillBeUpdatedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageWillBeUpdated(c *RequestContext, newPost, oldPost *model.Post) (*model.Post, string)
+		MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBeUpdated(args.A, args.B, args.C)
 	} else {
@@ -192,14 +192,14 @@ func init() {
 }
 
 type MessageHasBeenPostedArgs struct {
-	A *RequestContext
+	A *Context
 	B *model.Post
 }
 
 type MessageHasBeenPostedReturns struct {
 }
 
-func (g *HooksRPCClient) MessageHasBeenPosted(c *RequestContext, post *model.Post) {
+func (g *HooksRPCClient) MessageHasBeenPosted(c *Context, post *model.Post) {
 	_args := &MessageHasBeenPostedArgs{c, post}
 	_returns := &MessageHasBeenPostedReturns{}
 	if g.implemented[MessageHasBeenPostedId] {
@@ -212,7 +212,7 @@ func (g *HooksRPCClient) MessageHasBeenPosted(c *RequestContext, post *model.Pos
 
 func (s *HooksRPCServer) MessageHasBeenPosted(args *MessageHasBeenPostedArgs, returns *MessageHasBeenPostedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageHasBeenPosted(c *RequestContext, post *model.Post)
+		MessageHasBeenPosted(c *Context, post *model.Post)
 	}); ok {
 		hook.MessageHasBeenPosted(args.A, args.B)
 	} else {
@@ -226,7 +226,7 @@ func init() {
 }
 
 type MessageHasBeenUpdatedArgs struct {
-	A *RequestContext
+	A *Context
 	B *model.Post
 	C *model.Post
 }
@@ -234,7 +234,7 @@ type MessageHasBeenUpdatedArgs struct {
 type MessageHasBeenUpdatedReturns struct {
 }
 
-func (g *HooksRPCClient) MessageHasBeenUpdated(c *RequestContext, newPost, oldPost *model.Post) {
+func (g *HooksRPCClient) MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post) {
 	_args := &MessageHasBeenUpdatedArgs{c, newPost, oldPost}
 	_returns := &MessageHasBeenUpdatedReturns{}
 	if g.implemented[MessageHasBeenUpdatedId] {
@@ -247,7 +247,7 @@ func (g *HooksRPCClient) MessageHasBeenUpdated(c *RequestContext, newPost, oldPo
 
 func (s *HooksRPCServer) MessageHasBeenUpdated(args *MessageHasBeenUpdatedArgs, returns *MessageHasBeenUpdatedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageHasBeenUpdated(c *RequestContext, newPost, oldPost *model.Post)
+		MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 	}); ok {
 		hook.MessageHasBeenUpdated(args.A, args.B, args.C)
 	} else {

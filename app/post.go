@@ -163,9 +163,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if a.PluginsReady() {
 		var rejectionReason string
-		pluginRequestContext := &plugin.RequestContext{}
+		pluginContext := &plugin.Context{}
 		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			post, rejectionReason = hooks.MessageWillBePosted(pluginRequestContext, post)
+			post, rejectionReason = hooks.MessageWillBePosted(pluginContext, post)
 			return post != nil
 		}, plugin.MessageWillBePostedId)
 		if post == nil {
@@ -182,9 +182,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if a.PluginsReady() {
 		a.Go(func() {
-			pluginRequestContext := &plugin.RequestContext{}
+			pluginContext := &plugin.Context{}
 			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenPosted(pluginRequestContext, rpost)
+				hooks.MessageHasBeenPosted(pluginContext, rpost)
 				return true
 			}, plugin.MessageHasBeenPostedId)
 		})
@@ -396,9 +396,9 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if a.PluginsReady() {
 		var rejectionReason string
-		pluginRequestContext := &plugin.RequestContext{}
+		pluginContext := &plugin.Context{}
 		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginRequestContext, newPost, oldPost)
+			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
 		}, plugin.MessageWillBeUpdatedId)
 		if newPost == nil {
@@ -413,9 +413,9 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 		if a.PluginsReady() {
 			a.Go(func() {
-				pluginRequestContext := &plugin.RequestContext{}
+				pluginContext := &plugin.Context{}
 				a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-					hooks.MessageHasBeenUpdated(pluginRequestContext, newPost, oldPost)
+					hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 					return true
 				}, plugin.MessageHasBeenUpdatedId)
 			})

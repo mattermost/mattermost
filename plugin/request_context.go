@@ -3,5 +3,5 @@
 
 package plugin
 
-type RequestContext struct {
+type Context struct {
 }

@@ -528,8 +528,8 @@ func (c *Context) RequireRoleName() *Context {
 	return c
 }
 
-func (c *Context) ToPluginRequestContext() *plugin.RequestContext {
-	return &plugin.RequestContext{
+func (c *Context) ToPluginContext() *plugin.Context {
+	return &plugin.Context{
 		//sessionId: c.Session.Id,
 		//requestId: c.RequestId,
 		//userIp: c.IpAddress,
