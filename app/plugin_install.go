@@ -108,6 +108,12 @@ func (a *App) removePlugin(id string) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if a.Plugins.IsActive(id) && manifest.HasClient() {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
+		message.Add("manifest", manifest.ClientManifest())
+		a.Publish(message)
+	}
+
 	a.Plugins.Deactivate(id)
 
 	err = os.RemoveAll(pluginPath)
