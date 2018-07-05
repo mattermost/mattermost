@@ -736,12 +736,12 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 		msg.ChannelName = channelName
 	}
 
-	if ou, ok := post.Props["override_username"].(string); ok {
+	if ou, ok := post.Props["override_username"].(string); ok && cfg.ServiceSettings.EnablePostUsernameOverride {
 		msg.OverrideUsername = ou
 		senderName = ou
 	}
 
-	if oi, ok := post.Props["override_icon_url"].(string); ok {
+	if oi, ok := post.Props["override_icon_url"].(string); ok && cfg.ServiceSettings.EnablePostIconOverride {
 		msg.OverrideIconUrl = oi
 	}
 
