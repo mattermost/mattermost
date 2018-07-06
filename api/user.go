@@ -65,8 +65,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.NeedUser.Handle("/image", api.ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
 	api.BaseRoutes.NeedUser.Handle("/update_roles", api.ApiUserRequired(updateRoles)).Methods("POST")
 
-	//api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(loginWithSaml)).Methods("GET")
-	api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(loginWithFaml)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(loginWithSaml)).Methods("GET")
 	api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(completeSaml)).Methods("POST")
 }
 
@@ -1100,6 +1099,11 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectTo := r.URL.Query().Get("redirect_to")
 	relayProps := map[string]string{}
 	relayState := ""
+
+	if action == model.OAUTH_ACTION_CLIENT {
+		loginWithFaml(c, w, r)
+		return
+	}
 
 	if len(action) != 0 {
 		relayProps["team_id"] = teamId
