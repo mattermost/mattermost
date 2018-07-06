@@ -97,13 +97,30 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.True(t, resp.StatusCode == http.StatusOK)
 	})
 
-	t.Run("WebhookExperimentReadOnly", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
-		_, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
-		assert.Nil(t, err, "Not read only")
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
+	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {
 		th.App.SetLicense(model.NewTestLicense())
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
+
+		// Read only default channel should fail.
+		resp, err := http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode != http.StatusOK)
+
+		// None-default channel should still work.
+		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		// System-Admin Owned Hook
+		adminHook, err := th.App.CreateIncomingWebhookForChannel(th.SystemAdminUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, err)
+		adminUrl := ApiClient.Url + "/hooks/" + adminHook.Id
+
+		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
+		require.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
 
 	t.Run("WebhookAttachments", func(t *testing.T) {
