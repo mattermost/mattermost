@@ -1524,8 +1524,13 @@ func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.S
 	})
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string) store.StoreChannel {
+func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		deleteFilter := "AND DeleteAt = 0"
+		if includeDeleted {
+			deleteFilter = ""
+		}
+
 		queryFormat := `
 			SELECT
 				*
@@ -1534,7 +1539,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string) store.St
 			WHERE
 				TeamId = :TeamId
 				AND Type = 'O'
-				AND DeleteAt = 0
+				` + deleteFilter + `
 				%v
 			LIMIT 50`
 
@@ -1564,8 +1569,12 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string) store.St
 	})
 }
 
-func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreChannel {
+func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		deleteFilter := "AND DeleteAt = 0"
+		if includeDeleted {
+			deleteFilter = ""
+		}
 		searchQuery := `
 			SELECT
 				*
@@ -1574,7 +1583,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreCha
 			WHERE
 				TeamId = :TeamId
 				AND Type = 'O'
-				AND DeleteAt = 0
+				` + deleteFilter + `
 				SEARCH_CLAUSE
 			ORDER BY DisplayName
 			LIMIT 100`
