@@ -308,6 +308,10 @@
     "translation": "Email has not been configured, no invite(s) sent"
   },
   {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Email invitations are disabled, no invite(s) sent"
+  },
+  {
     "id": "api.command.invite_people.fail",
     "translation": "Encountered an error sending email invite(s)"
   },
