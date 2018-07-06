@@ -37,10 +37,13 @@ func StopTestStore() {
 }
 
 type TestHelper struct {
-	App          *app.App
-	BasicUser    *model.User
-	BasicChannel *model.Channel
-	BasicTeam    *model.Team
+	App             *app.App
+
+	BasicUser       *model.User
+	BasicChannel    *model.Channel
+	BasicTeam       *model.Team
+
+	SystemAdminUser   *model.User
 }
 
 func Setup() *TestHelper {
@@ -77,7 +80,9 @@ func Setup() *TestHelper {
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
-	user, _ := th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
+	th.SystemAdminUser, _ = th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_ADMIN_ROLE_ID})
+
+	user, _ := th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_USER_ROLE_ID})
 
 	team, _ := th.App.CreateTeam(&model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
 
