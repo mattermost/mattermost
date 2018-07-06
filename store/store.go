@@ -160,8 +160,8 @@ type ChannelStore interface {
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
-	AutocompleteInTeam(teamId string, term string) StoreChannel
-	SearchInTeam(teamId string, term string) StoreChannel
+	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
+	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel

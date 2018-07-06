@@ -1913,12 +1913,12 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	o12.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o12, -1))
 
-	for name, search := range map[string]func(teamId string, term string) store.StoreChannel{
+	for name, search := range map[string]func(teamId string, term string, includeDeleted bool) store.StoreChannel{
 		"AutocompleteInTeam": ss.Channel().AutocompleteInTeam,
 		"SearchInTeam":       ss.Channel().SearchInTeam,
 	} {
 		t.Run(name, func(t *testing.T) {
-			if result := <-search(o1.TeamId, "ChannelA"); result.Err != nil {
+			if result := <-search(o1.TeamId, "ChannelA", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -1927,7 +1927,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, ""); result.Err != nil {
+			if result := <-search(o1.TeamId, "", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -1936,7 +1936,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, "blargh"); result.Err != nil {
+			if result := <-search(o1.TeamId, "blargh", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -1945,7 +1945,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, "off-"); result.Err != nil {
+			if result := <-search(o1.TeamId, "off-", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -1962,7 +1962,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, "off-topic"); result.Err != nil {
+			if result := <-search(o1.TeamId, "off-topic", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -1975,7 +1975,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, "town square"); result.Err != nil {
+			if result := <-search(o1.TeamId, "town square", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -1988,7 +1988,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, "the"); result.Err != nil {
+			if result := <-search(o1.TeamId, "the", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -2002,7 +2002,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, "Mobile"); result.Err != nil {
+			if result := <-search(o1.TeamId, "Mobile", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -2016,7 +2016,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, "now searchable"); result.Err != nil {
+			if result := <-search(o1.TeamId, "now searchable", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
@@ -2029,7 +2029,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 				}
 			}
 
-			if result := <-search(o1.TeamId, "town square |"); result.Err != nil {
+			if result := <-search(o1.TeamId, "town square |", false); result.Err != nil {
 				t.Fatal(result.Err)
 			} else {
 				channels := result.Data.(*model.ChannelList)
