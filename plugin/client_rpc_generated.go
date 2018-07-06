@@ -257,6 +257,180 @@ func (s *HooksRPCServer) MessageHasBeenUpdated(args *MessageHasBeenUpdatedArgs, 
 	return nil
 }
 
+func init() {
+	HookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedId
+}
+
+type ChannelHasBeenCreatedArgs struct {
+	A *Context
+	B *model.Channel
+}
+
+type ChannelHasBeenCreatedReturns struct {
+}
+
+func (g *HooksRPCClient) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
+	_args := &ChannelHasBeenCreatedArgs{c, channel}
+	_returns := &ChannelHasBeenCreatedReturns{}
+	if g.implemented[ChannelHasBeenCreatedId] {
+		if err := g.client.Call("Plugin.ChannelHasBeenCreated", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelHasBeenCreated to plugin failed.", mlog.Err(err))
+		}
+	}
+	return
+}
+
+func (s *HooksRPCServer) ChannelHasBeenCreated(args *ChannelHasBeenCreatedArgs, returns *ChannelHasBeenCreatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelHasBeenCreated(c *Context, channel *model.Channel)
+	}); ok {
+		hook.ChannelHasBeenCreated(args.A, args.B)
+	} else {
+		return fmt.Errorf("Hook ChannelHasBeenCreated called but not implemented.")
+	}
+	return nil
+}
+
+func init() {
+	HookNameToId["UserHasJoinedChannel"] = UserHasJoinedChannelId
+}
+
+type UserHasJoinedChannelArgs struct {
+	A *Context
+	B *model.ChannelMember
+	C *model.User
+}
+
+type UserHasJoinedChannelReturns struct {
+}
+
+func (g *HooksRPCClient) UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
+	_args := &UserHasJoinedChannelArgs{c, channelMember, actor}
+	_returns := &UserHasJoinedChannelReturns{}
+	if g.implemented[UserHasJoinedChannelId] {
+		if err := g.client.Call("Plugin.UserHasJoinedChannel", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasJoinedChannel to plugin failed.", mlog.Err(err))
+		}
+	}
+	return
+}
+
+func (s *HooksRPCServer) UserHasJoinedChannel(args *UserHasJoinedChannelArgs, returns *UserHasJoinedChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+	}); ok {
+		hook.UserHasJoinedChannel(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("Hook UserHasJoinedChannel called but not implemented.")
+	}
+	return nil
+}
+
+func init() {
+	HookNameToId["UserHasLeftChannel"] = UserHasLeftChannelId
+}
+
+type UserHasLeftChannelArgs struct {
+	A *Context
+	B *model.ChannelMember
+	C *model.User
+}
+
+type UserHasLeftChannelReturns struct {
+}
+
+func (g *HooksRPCClient) UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
+	_args := &UserHasLeftChannelArgs{c, channelMember, actor}
+	_returns := &UserHasLeftChannelReturns{}
+	if g.implemented[UserHasLeftChannelId] {
+		if err := g.client.Call("Plugin.UserHasLeftChannel", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasLeftChannel to plugin failed.", mlog.Err(err))
+		}
+	}
+	return
+}
+
+func (s *HooksRPCServer) UserHasLeftChannel(args *UserHasLeftChannelArgs, returns *UserHasLeftChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+	}); ok {
+		hook.UserHasLeftChannel(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("Hook UserHasLeftChannel called but not implemented.")
+	}
+	return nil
+}
+
+func init() {
+	HookNameToId["UserHasJoinedTeam"] = UserHasJoinedTeamId
+}
+
+type UserHasJoinedTeamArgs struct {
+	A *Context
+	B *model.TeamMember
+	C *model.User
+}
+
+type UserHasJoinedTeamReturns struct {
+}
+
+func (g *HooksRPCClient) UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
+	_args := &UserHasJoinedTeamArgs{c, teamMember, actor}
+	_returns := &UserHasJoinedTeamReturns{}
+	if g.implemented[UserHasJoinedTeamId] {
+		if err := g.client.Call("Plugin.UserHasJoinedTeam", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasJoinedTeam to plugin failed.", mlog.Err(err))
+		}
+	}
+	return
+}
+
+func (s *HooksRPCServer) UserHasJoinedTeam(args *UserHasJoinedTeamArgs, returns *UserHasJoinedTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+	}); ok {
+		hook.UserHasJoinedTeam(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("Hook UserHasJoinedTeam called but not implemented.")
+	}
+	return nil
+}
+
+func init() {
+	HookNameToId["UserHasLeftTeam"] = UserHasLeftTeamId
+}
+
+type UserHasLeftTeamArgs struct {
+	A *Context
+	B *model.TeamMember
+	C *model.User
+}
+
+type UserHasLeftTeamReturns struct {
+}
+
+func (g *HooksRPCClient) UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
+	_args := &UserHasLeftTeamArgs{c, teamMember, actor}
+	_returns := &UserHasLeftTeamReturns{}
+	if g.implemented[UserHasLeftTeamId] {
+		if err := g.client.Call("Plugin.UserHasLeftTeam", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasLeftTeam to plugin failed.", mlog.Err(err))
+		}
+	}
+	return
+}
+
+func (s *HooksRPCServer) UserHasLeftTeam(args *UserHasLeftTeamArgs, returns *UserHasLeftTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+	}); ok {
+		hook.UserHasLeftTeam(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("Hook UserHasLeftTeam called but not implemented.")
+	}
+	return nil
+}
+
 type RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -310,6 +484,61 @@ func (s *APIRPCServer) UnregisterCommand(args *UnregisterCommandArgs, returns *U
 		returns.A = hook.UnregisterCommand(args.A, args.B)
 	} else {
 		return fmt.Errorf("API UnregisterCommand called but not implemented.")
+	}
+	return nil
+}
+
+type GetConfigArgs struct {
+}
+
+type GetConfigReturns struct {
+	A *model.Config
+}
+
+func (g *APIRPCClient) GetConfig() *model.Config {
+	_args := &GetConfigArgs{}
+	_returns := &GetConfigReturns{}
+	if err := g.client.Call("Plugin.GetConfig", _args, _returns); err != nil {
+		g.log.Error("RPC call to GetConfig API failed.", mlog.Err(err))
+	}
+	return _returns.A
+}
+
+func (s *APIRPCServer) GetConfig(args *GetConfigArgs, returns *GetConfigReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetConfig() *model.Config
+	}); ok {
+		returns.A = hook.GetConfig()
+	} else {
+		return fmt.Errorf("API GetConfig called but not implemented.")
+	}
+	return nil
+}
+
+type SaveConfigArgs struct {
+	A *model.Config
+}
+
+type SaveConfigReturns struct {
+	A *model.AppError
+}
+
+func (g *APIRPCClient) SaveConfig(config *model.Config) *model.AppError {
+	_args := &SaveConfigArgs{config}
+	_returns := &SaveConfigReturns{}
+	if err := g.client.Call("Plugin.SaveConfig", _args, _returns); err != nil {
+		g.log.Error("RPC call to SaveConfig API failed.", mlog.Err(err))
+	}
+	return _returns.A
+}
+
+func (s *APIRPCServer) SaveConfig(args *SaveConfigArgs, returns *SaveConfigReturns) error {
+	if hook, ok := s.impl.(interface {
+		SaveConfig(config *model.Config) *model.AppError
+	}); ok {
+		returns.A = hook.SaveConfig(args.A)
+	} else {
+		return fmt.Errorf("API SaveConfig called but not implemented.")
 	}
 	return nil
 }
@@ -544,6 +773,34 @@ func (s *APIRPCServer) DeleteTeam(args *DeleteTeamArgs, returns *DeleteTeamRetur
 	return nil
 }
 
+type GetTeamsArgs struct {
+}
+
+type GetTeamsReturns struct {
+	A []*model.Team
+	B *model.AppError
+}
+
+func (g *APIRPCClient) GetTeams() ([]*model.Team, *model.AppError) {
+	_args := &GetTeamsArgs{}
+	_returns := &GetTeamsReturns{}
+	if err := g.client.Call("Plugin.GetTeams", _args, _returns); err != nil {
+		g.log.Error("RPC call to GetTeams API failed.", mlog.Err(err))
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *APIRPCServer) GetTeams(args *GetTeamsArgs, returns *GetTeamsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeams() ([]*model.Team, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeams()
+	} else {
+		return fmt.Errorf("API GetTeams called but not implemented.")
+	}
+	return nil
+}
+
 type GetTeamArgs struct {
 	A string
 }
@@ -631,6 +888,189 @@ func (s *APIRPCServer) UpdateTeam(args *UpdateTeamArgs, returns *UpdateTeamRetur
 	return nil
 }
 
+type CreateTeamMemberArgs struct {
+	A string
+	B string
+}
+
+type CreateTeamMemberReturns struct {
+	A *model.TeamMember
+	B *model.AppError
+}
+
+func (g *APIRPCClient) CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+	_args := &CreateTeamMemberArgs{teamId, userId}
+	_returns := &CreateTeamMemberReturns{}
+	if err := g.client.Call("Plugin.CreateTeamMember", _args, _returns); err != nil {
+		g.log.Error("RPC call to CreateTeamMember API failed.", mlog.Err(err))
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *APIRPCServer) CreateTeamMember(args *CreateTeamMemberArgs, returns *CreateTeamMemberReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateTeamMember(args.A, args.B)
+	} else {
+		return fmt.Errorf("API CreateTeamMember called but not implemented.")
+	}
+	return nil
+}
+
+type CreateTeamMembersArgs struct {
+	A string
+	B []string
+	C string
+}
+
+type CreateTeamMembersReturns struct {
+	A []*model.TeamMember
+	B *model.AppError
+}
+
+func (g *APIRPCClient) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
+	_args := &CreateTeamMembersArgs{teamId, userIds, requestorId}
+	_returns := &CreateTeamMembersReturns{}
+	if err := g.client.Call("Plugin.CreateTeamMembers", _args, _returns); err != nil {
+		g.log.Error("RPC call to CreateTeamMembers API failed.", mlog.Err(err))
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *APIRPCServer) CreateTeamMembers(args *CreateTeamMembersArgs, returns *CreateTeamMembersReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateTeamMembers(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API CreateTeamMembers called but not implemented.")
+	}
+	return nil
+}
+
+type DeleteTeamMemberArgs struct {
+	A string
+	B string
+	C string
+}
+
+type DeleteTeamMemberReturns struct {
+	A *model.AppError
+}
+
+func (g *APIRPCClient) DeleteTeamMember(teamId, userId, requestorId string) *model.AppError {
+	_args := &DeleteTeamMemberArgs{teamId, userId, requestorId}
+	_returns := &DeleteTeamMemberReturns{}
+	if err := g.client.Call("Plugin.DeleteTeamMember", _args, _returns); err != nil {
+		g.log.Error("RPC call to DeleteTeamMember API failed.", mlog.Err(err))
+	}
+	return _returns.A
+}
+
+func (s *APIRPCServer) DeleteTeamMember(args *DeleteTeamMemberArgs, returns *DeleteTeamMemberReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeleteTeamMember(teamId, userId, requestorId string) *model.AppError
+	}); ok {
+		returns.A = hook.DeleteTeamMember(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API DeleteTeamMember called but not implemented.")
+	}
+	return nil
+}
+
+type GetTeamMembersArgs struct {
+	A string
+	B int
+	C int
+}
+
+type GetTeamMembersReturns struct {
+	A []*model.TeamMember
+	B *model.AppError
+}
+
+func (g *APIRPCClient) GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError) {
+	_args := &GetTeamMembersArgs{teamId, offset, limit}
+	_returns := &GetTeamMembersReturns{}
+	if err := g.client.Call("Plugin.GetTeamMembers", _args, _returns); err != nil {
+		g.log.Error("RPC call to GetTeamMembers API failed.", mlog.Err(err))
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *APIRPCServer) GetTeamMembers(args *GetTeamMembersArgs, returns *GetTeamMembersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamMembers(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API GetTeamMembers called but not implemented.")
+	}
+	return nil
+}
+
+type GetTeamMemberArgs struct {
+	A string
+	B string
+}
+
+type GetTeamMemberReturns struct {
+	A *model.TeamMember
+	B *model.AppError
+}
+
+func (g *APIRPCClient) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+	_args := &GetTeamMemberArgs{teamId, userId}
+	_returns := &GetTeamMemberReturns{}
+	if err := g.client.Call("Plugin.GetTeamMember", _args, _returns); err != nil {
+		g.log.Error("RPC call to GetTeamMember API failed.", mlog.Err(err))
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *APIRPCServer) GetTeamMember(args *GetTeamMemberArgs, returns *GetTeamMemberReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamMember(args.A, args.B)
+	} else {
+		return fmt.Errorf("API GetTeamMember called but not implemented.")
+	}
+	return nil
+}
+
+type UpdateTeamMemberRolesArgs struct {
+	A string
+	B string
+	C string
+}
+
+type UpdateTeamMemberRolesReturns struct {
+	A *model.TeamMember
+	B *model.AppError
+}
+
+func (g *APIRPCClient) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
+	_args := &UpdateTeamMemberRolesArgs{teamId, userId, newRoles}
+	_returns := &UpdateTeamMemberRolesReturns{}
+	if err := g.client.Call("Plugin.UpdateTeamMemberRoles", _args, _returns); err != nil {
+		g.log.Error("RPC call to UpdateTeamMemberRoles API failed.", mlog.Err(err))
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *APIRPCServer) UpdateTeamMemberRoles(args *UpdateTeamMemberRolesArgs, returns *UpdateTeamMemberRolesReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateTeamMemberRoles(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API UpdateTeamMemberRoles called but not implemented.")
+	}
+	return nil
+}
+
 type CreateChannelArgs struct {
 	A *model.Channel
 }
@@ -684,6 +1124,37 @@ func (s *APIRPCServer) DeleteChannel(args *DeleteChannelArgs, returns *DeleteCha
 		returns.A = hook.DeleteChannel(args.A)
 	} else {
 		return fmt.Errorf("API DeleteChannel called but not implemented.")
+	}
+	return nil
+}
+
+type GetPublicChannelsForTeamArgs struct {
+	A string
+	B int
+	C int
+}
+
+type GetPublicChannelsForTeamReturns struct {
+	A *model.ChannelList
+	B *model.AppError
+}
+
+func (g *APIRPCClient) GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError) {
+	_args := &GetPublicChannelsForTeamArgs{teamId, offset, limit}
+	_returns := &GetPublicChannelsForTeamReturns{}
+	if err := g.client.Call("Plugin.GetPublicChannelsForTeam", _args, _returns); err != nil {
+		g.log.Error("RPC call to GetPublicChannelsForTeam API failed.", mlog.Err(err))
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *APIRPCServer) GetPublicChannelsForTeam(args *GetPublicChannelsForTeamArgs, returns *GetPublicChannelsForTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPublicChannelsForTeam(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API GetPublicChannelsForTeam called but not implemented.")
 	}
 	return nil
 }
@@ -1011,6 +1482,35 @@ func (s *APIRPCServer) CreatePost(args *CreatePostArgs, returns *CreatePostRetur
 		returns.A, returns.B = hook.CreatePost(args.A)
 	} else {
 		return fmt.Errorf("API CreatePost called but not implemented.")
+	}
+	return nil
+}
+
+type SendEphemeralPostArgs struct {
+	A string
+	B *model.Post
+}
+
+type SendEphemeralPostReturns struct {
+	A *model.Post
+}
+
+func (g *APIRPCClient) SendEphemeralPost(userId string, post *model.Post) *model.Post {
+	_args := &SendEphemeralPostArgs{userId, post}
+	_returns := &SendEphemeralPostReturns{}
+	if err := g.client.Call("Plugin.SendEphemeralPost", _args, _returns); err != nil {
+		g.log.Error("RPC call to SendEphemeralPost API failed.", mlog.Err(err))
+	}
+	return _returns.A
+}
+
+func (s *APIRPCServer) SendEphemeralPost(args *SendEphemeralPostArgs, returns *SendEphemeralPostReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendEphemeralPost(userId string, post *model.Post) *model.Post
+	}); ok {
+		returns.A = hook.SendEphemeralPost(args.A, args.B)
+	} else {
+		return fmt.Errorf("API SendEphemeralPost called but not implemented.")
 	}
 	return nil
 }

@@ -21,6 +21,11 @@ const (
 	MessageWillBeUpdatedId  = 6
 	MessageHasBeenPostedId  = 7
 	MessageHasBeenUpdatedId = 8
+	UserHasJoinedChannelId  = 9
+	UserHasLeftChannelId    = 10
+	UserHasJoinedTeamId     = 11
+	UserHasLeftTeamId       = 12
+	ChannelHasBeenCreatedId = 13
 	TotalHooksId            = iota
 )
 
@@ -54,7 +59,7 @@ type Hooks interface {
 	// API.
 	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 
-	// MessageWillBePosted is invoked when a message is posted by a user before it is commited
+	// MessageWillBePosted is invoked when a message is posted by a user before it is committed
 	// to the database. If you also want to act on edited posts, see MessageWillBeUpdated.
 	// Return values should be the modified post or nil if rejected and an explanation for the user.
 	//
@@ -64,7 +69,7 @@ type Hooks interface {
 	// created the post.
 	MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
 
-	// MessageWillBeUpdated is invoked when a message is updated by a user before it is commited
+	// MessageWillBeUpdated is invoked when a message is updated by a user before it is committed
 	// to the database. If you also want to act on new posts, see MessageWillBePosted.
 	// Return values should be the modified post or nil if rejected and an explanation for the user.
 	// On rejection, the post will be kept in its previous state.
@@ -75,15 +80,34 @@ type Hooks interface {
 	// updated the post.
 	MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
 
-	// MessageHasBeenPosted is invoked after the message has been commited to the databse.
+	// MessageHasBeenPosted is invoked after the message has been committed to the database.
 	// If you need to modify or reject the post, see MessageWillBePosted
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
 	MessageHasBeenPosted(c *Context, post *model.Post)
 
-	// MessageHasBeenUpdated is invoked after a message is updated and has been updated in the databse.
+	// MessageHasBeenUpdated is invoked after a message is updated and has been updated in the database.
 	// If you need to modify or reject the post, see MessageWillBeUpdated
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+
+	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
+	ChannelHasBeenCreated(c *Context, channel *model.Channel)
+
+	// UserHasJoinedChannel is invoked after the membership has been committed to the database.
+	// If actor is not nil, the user was invited to the channel by the actor.
+	UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+
+	// UserHasLeftChannel is invoked after the membership has been removed from the database.
+	// If actor is not nil, the user was removed from the channel by the actor.
+	UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+
+	// UserHasJoinedTeam is invoked after the membership has been committed to the database.
+	// If actor is not nil, the user was added to the team by the actor.
+	UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+
+	// UserHasLeftTeam is invoked after the membership has been removed from the database.
+	// If actor is not nil, the user was removed from the team by the actor.
+	UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
 }

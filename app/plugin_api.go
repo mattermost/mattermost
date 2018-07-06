@@ -42,12 +42,24 @@ func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	return nil
 }
 
+func (api *PluginAPI) GetConfig() *model.Config {
+	return api.app.GetConfig()
+}
+
+func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
+	return api.app.SaveConfig(config, true)
+}
+
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.CreateTeam(team)
 }
 
 func (api *PluginAPI) DeleteTeam(teamId string) *model.AppError {
 	return api.app.SoftDeleteTeam(teamId)
+}
+
+func (api *PluginAPI) GetTeams() ([]*model.Team, *model.AppError) {
+	return api.app.GetAllTeams()
 }
 
 func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
@@ -60,6 +72,30 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.UpdateTeam(team)
+}
+
+func (api *PluginAPI) CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+	return api.app.AddTeamMember(teamId, userId)
+}
+
+func (api *PluginAPI) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
+	return api.app.AddTeamMembers(teamId, userIds, requestorId)
+}
+
+func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *model.AppError {
+	return api.app.RemoveUserFromTeam(teamId, userId, requestorId)
+}
+
+func (api *PluginAPI) GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError) {
+	return api.app.GetTeamMembers(teamId, offset, limit)
+}
+
+func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+	return api.app.GetTeamMember(teamId, userId)
+}
+
+func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
+	return api.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
 }
 
 func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {
@@ -101,6 +137,10 @@ func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
 		return err
 	}
 	return api.app.DeleteChannel(channel, "")
+}
+
+func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError) {
+	return api.app.GetPublicChannelsForTeam(teamId, offset, limit)
 }
 
 func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppError) {
@@ -154,6 +194,10 @@ func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppEr
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return api.app.CreatePostMissingChannel(post, true)
+}
+
+func (api *PluginAPI) SendEphemeralPost(userId string, post *model.Post) *model.Post {
+	return api.app.SendEphemeralPost(userId, post)
 }
 
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
