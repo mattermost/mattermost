@@ -21,8 +21,8 @@ import (
 
 const (
 	emailRateLimitingMemstoreSize = 65536
-	emailRateLimitingPerHour      = 10
-	emailRateLimitingMaxBurst     = 10
+	emailRateLimitingPerHour      = 20
+	emailRateLimitingMaxBurst     = 20
 )
 
 func (a *App) SetupInviteEmailRateLimiting() error {
