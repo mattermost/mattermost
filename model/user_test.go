@@ -272,6 +272,7 @@ var usernames = []struct {
 	{"spin'punch", false},
 	{"spin*punch", false},
 	{"all", false},
+	{"system", false},
 }
 
 func TestValidUsername(t *testing.T) {
