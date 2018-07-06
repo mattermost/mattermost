@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 )
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +34,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	a.servePluginRequest(w, r, hooks.ServeHTTP)
 }
 
-func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler http.HandlerFunc) {
+func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
 	token := ""
 
 	authHeader := r.Header.Get(model.HEADER_AUTH)
@@ -71,5 +72,5 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	r.URL.RawQuery = newQuery.Encode()
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, "/plugins/"+params["plugin_id"])
 
-	handler(w, r)
+	handler(plugin.NewBlankContext(), w, r)
 }
