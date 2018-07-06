@@ -84,7 +84,8 @@ func init() {
 }
 
 type ExecuteCommandArgs struct {
-	A *model.CommandArgs
+	A *Context
+	B *model.CommandArgs
 }
 
 type ExecuteCommandReturns struct {
@@ -92,8 +93,8 @@ type ExecuteCommandReturns struct {
 	B *model.AppError
 }
 
-func (g *HooksRPCClient) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	_args := &ExecuteCommandArgs{args}
+func (g *HooksRPCClient) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	_args := &ExecuteCommandArgs{c, args}
 	_returns := &ExecuteCommandReturns{}
 	if g.implemented[ExecuteCommandId] {
 		if err := g.client.Call("Plugin.ExecuteCommand", _args, _returns); err != nil {
@@ -105,9 +106,9 @@ func (g *HooksRPCClient) ExecuteCommand(args *model.CommandArgs) (*model.Command
 
 func (s *HooksRPCServer) ExecuteCommand(args *ExecuteCommandArgs, returns *ExecuteCommandReturns) error {
 	if hook, ok := s.impl.(interface {
-		ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+		ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.ExecuteCommand(args.A)
+		returns.A, returns.B = hook.ExecuteCommand(args.A, args.B)
 	} else {
 		return fmt.Errorf("Hook ExecuteCommand called but not implemented.")
 	}
@@ -119,7 +120,8 @@ func init() {
 }
 
 type MessageWillBePostedArgs struct {
-	A *model.Post
+	A *Context
+	B *model.Post
 }
 
 type MessageWillBePostedReturns struct {
@@ -127,8 +129,8 @@ type MessageWillBePostedReturns struct {
 	B string
 }
 
-func (g *HooksRPCClient) MessageWillBePosted(post *model.Post) (*model.Post, string) {
-	_args := &MessageWillBePostedArgs{post}
+func (g *HooksRPCClient) MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string) {
+	_args := &MessageWillBePostedArgs{c, post}
 	_returns := &MessageWillBePostedReturns{}
 	if g.implemented[MessageWillBePostedId] {
 		if err := g.client.Call("Plugin.MessageWillBePosted", _args, _returns); err != nil {
@@ -140,9 +142,9 @@ func (g *HooksRPCClient) MessageWillBePosted(post *model.Post) (*model.Post, str
 
 func (s *HooksRPCServer) MessageWillBePosted(args *MessageWillBePostedArgs, returns *MessageWillBePostedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageWillBePosted(post *model.Post) (*model.Post, string)
+		MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
 	}); ok {
-		returns.A, returns.B = hook.MessageWillBePosted(args.A)
+		returns.A, returns.B = hook.MessageWillBePosted(args.A, args.B)
 	} else {
 		return fmt.Errorf("Hook MessageWillBePosted called but not implemented.")
 	}
@@ -154,8 +156,9 @@ func init() {
 }
 
 type MessageWillBeUpdatedArgs struct {
-	A *model.Post
+	A *Context
 	B *model.Post
+	C *model.Post
 }
 
 type MessageWillBeUpdatedReturns struct {
@@ -163,8 +166,8 @@ type MessageWillBeUpdatedReturns struct {
 	B string
 }
 
-func (g *HooksRPCClient) MessageWillBeUpdated(newPost, oldPost *model.Post) (*model.Post, string) {
-	_args := &MessageWillBeUpdatedArgs{newPost, oldPost}
+func (g *HooksRPCClient) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
+	_args := &MessageWillBeUpdatedArgs{c, newPost, oldPost}
 	_returns := &MessageWillBeUpdatedReturns{}
 	if g.implemented[MessageWillBeUpdatedId] {
 		if err := g.client.Call("Plugin.MessageWillBeUpdated", _args, _returns); err != nil {
@@ -176,9 +179,9 @@ func (g *HooksRPCClient) MessageWillBeUpdated(newPost, oldPost *model.Post) (*mo
 
 func (s *HooksRPCServer) MessageWillBeUpdated(args *MessageWillBeUpdatedArgs, returns *MessageWillBeUpdatedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageWillBeUpdated(newPost, oldPost *model.Post) (*model.Post, string)
+		MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
 	}); ok {
-		returns.A, returns.B = hook.MessageWillBeUpdated(args.A, args.B)
+		returns.A, returns.B = hook.MessageWillBeUpdated(args.A, args.B, args.C)
 	} else {
 		return fmt.Errorf("Hook MessageWillBeUpdated called but not implemented.")
 	}
@@ -190,14 +193,15 @@ func init() {
 }
 
 type MessageHasBeenPostedArgs struct {
-	A *model.Post
+	A *Context
+	B *model.Post
 }
 
 type MessageHasBeenPostedReturns struct {
 }
 
-func (g *HooksRPCClient) MessageHasBeenPosted(post *model.Post) {
-	_args := &MessageHasBeenPostedArgs{post}
+func (g *HooksRPCClient) MessageHasBeenPosted(c *Context, post *model.Post) {
+	_args := &MessageHasBeenPostedArgs{c, post}
 	_returns := &MessageHasBeenPostedReturns{}
 	if g.implemented[MessageHasBeenPostedId] {
 		if err := g.client.Call("Plugin.MessageHasBeenPosted", _args, _returns); err != nil {
@@ -209,9 +213,9 @@ func (g *HooksRPCClient) MessageHasBeenPosted(post *model.Post) {
 
 func (s *HooksRPCServer) MessageHasBeenPosted(args *MessageHasBeenPostedArgs, returns *MessageHasBeenPostedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageHasBeenPosted(post *model.Post)
+		MessageHasBeenPosted(c *Context, post *model.Post)
 	}); ok {
-		hook.MessageHasBeenPosted(args.A)
+		hook.MessageHasBeenPosted(args.A, args.B)
 	} else {
 		return fmt.Errorf("Hook MessageHasBeenPosted called but not implemented.")
 	}
@@ -223,15 +227,16 @@ func init() {
 }
 
 type MessageHasBeenUpdatedArgs struct {
-	A *model.Post
+	A *Context
 	B *model.Post
+	C *model.Post
 }
 
 type MessageHasBeenUpdatedReturns struct {
 }
 
-func (g *HooksRPCClient) MessageHasBeenUpdated(newPost, oldPost *model.Post) {
-	_args := &MessageHasBeenUpdatedArgs{newPost, oldPost}
+func (g *HooksRPCClient) MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post) {
+	_args := &MessageHasBeenUpdatedArgs{c, newPost, oldPost}
 	_returns := &MessageHasBeenUpdatedReturns{}
 	if g.implemented[MessageHasBeenUpdatedId] {
 		if err := g.client.Call("Plugin.MessageHasBeenUpdated", _args, _returns); err != nil {
@@ -243,9 +248,9 @@ func (g *HooksRPCClient) MessageHasBeenUpdated(newPost, oldPost *model.Post) {
 
 func (s *HooksRPCServer) MessageHasBeenUpdated(args *MessageHasBeenUpdatedArgs, returns *MessageHasBeenUpdatedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageHasBeenUpdated(newPost, oldPost *model.Post)
+		MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 	}); ok {
-		hook.MessageHasBeenUpdated(args.A, args.B)
+		hook.MessageHasBeenUpdated(args.A, args.B, args.C)
 	} else {
 		return fmt.Errorf("Hook MessageHasBeenUpdated called but not implemented.")
 	}

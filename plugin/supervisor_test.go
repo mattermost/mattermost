@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -66,7 +65,7 @@ func testSupervisor(t *testing.T) {
 	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
-	var api plugintest.API
+	var api MockAPI
 	api.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	log := mlog.NewLogger(&mlog.LoggerConfiguration{
 		EnableConsole: true,
