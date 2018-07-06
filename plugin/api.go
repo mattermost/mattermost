@@ -24,6 +24,12 @@ type API interface {
 	// UnregisterCommand unregisters a command previously registered via RegisterCommand.
 	UnregisterCommand(teamId, trigger string) error
 
+	// GetConfig fetches the currently persisted config
+	GetConfig() *model.Config
+
+	// SaveConfig sets the given config and persists the changes
+	SaveConfig(config *model.Config) *model.AppError
+
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 
@@ -48,6 +54,9 @@ type API interface {
 	// DeleteTeam deletes a team.
 	DeleteTeam(teamId string) *model.AppError
 
+	// GetTeam gets all teams.
+	GetTeams() ([]*model.Team, *model.AppError)
+
 	// GetTeam gets a team.
 	GetTeam(teamId string) (*model.Team, *model.AppError)
 
@@ -57,11 +66,32 @@ type API interface {
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 
+	// CreateTeamMember creates a team membership.
+	CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
+
+	// CreateTeamMember creates a team membership for all provided user ids.
+	CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError)
+
+	// DeleteTeamMember deletes a team membership.
+	DeleteTeamMember(teamId, userId, requestorId string) *model.AppError
+
+	// GetTeamMembers returns the memberships of a specific team.
+	GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError)
+
+	// GetTeamMember returns a specific membership.
+	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
+
+	// UpdateTeamMemberRoles updates the role for a team membership.
+	UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError)
+
 	// CreateChannel creates a channel.
 	CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
 	// DeleteChannel deletes a channel.
 	DeleteChannel(channelId string) *model.AppError
+
+	// GetChannels gets a list of all channels.
+	GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError)
 
 	// GetChannel gets a channel.
 	GetChannel(channelId string) (*model.Channel, *model.AppError)
@@ -95,6 +125,9 @@ type API interface {
 
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// SendEphemeralPost creates an ephemeral post.
+	SendEphemeralPost(userId string, post *model.Post) *model.Post
 
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError

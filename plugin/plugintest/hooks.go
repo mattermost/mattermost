@@ -14,6 +14,11 @@ type Hooks struct {
 	mock.Mock
 }
 
+// ChannelHasBeenCreated provides a mock function with given fields: c, channel
+func (_m *Hooks) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel) {
+	_m.Called(c, channel)
+}
+
 // ExecuteCommand provides a mock function with given fields: c, args
 func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	ret := _m.Called(c, args)
@@ -163,4 +168,24 @@ func (_m *Hooks) OnDeactivate() error {
 // ServeHTTP provides a mock function with given fields: c, w, r
 func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	_m.Called(c, w, r)
+}
+
+// UserHasJoinedChannel provides a mock function with given fields: c, channelMember, actor
+func (_m *Hooks) UserHasJoinedChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
+	_m.Called(c, channelMember, actor)
+}
+
+// UserHasJoinedTeam provides a mock function with given fields: c, teamMember, actor
+func (_m *Hooks) UserHasJoinedTeam(c *plugin.Context, teamMember *model.TeamMember, actor *model.User) {
+	_m.Called(c, teamMember, actor)
+}
+
+// UserHasLeftChannel provides a mock function with given fields: c, channelMember, actor
+func (_m *Hooks) UserHasLeftChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
+	_m.Called(c, channelMember, actor)
+}
+
+// UserHasLeftTeam provides a mock function with given fields: c, teamMember, actor
+func (_m *Hooks) UserHasLeftTeam(c *plugin.Context, teamMember *model.TeamMember, actor *model.User) {
+	_m.Called(c, teamMember, actor)
 }
