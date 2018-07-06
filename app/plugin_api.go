@@ -6,30 +6,45 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 type PluginAPI struct {
-	id     string
-	app    *App
-	logger *mlog.SugarLogger
+	id       string
+	app      *App
+	logger   *mlog.SugarLogger
+	manifest *model.Manifest
 }
 
 func NewPluginAPI(a *App, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
-		id:     manifest.Id,
-		app:    a,
-		logger: a.Log.With(mlog.String("plugin_id", manifest.Id)).Sugar(),
+		id:       manifest.Id,
+		manifest: manifest,
+		app:      a,
+		logger:   a.Log.With(mlog.String("plugin_id", manifest.Id)).Sugar(),
 	}
 }
 
 func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
-	if b, err := json.Marshal(api.app.Config().PluginSettings.Plugins[api.id]); err != nil {
+	finalConfig := make(map[string]interface{})
+
+	// First set final config to defaults
+	for _, setting := range api.manifest.SettingsSchema.Settings {
+		finalConfig[strings.ToLower(setting.Key)] = setting.Default
+	}
+
+	// If we have settings given we override the defaults with them
+	for setting, value := range api.app.Config().PluginSettings.Plugins[api.id] {
+		finalConfig[strings.ToLower(setting)] = value
+	}
+
+	if pluginSettingsJsonBytes, err := json.Marshal(finalConfig); err != nil {
 		return err
 	} else {
-		return json.Unmarshal(b, dest)
+		return json.Unmarshal(pluginSettingsJsonBytes, dest)
 	}
 }
 
