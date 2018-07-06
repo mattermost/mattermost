@@ -24,6 +24,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -696,12 +697,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 
 	initial := string(strings.ToUpper(username)[0])
 
-	fontDir, _ := utils.FindDir("fonts")
-	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
-	if err != nil {
-		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	font, err := freetype.ParseFont(fontBytes)
+	font, err := getFont(initialFont)
 	if err != nil {
 		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -719,7 +715,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/6, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
+	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/5, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -732,6 +728,21 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	} else {
 		return buf.Bytes(), nil
 	}
+}
+
+func getFont(initialFont string) (*truetype.Font, error) {
+	// Some people have the old default font still set, so just treat that as if they're using the new default
+	if initialFont == "luximbi.ttf" {
+		initialFont = "nunito-bold.ttf"
+	}
+
+	fontDir, _ := utils.FindDir("fonts")
+	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
+	if err != nil {
+		return nil, err
+	}
+
+	return freetype.ParseFont(fontBytes)
 }
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {

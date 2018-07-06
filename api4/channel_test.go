@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -320,6 +321,23 @@ func TestCreateDirectChannel(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestDeleteDirectChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	user2 := th.BasicUser2
+
+	rgc, resp := Client.CreateDirectChannel(user.Id, user2.Id)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+	require.NotNil(t, rgc, "should have created a direct channel")
+
+	deleted, resp := Client.DeleteChannel(rgc.Id)
+	CheckErrorMessage(t, resp, "api.channel.delete_channel.type.invalid")
+	require.False(t, deleted, "should not have been able to delete direct channel.")
+}
+
 func TestCreateGroupChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
@@ -390,6 +408,26 @@ func TestCreateGroupChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.CreateGroupChannel(userIds)
 	CheckNoError(t, resp)
+}
+
+func TestDeleteGroupChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUser()
+
+	userIds := []string{user.Id, user2.Id, user3.Id}
+
+	rgc, resp := Client.CreateGroupChannel(userIds)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+	require.NotNil(t, rgc, "should have created a group channel")
+
+	deleted, resp := Client.DeleteChannel(rgc.Id)
+	CheckErrorMessage(t, resp, "api.channel.delete_channel.type.invalid")
+	require.False(t, deleted, "should not have been able to delete group channel.")
 }
 
 func TestGetChannel(t *testing.T) {
