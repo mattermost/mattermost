@@ -40,11 +40,6 @@ func TestEmojiIsValid(t *testing.T) {
 	}
 
 	emoji.UpdateAt = 1234
-	emoji.CreatorId = strings.Repeat("1", 25)
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal()
-	}
-
 	emoji.CreatorId = strings.Repeat("1", 27)
 	if err := emoji.IsValid(); err == nil {
 		t.Fatal()

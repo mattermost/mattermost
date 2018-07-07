@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -22,9 +21,6 @@ func (api *API) InitCommand() {
 
 	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
 	api.BaseRoutes.Command.Handle("/regen_token", api.ApiSessionRequired(regenCommandToken)).Methods("PUT")
-
-	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testCommand)).Methods("POST")
-	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testCommand)).Methods("GET")
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -290,26 +286,4 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp["token"] = rcmd.Token
 
 	w.Write([]byte(model.MapToJson(resp)))
-}
-
-func testCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-
-	msg := ""
-	if r.Method == "POST" {
-		msg = msg + "\ntoken=" + r.FormValue("token")
-		msg = msg + "\nteam_domain=" + r.FormValue("team_domain")
-	} else {
-		body, _ := ioutil.ReadAll(r.Body)
-		msg = string(body)
-	}
-
-	rc := &model.CommandResponse{
-		Text:         "test command response " + msg,
-		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
-		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
-	}
-
-	w.Write([]byte(rc.ToJson()))
 }

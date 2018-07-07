@@ -1,11 +1,11 @@
 [
   {
     "id": "actiance.xml.output.formatter.marshalToXml.appError",
-    "translation": ""
+    "translation": "Не удалось преобразовать экспорт в XML."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": ""
+    "translation": "Нет файла под атрибутом 'certificate' в запросе."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -37,7 +37,7 @@
   },
   {
     "id": "api.admin.saml.not_available.app_error",
-    "translation": ""
+    "translation": "SAML 2.0 не настроен или не поддерживается на этом сервере."
   },
   {
     "id": "api.admin.test_email.body",
@@ -57,7 +57,7 @@
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Bucket is required"
+    "translation": "Необходим S3 Bucket"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -81,7 +81,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v добавлен(а) в канал %v"
+    "translation": "%v добавлен(а) в канал пользователем %v"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -98,6 +98,14 @@
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Не могу добавить пользователя в канал этого типа"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "Канал преобразован в публичный и к нему может присоединиться любой участник."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "Канал преобразован в приватный."
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -181,7 +189,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": ""
+    "translation": "Невозможно отправить сообщение обновления приватности канала."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -245,7 +253,7 @@
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "License does not support updating a channel's scheme"
+    "translation": "Ваша лицензия не поддерживает изменение схемы канала"
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
@@ -584,7 +592,7 @@
   },
   {
     "id": "api.command_invite.directchannel.app_error",
-    "translation": "Вы не можете удалить кого-либо из канала прямого сообщения."
+    "translation": "Вы не можете добавить кого-то в канал прямого сообщения."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -954,7 +962,7 @@
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": ""
+    "translation": "Неверный идентификатор пользователя."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -1002,7 +1010,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": ""
+    "translation": "Невозможно создать смайлик. Произошла ошибка при попытке открыть изображение."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1042,7 +1050,7 @@
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": "No file driver selected."
+    "translation": "Не выбран файл драйвера."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
@@ -1050,7 +1058,7 @@
   },
   {
     "id": "api.file.read_file.s3.app_error",
-    "translation": "Произошла ошибка при чтении из локального серверного хранилища"
+    "translation": "Произошла ошибка при чтении из хранилища S3"
   },
   {
     "id": "api.file.reader.reading_local.app_error",
@@ -1058,23 +1066,23 @@
   },
   {
     "id": "api.file.reader.s3.app_error",
-    "translation": "Произошла ошибка при чтении из локального серверного хранилища"
+    "translation": "Произошла ошибка открытия читателя из хранилища S3"
   },
   {
     "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Don't have permissions to write to local path specified or other error."
+    "translation": "Нет разрешения на запись по указанному локальному пути или другая ошибка."
   },
   {
     "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Unable to create bucket."
+    "translation": "Невозможно создать бакет."
   },
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Error checking if bucket exists."
+    "translation": "Ошибка проверки существования бакета."
   },
   {
     "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Bad connection to S3 or minio."
+    "translation": "Плохое соединение к S3 или minio."
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
@@ -1258,7 +1266,7 @@
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
-    "translation": ""
+    "translation": "Исходящие вебхуки были отключены системным администратором."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1348,27 +1356,27 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " commented on your post."
+    "translation": " прокомментировал ваш пост."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": " commented on a thread you participated in."
+    "translation": "прокомментировал нить с вашим участием."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
-    "translation": " упомянул вас"
+    "translation": " упомянул вас."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
-    "translation": " отправил сообщение"
+    "translation": " отправил сообщение."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " attached a file."
+    "translation": " прикрепил файл."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": "sent you a message."
+    "translation": "отправил вам сообщение"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1392,15 +1400,15 @@
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": ""
+    "translation": "Невозможно удалить настройки пользователя"
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": ""
+    "translation": "Невозможно получить настройки пользователя"
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": ""
+    "translation": "Невозможно установить настройки пользователя."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1412,27 +1420,27 @@
   },
   {
     "id": "api.roles.patch_roles.license.error",
-    "translation": "Your current license does not support advanced permissions."
+    "translation": "Ваша лицензия не поддерживает расширенные разрешения."
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": ""
+    "translation": "Ваша лицензия не поддерживает создание схем разрешения."
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": ""
+    "translation": "Ваша лицензия не поддерживает удаление схем разрешения."
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
-    "translation": "Unable to get the channels for scheme because the supplied scheme is not a channel scheme."
+    "translation": "Невозможно получить каналы для схемы, потому что предоставленные схемы не являются схемами каналов."
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
-    "translation": "Unable to get the teams for scheme because the supplied scheme is not a team scheme."
+    "translation": "Невозможно получить команды для схемы, потому что предоставленные схемы не являются схемами команд."
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": ""
+    "translation": "Ваша лицензия не поддерживает изменение схем разрешения."
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -1492,7 +1500,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+    "translation": "Пользователь Slack объединен с существующим пользователем Mattermost по совпадению email {{.Email}} и имени пользователя {{.Username}}, но было невозможно добавить пользователя в его команду.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
@@ -1552,11 +1560,11 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": ""
+    "translation": "Неверное имя драйвера в настройках файлов. Должно быть 'local' или 'amazons3'"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": ""
+    "translation": "Невозможно прочитать файл изображения команды."
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -1616,7 +1624,7 @@
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": "Не удалось обновить заголовок канала."
+    "translation": "Не удалось опубликовать сообщение перемещения канала."
   },
   {
     "id": "api.team.move_channel.success",
@@ -1688,23 +1696,23 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "License does not support updating a team's scheme"
+    "translation": "Ваша лицензия не поддерживает изменение схемы команды."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+    "translation": "Невозможно установить схему команды так как данная схема не является схемой команды."
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "Вы деактивировали свой аккаунт на {{ .SiteURL }}.<br>Если это изменение было произведено не вами или вы желаете восстановить ваш аккаунт, свяжитесь с вашим системным администратором."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+    "translation": "Ваш аккаунт был деактивирован на {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+    "translation": "[{{ .SiteName }}] Ваш аккаунт на {{ .ServerURL }} был деактивирован"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -2028,7 +2036,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": ""
+    "translation": "Authentication Transfer not configured or available on this server."
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2056,11 +2064,11 @@
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate"
+    "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата"
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
+    "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной enterprise-лицензии"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2096,19 +2104,19 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": ""
+    "translation": "Authentication Transfer not configured or available on this server."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
-    "translation": ""
+    "translation": "Токен сброса пароля не представляется действительным."
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "Ссылка для сброса пароля, видимо, неверна"
+    "translation": "Ссылка сброса пароля не представляется действительной."
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "Ссылка для сброса пароля просрочена"
+    "translation": "Ссылка для сброса пароля просрочена."
   },
   {
     "id": "api.user.reset_password.method",
@@ -2124,7 +2132,7 @@
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Failed to send the deactivate account email successfully"
+    "translation": "Не удалось успешно отправить сообщение на электронную почту о деактивации аккаунта "
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2140,7 +2148,7 @@
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": ""
+    "translation": "Невозможно отправить email уведомление для смены MFA."
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -2172,7 +2180,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "You cannot deactivate yourself because this feature is not enabled. Please contact your System Administrator."
+    "translation": "Вы не можете деактивировать себя самостоятельно, потому что  это функция не включена. Пожалуйста, свяжитесь со своим системным администратором."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2256,7 +2264,7 @@
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": ""
+    "translation": "Плохой тип токена проверки email."
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2264,19 +2272,19 @@
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": ""
+    "translation": "Неизвестное WebSocket действие."
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": ""
+    "translation": "Недопустимая последовательность сообщений через websocket."
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": ""
+    "translation": "Нет websocket действия."
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": ""
+    "translation": "Подключение WebSocket не прошло проверку подлинности. Пожалуйста, войдите в систему и повторите попытку."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2352,7 +2360,7 @@
   },
   {
     "id": "app.cluster.404.app_error",
-    "translation": ""
+    "translation": "Не найдена конечная точка API кластера."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2364,15 +2372,15 @@
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": ""
+    "translation": "Неправильная или отсутствующая версия в файле импорта данных. Убедитесь, что версия - это первый объект в файле импорта и попробуйте снова."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Cannot set a channel to use a deleted scheme."
+    "translation": "Нельзя указывать каналу использовать удаленную схему."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": "Channel must be assigned to a Channel-scoped scheme."
+    "translation": "Канал должен быть назначен в схеме уровня канала."
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
@@ -2432,7 +2440,7 @@
   },
   {
     "id": "app.import.import_line.null_scheme.error",
-    "translation": "Строка импорта данных содержит тип \"channel\", но объект channel равен null."
+    "translation": "Строка импорта данных содержит тип \"scheme\", но объект scheme равен null."
   },
   {
     "id": "app.import.import_line.null_team.error",
@@ -2468,15 +2476,15 @@
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Cannot set a team to use a deleted scheme."
+    "translation": "Невозможно установить использование удаленной схемы для команды."
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": "Team must be assigned to a Team-scoped scheme."
+    "translation": "Команда должна быть назначена схеме уровня команд."
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": ""
+    "translation": "Ошибка импорта настроек пользователя. Не удалось сохранить настройки."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -2484,7 +2492,7 @@
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": ""
+    "translation": "Невозможно прочитать версию файла данных импорта."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2516,7 +2524,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.scheme_invalid.error",
-    "translation": "Invalid scheme name for channel."
+    "translation": "Недопустимое имя схемы для канала."
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
@@ -2580,7 +2588,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
+    "translation": "Только члены канала могут помечать флагами прямое сообщения в этом канале. \"{{.Username}}\" не учачастник."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -2596,7 +2604,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero."
+    "translation": "Значение CreateAt в Post должно быть не нулевым."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -2616,79 +2624,79 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
+    "translation": "Значение CreateAt в Reaction должно быть больше чем родительский CreateAt в Post."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
+    "translation": "Отсутствует необходимое значение для Reaction: create_at."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "Reaction CreateAt property must not be zero."
+    "translation": "Значение CreateAt в Reaction должно быть не нулевым."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Post Message длиннее, чем максимально разрешённая длина."
+    "translation": "Значение EmojiName в Reaction длиннее максимально разрешенный длины."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "Отсутствует необходимое поле для Post: User."
+    "translation": "Отсутствует необходимое значение для Reaction: EmojiName."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "Отсутствует необходимое поле для Post: User."
+    "translation": "Отсутствует необходимое значение для Reaction: User."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+    "translation": "Значение CreateAt в Reply должно быть больше чем родительский CreateAt в Post."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
+    "translation": "Отсутствует необходимое значение для Reply: create_at."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": "Reply CreateAt property must not be zero."
+    "translation": "Значение CreateAt в Reply должно быть не нулевым."
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "Post Message длиннее, чем максимально разрешённая длина."
+    "translation": "Значение Message в Reply длиннее максимально разрешенный длины."
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "Отсутствует необходимое поле для Post: Message."
+    "translation": "Отсутствует необходимое значение для Reply: Message."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "Отсутствует необходимое поле для Post: User."
+    "translation": "Отсутствует необходимое значение для Reply: User."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "Неверное описание"
+    "translation": "Недопустимое описание роли."
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "Недопустимое имя для отображения"
+    "translation": "Недопустимое имя для отображения роли."
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "Invalid permission on role."
+    "translation": "Недопустимое разрешение роли."
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": "Неверное имя пользователя"
+    "translation": "Недопустимое имя роли."
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": "Неверное описание"
+    "translation": "Недопустимое описание схемы."
   },
   {
     "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": "Недопустимое имя для отображения"
+    "translation": "Недопустимое имя для отображения схемы."
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
-    "translation": "Неверное имя пользователя"
+    "translation": "Недопустимое имя схемы."
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
@@ -2732,7 +2740,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
-    "translation": "Invalid scheme name for team."
+    "translation": "Недопустимое имя схемы для команды."
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
@@ -2800,7 +2808,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": ""
+    "translation": "Invalid Comments Prop value for user."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -2824,11 +2832,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
-    "translation": ""
-  },
-  {
-    "id": "app.import.validate_user_import_data.pasword_length.error",
-    "translation": "User Password has invalid length."
+    "translation": "Пароль пользователя имеет недопустимую длину."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -2836,7 +2840,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": "Invalid profile image."
+    "translation": "Недопустимое изображение профиля."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -2864,15 +2868,15 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new Direct Message from @{{.SenderName}}"
+    "translation": "У вас есть новое личное сообщение от @{{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
-    "translation": "У вас есть новое личное сообщение."
+    "translation": "У вас есть новое групповое сообщение."
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "You have a new Group Message from @{{.SenderName}}"
+    "translation": "У вас есть новое групповое сообщение от @{{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -2880,11 +2884,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from @{{.SenderName}}"
+    "translation": "У вас есть новое оповещение от @{{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -2892,7 +2896,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "КАНАЛ: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "КАНАЛ: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -2900,7 +2904,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "КАНАЛ: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "КАНАЛ: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -2908,23 +2912,23 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Новое личное сообщение от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Новое личное сообщение от @{{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Новое личное сообщение от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Новое групповое сообщение на {{ .ChannelName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Новое уведомление за {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Новое групповое сообщение в {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Новое личное сообщение от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Уведомление в {{ .TeamName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin."
+    "translation": "Не удается активировать извлеченный плагин."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -2952,7 +2956,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": ""
+    "translation": "Unable to get plugin statuses from the cluster."
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3012,7 +3016,7 @@
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": ""
+    "translation": "Unable to complete SAML login with an empty email address."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3023,548 +3027,28 @@
     "translation": "Invalid or missing token"
   },
   {
-    "id": "authentication.permissions.add_reaction.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_reaction.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_user_to_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_user_to_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.assign_system_admin_role.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.assign_system_admin_role.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_direct_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_direct_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_group_channel.description",
-    "translation": "Возможность создания новых групповых каналов сообщений"
-  },
-  {
-    "id": "authentication.permissions.create_group_channel.name",
-    "translation": "Создать Групповое Сообщение"
-  },
-  {
-    "id": "authentication.permissions.create_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_ephemeral.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_ephemeral.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_public.description",
-    "translation": "Ability to create posts in public channels"
-  },
-  {
-    "id": "authentication.permissions.create_post_public.name",
-    "translation": "Create Posts in Public Channels"
-  },
-  {
-    "id": "authentication.permissions.create_private_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_private_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_public_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_public_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Ability to create personal access tokens"
-  },
-  {
-    "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Create Personal Access Token"
-  },
-  {
-    "id": "authentication.permissions.delete_others_posts.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_others_posts.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_private_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_private_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_public_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_public_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_other_users.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_other_users.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_others_posts.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_others_posts.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.get_public_link.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.get_public_link.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.import_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.import_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.join_public_channels.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.join_public_channels.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_team_channels.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_team_channels.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_users_without_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_users_without_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_channel_roles.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_channel_roles.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_emojis.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_emojis.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_oauth.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_oauth.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_emojis.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_emojis.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_slash_commands.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_slash_commands.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_webhooks.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_webhooks.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_members.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_members.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_properties.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_properties.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_members.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_members.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_properties.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_properties.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_roles.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_roles.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_slash_commands.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_slash_commands.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system_wide_oauth.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system_wide_oauth.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "Возможность изменять роли участников команды"
-  },
-  {
-    "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "Управление ролями команды"
-  },
-  {
-    "id": "authentication.permissions.manage_webhooks.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_webhooks.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.permanent_delete_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.permanent_delete_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Возможность чтения публичных каналов"
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.name",
-    "translation": "Чтение публичных каналов"
-  },
-  {
-    "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "Ability to read personal access tokens' id, description and user_id fields"
-  },
-  {
-    "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Read Personal Access Tokens"
-  },
-  {
-    "id": "authentication.permissions.remove_others_reactions.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_others_reactions.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_reaction.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_reaction.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_user_from_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_user_from_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "Ability to revoke personal access tokens"
-  },
-  {
-    "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Revoke Personal Access Token"
-  },
-  {
-    "id": "authentication.permissions.team_invite_user.description",
-    "translation": "Возможность приглашать пользователей в команду"
-  },
-  {
-    "id": "authentication.permissions.team_invite_user.name",
-    "translation": "Пригласить пользователя"
-  },
-  {
-    "id": "authentication.permissions.team_use_slash_commands.description",
-    "translation": "Возможность использования слэш-команд"
-  },
-  {
-    "id": "authentication.permissions.team_use_slash_commands.name",
-    "translation": "Использовать слэш-команды"
-  },
-  {
-    "id": "authentication.permissions.upload_file.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.upload_file.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.view_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.view_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permisssions.manage_jobs.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permisssions.manage_jobs.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.system_post_all.description",
-    "translation": "A role with the permission to post in any public, private or direct channel on the system"
-  },
-  {
-    "id": "authentication.roles.system_post_all.name",
-    "translation": "Post in Public, Private and Direct Channels"
-  },
-  {
-    "id": "authentication.roles.system_post_all_public.description",
-    "translation": "A role with the permission to post in any public channel on the system"
-  },
-  {
-    "id": "authentication.roles.system_post_all_public.name",
-    "translation": "Post in Public Channels"
-  },
-  {
-    "id": "authentication.roles.system_user_access_token.description",
-    "translation": "A role with the permissions to create, read and revoke personal access tokens"
-  },
-  {
-    "id": "authentication.roles.system_user_access_token.name",
-    "translation": "Personal Access Token"
-  },
-  {
-    "id": "authentication.roles.team_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_post_all.description",
-    "translation": "A role with the permission to post in any public or private channel on the team"
-  },
-  {
-    "id": "authentication.roles.team_post_all.name",
-    "translation": "Post in Public and Private Channels"
-  },
-  {
-    "id": "authentication.roles.team_post_all_public.description",
-    "translation": "A role with the permission to post in any public channel on the team"
-  },
-  {
-    "id": "authentication.roles.team_post_all_public.name",
-    "translation": "Post in Public Channels"
-  },
-  {
-    "id": "authentication.roles.team_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_user.name",
-    "translation": ""
-  },
-  {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": ""
+    "translation": "Unable to decode the image data."
   },
   {
     "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": ""
+    "translation": "Unable to get image metadata."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": ""
+    "translation": "Unable to convert the image data to PNG format. Please try again."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": ""
+    "translation": "Unable to upload the custom brand image. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": ""
+    "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
-    "translation": ""
+    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
   },
   {
     "id": "cli.license.critical",
@@ -3572,19 +3056,19 @@
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": ""
+    "translation": "Не удалось получить post"
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": ""
+    "translation": "Не удалось получить post"
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id={{ .id }}.  The cluster may become unstable and a restart is required.  To ensure the cluster is configured correctly you should perform a rolling restart immediately."
+    "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled  unless ReadOnlyConfig is disabled in the configuration file."
+    "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3612,19 +3096,19 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": ""
+    "translation": "Unable to convert metadata to json."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": ""
+    "translation": "Unable to export a post."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": ""
+    "translation": "Unable to create the zip export file."
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": ""
+    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3632,7 +3116,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": ""
+    "translation": "Unable to load export templates. Please try again."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3640,7 +3124,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "License does not support Data Retention."
+    "translation": "Ваша лицензия не поддерживает SAML аутентификацию."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3792,7 +3276,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": ""
+    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3916,11 +3400,11 @@
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
-    "translation": ""
+    "translation": "Could not parse message export job BatchSize."
   },
   {
     "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": ""
+    "translation": "Could not parse message export job ExportFromTimestamp."
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -3932,7 +3416,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": ""
+    "translation": "Reached AD/LDAP sychronization job timeout."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -4096,7 +3580,7 @@
   },
   {
     "id": "model.client.get_team_icon.app_error",
-    "translation": ""
+    "translation": "Unable to read the team icon from the body response."
   },
   {
     "id": "model.client.read_file.app_error",
@@ -4112,11 +3596,11 @@
   },
   {
     "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": ""
+    "translation": "Нет файла 'image' в запросе"
   },
   {
     "id": "model.client.set_team_icon.writer.app_error",
-    "translation": ""
+    "translation": "Не удалось записать запрос"
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
@@ -4539,6 +4023,10 @@
     "translation": "Название сайта должно быть меньше или равно {{.MaxLength}} символов."
   },
   {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.sql_data_src.app_error",
     "translation": "Неверный источник данных в настройках SQL. Значение должно быть установлено."
   },
@@ -4560,7 +4048,7 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Invalid teammate display. Must be 'full_name', 'nickname_full_name' or 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4624,7 +4112,7 @@
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": ""
+    "translation": "Недопустимый идентификатор автора"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -4632,27 +4120,27 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Недопустимое значение для времени ожидания чтения."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Недопустимое значение для времени ожидания чтения."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": ""
+    "translation": "Недопустимое значение для времени ожидания чтения."
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": ""
+    "translation": "Недопустимое значение для времени ожидания чтения."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Недопустимое значение для времени ожидания чтения."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Недопустимое значение для времени ожидания чтения."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4716,11 +4204,11 @@
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Invalid value for create_at when uploading a license."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Invalid value for id when uploading a license."
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4772,7 +4260,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
-    "translation": ""
+    "translation": "Invalid value for content_type"
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
@@ -5000,7 +4488,7 @@
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Недопустимое значение для времени ожидания чтения."
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -5016,7 +4504,7 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": ""
+    "translation": "Unable to connect to the WebSocket server."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -5080,11 +4568,11 @@
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the channel members"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the channel member"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
@@ -5136,11 +4624,11 @@
   },
   {
     "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": ""
+    "translation": "Не удалось найти существующий удалённый канал"
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": ""
+    "translation": "No deleted channels exist"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -5360,7 +4848,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "Не удалось проверить, существует ли таблица %v"
+    "translation": "Не удалось проверить существование"
   },
   {
     "id": "store.sql_cluster_discovery.get_all.app_error",
@@ -5664,7 +5152,7 @@
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": ""
+    "translation": "We couldn't get the compliance export posts."
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -5676,7 +5164,7 @@
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": ""
+    "translation": "Не удалось получить счетчики канала"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5824,7 +5312,7 @@
   },
   {
     "id": "store.sql_reaction.delete.app_error",
-    "translation": ""
+    "translation": "Не удалось удалить реакцию"
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
@@ -5836,11 +5324,11 @@
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": ""
+    "translation": "Не удалось удалить реакцию с данным именем эмодзи"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": ""
+    "translation": "Не удалось получить реакцию с данным именем эмодзи"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
@@ -5864,19 +5352,19 @@
   },
   {
     "id": "store.sql_recover.delete.app_error",
-    "translation": ""
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
-    "translation": ""
+    "translation": "Unable to get a token with this code"
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": ""
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_role.delete.update.app_error",
-    "translation": "Unable to delete the role"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_role.get.app_error",
@@ -5896,7 +5384,7 @@
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Unable to save new role"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
@@ -5920,11 +5408,11 @@
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Unable to delete the scheme"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_scheme.get.app_error",
-    "translation": "Unable to get the scheme"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_scheme.permanent_delete_all.app_error",
@@ -5940,7 +5428,7 @@
   },
   {
     "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Unable to create the scheme"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_scheme.save.invalid_scheme.app_error",
@@ -5956,7 +5444,7 @@
   },
   {
     "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Unable to update the scheme"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
@@ -6044,7 +5532,7 @@
   },
   {
     "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": ""
+    "translation": "Unable to update the last activity date and time of the user"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -6084,11 +5572,11 @@
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the team members"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the team member"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_team.get.find.app_error",
@@ -6228,11 +5716,11 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": ""
+    "translation": "We couldn't update the date of the last team icon update"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": ""
+    "translation": "We couldn't get the active users during the requested period"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -6368,7 +5856,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": ""
+    "translation": "We couldn't find any user maching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6428,7 +5916,7 @@
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": ""
+    "translation": "We couldn't update the date of the last update of the user"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -6464,15 +5952,11 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": ""
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_disble.app_error",
-    "translation": ""
+    "translation": "Мы не смогли сохранить токен."
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": ""
+    "translation": "Мы не смогли сохранить токен."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6560,7 +6044,7 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
+    "translation": "Unable to load mattermost configuration file: Adding DefaultClientLocale to AvailableLocales."
   },
   {
     "id": "utils.config.load_config.decoding.panic",
@@ -6576,15 +6060,15 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+    "translation": "Unable to load mattermost configuration file: AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
+    "translation": "Unable to load mattermost configuration file: DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
+    "translation": "Unable to load mattermost configuration file: DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
@@ -6672,7 +6156,7 @@
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": ""
+    "translation": "Не удалось обновить пароль пользователя"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",

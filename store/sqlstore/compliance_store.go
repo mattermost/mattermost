@@ -224,6 +224,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 				Posts.Message AS PostMessage,
 				Posts.Type AS PostType,
 				Posts.OriginalId AS PostOriginalId,
+				Posts.RootId AS PostRootId,
 				Posts.FileIds AS PostFileIds,
 				Teams.Id AS TeamId,
 				Teams.Name AS TeamName,

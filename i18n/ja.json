@@ -1,11 +1,11 @@
 [
   {
     "id": "actiance.xml.output.formatter.marshalToXml.appError",
-    "translation": ""
+    "translation": "エクスポート情報をXMLへ変換できませんでした。"
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": ""
+    "translation": "リクエストの 'certificate' 以下にファイルがありません"
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -37,7 +37,7 @@
   },
   {
     "id": "api.admin.saml.not_available.app_error",
-    "translation": ""
+    "translation": "SAML 2.0 は、このサーバーでは設定されていないかサポートされていません。"
   },
   {
     "id": "api.admin.test_email.body",
@@ -98,6 +98,14 @@
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "この種類のチャンネルにはユーザーを追加することはできません"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "このチャンネルは公開チャンネルに変更されたため、全てのチームメンバーが参加できるようになりました。"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "このチャンネルは非公開チャンネルに変更されました。"
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -181,7 +189,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": ""
+    "translation": "チャンネル可視性更新メッセージを投稿できませんでした。"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -245,7 +253,7 @@
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "ライセンスがチャンネルスキームの更新をサポートしていません"
+    "translation": "現在のライセンスはチャンネルスキームの更新をサポートしていません"
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
@@ -954,7 +962,7 @@
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": ""
+    "translation": "不正なユーザーIDです"
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -1002,7 +1010,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": ""
+    "translation": "絵文字を作成できませんでした。添付された画像を開く際にエラーが発生しました。"
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1258,7 +1266,7 @@
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
-    "translation": ""
+    "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1392,15 +1400,15 @@
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": ""
+    "translation": "ユーザー設定を削除できませんでした。"
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": ""
+    "translation": "ユーザー設定を取得できませんでした。"
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": ""
+    "translation": "ユーザー設定を設定できませんでした。"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1412,15 +1420,15 @@
   },
   {
     "id": "api.roles.patch_roles.license.error",
-    "translation": "現在のライセンスは高度な権限をサポートしていません。"
+    "translation": "現在のライセンスは高度な権限設定をサポートしていません。"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": ""
+    "translation": "現在のライセンスは権限スキームの作成をサポートしていません"
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": ""
+    "translation": "現在のライセンスは権限スキームの削除をサポートしていません"
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
@@ -1432,7 +1440,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": ""
+    "translation": "現在のライセンスは権限スキームの更新をサポートしていません"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -1552,11 +1560,11 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": ""
+    "translation": "ファイル設定のドライバー名が不正です。  'local'または'amazons3'にしてください"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": ""
+    "translation": "チームアイコンファイルを読み込めません。"
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -1688,7 +1696,7 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "ライセンスがチームのスキームの更新をサポートしていません"
+    "translation": "現在のライセンスはチームのスキームの更新をサポートしていません"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -2028,7 +2036,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": ""
+    "translation": "認証委譲は、このサーバーでは設定されていないか利用不可になっています。"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2096,19 +2104,19 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": ""
+    "translation": "認証委譲はこのサーバーでは設定されていないか利用不可になっています。"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
-    "translation": ""
+    "translation": "パスワード初期化トークンが不正です。"
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "パスワード初期化リンクが不正です"
+    "translation": "パスワード初期化リンクが不正です。"
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "パスワード初期化リンクの期限が切れています"
+    "translation": "パスワード初期化リンクの期限が切れています。"
   },
   {
     "id": "api.user.reset_password.method",
@@ -2140,7 +2148,7 @@
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": ""
+    "translation": "多要素認証変更に関する電子メール通知を送信できません。"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -2256,7 +2264,7 @@
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": ""
+    "translation": "電子メールトークンタイプの検証エラー。"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2264,19 +2272,19 @@
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": ""
+    "translation": "不明なウェブソケット操作です。"
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": ""
+    "translation": "ウェブソケットメッセージのシーケンスが不正です。"
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": ""
+    "translation": "ウェブソケット操作がありません。"
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": ""
+    "translation": "未認証のウェブソケット接続です。ログインしてから再度実行してください。"
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2352,7 +2360,7 @@
   },
   {
     "id": "app.cluster.404.app_error",
-    "translation": ""
+    "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2364,7 +2372,7 @@
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": ""
+    "translation": "データインポートファイルのバージョンが間違っているか、見つかりません。インポートファイルの最初のオブジェクトにバージョンがあるか確認し、再度実行してください。"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2476,7 +2484,7 @@
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": ""
+    "translation": "ユーザー設定のインポートでエラーが発生しました。設定を保存できません。"
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -2484,7 +2492,7 @@
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": ""
+    "translation": "データインポートファイルのバージョンが読み込めませんでした。"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2800,7 +2808,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": ""
+    "translation": "ユーザーのコメント設定値が不正です。"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -2824,10 +2832,6 @@
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
-    "translation": ""
-  },
-  {
-    "id": "app.import.validate_user_import_data.pasword_length.error",
     "translation": "ユーザーのパスワードの長さが不正です。"
   },
   {
@@ -2952,7 +2956,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": ""
+    "translation": "クラスターからプラグインのステータスを取得できません。"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3012,7 +3016,7 @@
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": ""
+    "translation": "空の電子メールアドレスでのSAMLログインを完了できませんでした。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3023,548 +3027,28 @@
     "translation": "トークンが存在しないか不正です"
   },
   {
-    "id": "authentication.permissions.add_reaction.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_reaction.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_user_to_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.add_user_to_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.assign_system_admin_role.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.assign_system_admin_role.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_direct_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_direct_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_group_channel.description",
-    "translation": "新しいグループメッセージチャンネルを作成できるようにする"
-  },
-  {
-    "id": "authentication.permissions.create_group_channel.name",
-    "translation": "グループメッセージを作成する"
-  },
-  {
-    "id": "authentication.permissions.create_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_ephemeral.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_ephemeral.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_post_public.description",
-    "translation": "公開チャンネルへの投稿を作成できるようにする"
-  },
-  {
-    "id": "authentication.permissions.create_post_public.name",
-    "translation": "公開チャンネルへの投稿作成"
-  },
-  {
-    "id": "authentication.permissions.create_private_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_private_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_public_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_public_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "パーソナルアクセストークンを作成できるようにする"
-  },
-  {
-    "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "パーソナルアクセストークンを作成する"
-  },
-  {
-    "id": "authentication.permissions.delete_others_posts.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_others_posts.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_private_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_private_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_public_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.delete_public_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_other_users.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_other_users.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_others_posts.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_others_posts.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_post.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.edit_post.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.get_public_link.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.get_public_link.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.import_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.import_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.join_public_channels.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.join_public_channels.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_team_channels.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_team_channels.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_users_without_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.list_users_without_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_channel_roles.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_channel_roles.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_emojis.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_emojis.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_oauth.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_oauth.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_emojis.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_emojis.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_slash_commands.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_slash_commands.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_webhooks.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_others_webhooks.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_members.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_members.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_properties.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_private_channel_properties.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_members.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_members.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_properties.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_public_channel_properties.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_roles.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_roles.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_slash_commands.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_slash_commands.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system_wide_oauth.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_system_wide_oauth.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "チームメンバーの役割を変更できるようにする"
-  },
-  {
-    "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "チームの役割を管理する"
-  },
-  {
-    "id": "authentication.permissions.manage_webhooks.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.manage_webhooks.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.permanent_delete_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.permanent_delete_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_channel.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_channel.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.description",
-    "translation": "公開チャンネルを読めるようにする"
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.name",
-    "translation": "公開チャンネルを読む"
-  },
-  {
-    "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "パーソナルアクセストークンのID、説明、ユーザーIDを読み取ることができるようにする"
-  },
-  {
-    "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "パーソナルアクセストークンを読み取る"
-  },
-  {
-    "id": "authentication.permissions.remove_others_reactions.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_others_reactions.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_reaction.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_reaction.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_user_from_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.remove_user_from_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "パーソナルアクセストークンを破棄できるようにする"
-  },
-  {
-    "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "パーソナルアクセストークンを破棄する"
-  },
-  {
-    "id": "authentication.permissions.team_invite_user.description",
-    "translation": "チームにユーザーを招待できるようにする"
-  },
-  {
-    "id": "authentication.permissions.team_invite_user.name",
-    "translation": "ユーザーを招待する"
-  },
-  {
-    "id": "authentication.permissions.team_use_slash_commands.description",
-    "translation": "スラッシュコマンドを使用できるようにする"
-  },
-  {
-    "id": "authentication.permissions.team_use_slash_commands.name",
-    "translation": "スラッシュコマンドを使用する"
-  },
-  {
-    "id": "authentication.permissions.upload_file.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.upload_file.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.view_team.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permissions.view_team.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permisssions.manage_jobs.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.permisssions.manage_jobs.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.channel_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.global_user.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.system_post_all.description",
-    "translation": "システム上のすべての公開・非公開・ダイレクトチャンネルへ投稿する権限を持つ役割です"
-  },
-  {
-    "id": "authentication.roles.system_post_all.name",
-    "translation": "公開・非公開・ダイレクトチャンネルへの投稿"
-  },
-  {
-    "id": "authentication.roles.system_post_all_public.description",
-    "translation": "システム上のすべての公開チャンネルへ投稿する権限を持つ役割です"
-  },
-  {
-    "id": "authentication.roles.system_post_all_public.name",
-    "translation": "公開チャンネルへの投稿"
-  },
-  {
-    "id": "authentication.roles.system_user_access_token.description",
-    "translation": "パーソナルアクセストークンを作成・読み取り・破棄する権限を持つ役割です"
-  },
-  {
-    "id": "authentication.roles.system_user_access_token.name",
-    "translation": "パーソナルアクセストークン"
-  },
-  {
-    "id": "authentication.roles.team_admin.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_admin.name",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_post_all.description",
-    "translation": "システム上のすべての公開・非公開チャンネルへ投稿する権限を持つ役割です"
-  },
-  {
-    "id": "authentication.roles.team_post_all.name",
-    "translation": "公開・非公開チャンネルへの投稿"
-  },
-  {
-    "id": "authentication.roles.team_post_all_public.description",
-    "translation": "チーム内のすべての公開チャンネルへ投稿する権限を持つ役割です"
-  },
-  {
-    "id": "authentication.roles.team_post_all_public.name",
-    "translation": "公開チャンネルへの投稿"
-  },
-  {
-    "id": "authentication.roles.team_user.description",
-    "translation": ""
-  },
-  {
-    "id": "authentication.roles.team_user.name",
-    "translation": ""
-  },
-  {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": ""
+    "translation": "画像データをデコードできません。"
   },
   {
     "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": ""
+    "translation": "画像メタデータを取得できません。"
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": ""
+    "translation": "画像データをPNG形式に変換できません。再度実行してください。"
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": ""
+    "translation": "独自ブランド画像をアップロードできません。画像のサイズが2MB以下であることを確認し、再度実行してください。"
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": ""
+    "translation": "ファイルストレージに画像ファイルを書き込めません。接続を確認し、再度実行してください。"
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
-    "translation": ""
+    "translation": "画像ファイルを読み込み目線。画像サイズが2MB以下であることを確認し、再度実行してください。"
   },
   {
     "id": "cli.license.critical",
@@ -3572,19 +3056,19 @@
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": ""
+    "translation": "ユーザーを取得できません"
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": ""
+    "translation": "SAMLユーザーを取得できません"
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "id={{ .id }} のクラスター設定が変更されました。  このクラスターは不安定になる可能性があるため再起動が必要です。  このクラスターを正常に設定するため、すぐにローリングリスタートを実施してください。"
+    "translation": "id={{ .id }} のクラスター設定が変更されました。このクラスターは不安定になる可能性があるため再起動が必要です。このクラスターを正常に設定するため、すぐにローリングリスタートを実施してください。"
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "高可用モードが有効な場合、設定ファイルのReadOnlyConfigが無効でない限りシステムコンソールは読み取り専用です"
+    "translation": "高可用モードが有効な場合、設定ファイルのReadOnlyConfigが無効でない限りシステムコンソールは読み取り専用になります。"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3612,19 +3096,19 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": ""
+    "translation": "メタデータをjsonに変換できません。"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": ""
+    "translation": "投稿をエクスポートできません。"
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": ""
+    "translation": "ZIP形式のエクスポートファイルを作成できません。"
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": ""
+    "translation": "アップロードされたファイルが大きすぎるため、Global Relayエクスポートから除去されました。"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3632,7 +3116,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": ""
+    "translation": "エクスポートテンプレートをロードできません。再度実行してください。"
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3640,7 +3124,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "ライセンスはデータ保持をサポートしていません。"
+    "translation": "現在のライセンスはデータ保持をサポートしていません。"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3740,7 +3224,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "ライセンスはElasticsearchをサポートしていません。"
+    "translation": "現在のライセンスはElasticsearchをサポートしていません。"
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
@@ -3792,7 +3276,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": ""
+    "translation": "AD/LDAPでのユーザー検索に失敗しました。MattermostサーバーがAD/LDAPサーバーに接続できることを確認し、再度実行してください。"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3916,11 +3400,11 @@
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
-    "translation": ""
+    "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
   },
   {
     "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": ""
+    "translation": "メッセージエクスポートジョブのExportFromTimestampを解析できませんでした。"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -3932,7 +3416,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": ""
+    "translation": "AD/LDAP同期処理がタイムアウトしました。"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -4096,7 +3580,7 @@
   },
   {
     "id": "model.client.get_team_icon.app_error",
-    "translation": ""
+    "translation": "レスポンスボディからチームアイコンを読み込めません。"
   },
   {
     "id": "model.client.read_file.app_error",
@@ -4112,11 +3596,11 @@
   },
   {
     "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": ""
+    "translation": "リクエストの 'image' 以下にファイルがありません。"
   },
   {
     "id": "model.client.set_team_icon.writer.app_error",
-    "translation": ""
+    "translation": "リクエストを書き込めません。"
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
@@ -4328,11 +3812,11 @@
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "電子メール設定の電子メールバッチ処理バッファーサイズが不正です。  ゼロ以上の数を指定してください。"
+    "translation": "電子メール設定の電子メールバッチ処理バッファーサイズが不正です。ゼロ以上の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "電子メール設定の電子メールバッチ処理間隔が不正です。  30秒以上にしてください。"
+    "translation": "電子メール設定の電子メールバッチ処理間隔が不正です。30秒以上にしてください。"
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
@@ -4340,11 +3824,11 @@
   },
   {
     "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "電子メール設定のソルトが不正です。32文字以上にしてください。"
+    "translation": "電子メール設定の招待ソルトが不正です。32文字以上にしてください。"
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "電子メール設定の接続セキュリティーが不正です。'TLS'か'STARTTLS'にしてください"
+    "translation": "電子メール設定の接続セキュリティーが不正です。''、'TLS'、'STARTTLS'のいずれかにしてください。"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -4352,7 +3836,7 @@
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "ファイル設定のドライバー名が不正です。'local'または'amazons3'にしてください"
+    "translation": "ファイル設定のドライバー名が不正です。'local'または'amazons3'にしてください。"
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -4388,7 +3872,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "AD/LDAP設定の接続セキュリティーが不正です。  'TLS'か'STARTTLS'にしてください"
+    "translation": "AD/LDAP設定の接続セキュリティーが不正です。''、'TLS'、'STARTTLS'のいずれかにしてください。"
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4492,7 +3976,7 @@
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "ダイレクトメッセージの制限が無効です。'any'か'team'にしてください"
+    "translation": "ダイレクトメッセージの制限が不正です。'any'か'team'にしてください。"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -4539,12 +4023,16 @@
     "translation": "サイト名は {{.MaxLength}} 文字以内にしてください。"
   },
   {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "SQL設定の最大接続維持期間が不正です。0以上の数にしてください。"
+  },
+  {
     "id": "model.config.is_valid.sql_data_src.app_error",
     "translation": "SQL設定のデータソースが不正です。設定してください。"
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "SQL設定のドライバー名が不正です。'mysql'または'postgres'に設定してください"
+    "translation": "SQL設定のドライバー名が不正です。'mysql'か'postgres'にしてください。"
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4556,7 +4044,7 @@
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "SQL設定の問い合わせタイムアウトが不正です。  ゼロ以上の数を指定してください。"
+    "translation": "SQL設定の問い合わせタイムアウトが不正です。生の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
@@ -4624,7 +4112,7 @@
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": ""
+    "translation": "不正なcreator idです"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -4632,27 +4120,27 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "create_atが不正な値です。"
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": ""
+    "translation": "idが不正な値です。"
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": ""
+    "translation": "pathが不正な値です。"
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": ""
+    "translation": "post_idが不正な値です。"
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "update_atが不正な値です。"
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "user_idが不正な値です。"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4716,11 +4204,11 @@
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "ライセンスをアップロードする際のcreate_atが不正な値です。"
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": ""
+    "translation": "ライセンスをアップロードする際のidが不正な値です。"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4772,7 +4260,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
-    "translation": ""
+    "translation": "content_typeが不正な値です。"
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
@@ -5000,7 +4488,7 @@
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": ""
+    "translation": "idが不正な値です。"
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -5016,7 +4504,7 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": ""
+    "translation": "ウェブソケットサーバーへ接続できません。"
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -5068,23 +4556,23 @@
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "データベーストランザクションをコミットできませんでした"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "データベーストランザクションを開始できませんでした"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
+    "translation": "データベーストランザクションをロールバックできませんでした"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the channel members"
+    "translation": "チャンネルメンバーを抽出できませんでした"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the channel member"
+    "translation": "チャンネルメンバーを更新できませんでした"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
@@ -5136,11 +4624,11 @@
   },
   {
     "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": ""
+    "translation": "削除されたチャンネルが見付かりませんでした"
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": ""
+    "translation": "削除されたチャンネルはありません"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -5664,7 +5152,7 @@
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": ""
+    "translation": "コンプライアンスエクスポート投稿を取得できませんでした。"
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -5676,7 +5164,7 @@
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": ""
+    "translation": "フラグ付けされた投稿を取得できませんでした"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5824,7 +5312,7 @@
   },
   {
     "id": "store.sql_reaction.delete.app_error",
-    "translation": ""
+    "translation": "リアクションを削除できません"
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
@@ -5836,11 +5324,11 @@
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": ""
+    "translation": "この絵文字名のリアクションは削除できません"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": ""
+    "translation": "この絵文字名のリアクションを取得できません"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
@@ -5864,15 +5352,15 @@
   },
   {
     "id": "store.sql_recover.delete.app_error",
-    "translation": ""
+    "translation": "トークンを削除できません"
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
-    "translation": ""
+    "translation": "このコードのトークンを取得できません"
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": ""
+    "translation": "トークンを保存できません"
   },
   {
     "id": "store.sql_role.delete.update.app_error",
@@ -6044,7 +5532,7 @@
   },
   {
     "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": ""
+    "translation": "ユーザーの最終活動日時を更新できません"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -6072,23 +5560,23 @@
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "データベーストランザクションをコミットできませんでした"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "データベーストランザクションを開始できませんでした"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
+    "translation": "データベーストランザクションをロールバックできませんでした"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the team members"
+    "translation": "チームメンバーを取得できませんでした"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the team member"
+    "translation": "チームメンバーを更新できませんでした"
   },
   {
     "id": "store.sql_team.get.find.app_error",
@@ -6228,11 +5716,11 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": ""
+    "translation": "チームアイコン更新日を更新できませんでした"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": ""
+    "translation": "指定された期間内のアクティブなユーザーを取得できませんでした"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -6248,23 +5736,23 @@
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "データベーストランザクションをコミットできませんでした"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "データベーストランザクションを開始できませんでした"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
+    "translation": "データベーストランザクションをロールバックできませんでした"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users"
+    "translation": "ユーザーを取得できませんでした"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the user"
+    "translation": "ユーザーを更新できませんでした"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -6368,7 +5856,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": ""
+    "translation": "検索パラメータに一致するユーザーが見つかりませんでした"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6428,7 +5916,7 @@
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": ""
+    "translation": "ユーザーの最終更新日を更新できませんでした"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -6464,15 +5952,11 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": ""
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_disble.app_error",
-    "translation": ""
+    "translation": "アクセストークンを無効化できませんでした。"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": ""
+    "translation": "アクセストークンを有効化できませんでした。"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6560,7 +6044,7 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Mattermost設定ファイルを読み込めませんでした:  AvailableLocalesにDefaultClientLocaleが追加されました。"
+    "translation": "Mattermost設定ファイルを読み込めませんでした: AvailableLocalesにDefaultClientLocaleが追加されました。"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
@@ -6576,15 +6060,15 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Mattermost設定ファイルを読み込めませんでした:  AvailableLocalesはDefaultClientLocaleを含んでいなければなりません。デフォルト値としてAvailableLocalesに全ての言語を設定しました。"
+    "translation": "Mattermost設定ファイルを読み込めませんでした: AvailableLocalesはDefaultClientLocaleを含んでいなければなりません。デフォルト値としてAvailableLocalesに全ての言語を設定しました。"
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Mattermost設定ファイルを読み込めませんでした:  DefaultClientLocaleはサポートされている言語の一つでなければなりません。デフォルト値としてDefaultClientLocaleに en を設定しました。"
+    "translation": "Mattermost設定ファイルを読み込めませんでした: DefaultClientLocaleはサポートされている言語の一つでなければなりません。デフォルト値としてDefaultClientLocaleに en を設定しました。"
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Mattermost設定ファイルを読み込めませんでした:  DefaultServerLocaleはサポートされている言語の一つでなければなりません。デフォルト値としてDefaultServerLocaleに en を設定しました。"
+    "translation": "Mattermost設定ファイルを読み込めませんでした: DefaultServerLocaleはサポートされている言語の一つでなければなりません。デフォルト値としてDefaultServerLocaleに en を設定しました。"
   },
   {
     "id": "utils.file.list_directory.local.app_error",
@@ -6672,7 +6156,7 @@
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": ""
+    "translation": "ユーザーアクセス情報を更新できませんでした"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
