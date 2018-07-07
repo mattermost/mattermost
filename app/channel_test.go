@@ -163,6 +163,36 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 	assert.True(t, found)
 }
 
+func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	basicChannel2 := th.CreateChannel(th.BasicTeam)
+	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, basicChannel2.Name}
+	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
+
+	user := th.CreateUser()
+	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
+
+	for _, channelName := range defaultChannelList {
+		channel, err := th.App.GetChannelByName(channelName, th.BasicTeam.Id)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %s", err)
+		}
+
+		member, err := th.App.GetChannelMember(channel.Id, user.Id)
+
+		if member == nil {
+			t.Errorf("Expected member object, got nil")
+		}
+
+		if err != nil {
+			t.Errorf("Expected nil object, got %s", err)
+		}
+	}
+}
+
 func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

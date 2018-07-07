@@ -283,6 +283,7 @@ func (a *App) trackConfig() {
 		"experimental_town_square_is_hidden_in_lhs": *cfg.TeamSettings.ExperimentalHideTownSquareinLHS,
 		"experimental_town_square_is_read_only":     *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
 		"experimental_primary_team":                 isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
+		"experimental_default_channels":             len(cfg.TeamSettings.ExperimentalDefaultChannels),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
