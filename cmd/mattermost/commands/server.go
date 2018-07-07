@@ -146,8 +146,6 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 		manualtesting.Init(api)
 	}
 
-	a.EnsureDiagnosticId()
-
 	a.Go(func() {
 		runSecurityJob(a)
 	})

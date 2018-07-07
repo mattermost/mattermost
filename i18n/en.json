@@ -160,6 +160,10 @@
     "translation": "The channel has been archived or deleted"
   },
   {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Cannot delete direct or group message channels"
+  },
+  {
     "id": "api.channel.join_channel.already_deleted.app_error",
     "translation": "Channel is already deleted"
   },
@@ -2363,6 +2367,22 @@
     "translation": "Cluster API endpoint not found."
   },
   {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Import emoji data empty."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Import emoji name field missing or blank."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Import emoji image field missing or blank."
+  },
+  {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Error reading import data file."
   },
@@ -4023,6 +4043,10 @@
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.sql_data_src.app_error",
     "translation": "Invalid data source for SQL settings. Must be set."
   },
@@ -4037,10 +4061,6 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings. Must be a positive number."
-  },
-  {
-    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
