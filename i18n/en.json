@@ -3359,6 +3359,50 @@
     "translation": "Invalid AD/LDAP Filter"
   },
   {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "Unable to open the temporary export file."
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Unable to create the eml file."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "Unable to deliver the email to Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "Unable to set the email From address."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "Unable to set the email message."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "Unable to write the email message."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "Unable to read the email information."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "Unable to set the email To address."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "Unable to get the information of the export temporary file"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "Unable to get the an email from the temporary file"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "Unable to open the export temporary file"
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
     "translation": "Error attempting to authenticate MFA token"
   },
