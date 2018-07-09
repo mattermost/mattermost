@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -796,6 +798,8 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
