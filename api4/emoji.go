@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -28,6 +30,8 @@ func (api *API) InitEmoji() {
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
 	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
