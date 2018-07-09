@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"runtime"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -98,13 +97,7 @@ func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, def
 	if !ok {
 		return defaultValue
 	}
-	var m map[string]interface{}
-	if b, err := json.Marshal(settings); err != nil {
-		return defaultValue
-	} else {
-		json.Unmarshal(b, &m)
-	}
-	if value, ok := m[key]; ok {
+	if value, ok := settings[key]; ok {
 		return value
 	}
 	return defaultValue
