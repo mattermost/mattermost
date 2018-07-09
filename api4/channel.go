@@ -96,12 +96,28 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = c.App.GetChannelMember(channel.Id, c.Session.UserId); err != nil {
-		c.Err = err
-		return
-	}
+	switch oldChannel.Type {
+	case model.CHANNEL_OPEN:
+		if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES)
+			return
+		}
 
-	if !CanManageChannel(c, channel) {
+	case model.CHANNEL_PRIVATE:
+		if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)
+			return
+		}
+
+	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
+		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
+		if _, err := c.App.GetChannelMember(channel.Id, c.Session.UserId); err != nil {
+			c.Err = model.NewAppError("updateChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+	default:
+		c.Err = model.NewAppError("updateChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -205,7 +221,28 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !CanManageChannel(c, oldChannel) {
+	switch oldChannel.Type {
+	case model.CHANNEL_OPEN:
+		if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES)
+			return
+		}
+
+	case model.CHANNEL_PRIVATE:
+		if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)
+			return
+		}
+
+	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
+		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
+		if _, err := c.App.GetChannelMember(c.Params.ChannelId, c.Session.UserId); err != nil {
+			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+	default:
+		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -253,20 +290,6 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("name=" + channel.Name)
 	w.Write([]byte(channel.ToJson()))
 
-}
-
-func CanManageChannel(c *Context, channel *model.Channel) bool {
-	if channel.Type == model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES)
-		return false
-	}
-
-	if channel.Type == model.CHANNEL_PRIVATE && !c.App.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)
-		return false
-	}
-
-	return true
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
