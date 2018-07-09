@@ -1799,6 +1799,10 @@
     "translation": "Sent by "
   },
   {
+    "id": "api.templates.email_warning",
+    "translation": "If you did not make this change, please contact the system administrator."
+  },
+  {
     "id": "api.templates.invite_body.button",
     "translation": "Join Team"
   },
