@@ -160,6 +160,10 @@
     "translation": "Kanał został zarchiwizowany lub usunięty"
   },
   {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Cannot delete direct or group message channels"
+  },
+  {
     "id": "api.channel.join_channel.already_deleted.app_error",
     "translation": "Kanał jest już usunięty"
   },
@@ -3780,7 +3784,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.), and hyphen (-)."
+    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers and hyphen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",

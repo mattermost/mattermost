@@ -160,6 +160,10 @@
     "translation": "チャンネルはアーカイブされているか削除されています"
   },
   {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "ダイレクトメッセージチャンネルもしくはグループメッセージチャンネルを削除できません"
+  },
+  {
     "id": "api.channel.join_channel.already_deleted.app_error",
     "translation": "チャンネルは既に削除されています"
   },
@@ -4044,7 +4048,7 @@
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "SQL設定の問い合わせタイムアウトが不正です。生の数を指定してください。"
+    "translation": "SQL設定の問い合わせタイムアウトが不正です。正の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",

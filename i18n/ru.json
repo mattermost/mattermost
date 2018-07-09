@@ -141,7 +141,7 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Канал группы должен иметь не менее трёх и не более восьми пользователей"
+    "translation": "Канал группы должен содержать не менее 3 и не более 8 пользователей"
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
@@ -158,6 +158,10 @@
   {
     "id": "api.channel.delete_channel.deleted.app_error",
     "translation": "Данный канал был перемещён в архив, либо удалён"
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Cannot delete direct or group message channels"
   },
   {
     "id": "api.channel.join_channel.already_deleted.app_error",
@@ -249,7 +253,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+    "translation": "Выбранная роль управляется схемой и не может быть применена напрямую к участнику канала"
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -257,11 +261,11 @@
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+    "translation": "Невозможно установить схему команды так как данная схема не является схемой команды."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
+    "translation": "Выбранная роль управляется схемой и не может быть применена напрямую к участнику команды"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -3780,7 +3784,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.), and hyphen (-)."
+    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers and hyphen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
