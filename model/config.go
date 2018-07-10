@@ -237,9 +237,19 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
 	ExperimentalLimitClientConfig                     *bool
+	EnableEmailInvitations                            *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
+	if s.EnableEmailInvitations == nil {
+		// If the site URL is also not present then assume this is a clean install
+		if s.SiteURL == nil {
+			s.EnableEmailInvitations = NewBool(false)
+		} else {
+			s.EnableEmailInvitations = NewBool(true)
+		}
+	}
+
 	if s.SiteURL == nil {
 		s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
 	}

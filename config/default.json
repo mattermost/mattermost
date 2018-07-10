@@ -68,7 +68,8 @@
         "ImageProxyURL": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "ExperimentalLimitClientConfig": false
+        "ExperimentalLimitClientConfig": false,
+        "EnableEmailInvitations": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
