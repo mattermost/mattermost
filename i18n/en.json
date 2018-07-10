@@ -88,6 +88,10 @@
     "translation": "Failed to add user to channel"
   },
   {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Failed to update the channel"
+  },
+  {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
     "translation": "Failed to add user to channel because they have been removed from the team."
   },
