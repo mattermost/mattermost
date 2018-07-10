@@ -10,11 +10,40 @@ import (
 	"net/http"
 
 	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/pkg/errors"
+	"github.com/throttled/throttled"
+	"github.com/throttled/throttled/store/memstore"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
+
+const (
+	emailRateLimitingMemstoreSize = 65536
+	emailRateLimitingPerHour      = 20
+	emailRateLimitingMaxBurst     = 20
+)
+
+func (a *App) SetupInviteEmailRateLimiting() error {
+	store, err := memstore.New(emailRateLimitingMemstoreSize)
+	if err != nil {
+		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
+	}
+
+	quota := throttled.RateQuota{
+		MaxRate:  throttled.PerHour(emailRateLimitingPerHour),
+		MaxBurst: emailRateLimitingMaxBurst,
+	}
+
+	rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
+	if err != nil || rateLimiter == nil {
+		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
+	}
+
+	a.EmailRateLimiter = rateLimiter
+	return nil
+}
 
 func (a *App) SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
@@ -247,7 +276,24 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 	return nil
 }
 
-func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []string, siteURL string) {
+func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
+	if a.EmailRateLimiter == nil {
+		a.Log.Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
+		return
+	}
+	rateLimited, result, err := a.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	if rateLimited {
+		a.Log.Error("Invite emails rate limited.",
+			mlog.String("user_id", senderUserId),
+			mlog.String("team_id", team.Id),
+			mlog.String("retry_after", result.RetryAfter.String()),
+			mlog.Err(err))
+		return
+	} else if err != nil {
+		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
+		return
+	}
+
 	for _, invite := range invites {
 		if len(invite) > 0 {
 			senderRole := utils.T("api.team.invite_members.member")
