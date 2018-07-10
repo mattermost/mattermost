@@ -1,19 +1,19 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package plugin
+package plugin_test
 
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,25 +28,8 @@ func TestSupervisor(t *testing.T) {
 	}
 }
 
-func CompileGo(t *testing.T, sourceCode, outputPath string) {
-	dir, err := ioutil.TempDir(".", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
-	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	require.NoError(t, cmd.Run())
-}
-
 func testSupervisor(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-
-	backend := filepath.Join(dir, "backend.exe")
-	CompileGo(t, `
+	plugintest.RunTestWithSupervisor(t, `
 		package main
 
 		import (
@@ -60,22 +43,10 @@ func testSupervisor(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`, backend)
-
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
-
-	bundle := model.BundleInfoForPath(dir)
-	var api MockAPI
-	api.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	log := mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	})
-	supervisor, err := newSupervisor(bundle, log, &api)
-	require.NoError(t, err)
-	supervisor.Shutdown()
+	`,
+		`{"id": "foo", "backend": {"executable": "backend.exe"}}`,
+		nil,
+	)
 }
 
 func testSupervisor_InvalidExecutablePath(t *testing.T) {
@@ -92,7 +63,7 @@ func testSupervisor_InvalidExecutablePath(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := newSupervisor(bundle, log, nil)
+	supervisor, err := plugin.newSupervisor(bundle, log, nil)
 	assert.Nil(t, supervisor)
 	assert.Error(t, err)
 }
@@ -111,7 +82,7 @@ func testSupervisor_NonExistentExecutablePath(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := newSupervisor(bundle, log, nil)
+	supervisor, err := plugin.newSupervisor(bundle, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }
@@ -123,7 +94,7 @@ func testSupervisor_StartTimeout(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	backend := filepath.Join(dir, "backend.exe")
-	CompileGo(t, `
+	plugintest.CompileGo(t, `
 		package main
 
 		func main() {
@@ -141,7 +112,7 @@ func testSupervisor_StartTimeout(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := newSupervisor(bundle, log, nil)
+	supervisor, err := plugin.newSupervisor(bundle, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }
