@@ -823,6 +823,10 @@
     "translation": "You do not have the appropriate permissions to remove the member."
   },
   {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to direct message this user."
+  },
+  {
     "id": "api.command_remove.user_not_in_channel",
     "translation": "{{.Username}} is not a member of this channel."
   },
