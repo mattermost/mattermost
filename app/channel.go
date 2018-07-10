@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -183,6 +184,16 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			a.InvalidateCacheForUser(channel.CreatorId)
 		}
 
+		if a.PluginsReady() {
+			a.Go(func() {
+				pluginContext := &plugin.Context{}
+				a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.ChannelHasBeenCreated(pluginContext, sc)
+					return true
+				}, plugin.ChannelHasBeenCreatedId)
+			})
+		}
+
 		return sc, nil
 	}
 }
@@ -199,6 +210,16 @@ func (a *App) CreateDirectChannel(userId string, otherUserId string) (*model.Cha
 
 		a.InvalidateCacheForUser(userId)
 		a.InvalidateCacheForUser(otherUserId)
+
+		if a.PluginsReady() {
+			a.Go(func() {
+				pluginContext := &plugin.Context{}
+				a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.ChannelHasBeenCreated(pluginContext, channel)
+					return true
+				}, plugin.ChannelHasBeenCreatedId)
+			})
+		}
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
 		message.Add("teammate_id", otherUserId)
@@ -798,6 +819,16 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		return nil, err
 	}
 
+	if a.PluginsReady() {
+		a.Go(func() {
+			pluginContext := &plugin.Context{}
+			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
+				return true
+			}, plugin.UserHasJoinedChannelId)
+		})
+	}
+
 	if userRequestorId == "" || userId == userRequestorId {
 		a.postJoinChannelMessage(user, channel)
 	} else {
@@ -1128,8 +1159,19 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 		user := uresult.Data.(*model.User)
 
 		if channel.Type == model.CHANNEL_OPEN {
-			if _, err := a.AddUserToChannel(user, channel); err != nil {
+			cm, err := a.AddUserToChannel(user, channel)
+			if err != nil {
 				return err
+			}
+
+			if a.PluginsReady() {
+				a.Go(func() {
+					pluginContext := &plugin.Context{}
+					a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+						hooks.UserHasJoinedChannel(pluginContext, cm, nil)
+						return true
+					}, plugin.UserHasJoinedChannelId)
+				})
 			}
 
 			if err := a.postJoinChannelMessage(user, channel); err != nil {
@@ -1312,6 +1354,11 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 	}
 
+	cm, err := a.GetChannelMember(channel.Id, userIdToRemove)
+	if err != nil {
+		return err
+	}
+
 	if cmresult := <-a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); cmresult.Err != nil {
 		return cmresult.Err
 	}
@@ -1321,6 +1368,22 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 
 	a.InvalidateCacheForUser(userIdToRemove)
 	a.InvalidateCacheForChannelMembers(channel.Id)
+
+	if a.PluginsReady() {
+
+		var actorUser *model.User
+		if removerUserId != "" {
+			actorUser, err = a.GetUser(removerUserId)
+		}
+
+		a.Go(func() {
+			pluginContext := &plugin.Context{}
+			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
+				return true
+			}, plugin.UserHasLeftChannelId)
+		})
+	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIdToRemove)
@@ -1338,6 +1401,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 
 func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	var err *model.AppError
+
 	if err = a.removeUserFromChannel(userIdToRemove, removerUserId, channel); err != nil {
 		return err
 	}
@@ -1350,6 +1414,11 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 	if userIdToRemove == removerUserId {
 		a.postLeaveChannelMessage(user, channel)
 	} else {
+
+		if err != nil {
+			return err
+		}
+
 		a.Go(func() {
 			a.postRemoveFromChannelMessage(removerUserId, user, channel)
 		})

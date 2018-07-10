@@ -3701,8 +3701,8 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
 
 // ActivatePlugin will activate an plugin installed.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
-func (c *Client4) ActivatePlugin(id string) (bool, *Response) {
-	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/activate", ""); err != nil {
+func (c *Client4) EnablePlugin(id string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/enable", ""); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -3712,8 +3712,8 @@ func (c *Client4) ActivatePlugin(id string) (bool, *Response) {
 
 // DeactivatePlugin will deactivate an active plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
-func (c *Client4) DeactivatePlugin(id string) (bool, *Response) {
-	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/deactivate", ""); err != nil {
+func (c *Client4) DisablePlugin(id string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/disable", ""); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

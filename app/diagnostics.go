@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"runtime"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -98,13 +97,7 @@ func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, def
 	if !ok {
 		return defaultValue
 	}
-	var m map[string]interface{}
-	if b, err := json.Marshal(settings); err != nil {
-		return defaultValue
-	} else {
-		json.Unmarshal(b, &m)
-	}
-	if value, ok := m[key]; ok {
+	if value, ok := settings[key]; ok {
 		return value
 	}
 	return defaultValue
@@ -570,59 +563,60 @@ func (a *App) trackLicense() {
 }
 
 func (a *App) trackPlugins() {
-	if *a.Config().PluginSettings.Enable {
-		totalActiveCount := -1 // -1 to indicate disabled or error
-		webappActiveCount := 0
-		backendActiveCount := 0
-		totalInactiveCount := -1 // -1 to indicate disabled or error
-		webappInactiveCount := 0
-		backendInactiveCount := 0
+	if a.PluginsReady() {
+		totalEnabledCount := 0
+		webappEnabledCount := 0
+		backendEnabledCount := 0
+		totalDisabledCount := 0
+		webappDisabledCount := 0
+		backendDisabledCount := 0
+		brokenManifestCount := 0
 		settingsCount := 0
 
-		plugins, _ := a.GetPlugins()
+		pluginStates := a.Config().PluginSettings.PluginStates
+		plugins, _ := a.Plugins.Available()
 
-		if plugins != nil {
-			totalActiveCount = len(plugins.Active)
-
-			for _, plugin := range plugins.Active {
-				if plugin.Webapp != nil {
-					webappActiveCount += 1
+		if pluginStates != nil && plugins != nil {
+			for _, plugin := range plugins {
+				if plugin.Manifest == nil {
+					brokenManifestCount += 1
+					continue
 				}
-
-				if plugin.Backend != nil {
-					backendActiveCount += 1
+				if state, ok := pluginStates[plugin.Manifest.Id]; ok && state.Enable {
+					totalEnabledCount += 1
+					if plugin.Manifest.Backend != nil {
+						backendEnabledCount += 1
+					}
+					if plugin.Manifest.Webapp != nil {
+						webappEnabledCount += 1
+					}
+				} else {
+					totalDisabledCount += 1
+					if plugin.Manifest.Backend != nil {
+						backendDisabledCount += 1
+					}
+					if plugin.Manifest.Webapp != nil {
+						webappDisabledCount += 1
+					}
 				}
-
-				if plugin.SettingsSchema != nil {
+				if plugin.Manifest.SettingsSchema != nil {
 					settingsCount += 1
 				}
 			}
-
-			totalInactiveCount = len(plugins.Inactive)
-
-			for _, plugin := range plugins.Inactive {
-				if plugin.Webapp != nil {
-					webappInactiveCount += 1
-				}
-
-				if plugin.Backend != nil {
-					backendInactiveCount += 1
-				}
-
-				if plugin.SettingsSchema != nil {
-					settingsCount += 1
-				}
-			}
+		} else {
+			totalEnabledCount = -1  // -1 to indicate disabled or error
+			totalDisabledCount = -1 // -1 to indicate disabled or error
 		}
 
 		a.SendDiagnostic(TRACK_PLUGINS, map[string]interface{}{
-			"active_plugins":           totalActiveCount,
-			"active_webapp_plugins":    webappActiveCount,
-			"active_backend_plugins":   backendActiveCount,
-			"inactive_plugins":         totalInactiveCount,
-			"inactive_webapp_plugins":  webappInactiveCount,
-			"inactive_backend_plugins": backendInactiveCount,
-			"plugins_with_settings":    settingsCount,
+			"enabled_plugins":               totalEnabledCount,
+			"enabled_webapp_plugins":        webappEnabledCount,
+			"enabled_backend_plugins":       backendEnabledCount,
+			"disabled_plugins":              totalDisabledCount,
+			"disabled_webapp_plugins":       webappDisabledCount,
+			"disabled_backend_plugins":      backendDisabledCount,
+			"plugins_with_settings":         settingsCount,
+			"plugins_with_broken_manifests": brokenManifestCount,
 		})
 	}
 }

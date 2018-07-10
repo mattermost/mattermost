@@ -1931,9 +1931,6 @@ func TestRemoveChannelMember(t *testing.T) {
 		t.Fatal("should have passed")
 	}
 
-	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
-	CheckNoError(t, resp)
-
 	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
