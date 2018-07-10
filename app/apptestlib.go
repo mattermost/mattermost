@@ -206,6 +206,10 @@ func (me *TestHelper) CreateChannel(team *model.Team) *model.Channel {
 	return me.createChannel(team, model.CHANNEL_OPEN)
 }
 
+func (me *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
+	return me.createChannel(team, model.CHANNEL_PRIVATE)
+}
+
 func (me *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
 	id := model.NewId()
 
@@ -257,6 +261,20 @@ func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return channel
+}
+
+func (me *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	var channel *model.Channel
+	if channel, err = me.App.CreateGroupChannel([]string{me.BasicUser.Id, user1.Id, user2.Id}, me.BasicUser.Id); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)

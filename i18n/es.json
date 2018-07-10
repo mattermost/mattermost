@@ -160,6 +160,10 @@
     "translation": "El canal ha sido archivado o eliminado"
   },
   {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Cannot delete direct or group message channels"
+  },
+  {
     "id": "api.channel.join_channel.already_deleted.app_error",
     "translation": "El canal ya está eliminado"
   },

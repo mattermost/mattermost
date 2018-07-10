@@ -1,7 +1,7 @@
 [
   {
     "id": "actiance.xml.output.formatter.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
+    "translation": "XML형식으로 변환하여 내보낼 수 없습니다."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -160,6 +160,10 @@
     "translation": "채널이 보존 처리 혹은 삭제되었습니다"
   },
   {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Cannot delete direct or group message channels"
+  },
+  {
     "id": "api.channel.join_channel.already_deleted.app_error",
     "translation": "채널이 이미 삭제되었습니다"
   },
@@ -189,7 +193,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": "Failed to post channel privacy update message."
+    "translation": "채널 공개상태설정 업데이트 메시지 전달이 실패했습니다."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -249,7 +253,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+    "translation": "제공된 역할은 스키마에 의해 관리되고 있으므로 채널 멤버에 의해 직접 적용될 수 없습니다."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -257,11 +261,11 @@
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+    "translation": "제공된 스키마는 채널의 스키마가 아니기 때문에 채널에 적용시킬 수 없습니다."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
+    "translation": "제공된 역할은 스키마에 의해 관리되고 있으므로 팀 멤버에 의해서 직접 적용될 수 없습니다."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -962,7 +966,7 @@
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": "잘못된 사용자 ID"
+    "translation": "잘못된 사용자 ID입니다."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -1050,7 +1054,7 @@
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": "No file driver selected."
+    "translation": "파일 드라이버를 선택하지 않았습니다."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
@@ -1070,19 +1074,19 @@
   },
   {
     "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Don't have permissions to write to local path specified or other error."
+    "translation": "지정된 로컬 경로를 쓸 권한이 없거나 다른 오류가 있습니다."
   },
   {
     "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Unable to create bucket."
+    "translation": "버킷을 생성할 수 없습니다."
   },
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Error checking if bucket exists."
+    "translation": "버킷이 존재하는지 확인하는 동안 에러가 발생했습니다."
   },
   {
     "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Bad connection to S3 or minio."
+    "translation": "S3또는 minio에 접속할 수 없습니다."
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
@@ -1352,15 +1356,15 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": " notified the channel."
+    "translation": "채널에 알림을 보냈습니다."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " commented on your post."
+    "translation": "당신의 포스트에 코멘트가 달렸습니다."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": " commented on a thread you participated in."
+    "translation": "당신이 참여한 스레드에 답글이 달렸습니다."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -1372,11 +1376,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " attached a file."
+    "translation": "파일을 첨부했습니다."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": "sent you a message."
+    "translation": "당신에게 메시지를 보냈습니다."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1400,15 +1404,15 @@
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": "Unable to delete user preferences."
+    "translation": "사용자 설정을 삭제할 수 없습니다."
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": "Unable to get user preferences."
+    "translation": "사용자 설정을 가져올 수 없습니다."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": "Unable to set user preferences."
+    "translation": "사용자 설정을 적용할 수 없습니다."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1432,11 +1436,11 @@
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
-    "translation": "Unable to get the channels for scheme because the supplied scheme is not a channel scheme."
+    "translation": "제공된 스키마가 채널의 스키마가 아니기 떄문에 채널을 불러올 수 없습니다."
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
-    "translation": "Unable to get the teams for scheme because the supplied scheme is not a team scheme."
+    "translation": "제공된 스키마가 팀의 스키마가 아니기 때문에 팀을 불러올 수 없습니다."
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
@@ -1700,7 +1704,7 @@
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+    "translation": "제공된 스키마는 채널의 스키마가 아니기 때문에 채널에 적용시킬 수 없습니다."
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -3780,7 +3784,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.), and hyphen (-)."
+    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers and hyphen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4848,7 +4852,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "Failed to check if table exists %v"
+    "translation": "테이블이 존재하는지 확인하지 못했습니다."
   },
   {
     "id": "store.sql_cluster_discovery.get_all.app_error",
