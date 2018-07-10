@@ -340,6 +340,30 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 	}
 }
 
+func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
+		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var users []*model.User
+	if result := <-a.Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users = result.Data.([]*model.User)
+	}
+
+	if len(users) != len(userIds) {
+		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
+	}
+
+	channel, err := a.GetChannelByName(model.GetGroupNameFromUserIds(userIds), "")
+	if err != nil {
+		return nil, err
+	}
+
+	return channel, nil
+}
+
 func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
 		return nil, result.Err
