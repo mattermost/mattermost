@@ -26,6 +26,14 @@ var ChannelCreateCmd = &cobra.Command{
 	RunE: createChannelCmdF,
 }
 
+var ChannelRenameCmd = &cobra.Command{
+	Use:     "rename",
+	Short:   "Rename a channel",
+	Long:    `Rename a channel.`,
+	Example: `"  channel rename myteam:mychannel newchannelname --display_name "New Display Name"`,
+	RunE:    renameChannelCmdF,
+}
+
 var RemoveChannelUsersCmd = &cobra.Command{
 	Use:     "remove [channel] [users]",
 	Short:   "Remove users from channel",
@@ -115,6 +123,8 @@ func init() {
 	ModifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
 	ModifyChannelCmd.Flags().String("username", "", "Required. Username who changes the channel privacy.")
 
+	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
+
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
 		RemoveChannelUsersCmd,
@@ -125,6 +135,7 @@ func init() {
 		MoveChannelsCmd,
 		RestoreChannelsCmd,
 		ModifyChannelCmd,
+		ChannelRenameCmd,
 	)
 
 	RootCmd.AddCommand(ChannelCmd)
@@ -489,6 +500,37 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 	user := getUserFromUserArg(a, username)
 	if _, err := a.UpdateChannelPrivacy(channel, user); err != nil {
 		return errors.New("Failed to update channel ('" + args[0] + "') privacy - " + err.Error())
+	}
+
+	return nil
+}
+
+func renameChannelCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	var newDisplayName, newChannelName string
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	if len(args) < 2 {
+		return errors.New("Not enough arguments.")
+	}
+
+	channel := getChannelFromChannelArg(a, args[0])
+	if channel == nil {
+		return errors.New("Unable to find channel '" + args[0] + "'")
+	}
+
+	newChannelName = args[1]
+	newDisplayName, errdn := command.Flags().GetString("display_name")
+	if errdn != nil {
+		return errdn
+	}
+
+	_, errch := a.RenameChannel(channel, newChannelName, newDisplayName)
+	if errch != nil {
+		return errors.New("Error in updating channel from " + channel.Name + " to " + newChannelName + err.Error())
 	}
 
 	return nil

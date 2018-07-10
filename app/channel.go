@@ -159,6 +159,21 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	return rchannel, nil
 }
 
+// RenameChannel is used to rename the channel Name and the DisplayName fields
+func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
+	channel.Name = newChannelName
+	if newDisplayName != "" {
+		channel.DisplayName = newDisplayName
+	}
+
+	newChannel, err := a.UpdateChannel(channel)
+	if err != nil {
+		return nil, err
+	}
+
+	return newChannel, nil
+}
+
 func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam); result.Err != nil {
 		return nil, result.Err
