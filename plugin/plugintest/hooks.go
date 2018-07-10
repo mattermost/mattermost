@@ -14,13 +14,18 @@ type Hooks struct {
 	mock.Mock
 }
 
-// ExecuteCommand provides a mock function with given fields: args
-func (_m *Hooks) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	ret := _m.Called(args)
+// ChannelHasBeenCreated provides a mock function with given fields: c, channel
+func (_m *Hooks) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel) {
+	_m.Called(c, channel)
+}
+
+// ExecuteCommand provides a mock function with given fields: c, args
+func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	ret := _m.Called(c, args)
 
 	var r0 *model.CommandResponse
-	if rf, ok := ret.Get(0).(func(*model.CommandArgs) *model.CommandResponse); ok {
-		r0 = rf(args)
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.CommandArgs) *model.CommandResponse); ok {
+		r0 = rf(c, args)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.CommandResponse)
@@ -28,8 +33,8 @@ func (_m *Hooks) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.CommandArgs) *model.AppError); ok {
-		r1 = rf(args)
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.CommandArgs) *model.AppError); ok {
+		r1 = rf(c, args)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -39,23 +44,46 @@ func (_m *Hooks) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse
 	return r0, r1
 }
 
-// MessageHasBeenPosted provides a mock function with given fields: post
-func (_m *Hooks) MessageHasBeenPosted(post *model.Post) {
-	_m.Called(post)
+// Implemented provides a mock function with given fields:
+func (_m *Hooks) Implemented() ([]string, error) {
+	ret := _m.Called()
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
-// MessageHasBeenUpdated provides a mock function with given fields: newPost, oldPost
-func (_m *Hooks) MessageHasBeenUpdated(newPost *model.Post, oldPost *model.Post) {
-	_m.Called(newPost, oldPost)
+// MessageHasBeenPosted provides a mock function with given fields: c, post
+func (_m *Hooks) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
+	_m.Called(c, post)
 }
 
-// MessageWillBePosted provides a mock function with given fields: post
-func (_m *Hooks) MessageWillBePosted(post *model.Post) (*model.Post, string) {
-	ret := _m.Called(post)
+// MessageHasBeenUpdated provides a mock function with given fields: c, newPost, oldPost
+func (_m *Hooks) MessageHasBeenUpdated(c *plugin.Context, newPost *model.Post, oldPost *model.Post) {
+	_m.Called(c, newPost, oldPost)
+}
+
+// MessageWillBePosted provides a mock function with given fields: c, post
+func (_m *Hooks) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+	ret := _m.Called(c, post)
 
 	var r0 *model.Post
-	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
-		r0 = rf(post)
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Post) *model.Post); ok {
+		r0 = rf(c, post)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -63,8 +91,8 @@ func (_m *Hooks) MessageWillBePosted(post *model.Post) (*model.Post, string) {
 	}
 
 	var r1 string
-	if rf, ok := ret.Get(1).(func(*model.Post) string); ok {
-		r1 = rf(post)
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.Post) string); ok {
+		r1 = rf(c, post)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
@@ -72,13 +100,13 @@ func (_m *Hooks) MessageWillBePosted(post *model.Post) (*model.Post, string) {
 	return r0, r1
 }
 
-// MessageWillBeUpdated provides a mock function with given fields: newPost, oldPost
-func (_m *Hooks) MessageWillBeUpdated(newPost *model.Post, oldPost *model.Post) (*model.Post, string) {
-	ret := _m.Called(newPost, oldPost)
+// MessageWillBeUpdated provides a mock function with given fields: c, newPost, oldPost
+func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, oldPost *model.Post) (*model.Post, string) {
+	ret := _m.Called(c, newPost, oldPost)
 
 	var r0 *model.Post
-	if rf, ok := ret.Get(0).(func(*model.Post, *model.Post) *model.Post); ok {
-		r0 = rf(newPost, oldPost)
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Post, *model.Post) *model.Post); ok {
+		r0 = rf(c, newPost, oldPost)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -86,8 +114,8 @@ func (_m *Hooks) MessageWillBeUpdated(newPost *model.Post, oldPost *model.Post) 
 	}
 
 	var r1 string
-	if rf, ok := ret.Get(1).(func(*model.Post, *model.Post) string); ok {
-		r1 = rf(newPost, oldPost)
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.Post, *model.Post) string); ok {
+		r1 = rf(c, newPost, oldPost)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
@@ -95,13 +123,13 @@ func (_m *Hooks) MessageWillBeUpdated(newPost *model.Post, oldPost *model.Post) 
 	return r0, r1
 }
 
-// OnActivate provides a mock function with given fields: _a0
-func (_m *Hooks) OnActivate(_a0 plugin.API) error {
-	ret := _m.Called(_a0)
+// OnActivate provides a mock function with given fields:
+func (_m *Hooks) OnActivate() error {
+	ret := _m.Called()
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(plugin.API) error); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -137,7 +165,27 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
-// ServeHTTP provides a mock function with given fields: _a0, _a1
-func (_m *Hooks) ServeHTTP(_a0 http.ResponseWriter, _a1 *http.Request) {
-	_m.Called(_a0, _a1)
+// ServeHTTP provides a mock function with given fields: c, w, r
+func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	_m.Called(c, w, r)
+}
+
+// UserHasJoinedChannel provides a mock function with given fields: c, channelMember, actor
+func (_m *Hooks) UserHasJoinedChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
+	_m.Called(c, channelMember, actor)
+}
+
+// UserHasJoinedTeam provides a mock function with given fields: c, teamMember, actor
+func (_m *Hooks) UserHasJoinedTeam(c *plugin.Context, teamMember *model.TeamMember, actor *model.User) {
+	_m.Called(c, teamMember, actor)
+}
+
+// UserHasLeftChannel provides a mock function with given fields: c, channelMember, actor
+func (_m *Hooks) UserHasLeftChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
+	_m.Called(c, channelMember, actor)
+}
+
+// UserHasLeftTeam provides a mock function with given fields: c, teamMember, actor
+func (_m *Hooks) UserHasLeftTeam(c *plugin.Context, teamMember *model.TeamMember, actor *model.User) {
+	_m.Called(c, teamMember, actor)
 }

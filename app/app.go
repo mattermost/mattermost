@@ -25,7 +25,7 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin/pluginenv"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
@@ -42,10 +42,8 @@ type App struct {
 
 	Log *mlog.Logger
 
-	PluginEnv                *pluginenv.Environment
-	PluginConfigListenerId   string
-	IsPluginSandboxSupported bool
-	pluginStatuses           map[string]*model.PluginStatus
+	Plugins                *plugin.Environment
+	PluginConfigListenerId string
 
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
@@ -241,8 +239,6 @@ func New(options ...Option) (outApp *App, outErr error) {
 		app:      app,
 		handlers: make(map[string]webSocketHandler),
 	}
-
-	app.initBuiltInPlugins()
 
 	return app, nil
 }

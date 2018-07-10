@@ -4,6 +4,7 @@
 package mlog
 
 import (
+	"io"
 	"log"
 	"os"
 
@@ -28,9 +29,11 @@ type Field = zapcore.Field
 
 var Int64 = zap.Int64
 var Int = zap.Int
+var Uint32 = zap.Uint32
 var String = zap.String
 var Any = zap.Any
 var Err = zap.Error
+var Bool = zap.Bool
 
 type LoggerConfiguration struct {
 	EnableConsole bool
@@ -99,7 +102,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	combinedCore := zapcore.NewTee(cores...)
 
 	logger.zap = zap.New(combinedCore,
-		zap.AddCallerSkip(2),
+		zap.AddCallerSkip(1),
 		zap.AddCaller(),
 	)
 
@@ -123,6 +126,30 @@ func (l *Logger) With(fields ...Field) *Logger {
 
 func (l *Logger) StdLog(fields ...Field) *log.Logger {
 	return zap.NewStdLog(l.With(fields...).zap.WithOptions(getStdLogOption()))
+}
+
+// StdLogWriter returns a writer that can be hooked up to the output of a golang standard logger
+// anything written will be interpreted as log entries accordingly
+func (l *Logger) StdLogWriter() io.Writer {
+	newLogger := *l
+	newLogger.zap = newLogger.zap.WithOptions(zap.AddCallerSkip(4), getStdLogOption())
+	f := newLogger.Info
+	return &loggerWriter{f}
+}
+
+func (l *Logger) WithCallerSkip(skip int) *Logger {
+	newlogger := *l
+	newlogger.zap = newlogger.zap.WithOptions(zap.AddCallerSkip(skip))
+	return &newlogger
+}
+
+// Made for the plugin interface, wraps mlog in a simpler interface
+// at the cost of performance
+func (l *Logger) Sugar() *SugarLogger {
+	return &SugarLogger{
+		wrappedLogger: l,
+		zapSugar:      l.zap.Sugar(),
+	}
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {

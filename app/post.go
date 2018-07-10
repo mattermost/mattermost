@@ -18,6 +18,7 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"golang.org/x/net/html/charset"
@@ -161,10 +162,14 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	if a.PluginsReady() {
-		if newPost, rejectionReason := a.PluginEnv.Hooks().MessageWillBePosted(post); newPost == nil {
+		var rejectionReason string
+		pluginContext := &plugin.Context{}
+		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			post, rejectionReason = hooks.MessageWillBePosted(pluginContext, post)
+			return post != nil
+		}, plugin.MessageWillBePostedId)
+		if post == nil {
 			return nil, model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
-		} else {
-			post = newPost
 		}
 	}
 
@@ -177,7 +182,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if a.PluginsReady() {
 		a.Go(func() {
-			a.PluginEnv.Hooks().MessageHasBeenPosted(rpost)
+			pluginContext := &plugin.Context{}
+			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.MessageHasBeenPosted(pluginContext, rpost)
+				return true
+			}, plugin.MessageHasBeenPostedId)
 		})
 	}
 
@@ -386,10 +395,14 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	}
 
 	if a.PluginsReady() {
-		if pluginModifiedPost, rejectionReason := a.PluginEnv.Hooks().MessageWillBeUpdated(newPost, oldPost); pluginModifiedPost == nil {
-			return nil, model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
-		} else {
-			newPost = pluginModifiedPost
+		var rejectionReason string
+		pluginContext := &plugin.Context{}
+		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
+			return post != nil
+		}, plugin.MessageWillBeUpdatedId)
+		if newPost == nil {
+			return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -400,7 +413,11 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 		if a.PluginsReady() {
 			a.Go(func() {
-				a.PluginEnv.Hooks().MessageHasBeenUpdated(newPost, oldPost)
+				pluginContext := &plugin.Context{}
+				a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
+					return true
+				}, plugin.MessageHasBeenUpdatedId)
 			})
 		}
 

@@ -1727,7 +1727,7 @@ type PluginSettings struct {
 	EnableUploads   *bool
 	Directory       *string
 	ClientDirectory *string
-	Plugins         map[string]interface{}
+	Plugins         map[string]map[string]interface{}
 	PluginStates    map[string]*PluginState
 }
 
@@ -1757,7 +1757,7 @@ func (s *PluginSettings) SetDefaults() {
 	}
 
 	if s.Plugins == nil {
-		s.Plugins = make(map[string]interface{})
+		s.Plugins = make(map[string]map[string]interface{})
 	}
 
 	if s.PluginStates == nil {

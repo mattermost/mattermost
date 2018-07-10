@@ -32,8 +32,8 @@ func newTestServer() (chan string, *httptest.Server) {
 
 func TestPluginSetting(t *testing.T) {
 	settings := &model.PluginSettings{
-		Plugins: map[string]interface{}{
-			"test": map[string]string{
+		Plugins: map[string]map[string]interface{}{
+			"test": map[string]interface{}{
 				"foo": "bar",
 			},
 		},
