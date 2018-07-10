@@ -17,6 +17,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/throttled/throttled"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
@@ -46,7 +47,8 @@ type App struct {
 	IsPluginSandboxSupported bool
 	pluginStatuses           map[string]*model.PluginStatus
 
-	EmailBatching *EmailBatchingJob
+	EmailBatching    *EmailBatchingJob
+	EmailRateLimiter *throttled.GCRARateLimiter
 
 	Hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
@@ -184,6 +186,10 @@ func New(options ...Option) (outApp *App, outErr error) {
 		})
 
 	})
+
+	if err := app.SetupInviteEmailRateLimiting(); err != nil {
+		return nil, err
+	}
 
 	mlog.Info("Server is initializing...")
 

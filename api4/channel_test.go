@@ -209,8 +209,34 @@ func TestUpdateChannel(t *testing.T) {
 
 	channel.DisplayName = "Should not update"
 	_, resp = Client.UpdateChannel(channel)
-	CheckNotFoundStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 
+	// Test updating the header of someone else's GM channel.
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+	user3 := th.CreateUser()
+
+	groupChannel, resp := Client.CreateGroupChannel([]string{user1.Id, user2.Id})
+	CheckNoError(t, resp)
+
+	groupChannel.Header = "lolololol"
+	Client.Logout()
+	Client.Login(user3.Email, user3.Password)
+	_, resp = Client.UpdateChannel(groupChannel)
+	CheckForbiddenStatus(t, resp)
+
+	// Test updating the header of someone else's GM channel.
+	Client.Logout()
+	Client.Login(user.Email, user.Password)
+
+	directChannel, resp := Client.CreateDirectChannel(user.Id, user1.Id)
+	CheckNoError(t, resp)
+
+	directChannel.Header = "lolololol"
+	Client.Logout()
+	Client.Login(user3.Email, user3.Password)
+	_, resp = Client.UpdateChannel(directChannel)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestPatchChannel(t *testing.T) {
@@ -267,6 +293,36 @@ func TestPatchChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
 	CheckNoError(t, resp)
+
+	// Test updating the header of someone else's GM channel.
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+	user3 := th.CreateUser()
+
+	groupChannel, resp := Client.CreateGroupChannel([]string{user1.Id, user2.Id})
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	Client.Login(user3.Email, user3.Password)
+
+	channelPatch := &model.ChannelPatch{}
+	channelPatch.Header = new(string)
+	*channelPatch.Header = "lolololol"
+
+	_, resp = Client.PatchChannel(groupChannel.Id, channelPatch)
+	CheckForbiddenStatus(t, resp)
+
+	// Test updating the header of someone else's GM channel.
+	Client.Logout()
+	Client.Login(user.Email, user.Password)
+
+	directChannel, resp := Client.CreateDirectChannel(user.Id, user1.Id)
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	Client.Login(user3.Email, user3.Password)
+	_, resp = Client.PatchChannel(directChannel.Id, channelPatch)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestCreateDirectChannel(t *testing.T) {

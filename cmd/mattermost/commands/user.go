@@ -384,7 +384,11 @@ func inviteUser(a *app.App, email string, team *model.Team, teamArg string) erro
 		return fmt.Errorf("Can't find team '%v'", teamArg)
 	}
 
-	a.SendInviteEmails(team, "Administrator", invites, *a.Config().ServiceSettings.SiteURL)
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return fmt.Errorf("Email invites are disabled.")
+	}
+
+	a.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 
 	return nil

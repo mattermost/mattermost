@@ -466,7 +466,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing period",
 			value: []string{"iris.beep"},
-			valid: true,
+			valid: false, // should technically be true, but client doesn't support it
 		},
 		{
 			name:  "containing hyphen",
@@ -476,7 +476,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing plus",
 			value: []string{"coap+tcp", "coap+ws"},
-			valid: true,
+			valid: false, // should technically be true, but client doesn't support it
 		},
 		{
 			name:  "starting with number",

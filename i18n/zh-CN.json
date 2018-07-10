@@ -1,11 +1,11 @@
 [
   {
     "id": "actiance.xml.output.formatter.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
+    "translation": "无法转换导出到 XML。"
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "请求中'certificate'下的文件不存在。"
+    "translation": "请求中 'certificate' 下的文件不存在。"
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -160,6 +160,10 @@
     "translation": "该频道已归档或者被删除"
   },
   {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "无法删除私信或组消息频道"
+  },
+  {
     "id": "api.channel.join_channel.already_deleted.app_error",
     "translation": "频道已被删除"
   },
@@ -189,7 +193,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": "Failed to post channel privacy update message."
+    "translation": "发布频道隐私更新消息失败。"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -253,7 +257,7 @@
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "许可证不支持更新团队方案"
+    "translation": "您的许可证不支持更新团队方案"
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
@@ -962,7 +966,7 @@
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": "无效用户id"
+    "translation": "无效用户 id"
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -1010,7 +1014,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "无法创建表情符。编码图片时遇到错误。"
+    "translation": "无法创建表情符。尝试打开图片时遇到错误。"
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1400,15 +1404,15 @@
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": "Unable to delete user preferences."
+    "translation": "无法删除用户偏好。"
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": "Unable to get user preferences."
+    "translation": "无法获取用户偏好。"
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": "Unable to set user preferences."
+    "translation": "无法设置用户偏好。"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1420,15 +1424,15 @@
   },
   {
     "id": "api.roles.patch_roles.license.error",
-    "translation": "您当前的授权不支持高级权限。"
+    "translation": "您的许可证不支持高级权限。"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": "许可证不支持更新团队方案"
+    "translation": "您的许可证不支持创建权限方案。"
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "许可证不支持更新团队方案"
+    "translation": "您的许可证不支持删除权限方案。"
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
@@ -1440,7 +1444,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "许可证不支持更新团队方案"
+    "translation": "您的许可证不支持更新权限方案。"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -1564,7 +1568,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Unable to read the team icon file."
+    "translation": "无法读取团队图标文件。"
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -1696,7 +1700,7 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "许可证不支持更新团队方案"
+    "translation": "您的许可证不支持更新团队方案"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -2036,7 +2040,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server."
+    "translation": "此服务器未配置验证转移。"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2104,15 +2108,15 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server."
+    "translation": "此服务器未配置验证转移。"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
-    "translation": "重置密码链接不显示有效"
+    "translation": "无效的重置密码链接。"
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "重置密码链接不显示有效"
+    "translation": "无效的重置密码链接。"
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
@@ -2148,7 +2152,7 @@
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
+    "translation": "无法发送 MFA 更改邮件通知。"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -2264,7 +2268,7 @@
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": "Bad verify email token type."
+    "translation": "无效的验证邮件令牌类型。"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2272,19 +2276,19 @@
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": "Unknown WebSocket action."
+    "translation": "未知 WebSocket 操作。"
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": "Invalid sequence for WebSocket message."
+    "translation": "无效的 WebSocket 消息顺序。"
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": "No websocket action."
+    "translation": "无 websocket 操作。"
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": "WebSocket connection is not authenticated. Please log in and try again."
+    "translation": "未经授权的 WebSocket 连接。请登入后再试。"
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2360,7 +2364,7 @@
   },
   {
     "id": "app.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
+    "translation": "未找到机群 API 接口。"
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2372,7 +2376,7 @@
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
+    "translation": "数据导入文件缺少或有错误的版本。请确定版本是导入文件中的第一个对象后再尝试。"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2484,7 +2488,7 @@
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": "导入用户频道成员错误。无法保存偏好。"
+    "translation": "导入用户偏好错误。无法保存偏好。"
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -2492,7 +2496,7 @@
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": "Unable to read the version of the data import file."
+    "translation": "无法读取数据导入文件版本。"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2808,7 +2812,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": "无效用户移动 Notify Prop 值。"
+    "translation": "无效的用户 Comments Prop 值。"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -2956,7 +2960,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "Unable to get plugin statuses from the cluster."
+    "translation": "无法从机群获取插件状态。"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3016,7 +3020,7 @@
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Unable to complete SAML login with an empty email address."
+    "translation": "无法用空的邮件地址完成 SAML 登入。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3028,27 +3032,27 @@
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Unable to decode the image data."
+    "translation": "无法解码图片数据。"
   },
   {
     "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
+    "translation": "无法获取图片元数据。"
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": "Unable to convert the image data to PNG format. Please try again."
+    "translation": "无法转换图片数据到 PNG 格式。请重试。"
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": "Unable to upload the custom brand image. Make sure the image size is less than 2 MB and try again."
+    "translation": "无法上传自定义品牌文件。请确定图片大小小于 2MB 并重试。"
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
+    "translation": "无法写入图片文件到您的文件储存。请检查您的连接后再尝试。"
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
+    "translation": "无法读取图片文件。请确定图片大小小于 2MB 并重试。"
   },
   {
     "id": "cli.license.critical",
@@ -3056,11 +3060,11 @@
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": "不能获取一个请求"
+    "translation": "无法获取用户。"
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": "不能获取一个请求"
+    "translation": "无法获取 SAML 用户。"
   },
   {
     "id": "ent.cluster.config_changed.info",
@@ -3068,7 +3072,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "当高可用性模式开启时，系统控制台将设为只读且只能通过修改配置文件进行改动除非禁止配置文件里的 ReadOnlyConfig。"
+    "translation": "当高可用性模式开启时，系统控制台将设为只读且除非停用配置文件里的 ReadOnlyConfig。"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3096,19 +3100,19 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
+    "translation": "无法转换元数据到 json。"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
+    "translation": "无法导出消息。"
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the zip export file."
+    "translation": "无法创建 zip 导出文件。"
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
+    "translation": "上传的文件因为过大而从 Global Relay 导出移除。"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3116,7 +3120,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
+    "translation": "无法加载导出模板。请重试。"
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3124,7 +3128,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "许可证不支持数据保留。"
+    "translation": "您的许可证不支持数据保留。"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3224,7 +3228,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "许可证不支持 Elasticsearch。"
+    "translation": "您的许可证不支持 Elasticsearch。"
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
@@ -3276,7 +3280,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
+    "translation": "从 AD/LDAP 搜索用户失败。请测试 Mattermost 服务器是否可以连接您的 AD/LDAP 服务器后重新尝试。"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3400,11 +3404,11 @@
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
+    "translation": "无法解析 BatchSize 导出任务消息。"
   },
   {
     "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
+    "translation": "无法解析 ExportFromTimestamp 导出任务消息。"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -3416,7 +3420,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Reached AD/LDAP sychronization job timeout."
+    "translation": "AD/LDAP 同步任务超时。"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -3580,7 +3584,7 @@
   },
   {
     "id": "model.client.get_team_icon.app_error",
-    "translation": "Unable to read the team icon from the body response."
+    "translation": "无法从回应中读取团队图标。"
   },
   {
     "id": "model.client.read_file.app_error",
@@ -3600,7 +3604,7 @@
   },
   {
     "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "无法写入请求"
+    "translation": "无法写入请求。"
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
@@ -3828,11 +3832,11 @@
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "电子邮件设置的无效连接安全性.  必须 '', 'TLS', 或者 'STARTTLS'"
+    "translation": "无效的电子邮件设置中的连接安全性。必须为 ''、'TLS' 或者 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "无效的SQL加密秘钥设置。至少32位及以上字符。"
+    "translation": "无效的 SQL 加密秘钥设置。至少32位及以上字符。"
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -3872,7 +3876,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "无效的 AD/LDAP 安全连接设置，必须是\"TLS\"或者\"STARTTLS\""
+    "translation": "无效的 AD/LDAP 安全连接设置，必须是 \"TLS\" 或 \"STARTTLS\""
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -3904,7 +3908,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "团队设置中频道最大用户数无效，必须是正整数。"
+    "translation": "团队设置中每团队的最多频道数无效，必须是正整数。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4024,7 +4028,7 @@
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+    "translation": "无效的 SQL 连接最大时限。不能为负数。"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -4112,7 +4116,7 @@
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": "无效创建者id"
+    "translation": "无效创建者 id"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -4120,27 +4124,27 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "错误的读取超时值。"
+    "translation": "错误的 create_at 值。"
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": "错误的读取超时值。"
+    "translation": "错误的 id 值。"
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": "错误的读取超时值。"
+    "translation": "错误的 path 值。"
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "错误的读取超时值。"
+    "translation": "错误的 post_id 值。"
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "错误的读取超时值。"
+    "translation": "错误的 update_at 值。"
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "错误的读取超时值。"
+    "translation": "错误的 user_id 值。"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4204,11 +4208,11 @@
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at when uploading a license."
+    "translation": "上传许可证时错误的 create_at 值。"
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": "Invalid value for id when uploading a license."
+    "translation": "上传许可证时错误的 id 值。"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4260,7 +4264,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
-    "translation": "Invalid value for content_type"
+    "translation": "错误的 content_type 值。"
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
@@ -4488,7 +4492,7 @@
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": "错误的读取超时值。"
+    "translation": "错误的 id 值。"
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -4504,7 +4508,7 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": "Unable to connect to the WebSocket server."
+    "translation": "无法连接 WebSocket 服务器。"
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -4624,11 +4628,11 @@
   },
   {
     "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "我们找不到存在的已删除频道"
+    "translation": "我们找不到已删除的频道"
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "No deleted channels exist"
+    "translation": "没有已删除的频道"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -4840,7 +4844,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "translation": "保存 ClusterDiscovery 失败"
   },
   {
     "id": "store.sql_cluster_discovery.delete.app_error",
@@ -4852,15 +4856,15 @@
   },
   {
     "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Failed to get all discovery rows"
+    "translation": "获取所有探索资料失败"
   },
   {
     "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "translation": "保存 ClusterDiscovery 失败"
   },
   {
     "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Failed to update last ping at"
+    "translation": "更新最近 ping 失败于"
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
@@ -5152,7 +5156,7 @@
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": "We couldn't get the compliance export posts."
+    "translation": "我们无法获取合规导出消息。"
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -5164,7 +5168,7 @@
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "我们无法获取频道数"
+    "translation": "我们无法获取被标记的消息"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5352,15 +5356,15 @@
   },
   {
     "id": "store.sql_recover.delete.app_error",
-    "translation": "无法删除插件"
+    "translation": "无法删除令牌"
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code"
+    "translation": "无法用此代码获取令牌"
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": "无法保存新角色"
+    "translation": "无法保存令牌"
   },
   {
     "id": "store.sql_role.delete.update.app_error",
@@ -5532,7 +5536,7 @@
   },
   {
     "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Unable to update the last activity date and time of the user"
+    "translation": "无法更新用户最近活动日期和时间"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -5716,11 +5720,11 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "We couldn't update the date of the last team icon update"
+    "translation": "我们无法更新团队图标更新日期"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "We couldn't get the active users during the requested period"
+    "translation": "我们无法在请求时间内获取活动用户"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -5856,7 +5860,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "We couldn't find any user maching the search parameters"
+    "translation": "我们无法找到符合搜索条件的用户"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -5916,7 +5920,7 @@
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "We couldn't update the date of the last update of the user"
+    "translation": "我们无法更新用户最近更新的日期"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -5952,11 +5956,11 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "我们无法保存这个访问令牌。"
+    "translation": "我们无法停用此访问令牌"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "我们无法保存这个访问令牌。"
+    "translation": "我们无法启用此访问令牌"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6156,7 +6160,7 @@
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "我们无法更新用户密码"
+    "translation": "我们无法更新用户访问数据。"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",

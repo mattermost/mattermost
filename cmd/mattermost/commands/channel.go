@@ -339,7 +339,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	channels := getChannelsFromChannelArgs(a, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
-			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
+			CommandPrintErrorln("Unable to find channel '" + args[i+1] + "'")
 			continue
 		}
 		originTeamID := channel.TeamId
