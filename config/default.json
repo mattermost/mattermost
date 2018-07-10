@@ -63,7 +63,7 @@
         "EnableTutorial": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
-        "ExperimentalSidebarPreference": true,
+        "ExperimentalSidebarPreference": false,
         "ImageProxyType": "",
         "ImageProxyOptions": "",
         "ImageProxyURL": "",

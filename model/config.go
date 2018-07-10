@@ -480,7 +480,8 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.ExperimentalSidebarPreference == nil {
-		s.ExperimentalSidebarPreference = NewBool(true)
+		experimentalUnreadEnabled := *s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED
+		s.ExperimentalSidebarPreference = NewBool(experimentalUnreadEnabled)
 	}
 
 	if s.ImageProxyType == nil {
