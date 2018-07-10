@@ -1,7 +1,7 @@
 [
   {
     "id": "actiance.xml.output.formatter.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
+    "translation": "無法轉換匯出至 XML"
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -160,6 +160,10 @@
     "translation": "頻道已被封存或刪除"
   },
   {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "無法刪除直接或群組訊息頻道"
+  },
+  {
     "id": "api.channel.join_channel.already_deleted.app_error",
     "translation": "頻道已被刪除"
   },
@@ -189,7 +193,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": "Failed to post channel privacy update message."
+    "translation": "發布頻道隱私更新訊息時失敗"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -1010,7 +1014,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "無法建立繪文字。嘗試編碼圖片時發生錯誤。"
+    "translation": "無法建立繪文字。嘗試開啟圖片時發生錯誤。"
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1050,7 +1054,7 @@
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": "No file driver selected."
+    "translation": "沒有選取任何檔案驅動。"
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
@@ -1058,31 +1062,31 @@
   },
   {
     "id": "api.file.read_file.s3.app_error",
-    "translation": "從本地儲存讀取時遇到錯誤"
+    "translation": "從 S3 儲存讀取時遇到錯誤"
   },
   {
     "id": "api.file.reader.reading_local.app_error",
-    "translation": "從本地伺服器儲存空間表列目錄時遇到錯誤"
+    "translation": "從本地伺服器儲存空間開啟讀取器時遇到錯誤"
   },
   {
     "id": "api.file.reader.s3.app_error",
-    "translation": "從本地儲存讀取時遇到錯誤"
+    "translation": "從 S3 儲存開啟讀取器時遇到錯誤"
   },
   {
     "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Don't have permissions to write to local path specified or other error."
+    "translation": "沒有寫入指定本地路徑的權限或是其他錯誤。"
   },
   {
     "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Unable to create bucket."
+    "translation": "無法建立儲存貯體。"
   },
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Error checking if bucket exists."
+    "translation": "檢查儲存貯體是否存在時發生錯誤。"
   },
   {
     "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Bad connection to S3 or minio."
+    "translation": "與 S3 或 minio 之間的連線異常。"
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
@@ -1400,15 +1404,15 @@
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": "Unable to delete user preferences."
+    "translation": "無法刪除使用者偏好設定。"
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": "Unable to get user preferences."
+    "translation": "無法取得使用者偏好設定。"
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": "Unable to set user preferences."
+    "translation": "無法設定使用者偏好設定。"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1424,11 +1428,11 @@
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": "授權不支援更新團隊的配置"
+    "translation": "授權不支援建立權限的配置"
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "授權不支援更新團隊的配置"
+    "translation": "授權不支援刪除權限的配置"
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
@@ -1440,7 +1444,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "授權不支援更新團隊的配置"
+    "translation": "授權不支援更新權限的配置"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -1564,7 +1568,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Unable to read the team icon file."
+    "translation": "無法讀取團隊圖示檔案。"
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -2036,7 +2040,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server."
+    "translation": "此伺服器尚未設定或不支援認證轉移。"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2064,11 +2068,11 @@
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate"
+    "translation": "嘗試使用實驗性功能 ClientSideCert 登入，但未提供有效的憑證"
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
+    "translation": "嘗試使用實驗性功能 ClientSideCertEnable，但沒有有效的企業授權"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2104,11 +2108,11 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server."
+    "translation": "此伺服器尚未設定或不支援認證轉移。"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
-    "translation": "此密碼重設連結不是有效連結"
+    "translation": "此密碼重設金鑰不是有效金鑰"
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
@@ -2148,7 +2152,7 @@
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": "Unable to send email notification for MFA change."
+    "translation": "無法發送多重要素驗證變更的電子郵件通知。"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -2264,7 +2268,7 @@
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": "Bad verify email token type."
+    "translation": "無效的驗證郵件 Token 類型。"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2272,19 +2276,19 @@
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": "Unknown WebSocket action."
+    "translation": "未知的 WebSocket 動作。"
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": "Invalid sequence for WebSocket message."
+    "translation": "無效的 WebSocket 訊息序列。"
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": "No websocket action."
+    "translation": "沒有 WebSocket 動作。"
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": "WebSocket connection is not authenticated. Please log in and try again."
+    "translation": "WebSocket 連線未被驗證。請登入後再次嘗試。"
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2360,7 +2364,7 @@
   },
   {
     "id": "app.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
+    "translation": "找不到叢集 API 端點。"
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2372,15 +2376,15 @@
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
+    "translation": "匯入檔案中的版本訊息不正確或是不存在。請確定版本是匯入檔案當中的第一個物件並重新嘗試。"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Cannot set a channel to use a deleted scheme."
+    "translation": "無法設定頻道使用已被刪除的配置。"
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": "Channel must be assigned to a Channel-scoped scheme."
+    "translation": "頻道必須被指派給頻道範圍的配置。"
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
@@ -2440,7 +2444,7 @@
   },
   {
     "id": "app.import.import_line.null_scheme.error",
-    "translation": "匯入資料行資料型別為\"頻道\"但頻道物件為 null"
+    "translation": "匯入資料行資料型別為\"配置\"但配置物件為 null"
   },
   {
     "id": "app.import.import_line.null_team.error",
@@ -2472,15 +2476,15 @@
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
-    "translation": "The bulk importer cannot change the scope of an already-existing scheme."
+    "translation": "批次匯入不能改變已存在配置的範圍。"
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Cannot set a team to use a deleted scheme."
+    "translation": "無法設定團隊使用已被刪除的配置。"
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": "Team must be assigned to a Team-scoped scheme."
+    "translation": "團隊必須被指派給團隊範圍的配置。"
   },
   {
     "id": "app.import.import_user.save_preferences.error",
@@ -2492,7 +2496,7 @@
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": "Unable to read the version of the data import file."
+    "translation": "無法讀取資料匯入檔案的版本"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2524,7 +2528,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.scheme_invalid.error",
-    "translation": "Invalid scheme name for channel."
+    "translation": "無效的頻道配置名稱"
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
@@ -2672,43 +2676,43 @@
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "無效的敘述"
+    "translation": "無效的角色敘述"
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "無效的顯示名稱"
+    "translation": "無效的角色顯示名稱"
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "Invalid permission on role."
+    "translation": "無效的角色權限。"
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": "無效的使用者名稱。"
+    "translation": "無效的角色名稱。"
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": "無效的敘述"
+    "translation": "無效的配置敘述"
   },
   {
     "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": "無效的顯示名稱"
+    "translation": "無效的配置顯示名稱"
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
-    "translation": "無效的使用者名稱。"
+    "translation": "無效的配置名稱。"
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": "Scheme scope is required."
+    "translation": "必須輸入配置範圍。"
   },
   {
     "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": "Unknown scheme scope."
+    "translation": "未知的配置範圍。"
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": "The wrong roles were provided for a scheme with this scope."
+    "translation": "錯誤的角色被分派給此範圍的配置。"
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -2740,7 +2744,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
-    "translation": "Invalid scheme name for team."
+    "translation": "無效的團隊配置名稱。"
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
@@ -2808,7 +2812,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": "使用者的行動裝置 Notify Props 無效。"
+    "translation": "使用者的 Comments Props 無效。"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -2956,7 +2960,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "Unable to get plugin statuses from the cluster."
+    "translation": "無法從叢集取得模組狀態。"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3016,7 +3020,7 @@
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Unable to complete SAML login with an empty email address."
+    "translation": "無法用空的電子郵件地址完成 SAML 登入。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3028,27 +3032,27 @@
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Unable to decode the image data."
+    "translation": "無法解碼圖片資料。"
   },
   {
     "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
+    "translation": "無法取得圖片的中繼資料。"
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": "Unable to convert the image data to PNG format. Please try again."
+    "translation": "無法轉換圖片至 PNG 格式。請重新嘗試。"
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": "Unable to upload the custom brand image. Make sure the image size is less than 2 MB and try again."
+    "translation": "無法上傳自訂品牌圖片。請確定圖片大小小於 2MB 並重新嘗試。"
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
+    "translation": "無法寫入圖片檔案至儲存空間。請檢查連線並重新嘗試。"
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
+    "translation": "無法讀取圖片檔案。請確定圖片大小小於 2MB 並重新嘗試。"
   },
   {
     "id": "cli.license.critical",
@@ -3056,11 +3060,11 @@
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": "無法取得訊息"
+    "translation": "無法取得使用者"
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": "無法取得訊息"
+    "translation": "無法取得 SAML 使用者"
   },
   {
     "id": "ent.cluster.config_changed.info",
@@ -3072,43 +3076,43 @@
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unknown output format {{.ExportType}}"
+    "translation": "未知的輸出格式 {{.ExportType}}"
   },
   {
     "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
+    "translation": "無法複製附加檔案至 zip 檔案中。"
   },
   {
     "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Unable to add attachment to the CSV export."
+    "translation": "無法增加附加檔案至 CSV 匯出格式。"
   },
   {
     "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Unable to create temporary CSV export file."
+    "translation": "無法建立暫存的 CSV 匯出檔案。"
   },
   {
     "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Unable to add header to the CSV export."
+    "translation": "無法新增標頭至 CSV 匯出檔案。"
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Unable to add metadata file to the zip file."
+    "translation": "無法新增中繼資料至 zip 檔案中。"
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
+    "translation": "無法轉換中繼資料成 json 格式。"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
+    "translation": "無法匯出訊息。"
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the zip export file."
+    "translation": "無法建立 zip 匯出檔案。"
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
+    "translation": "由於大小過大，上傳檔案已從 Global Relay 匯出檔案中被移除。"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3116,7 +3120,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
+    "translation": "無法讀取匯出樣板。請重新嘗試。"
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3196,7 +3200,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches"
+    "translation": "無法解析搜尋比對結果"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3276,7 +3280,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
+    "translation": "無法用 AD/LDAP 搜尋使用者。請測試 Mattermost 是否能連線至 AD/LDAP 伺服器並重新嘗試。"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3400,11 +3404,11 @@
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
+    "translation": "無法解析訊息匯出工作 BatchSize。"
   },
   {
     "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
+    "translation": "無法解析訊息匯出工作 ExportFromTimestamp。"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -3416,7 +3420,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Reached AD/LDAP sychronization job timeout."
+    "translation": "AD/LDAP 同步工作逾時。"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -3580,7 +3584,7 @@
   },
   {
     "id": "model.client.get_team_icon.app_error",
-    "translation": "Unable to read the team icon from the body response."
+    "translation": "無法從回應中讀取團隊圖示。"
   },
   {
     "id": "model.client.read_file.app_error",
@@ -3632,11 +3636,11 @@
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": "CreateAt must be set"
+    "translation": "必須設定建立時間"
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "Hostname must be set"
+    "translation": "必須設定主機名稱"
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
@@ -3644,15 +3648,15 @@
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "LastPingAt must be set"
+    "translation": "必須設定最後偵測時間"
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "ClusterName must be set"
+    "translation": "必須設定叢集名稱"
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "Type must be set"
+    "translation": "必須設定類型"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3756,7 +3760,7 @@
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Allowing cookies for subdomains requires SiteURL to be set."
+    "translation": "允許子網域的 Cookie 需要設定站台網址。"
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -3936,7 +3940,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "訊息匯出工作的 ExportFormat 必須為 'actiance' 或 'globalrelay'"
+    "translation": "訊息匯出工作的 ExportFormat 必須為 'actiance'、'csv' 或 'globalrelay'"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
@@ -4024,7 +4028,7 @@
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+    "translation": "SQL 設定中的最大連線時間無效，必須為正整數或零。"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -4048,7 +4052,7 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "團隊成員顯示設定值無效。必須為'full_name'、'nickname_full_name'或'username'"
+    "translation": "團隊成員顯示設定值無效。必須為'full_name'、'nickname_full_name' 或 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4120,27 +4124,27 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "讀取逾時的值不正確。"
+    "translation": "無效的建立時間"
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": "讀取逾時的值不正確。"
+    "translation": "無效的 ID"
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": "讀取逾時的值不正確。"
+    "translation": "無效的路徑"
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "讀取逾時的值不正確。"
+    "translation": "無效的訊息 ID"
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "讀取逾時的值不正確。"
+    "translation": "無效的更新時間"
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "讀取逾時的值不正確。"
+    "translation": "無效的使用者 ID"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4204,11 +4208,11 @@
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at when uploading a license."
+    "translation": "上傳授權時的建立時間無效"
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": "Invalid value for id when uploading a license."
+    "translation": "上傳授權時的 ID 無效"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4260,7 +4264,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
-    "translation": "Invalid value for content_type"
+    "translation": "內容類型無效"
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
@@ -4488,7 +4492,7 @@
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": "讀取逾時的值不正確。"
+    "translation": "無效的 ID"
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -4504,11 +4508,11 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": "Unable to connect to the WebSocket server."
+    "translation": "無法連線到 WebSocket 伺服器。"
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "GitLab 的服務使用條款有更新。請前往 gitlab.com 接受新條款後重新嘗試登入 Mattermost。"
   },
   {
     "id": "plugin.rpcplugin.invocation.error",
@@ -4568,7 +4572,7 @@
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "更新頻道成員時失敗"
+    "translation": "取得頻道成員時失敗"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
@@ -4628,7 +4632,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "No deleted channels exist"
+    "translation": "沒有已刪除的頻道"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -4840,27 +4844,27 @@
   },
   {
     "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "translation": "儲存 ClusterDiscovery 資料列失敗"
   },
   {
     "id": "store.sql_cluster_discovery.delete.app_error",
-    "translation": "Failed to delete"
+    "translation": "刪除失敗"
   },
   {
     "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "檢查資料表是否存在失敗 %v"
+    "translation": "檢查資料表是否存在失敗"
   },
   {
     "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Failed to get all discovery rows"
+    "translation": "取得所有探索資料列失敗"
   },
   {
     "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "translation": "儲存 ClusterDiscovery 資料列失敗"
   },
   {
     "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Failed to update last ping at"
+    "translation": "更新最後偵測時間失敗"
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
@@ -5152,7 +5156,7 @@
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": "We couldn't get the compliance export posts."
+    "translation": "無法取得合規匯出訊息。"
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -5164,7 +5168,7 @@
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "無法取得頻道數"
+    "translation": "無法取得被標記的訊息數"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5324,11 +5328,11 @@
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": "無法刪除指定繪文字名稱的互動"
+    "translation": "無法刪除此繪文字名稱的互動"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": "無法取得指定繪文字名稱的互動"
+    "translation": "無法取得此繪文字名稱的互動"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
@@ -5352,15 +5356,15 @@
   },
   {
     "id": "store.sql_recover.delete.app_error",
-    "translation": "無法刪除模組"
+    "translation": "無法刪除 Token"
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code"
+    "translation": "無法根據此代碼取得 Token"
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": "無法儲存新角色"
+    "translation": "無法儲存 Token"
   },
   {
     "id": "store.sql_role.delete.update.app_error",
@@ -5532,7 +5536,7 @@
   },
   {
     "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Unable to update the last activity date and time of the user"
+    "translation": "無法更新使用者的最後活動時間"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -5572,7 +5576,7 @@
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "更新團隊成員時失敗"
+    "translation": "取得團隊成員時失敗"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
@@ -5716,11 +5720,11 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "We couldn't update the date of the last team icon update"
+    "translation": "無法更新最後一次團隊圖示更新的日期"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "We couldn't get the active users during the requested period"
+    "translation": "在要求的時間範圍內無法取得活躍使用者清單"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -5748,11 +5752,11 @@
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users"
+    "translation": "無法取得使用者"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the user"
+    "translation": "無法更新使用者"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -5856,7 +5860,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "We couldn't find any user maching the search parameters"
+    "translation": "無法找到與搜尋條件相符的使用者"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -5916,7 +5920,7 @@
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "We couldn't update the date of the last update of the user"
+    "translation": "無法更新最後一次使用者更新的日期"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -5952,11 +5956,11 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "無法儲存存取 Token。"
+    "translation": "無法停用存取 Token"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "無法儲存存取 Token。"
+    "translation": "無法啟用存取 Token"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6156,7 +6160,7 @@
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "無法更新使用者密碼"
+    "translation": "無法更新使用者存取紀錄"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
