@@ -835,6 +835,10 @@
     "translation": "{{.Username}} is not a member of this channel."
   },
   {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to create a new group message."
+  },
+  {
     "id": "api.command_search.desc",
     "translation": "Search text in messages"
   },
