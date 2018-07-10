@@ -32,8 +32,10 @@ func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
 	finalConfig := make(map[string]interface{})
 
 	// First set final config to defaults
-	for _, setting := range api.manifest.SettingsSchema.Settings {
-		finalConfig[strings.ToLower(setting.Key)] = setting.Default
+	if api.manifest.SettingsSchema != nil {
+		for _, setting := range api.manifest.SettingsSchema.Settings {
+			finalConfig[strings.ToLower(setting.Key)] = setting.Default
+		}
 	}
 
 	// If we have settings given we override the defaults with them
