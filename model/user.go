@@ -406,11 +406,11 @@ func (u *User) AddNotifyProp(key string, value string) {
 }
 
 func (u *User) GetFullName() string {
-	if u.FirstName != "" && u.LastName != "" {
+	if len(u.FirstName) > 0 && len(u.LastName) > 0 {
 		return u.FirstName + " " + u.LastName
-	} else if u.FirstName != "" {
+	} else if len(u.FirstName) > 0 {
 		return u.FirstName
-	} else if u.LastName != "" {
+	} else if len(u.LastName) > 0 {
 		return u.LastName
 	} else {
 		return ""
@@ -421,13 +421,13 @@ func (u *User) GetDisplayName(nameFormat string) string {
 	displayName := u.Username
 
 	if nameFormat == SHOW_NICKNAME_FULLNAME {
-		if u.Nickname != "" {
+		if len(u.Nickname) > 0 {
 			displayName = u.Nickname
-		} else if fullName := u.GetFullName(); fullName != "" {
+		} else if fullName := u.GetFullName(); len(fullName) > 0 {
 			displayName = fullName
 		}
 	} else if nameFormat == SHOW_FULLNAME {
-		if fullName := u.GetFullName(); fullName != "" {
+		if fullName := u.GetFullName(); len(fullName) > 0 {
 			displayName = fullName
 		}
 	}
