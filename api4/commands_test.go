@@ -163,6 +163,11 @@ func TestLoadTestHelpCommands(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
+	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+	}()
+
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test help")).(*model.CommandResponse)
@@ -179,6 +184,11 @@ func TestLoadTestSetupCommands(t *testing.T) {
 
 	Client := th.Client
 	channel := th.BasicChannel
+
+	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
 
@@ -197,6 +207,11 @@ func TestLoadTestUsersCommands(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
+	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+	}()
+
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test users fuzz 1 2")).(*model.CommandResponse)
@@ -214,6 +229,11 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
+	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+	}()
+
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
 
 	rs := Client.Must(Client.ExecuteCommand(channel.Id, "/test channels fuzz 1 2")).(*model.CommandResponse)
@@ -230,6 +250,11 @@ func TestLoadTestPostsCommands(t *testing.T) {
 
 	Client := th.Client
 	channel := th.BasicChannel
+
+	enableTesting := th.App.Config().ServiceSettings.EnableTesting
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = enableTesting })
+	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableTesting = true })
 

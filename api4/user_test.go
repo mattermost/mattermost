@@ -22,6 +22,13 @@ func TestCreateUser(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
+	enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
+	enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableOpenServer = enableOpenServer })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
+	}()
+
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 	ruser, resp := Client.CreateUser(&user)
@@ -161,6 +168,12 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
+
+		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
+		}()
+
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		token := model.NewToken(
@@ -176,7 +189,6 @@ func TestCreateUserWithToken(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = true })
 	})
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
@@ -187,6 +199,11 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
+
+		enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableOpenServer = enableOpenServer })
+		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
@@ -270,6 +287,11 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
+		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
+		}()
+
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
 		inviteId := th.BasicTeam.InviteId
@@ -277,12 +299,15 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		_, resp := Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = true })
 	})
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableOpenServer = enableOpenServer })
+		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
@@ -331,6 +356,13 @@ func TestGetUser(t *testing.T) {
 	user.Props = map[string]string{"testpropkey": "testpropvalue"}
 
 	th.App.UpdateUser(user, false)
+
+	showEmailAddress := th.App.Config().PrivacySettings.ShowEmailAddress
+	showFullName := th.App.Config().PrivacySettings.ShowFullName
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = showEmailAddress })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
+	}()
 
 	ruser, resp := Client.GetUser(user.Id, "")
 	CheckNoError(t, resp)
@@ -393,6 +425,13 @@ func TestGetUserByUsername(t *testing.T) {
 
 	user := th.BasicUser
 
+	showEmailAddress := th.App.Config().PrivacySettings.ShowEmailAddress
+	showFullName := th.App.Config().PrivacySettings.ShowFullName
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = showEmailAddress })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
+	}()
+
 	ruser, resp := Client.GetUserByUsername(user.Username, "")
 	CheckNoError(t, resp)
 	CheckUserSanitization(t, ruser)
@@ -452,6 +491,13 @@ func TestGetUserByEmail(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	showEmailAddress := th.App.Config().PrivacySettings.ShowEmailAddress
+	showFullName := th.App.Config().PrivacySettings.ShowFullName
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = showEmailAddress })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
+	}()
+
 	user := th.CreateUser()
 
 	ruser, resp := Client.GetUserByEmail(user.Email, "")
@@ -509,6 +555,13 @@ func TestSearchUsers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
+
+	showEmailAddress := th.App.Config().PrivacySettings.ShowEmailAddress
+	showFullName := th.App.Config().PrivacySettings.ShowFullName
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = showEmailAddress })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
+	}()
 
 	search := &model.UserSearch{Term: th.BasicUser.Username}
 
@@ -695,6 +748,11 @@ func TestAutocompleteUsers(t *testing.T) {
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
 	username := th.BasicUser.Username
+
+	showFullName := th.App.Config().PrivacySettings.ShowFullName
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
+	}()
 
 	rusers, resp := Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
 	CheckNoError(t, resp)
