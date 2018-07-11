@@ -84,7 +84,6 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 		}
 
 		if _, err := a.InstallPlugin(fileReader); err != nil {
-			fileReader.Close()
 			CommandPrintErrorln("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Added plugin: " + plugin)
