@@ -172,16 +172,14 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to list plugins. Error: " + appErr.Error())
 	}
 
-	if pluginsResp != nil {
-		CommandPrettyPrintln("Listing active plugins")
-		for _, plugin := range pluginsResp.Active {
-			CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
-		}
+	CommandPrettyPrintln("Listing active plugins")
+	for _, plugin := range pluginsResp.Active {
+		CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
+	}
 
-		CommandPrettyPrintln("Listing inactive plugins")
-		for _, plugin := range pluginsResp.Inactive {
-			CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
-		}
+	CommandPrettyPrintln("Listing inactive plugins")
+	for _, plugin := range pluginsResp.Inactive {
+		CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
 	}
 
 	return nil
