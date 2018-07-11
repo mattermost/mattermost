@@ -305,19 +305,14 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
+func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", status.UserId, result.Err))
 	}
 
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", status.Status)
-	event.Add("user_id", status.UserId)
-	a.Publish(event)
-
-	return nil
+	a.BroadcastStatus(status)
 }
 
 func (a *App) SetStatusOutOfOffice(userId string) {
@@ -334,16 +329,7 @@ func (a *App) SetStatusOutOfOffice(userId string) {
 	status.Status = model.STATUS_OUT_OF_OFFICE
 	status.Manual = true
 
-	a.AddStatusCache(status)
-
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
-	}
-
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", model.STATUS_OUT_OF_OFFICE)
-	event.Add("user_id", status.UserId)
-	a.Publish(event)
+	a.SaveAndBroadcastStatus(status)
 }
 
 func GetStatusFromCache(userId string) *model.Status {
