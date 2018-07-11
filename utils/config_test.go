@@ -5,6 +5,7 @@ package utils
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -35,6 +36,53 @@ func TestReadConfig(t *testing.T) {
 			malformed
 	`)), false)
 	require.EqualError(t, err, "parsing error at line 3, character 5: invalid character 'm' looking for beginning of object key string")
+}
+
+func TestReadConfigPluginSettings(t *testing.T) {
+	TranslationsPreInit()
+
+	inConfig := &model.Config{
+		PluginSettings: model.PluginSettings{
+			Plugins: map[string]map[string]interface{}{
+				"UPPERCASE": map[string]interface{}{
+					"lowercase": true,
+					"UPPERCASE": true,
+					"mixedCASE": true,
+				},
+				"lowercase": map[string]interface{}{
+					"lowercase": true,
+					"UPPERCASE": true,
+					"mixedCASE": true,
+				},
+				"mixedCASE": map[string]interface{}{
+					"lowercase": true,
+					"UPPERCASE": true,
+					"mixedCASE": true,
+				},
+			},
+		},
+	}
+
+	configBytes, err := json.Marshal(inConfig)
+	require.Nil(t, err)
+
+	readConfig, _, err := ReadConfig(bytes.NewReader(configBytes), false)
+	require.Nil(t, err)
+
+	// Plugin IDs should be case sensitive, plugin setting keys should be lower cased
+	require.NotNil(t, readConfig.PluginSettings.Plugins)
+	require.NotNil(t, readConfig.PluginSettings.Plugins["UPPERCASE"])
+	assert.True(t, readConfig.PluginSettings.Plugins["UPPERCASE"]["lowercase"].(bool))
+	assert.True(t, readConfig.PluginSettings.Plugins["UPPERCASE"]["uppercase"].(bool))
+	assert.True(t, readConfig.PluginSettings.Plugins["UPPERCASE"]["mixedcase"].(bool))
+	require.NotNil(t, readConfig.PluginSettings.Plugins["lowercase"])
+	assert.True(t, readConfig.PluginSettings.Plugins["lowercase"]["lowercase"].(bool))
+	assert.True(t, readConfig.PluginSettings.Plugins["lowercase"]["uppercase"].(bool))
+	assert.True(t, readConfig.PluginSettings.Plugins["lowercase"]["mixedcase"].(bool))
+	require.NotNil(t, readConfig.PluginSettings.Plugins["mixedCASE"])
+	assert.True(t, readConfig.PluginSettings.Plugins["mixedCASE"]["lowercase"].(bool))
+	assert.True(t, readConfig.PluginSettings.Plugins["mixedCASE"]["uppercase"].(bool))
+	assert.True(t, readConfig.PluginSettings.Plugins["mixedCASE"]["mixedcase"].(bool))
 }
 
 func TestTimezoneConfig(t *testing.T) {
