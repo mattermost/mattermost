@@ -29,6 +29,36 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 	require.NoError(t, cmd.Run())
 }
 
+func RunTestWithSupervisorWithSuppliedAPI(t *testing.T, pluginCode string, pluginManifest string, api plugin.APIImplCreatorFunc, test func(t *testing.T, supervisor *plugin.Supervisor)) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	backend := filepath.Join(dir, "backend.exe")
+	CompileGo(t, pluginCode, backend)
+
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(pluginManifest), 0600)
+
+	bundle := model.BundleInfoForPath(dir)
+	log := mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	})
+	if bundle.ManifestError != nil || bundle.Manifest == nil {
+		t.Fatal("Bad manifest", bundle.ManifestError)
+	}
+	supervisor, err := plugin.NewSupervisor(bundle, log, api(bundle.Manifest))
+	require.NoError(t, err)
+
+	if test != nil {
+		test(t, supervisor)
+	}
+
+	supervisor.Shutdown()
+}
+
 func RunTestWithSupervisor(t *testing.T, pluginCode string, pluginManifest string, test func(t *testing.T, supervisor *plugin.Supervisor, mockAPI *API)) {
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
