@@ -44,7 +44,7 @@ func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, 
 		team.Email = user.Email
 	}
 
-	if !a.isTeamEmailAllowed(user) {
+	if !a.isTeamEmailAllowed(user, team) {
 		return nil, model.NewAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -60,35 +60,39 @@ func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, 
 	return rteam, nil
 }
 
-func (a *App) isTeamEmailAddressAllowed(email string) bool {
+func (a *App) isTeamEmailAddressAllowed(email string, RestrictCreationToDomains string) bool {
 	email = strings.ToLower(email)
-	// commas and @ signs are optional
-	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
-	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(a.Config().TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
-
-	matched := false
-	for _, d := range domains {
-		if strings.HasSuffix(email, "@"+d) {
-			matched = true
-			break
+	// First check per team RestrictCreationToDomains, then app wide restrictions
+	for _, restriction := range []string{RestrictCreationToDomains, a.Config().TeamSettings.RestrictCreationToDomains} {
+		// commas and @ signs are optional
+		// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
+		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(restriction, "@", " ", -1), ",", " ", -1))))
+		if len(domains) <= 0 {
+			continue
 		}
-	}
-
-	if len(a.Config().TeamSettings.RestrictCreationToDomains) > 0 && !matched {
-		return false
+		matched := false
+		for _, d := range domains {
+			if strings.HasSuffix(email, "@"+d) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
 	}
 
 	return true
 }
 
-func (a *App) isTeamEmailAllowed(user *model.User) bool {
+func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 	email := strings.ToLower(user.Email)
 
 	if len(user.AuthService) > 0 && len(*user.AuthData) > 0 {
 		return true
 	}
 
-	return a.isTeamEmailAddressAllowed(email)
+	return a.isTeamEmailAddressAllowed(email, team.AllowedDomains)
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -430,6 +434,9 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 }
 
 func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError {
+	if !a.isTeamEmailAllowed(user, team) {
+		return model.NewAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "", http.StatusBadRequest)
+	}
 	tm, alreadyAdded, err := a.joinUserToTeam(team, user)
 	if err != nil {
 		return err
@@ -843,20 +850,6 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 		return err
 	}
 
-	var invalidEmailList []string
-
-	for _, email := range emailList {
-		if !a.isTeamEmailAddressAllowed(email) {
-			invalidEmailList = append(invalidEmailList, email)
-		}
-	}
-
-	if len(invalidEmailList) > 0 {
-		s := strings.Join(invalidEmailList, ", ")
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
-		return err
-	}
-
 	tchan := a.Srv.Store.Team().Get(teamId)
 	uchan := a.Srv.Store.User().Get(senderId)
 
@@ -872,6 +865,20 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 		return result.Err
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	var invalidEmailList []string
+
+	for _, email := range emailList {
+		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+			invalidEmailList = append(invalidEmailList, email)
+		}
+	}
+
+	if len(invalidEmailList) > 0 {
+		s := strings.Join(invalidEmailList, ", ")
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
+		return err
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
