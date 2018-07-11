@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -143,7 +142,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		if action == model.OAUTH_ACTION_MOBILE {
 			ReturnStatusOK(w)
 		} else {
-			http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
+			http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
 		}
 	}
 }
