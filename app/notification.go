@@ -94,7 +94,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	} else {
 		keywords := a.GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE)
 
-		m := GetExplicitMentions(post.Message, keywords)
+		m := GetExplicitMentions(post, keywords)
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
@@ -961,7 +961,7 @@ type ExplicitMentions struct {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func GetExplicitMentions(message string, keywords map[string][]string) *ExplicitMentions {
+func GetExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
 	ret := &ExplicitMentions{
 		MentionedUserIds: make(map[string]bool),
 	}
@@ -1053,18 +1053,39 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 	}
 
 	buf := ""
-	markdown.Inspect(message, func(node interface{}) bool {
-		text, ok := node.(*markdown.Text)
-		if !ok {
-			processText(buf)
-			buf = ""
-			return true
-		}
-		buf += text.Text
-		return false
-	})
+	mentionsEnabledFields := GetMentionsEnabledFields(post)
+	for _, message := range mentionsEnabledFields {
+		markdown.Inspect(message, func(node interface{}) bool {
+			text, ok := node.(*markdown.Text)
+			if !ok {
+				processText(buf)
+				buf = ""
+				return true
+			}
+			buf += text.Text
+			return false
+		})
+	}
 	processText(buf)
 
+	return ret
+}
+
+// Given a post returns the values of the fields in which mentions are possible.
+// post.message, preText and text in the attachment are enabled.
+func GetMentionsEnabledFields(post *model.Post) model.StringArray {
+	ret := []string{}
+
+	ret = append(ret, post.Message)
+	for _, attachment := range post.Attachments() {
+
+		if len(attachment.Pretext) != 0 {
+			ret = append(ret, attachment.Pretext)
+		}
+		if len(attachment.Text) != 0 {
+			ret = append(ret, attachment.Text)
+		}
+	}
 	return ret
 }
 
