@@ -534,10 +534,10 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["ExperimentalEnableDefaultChannelLeaveJoinMessages"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages)
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
 
-	if *c.ServiceSettings.ExperimentalSidebarPreference || *c.ServiceSettings.ExperimentalGroupUnreadChannels != model.GROUP_UNREAD_CHANNELS_DISABLED {
-		props["ExperimentalSidebarPreference"] = strconv.FormatBool(true)
+	if *c.ServiceSettings.ExperimentalChannelOrganization || *c.ServiceSettings.ExperimentalGroupUnreadChannels != model.GROUP_UNREAD_CHANNELS_DISABLED {
+		props["ExperimentalChannelOrganization"] = strconv.FormatBool(true)
 	} else {
-		props["ExperimentalSidebarPreference"] = strconv.FormatBool(false)
+		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
 	}
 
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)

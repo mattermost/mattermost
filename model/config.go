@@ -233,7 +233,7 @@ type ServiceSettings struct {
 	EnableTutorial                                    *bool
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
 	ExperimentalGroupUnreadChannels                   *string
-	ExperimentalSidebarPreference                     *bool
+	ExperimentalChannelOrganization                   *bool
 	ImageProxyType                                    *string
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
@@ -479,9 +479,9 @@ func (s *ServiceSettings) SetDefaults() {
 		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DEFAULT_ON)
 	}
 
-	if s.ExperimentalSidebarPreference == nil {
+	if s.ExperimentalChannelOrganization == nil {
 		experimentalUnreadEnabled := *s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED
-		s.ExperimentalSidebarPreference = NewBool(experimentalUnreadEnabled)
+		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
 	if s.ImageProxyType == nil {
