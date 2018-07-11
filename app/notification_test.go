@@ -88,6 +88,7 @@ func TestGetExplicitMentions(t *testing.T) {
 
 	for name, tc := range map[string]struct {
 		Message  string
+		Attachments []*model.SlackAttachment
 		Keywords map[string][]string
 		Expected *ExplicitMentions
 	}{
@@ -508,9 +509,32 @@ func TestGetExplicitMentions(t *testing.T) {
 				},
 			},
 		},
+		"should include the mentions from attachment text and preText": {
+			Message: "this is an message for @user1",
+			Attachments: []*model.SlackAttachment{
+				{
+					Text:    "this is a message For @user2",
+					Pretext: "this is a message for @here",
+				},
+			},
+			Keywords: map[string][]string{"@user1": {id1}, "@user2": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+				HereMentioned: true,
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m := GetExplicitMentions(tc.Message, tc.Keywords)
+
+			post := &model.Post{Message: tc.Message, Props: model.StringInterface{
+				"attachments": tc.Attachments,
+				},
+			}
+
+			m := GetExplicitMentions(post, tc.Keywords)
 			if tc.Expected.MentionedUserIds == nil {
 				tc.Expected.MentionedUserIds = make(map[string]bool)
 			}
@@ -564,7 +588,8 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 	}
 
 	for message, shouldMention := range cases {
-		if m := GetExplicitMentions(message, nil); m.HereMentioned && !shouldMention {
+		post := &model.Post{Message: message}
+		if m := GetExplicitMentions(post, nil); m.HereMentioned && !shouldMention {
 			t.Fatalf("shouldn't have mentioned @here with \"%v\"", message)
 		} else if !m.HereMentioned && shouldMention {
 			t.Fatalf("should've mentioned @here with \"%v\"", message)
@@ -573,7 +598,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	// mentioning @here and someone
 	id := model.NewId()
-	if m := GetExplicitMentions("@here @user @potential", map[string][]string{"@user": {id}}); !m.HereMentioned {
+	if m := GetExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}}); !m.HereMentioned {
 		t.Fatal("should've mentioned @here with \"@here @user\"")
 	} else if len(m.MentionedUserIds) != 1 || !m.MentionedUserIds[id] {
 		t.Fatal("should've mentioned @user with \"@here @user\"")
@@ -1786,4 +1811,38 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetMentionsEnabledFields(t *testing.T) {
+
+	attachmentWithTextAndPreText := model.SlackAttachment{
+		Text: "@here with mentions",
+		Pretext: "@Channel some comment for the channel",
+
+	}
+
+	attachmentWithOutPreText := model.SlackAttachment{
+		Text: "some text",
+	}
+	attachments := []*model.SlackAttachment{
+		&attachmentWithTextAndPreText,
+		&attachmentWithOutPreText,
+	}
+
+	post := &model.Post{
+		Message: "This is the message",
+		Props: model.StringInterface{
+			"attachments": attachments,
+		},
+	}
+	expectedFields := []string{
+		"This is the message",
+		"@Channel some comment for the channel",
+		"@here with mentions",
+		"some text"}
+
+	mentionEnabledFields := GetMentionsEnabledFields(post)
+
+	assert.EqualValues(t, 4, len(mentionEnabledFields))
+	assert.EqualValues(t, expectedFields, mentionEnabledFields)
 }
