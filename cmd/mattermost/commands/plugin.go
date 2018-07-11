@@ -15,49 +15,49 @@ var PluginCmd = &cobra.Command{
 	Short: "Management of plugins",
 }
 
-var PluginCreateCmd = &cobra.Command{
-	Use:     "add",
-	Short:   "Add a plugin",
-	Long:    "Add a plugin or multiple plugins",
+var PluginAddCmd = &cobra.Command{
+	Use:     "add [plugins]",
+	Short:   "Add plugins",
+	Long:    "Add plugins to your Mattermost server.",
 	Example: `  plugin add hovercardexample.tar.gz pluginexample.tar.gz`,
-	RunE:    pluginCreateCmdF,
+	RunE:    pluginAddCmdF,
 }
 
 var PluginDeleteCmd = &cobra.Command{
-	Use:     "delete",
-	Short:   "Delete a plugin",
-	Long:    "Delete a plugin",
-	Example: `  plugin delete hovercardexample`,
+	Use:     "delete [plugins]",
+	Short:   "Delete plugins",
+	Long:    "Delete previously uploaded plugins from your Mattermost server.",
+	Example: `  plugin delete hovercardexample pluginexample`,
 	RunE:    pluginDeleteCmdF,
 }
 
 var PluginEnableCmd = &cobra.Command{
-	Use:     "enable",
-	Short:   "Enable a plugin",
-	Long:    "Enable a plugin or multiple plugins",
-	Example: `  plugin enable hovercardexample.tar.gz pluginexample.tar.gz`,
+	Use:     "enable [plugins]",
+	Short:   "Enable plugins",
+	Long:    "Enable plugins for use on your Mattermost server.",
+	Example: `  plugin enable hovercardexample pluginexample`,
 	RunE:    pluginEnableCmdF,
 }
 
 var PluginDisableCmd = &cobra.Command{
-	Use:     "disable",
-	Short:   "Disable a plugin",
-	Long:    "Disable a plugin",
-	Example: `  plugin disable hovercardexample`,
+	Use:     "disable [plugins]",
+	Short:   "Disable plugins",
+	Long:    "Disable plugins. Disabled plugins are immediately removed from the user interface and logged out of all sessions.",
+	Example: `  plugin disable hovercardexample pluginexample`,
 	RunE:    pluginDisableCmdF,
 }
 
 var PluginListCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List plugins",
-	Long:    "List all active and inactive plugins",
+	Long:    "List all active and inactive plugins installed on your Mattermost server.",
 	Example: `  plugin list`,
 	RunE:    pluginListCmdF,
 }
 
 func init() {
 	PluginCmd.AddCommand(
-		PluginCreateCmd,
+		PluginAddCmd,
 		PluginDeleteCmd,
 		PluginEnableCmd,
 		PluginDisableCmd,
@@ -66,7 +66,7 @@ func init() {
 	RootCmd.AddCommand(PluginCmd)
 }
 
-func pluginCreateCmdF(command *cobra.Command, args []string) error {
+func pluginAddCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -84,12 +84,13 @@ func pluginCreateCmdF(command *cobra.Command, args []string) error {
 		}
 
 		if _, err := a.InstallPlugin(fileReader); err != nil {
-			return errors.New("Unable to create plugin: " + args[i] + ". Error: " + err.Error())
+			fileReader.Close()
+			CommandPrintErrorln("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Added plugin: " + plugin)
 		}
 		fileReader.Close()
 	}
-
-	CommandPrettyPrintln("Created plugin(s)")
 
 	return nil
 }
@@ -105,11 +106,13 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	if err := a.RemovePlugin(args[0]); err != nil {
-		return errors.New("Unable to delete plugin: " + args[0] + ". Error: " + err.Error())
+	for _, plugin := range args {
+		if err := a.RemovePlugin(plugin); err != nil {
+			CommandPrintErrorln("Unable to delete plugin: " + plugin + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Removed plugin: " + plugin)
+		}
 	}
-
-	CommandPrettyPrintln("Deleted plugin")
 
 	return nil
 }
@@ -125,13 +128,13 @@ func pluginEnableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	for i, plugin := range args {
+	for _, plugin := range args {
 		if err := a.EnablePlugin(plugin); err != nil {
-			return errors.New("Unable to enable plugin: " + args[i] + ". Error: " + err.Error())
+			CommandPrintErrorln("Unable to enable plugin: " + plugin + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Enabled plugin: " + plugin)
 		}
 	}
-
-	CommandPrettyPrintln("Enabled plugin(s)")
 
 	return nil
 }
@@ -147,11 +150,13 @@ func pluginDisableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	if err := a.DisablePlugin(args[0]); err != nil {
-		return errors.New("Unable to disable plugin: " + args[0] + ". Error: " + err.Error())
+	for _, plugin := range args {
+		if err := a.DisablePlugin(plugin); err != nil {
+			CommandPrintErrorln("Unable to disable plugin: " + plugin + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Disabled plugin: " + plugin)
+		}
 	}
-
-	CommandPrettyPrintln("Disabled plugin")
 
 	return nil
 }
@@ -163,7 +168,10 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	pluginsResp, _ := a.GetPlugins()
+	pluginsResp, err := a.GetPlugins()
+	if err != nil {
+		return errors.New("Unable to list plugins. Error: " + err.Error())
+	}
 
 	if pluginsResp != nil {
 		CommandPrettyPrintln("Listing active plugins")
