@@ -12,12 +12,12 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 )
 
-type HclogAdapter struct {
+type hclogAdapter struct {
 	wrappedLogger *mlog.Logger
 	extrasKey     string
 }
 
-func (h *HclogAdapter) Trace(msg string, args ...interface{}) {
+func (h *hclogAdapter) Trace(msg string, args ...interface{}) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Debug(msg, mlog.String(h.extrasKey, extras))
@@ -26,7 +26,7 @@ func (h *HclogAdapter) Trace(msg string, args ...interface{}) {
 	}
 }
 
-func (h *HclogAdapter) Debug(msg string, args ...interface{}) {
+func (h *hclogAdapter) Debug(msg string, args ...interface{}) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Debug(msg, mlog.String(h.extrasKey, extras))
@@ -35,7 +35,7 @@ func (h *HclogAdapter) Debug(msg string, args ...interface{}) {
 	}
 }
 
-func (h *HclogAdapter) Info(msg string, args ...interface{}) {
+func (h *hclogAdapter) Info(msg string, args ...interface{}) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Info(msg, mlog.String(h.extrasKey, extras))
@@ -44,7 +44,7 @@ func (h *HclogAdapter) Info(msg string, args ...interface{}) {
 	}
 }
 
-func (h *HclogAdapter) Warn(msg string, args ...interface{}) {
+func (h *hclogAdapter) Warn(msg string, args ...interface{}) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Warn(msg, mlog.String(h.extrasKey, extras))
@@ -53,7 +53,7 @@ func (h *HclogAdapter) Warn(msg string, args ...interface{}) {
 	}
 }
 
-func (h *HclogAdapter) Error(msg string, args ...interface{}) {
+func (h *hclogAdapter) Error(msg string, args ...interface{}) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Error(msg, mlog.String(h.extrasKey, extras))
@@ -62,38 +62,38 @@ func (h *HclogAdapter) Error(msg string, args ...interface{}) {
 	}
 }
 
-func (h *HclogAdapter) IsTrace() bool {
+func (h *hclogAdapter) IsTrace() bool {
 	return false
 }
 
-func (h *HclogAdapter) IsDebug() bool {
+func (h *hclogAdapter) IsDebug() bool {
 	return true
 }
 
-func (h *HclogAdapter) IsInfo() bool {
+func (h *hclogAdapter) IsInfo() bool {
 	return true
 }
 
-func (h *HclogAdapter) IsWarn() bool {
+func (h *hclogAdapter) IsWarn() bool {
 	return true
 }
 
-func (h *HclogAdapter) IsError() bool {
+func (h *hclogAdapter) IsError() bool {
 	return true
 }
 
-func (h *HclogAdapter) With(args ...interface{}) hclog.Logger {
+func (h *hclogAdapter) With(args ...interface{}) hclog.Logger {
 	return h
 }
 
-func (h *HclogAdapter) Named(name string) hclog.Logger {
+func (h *hclogAdapter) Named(name string) hclog.Logger {
 	return h
 }
 
-func (h *HclogAdapter) ResetNamed(name string) hclog.Logger {
+func (h *hclogAdapter) ResetNamed(name string) hclog.Logger {
 	return h
 }
 
-func (h *HclogAdapter) StandardLogger(opts *hclog.StandardLoggerOptions) *log.Logger {
+func (h *hclogAdapter) StandardLogger(opts *hclog.StandardLoggerOptions) *log.Logger {
 	return h.wrappedLogger.StdLog()
 }

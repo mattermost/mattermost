@@ -22,15 +22,11 @@ func (rwc *rwc) Close() (err error) {
 	return
 }
 
-func NewReadWriteCloser(r io.ReadCloser, w io.WriteCloser) io.ReadWriteCloser {
-	return &rwc{r, w}
-}
-
-type RemoteIOReader struct {
+type remoteIOReader struct {
 	conn io.ReadWriteCloser
 }
 
-func (r *RemoteIOReader) Read(b []byte) (int, error) {
+func (r *remoteIOReader) Read(b []byte) (int, error) {
 	var buf [10]byte
 	n := binary.PutVarint(buf[:], int64(len(b)))
 	if _, err := r.conn.Write(buf[:n]); err != nil {
@@ -39,15 +35,15 @@ func (r *RemoteIOReader) Read(b []byte) (int, error) {
 	return r.conn.Read(b)
 }
 
-func (r *RemoteIOReader) Close() error {
+func (r *remoteIOReader) Close() error {
 	return r.conn.Close()
 }
 
-func ConnectIOReader(conn io.ReadWriteCloser) io.ReadCloser {
-	return &RemoteIOReader{conn}
+func connectIOReader(conn io.ReadWriteCloser) io.ReadCloser {
+	return &remoteIOReader{conn}
 }
 
-func ServeIOReader(r io.Reader, conn io.ReadWriteCloser) {
+func serveIOReader(r io.Reader, conn io.ReadWriteCloser) {
 	cr := bufio.NewReader(conn)
 	defer conn.Close()
 	buf := make([]byte, 32*1024)

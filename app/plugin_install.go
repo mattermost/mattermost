@@ -52,7 +52,7 @@ func (a *App) installPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppEr
 	}
 
 	if !plugin.IsValidId(manifest.Id) {
-		return nil, model.NewAppError("installPlugin", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": plugin.MinIdLength, "Max": plugin.MaxIdLength, "Regex": plugin.ValidId.String()}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("installPlugin", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": plugin.MinIdLength, "Max": plugin.MaxIdLength, "Regex": plugin.ValidIdRegex}, "", http.StatusBadRequest)
 	}
 
 	bundles, err := a.Plugins.Available()
