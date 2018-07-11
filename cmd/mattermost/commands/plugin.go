@@ -110,7 +110,7 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 		if err := a.RemovePlugin(plugin); err != nil {
 			CommandPrintErrorln("Unable to delete plugin: " + plugin + ". Error: " + err.Error())
 		} else {
-			CommandPrettyPrintln("Removed plugin: " + plugin)
+			CommandPrettyPrintln("Deleted plugin: " + plugin)
 		}
 	}
 
