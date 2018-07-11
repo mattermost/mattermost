@@ -42,7 +42,7 @@ func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.Stri
 	if autoResponderEnabled {
 		a.SetStatusOutOfOffice(user.Id)
 	} else if autoResponderDisabled {
-		a.SetStatusOnline(user.Id, "", true)
+		a.SetStatusOnline(user.Id, true)
 	}
 }
 

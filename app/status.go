@@ -177,7 +177,7 @@ func (a *App) SetStatusLastActivityAt(userId string, activityAt int64) {
 	a.SetStatusAwayIfNeeded(userId, false)
 }
 
-func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
+func (a *App) SetStatusOnline(userId string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
