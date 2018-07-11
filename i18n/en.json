@@ -88,10 +88,6 @@
     "translation": "Failed to add user to channel"
   },
   {
-    "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "Failed to update the channel"
-  },
-  {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
     "translation": "Failed to add user to channel because they have been removed from the team."
   },
@@ -194,6 +190,10 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Failed to update the channel"
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -312,12 +312,12 @@
     "translation": "Send an email invite to your Mattermost team"
   },
   {
-    "id": "api.command.invite_people.email_off",
-    "translation": "Email has not been configured, no invite(s) sent"
-  },
-  {
     "id": "api.command.invite_people.email_invitations_off",
     "translation": "Email invitations are disabled, no invite(s) sent"
+  },
+  {
+    "id": "api.command.invite_people.email_off",
+    "translation": "Email has not been configured, no invite(s) sent"
   },
   {
     "id": "api.command.invite_people.fail",
@@ -583,6 +583,10 @@
     "translation": "message"
   },
   {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to create a new group message."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Open the Mattermost help page"
   },
@@ -631,10 +635,6 @@
     "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
   },
   {
-    "id": "api.command_invite_people.permission.app_error",
-    "translation": "You don't have permission to invite new users to this server."
-  },
-  {
     "id": "api.command_invite.private_channel.app_error",
     "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
   },
@@ -645,6 +645,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} is already in the channel."
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "You don't have permission to invite new users to this server."
   },
   {
     "id": "api.command_join.desc",
@@ -737,6 +741,10 @@
   {
     "id": "api.command_msg.name",
     "translation": "message"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to direct message this user."
   },
   {
     "id": "api.command_mute.desc",
@@ -835,16 +843,8 @@
     "translation": "You do not have the appropriate permissions to remove the member."
   },
   {
-    "id": "api.command_msg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to direct message this user."
-  },
-  {
     "id": "api.command_remove.user_not_in_channel",
     "translation": "{{.Username}} is not a member of this channel."
-  },
-  {
-    "id": "api.command_groupmsg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to create a new group message."
   },
   {
     "id": "api.command_search.desc",
@@ -1619,6 +1619,10 @@
     "translation": "Malformed request: filesize field is not present."
   },
   {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Email invitations are disabled."
+  },
+  {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
   },
@@ -1629,10 +1633,6 @@
   {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "No one to invite."
-  },
-  {
-    "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Email invitations are disabled."
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
