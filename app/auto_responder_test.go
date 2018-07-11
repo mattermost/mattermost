@@ -18,7 +18,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	user := th.CreateUser()
 	defer th.App.PermanentDeleteUser(user)
 
-	th.App.SetStatusOnline(user.Id, "", true)
+	th.App.SetStatusOnline(user.Id, true)
 
 	patch := &model.UserPatch{}
 	patch.NotifyProps = make(map[string]string)
@@ -57,7 +57,7 @@ func TestDisableAutoResponder(t *testing.T) {
 	user := th.CreateUser()
 	defer th.App.PermanentDeleteUser(user)
 
-	th.App.SetStatusOnline(user.Id, "", true)
+	th.App.SetStatusOnline(user.Id, true)
 
 	patch := &model.UserPatch{}
 	patch.NotifyProps = make(map[string]string)
