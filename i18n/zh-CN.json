@@ -192,6 +192,10 @@
     "translation": "%v 已退出该频道。"
   },
   {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "更新频道成员失败"
+  },
+  {
     "id": "api.channel.post_channel_privacy_message.error",
     "translation": "发布频道隐私更新消息失败。"
   },
@@ -306,6 +310,10 @@
   {
     "id": "api.command.invite_people.desc",
     "translation": "发送一封邀请邮件给你的Mattermost团队"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Email invitations are disabled, no invite(s) sent"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -575,6 +583,10 @@
     "translation": "消息"
   },
   {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to create a new group message."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "打开 Mattermost 帮助页面"
   },
@@ -633,6 +645,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} 已在频道。"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "You don't have permission to invite new users to this server."
   },
   {
     "id": "api.command_join.desc",
@@ -725,6 +741,10 @@
   {
     "id": "api.command_msg.name",
     "translation": "消息"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to direct message this user."
   },
   {
     "id": "api.command_mute.desc",
@@ -1597,6 +1617,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "错误请求：缺少 filesize 字段。"
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Email invitations are disabled."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -3784,7 +3808,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "无效的自定义 URL 方案 {{.Scheme}}。自定义 URL 方案必须以字母开头并且只能含有字母、数字、加号 (+)、句号 (.) 以及横杠 (-)。"
+    "translation": "无效的自定义 URL 方案 {{.Scheme}}。自定义 URL 方案必须以字母开头并且只能含有字母、数字以及横杠 (-)。"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",

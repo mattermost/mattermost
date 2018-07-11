@@ -192,6 +192,10 @@
     "translation": "%v deixou o canal."
   },
   {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Falha ao atualizar o canal"
+  },
+  {
     "id": "api.channel.post_channel_privacy_message.error",
     "translation": "Falha ao publicar a mensagem de atualização de privacidade do canal."
   },
@@ -306,6 +310,10 @@
   {
     "id": "api.command.invite_people.desc",
     "translation": "Enviar um email para convidar sua equipe para Mattermost"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Convites por email estão desativados, nenhum convite enviado"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -575,6 +583,10 @@
     "translation": "mensagem"
   },
   {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "Você não tem a permissão apropriada para criar um novo grupo de mensagens."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Abrir a página de ajuda do Mattermost"
   },
@@ -633,6 +645,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} já está no canal."
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Você não tem permissão para convidar um novo usuário para este servidor."
   },
   {
     "id": "api.command_join.desc",
@@ -725,6 +741,10 @@
   {
     "id": "api.command_msg.name",
     "translation": "mensagem"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Você não tem a permissão apropriada para enviar uma mensagem direta a este usuário."
   },
   {
     "id": "api.command_mute.desc",
@@ -1597,6 +1617,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "Requisição mal formada: campo filesize não está presente."
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Convites por email estão desativados."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -3784,7 +3808,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "O esquema de URL personalizado {{.Scheme}} é inválido. Os esquemas de URL personalizados devem começar com uma letra e conter apenas letras, números, mais (+), ponto (.) e hífen (-)."
+    "translation": "O esquema de URL personalizado {{.Scheme}} é inválido. Os esquemas de URL personalizados devem começar com uma letra e conter apenas letras, números e hífen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
