@@ -34,7 +34,7 @@ func init() {
 }
 
 func TestHTMLTemplateWatcher(t *testing.T) {
-	TranslationsPreInit()
+	TranslationsPreInit("")
 
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -69,7 +69,7 @@ func TestHTMLTemplateWatcher(t *testing.T) {
 }
 
 func TestHTMLTemplateWatcher_BadDirectory(t *testing.T) {
-	TranslationsPreInit()
+	TranslationsPreInit("")
 	watcher, err := NewHTMLTemplateWatcher("notarealdirectory")
 	assert.Nil(t, watcher)
 	assert.Error(t, err)

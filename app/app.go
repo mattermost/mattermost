@@ -96,6 +96,10 @@ type App struct {
 	limitedClientConfig map[string]string
 	diagnosticId        string
 
+	I18nOverride   string
+	MailOverride   string
+	ClientOverride string
+
 	phase2PermissionsMigrationComplete bool
 }
 
@@ -133,7 +137,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	if utils.T == nil {
-		if err := utils.TranslationsPreInit(); err != nil {
+		if err := utils.TranslationsPreInit(app.I18nOverride); err != nil {
 			return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 		}
 	}
@@ -199,10 +203,18 @@ func New(options ...Option) (outApp *App, outErr error) {
 		}
 	}
 
-	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
+	if app.MailOverride == "" {
+		if htmlTemplateWatcher, err := utils.NewHTMLEmbededTemplateWatcher(); err != nil {
+			mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
+		} else {
+			app.htmlTemplateWatcher = htmlTemplateWatcher
+		}
 	} else {
-		app.htmlTemplateWatcher = htmlTemplateWatcher
+		if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
+			mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
+		} else {
+			app.htmlTemplateWatcher = htmlTemplateWatcher
+		}
 	}
 
 	app.Srv.Store = app.newStore()

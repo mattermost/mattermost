@@ -7,11 +7,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/GeertJohan/go.rice"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -22,14 +25,20 @@ var settings model.LocalizationSettings
 
 // this functions loads translations from filesystem
 // and assign english while loading server config
-func TranslationsPreInit() error {
+func TranslationsPreInit(override string) error {
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = TfuncWithFallback("en")
 	TDefault = TfuncWithFallback("en")
 
-	if err := InitTranslationsWithDir("i18n"); err != nil {
-		return err
+	if override == "" {
+		if err := InitStaticTranslations(); err != nil {
+			return err
+		}
+	} else {
+		if err := InitTranslationsWithDir(override); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -43,19 +52,35 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 	return err
 }
 
-func InitTranslationsWithDir(dir string) error {
-	i18nDirectory, found := FindDir(dir)
-	if !found {
-		return fmt.Errorf("Unable to find i18n directory")
-	}
+func InitStaticTranslations() error {
+	box := GetI18nBox()
+	box.Walk("", func(path string, info os.FileInfo, err error) error {
+		if filepath.Ext(path) == ".json" {
+			locales[strings.Split(path, ".")[0]] = path
 
-	files, _ := ioutil.ReadDir(i18nDirectory)
+			bytes, err := box.Bytes(path)
+			if err != nil {
+				return err
+			}
+
+			if err := i18n.ParseTranslationFileBytes(path, bytes); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return nil
+}
+
+func InitTranslationsWithDir(dir string) error {
+	files, _ := ioutil.ReadDir(dir)
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
-			locales[strings.Split(filename, ".")[0]] = filepath.Join(i18nDirectory, filename)
+			locales[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
 
-			if err := i18n.LoadTranslationFile(filepath.Join(i18nDirectory, filename)); err != nil {
+			if err := i18n.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
 				return err
 			}
 		}
@@ -128,4 +153,8 @@ func TfuncWithFallback(pref string) i18n.TranslateFunc {
 		t, _ := i18n.Tfunc(model.DEFAULT_LOCALE)
 		return t(translationID, args...)
 	}
+}
+
+func GetI18nBox() *rice.Box {
+	return rice.MustFindBox("../i18n")
 }

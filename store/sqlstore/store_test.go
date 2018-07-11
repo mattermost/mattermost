@@ -108,7 +108,7 @@ func TestMain(m *testing.M) {
 		EnableFile:    false,
 	}))
 
-	utils.TranslationsPreInit()
+	utils.TranslationsPreInit("")
 
 	status := 0
 

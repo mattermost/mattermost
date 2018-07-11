@@ -39,3 +39,11 @@ func ConfigFile(file string) Option {
 func DisableConfigWatch(a *App) {
 	a.disableConfigWatch = true
 }
+
+func StaticsOverride(i18nOverride, mailOverride, clientOverride string) Option {
+	return func(a *App) {
+		a.I18nOverride = i18nOverride
+		a.MailOverride = mailOverride
+		a.ClientOverride = clientOverride
+	}
+}

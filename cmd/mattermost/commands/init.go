@@ -16,7 +16,16 @@ func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 		return nil, err
 	}
 
-	a, err := InitDBCommandContext(config)
+	i18nOverride, _ := command.Flags().GetString("i18n-override")
+	mailOverride, _ := command.Flags().GetString("mail-templates-override")
+	clientOverride, _ := command.Flags().GetString("client-override")
+
+	a, err := InitDBCommandContext(
+		config,
+		i18nOverride,
+		mailOverride,
+		clientOverride,
+	)
 	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
 
 	if err != nil {
@@ -30,13 +39,13 @@ func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	return a, nil
 }
 
-func InitDBCommandContext(configFileLocation string) (*app.App, error) {
-	if err := utils.TranslationsPreInit(); err != nil {
+func InitDBCommandContext(configFileLocation, i18nOverride, mailOverride, clientOverride string) (*app.App, error) {
+	if err := utils.TranslationsPreInit(i18nOverride); err != nil {
 		return nil, err
 	}
 	model.AppErrorInit(utils.T)
 
-	a, err := app.New(app.ConfigFile(configFileLocation))
+	a, err := app.New(app.ConfigFile(configFileLocation), app.StaticsOverride(i18nOverride, mailOverride, clientOverride))
 	if err != nil {
 		return nil, err
 	}

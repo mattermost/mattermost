@@ -22,6 +22,9 @@ var RootCmd = &cobra.Command{
 
 func init() {
 	RootCmd.PersistentFlags().StringP("config", "c", "config.json", "Configuration file to use.")
+	RootCmd.PersistentFlags().StringP("i18n-override", "", "", "Set custom i18n files.")
+	RootCmd.PersistentFlags().StringP("mail-templates-override", "", "", "Set custom mail templates files.")
+	RootCmd.PersistentFlags().StringP("client-override", "", "", "Set custom client files.")
 	RootCmd.PersistentFlags().Bool("disableconfigwatch", false, "When set config.json will not be loaded from disk when the file is changed.")
 	RootCmd.PersistentFlags().Bool("platform", false, "This flag signifies that the user tried to start the command from the platform binary, so we can log a mssage")
 	RootCmd.PersistentFlags().MarkHidden("platform")

@@ -37,17 +37,17 @@ func StopTestStore() {
 }
 
 type TestHelper struct {
-	App             *app.App
+	App *app.App
 
-	BasicUser       *model.User
-	BasicChannel    *model.Channel
-	BasicTeam       *model.Team
+	BasicUser    *model.User
+	BasicChannel *model.Channel
+	BasicTeam    *model.Team
 
-	SystemAdminUser   *model.User
+	SystemAdminUser *model.User
 }
 
 func Setup() *TestHelper {
-	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch)
+	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch, app.StaticsOverride("", "", "./client"))
 	if err != nil {
 		panic(err)
 	}
@@ -132,7 +132,7 @@ func TestMain(m *testing.M) {
 		EnableFile:    false,
 	}))
 
-	utils.TranslationsPreInit()
+	utils.TranslationsPreInit("")
 
 	status := 0
 

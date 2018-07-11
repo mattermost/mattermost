@@ -5,20 +5,42 @@ build-linux:
 	@echo Build Linux amd64
 	env GOOS=linux GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
 
-build-osx: 
+build-osx:
 	@echo Build OSX amd64
 	env GOOS=darwin GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
 
-build-windows: 
+build-windows:
 	@echo Build Windows amd64
 	env GOOS=windows GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
 
+build-linux-embedded-static-files: build-client-for-embedded-static-files
+	@echo Build Linux amd64
+	rice embed-go -i ./utils -i ./web -i ./app
+	env GOOS=linux GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+
+build-osx-embedded-static-files: build-client-for-embedded-static-files
+	@echo Build OSX amd64
+	rice embed-go -i ./utils -i ./web -i ./app
+	env GOOS=darwin GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+
+build-windows-embedded-static-files: build-client-for-embedded-static-files
+	@echo Build Windows amd64
+	rice embed-go -i ./utils -i ./web -i ./app
+	env GOOS=windows GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+
 build: build-linux build-windows build-osx
+
+build-embedded-static-files: build-linux-embedded-static-files build-windows-embedded-static-files build-osx-embedded-static-files
 
 build-client:
 	@echo Building mattermost web app
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
+
+build-client-for-embedded-static-files:
+	@echo Building mattermost web app
+
+	cd $(BUILD_WEBAPP_DIR) && rm -rf dist/* && $(MAKE) build
 
 package:
 	@ echo Packaging mattermost

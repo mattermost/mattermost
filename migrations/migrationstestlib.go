@@ -81,6 +81,8 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		options = append(options, app.StoreOverride(testStore))
 	}
 
+	options = append(options, app.StaticsOverride("", "", "./client"))
+
 	a, err := app.New(options...)
 	if err != nil {
 		panic(err)

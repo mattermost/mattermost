@@ -49,13 +49,16 @@ func serverCmdF(command *cobra.Command, args []string) error {
 
 	disableConfigWatch, _ := command.Flags().GetBool("disableconfigwatch")
 	usedPlatform, _ := command.Flags().GetBool("platform")
+	i18nOverride, _ := command.Flags().GetString("i18n-override")
+	mailOverride, _ := command.Flags().GetString("mail-templates-override")
+	clientOverride, _ := command.Flags().GetString("client-override")
 
 	interruptChan := make(chan os.Signal, 1)
-	return runServer(config, disableConfigWatch, usedPlatform, interruptChan)
+	return runServer(config, disableConfigWatch, usedPlatform, interruptChan, i18nOverride, mailOverride, clientOverride)
 }
 
-func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
-	options := []app.Option{app.ConfigFile(configFileLocation)}
+func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal, i18nOverride, mailOverride, clientOverride string) error {
+	options := []app.Option{app.ConfigFile(configFileLocation), app.StaticsOverride(i18nOverride, mailOverride, clientOverride)}
 	if disableConfigWatch {
 		options = append(options, app.DisableConfigWatch)
 	}

@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"strings"
 
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
@@ -736,10 +737,20 @@ func getFont(initialFont string) (*truetype.Font, error) {
 		initialFont = "nunito-bold.ttf"
 	}
 
-	fontDir, _ := utils.FindDir("fonts")
-	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
-	if err != nil {
-		return nil, err
+	box := rice.MustFindBox("../fonts/")
+	fontFile, err := box.Open(initialFont)
+	var fontBytes []byte
+	if err == nil {
+		fontBytes, err = ioutil.ReadAll(fontFile)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		fontDir, _ := utils.FindDir("fonts")
+		fontBytes, err = ioutil.ReadFile(filepath.Join(fontDir, initialFont))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return freetype.ParseFont(fontBytes)

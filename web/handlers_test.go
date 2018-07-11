@@ -18,7 +18,7 @@ func handlerForTest(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
-	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch)
+	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch, app.StaticsOverride("", "", "./client"))
 	defer a.Shutdown()
 
 	web := NewWeb(a, a.Srv.Router)

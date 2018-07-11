@@ -52,7 +52,7 @@ func TestRunServerSuccess(t *testing.T) {
 	th := SetupServerTest()
 	defer th.TearDownServerTest()
 
-	err := runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	err := runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan, "", "", "")
 	require.NoError(t, err)
 }
 
@@ -68,7 +68,7 @@ func TestRunServerInvalidConfigFile(t *testing.T) {
 	os.Chmod(unreadableConfigFile.Name(), 0200)
 	defer os.Remove(unreadableConfigFile.Name())
 
-	err = runServer(unreadableConfigFile.Name(), th.disableConfigWatch, false, th.interruptChan)
+	err = runServer(unreadableConfigFile.Name(), th.disableConfigWatch, false, th.interruptChan, "", "", "")
 	require.Error(t, err)
 }
 
@@ -114,7 +114,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	}(socketReader)
 
 	// Start and stop the server
-	err = runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	err = runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan, "", "", "")
 	require.NoError(t, err)
 
 	// Ensure the notification has been sent on the socket and is correct
@@ -131,6 +131,6 @@ func TestRunServerNoSystemd(t *testing.T) {
 	os.Unsetenv("NOTIFY_SOCKET")
 	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
 
-	err := runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	err := runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan, "", "", "")
 	require.NoError(t, err)
 }
