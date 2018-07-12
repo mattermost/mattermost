@@ -41,14 +41,6 @@ func (w *httpResponseWriterRPCServer) SyncHeader(args http.Header, reply *struct
 	return nil
 }
 
-// func ServeHTTPResponseWriter(w http.ResponseWriter, conn io.ReadWriteCloser) {
-// 	server := rpc.NewServer()
-// 	server.Register(&httpResponseWriterRPCServer{
-// 		w: w,
-// 	})
-// 	server.ServeConn(conn)
-// }
-
 type httpResponseWriterRPCClient struct {
 	client *rpc.Client
 	header http.Header
