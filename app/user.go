@@ -1309,16 +1309,28 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 			res, err := a.FileExists(info.Path)
 
 			if err != nil {
-				mlog.Warn(fmt.Sprintf("Error checking existence of file '%s': %s", info.Path, err))
+				mlog.Warn(
+					"Error checking existence of file",
+					mlog.String("path", info.Path),
+					mlog.Err(err),
+				)
 				continue
 			}
 
-			if res {
-				a.RemoveFile(info.Path)
-			} else {
-				mlog.Warn(fmt.Sprintf("Unable to remove file '%s': %s", info.Path, err))
+			if !res {
+				mlog.Warn("File not found", mlog.String("path", info.Path))
+				continue
 			}
 
+			err = a.RemoveFile(info.Path)
+
+			if err != nil {
+				mlog.Warn(
+					"Unable to remove file",
+					mlog.String("path", info.Path),
+					mlog.Err(err),
+				)
+			}
 		}
 	}
 
