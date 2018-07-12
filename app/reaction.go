@@ -4,6 +4,8 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -11,6 +13,24 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
 		return nil, err
+	}
+
+	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly {
+		var channel *model.Channel
+		if channel, err = a.GetChannel(post.ChannelId); err != nil {
+			return nil, err
+		}
+
+		if channel.Name == model.DEFAULT_CHANNEL {
+			var user *model.User
+			if user, err = a.GetUser(reaction.UserId); err != nil {
+				return nil, err
+			}
+
+			if !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+				return nil, model.NewAppError("saveReactionForPost", "api.reaction.town_square_read_only", nil, "", http.StatusForbidden)
+			}
+		}
 	}
 
 	if result := <-a.Srv.Store.Reaction().Save(reaction); result.Err != nil {
@@ -38,6 +58,24 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
 		return err
+	}
+
+	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly {
+		var channel *model.Channel
+		if channel, err = a.GetChannel(post.ChannelId); err != nil {
+			return err
+		}
+
+		if channel.Name == model.DEFAULT_CHANNEL {
+			var user *model.User
+			if user, err = a.GetUser(reaction.UserId); err != nil {
+				return err
+			}
+
+			if !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+				return model.NewAppError("deleteReactionForPost", "api.reaction.town_square_read_only", nil, "", http.StatusForbidden)
+			}
+		}
 	}
 
 	hasReactions := true
