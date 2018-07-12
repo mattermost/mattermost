@@ -19,7 +19,7 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		reaction = result.Data.(*model.Reaction)
 
 		a.Go(func() {
-			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post)
+			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
 		})
 
 		return reaction, nil
@@ -40,18 +40,23 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		return err
 	}
 
+	hasReactions := true
+	if reactions, _ := a.GetReactionsForPost(post.Id); len(reactions) <= 1 {
+		hasReactions = false
+	}
+
 	if result := <-a.Srv.Store.Reaction().Delete(reaction); result.Err != nil {
 		return result.Err
 	} else {
 		a.Go(func() {
-			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
+			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
 		})
 	}
 
 	return nil
 }
 
-func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
+func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post, hasReactions bool) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
 	message.Add("reaction", reaction.ToJson())
@@ -59,7 +64,7 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 
 	// The post is always modified since the UpdateAt always changes
 	a.InvalidateCacheForChannelPosts(post.ChannelId)
-	post.HasReactions = true
+	post.HasReactions = hasReactions
 	post.UpdateAt = model.GetMillis()
 	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
 	umessage.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
