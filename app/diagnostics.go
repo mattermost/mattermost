@@ -44,6 +44,7 @@ const (
 	TRACK_CONFIG_DATA_RETENTION = "config_data_retention"
 	TRACK_CONFIG_MESSAGE_EXPORT = "config_message_export"
 	TRACK_CONFIG_DISPLAY        = "config_display"
+	TRACK_CONFIG_SIDEBAR        = "config_sidebar"
 	TRACK_CONFIG_TIMEZONE       = "config_timezone"
 
 	TRACK_ACTIVITY = "activity"
@@ -540,6 +541,10 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(*cfg.DisplaySettings.CustomUrlSchemes) != 0,
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_SIDEBAR, map[string]interface{}{
+		"experimental_channel_organization": *cfg.ServiceSettings.ExperimentalChannelOrganization,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
