@@ -1097,13 +1097,9 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	redirectTo := r.URL.Query().Get("redirect_to")
+	extensionID := r.URL.Query().Get("extension_id")
 	relayProps := map[string]string{}
 	relayState := ""
-
-	if action == model.OAUTH_ACTION_CLIENT {
-		loginWithFaml(c, w, r)
-		return
-	}
 
 	if len(action) != 0 {
 		relayProps["team_id"] = teamId
@@ -1111,6 +1107,10 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
 			relayProps["email"] = r.URL.Query().Get("email")
 		}
+	}
+
+	if len(extensionID) != 0 {
+		relayProps["extension_id"] = extensionID
 	}
 
 	if len(redirectTo) != 0 {
@@ -1159,8 +1159,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		if action == model.OAUTH_ACTION_MOBILE {
 			err.Translate(c.T)
 			w.Write([]byte(err.ToJson()))
-		} else if action == model.OAUTH_ACTION_CLIENT {
-			// TODO: c.Session.Token
 		} else {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
@@ -1209,62 +1207,52 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if action == model.OAUTH_ACTION_MOBILE {
 			ReturnStatusOK(w)
+		} else if action == model.OAUTH_ACTION_CLIENT {
+			returnTokenToClient(relayProps["extension_id"], c, w)
 		} else {
 			http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
 		}
 	}
 }
 
-// This bypasses loginWithSaml and completeWithSaml for local testing
-func loginWithFaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	action := r.URL.Query().Get("action")
-
-	email := r.URL.Query().Get("email")
-
-	// TODO: keep comment out for now, will be moved to completeSaml
-	user, err := c.App.GetUserByEmail(email)
-	if err != nil {
-		c.Err = err
-		return
+func returnTokenToClient(extensionID string, c *Context, w http.ResponseWriter) {
+	var t *template.Template
+	var err error
+	if len(extensionID) != 0 {
+		t = template.New("complete_saml_extension_body")
+		t, err = t.ParseFiles("templates/complete_saml_extension_body.html")
 	} else {
-		sanitizeProfile(c, user)
+		t = template.New("complete_saml_body")
+		t, err = t.ParseFiles("templates/complete_saml_body.html")
 	}
-	doLogin(c, w, r, user, "")
 
-	if action == model.OAUTH_ACTION_MOBILE {
-		ReturnStatusOK(w)
-	} else if action == model.OAUTH_ACTION_CLIENT {
-		t := template.New("complete_saml_body")
-		t, err := t.ParseFiles("templates/complete_saml_body.html")
-		if err != nil {
-			c.Err = model.NewAppError("completeSaml", "api.user.saml.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		c.Err = model.NewAppError("completeSaml", "api.user.saml.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusOK)
 
-		var errMessage string
-		if len(c.Session.Token) == 0 {
-			errMessage = "Failed loging"
-		}
+	var errMessage string
+	if len(c.Session.Token) == 0 {
+		loginError := model.NewAppError("completeSaml", "api.user.saml.app_error", nil, "", http.StatusInternalServerError)
+		errMessage = loginError.Message
+	}
 
-		data := struct {
-			Token string
-			Error string
-		}{
-			c.Session.Token,
-			errMessage,
-		}
+	data := struct {
+		ExtensionID string
+		Token       string
+		Error       string
+	}{
+		extensionID,
+		c.Session.Token,
+		errMessage,
+	}
 
-		if err := t.Execute(w, data); err != nil {
-			c.Err = model.NewAppError("completeSaml", "api.user.saml.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		// TODO: This error will not be neccessary when we move to loginSaml and completeSaml
-		c.Err = model.NewAppError("stupidsaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "THIS IS A FAKE ERROR", http.StatusConflict)
-		http.Redirect(w, r, "https://google.com", http.StatusFound)
+	if err := t.Execute(w, data); err != nil {
+		c.Err = model.NewAppError("completeSaml", "api.user.saml.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 

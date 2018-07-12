@@ -7,11 +7,10 @@
 				window.opener.postMessage({
 					value: {{.Token}},
 					error: {{.Error}}
-				}, "*");
+				}, "*"); // TODO: targetOrigin should accept specific domains
+                // For embedded use cases,
+                // Chrome extension: check complete_saml_extension_body
 			});
-
-			// TODO: if tabs functionality works
-			// window.close();
 		</script>
 	</head>
 	<body>

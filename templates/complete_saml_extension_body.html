@@ -1,0 +1,26 @@
+{{define "complete_saml_extension_body"}}
+
+<html>
+<head>
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+            var extensionId = {{.ExtensionID}};
+
+            chrome.runtime.sendMessage(
+                extensionId,
+                {
+                    value: {{.Token}},
+                    error: {{.Error}}
+                },
+                function(response) {
+                }
+            );
+        });
+    </script>
+</head>
+<body>
+Login Successful
+</body>
+</html>
+
+{{end}}

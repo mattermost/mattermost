@@ -3027,6 +3027,10 @@
     "translation": "SAML 2.0 is not configured or supported on this server."
   },
   {
+    "id": "api.user.saml.app_error",
+    "translation": "Unable to process SAML login request."
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Failed to send email change notification email successfully"
   },
