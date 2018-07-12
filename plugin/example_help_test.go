@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 )
 
-type MyPlugin struct {
+type HelpPlugin struct {
 	plugin.MattermostPlugin
 
 	TeamName    string
@@ -16,7 +16,7 @@ type MyPlugin struct {
 	channelId string
 }
 
-func (p *MyPlugin) OnConfigurationChange() error {
+func (p *HelpPlugin) OnConfigurationChange() error {
 	// Reuse the default implementation of OnConfigurationChange to automatically load the
 	// required TeamName and ChannelName.
 	if err := p.MattermostPlugin.OnConfigurationChange(); err != nil {
@@ -41,7 +41,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
+func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	// Ignore posts not in the configured channel
 	if post.ChannelId != p.channelId {
 		return
@@ -66,6 +66,6 @@ func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	})
 }
 
-func Example() {
-	plugin.ClientMain(&MyPlugin{})
+func Example_helpPlugin() {
+	plugin.ClientMain(&HelpPlugin{})
 }
