@@ -250,6 +250,7 @@ func (a *App) trackConfig() {
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
 		"experimental_limit_client_config":                        *cfg.ServiceSettings.ExperimentalLimitClientConfig,
+		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
