@@ -192,6 +192,10 @@
     "translation": "%v がチャンネルから脱退しました。"
   },
   {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "チャンネルメンバーを更新できませんでした"
+  },
+  {
     "id": "api.channel.post_channel_privacy_message.error",
     "translation": "チャンネル可視性更新メッセージを投稿できませんでした。"
   },
@@ -306,6 +310,10 @@
   {
     "id": "api.command.invite_people.desc",
     "translation": "あなたのMattermostチームに招待の電子メールを送る"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Email invitations are disabled, no invite(s) sent"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -575,6 +583,10 @@
     "translation": "メッセージ"
   },
   {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to create a new group message."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Mattermostヘルプページを開く"
   },
@@ -633,6 +645,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} は既にチャンネルに追加されています。"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "You don't have permission to invite new users to this server."
   },
   {
     "id": "api.command_join.desc",
@@ -725,6 +741,10 @@
   {
     "id": "api.command_msg.name",
     "translation": "メッセージ"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to direct message this user."
   },
   {
     "id": "api.command_mute.desc",
@@ -1597,6 +1617,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "不正なリクエスト: ファイルサイズ項目が存在しません。"
+  },
+  {
+    "id": "api.team.invite_members.disabled.app_error",
+    "translation": "Email invitations are disabled."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
