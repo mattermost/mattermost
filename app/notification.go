@@ -694,24 +694,13 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 
 func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, channelName string, sender *model.User, senderName string,
 	explicitMention, channelWideMention bool, replyToThreadType string) *model.AppError {
-	contentsConfig := *a.Config().EmailSettings.PushNotificationContents
+	cfg := a.Config()
+	contentsConfig := *cfg.EmailSettings.PushNotificationContents
+	teammateNameConfig := *cfg.TeamSettings.TeammateNameDisplay
 	sessions, err := a.getMobileAppSessions(user.Id)
+	sentBySystem := senderName == utils.T("system.message.name")
 	if err != nil {
 		return err
-	}
-
-	if channel.Type == model.CHANNEL_DIRECT {
-		if senderName == utils.T("system.message.name") {
-			channelName = senderName
-		} else {
-			preference, prefError := a.GetPreferenceByCategoryAndNameForUser(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format")
-			if prefError != nil {
-				channelName = fmt.Sprintf("@%v", senderName)
-			} else {
-				channelName = fmt.Sprintf("@%v", sender.GetDisplayName(preference.Value))
-				senderName = channelName
-			}
-		}
 	}
 
 	msg := model.PushNotification{}
@@ -731,15 +720,28 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	msg.RootId = post.RootId
 	msg.SenderId = post.UserId
 
+	if !sentBySystem {
+		senderName = sender.GetDisplayName(teammateNameConfig)
+		preference, prefError := a.GetPreferenceByCategoryAndNameForUser(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format")
+		if prefError == nil && preference.Value != teammateNameConfig {
+			senderName = sender.GetDisplayName(preference.Value)
+		}
+	}
+
+	if channel.Type == model.CHANNEL_DIRECT {
+		channelName = fmt.Sprintf("@%v", senderName)
+	}
+
 	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
 		msg.ChannelName = channelName
 	}
 
-	if ou, ok := post.Props["override_username"].(string); ok {
+	if ou, ok := post.Props["override_username"].(string); ok && cfg.ServiceSettings.EnablePostUsernameOverride {
 		msg.OverrideUsername = ou
+		senderName = ou
 	}
 
-	if oi, ok := post.Props["override_icon_url"].(string); ok {
+	if oi, ok := post.Props["override_icon_url"].(string); ok && cfg.ServiceSettings.EnablePostIconOverride {
 		msg.OverrideIconUrl = oi
 	}
 

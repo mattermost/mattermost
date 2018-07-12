@@ -26,8 +26,10 @@ func TestCreateOAuthApp(t *testing.T) {
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
@@ -97,8 +99,10 @@ func TestUpdateOAuthApp(t *testing.T) {
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
@@ -212,8 +216,10 @@ func TestGetOAuthApps(t *testing.T) {
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
@@ -284,8 +290,10 @@ func TestGetOAuthApp(t *testing.T) {
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
@@ -358,8 +366,10 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
@@ -432,8 +442,10 @@ func TestDeleteOAuthApp(t *testing.T) {
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
@@ -500,8 +512,10 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	AdminClient := th.SystemAdminClient
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
 	}()
 
 	// Grant permission to regular users.
@@ -630,6 +644,11 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
+
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -957,6 +976,23 @@ func TestOAuthComplete(t *testing.T) {
 	defer th.TearDown()
 
 	Client := th.Client
+
+	gitLabSettingsEnable := th.App.Config().GitLabSettings.Enable
+	gitLabSettingsAuthEndpoint := th.App.Config().GitLabSettings.AuthEndpoint
+	gitLabSettingsId := th.App.Config().GitLabSettings.Id
+	gitLabSettingsSecret := th.App.Config().GitLabSettings.Secret
+	gitLabSettingsTokenEndpoint := th.App.Config().GitLabSettings.TokenEndpoint
+	gitLabSettingsUserApiEndpoint := th.App.Config().GitLabSettings.UserApiEndpoint
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = gitLabSettingsEnable })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.AuthEndpoint = gitLabSettingsAuthEndpoint })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Id = gitLabSettingsId })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Secret = gitLabSettingsSecret })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.TokenEndpoint = gitLabSettingsTokenEndpoint })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.UserApiEndpoint = gitLabSettingsUserApiEndpoint })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
+	}()
 
 	r, err := HttpGet(Client.Url+"/login/gitlab/complete?code=123", Client.HttpClient, "", true)
 	assert.NotNil(t, err)
