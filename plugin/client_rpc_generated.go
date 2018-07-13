@@ -1191,6 +1191,7 @@ func (s *APIRPCServer) GetChannel(args *GetChannelArgs, returns *GetChannelRetur
 type GetChannelByNameArgs struct {
 	A string
 	B string
+	C model.GetChannelByNameOptions
 }
 
 type GetChannelByNameReturns struct {
@@ -1198,8 +1199,8 @@ type GetChannelByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *APIRPCClient) GetChannelByName(name, teamId string) (*model.Channel, *model.AppError) {
-	_args := &GetChannelByNameArgs{name, teamId}
+func (g *APIRPCClient) GetChannelByName(name, teamId string, options model.GetChannelByNameOptions) (*model.Channel, *model.AppError) {
+	_args := &GetChannelByNameArgs{name, teamId, options}
 	_returns := &GetChannelByNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByName", _args, _returns); err != nil {
 		g.log.Error("RPC call to GetChannelByName API failed.", mlog.Err(err))
@@ -1209,9 +1210,9 @@ func (g *APIRPCClient) GetChannelByName(name, teamId string) (*model.Channel, *m
 
 func (s *APIRPCServer) GetChannelByName(args *GetChannelByNameArgs, returns *GetChannelByNameReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelByName(name, teamId string) (*model.Channel, *model.AppError)
+		GetChannelByName(name, teamId string, options model.GetChannelByNameOptions) (*model.Channel, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetChannelByName(args.A, args.B)
+		returns.A, returns.B = hook.GetChannelByName(args.A, args.B, args.C)
 	} else {
 		return fmt.Errorf("API GetChannelByName called but not implemented.")
 	}
