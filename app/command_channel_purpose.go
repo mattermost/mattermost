@@ -39,11 +39,11 @@ func (me *PurposeProvider) DoCommand(a *App, args *model.CommandArgs, message st
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if channel.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES, false) {
+	if channel.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES, false) {
+	if channel.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

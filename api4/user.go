@@ -343,7 +343,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		profiles, err = c.App.GetUsersWithoutTeamPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(notInChannelId) > 0 {
-		if !c.App.SessionHasPermissionToChannel(c.Session, notInChannelId, model.PERMISSION_READ_CHANNEL, true) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, notInChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
@@ -380,7 +380,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		}
 	} else if len(inChannelId) > 0 {
-		if !c.App.SessionHasPermissionToChannel(c.Session, inChannelId, model.PERMISSION_READ_CHANNEL, true) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, inChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
@@ -464,12 +464,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(c.Session, props.InChannelId, model.PERMISSION_READ_CHANNEL, true) {
+	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(c.Session, props.InChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(c.Session, props.NotInChannelId, model.PERMISSION_READ_CHANNEL, true) {
+	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(c.Session, props.NotInChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -526,7 +526,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(channelId) > 0 {
-		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL, true) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
