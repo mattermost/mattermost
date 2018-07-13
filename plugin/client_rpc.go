@@ -22,9 +22,9 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-var HookNameToId map[string]int = make(map[string]int)
+var hookNameToId map[string]int = make(map[string]int)
 
-type HooksRPCClient struct {
+type hooksRPCClient struct {
 	client      *rpc.Client
 	log         *mlog.Logger
 	muxBroker   *plugin.MuxBroker
@@ -32,33 +32,33 @@ type HooksRPCClient struct {
 	implemented [TotalHooksId]bool
 }
 
-type HooksRPCServer struct {
+type hooksRPCServer struct {
 	impl         interface{}
 	muxBroker    *plugin.MuxBroker
-	apiRPCClient *APIRPCClient
+	apiRPCClient *apiRPCClient
 }
 
 // Implements hashicorp/go-plugin/plugin.Plugin interface to connect the hooks of a plugin
-type HooksPlugin struct {
+type hooksPlugin struct {
 	hooks   interface{}
 	apiImpl API
 	log     *mlog.Logger
 }
 
-func (p *HooksPlugin) Server(b *plugin.MuxBroker) (interface{}, error) {
-	return &HooksRPCServer{impl: p.hooks, muxBroker: b}, nil
+func (p *hooksPlugin) Server(b *plugin.MuxBroker) (interface{}, error) {
+	return &hooksRPCServer{impl: p.hooks, muxBroker: b}, nil
 }
 
-func (p *HooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface{}, error) {
-	return &HooksRPCClient{client: client, log: p.log, muxBroker: b, apiImpl: p.apiImpl}, nil
+func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface{}, error) {
+	return &hooksRPCClient{client: client, log: p.log, muxBroker: b, apiImpl: p.apiImpl}, nil
 }
 
-type APIRPCClient struct {
+type apiRPCClient struct {
 	client *rpc.Client
 	log    *mlog.Logger
 }
 
-type APIRPCServer struct {
+type apiRPCServer struct {
 	impl API
 }
 
@@ -72,17 +72,17 @@ func init() {
 // These enforce compile time checks to make sure types implement the interface
 // If you are getting an error here, you probably need to run `make pluginapi` to
 // autogenerate RPC glue code
-var _ plugin.Plugin = &HooksPlugin{}
-var _ Hooks = &HooksRPCClient{}
+var _ plugin.Plugin = &hooksPlugin{}
+var _ Hooks = &hooksRPCClient{}
 
 //
 // Below are specal cases for hooks or APIs that can not be auto generated
 //
 
-func (g *HooksRPCClient) Implemented() (impl []string, err error) {
+func (g *hooksRPCClient) Implemented() (impl []string, err error) {
 	err = g.client.Call("Plugin.Implemented", struct{}{}, &impl)
 	for _, hookName := range impl {
-		if hookId, ok := HookNameToId[hookName]; ok {
+		if hookId, ok := hookNameToId[hookName]; ok {
 			g.implemented[hookId] = true
 		}
 	}
@@ -90,7 +90,7 @@ func (g *HooksRPCClient) Implemented() (impl []string, err error) {
 }
 
 // Implemented replies with the names of the hooks that are implemented.
-func (s *HooksRPCServer) Implemented(args struct{}, reply *[]string) error {
+func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 	ifaceType := reflect.TypeOf((*Hooks)(nil)).Elem()
 	implType := reflect.TypeOf(s.impl)
 	selfType := reflect.TypeOf(s)
@@ -130,24 +130,24 @@ func (s *HooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 	return nil
 }
 
-type OnActivateArgs struct {
+type Z_OnActivateArgs struct {
 	APIMuxId uint32
 }
 
-type OnActivateReturns struct {
+type Z_OnActivateReturns struct {
 	A error
 }
 
-func (g *HooksRPCClient) OnActivate() error {
+func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
-	go g.muxBroker.AcceptAndServe(muxId, &APIRPCServer{
+	go g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
 		impl: g.apiImpl,
 	})
 
-	_args := &OnActivateArgs{
+	_args := &Z_OnActivateArgs{
 		APIMuxId: muxId,
 	}
-	_returns := &OnActivateReturns{}
+	_returns := &Z_OnActivateReturns{}
 
 	if err := g.client.Call("Plugin.OnActivate", _args, _returns); err != nil {
 		g.log.Error("RPC call to OnActivate plugin failed.", mlog.Err(err))
@@ -155,13 +155,13 @@ func (g *HooksRPCClient) OnActivate() error {
 	return _returns.A
 }
 
-func (s *HooksRPCServer) OnActivate(args *OnActivateArgs, returns *OnActivateReturns) error {
+func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivateReturns) error {
 	connection, err := s.muxBroker.Dial(args.APIMuxId)
 	if err != nil {
 		return err
 	}
 
-	s.apiRPCClient = &APIRPCClient{
+	s.apiRPCClient = &apiRPCClient{
 		client: rpc.NewClient(connection),
 	}
 
@@ -186,23 +186,23 @@ func (s *HooksRPCServer) OnActivate(args *OnActivateArgs, returns *OnActivateRet
 	return nil
 }
 
-type LoadPluginConfigurationArgs struct {
+type Z_LoadPluginConfigurationArgsArgs struct {
 }
 
-type LoadPluginConfigurationReturns struct {
+type Z_LoadPluginConfigurationArgsReturns struct {
 	A []byte
 }
 
-func (g *APIRPCClient) LoadPluginConfiguration(dest interface{}) error {
-	_args := &LoadPluginConfigurationArgs{}
-	_returns := &LoadPluginConfigurationReturns{}
+func (g *apiRPCClient) LoadPluginConfiguration(dest interface{}) error {
+	_args := &Z_LoadPluginConfigurationArgsArgs{}
+	_returns := &Z_LoadPluginConfigurationArgsReturns{}
 	if err := g.client.Call("Plugin.LoadPluginConfiguration", _args, _returns); err != nil {
 		g.log.Error("RPC call to LoadPluginConfiguration API failed.", mlog.Err(err))
 	}
 	return json.Unmarshal(_returns.A, dest)
 }
 
-func (s *APIRPCServer) LoadPluginConfiguration(args *LoadPluginConfigurationArgs, returns *LoadPluginConfigurationReturns) error {
+func (s *apiRPCServer) LoadPluginConfiguration(args *Z_LoadPluginConfigurationArgsArgs, returns *Z_LoadPluginConfigurationArgsReturns) error {
 	var config interface{}
 	if hook, ok := s.impl.(interface {
 		LoadPluginConfiguration(dest interface{}) error
@@ -220,17 +220,17 @@ func (s *APIRPCServer) LoadPluginConfiguration(args *LoadPluginConfigurationArgs
 }
 
 func init() {
-	HookNameToId["ServeHTTP"] = ServeHTTPId
+	hookNameToId["ServeHTTP"] = ServeHTTPId
 }
 
-type ServeHTTPArgs struct {
+type Z_ServeHTTPArgs struct {
 	ResponseWriterStream uint32
 	Request              *http.Request
 	Context              *Context
 	RequestBodyStream    uint32
 }
 
-func (g *HooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {
+func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !g.implemented[ServeHTTPId] {
 		http.NotFound(w, r)
 		return
@@ -247,7 +247,7 @@ func (g *HooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		defer connection.Close()
 
 		rpcServer := rpc.NewServer()
-		if err := rpcServer.RegisterName("Plugin", &HTTPResponseWriterRPCServer{w: w}); err != nil {
+		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w}); err != nil {
 			g.log.Error("Plugin failed to ServeHTTP, coulden't register RPC name", mlog.Err(err))
 			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
@@ -266,7 +266,7 @@ func (g *HooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 				return
 			}
 			defer bodyConnection.Close()
-			ServeIOReader(r.Body, bodyConnection)
+			serveIOReader(r.Body, bodyConnection)
 		}()
 	}
 
@@ -282,7 +282,7 @@ func (g *HooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		RequestURI: r.RequestURI,
 	}
 
-	if err := g.client.Call("Plugin.ServeHTTP", ServeHTTPArgs{
+	if err := g.client.Call("Plugin.ServeHTTP", Z_ServeHTTPArgs{
 		Context:              c,
 		ResponseWriterStream: serveHTTPStreamId,
 		Request:              forwardedRequest,
@@ -294,13 +294,13 @@ func (g *HooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 	return
 }
 
-func (s *HooksRPCServer) ServeHTTP(args *ServeHTTPArgs, returns *struct{}) error {
+func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) error {
 	connection, err := s.muxBroker.Dial(args.ResponseWriterStream)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response writer stream, error: %v", err.Error())
 		return err
 	}
-	w := ConnectHTTPResponseWriter(connection)
+	w := connectHTTPResponseWriter(connection)
 	defer w.Close()
 
 	r := args.Request
@@ -310,7 +310,7 @@ func (s *HooksRPCServer) ServeHTTP(args *ServeHTTPArgs, returns *struct{}) error
 			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
 			return err
 		}
-		r.Body = ConnectIOReader(connection)
+		r.Body = connectIOReader(connection)
 	} else {
 		r.Body = ioutil.NopCloser(&bytes.Buffer{})
 	}

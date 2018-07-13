@@ -9,16 +9,23 @@ import (
 )
 
 const (
-	MinIdLength = 3
-	MaxIdLength = 190
+	MinIdLength  = 3
+	MaxIdLength  = 190
+	ValidIdRegex = `^[a-zA-Z0-9-_\.]+$`
 )
 
-var ValidId *regexp.Regexp
+// ValidId constrains the set of valid plugin identifiers:
+//  ^[a-zA-Z0-9-_\.]+
+var validId *regexp.Regexp
 
 func init() {
-	ValidId = regexp.MustCompile(`^[a-zA-Z0-9-_\.]+$`)
+	validId = regexp.MustCompile(ValidIdRegex)
 }
 
+// IsValidId verifies that the plugin id has a minimum length of 3, maximum length of 190, and
+// contains only alphanumeric characters, dashes, underscores and periods.
+//
+// These constraints are necessary since the plugin id is used as part of a filesystem path.
 func IsValidId(id string) bool {
 	if utf8.RuneCountInString(id) < MinIdLength {
 		return false
@@ -28,5 +35,5 @@ func IsValidId(id string) bool {
 		return false
 	}
 
-	return ValidId.MatchString(id)
+	return validId.MatchString(id)
 }

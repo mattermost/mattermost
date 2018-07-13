@@ -210,20 +210,20 @@ package plugin
 {{range .HooksMethods}}
 
 func init() {
-	HookNameToId["{{.Name}}"] = {{.Name}}Id
+	hookNameToId["{{.Name}}"] = {{.Name}}Id
 }
 
-type {{.Name}}Args struct {
+type {{.Name | obscure}}Args struct {
 	{{structStyle .Params}}
 }
 
-type {{.Name}}Returns struct {
+type {{.Name | obscure}}Returns struct {
 	{{structStyle .Return}}
 }
 
-func (g *HooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
-	_args := &{{.Name}}Args{ {{valuesOnly .Params}} }
-	_returns := &{{.Name}}Returns{}
+func (g *hooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
+	_args := &{{.Name | obscure}}Args{ {{valuesOnly .Params}} }
+	_returns := &{{.Name | obscure}}Returns{}
 	if g.implemented[{{.Name}}Id] {
 		if err := g.client.Call("Plugin.{{.Name}}", _args, _returns); err != nil {
 			g.log.Error("RPC call {{.Name}} to plugin failed.", mlog.Err(err))
@@ -232,7 +232,7 @@ func (g *HooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	return {{destruct "_returns." .Return}}
 }
 
-func (s *HooksRPCServer) {{.Name}}(args *{{.Name}}Args, returns *{{.Name}}Returns) error {
+func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name | obscure}}Returns) error {
 	if hook, ok := s.impl.(interface {
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
@@ -246,24 +246,24 @@ func (s *HooksRPCServer) {{.Name}}(args *{{.Name}}Args, returns *{{.Name}}Return
 
 {{range .APIMethods}}
 
-type {{.Name}}Args struct {
+type {{.Name | obscure}}Args struct {
 	{{structStyle .Params}}
 }
 
-type {{.Name}}Returns struct {
+type {{.Name | obscure}}Returns struct {
 	{{structStyle .Return}}
 }
 
-func (g *APIRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
-	_args := &{{.Name}}Args{ {{valuesOnly .Params}} }
-	_returns := &{{.Name}}Returns{}
+func (g *apiRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
+	_args := &{{.Name | obscure}}Args{ {{valuesOnly .Params}} }
+	_returns := &{{.Name | obscure}}Returns{}
 	if err := g.client.Call("Plugin.{{.Name}}", _args, _returns); err != nil {
 		g.log.Error("RPC call to {{.Name}} API failed.", mlog.Err(err))
 	}
 	return {{destruct "_returns." .Return}}
 }
 
-func (s *APIRPCServer) {{.Name}}(args *{{.Name}}Args, returns *{{.Name}}Returns) error {
+func (s *apiRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name | obscure}}Returns) error {
 	if hook, ok := s.impl.(interface {
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
@@ -294,6 +294,9 @@ func generateGlue(info *PluginInterfaceInfo) {
 		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet) },
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
+		},
+		"obscure": func(name string) string {
+			return "Z_" + name
 		},
 	}
 

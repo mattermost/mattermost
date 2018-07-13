@@ -15,25 +15,25 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-type Supervisor struct {
+type supervisor struct {
 	pluginId    string
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksId]bool
 }
 
-func NewSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiImpl API) (*Supervisor, error) {
-	supervisor := Supervisor{}
+func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiImpl API) (*supervisor, error) {
+	supervisor := supervisor{}
 
 	wrappedLogger := pluginInfo.WrapLogger(parentLogger)
 
-	hclogAdaptedLogger := &HclogAdapter{
+	hclogAdaptedLogger := &hclogAdapter{
 		wrappedLogger: wrappedLogger.WithCallerSkip(1),
 		extrasKey:     "wrapped_extras",
 	}
 
 	pluginMap := map[string]plugin.Plugin{
-		"hooks": &HooksPlugin{
+		"hooks": &hooksPlugin{
 			log:     wrappedLogger,
 			apiImpl: apiImpl,
 		},
@@ -46,7 +46,7 @@ func NewSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	executable = filepath.Join(pluginInfo.Path, executable)
 
 	supervisor.client = plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig: Handshake,
+		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
 		Cmd:             exec.Command(executable),
 		SyncStdout:      wrappedLogger.With(mlog.String("source", "plugin_stdout")).StdLogWriter(),
@@ -71,7 +71,7 @@ func NewSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		return nil, err
 	} else {
 		for _, hookName := range impl {
-			if hookId, ok := HookNameToId[hookName]; ok {
+			if hookId, ok := hookNameToId[hookName]; ok {
 				supervisor.implemented[hookId] = true
 			}
 		}
@@ -85,14 +85,14 @@ func NewSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	return &supervisor, nil
 }
 
-func (sup *Supervisor) Shutdown() {
+func (sup *supervisor) Shutdown() {
 	sup.client.Kill()
 }
 
-func (sup *Supervisor) Hooks() Hooks {
+func (sup *supervisor) Hooks() Hooks {
 	return sup.hooks
 }
 
-func (sup *Supervisor) Implements(hookId int) bool {
+func (sup *supervisor) Implements(hookId int) bool {
 	return sup.implemented[hookId]
 }

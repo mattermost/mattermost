@@ -73,7 +73,7 @@ func testSupervisor(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := NewSupervisor(bundle, log, &api)
+	supervisor, err := newSupervisor(bundle, log, &api)
 	require.NoError(t, err)
 	supervisor.Shutdown()
 }
@@ -92,7 +92,7 @@ func testSupervisor_InvalidExecutablePath(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := NewSupervisor(bundle, log, nil)
+	supervisor, err := newSupervisor(bundle, log, nil)
 	assert.Nil(t, supervisor)
 	assert.Error(t, err)
 }
@@ -111,7 +111,7 @@ func testSupervisor_NonExistentExecutablePath(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := NewSupervisor(bundle, log, nil)
+	supervisor, err := newSupervisor(bundle, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }
@@ -141,7 +141,7 @@ func testSupervisor_StartTimeout(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
-	supervisor, err := NewSupervisor(bundle, log, nil)
+	supervisor, err := newSupervisor(bundle, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
 }

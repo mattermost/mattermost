@@ -14,31 +14,37 @@ import (
 	"github.com/pkg/errors"
 )
 
-type APIImplCreatorFunc func(*model.Manifest) API
-type SupervisorCreatorFunc func(*model.BundleInfo, *mlog.Logger, API) (*Supervisor, error)
+type apiImplCreatorFunc func(*model.Manifest) API
+type supervisorCreatorFunc func(*model.BundleInfo, *mlog.Logger, API) (*supervisor, error)
 
-// Hooks will be the hooks API for the plugin
-// Return value should be true if we should continue calling more plugins
-type MultliPluginHookRunnerFunc func(hooks Hooks) bool
+// multiPluginHookRunnerFunc is a callback function to invoke as part of RunMultiPluginHook.
+//
+// Return false to stop the hook from iterating to subsequent plugins.
+type multiPluginHookRunnerFunc func(hooks Hooks) bool
 
-type ActivePlugin struct {
+type activePlugin struct {
 	BundleInfo *model.BundleInfo
 	State      int
-	Supervisor *Supervisor
+
+	supervisor *supervisor
 }
 
+// Environment represents the execution environment of active plugins.
+//
+// It is meant for use by the Mattermost server to manipulate, interact with and report on the set
+// of active plugins.
 type Environment struct {
-	activePlugins   map[string]ActivePlugin
+	activePlugins   map[string]activePlugin
 	mutex           sync.RWMutex
 	logger          *mlog.Logger
-	newAPIImpl      APIImplCreatorFunc
+	newAPIImpl      apiImplCreatorFunc
 	pluginDir       string
 	webappPluginDir string
 }
 
-func NewEnvironment(newAPIImpl APIImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
+func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
 	return &Environment{
-		activePlugins:   make(map[string]ActivePlugin),
+		activePlugins:   make(map[string]activePlugin),
 		logger:          logger,
 		newAPIImpl:      newAPIImpl,
 		pluginDir:       pluginDir,
@@ -53,7 +59,7 @@ func NewEnvironment(newAPIImpl APIImplCreatorFunc, pluginDir string, webappPlugi
 // parsed).
 //
 // Plugins are found non-recursively and paths beginning with a dot are always ignored.
-func ScanSearchPath(path string) ([]*model.BundleInfo, error) {
+func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -72,7 +78,7 @@ func ScanSearchPath(path string) ([]*model.BundleInfo, error) {
 
 // Returns a list of all plugins within the environment.
 func (env *Environment) Available() ([]*model.BundleInfo, error) {
-	return ScanSearchPath(env.pluginDir)
+	return scanSearchPath(env.pluginDir)
 }
 
 // Returns a list of all currently active plugins within the environment.
@@ -88,12 +94,13 @@ func (env *Environment) Active() []*model.BundleInfo {
 	return activePlugins
 }
 
+// IsActive returns true if the plugin with the given id is active.
 func (env *Environment) IsActive(id string) bool {
 	_, ok := env.activePlugins[id]
 	return ok
 }
 
-// Returns a list of plugin statuses reprensenting the state of every plugin
+// Statuses returns a list of plugin statuses representing the state of every plugin
 func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	env.mutex.RLock()
 	defer env.mutex.RUnlock()
@@ -130,6 +137,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	return pluginStatuses, nil
 }
 
+// Activate activates the plugin with the given id.
 func (env *Environment) Activate(id string) (reterr error) {
 	env.mutex.Lock()
 	defer env.mutex.Unlock()
@@ -156,7 +164,7 @@ func (env *Environment) Activate(id string) (reterr error) {
 		return fmt.Errorf("plugin not found: %v", id)
 	}
 
-	activePlugin := ActivePlugin{BundleInfo: pluginInfo}
+	activePlugin := activePlugin{BundleInfo: pluginInfo}
 	defer func() {
 		if reterr == nil {
 			activePlugin.State = model.PluginStateRunning
@@ -185,11 +193,11 @@ func (env *Environment) Activate(id string) (reterr error) {
 	}
 
 	if pluginInfo.Manifest.Backend != nil {
-		supervisor, err := NewSupervisor(pluginInfo, env.logger, env.newAPIImpl(pluginInfo.Manifest))
+		supervisor, err := newSupervisor(pluginInfo, env.logger, env.newAPIImpl(pluginInfo.Manifest))
 		if err != nil {
 			return errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
-		activePlugin.Supervisor = supervisor
+		activePlugin.supervisor = supervisor
 	}
 
 	return nil
@@ -204,56 +212,59 @@ func (env *Environment) Deactivate(id string) {
 		return
 	} else {
 		delete(env.activePlugins, id)
-		if activePlugin.Supervisor != nil {
-			if err := activePlugin.Supervisor.Hooks().OnDeactivate(); err != nil {
+		if activePlugin.supervisor != nil {
+			if err := activePlugin.supervisor.Hooks().OnDeactivate(); err != nil {
 				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", activePlugin.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
-			activePlugin.Supervisor.Shutdown()
+			activePlugin.supervisor.Shutdown()
 		}
 	}
 }
 
-// Deactivates all plugins and gracefully shuts down the environment.
+// Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
 	env.mutex.Lock()
 	defer env.mutex.Unlock()
 
 	for _, activePlugin := range env.activePlugins {
-		if activePlugin.Supervisor != nil {
-			if err := activePlugin.Supervisor.Hooks().OnDeactivate(); err != nil {
+		if activePlugin.supervisor != nil {
+			if err := activePlugin.supervisor.Hooks().OnDeactivate(); err != nil {
 				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", activePlugin.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
-			activePlugin.Supervisor.Shutdown()
+			activePlugin.supervisor.Shutdown()
 		}
 	}
-	env.activePlugins = make(map[string]ActivePlugin)
+	env.activePlugins = make(map[string]activePlugin)
 	return
 }
 
-// Returns the hooks API for the plugin ID specified
-// You should probably use RunMultiPluginHook instead.
+// HooksForPlugin returns the hooks API for the plugin with the given id.
+//
+// Consider using RunMultiPluginHook instead.
 func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	env.mutex.RLock()
 	defer env.mutex.RUnlock()
 
-	if plug, ok := env.activePlugins[id]; ok && plug.Supervisor != nil {
-		return plug.Supervisor.Hooks(), nil
+	if plug, ok := env.activePlugins[id]; ok && plug.supervisor != nil {
+		return plug.supervisor.Hooks(), nil
 	}
 
 	return nil, fmt.Errorf("plugin not found: %v", id)
 }
 
-// Calls hookRunnerFunc with the hooks for each active plugin that implments the given HookId
-// If hookRunnerFunc returns false, then iteration will not continue.
-func (env *Environment) RunMultiPluginHook(hookRunnerFunc MultliPluginHookRunnerFunc, mustImplement int) {
+// RunMultiPluginHook invokes hookRunnerFunc for each plugin that implements the given hookId.
+//
+// If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
+// plugins is not specified.
+func (env *Environment) RunMultiPluginHook(hookRunnerFunc multiPluginHookRunnerFunc, hookId int) {
 	env.mutex.RLock()
 	defer env.mutex.RUnlock()
 
 	for _, activePlugin := range env.activePlugins {
-		if activePlugin.Supervisor == nil || !activePlugin.Supervisor.Implements(mustImplement) {
+		if activePlugin.supervisor == nil || !activePlugin.supervisor.Implements(hookId) {
 			continue
 		}
-		if !hookRunnerFunc(activePlugin.Supervisor.Hooks()) {
+		if !hookRunnerFunc(activePlugin.supervisor.Hooks()) {
 			break
 		}
 	}
