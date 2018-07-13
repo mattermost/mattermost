@@ -70,11 +70,11 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 		return &model.CommandResponse{Text: args.T("api.command_channel_rename.channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if channel.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS, false) {
+	if channel.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 		return &model.CommandResponse{Text: args.T("api.command_remove.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS, false) {
+	if channel.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
 		return &model.CommandResponse{Text: args.T("api.command_remove.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

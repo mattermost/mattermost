@@ -90,7 +90,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		channelId := c.Params.ChannelId
 		filename := c.Params.Filename
 
-		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE, false) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return
 		}
@@ -118,7 +118,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE, false) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return
 		}

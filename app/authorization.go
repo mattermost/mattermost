@@ -32,12 +32,12 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, p
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
-func (a *App) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission, includeDeleted bool) bool {
+func (a *App) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool {
 	if channelId == "" {
 		return false
 	}
 
-	cmc := a.Srv.Store.Channel().GetAllChannelMembersForUser(session.UserId, true, includeDeleted)
+	cmc := a.Srv.Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
 	if cmcresult := <-cmc; cmcresult.Err == nil {

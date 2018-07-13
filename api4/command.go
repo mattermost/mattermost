@@ -193,7 +193,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
-	if !c.App.SessionHasPermissionToChannel(c.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS, false) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
 		c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 		return
 	}

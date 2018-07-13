@@ -75,19 +75,19 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	}
 
 	// Check Permissions
-	if channelToJoin.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS, false) {
+	if channelToJoin.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 		return &model.CommandResponse{Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{"User": userProfile.Username, "Channel": channelToJoin.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	// Check if the user who wants to add another is trying to add in a pvt channel, but does not have permission
 	// but is in the channel
 	_, err = a.GetChannelMember(channelToJoin.Id, args.UserId)
-	if channelToJoin.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS, false) && err == nil {
+	if channelToJoin.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) && err == nil {
 		return &model.CommandResponse{Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{"User": userProfile.Username, "Channel": channelToJoin.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	// In this case just check if is a pvt channel and user has permission
-	if channelToJoin.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS, false) {
+	if channelToJoin.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
 		return &model.CommandResponse{Text: args.T("api.command_invite.private_channel.app_error", map[string]interface{}{"Channel": channelToJoin.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

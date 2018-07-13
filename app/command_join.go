@@ -48,7 +48,7 @@ func (me *JoinProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 
 		if channel.Name == channelName {
 			allowed := false
-			if (channel.Type == model.CHANNEL_PRIVATE && a.SessionHasPermissionToChannel(args.Session, channel.Id, model.PERMISSION_READ_CHANNEL, false)) || channel.Type == model.CHANNEL_OPEN {
+			if (channel.Type == model.CHANNEL_PRIVATE && a.SessionHasPermissionToChannel(args.Session, channel.Id, model.PERMISSION_READ_CHANNEL)) || channel.Type == model.CHANNEL_OPEN {
 				allowed = true
 			}
 
