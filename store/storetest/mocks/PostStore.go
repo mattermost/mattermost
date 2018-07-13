@@ -290,13 +290,13 @@ func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) store.Store
 	return r0
 }
 
-// GetPostsSince provides a mock function with given fields: channelId, time, allowFromCache
-func (_m *PostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
+// GetPostsSince provides a mock function with given fields: channelId, time, limit, allowFromCache
+func (_m *PostStore) GetPostsSince(channelId string, time int64, limit int, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(channelId, time, allowFromCache)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64, bool) store.StoreChannel); ok {
-		r0 = rf(channelId, time, allowFromCache)
+	if rf, ok := ret.Get(0).(func(string, int64, int, bool) store.StoreChannel); ok {
+		r0 = rf(channelId, time, limit, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
