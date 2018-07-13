@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPostStore(t *testing.T, ss store.Store) {
@@ -839,6 +840,20 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c2.Type = model.CHANNEL_OPEN
 	c2 = (<-ss.Channel().Save(c2, -1)).Data.(*model.Channel)
 
+	c3 := &model.Channel{}
+	c3.TeamId = teamId
+	c3.DisplayName = "Channel1"
+	c3.Name = "zz" + model.NewId() + "b"
+	c3.Type = model.CHANNEL_OPEN
+	c3 = (<-ss.Channel().Save(c3, -1)).Data.(*model.Channel)
+	<-ss.Channel().Delete(c3.Id, model.GetMillis())
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c3.Id
+	m3.UserId = userId
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m3))
+
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
@@ -877,69 +892,129 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	o5.Hashtags = "#secret #howdy"
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "corey", IsHashtag: false})).Data.(*model.PostList)
-	if len(r1.Order) != 1 || r1.Order[0] != o1.Id {
-		t.Fatal("returned wrong search result")
-	}
+	o6 := &model.Post{}
+	o6.ChannelId = c3.Id
+	o6.UserId = model.NewId()
+	o6.Hashtags = "#hashtag"
+	o6 = (<-ss.Post().Save(o6)).Data.(*model.Post)
 
-	r3 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "new", IsHashtag: false})).Data.(*model.PostList)
-	if len(r3.Order) != 2 || (r3.Order[0] != o1.Id && r3.Order[1] != o1.Id) {
-		t.Fatal("returned wrong search result")
-	}
+	o7 := &model.Post{}
+	o7.ChannelId = c3.Id
+	o7.UserId = model.NewId()
+	o7.Message = "New Jersey is where John is from corey new york"
+	o7 = (<-ss.Post().Save(o7)).Data.(*model.Post)
 
-	r4 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "john", IsHashtag: false})).Data.(*model.PostList)
-	if len(r4.Order) != 1 || r4.Order[0] != o2.Id {
-		t.Fatal("returned wrong search result")
-	}
+	o8 := &model.Post{}
+	o8.ChannelId = c3.Id
+	o8.UserId = model.NewId()
+	o8.Message = "Deleted"
+	o8 = (<-ss.Post().Save(o8)).Data.(*model.Post)
 
-	r5 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "matter*", IsHashtag: false})).Data.(*model.PostList)
-	if len(r5.Order) != 1 || r5.Order[0] != o1.Id {
-		t.Fatal("returned wrong search result")
+	tt := []struct {
+		name                     string
+		searchParams             *model.SearchParams
+		extectedResultsCount     int
+		expectedMessageResultIds []string
+	}{
+		{
+			"normal-search-1",
+			&model.SearchParams{Terms: "corey"},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"normal-search-2",
+			&model.SearchParams{Terms: "new"},
+			2,
+			[]string{o1.Id, o2.Id},
+		},
+		{
+			"normal-search-3",
+			&model.SearchParams{Terms: "john"},
+			1,
+			[]string{o2.Id},
+		},
+		{
+			"wildcard-search",
+			&model.SearchParams{Terms: "matter*"},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"hashtag-search",
+			&model.SearchParams{Terms: "#hashtag", IsHashtag: true},
+			1,
+			[]string{o4.Id},
+		},
+		{
+			"hashtag-search-2",
+			&model.SearchParams{Terms: "#secret", IsHashtag: true},
+			1,
+			[]string{o5.Id},
+		},
+		{
+			"no-match-mention",
+			&model.SearchParams{Terms: "@thisshouldmatchnothing", IsHashtag: true},
+			0,
+			[]string{},
+		},
+		{
+			"no-results-search",
+			&model.SearchParams{Terms: "mattermost jersey"},
+			0,
+			[]string{},
+		},
+		{
+			"multiple-words-search",
+			&model.SearchParams{Terms: "corey new york"},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"multiple-wildcard-search",
+			&model.SearchParams{Terms: "matter* jer*"},
+			0,
+			[]string{},
+		},
+		{
+			"search-with-work-next-to-a-symbol",
+			&model.SearchParams{Terms: "message blargh"},
+			1,
+			[]string{o4.Id},
+		},
+		{
+			"search-with-or",
+			&model.SearchParams{Terms: "Jersey corey", OrTerms: true},
+			2,
+			[]string{o1.Id, o2.Id},
+		},
+		{
+			"search-with-or-and-deleted",
+			&model.SearchParams{Terms: "Jersey corey", OrTerms: true, IncludeDeletedChannels: true},
+			3,
+			[]string{o1.Id, o2.Id, o7.Id},
+		},
+		{
+			"search-hashtag-deleted",
+			&model.SearchParams{Terms: "#hashtag", IsHashtag: true, IncludeDeletedChannels: true},
+			2,
+			[]string{o4.Id, o6.Id},
+		},
+		{
+			"search-deleted-only",
+			&model.SearchParams{Terms: "Deleted", IncludeDeletedChannels: true},
+			1,
+			[]string{o8.Id},
+		},
 	}
-
-	r6 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "#hashtag", IsHashtag: true})).Data.(*model.PostList)
-	if len(r6.Order) != 1 || r6.Order[0] != o4.Id {
-		t.Fatal("returned wrong search result")
-	}
-
-	r7 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "#secret", IsHashtag: true})).Data.(*model.PostList)
-	if len(r7.Order) != 1 || r7.Order[0] != o5.Id {
-		t.Fatal("returned wrong search result")
-	}
-
-	r8 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "@thisshouldmatchnothing", IsHashtag: true})).Data.(*model.PostList)
-	if len(r8.Order) != 0 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r9 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "mattermost jersey", IsHashtag: false})).Data.(*model.PostList)
-	if len(r9.Order) != 0 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r9a := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "corey new york", IsHashtag: false})).Data.(*model.PostList)
-	if len(r9a.Order) != 1 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r10 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "matter* jer*", IsHashtag: false})).Data.(*model.PostList)
-	if len(r10.Order) != 0 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r11 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "message blargh", IsHashtag: false})).Data.(*model.PostList)
-	if len(r11.Order) != 1 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r12 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "blargh>", IsHashtag: false})).Data.(*model.PostList)
-	if len(r12.Order) != 1 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r13 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "Jersey corey", IsHashtag: false, OrTerms: true})).Data.(*model.PostList)
-	if len(r13.Order) != 2 {
-		t.Fatal("returned wrong search result")
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := (<-ss.Post().Search(teamId, userId, tc.searchParams)).Data.(*model.PostList)
+			require.Len(t, result.Order, tc.extectedResultsCount)
+			for _, expectedMessageResultId := range tc.expectedMessageResultIds {
+				assert.Contains(t, result.Order, expectedMessageResultId)
+			}
+		})
 	}
 }
 
