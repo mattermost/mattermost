@@ -709,7 +709,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
 	var err *model.AppError
 
-	includeDeleted := r.URL.Query().Get("includeDeleted") == "true"
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 
 	if channel, err = c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted); err != nil {
 		c.Err = err
@@ -746,7 +746,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	var channel *model.Channel
 	var err *model.AppError
 
-	includeDeleted := r.URL.Query().Get("includeDeleted") == "true"
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 
 	if channel, err = c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted); err != nil {
 		c.Err = err
