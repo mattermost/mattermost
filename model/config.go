@@ -1232,7 +1232,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.SearchArchivedChannels == nil {
-		s.SearchArchivedChannels = NewBool(false)
+		s.SearchArchivedChannels = NewBool(true)
 	}
 }
 
