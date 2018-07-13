@@ -303,6 +303,11 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		if channel.DeleteAt != 0 {
+			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		if channel.Type == model.CHANNEL_DIRECT {
 			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
 			return
@@ -352,6 +357,11 @@ func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) 
 
 func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		if directchannel.DeleteAt != 0 {
+			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		if directchannel.Type != model.CHANNEL_DIRECT {
 			result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.not_direct.app_error", nil, "", http.StatusBadRequest)
 			return
