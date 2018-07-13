@@ -617,8 +617,11 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	o1.DeleteAt = model.GetMillis()
 	store.Must(ss.Channel().Save(&o1, -1))
+	now := model.GetMillis()
+	store.Must(ss.Channel().Delete(o1.Id, now))
+	o1.DeleteAt = now
+	o1.UpdateAt = now
 
 	if r1 := <-ss.Channel().GetDeletedByName(o1.TeamId, o1.Name); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -639,8 +642,8 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	o1.DisplayName = "Channel1"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	o1.DeleteAt = model.GetMillis()
 	store.Must(ss.Channel().Save(&o1, -1))
+	store.Must(ss.Channel().Delete(o1.Id, model.GetMillis()))
 
 	cresult := <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
 	if cresult.Err != nil {
@@ -678,8 +681,8 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	o3.DisplayName = "Channel3"
 	o3.Name = "zz" + model.NewId() + "b"
 	o3.Type = model.CHANNEL_OPEN
-	o3.DeleteAt = model.GetMillis()
 	store.Must(ss.Channel().Save(&o3, -1))
+	store.Must(ss.Channel().SetDeleteAt(o3.Id, model.GetMillis(), model.GetMillis()))
 
 	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
 	if cresult.Err != nil {
