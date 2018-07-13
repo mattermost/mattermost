@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 // The plugin package is used by Mattermost server plugins written in go. It also enables the
 // Mattermost server to manage and interact with the running plugin environment.
 //
