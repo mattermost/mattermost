@@ -9,26 +9,26 @@ import (
 	"net/rpc"
 )
 
-type HTTPResponseWriterRPCServer struct {
+type httpResponseWriterRPCServer struct {
 	w http.ResponseWriter
 }
 
-func (w *HTTPResponseWriterRPCServer) Header(args struct{}, reply *http.Header) error {
+func (w *httpResponseWriterRPCServer) Header(args struct{}, reply *http.Header) error {
 	*reply = w.w.Header()
 	return nil
 }
 
-func (w *HTTPResponseWriterRPCServer) Write(args []byte, reply *struct{}) error {
+func (w *httpResponseWriterRPCServer) Write(args []byte, reply *struct{}) error {
 	_, err := w.w.Write(args)
 	return err
 }
 
-func (w *HTTPResponseWriterRPCServer) WriteHeader(args int, reply *struct{}) error {
+func (w *httpResponseWriterRPCServer) WriteHeader(args int, reply *struct{}) error {
 	w.w.WriteHeader(args)
 	return nil
 }
 
-func (w *HTTPResponseWriterRPCServer) SyncHeader(args http.Header, reply *struct{}) error {
+func (w *httpResponseWriterRPCServer) SyncHeader(args http.Header, reply *struct{}) error {
 	dest := w.w.Header()
 	for k := range dest {
 		if _, ok := args[k]; !ok {
@@ -41,29 +41,21 @@ func (w *HTTPResponseWriterRPCServer) SyncHeader(args http.Header, reply *struct
 	return nil
 }
 
-func ServeHTTPResponseWriter(w http.ResponseWriter, conn io.ReadWriteCloser) {
-	server := rpc.NewServer()
-	server.Register(&HTTPResponseWriterRPCServer{
-		w: w,
-	})
-	server.ServeConn(conn)
-}
-
-type HTTPResponseWriterRPCClient struct {
+type httpResponseWriterRPCClient struct {
 	client *rpc.Client
 	header http.Header
 }
 
-var _ http.ResponseWriter = (*HTTPResponseWriterRPCClient)(nil)
+var _ http.ResponseWriter = (*httpResponseWriterRPCClient)(nil)
 
-func (w *HTTPResponseWriterRPCClient) Header() http.Header {
+func (w *httpResponseWriterRPCClient) Header() http.Header {
 	if w.header == nil {
 		w.client.Call("Plugin.Header", struct{}{}, &w.header)
 	}
 	return w.header
 }
 
-func (w *HTTPResponseWriterRPCClient) Write(b []byte) (int, error) {
+func (w *httpResponseWriterRPCClient) Write(b []byte) (int, error) {
 	if err := w.client.Call("Plugin.SyncHeader", w.header, nil); err != nil {
 		return 0, err
 	}
@@ -73,19 +65,19 @@ func (w *HTTPResponseWriterRPCClient) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
-func (w *HTTPResponseWriterRPCClient) WriteHeader(statusCode int) {
+func (w *httpResponseWriterRPCClient) WriteHeader(statusCode int) {
 	if err := w.client.Call("Plugin.SyncHeader", w.header, nil); err != nil {
 		return
 	}
 	w.client.Call("Plugin.WriteHeader", statusCode, nil)
 }
 
-func (h *HTTPResponseWriterRPCClient) Close() error {
+func (h *httpResponseWriterRPCClient) Close() error {
 	return h.client.Close()
 }
 
-func ConnectHTTPResponseWriter(conn io.ReadWriteCloser) *HTTPResponseWriterRPCClient {
-	return &HTTPResponseWriterRPCClient{
+func connectHTTPResponseWriter(conn io.ReadWriteCloser) *httpResponseWriterRPCClient {
+	return &httpResponseWriterRPCClient{
 		client: rpc.NewClient(conn),
 	}
 }

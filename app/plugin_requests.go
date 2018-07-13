@@ -72,5 +72,5 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	r.URL.RawQuery = newQuery.Encode()
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, "/plugins/"+params["plugin_id"])
 
-	handler(plugin.NewBlankContext(), w, r)
+	handler(&plugin.Context{}, w, r)
 }
