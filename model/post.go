@@ -11,6 +11,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
@@ -76,9 +77,24 @@ type Post struct {
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids,omitempty"`
+	FileIds       StringArray     `json:"file_ids,omitempty"`  // Deprecated, do not use this field any more
 	PendingPostId string          `json:"pending_post_id" db:"-"`
-	HasReactions  bool            `json:"has_reactions,omitempty"`
+	HasReactions  bool            `json:"has_reactions,omitempty"` // Deprecated, do not use this field any more
+
+	// Transient fields populated before sending posts to the client
+	ReactionCounts  PostReactionCounts     `json:"reaction_counts" db:"-"`
+	FileInfos       []*FileInfo            `json:"file_infos" db:"-"`
+	ImageDimensions []*PostImageDimensions `json:"image_dimensions" db:"-"`
+	OpenGraphData   []*opengraph.OpenGraph `json:"opengraph_data" db:"-"`
+	Emojis          []*Emoji               `json:"emojis" db:"-"`
+}
+
+type PostReactionCounts map[string]int
+
+type PostImageDimensions struct {
+	URL    string `json:"url"`
+	Width  int64  `json:"width"`
+	Height int64  `json:"height"`
 }
 
 type PostEphemeral struct {
@@ -129,10 +145,16 @@ type PostActionIntegrationResponse struct {
 	EphemeralText string `json:"ephemeral_text"`
 }
 
-func (o *Post) ToJson() string {
+// Shallowly clone the a post
+func (o *Post) Clone() *Post {
 	copy := *o
+	return &copy
+}
+
+func (o *Post) ToJson() string {
+	copy := o.Clone()
 	copy.StripActionIntegrations()
-	b, _ := json.Marshal(&copy)
+	b, _ := json.Marshal(copy)
 	return string(b)
 }
 
@@ -418,12 +440,12 @@ var markdownDestinationEscaper = strings.NewReplacer(
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
 // rewritten via RewriteImageURLs.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
-	copy := *o
+	copy := o.Clone()
 	copy.Message = RewriteImageURLs(o.Message, f)
 	if copy.MessageSource == "" && copy.Message != o.Message {
 		copy.MessageSource = o.Message
 	}
-	return &copy
+	return copy
 }
 
 func (o *PostEphemeral) ToUnsanitizedJson() string {

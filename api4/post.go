@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -69,8 +70,13 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SetStatusOnline(c.Session.UserId, false)
 	c.App.UpdateLastActivityAtIfNeeded(c.Session)
 
+	clientPost, err := c.App.PreparePostForClient(rp)
+	if err != nil {
+		mlog.Error("Failed to prepare post for createPost response", mlog.Any("err", err))
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+	w.Write([]byte(clientPost.ToJson()))
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -97,8 +103,13 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
+	clientPost, err := c.App.PreparePostForClient(rp)
+	if err != nil {
+		mlog.Error("Failed to prepare post for createEphemeralPost response", mlog.Any("err", err))
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+	w.Write([]byte(clientPost.ToJson()))
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -269,12 +280,17 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	post, err = c.App.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare post for getPost response", mlog.Any("err", err))
+	}
+
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
 	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(post).ToJson()))
+	w.Write([]byte(post.ToJson()))
 }
 
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -439,7 +455,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rpost).ToJson()))
+	rpost, err = c.App.PreparePostForClient(rpost)
+	if err != nil {
+		mlog.Error("Failed to prepare post for updatePost response", mlog.Any("err", err))
+	}
+
+	w.Write([]byte(rpost.ToJson()))
 }
 
 func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -479,7 +500,12 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(patchedPost).ToJson()))
+	patchedPost, err = c.App.PreparePostForClient(patchedPost)
+	if err != nil {
+		mlog.Error("Failed to prepare post for patchPost response", mlog.Any("err", err))
+	}
+
+	w.Write([]byte(patchedPost.ToJson()))
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {

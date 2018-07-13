@@ -349,8 +349,13 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 		post.Props = model.StringInterface{}
 	}
 
+	clientPost, err := a.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare ephemeral post for client", mlog.Any("err", err))
+	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", clientPost.ToJson())
 	a.Publish(message)
 
 	return post
@@ -471,8 +476,13 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 }
 
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
+	clientPost, err := a.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare updated post for client", mlog.Any("err", err))
+	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", clientPost.ToJson())
 	a.Publish(message)
 }
 
@@ -643,8 +653,13 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 			return nil, result.Err
 		}
 
+		clientPost, err := a.PreparePostForClient(post)
+		if err != nil {
+			mlog.Error("Failed to prepare deleted post for client", mlog.Any("err", err))
+		}
+
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-		message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+		message.Add("post", clientPost.ToJson())
 		a.Publish(message)
 
 		a.Go(func() {
@@ -975,7 +990,53 @@ func (a *App) PostListWithProxyAddedToImageURLs(list *model.PostList) *model.Pos
 	return list
 }
 
-func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
+func (a *App) PreparePostListForClient(list *model.PostList) (*model.PostList, *model.AppError) {
+	return list, nil
+}
+
+func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *model.AppError) {
+	post := originalPost.Clone()
+
+	if post.ReactionCounts == nil {
+		reactions, err := a.GetReactionsForPost(post.Id)
+		if err != nil {
+			return post, err
+		}
+
+		post.ReactionCounts = make(model.PostReactionCounts)
+
+		for _, reaction := range reactions {
+			post.ReactionCounts[reaction.EmojiName] += 1
+		}
+	}
+
+	if post.FileInfos == nil {
+		fileInfos, err := a.GetFileInfosForPost(post.Id, false)
+		if err != nil {
+			return post, err
+		}
+
+		post.FileInfos = fileInfos
+	}
+
+	if post.ImageDimensions == nil {
+		// TODO
+	}
+
+	if post.OpenGraphData == nil {
+		// TODO
+	}
+
+	if post.Emojis == nil {
+		// TODO
+	}
+
+	post = a.postWithProxyAddedToImageURLs(post)
+
+	return post, nil
+}
+
+func (a *App) postWithProxyAddedToImageURLs(post *model.Post) *model.Post {
 	if f := a.ImageProxyAdder(); f != nil {
 		return post.WithRewrittenImageURLs(f)
 	}

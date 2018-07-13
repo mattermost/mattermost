@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -100,11 +101,18 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	message.Add("reaction", reaction.ToJson())
 	a.Publish(message)
 
+	clientPost, err := a.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare new post for client after reaction", mlog.Any("err", err))
+	}
+
 	// The post is always modified since the UpdateAt always changes
 	a.InvalidateCacheForChannelPosts(post.ChannelId)
-	post.HasReactions = hasReactions
-	post.UpdateAt = model.GetMillis()
+
+	clientPost.HasReactions = hasReactions
+	clientPost.UpdateAt = model.GetMillis()
+
 	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	umessage.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	umessage.Add("post", clientPost.ToJson())
 	a.Publish(umessage)
 }
