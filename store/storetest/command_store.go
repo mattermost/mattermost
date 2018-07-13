@@ -105,7 +105,7 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	o2.Trigger = "trigger1"
 
 	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
-	o2 = (<-ss.Command().Save(o2)).Data.(*model.Command)
+	_ = (<-ss.Command().Save(o2)).Data.(*model.Command)
 
 	if r1 := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); r1.Err != nil {
 		t.Fatal(r1.Err)

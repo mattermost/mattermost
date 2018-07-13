@@ -108,14 +108,14 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	o1a.UserId = u1.Id
 	o1a.CreateAt = o1.CreateAt + 10
 	o1a.Message = "zz" + model.NewId() + "b"
-	o1a = store.Must(ss.Post().Save(o1a)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o1a)).(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
 	o2.UserId = u1.Id
 	o2.CreateAt = o1.CreateAt + 20
 	o2.Message = "zz" + model.NewId() + "b"
-	o2 = store.Must(ss.Post().Save(o2)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o2)).(*model.Post)
 
 	o2a := &model.Post{}
 	o2a.ChannelId = c1.Id
@@ -272,21 +272,21 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	o1a.UserId = u1.Id
 	o1a.CreateAt = o1.CreateAt + 10
 	o1a.Message = "zz" + model.NewId() + "b"
-	o1a = store.Must(ss.Post().Save(o1a)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o1a)).(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
 	o2.UserId = u1.Id
 	o2.CreateAt = o1.CreateAt + 20
 	o2.Message = "zz" + model.NewId() + "b"
-	o2 = store.Must(ss.Post().Save(o2)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o2)).(*model.Post)
 
 	o2a := &model.Post{}
 	o2a.ChannelId = c1.Id
 	o2a.UserId = u2.Id
 	o2a.CreateAt = o1.CreateAt + 30
 	o2a.Message = "zz" + model.NewId() + "b"
-	o2a = store.Must(ss.Post().Save(o2a)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o2a)).(*model.Post)
 
 	o3 := &model.Post{}
 	o3.ChannelId = cDM.Id
