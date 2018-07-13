@@ -393,7 +393,7 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
 	}
 
-	channel, err := a.GetChannelByName(model.GetGroupNameFromUserIds(userIds), "")
+	channel, err := a.GetChannelByName(model.GetGroupNameFromUserIds(userIds), "", true)
 	if err != nil {
 		return nil, err
 	}
