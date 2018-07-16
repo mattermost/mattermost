@@ -476,6 +476,40 @@ func ParseInlines(markdown string, ranges []Range, referenceDefinitions []*Refer
 	return newInlineParser(markdown, ranges, referenceDefinitions).Parse()
 }
 
+func MergeInlineText(inlines []Inline) []Inline {
+	var ret []Inline
+	for i, v := range inlines {
+		// always add first node
+		if i == 0 {
+			ret = append(ret, v)
+			continue
+		}
+		// not a text node? nothing to merge
+		text, ok := v.(*Text)
+		if !ok {
+			ret = append(ret, v)
+			continue
+		}
+		// previous node is not a text node? nothing to merge
+		prevText, ok := ret[len(ret)-1].(*Text)
+		if !ok {
+			ret = append(ret, v)
+			continue
+		}
+		// previous node is not right before this one
+		if prevText.Range.End != text.Range.Position {
+			ret = append(ret, v)
+			continue
+		}
+		// we have two consecutive text nodes
+		ret[len(ret)-1] = &Text{
+			Text:  prevText.Text + text.Text,
+			Range: Range{prevText.Range.Position, text.Range.End},
+		}
+	}
+	return ret
+}
+
 func Unescape(markdown string) string {
 	ret := ""
 
