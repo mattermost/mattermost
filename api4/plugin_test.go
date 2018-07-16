@@ -114,6 +114,10 @@ func TestPlugin(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, ok)
 
+	ok, resp = th.SystemAdminClient.EnablePlugin("JUNK")
+	CheckBadRequestStatus(t, resp)
+	assert.False(t, ok)
+
 	// Successful deactivate
 	ok, resp = th.SystemAdminClient.DisablePlugin(manifest.Id)
 	CheckNoError(t, resp)

@@ -27,9 +27,11 @@ func TestFindManifest(t *testing.T) {
 		{"foo", "bar", true, true},
 		{"plugin.json", "bar", true, false},
 		{"plugin.json", `{"id": "foo"}`, false, false},
+		{"plugin.json", `{"id": "FOO"}`, false, false},
 		{"plugin.yaml", `id: foo`, false, false},
 		{"plugin.yaml", "bar", true, false},
 		{"plugin.yml", `id: foo`, false, false},
+		{"plugin.yml", `id: FOO`, false, false},
 		{"plugin.yml", "bar", true, false},
 	} {
 		dir, err := ioutil.TempDir("", "mm-plugin-test")
@@ -54,6 +56,7 @@ func TestFindManifest(t *testing.T) {
 		if !tc.ExpectError {
 			require.NotNil(t, m, tc.Filename)
 			assert.NotEmpty(t, m.Id, tc.Filename)
+			assert.Equal(t, strings.ToLower(m.Id), m.Id)
 		}
 	}
 }
