@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -201,6 +202,7 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 			return
 		}
 		manifest = &parsed
+		manifest.Id = strings.ToLower(manifest.Id)
 		return
 	}
 
@@ -220,5 +222,6 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 		return
 	}
 	manifest = &parsed
+	manifest.Id = strings.ToLower(manifest.Id)
 	return
 }
