@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -154,6 +155,8 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	id = strings.ToLower(id)
+
 	var manifest *model.Manifest
 	for _, p := range plugins {
 		if p.Manifest.Id == id {
@@ -197,6 +200,8 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	if err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	id = strings.ToLower(id)
 
 	var manifest *model.Manifest
 	for _, p := range plugins {
