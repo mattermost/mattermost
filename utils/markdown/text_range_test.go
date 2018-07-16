@@ -22,8 +22,8 @@ func TestTextRanges(t *testing.T) {
 		},
 		"simple2": {
 			Markdown:       "hello!",
-			ExpectedRanges: []Range{{0, 5}, {5, 6}},
-			ExpectedValues: []string{"hello", "!"},
+			ExpectedRanges: []Range{{0, 6}},
+			ExpectedValues: []string{"hello!"},
 		},
 		"multiline": {
 			Markdown:       "hello world\nfoobar",
@@ -37,13 +37,13 @@ func TestTextRanges(t *testing.T) {
 		},
 		"notcode": {
 			Markdown:       "hello ` world",
-			ExpectedRanges: []Range{{0, 6}, {6, 7}, {7, 13}},
-			ExpectedValues: []string{"hello ", "`", " world"},
+			ExpectedRanges: []Range{{0, 13}},
+			ExpectedValues: []string{"hello ` world"},
 		},
 		"escape": {
 			Markdown:       "\\*hello\\*",
-			ExpectedRanges: []Range{{1, 2}, {2, 7}, {8, 9}},
-			ExpectedValues: []string{"*", "hello", "*"},
+			ExpectedRanges: []Range{{1, 7}, {8, 9}},
+			ExpectedValues: []string{"*hello", "*"},
 		},
 		"escapeescape": {
 			Markdown:       "\\\\",
@@ -52,28 +52,28 @@ func TestTextRanges(t *testing.T) {
 		},
 		"notescape": {
 			Markdown:       "foo\\x",
-			ExpectedRanges: []Range{{0, 3}, {3, 4}, {4, 5}},
-			ExpectedValues: []string{"foo", "\\", "x"},
+			ExpectedRanges: []Range{{0, 5}},
+			ExpectedValues: []string{"foo\\x"},
 		},
 		"notlink": {
 			Markdown:       "[foo",
-			ExpectedRanges: []Range{{0, 1}, {1, 4}},
-			ExpectedValues: []string{"[", "foo"},
+			ExpectedRanges: []Range{{0, 4}},
+			ExpectedValues: []string{"[foo"},
 		},
 		"notlinkend": {
 			Markdown:       "[foo]",
-			ExpectedRanges: []Range{{0, 1}, {1, 4}, {4, 5}},
-			ExpectedValues: []string{"[", "foo", "]"},
+			ExpectedRanges: []Range{{0, 5}},
+			ExpectedValues: []string{"[foo]"},
 		},
 		"notimage": {
 			Markdown:       "![foo",
-			ExpectedRanges: []Range{{0, 2}, {2, 5}},
-			ExpectedValues: []string{"![", "foo"},
+			ExpectedRanges: []Range{{0, 5}},
+			ExpectedValues: []string{"![foo"},
 		},
 		"notimage2": {
 			Markdown:       "!foo",
-			ExpectedRanges: []Range{{0, 1}, {1, 4}},
-			ExpectedValues: []string{"!", "foo"},
+			ExpectedRanges: []Range{{0, 4}},
+			ExpectedValues: []string{"!foo"},
 		},
 		"charref": {
 			Markdown:       "&quot;test",
@@ -82,13 +82,13 @@ func TestTextRanges(t *testing.T) {
 		},
 		"notcharref": {
 			Markdown:       "&amp test",
-			ExpectedRanges: []Range{{0, 1}, {1, 9}},
-			ExpectedValues: []string{"&", "amp test"},
+			ExpectedRanges: []Range{{0, 9}},
+			ExpectedValues: []string{"&amp test"},
 		},
 		"notcharref2": {
 			Markdown:       "&mattermost;",
-			ExpectedRanges: []Range{{0, 1}, {1, 12}},
-			ExpectedValues: []string{"&", "mattermost;"},
+			ExpectedRanges: []Range{{0, 12}},
+			ExpectedValues: []string{"&mattermost;"},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -101,8 +101,8 @@ func TestTextRanges(t *testing.T) {
 				}
 				return true
 			})
-			assert.Equal(t, ranges, tc.ExpectedRanges)
-			assert.Equal(t, values, tc.ExpectedValues)
+			assert.Equal(t, tc.ExpectedRanges, ranges)
+			assert.Equal(t, tc.ExpectedValues, values)
 
 		})
 	}
