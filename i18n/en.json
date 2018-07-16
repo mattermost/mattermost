@@ -3031,6 +3031,10 @@
     "translation": "Unable to process SAML login request."
   },
   {
+    "id": "api.user.saml.invalid_extension",
+    "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+  },
+  {
     "id": "api.user.send_email_change_email_and_forget.error",
     "translation": "Failed to send email change notification email successfully"
   },

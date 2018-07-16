@@ -825,6 +825,10 @@ func (s *EmailSettings) SetDefaults() {
 	}
 }
 
+type ExtensionSettings struct {
+	AllowedExtensionsIDs []string
+}
+
 type RateLimitSettings struct {
 	Enable           *bool
 	PerSec           *int
@@ -1760,6 +1764,7 @@ type Config struct {
 	PasswordSettings      PasswordSettings
 	FileSettings          FileSettings
 	EmailSettings         EmailSettings
+	ExtensionSettings     ExtensionSettings
 	RateLimitSettings     RateLimitSettings
 	PrivacySettings       PrivacySettings
 	SupportSettings       SupportSettings

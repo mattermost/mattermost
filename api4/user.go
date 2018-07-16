@@ -941,6 +941,16 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
+	extensionId := props["extension_id"]
+
+	if len(extensionId) != 0 {
+		valid := c.App.ValidateExtension(extensionId)
+		if !valid {
+			params := map[string]interface{}{"extensionId": extensionId}
+			c.Err = model.NewAppError("completeSaml", "api.user.saml.invalid_extension", params, "", http.StatusInternalServerError)
+			return
+		}
+	}
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId, ldapOnly)
@@ -964,8 +974,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Session = *session
 
 	user.Sanitize(map[string]bool{})
-	w.Header().Set("Access-Control-Expose-Headers", "Token")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	if extensionId != "" {
+		w.Header().Set("Access-Control-Expose-Headers", "Token")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+	}
+
 	w.Write([]byte(user.ToJson()))
 }
 

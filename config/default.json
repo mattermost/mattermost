@@ -182,6 +182,9 @@
         "LoginButtonBorderColor": "",
         "LoginButtonTextColor": ""
     },
+    "ExtensionSettings": {
+        "AllowedExtensionsIDs": []
+    },
     "RateLimitSettings": {
         "Enable": false,
         "PerSec": 10,

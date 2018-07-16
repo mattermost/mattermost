@@ -4,7 +4,11 @@
 <head>
     <script>
         document.addEventListener("DOMContentLoaded", function(event) {
-            var extensionId = {{.ExtensionID}};
+            var extensionId = {{.ExtensionId}};
+
+            if (!extensionId) {
+                return;
+            }
 
             chrome.runtime.sendMessage(
                 extensionId,

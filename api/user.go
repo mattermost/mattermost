@@ -1096,7 +1096,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	redirectTo := r.URL.Query().Get("redirect_to")
-	extensionID := r.URL.Query().Get("extension_id")
+	extensionId := r.URL.Query().Get("extension_id")
 	relayProps := map[string]string{}
 	relayState := ""
 
@@ -1108,8 +1108,14 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if len(extensionID) != 0 {
-		relayProps["extension_id"] = extensionID
+	if len(extensionId) != 0 {
+		relayProps["extension_id"] = extensionId
+		valid := c.App.ValidateExtension(extensionId)
+		if !valid {
+			params := map[string]interface{}{"extensionId": extensionId}
+			c.Err = model.NewAppError("completeSaml", "api.user.saml.invalid_extension", params, "", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if len(redirectTo) != 0 {
@@ -1214,10 +1220,10 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func returnTokenToClient(extensionID string, c *Context, w http.ResponseWriter) {
+func returnTokenToClient(extensionId string, c *Context, w http.ResponseWriter) {
 	var t *template.Template
 	var err error
-	if len(extensionID) != 0 {
+	if len(extensionId) != 0 {
 		t = template.New("complete_saml_extension_body")
 		t, err = t.ParseFiles("templates/complete_saml_extension_body.html")
 	} else {
@@ -1240,11 +1246,11 @@ func returnTokenToClient(extensionID string, c *Context, w http.ResponseWriter) 
 	}
 
 	data := struct {
-		ExtensionID string
+		ExtensionId string
 		Token       string
 		Error       string
 	}{
-		extensionID,
+		extensionId,
 		c.Session.Token,
 		errMessage,
 	}
