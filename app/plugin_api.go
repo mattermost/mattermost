@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -142,6 +143,31 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(user, true)
+}
+
+func (api *PluginAPI) GetUserStatus(userId string) (*model.Status, *model.AppError) {
+	return api.app.GetStatus(userId)
+}
+
+func (api *PluginAPI) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
+	return api.app.GetUserStatusesByIds(userIds)
+}
+
+func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *model.AppError) {
+	switch status {
+	case model.STATUS_ONLINE:
+		api.app.SetStatusOnline(userId, true)
+	case model.STATUS_OFFLINE:
+		api.app.SetStatusOffline(userId, true)
+	case model.STATUS_AWAY:
+		api.app.SetStatusAwayIfNeeded(userId, true)
+	case model.STATUS_DND:
+		api.app.SetStatusDoNotDisturb(userId)
+	default:
+		return nil, model.NewAppError("UpdateUserStatus", "plugin.api.update_user_status.bad_status", nil, "unrecognized status", http.StatusBadRequest)
+	}
+
+	return api.app.GetStatus(userId)
 }
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {

@@ -49,6 +49,16 @@ type API interface {
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
 
+	// GetUserStatus will get a user's status.
+	GetUserStatus(userId string) (*model.Status, *model.AppError)
+
+	// GetUserStatusesByIds will return a list of user statuses based on the provided slice of user IDs.
+	GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError)
+
+	// UpdateUserStatus will set a user's status until the user, or another integration/plugin, sets it back to online.
+	// The status parameter can be: "online", "away", "dnd", or "offline".
+	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
+
 	// CreateTeam creates a team.
 	CreateTeam(team *model.Team) (*model.Team, *model.AppError)
 
