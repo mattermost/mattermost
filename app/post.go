@@ -24,6 +24,8 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+const MAX_POSTS_SINCE = 1000
+
 var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
@@ -483,7 +485,7 @@ func (a *App) GetPostsEtag(channelId string) string {
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	if result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, 1000, true); result.Err != nil {
+	if result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, MAX_POSTS_SINCE, true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.PostList), nil

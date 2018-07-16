@@ -12,6 +12,11 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const (
+	PAGE_DEFAULT     = 0
+	PER_PAGE_DEFAULT = 60
+)
+
 func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("", api.ApiSessionRequired(createPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(getPost)).Methods("GET")
@@ -195,7 +200,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(channelId, 0, 60)
+		postList, err = c.App.GetPostsPage(channelId, PAGE_DEFAULT, PER_PAGE_DEFAULT)
 	}
 
 	if len(etag) > 0 {

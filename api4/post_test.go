@@ -1134,7 +1134,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	posts, resp := Client.GetPostsAroundLastUnread(th.BasicChannel.Id)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 60 {
+	if len(posts.Order) != PER_PAGE_DEFAULT {
 		t.Fatal("Should return 60 posts only since there's no unread post")
 	}
 
