@@ -381,6 +381,18 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.Props = post.Props
 	}
 
+	if err := a.FillInPostProps(post, nil); err != nil {
+		return nil, err
+	}
+
+	if a.PluginsReady() {
+		if pluginModifiedPost, rejectionReason := a.PluginEnv.Hooks().MessageWillBeUpdated(newPost, oldPost); pluginModifiedPost == nil {
+			return nil, model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		} else {
+			newPost = pluginModifiedPost
+		}
+	}
+
 	if result := <-a.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
 		return nil, result.Err
 	} else {
