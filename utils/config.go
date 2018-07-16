@@ -229,15 +229,15 @@ func (w *ConfigWatcher) Close() {
 
 // ReadConfig reads and parses the given configuration.
 func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map[string]interface{}, error) {
-	// Pre-flight check the syntax of the configuration file to improve error messaging.
 	configData, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, nil, err
-	} else {
-		var rawConfig interface{}
-		if err := json.Unmarshal(configData, &rawConfig); err != nil {
-			return nil, nil, jsonutils.HumanizeJsonError(err, configData)
-		}
+	}
+
+	// Pre-flight check the syntax of the configuration file to improve error messaging.
+	var rawConfig model.Config
+	if err := json.Unmarshal(configData, &rawConfig); err != nil {
+		return nil, nil, jsonutils.HumanizeJsonError(err, configData)
 	}
 
 	v := newViper(allowEnvironmentOverrides)
@@ -248,10 +248,21 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map
 	var config model.Config
 	unmarshalErr := v.Unmarshal(&config)
 	if unmarshalErr == nil {
-		// https://github.com/spf13/viper/issues/324
-		// https://github.com/spf13/viper/issues/348
-		config.PluginSettings = model.PluginSettings{}
-		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
+		// Not using viper here because it kills case sensitivity for plugin IDs
+		// https://github.com/spf13/viper/issues/373
+		config.PluginSettings = rawConfig.PluginSettings
+
+		// Lower-casing plugin setting keys for backwards compatibility
+		lowerCasedSettings := make(map[string]map[string]interface{})
+		for id, p := range config.PluginSettings.Plugins {
+			settings := make(map[string]interface{})
+			for k, v := range p {
+				settings[strings.ToLower(k)] = v
+			}
+			lowerCasedSettings[id] = settings
+		}
+
+		config.PluginSettings.Plugins = lowerCasedSettings
 	}
 
 	envConfig := v.EnvSettings()
