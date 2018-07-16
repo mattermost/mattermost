@@ -153,7 +153,7 @@ func (api *PluginAPI) GetUserStatusesByIds(userIds []string) ([]*model.Status, *
 	return api.app.GetUserStatusesByIds(userIds)
 }
 
-func (api *PluginAPI) UpdateUserStatus(status, userId string) (*model.Status, *model.AppError) {
+func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *model.AppError) {
 	switch status {
 	case model.STATUS_ONLINE:
 		api.app.SetStatusOnline(userId, true)

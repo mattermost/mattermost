@@ -20,13 +20,13 @@ func TestPluginAPIUpdateUserStatus(t *testing.T) {
 	statuses := []string{model.STATUS_ONLINE, model.STATUS_AWAY, model.STATUS_DND, model.STATUS_OFFLINE}
 
 	for _, s := range statuses {
-		status, err := api.UpdateUserStatus(s, th.BasicUser.Id)
+		status, err := api.UpdateUserStatus(th.BasicUser.Id, s)
 		require.Nil(t, err)
 		require.NotNil(t, status)
 		assert.Equal(t, s, status.Status)
 	}
 
-	status, err := api.UpdateUserStatus("notrealstatus", th.BasicUser.Id)
+	status, err := api.UpdateUserStatus(th.BasicUser.Id, "notrealstatus")
 	assert.NotNil(t, err)
 	assert.Nil(t, status)
 }

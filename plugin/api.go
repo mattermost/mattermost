@@ -57,7 +57,7 @@ type API interface {
 
 	// UpdateUserStatus will set a user's status until the user, or another integration/plugin, sets it back to online.
 	// The status parameter can be: "online", "away", "dnd", or "offline".
-	UpdateUserStatus(status, userId string) (*model.Status, *model.AppError)
+	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
 	// CreateTeam creates a team.
 	CreateTeam(team *model.Team) (*model.Team, *model.AppError)
