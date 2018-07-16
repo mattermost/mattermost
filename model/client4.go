@@ -2145,6 +2145,17 @@ func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*Po
 	}
 }
 
+// SearchPosts returns any posts with matching terms string including deleted channels.
+func (c *Client4) SearchPostsIncludeDeletedChannels(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
+	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search?include_deleted_channels=true", StringInterfaceToJson(requestBody)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // SearchPosts returns any posts with matching terms string, including .
 func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response) {
 	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
