@@ -25,6 +25,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.ApiSessionRequired(patchPost)).Methods("PUT")
+	api.BaseRoutes.Post.Handle("/rethread", api.ApiSessionRequired(rethreadPost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.ApiSessionRequired(doPostAction)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/pin", api.ApiSessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.ApiSessionRequired(unpinPost)).Methods("POST")
@@ -395,6 +396,40 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.Id = c.Params.PostId
 
 	rpost, err := c.App.UpdatePost(c.App.PostWithProxyRemovedFromImageURLs(post), false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rpost).ToJson()))
+}
+
+func rethreadPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	post := model.PostFromJson(r.Body)
+
+	if post == nil {
+		c.SetInvalidParam("post")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+		return
+	}
+
+	post.Id = c.Params.PostId
+
+	rpost, err := c.App.RethreadPost(c.App.PostWithProxyRemovedFromImageURLs(post), false)
 	if err != nil {
 		c.Err = err
 		return
