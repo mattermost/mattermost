@@ -1288,6 +1288,10 @@ func TestSearchPosts(t *testing.T) {
 	message = "hashtag for post4"
 	_ = th.CreateMessagePost(message)
 
+	archivedChannel := th.CreatePublicChannel()
+	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
+	th.Client.DeleteChannel(archivedChannel.Id)
+
 	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "search", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 3 {
@@ -1303,6 +1307,12 @@ func TestSearchPosts(t *testing.T) {
 	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "#hashtag", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 1 && posts.Order[0] == post3.Id {
+		t.Fatal("wrong search")
+	}
+
+	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 2 {
 		t.Fatal("wrong search")
 	}
 
@@ -1328,7 +1338,6 @@ func TestSearchPosts(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
 	CheckUnauthorizedStatus(t, resp)
-
 }
 
 func TestSearchHashtagPosts(t *testing.T) {
