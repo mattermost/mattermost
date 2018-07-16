@@ -4,12 +4,14 @@
 	<head>
 		<script>
 			document.addEventListener("DOMContentLoaded", function(event) {
+
+                // TODO: targetOrigin should accept specific domains not *
+                // This template will be used for embedded use cases,
+                // For Chrome extension: check complete_saml_extension_body
 				window.opener.postMessage({
 					value: {{.Token}},
 					error: {{.Error}}
-				}, "*"); // TODO: targetOrigin should accept specific domains
-                // For embedded use cases,
-                // Chrome extension: check complete_saml_extension_body
+				}, "*");
 			});
 		</script>
 	</head>
