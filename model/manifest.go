@@ -120,11 +120,28 @@ type Manifest struct {
 }
 
 type ManifestBackend struct {
-	// The path to your executable binary. This should be relative to the root of your bundle and the
-	// location of the manifest file.
+	// Executables are the paths to your executable binaries, specifying multiple entry points
+	// for different platforms when bundled together in a single plugin.
+	Executables *ManifestExecutables `json:"executables,omitempty" yaml:"executables,omitempty"`
+
+	// Executable is the path to your executable binary. This should be relative to the root
+	// of your bundle and the location of the manifest file.
 	//
 	// On Windows, this file must have a ".exe" extension.
+	//
+	// If your plugin is compiled for multiple platforms, consider bundling them together
+	// and using the Executables field instead.
 	Executable string `json:"executable" yaml:"executable"`
+}
+
+type ManifestExecutables struct {
+	// LinuxAmd64 is the path to your executable binary for the corresponding platform
+	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
+	// DarwinAmd64 is the path to your executable binary for the corresponding platform
+	DarwinAmd64 string `json:"darwin-amd64,omitempty" yaml:"darwin-amd64,omitempty"`
+	// WindowsAmd64 is the path to your executable binary for the corresponding platform
+	// This file must have a ".exe" extension
+	WindowsAmd64 string `json:"windows-amd64,omitempty" yaml:"windows-amd64,omitempty"`
 }
 
 type ManifestWebapp struct {
@@ -171,6 +188,34 @@ func (m *Manifest) ClientManifest() *Manifest {
 		cm.Webapp.BundlePath = "/static/" + m.Id + "_bundle.js"
 	}
 	return cm
+}
+
+// GetExecutableForRuntime returns the path to the executable for the given runtime architecture.
+//
+// If the manifest defines multiple executables, but none match, or if only a single executable
+// is defined, the Executable field will be returned. This method does not guarantee that the
+// resulting binary can actually execute on the given platform.
+func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
+	if m.Backend == nil {
+		return ""
+	}
+
+	var executable string
+	if m.Backend.Executables != nil {
+		if goOs == "linux" && goArch == "amd64" {
+			executable = m.Backend.Executables.LinuxAmd64
+		} else if goOs == "darwin" && goArch == "amd64" {
+			executable = m.Backend.Executables.DarwinAmd64
+		} else if goOs == "windows" && goArch == "amd64" {
+			executable = m.Backend.Executables.WindowsAmd64
+		}
+	}
+
+	if executable == "" {
+		executable = m.Backend.Executable
+	}
+
+	return executable
 }
 
 // FindManifest will find and parse the manifest in a given directory.
