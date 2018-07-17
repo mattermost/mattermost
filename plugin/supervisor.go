@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -39,7 +40,10 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		},
 	}
 
-	executable := filepath.Clean(filepath.Join(".", pluginInfo.Manifest.Backend.Executable))
+	executable := filepath.Clean(filepath.Join(
+		".",
+		pluginInfo.Manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH),
+	))
 	if strings.HasPrefix(executable, "..") {
 		return nil, fmt.Errorf("invalid backend executable")
 	}

@@ -66,6 +66,11 @@ func TestManifestUnmarshal(t *testing.T) {
 		Id: "theid",
 		Backend: &ManifestBackend{
 			Executable: "theexecutable",
+			Executables: &ManifestExecutables{
+				LinuxAmd64:   "theexecutable-linux-amd64",
+				DarwinAmd64:  "theexecutable-darwin-amd64",
+				WindowsAmd64: "theexecutable-windows-amd64",
+			},
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
@@ -98,6 +103,10 @@ func TestManifestUnmarshal(t *testing.T) {
 id: theid
 backend:
     executable: theexecutable
+    executables:
+          linux-amd64: theexecutable-linux-amd64
+          darwin-amd64: theexecutable-darwin-amd64
+          windows-amd64: theexecutable-windows-amd64
 webapp:
     bundle_path: thebundlepath
 settings_schema:
@@ -121,7 +130,12 @@ settings_schema:
 	require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
 	"backend": {
-		"executable": "theexecutable"
+		"executable": "theexecutable",
+		"executables": {
+			"linux-amd64": "theexecutable-linux-amd64",
+			"darwin-amd64": "theexecutable-darwin-amd64",
+			"windows-amd64": "theexecutable-windows-amd64"
+		}
 	},
 	"webapp": {
 		"bundle_path": "thebundlepath"
@@ -282,4 +296,155 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, manifest.Description)
 	assert.NotEmpty(t, manifest.Backend)
 	assert.NotEmpty(t, manifest.SettingsSchema)
+}
+
+func TestManifestGetExecutableForRuntime(t *testing.T) {
+	testCases := []struct {
+		Description        string
+		Manifest           *Manifest
+		GoOs               string
+		GoArch             string
+		ExpectedExecutable string
+	}{
+		{
+			"no backend",
+			&Manifest{},
+			"linux",
+			"amd64",
+			"",
+		},
+		{
+			"no executable",
+			&Manifest{
+				Backend: &ManifestBackend{},
+			},
+			"linux",
+			"amd64",
+			"",
+		},
+		{
+			"single executable",
+			&Manifest{
+				Backend: &ManifestBackend{
+					Executable: "path/to/executable",
+				},
+			},
+			"linux",
+			"amd64",
+			"path/to/executable",
+		},
+		{
+			"single executable, different runtime",
+			&Manifest{
+				Backend: &ManifestBackend{
+					Executable: "path/to/executable",
+				},
+			},
+			"darwin",
+			"amd64",
+			"path/to/executable",
+		},
+		{
+			"multiple executables, no match",
+			&Manifest{
+				Backend: &ManifestBackend{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"other",
+			"amd64",
+			"",
+		},
+		{
+			"multiple executables, linux-amd64 match",
+			&Manifest{
+				Backend: &ManifestBackend{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable",
+		},
+		{
+			"multiple executables, linux-amd64 match, single executable ignored",
+			&Manifest{
+				Backend: &ManifestBackend{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+					Executable: "path/to/executable",
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable",
+		},
+		{
+			"multiple executables, darwin-amd64 match",
+			&Manifest{
+				Backend: &ManifestBackend{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"darwin",
+			"amd64",
+			"darwin-amd64/path/to/executable",
+		},
+		{
+			"multiple executables, windows-amd64 match",
+			&Manifest{
+				Backend: &ManifestBackend{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"windows",
+			"amd64",
+			"windows-amd64/path/to/executable",
+		},
+		{
+			"multiple executables, no match, single executable fallback",
+			&Manifest{
+				Backend: &ManifestBackend{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+					Executable: "path/to/executable",
+				},
+			},
+			"other",
+			"amd64",
+			"path/to/executable",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			assert.Equal(
+				t,
+				testCase.ExpectedExecutable,
+				testCase.Manifest.GetExecutableForRuntime(testCase.GoOs, testCase.GoArch),
+			)
+		})
+	}
 }
