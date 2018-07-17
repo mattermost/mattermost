@@ -3792,7 +3792,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "user", "user": {"username": "` + username2 + `", "email": "` + username2 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "user", "user": {"username": "` + username3 + `", "email": "` + username3 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
-{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachements":[{"path": "` + testImage + `"}]}}
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `"]}}
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `", "` + username3 + `"]}}
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `"], "user": "` + username + `", "message": "Hello Direct Channel", "create_at": 123456789013}}
@@ -3910,4 +3910,22 @@ func TestImportImportEmoji(t *testing.T) {
 
 	err = th.App.ImportEmoji(&data, false)
 	assert.Nil(t, err, "Second run should have succeeded apply mode")
+}
+
+func TestImportAttachment(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	testsDir, _ := utils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+	invalidPath := "some-invalid-path"
+
+	data := AttachmentImportData{Path: &testImage}
+	_, err := th.App.ImportAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team", true)
+	assert.Nil(t, err, "sample run without errors")
+
+	data = AttachmentImportData{Path: &invalidPath}
+	_, err = th.App.ImportAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team", true)
+	assert.NotNil(t, err, "should have failed when opening the file")
+	assert.Equal(t, err.Id, "app.import.attachment.bad_file.error")
 }
