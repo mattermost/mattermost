@@ -424,9 +424,17 @@ func rethreadPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
+	}
+
+	if c.Session.UserId != originalPost.UserId {
+		if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+			return
+		}
 	}
 
 	post.Id = c.Params.PostId
