@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -124,6 +125,27 @@ func (es SqlEmojiStore) GetByName(name string) store.StoreChannel {
 			}
 		} else {
 			result.Data = emoji
+		}
+	})
+}
+
+func (es SqlEmojiStore) GetMultipleByName(names []string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		keys, params := MapStringsToQueryParams(names, "Emoji")
+
+		var emojis []*model.Emoji
+
+		if _, err := es.GetReplica().Select(&emojis,
+			`SELECT
+				*
+			FROM
+				Emoji
+			WHERE
+				Name in `+keys+`
+				AND DeleteAt = 0`, params); err != nil {
+			result.Err = model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
+		} else {
+			result.Data = emojis
 		}
 	})
 }
