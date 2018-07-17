@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_channel.permission.app_error",
-    "translation": "You do not have the appropriate permissions"
+    "translation": "You don't have the appropriate permissions."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -529,7 +529,7 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel header."
+    "translation": "You don't have the appropriate permissions to edit the channel header."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
@@ -565,7 +565,7 @@
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel purpose."
+    "translation": "You don't have the appropriate permissions to edit the channel purpose."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
@@ -597,7 +597,7 @@
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "You do not have the appropriate permissions to rename the channel."
+    "translation": "You don't have the appropriate permissions to rename the channel."
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
@@ -932,7 +932,7 @@
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "You do not have the appropriate permissions to remove the member."
+    "translation": "You don't have the appropriate permissions to remove the member."
   },
   {
     "id": "api.command_remove.user_not_in_channel",
