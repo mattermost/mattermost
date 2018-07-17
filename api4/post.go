@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	PAGE_DEFAULT     = 0
-	PER_PAGE_DEFAULT = 60
+	MAX_LIMIT_POSTS_SINCE = 1000
+	PAGE_DEFAULT          = 0
+	PER_PAGE_DEFAULT      = 60
 )
 
 func (api *API) InitPost() {
@@ -136,7 +137,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(c.Params.ChannelId, since)
+		list, err = c.App.GetPostsSince(c.Params.ChannelId, since, MAX_LIMIT_POSTS_SINCE)
 	} else if len(afterPost) > 0 {
 		etag = c.App.GetPostsEtag(c.Params.ChannelId)
 

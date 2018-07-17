@@ -1131,7 +1131,21 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		}
 	}
 
+	// All returned posts are all read by the user, since it's created by the user itself.
 	posts, resp := Client.GetPostsAroundLastUnread(th.BasicChannel.Id)
+	CheckNoError(t, resp)
+
+	if len(posts.Order) != PER_PAGE_DEFAULT {
+		t.Fatal("Should return 60 posts only since there's no unread post")
+	}
+
+	// Set channel member's last viewed to 0.
+	// All returned posts are latest posts as if all previous posts were already read by the user.
+	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
+	channelMember.LastViewedAt = 0
+	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+
+	posts, resp = Client.GetPostsAroundLastUnread(th.BasicChannel.Id)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != PER_PAGE_DEFAULT {
@@ -1149,7 +1163,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}
 
 	since := lastUnreadPost.CreateAt - 1
-	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
+	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
 	channelMember.LastViewedAt = since
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 

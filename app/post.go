@@ -24,7 +24,11 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-const MAX_POSTS_SINCE = 1000
+const (
+	DEFAULT_LIMIT_POSTS_SINCE = 60
+	PAGE_DEFAULT              = 0
+	PER_PAGE_DEFAULT          = 60
+)
 
 var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
@@ -484,15 +488,7 @@ func (a *App) GetPostsEtag(channelId string) string {
 	return (<-a.Srv.Store.Post().GetEtag(channelId, true)).Data.(string)
 }
 
-func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	if result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, MAX_POSTS_SINCE, true); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.PostList), nil
-	}
-}
-
-func (a *App) GetPostsSinceWithLimit(channelId string, time int64, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsSince(channelId string, time int64, limit int) (*model.PostList, *model.AppError) {
 	if result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, limit, true); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -601,38 +597,31 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string) (*mod
 	var err *model.AppError
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
 		return nil, err
+	} else if member.LastViewedAt == 0 {
+		return model.NewPostList(), nil
 	}
 
 	var postListSince *model.PostList
-	if member.LastViewedAt > 0 {
-		if postListSince, err = a.GetPostsSinceWithLimit(channelId, member.LastViewedAt, 60); err != nil {
-			return nil, err
-		}
+	if postListSince, err = a.GetPostsSince(channelId, member.LastViewedAt, DEFAULT_LIMIT_POSTS_SINCE); err != nil {
+		return nil, err
+	} else if len(postListSince.Order) == 0 {
+		return model.NewPostList(), nil
 	}
 
-	var lastUnreadPostId string
-	if len(postListSince.Order) > 0 {
-		lastUnreadPostId = postListSince.Order[len(postListSince.Order)-1]
-	}
-
+	var lastUnreadPostId = postListSince.Order[len(postListSince.Order)-1]
 	var postListBefore *model.PostList
 	if lastUnreadPostId != "" {
-		if postListBefore, err = a.GetPostsBeforePost(channelId, lastUnreadPostId, 0, 60); err != nil {
+		if postListBefore, err = a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, PER_PAGE_DEFAULT); err != nil {
 			return nil, err
 		}
-	}
-
-	var postList *model.PostList
-	if postListSince != nil {
-		postList = postListSince
 	}
 
 	if postListBefore != nil {
-		postList.Extend(postListBefore)
+		postListSince.Extend(postListBefore)
 	}
 
-	postList.SortByCreateAt()
-	return postList, nil
+	postListSince.SortByCreateAt()
+	return postListSince, nil
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
