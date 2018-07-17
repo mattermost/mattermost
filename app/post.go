@@ -983,14 +983,21 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 	return nil
 }
 
-func (a *App) PostListWithProxyAddedToImageURLs(list *model.PostList) *model.PostList {
-	if f := a.ImageProxyAdder(); f != nil {
-		return list.WithRewrittenImageURLs(f)
+func (a *App) PreparePostListForClient(originalList *model.PostList) (*model.PostList, *model.AppError) {
+	list := &model.PostList{
+		Posts: make(map[string]*model.Post),
+		Order: originalList.Order,
 	}
-	return list
-}
 
-func (a *App) PreparePostListForClient(list *model.PostList) (*model.PostList, *model.AppError) {
+	for id, originalPost := range originalList.Posts {
+		post, err := PreparePostForClient(originalPost)
+		if err != nil {
+			return originalList, err
+		}
+
+		list.Posts[id] = post
+	}
+
 	return list, nil
 }
 
@@ -1036,7 +1043,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 	return post, nil
 }
 
-func (a *App) postWithProxyAddedToImageURLs(post *model.Post) *model.Post {
+func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
 	if f := a.ImageProxyAdder(); f != nil {
 		return post.WithRewrittenImageURLs(f)
 	}

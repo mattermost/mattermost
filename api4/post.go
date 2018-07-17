@@ -178,7 +178,13 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
+
+	clientPostList, err := c.App.PreparePostListForClient(list)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getPostsForChannel response", mlog.Any("err", err))
+	}
+
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -246,7 +252,12 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	clientPostList, err := c.App.PreparePostListForClient(list)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
+	}
+
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -368,8 +379,14 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
+	clientPostList, err := c.App.PreparePostListForClient(list)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
+	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
+
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -410,7 +427,12 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results = model.MakePostSearchResults(c.App.PostListWithProxyAddedToImageURLs(results.PostList), results.Matches)
+	clientPostList, err := c.App.PreparePostListForClient(results.PostList)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for searchPosts response", mlog.Any("err", err))
+	}
+
+	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(results.ToJson()))
