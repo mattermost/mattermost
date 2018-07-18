@@ -174,7 +174,6 @@
   revision = "7554cd9344cec97297fa6649b055a8c98c2a1e55"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/go-hclog"
   packages = ["."]
   revision = "69ff559dc25f3b435631604f573a5fa1efdb6433"
@@ -198,7 +197,6 @@
   revision = "b7773ae218740a7be65057fc60b366a49b538a44"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/go-plugin"
   packages = ["."]
   revision = "e8d22c780116115ae5624720c9af0c97afe4f551"
@@ -245,7 +243,7 @@
   branch = "master"
   name = "github.com/hashicorp/yamux"
   packages = ["."]
-  revision = "2658be15c5f05e76244154714161f17e3e77de2e"
+  revision = "3520598351bb3500a49ae9563f5539666ae0a27c"
 
 [[projects]]
   branch = "master"
@@ -774,6 +772,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2147cb986b5e1ba46b0c4479601fd9829cc46ccbc1bf4e8b9e59dfe0cccad77e"
+  inputs-digest = "70c0a23e6c8edc03d3c11a5227b2a43caea33f6170bfde2cf7698dcddf529036"
   solver-name = "gps-cdcl"
   solver-version = 1

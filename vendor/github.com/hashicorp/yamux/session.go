@@ -309,8 +309,10 @@ func (s *Session) keepalive() {
 		case <-time.After(s.config.KeepAliveInterval):
 			_, err := s.Ping()
 			if err != nil {
-				s.logger.Printf("[ERR] yamux: keepalive failed: %v", err)
-				s.exitErr(ErrKeepAliveTimeout)
+				if err != ErrSessionShutdown {
+					s.logger.Printf("[ERR] yamux: keepalive failed: %v", err)
+					s.exitErr(ErrKeepAliveTimeout)
+				}
 				return
 			}
 		case <-s.shutdownCh:
