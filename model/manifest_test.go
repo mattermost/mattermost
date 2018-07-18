@@ -101,7 +101,7 @@ func TestManifestUnmarshal(t *testing.T) {
 	var yamlResult Manifest
 	require.NoError(t, yaml.Unmarshal([]byte(`
 id: theid
-backend:
+server:
     executable: theexecutable
     executables:
           linux-amd64: theexecutable-linux-amd64
@@ -129,7 +129,7 @@ settings_schema:
 	var jsonResult Manifest
 	require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
-	"backend": {
+	"server": {
 		"executable": "theexecutable",
 		"executables": {
 			"linux-amd64": "theexecutable-linux-amd64",
@@ -456,7 +456,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			},
 			"linux",
 			"amd64",
-			"path/to/executable",
+			"linux-amd64/path/to/executable",
 		},
 		{
 			"deprecated backend field used, since no server present",
@@ -471,7 +471,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			},
 			"linux",
 			"amd64",
-			"path/to/executable/backend",
+			"linux-amd64/path/to/executable/backend",
 		},
 	}
 
