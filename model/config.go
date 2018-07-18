@@ -97,6 +97,8 @@ const (
 
 	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
 
+	FILE_SETTINGS_DEFAULT_DIRECTORY = "./data/"
+
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
 	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://about.mattermost.com/default-terms/"
@@ -789,7 +791,7 @@ func (s *FileSettings) SetDefaults() {
 	}
 
 	if s.Directory == "" {
-		s.Directory = "./data/"
+		s.Directory = FILE_SETTINGS_DEFAULT_DIRECTORY
 	}
 }
 
