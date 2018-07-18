@@ -193,7 +193,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "更新频道成员失败"
+    "translation": "更新频道失败"
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "Email invitations are disabled, no invite(s) sent"
+    "translation": "邮件邀请已停用，没有发送邀请"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -584,7 +584,7 @@
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to create a new group message."
+    "translation": "您没有合适的权限创建新的群消息。"
   },
   {
     "id": "api.command_help.desc",
@@ -648,7 +648,7 @@
   },
   {
     "id": "api.command_invite_people.permission.app_error",
-    "translation": "You don't have permission to invite new users to this server."
+    "translation": "您没有权限邀请新用户到这个服务器。"
   },
   {
     "id": "api.command_join.desc",
@@ -1443,6 +1443,10 @@
     "translation": "您不能保存其他用户的互动。"
   },
   {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "您的许可证不支持高级权限。"
   },
@@ -1620,7 +1624,7 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Email invitations are disabled."
+    "translation": "邮件邀请已停用。"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -2403,6 +2407,10 @@
     "translation": "数据导入文件缺少或有错误的版本。请确定版本是导入文件中的第一个对象后再尝试。"
   },
   {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "无法设定频道使用已删除的方案。"
   },
@@ -2621,6 +2629,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "缺少私信必须属性：user"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "导入表情符数据为空。"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Import emoji image field missing or blank."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Import emoji name field missing or blank."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",

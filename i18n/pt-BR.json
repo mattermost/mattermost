@@ -201,7 +201,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Falha ao postar a mensagem para atualização do nome de exibição"
+    "translation": "Falha ao publicar a mensagem para atualização do nome de exibição"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
@@ -213,7 +213,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Falha ao postar a mensagem para atualização do cabeçalho do canal"
+    "translation": "Falha ao publicar a mensagem para atualização do cabeçalho do canal"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Erro ao postar mensagem de entrar/sair"
+    "translation": "Erro ao publicar mensagem de entrar/sair"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -257,7 +257,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um Membro do Canal."
+    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um Membro do Canal"
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -489,7 +489,7 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Não Perturbe desabilita notificações no desktop e no celular."
+    "translation": "Não perturbe desabilita notificações no desktop e no celular."
   },
   {
     "id": "api.command_dnd.disabled",
@@ -608,7 +608,7 @@
   },
   {
     "id": "api.command_invite.directchannel.app_error",
-    "translation": "Você não pode remover a pessoa de um canal de mensagens diretas"
+    "translation": "Você não pode remover a pessoa de um canal de mensagens diretas."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -820,7 +820,7 @@
   },
   {
     "id": "api.command_remove.direct_group.app_error",
-    "translation": "Você não pode remover a pessoa de um canal de mensagens diretas"
+    "translation": "Você não pode remover a pessoa de um canal de mensagens diretas."
   },
   {
     "id": "api.command_remove.hint",
@@ -828,7 +828,7 @@
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "Uma mensagem deve ser fornecida com o comando /rename ou /kick."
+    "translation": "Uma mensagem deve ser fornecida com o comando /remove ou /kick."
   },
   {
     "id": "api.command_remove.missing.app_error",
@@ -956,7 +956,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
-    "translation": "Ir para o Post"
+    "translation": "Ir para a Publicação"
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
@@ -1058,7 +1058,7 @@
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "Não foi possível obter o link público para o arquivo. O arquivo deve ser anexado a um post que pode ser lido pelo usuário atual."
+    "translation": "Não foi possível obter o link público para o arquivo. O arquivo deve ser anexado a uma publicão que pode ser lido pelo usuário atual."
   },
   {
     "id": "api.file.move_file.copy_within_s3.app_error",
@@ -1146,7 +1146,7 @@
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
-    "translation": "Nome do usuário inválido"
+    "translation": "Nome do usuário inválido."
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1266,15 +1266,15 @@
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
-    "translation": "Erro ao deletar a sessão do BD"
+    "translation": "Erro ao deletar a sessão do DB"
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
-    "translation": "Erro ao deletar o token do BD"
+    "translation": "Erro ao deletar o token do DB"
   },
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
-    "translation": "Erro ao obter o token de acesso do BD antes da exclusão"
+    "translation": "Erro ao obter o token de acesso do DB antes da exclusão"
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
@@ -1314,7 +1314,7 @@
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": "Não é possível postar em um canal deletado."
+    "translation": "Não é possível publicar em um canal excluído."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -1330,11 +1330,11 @@
   },
   {
     "id": "api.post.create_post.town_square_read_only",
-    "translation": "Este canal é somente leitura. Somente membros com permissão podem postar aqui."
+    "translation": "Este canal é somente leitura. Somente membros com permissão podem publicar aqui."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
-    "translation": "Erro ao criar o post"
+    "translation": "Erro ao criar a publicação"
   },
   {
     "id": "api.post.disabled_all",
@@ -1376,15 +1376,15 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": "  notificou o canal."
+    "translation": " notificou o canal."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " comentou no no seu post."
+    "translation": " comentou no no sua publicação."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": "  comentou sobre um tópico em que você participou."
+    "translation": " comentou sobre um tópico em que você participou."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -1392,7 +1392,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
-    "translation": " postou uma mensagem."
+    "translation": " publicou uma mensagem."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
@@ -1404,15 +1404,15 @@
   },
   {
     "id": "api.post.update_post.find.app_error",
-    "translation": "Não foi possível encontrar o post ou comentário para atualizar."
+    "translation": "Não foi possível encontrar a publicação ou comentário para atualizar."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "Já deletado id={{.PostId}}"
+    "translation": "Já excluído id={{.PostId}}"
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Edição de postagens só são permitidas por {{.timeLimit}} segundos. Por favor peça ao administrador do sistema por detalhes."
+    "translation": "Edição de publicações só são permitidas por {{.timeLimit}} segundos. Por favor peça ao administrador do sistema por detalhes."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1420,7 +1420,7 @@
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
-    "translation": "Não foi possível obter o post"
+    "translation": "Não foi possível obter a publicação"
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
@@ -1441,6 +1441,10 @@
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
     "translation": "Você não pode salvar a reação de outro usuário."
+  },
+  {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "Reacting to posts is not possible in read-only channels."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1496,7 +1500,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nCanal Adicionado:\r\n"
+    "translation": "\r\nCanal adicionado:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -1540,11 +1544,11 @@
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Alguns posts podem não ter sido importados devido a eles não serem suportados por este importador.\r\n"
+    "translation": "- Algumas publicações podem não ter sido importados devido a eles não serem suportados por este importador.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot posts não é suportado atualmente.\r\n"
+    "translation": "- Slack bot mensagens não são suportadas atualmente.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note3",
@@ -1652,7 +1656,7 @@
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": "Falha ao postar a mensagem de mover o canal."
+    "translation": "Falha ao publicar a mensagem de mover o canal."
   },
   {
     "id": "api.team.move_channel.success",
@@ -1836,7 +1840,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Ir Para o Post"
+    "translation": "Ir Para a Publicação"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2140,11 +2144,11 @@
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "O link de redefinição de senha não parece ser válido"
+    "translation": "O link de redefinição de senha não parece ser válido."
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "O link de redefinição de senha expirou"
+    "translation": "O link de redefinição de senha expirou."
   },
   {
     "id": "api.user.reset_password.method",
@@ -2368,7 +2372,7 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Falha ao postar a mensagem de propósito do canal"
+    "translation": "Falha ao publicar a mensagem de propósito do canal"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
@@ -2403,6 +2407,10 @@
     "translation": "Versão incorreta ou ausente no arquivo de importação de dados. Verifique se a versão é o primeiro objeto no seu arquivo de importação e tente novamente."
   },
   {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Erro ao ler arquivo de imagem de emoji para importação. Emoji com o nome: \"{{.EmojiName}}\""
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "Não é possível definir um canal para usar um esquema excluído."
   },
@@ -2432,7 +2440,7 @@
   },
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
-    "translation": "Não foi possível achar o membro do canal enquanto importava os posts do canal direto"
+    "translation": "Não foi possível achar o membro do canal enquanto importava as publicações do canal direto"
   },
   {
     "id": "app.import.import_direct_post.create_direct_channel.error",
@@ -2500,7 +2508,7 @@
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
-    "translation": "O Importador em massa não pode mudar o escopo de um esquema já existente. "
+    "translation": "O importador em massa não pode mudar o escopo de um esquema já existente."
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
@@ -2600,7 +2608,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "Propriedade obrigatória do Post não foi informada: create_at"
+    "translation": "Propriedade obrigatória da publicação não foi informada: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
@@ -2612,7 +2620,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Propriedade obrigatória do Post não foi informada: message"
+    "translation": "Propriedade obrigatória da publicação não foi informada: message"
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
@@ -2620,7 +2628,19 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Propriedade obrigatória do Post não foi informada: user"
+    "translation": "Propriedade obrigatória da publicação não foi informada: user"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Dados para importação de emoji vazio."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Campo imagem para importação de emoji faltando ou vazio."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Campo nome para importação de emoji faltando ou vazio."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -2700,11 +2720,11 @@
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "Descrição da função inválida"
+    "translation": "Descrição da função inválida."
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "Nome para exibição da função inválido"
+    "translation": "Nome para exibição da função inválido."
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
@@ -2876,7 +2896,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
-    "translation": "Nome de usuário inválido"
+    "translation": "Nome de usuário inválido."
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
@@ -3052,7 +3072,7 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Token inválido ou faltando "
+    "translation": "Token inválido ou faltando"
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -3092,11 +3112,11 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Configuração de cluster foi alterada para o id={{ .id }}.  O cluster pode se tornar instável e uma reinicialização pode ser necessária. Para garantir que o cluster esteja configurado corretamente, você deve executar uma reinicialização contínua imediatamente."
+    "translation": "Configuração de cluster foi alterada para o id={{ .id }}. O cluster pode se tornar instável e uma reinicialização pode ser necessária. Para garantir que o cluster esteja configurado corretamente, você deve executar uma reinicialização contínua imediatamente."
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo  a menos que ReadOnlyConfig estiver desativado no arquivo de configurações."
+    "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo a menos que ReadOnlyConfig estiver desativado no arquivo de configurações."
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3624,11 +3644,11 @@
   },
   {
     "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": "Nenhum arquivo em 'image' no pedido"
+    "translation": "Nenhum arquivo em 'image' no pedido."
   },
   {
     "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "Não foi possível escrever a requisição"
+    "translation": "Não foi possível escrever a requisição."
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
@@ -3852,11 +3872,11 @@
   },
   {
     "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Inválido convite salt em configurações de email.  Deve ser de 32 caracteres ou mais."
+    "translation": "Inválido convite salt em configurações de email. Deve ser de 32 caracteres ou mais."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Inválida segurança de conexão em configurações de email.  Deve ser '', 'TLS', or 'STARTTLS'"
+    "translation": "Inválida segurança de conexão em configurações de email. Deve ser '', 'TLS', or 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -4096,7 +4116,7 @@
   },
   {
     "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "STUN URI do WebRTC deve ser uma URI e começar com stun:"
+    "translation": "STUN URI do WebRTC deve ser uma URL e começar com stun:"
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
@@ -4116,7 +4136,7 @@
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
-    "translation": "A URL Websocket deve ser uma URL válida e começar com ws:// ou wss://."
+    "translation": "A URL Websocket deve ser uma URL válida e começar com ws:// ou wss://"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
@@ -4140,7 +4160,7 @@
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": "Creator Id inválido"
+    "translation": "creator Id inválido"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -4656,7 +4676,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "Não existem canais apagados."
+    "translation": "Não existem canais apagados"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -5392,7 +5412,7 @@
   },
   {
     "id": "store.sql_role.delete.update.app_error",
-    "translation": "Não foi possível excluir a função."
+    "translation": "Não foi possível excluir a função"
   },
   {
     "id": "store.sql_role.get.app_error",
@@ -5744,7 +5764,7 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Nós não conseguimos atualizar a data da última atualização do ícone da equipe "
+    "translation": "Nós não conseguimos atualizar a data da última atualização do ícone da equipe"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",

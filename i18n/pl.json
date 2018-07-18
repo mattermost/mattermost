@@ -1443,6 +1443,10 @@
     "translation": "Nie możesz zapisać reakcji dla innego użytkownika."
   },
   {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "Your license does not support advanced permissions."
   },
@@ -2403,6 +2407,10 @@
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
   {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "Cannot set a channel to use a deleted scheme."
   },
@@ -2621,6 +2629,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "Brak wymaganej właściwości Post: user."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Import emoji data empty."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Import emoji image field missing or blank."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Import emoji name field missing or blank."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -5780,7 +5800,7 @@
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the user"
+    "translation": "Nie udało się zaktualizować tytułu bezpośredniego kanału"
   },
   {
     "id": "store.sql_user.get.app_error",

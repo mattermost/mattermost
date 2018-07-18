@@ -197,7 +197,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": "Impossible de mettre à jour le message de politique de vie privée du canal"
+    "translation": "Impossible de mettre à jour le message de politique de vie privée du canal."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -1443,6 +1443,10 @@
     "translation": "Vous ne pouvez pas sauvegarder la réaction pour l'autre utilisateur."
   },
   {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "Votre licence actuelle ne supporte pas les permissions avancées."
   },
@@ -1452,7 +1456,7 @@
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "Votre licence actuelle ne supporte pas la modification d'un schémas de permissions."
+    "translation": "Votre licence actuelle ne supporte pas la modification de schémas de permissions."
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
@@ -1464,7 +1468,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "Votre licence actuelle ne supporte pas la modification des schémas de permissions."
+    "translation": "Votre licence actuelle ne supporte pas la modification de schémas de permissions."
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -1724,7 +1728,7 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "Votre licence actuelle ne supporte pas la modification d'es schémas de permissions d'équipe."
+    "translation": "Votre licence actuelle ne supporte pas la modification de schémas de permissions d'équipe."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -2064,7 +2068,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": "L'authentification de Transfert n'est pas configuré ou disponible sur ce serveur."
+    "translation": "Le changement de méthode d'authentification n'est pas configuré ou disponible sur ce serveur."
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2132,7 +2136,7 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": "L'authentification de Transfert n'est pas configuré ou disponible sur ce serveur."
+    "translation": "Le changement de méthode d'authentification n'est pas configuré ou disponible sur ce serveur."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2312,7 +2316,7 @@
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": "La connexion WebSocket n'est pas authentifiée. Veuillez vous connecter et réessayer."
+    "translation": "La connexion WebSocket n'est pas authentifiée. Veuillez vous connecter et réessayez."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2400,7 +2404,11 @@
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": "Version incorrecte ou manquante dans le fichier d'importation de données. Veuillez vous assurer que la version est le premier objet dans votre fichier d'importation et réessayer."
+    "translation": "Version incorrecte ou manquante dans le fichier d'importation de données. Veuillez vous assurer que la version est le premier objet dans votre fichier d'importation et réessayez."
+  },
+  {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2621,6 +2629,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "La propriété requise pour un message privé est manquante: user"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Import emoji data empty."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Import emoji image field missing or blank."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Import emoji name field missing or blank."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3348,7 +3368,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Impossible de migrer les utilisateurs AD/LDAP avec le champ en question. Doublon détecté. Veuillez supprimer tous les doublons et réessayer."
+    "translation": "Impossible de migrer les utilisateurs AD/LDAP avec le champ en question. Doublon détecté. Veuillez supprimer tous les doublons et réessayez."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -3400,7 +3420,7 @@
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "La connexion via SAML a échoué, car une erreur s'est produite lors du décryptage de la réponse du serveur d'identité. Veuillez contacter votre administrateur système."
+    "translation": "La connexion via SAML a échoué, car une erreur s'est produite lors du déchiffrement de la réponse du serveur d'identité. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -4852,7 +4872,7 @@
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
-    "translation": "Impossible de récupérer la liste des utilisateurs du canal à la période spécifiée"
+    "translation": "Impossible de récupérer la liste des utilisateurs du canal dans la période spécifiée"
   },
   {
     "id": "store.sql_channel_member_history.log_join_event.app_error",
@@ -5748,7 +5768,7 @@
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Impossible de récupérer les utilisateurs actifs de la période spécifiée"
+    "translation": "Impossible de récupérer les utilisateurs actifs dans la période spécifiée"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
