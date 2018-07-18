@@ -50,16 +50,9 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(extensionId) != 0 {
 		relayProps["extension_id"] = extensionId
-		enabled := c.App.ExtensionSupportEnabled()
-		if !enabled {
-			c.Err = model.NewAppError("completeSaml", "api.user.saml.extension_unsupported", nil, "", http.StatusInternalServerError)
-			return
-		}
-
-		valid := c.App.ValidateExtension(extensionId)
-		if !valid {
-			params := map[string]interface{}{"extensionId": extensionId}
-			c.Err = model.NewAppError("completeSaml", "api.user.saml.invalid_extension", params, "", http.StatusInternalServerError)
+		err := c.App.ValidateExtension(extensionId)
+		if err != nil {
+			c.Err = err
 			return
 		}
 	}

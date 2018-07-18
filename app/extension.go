@@ -9,21 +9,36 @@ import (
 	"net/http"
 )
 
-func (a *App) ExtensionSupportEnabled() bool {
+func (a *App) isExtensionSupportEnabled() bool {
 	return *a.Config().ExtensionSettings.EnableExperimentalExtensions
 }
 
-func (a *App) ValidateExtension(extensionID string) bool {
+func (a *App) isExtensionValid(extensionId string) bool {
 	extensionIsValid := false
 	extensionIDs := a.Config().ExtensionSettings.AllowedExtensionsIDs
 
 	for _, id := range extensionIDs {
-		if extensionID == id {
+		if extensionId == id {
 			extensionIsValid = true
 		}
 	}
 
 	return extensionIsValid
+}
+
+func (a *App) ValidateExtension(extensionId string) *model.AppError {
+	enabled := a.isExtensionSupportEnabled()
+	if !enabled {
+		return model.NewAppError("completeSaml", "api.user.saml.extension_unsupported", nil, "", http.StatusInternalServerError)
+	}
+
+	valid := a.isExtensionValid(extensionId)
+	if !valid {
+		params := map[string]interface{}{"ExtensionId": extensionId}
+		return model.NewAppError("completeSaml", "api.user.saml.invalid_extension", params, "", http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (a *App) SendMessageToExtension(w http.ResponseWriter, extensionId string, token string) *model.AppError {
