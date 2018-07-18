@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -112,4 +113,17 @@ func TestCreateChannel(t *testing.T) {
 
 	name = name + "-private"
 	CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--private", "--name", name)
+}
+
+func TestRenameChannel(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.CreatePublicChannel()
+	CheckCommand(t, "channel", "rename", th.BasicTeam.Name+":"+channel.Name, "newchannelname10", "--display_name", "New Display Name")
+
+	// Get the channel from the DB
+	updatedChannel, _ := th.App.GetChannel(channel.Id)
+	assert.Equal(t, "newchannelname10", updatedChannel.Name)
+	assert.Equal(t, "New Display Name", updatedChannel.DisplayName)
 }
