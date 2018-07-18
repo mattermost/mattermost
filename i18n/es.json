@@ -1443,6 +1443,10 @@
     "translation": "No puedes guardar una reacción de otro usuario."
   },
   {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "No se puede reaccionar a mensajes en canales de sólo lectura."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "La licencia actual no admite los permisos avanzados."
   },
@@ -2403,6 +2407,10 @@
     "translation": "Versión incorrecta o faltante en el archivo de importación de datos. Asegura que la versión sea el primer objeto en el archivo de importación e intenta nuevamente."
   },
   {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error al leer el archivo importado con la imagen del emoticon. Nombre del Emoticon: \"{{.EmojiName}}\""
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "No se puede asignar un esquema borrado a un canal."
   },
@@ -2621,6 +2629,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "Falta la propiedad obligatoria del mensaje del canal directo: user"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Datos de importación del emoticon vacío."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "El campo de imagén del emoticon en la importación está faltante o vacío."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "El campo del nombre del emoticon en la importación está faltante o vacío."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
