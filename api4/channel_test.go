@@ -1115,7 +1115,10 @@ func TestGetChannelByName(t *testing.T) {
 	_, resp = Client.GetChannelByName(strings.ToUpper(th.BasicPrivateChannel.Name), th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
 
-	channel, resp = Client.GetChannelByName(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "")
+	_, resp = Client.GetChannelByName(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "")
+	CheckNotFoundStatus(t, resp)
+
+	channel, resp = Client.GetChannelByNameIncludeDeleted(th.BasicDeletedChannel.Name, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
 
 	if channel.Name != th.BasicDeletedChannel.Name {
@@ -1164,7 +1167,10 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
 
-	channel, resp = Client.GetChannelByNameForTeamName(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
+	_, resp = Client.GetChannelByNameForTeamName(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
+	CheckNotFoundStatus(t, resp)
+
+	channel, resp = Client.GetChannelByNameForTeamNameIncludeDeleted(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
 
 	if channel.Name != th.BasicDeletedChannel.Name {
