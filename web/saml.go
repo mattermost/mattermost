@@ -32,6 +32,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	redirectTo := r.URL.Query().Get("redirect_to")
+	extensionId := r.URL.Query().Get("extension_id")
 	relayProps := map[string]string{}
 	relayState := ""
 
@@ -45,6 +46,22 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(redirectTo) != 0 {
 		relayProps["redirect_to"] = redirectTo
+	}
+
+	if len(extensionId) != 0 {
+		relayProps["extension_id"] = extensionId
+		enabled := c.App.ExtensionSupportEnabled()
+		if !enabled {
+			c.Err = model.NewAppError("completeSaml", "api.user.saml.extension_unsupported", nil, "", http.StatusInternalServerError)
+			return
+		}
+
+		valid := c.App.ValidateExtension(extensionId)
+		if !valid {
+			params := map[string]interface{}{"extensionId": extensionId}
+			c.Err = model.NewAppError("completeSaml", "api.user.saml.invalid_extension", params, "", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if len(relayProps) > 0 {
@@ -141,6 +158,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if action == model.OAUTH_ACTION_MOBILE {
 			ReturnStatusOK(w)
+		} else if action == model.OAUTH_ACTION_CLIENT {
+			err = c.App.SendMessageToExtension(w, relayProps["extension_id"], c.Session.Token)
+
+			if err != nil {
+				c.Err = err
+				return
+			}
 		} else {
 			http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
 		}
