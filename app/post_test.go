@@ -15,6 +15,7 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -476,6 +477,122 @@ func TestMaxPostSize(t *testing.T) {
 			}
 
 			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
+		})
+	}
+}
+
+func TestGetCustomEmojisInString(t *testing.T) {
+	t.Parallel()
+
+	testEmojis := map[string]*model.Emoji{
+		"apple":  {Name: "apple"},
+		"banana": {Name: "banana"},
+		"carrot": {Name: "carrot"},
+	}
+
+	testCases := []struct {
+		Description      string
+		Input            string
+		Expected         []*model.Emoji
+		SkipExpectations bool
+	}{
+		{
+			Description:      "no emojis",
+			Input:            "this is a string",
+			Expected:         []*model.Emoji{},
+			SkipExpectations: true,
+		},
+		{
+			Description: "one emoji",
+			Input:       "this is an :apple: string",
+			Expected: []*model.Emoji{
+				testEmojis["apple"],
+			},
+		},
+		{
+			Description: "two emojis",
+			Input:       "this is a :carrot: :banana: string",
+			Expected: []*model.Emoji{
+				testEmojis["carrot"],
+				testEmojis["banana"],
+			},
+		},
+		{
+			Description: "punctuation around emojis",
+			Input:       ":carrot:/:apple: (:banana:)",
+			Expected: []*model.Emoji{
+				testEmojis["carrot"],
+				testEmojis["apple"],
+				testEmojis["banana"],
+			},
+		},
+		{
+			Description: "adjacent emojis",
+			Input:       ":carrot::apple:",
+			Expected: []*model.Emoji{
+				testEmojis["carrot"],
+				testEmojis["apple"],
+			},
+		},
+		{
+			Description: "duplicate emojis",
+			Input:       ":apple: :apple: :apple: :banana: :banana: :apple:",
+			Expected: []*model.Emoji{
+				testEmojis["apple"],
+				testEmojis["banana"],
+			},
+		},
+		{
+			Description: "fake emojis",
+			Input:       "these don't exist :tomato: :potato: :rotato:",
+			Expected:    []*model.Emoji{},
+		},
+		{
+			Description: "fake and real emojis",
+			Input:       ":tomato::apple: :potato: :banana:",
+			Expected: []*model.Emoji{
+				testEmojis["apple"],
+				testEmojis["banana"],
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			t.Parallel()
+
+			mockStore := &storetest.Store{}
+
+			mockStore.EmojiStore.On("GetMultipleByName", mock.AnythingOfType("[]string")).Return(
+				func(names []string) store.StoreChannel {
+					emojis := []*model.Emoji{}
+
+					for _, name := range names {
+						if _, ok := testEmojis[name]; ok {
+							emojis = append(emojis, testEmojis[name])
+						}
+					}
+
+					return storetest.NewStoreChannel(store.StoreResult{Data: emojis})
+				},
+			)
+
+			app := App{
+				Srv: &Server{
+					Store: mockStore,
+				},
+			}
+
+			emojis, err := app.getCustomEmojisInString(testCase.Input)
+			assert.Nil(t, err, "failed to get emojis in string")
+			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emojis")
+
+			// mockStore.AssertExpectations requires that some method of the mock store was called,
+			// but we skip it if there are nothing that looks like an emoji in the string
+			if !testCase.SkipExpectations {
+				mockStore.AssertExpectations(t)
+			}
 		})
 	}
 }

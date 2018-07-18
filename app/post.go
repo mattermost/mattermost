@@ -1026,21 +1026,53 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 		post.FileInfos = fileInfos
 	}
 
-	if post.ImageDimensions == nil {
-		// TODO
-	}
-
-	if post.OpenGraphData == nil {
-		// TODO
-	}
-
 	if post.Emojis == nil {
-		// TODO
+		emojis, err := a.getCustomEmojisInString(post.Message)
+		if err != nil {
+			return post, err
+		}
+
+		post.Emojis = emojis
 	}
 
-	post = a.postWithProxyAddedToImageURLs(post)
+	post = a.PostWithProxyAddedToImageURLs(post)
+
+	needImageDimensions := post.ImageDimensions == nil
+	needOpenGraphData := post.OpenGraphData == nil
+
+	if needImageDimensions || needOpenGraphData {
+		if needImageDimensions {
+			post.ImageDimensions = []*model.PostImageDimensions{}
+		}
+
+		if needOpenGraphData {
+			post.OpenGraphData = []*opengraph.OpenGraph{}
+		}
+
+		// TODO
+	}
 
 	return post, nil
+}
+
+func (a *App) getCustomEmojisInString(str string) ([]*model.Emoji, *model.AppError) {
+	names := model.EMOJI_PATTERN.FindAllString(str, -1)
+
+	if len(names) == 0 {
+		return []*model.Emoji{}, nil
+	}
+
+	names = model.RemoveDuplicateStrings(names)
+
+	for i, name := range names {
+		names[i] = strings.Trim(name, ":")
+	}
+
+	if result := <-a.Srv.Store.Emoji().GetMultipleByName(names); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Emoji), nil
+	}
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

@@ -592,3 +592,18 @@ func IsDomainName(s string) bool {
 
 	return ok
 }
+
+func RemoveDuplicateStrings(in []string) []string {
+	out := []string{}
+	seen := make(map[string]bool)
+
+	for _, item := range in {
+		if !seen[item] {
+			out = append(out, item)
+
+			seen[item] = true
+		}
+	}
+
+	return out
+}
