@@ -64,7 +64,7 @@ func TestFindManifest(t *testing.T) {
 func TestManifestUnmarshal(t *testing.T) {
 	expected := Manifest{
 		Id: "theid",
-		Backend: &ManifestBackend{
+		Server: &ManifestServer{
 			Executable: "theexecutable",
 			Executables: &ManifestExecutables{
 				LinuxAmd64:   "theexecutable-linux-amd64",
@@ -101,7 +101,7 @@ func TestManifestUnmarshal(t *testing.T) {
 	var yamlResult Manifest
 	require.NoError(t, yaml.Unmarshal([]byte(`
 id: theid
-backend:
+server:
     executable: theexecutable
     executables:
           linux-amd64: theexecutable-linux-amd64
@@ -129,7 +129,7 @@ settings_schema:
 	var jsonResult Manifest
 	require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
-	"backend": {
+	"server": {
 		"executable": "theexecutable",
 		"executables": {
 			"linux-amd64": "theexecutable-linux-amd64",
@@ -185,7 +185,7 @@ func TestFindManifest_FileErrors(t *testing.T) {
 func TestManifestJson(t *testing.T) {
 	manifest := &Manifest{
 		Id: "theid",
-		Backend: &ManifestBackend{
+		Server: &ManifestServer{
 			Executable: "theexecutable",
 		},
 		Webapp: &ManifestWebapp{
@@ -230,7 +230,7 @@ func TestManifestJson(t *testing.T) {
 func TestManifestHasClient(t *testing.T) {
 	manifest := &Manifest{
 		Id: "theid",
-		Backend: &ManifestBackend{
+		Server: &ManifestServer{
 			Executable: "theexecutable",
 		},
 		Webapp: &ManifestWebapp{
@@ -250,7 +250,7 @@ func TestManifestClientManifest(t *testing.T) {
 		Name:        "thename",
 		Description: "thedescription",
 		Version:     "0.0.1",
-		Backend: &ManifestBackend{
+		Server: &ManifestServer{
 			Executable: "theexecutable",
 		},
 		Webapp: &ManifestWebapp{
@@ -287,14 +287,14 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, sanitized.SettingsSchema)
 	assert.Empty(t, sanitized.Name)
 	assert.Empty(t, sanitized.Description)
-	assert.Empty(t, sanitized.Backend)
+	assert.Empty(t, sanitized.Server)
 
 	assert.NotEmpty(t, manifest.Id)
 	assert.NotEmpty(t, manifest.Version)
 	assert.NotEmpty(t, manifest.Webapp)
 	assert.NotEmpty(t, manifest.Name)
 	assert.NotEmpty(t, manifest.Description)
-	assert.NotEmpty(t, manifest.Backend)
+	assert.NotEmpty(t, manifest.Server)
 	assert.NotEmpty(t, manifest.SettingsSchema)
 }
 
@@ -307,7 +307,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		ExpectedExecutable string
 	}{
 		{
-			"no backend",
+			"no server",
 			&Manifest{},
 			"linux",
 			"amd64",
@@ -316,7 +316,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"no executable",
 			&Manifest{
-				Backend: &ManifestBackend{},
+				Server: &ManifestServer{},
 			},
 			"linux",
 			"amd64",
@@ -325,7 +325,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"single executable",
 			&Manifest{
-				Backend: &ManifestBackend{
+				Server: &ManifestServer{
 					Executable: "path/to/executable",
 				},
 			},
@@ -336,7 +336,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"single executable, different runtime",
 			&Manifest{
-				Backend: &ManifestBackend{
+				Server: &ManifestServer{
 					Executable: "path/to/executable",
 				},
 			},
@@ -347,7 +347,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"multiple executables, no match",
 			&Manifest{
-				Backend: &ManifestBackend{
+				Server: &ManifestServer{
 					Executables: &ManifestExecutables{
 						LinuxAmd64:   "linux-amd64/path/to/executable",
 						DarwinAmd64:  "darwin-amd64/path/to/executable",
@@ -362,7 +362,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"multiple executables, linux-amd64 match",
 			&Manifest{
-				Backend: &ManifestBackend{
+				Server: &ManifestServer{
 					Executables: &ManifestExecutables{
 						LinuxAmd64:   "linux-amd64/path/to/executable",
 						DarwinAmd64:  "darwin-amd64/path/to/executable",
@@ -377,7 +377,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"multiple executables, linux-amd64 match, single executable ignored",
 			&Manifest{
-				Backend: &ManifestBackend{
+				Server: &ManifestServer{
 					Executables: &ManifestExecutables{
 						LinuxAmd64:   "linux-amd64/path/to/executable",
 						DarwinAmd64:  "darwin-amd64/path/to/executable",
@@ -393,7 +393,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"multiple executables, darwin-amd64 match",
 			&Manifest{
-				Backend: &ManifestBackend{
+				Server: &ManifestServer{
 					Executables: &ManifestExecutables{
 						LinuxAmd64:   "linux-amd64/path/to/executable",
 						DarwinAmd64:  "darwin-amd64/path/to/executable",
@@ -408,7 +408,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"multiple executables, windows-amd64 match",
 			&Manifest{
-				Backend: &ManifestBackend{
+				Server: &ManifestServer{
 					Executables: &ManifestExecutables{
 						LinuxAmd64:   "linux-amd64/path/to/executable",
 						DarwinAmd64:  "darwin-amd64/path/to/executable",
@@ -423,7 +423,7 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 		{
 			"multiple executables, no match, single executable fallback",
 			&Manifest{
-				Backend: &ManifestBackend{
+				Server: &ManifestServer{
 					Executables: &ManifestExecutables{
 						LinuxAmd64:   "linux-amd64/path/to/executable",
 						DarwinAmd64:  "darwin-amd64/path/to/executable",
@@ -436,6 +436,43 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"amd64",
 			"path/to/executable",
 		},
+		{
+			"deprecated backend field, ignored since server present",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable/backend",
+						DarwinAmd64:  "darwin-amd64/path/to/executable/backend",
+						WindowsAmd64: "windows-amd64/path/to/executable/backend",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable",
+		},
+		{
+			"deprecated backend field used, since no server present",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable/backend",
+						DarwinAmd64:  "darwin-amd64/path/to/executable/backend",
+						WindowsAmd64: "windows-amd64/path/to/executable/backend",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable/backend",
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -445,6 +482,113 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 				testCase.ExpectedExecutable,
 				testCase.Manifest.GetExecutableForRuntime(testCase.GoOs, testCase.GoArch),
 			)
+		})
+	}
+}
+
+func TestManifestHasServer(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Manifest    *Manifest
+		Expected    bool
+	}{
+		{
+			"no server",
+			&Manifest{},
+			false,
+		},
+		{
+			"no executable, but server still considered present",
+			&Manifest{
+				Server: &ManifestServer{},
+			},
+			true,
+		},
+		{
+			"single executable",
+			&Manifest{
+				Server: &ManifestServer{
+					Executable: "path/to/executable",
+				},
+			},
+			true,
+		},
+		{
+			"multiple executables",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			true,
+		},
+		{
+			"single executable defined via deprecated backend",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executable: "path/to/executable",
+				},
+			},
+			true,
+		},
+		{
+			"multiple executables defined via deprecated backend",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			assert.Equal(t, testCase.Expected, testCase.Manifest.HasServer())
+		})
+	}
+}
+
+func TestManifestHasWebapp(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Manifest    *Manifest
+		Expected    bool
+	}{
+		{
+			"no webapp",
+			&Manifest{},
+			false,
+		},
+		{
+			"no bundle path, but webapp still considered present",
+			&Manifest{
+				Webapp: &ManifestWebapp{},
+			},
+			true,
+		},
+		{
+			"bundle path defined",
+			&Manifest{
+				Webapp: &ManifestWebapp{
+					BundlePath: "path/to/bundle",
+				},
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			assert.Equal(t, testCase.Expected, testCase.Manifest.HasWebapp())
 		})
 	}
 }

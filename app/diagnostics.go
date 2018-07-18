@@ -585,18 +585,18 @@ func (a *App) trackPlugins() {
 				}
 				if state, ok := pluginStates[plugin.Manifest.Id]; ok && state.Enable {
 					totalEnabledCount += 1
-					if plugin.Manifest.Backend != nil {
+					if plugin.Manifest.HasServer() {
 						backendEnabledCount += 1
 					}
-					if plugin.Manifest.Webapp != nil {
+					if plugin.Manifest.HasWebapp() {
 						webappEnabledCount += 1
 					}
 				} else {
 					totalDisabledCount += 1
-					if plugin.Manifest.Backend != nil {
+					if plugin.Manifest.HasServer() {
 						backendDisabledCount += 1
 					}
-					if plugin.Manifest.Webapp != nil {
+					if plugin.Manifest.HasWebapp() {
 						webappDisabledCount += 1
 					}
 				}

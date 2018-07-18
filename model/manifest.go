@@ -84,7 +84,7 @@ type PluginSettingsSchema struct {
 //     id: com.mycompany.myplugin
 //     name: My Plugin
 //     description: This is my plugin. It does stuff.
-//     backend:
+//     server:
 //         executable: myplugin
 //     settings_schema:
 //         settings:
@@ -108,8 +108,11 @@ type Manifest struct {
 	// A version number for your plugin. Semantic versioning is recommended: http://semver.org
 	Version string `json:"version" yaml:"version"`
 
-	// If your plugin extends the server, you'll need define backend.
-	Backend *ManifestBackend `json:"backend,omitempty" yaml:"backend,omitempty"`
+	// Server defines the server-side portion of your plugin.
+	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
+
+	// Backend is a deprecated flag for defining the server-side portion of your plugin. Going forward, use Server instead.
+	Backend *ManifestServer `json:"backend,omitempty" yaml:"backend,omitempty"`
 
 	// If your plugin extends the web app, you'll need to define webapp.
 	Webapp *ManifestWebapp `json:"webapp,omitempty" yaml:"webapp,omitempty"`
@@ -119,7 +122,7 @@ type Manifest struct {
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 }
 
-type ManifestBackend struct {
+type ManifestServer struct {
 	// Executables are the paths to your executable binaries, specifying multiple entry points
 	// for different platforms when bundled together in a single plugin.
 	Executables *ManifestExecutables `json:"executables,omitempty" yaml:"executables,omitempty"`
@@ -181,7 +184,7 @@ func (m *Manifest) ClientManifest() *Manifest {
 	*cm = *m
 	cm.Name = ""
 	cm.Description = ""
-	cm.Backend = nil
+	cm.Server = nil
 	if cm.Webapp != nil {
 		cm.Webapp = new(ManifestWebapp)
 		*cm.Webapp = *m.Webapp
@@ -196,26 +199,41 @@ func (m *Manifest) ClientManifest() *Manifest {
 // is defined, the Executable field will be returned. This method does not guarantee that the
 // resulting binary can actually execute on the given platform.
 func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
-	if m.Backend == nil {
+	server := m.Server
+
+	// Support the deprecated backend parameter.
+	if server == nil {
+		server = m.Backend
+	}
+
+	if server == nil {
 		return ""
 	}
 
 	var executable string
-	if m.Backend.Executables != nil {
+	if server.Executables != nil {
 		if goOs == "linux" && goArch == "amd64" {
-			executable = m.Backend.Executables.LinuxAmd64
+			executable = server.Executables.LinuxAmd64
 		} else if goOs == "darwin" && goArch == "amd64" {
-			executable = m.Backend.Executables.DarwinAmd64
+			executable = server.Executables.DarwinAmd64
 		} else if goOs == "windows" && goArch == "amd64" {
-			executable = m.Backend.Executables.WindowsAmd64
+			executable = server.Executables.WindowsAmd64
 		}
 	}
 
 	if executable == "" {
-		executable = m.Backend.Executable
+		executable = server.Executable
 	}
 
 	return executable
+}
+
+func (m *Manifest) HasServer() bool {
+	return m.Server != nil || m.Backend != nil
+}
+
+func (m *Manifest) HasWebapp() bool {
+	return m.Webapp != nil
 }
 
 // FindManifest will find and parse the manifest in a given directory.
