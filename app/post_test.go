@@ -231,6 +231,163 @@ func TestPostChannelMentions(t *testing.T) {
 	}, result.Props["channel_mentions"])
 }
 
+func TestPreparePostForClient(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ImageProxyType = ""
+		*cfg.ServiceSettings.ImageProxyURL = ""
+		*cfg.ServiceSettings.ImageProxyOptions = ""
+	})
+
+	t.Run("no metadata needed", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+		message := post.Message
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		assert.NotEqual(t, clientPost, post, "should've returned a new post")
+		assert.Equal(t, message, post.Message, "shouldn't have mutated post.Message")
+		assert.NotEqual(t, nil, post.ReactionCounts, "shouldn't have mutated post.ReactionCounts")
+		assert.NotEqual(t, nil, post.FileInfos, "shouldn't have mutated post.FileInfos")
+		assert.NotEqual(t, nil, post.Emojis, "shouldn't have mutated post.Emojis")
+		assert.NotEqual(t, nil, post.ImageDimensions, "shouldn't have mutated post.ImageDimensions")
+		assert.NotEqual(t, nil, post.OpenGraphData, "shouldn't have mutated post.OpenGraphData")
+
+		assert.Equal(t, clientPost.Message, post.Message, "shouldn't have changed Message")
+		assert.Len(t, post.ReactionCounts, 0, "should've populated ReactionCounts")
+		assert.Len(t, post.FileInfos, 0, "should've populated FileInfos")
+		assert.Len(t, post.Emojis, 0, "should've populated Emojis")
+		assert.Len(t, post.ImageDimensions, 0, "should've populated ImageDimensions")
+		assert.Len(t, post.OpenGraphData, 0, "should've populated OpenGraphData")
+	})
+
+	t.Run("metadata already set", func(t *testing.T) {
+		post, err := th.App.PreparePostForClient(th.CreatePost(th.BasicChannel))
+		require.Nil(t, err)
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		assert.False(t, clientPost == post, "should've returned a new post")
+		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
+	})
+
+	t.Run("reaction counts", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+		_, err := th.App.SaveReactionForPost(&model.Reaction{
+			UserId:    th.BasicUser.Id,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		})
+		require.Nil(t, err)
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		assert.Equal(t, model.PostReactionCounts{
+			"smile": 1,
+		}, clientPost.ReactionCounts, "should've populated post.ReactionCounts")
+	})
+
+	t.Run("file infos", func(t *testing.T) {
+		fileInfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
+		require.Nil(t, err)
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			FileIds:   []string{fileInfo.Id},
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		fileInfo.PostId = post.Id
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.FileInfos, "should've populated post.FileInfos")
+	})
+
+	t.Run("emojis", func(t *testing.T) {
+		result := <-th.App.Srv.Store.Emoji().Save(&model.Emoji{
+			CreatorId: th.BasicUser.Id,
+			Name:      "test",
+		})
+		require.Nil(t, result.Err)
+
+		emoji := result.Data.(*model.Emoji)
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   ":test: :taco:",
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		assert.Equal(t, []*model.Emoji{emoji}, clientPost.Emojis, "should've populated post.Emojis")
+	})
+
+	t.Run("proxy linked images", func(t *testing.T) {
+		testProxyLinkedImage(t, th, false)
+	})
+
+	t.Run("proxy opengraph images", func(t *testing.T) {
+		// TODO
+	})
+}
+
+func TestPreparePostForClientWithImageProxy(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
+		*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
+		*cfg.ServiceSettings.ImageProxyOptions = "foo"
+	})
+
+	t.Run("proxy linked images", func(t *testing.T) {
+		testProxyLinkedImage(t, th, true)
+	})
+
+	t.Run("proxy opengraph images", func(t *testing.T) {
+		// TODO
+	})
+}
+
+func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
+	postTemplate := "![foo](%v)"
+	imageURL := "http://mydomain.com/myimage"
+	proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   fmt.Sprintf(postTemplate, imageURL),
+	}
+
+	var err *model.AppError
+	post, err = th.App.CreatePost(post, th.BasicChannel, false)
+	require.Nil(t, err)
+
+	clientPost, err := th.App.PreparePostForClient(post)
+	require.Nil(t, err)
+
+	if shouldProxy {
+		assert.Equal(t, post.Message, fmt.Sprintf(postTemplate, imageURL), "should not have mutated original post")
+		assert.Equal(t, clientPost.Message, fmt.Sprintf(postTemplate, proxiedImageURL), "should've replaced linked image URLs")
+	} else {
+		assert.Equal(t, clientPost.Message, fmt.Sprintf(postTemplate, imageURL), "shouldn't have replaced linked image URLs")
+	}
+}
+
 func TestImageProxy(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
