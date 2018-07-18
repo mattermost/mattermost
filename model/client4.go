@@ -1791,27 +1791,9 @@ func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Ch
 	}
 }
 
-func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, etag string) (*Channel, *Response) {
-	if r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+"?includeDeleted=true", etag); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return ChannelFromJson(r.Body), BuildResponse(r)
-	}
-}
-
 // GetChannelByNameForTeamName returns a channel based on the provided channel name and team name strings.
 func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return ChannelFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamName string, etag string) (*Channel, *Response) {
-	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+"?includeDeleted=true", etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
