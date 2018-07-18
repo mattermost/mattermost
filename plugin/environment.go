@@ -192,7 +192,7 @@ func (env *Environment) Activate(id string) (reterr error) {
 		}
 	}
 
-	if pluginInfo.Manifest.Backend != nil {
+	if pluginInfo.Manifest.HasServer() {
 		supervisor, err := newSupervisor(pluginInfo, env.logger, env.newAPIImpl(pluginInfo.Manifest))
 		if err != nil {
 			return errors.Wrapf(err, "unable to start plugin: %v", id)
