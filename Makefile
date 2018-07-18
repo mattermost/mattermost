@@ -285,7 +285,6 @@ ldap-mocks: ## Creates mock files for ldap.
 plugin-mocks: ## Creates mock files for plugins.
 	go get github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOPATH)/bin/mockery -dir plugin -name API -inpkg -output plugin -testonly -outpkg plugin -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
