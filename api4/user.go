@@ -5,6 +5,8 @@ package api4
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -234,6 +236,8 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
 	c.RequireUserId()
 	if c.Err != nil {
 		return
