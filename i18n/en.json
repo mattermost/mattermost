@@ -3464,7 +3464,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Reached AD/LDAP sychronization job timeout."
+    "translation": "Reached AD/LDAP synchronization job timeout."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
