@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/GeertJohan/go.rice"
 	"github.com/NYTimes/gziphandler"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -21,21 +22,26 @@ func (w *Web) InitStatic() {
 	if *w.App.Config().ServiceSettings.WebserverMode != "disabled" {
 		utils.UpdateAssetsSubpathFromConfig(w.App.Config())
 
-		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
-		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
-
 		subpath, _ := utils.GetSubpathFromConfig(w.App.Config())
 
-		staticHandler := staticHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
+		var staticsHandler http.Handler
+		fmt.Println(w.App.ClientOverride)
+		if w.App.ClientOverride == "" {
+			box := GetClientBox()
+			staticsHandler = staticHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(box.HTTPBox())))
+		} else {
+			mlog.Debug(fmt.Sprintf("Using client directory at %v", w.App.ClientOverride))
+			staticsHandler = staticHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(w.App.ClientOverride))))
+		}
 		pluginHandler := pluginHandler(w.App.Config, http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
 
 		if *w.App.Config().ServiceSettings.WebserverMode == "gzip" {
-			staticHandler = gziphandler.GzipHandler(staticHandler)
+			staticsHandler = gziphandler.GzipHandler(staticsHandler)
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}
 
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
-		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
+		w.MainRouter.PathPrefix("/static/").Handler(staticsHandler)
 		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods("GET")
 
 		// When a subpath is defined, it's necessary to handle redirects without a
@@ -65,8 +71,20 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 
-	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
-	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
+	box := GetClientBox()
+	if c.App.ClientOverride == "" {
+		rootHtml, err := box.Open("root.html")
+		if err != nil {
+			return
+		}
+		rootHtmlStat, err := rootHtml.Stat()
+		if err != nil {
+			return
+		}
+		http.ServeContent(w, r, "root.html", rootHtmlStat.ModTime(), rootHtml)
+	} else {
+		http.ServeFile(w, r, filepath.Join(c.App.ClientOverride, "root.html"))
+	}
 }
 
 func staticHandler(handler http.Handler) http.Handler {
@@ -93,4 +111,8 @@ func pluginHandler(config model.ConfigFunc, handler http.Handler) http.Handler {
 		}
 		handler.ServeHTTP(w, r)
 	})
+}
+
+func GetClientBox() *rice.Box {
+	return rice.MustFindBox("../client/")
 }

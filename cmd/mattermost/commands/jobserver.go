@@ -29,9 +29,19 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 	// Options
 	noJobs, _ := command.Flags().GetBool("nojobs")
 	noSchedule, _ := command.Flags().GetBool("noschedule")
+	config, err := command.Flags().GetString("config")
+	i18nOverride, _ := command.Flags().GetString("i18n-override")
+	mailTemplatesOverride, _ := command.Flags().GetString("mail-templates-override")
+	clientOverride, _ := command.Flags().GetString("i18n-override")
 
 	// Initialize
-	a, err := InitDBCommandContext("config.json")
+	a, err := InitDBCommandContext(
+		config,
+		i18nOverride,
+		mailTemplatesOverride,
+		clientOverride,
+	)
+
 	if err != nil {
 		panic(err.Error())
 	}

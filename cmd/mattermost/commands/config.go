@@ -47,7 +47,8 @@ func init() {
 }
 
 func configValidateCmdF(command *cobra.Command, args []string) error {
-	utils.TranslationsPreInit()
+	i18nOverride, _ := command.Flags().GetString("i18n-override")
+	utils.TranslationsPreInit(i18nOverride)
 	model.AppErrorInit(utils.T)
 	filePath, err := command.Flags().GetString("config")
 	if err != nil {

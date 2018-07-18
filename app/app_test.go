@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 		EnableFile:    false,
 	}))
 
-	utils.TranslationsPreInit()
+	utils.TranslationsPreInit("")
 
 	// In the case where a dev just wants to run a single test, it's faster to just use the default
 	// store.

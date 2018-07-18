@@ -19,13 +19,13 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-	TranslationsPreInit()
+	TranslationsPreInit("")
 	_, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 }
 
 func TestReadConfig(t *testing.T) {
-	TranslationsPreInit()
+	TranslationsPreInit("")
 
 	_, _, err := ReadConfig(bytes.NewReader([]byte(``)), false)
 	require.EqualError(t, err, "parsing error at line 1, character 1: unexpected end of JSON input")
@@ -38,7 +38,7 @@ func TestReadConfig(t *testing.T) {
 }
 
 func TestTimezoneConfig(t *testing.T) {
-	TranslationsPreInit()
+	TranslationsPreInit("")
 	supportedTimezones := LoadTimezones("timezones.json")
 	assert.Equal(t, len(supportedTimezones) > 0, true)
 
@@ -325,7 +325,7 @@ func TestFindFile(t *testing.T) {
 }
 
 func TestConfigFromEnviroVars(t *testing.T) {
-	TranslationsPreInit()
+	TranslationsPreInit("")
 
 	config := `{
 		"ServiceSettings": {
@@ -475,7 +475,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 }
 
 func TestValidateLocales(t *testing.T) {
-	TranslationsPreInit()
+	TranslationsPreInit("")
 	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 

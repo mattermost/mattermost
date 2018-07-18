@@ -9,10 +9,12 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"os"
 	"path/filepath"
 	"reflect"
 	"sync/atomic"
 
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/fsnotify/fsnotify"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/nicksnyder/go-i18n/i18n"
@@ -22,6 +24,40 @@ type HTMLTemplateWatcher struct {
 	templates atomic.Value
 	stop      chan struct{}
 	stopped   chan struct{}
+}
+
+func NewHTMLEmbededTemplateWatcher() (*HTMLTemplateWatcher, error) {
+	ret := &HTMLTemplateWatcher{
+		stop:    nil,
+		stopped: nil,
+	}
+
+	var htmlTemplates *template.Template = nil
+
+	box := GetTemplatesBox()
+	err := box.Walk("", func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+		bytes, err := box.Bytes(path)
+		if err != nil {
+			return err
+		}
+		name := filepath.Base(path)
+		if htmlTemplates == nil {
+			htmlTemplates = template.New(name)
+		} else {
+			htmlTemplates = htmlTemplates.New(name)
+		}
+		htmlTemplates.Parse(string(bytes))
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	ret.templates.Store(htmlTemplates)
+
+	return ret, nil
 }
 
 func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
@@ -79,6 +115,9 @@ func (w *HTMLTemplateWatcher) Templates() *template.Template {
 }
 
 func (w *HTMLTemplateWatcher) Close() {
+	if w.stop == nil {
+		return
+	}
 	close(w.stop)
 	<-w.stopped
 }
@@ -138,4 +177,8 @@ func escapeForHtml(arg interface{}) interface{} {
 		mlog.Warn(fmt.Sprintf("Unable to escape value for HTML template %v of type %v", arg, reflect.ValueOf(arg).Type()))
 		return ""
 	}
+}
+
+func GetTemplatesBox() *rice.Box {
+	return rice.MustFindBox("../templates/")
 }

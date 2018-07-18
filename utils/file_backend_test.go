@@ -81,7 +81,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 }
 
 func (s *FileBackendTestSuite) SetupTest() {
-	TranslationsPreInit()
+	TranslationsPreInit("")
 
 	backend, err := NewFileBackend(&s.settings, true)
 	require.Nil(s.T(), err)
