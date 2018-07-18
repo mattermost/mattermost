@@ -55,6 +55,15 @@
   name = "github.com/segmentio/analytics-go"
   version = "2.1.1"
 
+# Lock to control when plugins use new versions
+[[constraint]]
+  name = "github.com/hashicorp/go-hclog"
+  revision = "69ff559dc25f3b435631604f573a5fa1efdb6433"
+
+[[constraint]]
+  name = "github.com/hashicorp/go-plugin"
+  revision = "e8d22c780116115ae5624720c9af0c97afe4f551"
+
 [prune]
   go-tests = true
   unused-packages = true
