@@ -1443,6 +1443,10 @@
     "translation": "Sie können keine Reaktion für den anderen Benutzer sichern."
   },
   {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "Ihre Lizenz unterstützt die erweiterten Berechtigungen nicht."
   },
@@ -2403,6 +2407,10 @@
     "translation": "Falsche oder fehlende Version in der Daten-Import-Datei. Stellen Sie sicher, dass die Version das erste Objekt in ihrer Import-Datei ist und versuchen Sie es erneut."
   },
   {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "Kann einem Kanal keine gelöschtes Schema zuweisen."
   },
@@ -2621,6 +2629,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "Fehlende erforderliche Nachrichteigenschaft: user"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Import emoji data empty."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Import emoji image field missing or blank."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Import emoji name field missing or blank."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",

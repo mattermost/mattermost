@@ -160,10 +160,6 @@
     "translation": "The channel has been archived or deleted"
   },
   {
-    "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
-  },
-  {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
   },
@@ -1447,6 +1443,10 @@
     "translation": "You cannot save reaction for the other user."
   },
   {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "Your license does not support advanced permissions."
   },
@@ -2395,22 +2395,6 @@
     "translation": "Cluster API endpoint not found."
   },
   {
-    "id": "app.import.emoji.bad_file.error",
-    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
-  },
-  {
-    "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Import emoji data empty."
-  },
-  {
-    "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Import emoji name field missing or blank."
-  },
-  {
-    "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Import emoji image field missing or blank."
-  },
-  {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Error reading import data file."
   },
@@ -2421,6 +2405,10 @@
   {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
+  },
+  {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2641,6 +2629,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "Missing required direct post property: user"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Import emoji data empty."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Import emoji image field missing or blank."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Import emoji name field missing or blank."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",

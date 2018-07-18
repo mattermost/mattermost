@@ -1443,6 +1443,10 @@
     "translation": "他のユーザーのリアクションを保存することはできません。"
   },
   {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "現在のライセンスは高度な権限設定をサポートしていません。"
   },
@@ -2403,6 +2407,10 @@
     "translation": "データインポートファイルのバージョンが間違っているか、見つかりません。インポートファイルの最初のオブジェクトにバージョンがあるか確認し、再度実行してください。"
   },
   {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "削除されたスキームを使用するようチャンネルに設定することはできません。"
   },
@@ -2621,6 +2629,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "必須のダイレクト投稿設定値 user が存在しません。"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Import emoji data empty."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Import emoji image field missing or blank."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Import emoji name field missing or blank."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",

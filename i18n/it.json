@@ -193,7 +193,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "Errore durante l'aggiornamento del membro del canale"
+    "translation": "Errore durante l'aggiornamento del canale"
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "Email invitations are disabled, no invite(s) sent"
+    "translation": "Gli inviti per email sono disattivati, nessun invito inviato"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -584,7 +584,7 @@
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to create a new group message."
+    "translation": "Non si possiedono i permessi per creare un nuovo messaggio di gruppo."
   },
   {
     "id": "api.command_help.desc",
@@ -648,7 +648,7 @@
   },
   {
     "id": "api.command_invite_people.permission.app_error",
-    "translation": "You don't have permission to invite new users to this server."
+    "translation": "Non si possiedono i permessi per invitare nuovi utenti su questo server."
   },
   {
     "id": "api.command_join.desc",
@@ -744,7 +744,7 @@
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to direct message this user."
+    "translation": "Non si possiedono i permessi per inviare un messaggio diretto all'utente."
   },
   {
     "id": "api.command_mute.desc",
@@ -1443,6 +1443,10 @@
     "translation": "Non puoi salvare le reazioni di un altro utente."
   },
   {
+    "id": "api.reaction.town_square_read_only",
+    "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "La tua licenza attuale non supporta i permessi avanzati."
   },
@@ -1620,7 +1624,7 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Email invitations are disabled."
+    "translation": "Gli inviti per email sono disattivati."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -2403,6 +2407,10 @@
     "translation": "Versione del file importato non corretta o mancante. Assicurarsi che la versione sia il primo oggetto del file e riprovare."
   },
   {
+    "id": "app.import.emoji.bad_file.error",
+    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "Impossibile impostare uno schema eliminato per l'utilizzo"
   },
@@ -2621,6 +2629,18 @@
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
     "translation": "Manca una proprietà richiesta nella pubblicazione diretta: utente"
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.empty.error",
+    "translation": "Import emoji data empty."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.image_missing.error",
+    "translation": "Import emoji image field missing or blank."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.name_missing.error",
+    "translation": "Import emoji name field missing or blank."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
