@@ -97,7 +97,7 @@
         "MaxNotificationsPerChannel": 1000,
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
-        "SearchArchivedChannels": true,
+        "ViewArchivedChannels": true,
         "ExperimentalEnableAutomaticReplies": false,
         "ExperimentalHideTownSquareinLHS": false,
         "ExperimentalTownSquareIsReadOnly": false,

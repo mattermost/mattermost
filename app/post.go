@@ -640,7 +640,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 
 func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool) (*model.PostSearchResults, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms)
-	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.SearchArchivedChannels
+	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ViewArchivedChannels
 
 	esInterface := a.Elasticsearch
 	if license := a.License(); esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {

@@ -1513,7 +1513,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 }
 
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.SearchArchivedChannels
+	includeDeleted := *a.Config().TeamSettings.ViewArchivedChannels
 
 	if result := <-a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted); result.Err != nil {
 		return nil, result.Err
@@ -1523,7 +1523,7 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 }
 
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.SearchArchivedChannels
+	includeDeleted := *a.Config().TeamSettings.ViewArchivedChannels
 
 	if result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted); result.Err != nil {
 		return nil, result.Err
