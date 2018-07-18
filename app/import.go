@@ -133,8 +133,8 @@ type ReplyImportData struct {
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
 
-	FlaggedBy *[]string             `json:"flagged_by"`
-	Reactions *[]ReactionImportData `json:"reactions"`
+	FlaggedBy   *[]string               `json:"flagged_by"`
+	Reactions   *[]ReactionImportData   `json:"reactions"`
 	Attachments *[]AttachmentImportData `json:"attachments"`
 }
 

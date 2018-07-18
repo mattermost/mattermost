@@ -4016,10 +4016,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	assert.Equal(t, len(attachments), 2)
 	assert.Contains(t, attachments[0].Path, team.Id)
 	assert.Contains(t, attachments[1].Path, team.Id)
+	AssertFileIdsInPost(attachments, th, t)
 
 	attachments = GetAttachments(user4.Id, th, t)
 	assert.Equal(t, len(attachments), 1)
 	assert.Contains(t, attachments[0].Path, team.Id)
+	AssertFileIdsInPost(attachments, th, t)
 
 	// Reply with Attachments in Direct Post
 
@@ -4069,6 +4071,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	attachments = GetAttachments(user4.Id, th, t)
 	assert.Equal(t, len(attachments), 1)
 	assert.Contains(t, attachments[0].Path, "noteam")
+	AssertFileIdsInPost(attachments, th, t)
 
 }
 
@@ -4080,4 +4083,19 @@ func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileIn
 		return result.Data.([]*model.FileInfo)
 	}
 	return nil
+}
+
+func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
+	postId := files[0].PostId
+	assert.NotNil(t, postId)
+
+	if result := <-th.App.Srv.Store.Post().GetPostsByIds([]string{postId}); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		assert.Equal(t, len(posts), 1)
+		for _, file := range files {
+			assert.Contains(t, posts[0].FileIds, file.Id)
+		}
+	}
 }
