@@ -605,3 +605,17 @@ func TestFillInChannelProps(t *testing.T) {
 		}
 	})
 }
+
+func TestRenameChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
+
+	channel, err := th.App.RenameChannel(channel, "newchannelname", "New Display Name")
+	if err != nil {
+		t.Fatal("Failed to update channel name. Error: " + err.Error())
+	}
+	assert.Equal(t, "newchannelname", channel.Name)
+	assert.Equal(t, "New Display Name", channel.DisplayName)
+}
