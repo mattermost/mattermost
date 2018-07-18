@@ -943,13 +943,22 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 	extensionId := props["extension_id"]
 
+	extensionValidated := false
 	if len(extensionId) != 0 {
+		enabled := c.App.ExtensionSupportEnabled()
+		if !enabled {
+			c.Err = model.NewAppError("completeSaml", "api.user.saml.extension_unsupported", nil, "", http.StatusInternalServerError)
+			return
+		}
+
 		valid := c.App.ValidateExtension(extensionId)
 		if !valid {
 			params := map[string]interface{}{"extensionId": extensionId}
 			c.Err = model.NewAppError("completeSaml", "api.user.saml.invalid_extension", params, "", http.StatusInternalServerError)
 			return
 		}
+
+		extensionValidated = true
 	}
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
@@ -975,7 +984,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user.Sanitize(map[string]bool{})
 
-	if extensionId != "" {
+	if extensionValidated {
 		w.Header().Set("Access-Control-Expose-Headers", "Token")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
