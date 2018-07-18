@@ -176,7 +176,7 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("unable-to-react-in-read-only-town-square", func(t *testing.T) {
 		th.LoginBasic()
 
-		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id)
+		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
@@ -482,7 +482,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("unable-to-delete-reactions-in-read-only-town-square", func(t *testing.T) {
 		th.LoginBasic()
 
-		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id)
+		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
