@@ -6,6 +6,7 @@ package app
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -17,7 +18,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc plugin.APIImplCreatorFunc) {
+func compileGo(t *testing.T, sourceCode, outputPath string) {
+	dir, err := ioutil.TempDir(".", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
+	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	require.NoError(t, cmd.Run())
+}
+
+func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
@@ -31,7 +44,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	for _, code := range pluginCode {
 		pluginId := model.NewId()
 		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
-		plugintest.CompileGo(t, code, backend)
+		compileGo(t, code, backend)
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
 		env.Activate(pluginId)
