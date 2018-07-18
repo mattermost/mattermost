@@ -135,6 +135,7 @@ type ReplyImportData struct {
 
 	FlaggedBy *[]string             `json:"flagged_by"`
 	Reactions *[]ReactionImportData `json:"reactions"`
+	Attachments *[]AttachmentImportData `json:"attachments"`
 }
 
 type PostImportData struct {
@@ -1397,7 +1398,7 @@ func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun 
 	return nil
 }
 
-func (a *App) ImportReply(data *ReplyImportData, post *model.Post, dryRun bool) *model.AppError {
+func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError {
 	if err := validateReplyImportData(data, post.CreateAt, a.MaxPostSize()); err != nil {
 		return err
 	}
@@ -1435,6 +1436,14 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, dryRun bool) 
 	reply.Message = *data.Message
 	reply.CreateAt = *data.CreateAt
 
+	if data.Attachments != nil {
+		fileIds, err := a.uploadAttachments(data.Attachments, reply, teamId, dryRun)
+		if err != nil {
+			return err
+		}
+		reply.FileIds = fileIds
+	}
+
 	if reply.Id == "" {
 		if result := <-a.Srv.Store.Post().Save(reply); result.Err != nil {
 			return result.Err
@@ -1444,6 +1453,9 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, dryRun bool) 
 			return result.Err
 		}
 	}
+
+	a.UpdateFileInfoWithPostId(reply)
+
 	return nil
 }
 
@@ -1528,18 +1540,15 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	post.CreateAt = *data.CreateAt
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
-	fileIds := []string{}
+
 	if data.Attachments != nil {
-		for _, attachment := range *data.Attachments {
-			fileInfo, err := a.ImportAttachment(&attachment, post, team.Id, dryRun)
-			if err != nil {
-				return err
-			}
-			fileIds = append(fileIds, fileInfo.Id)
+		fileIds, err := a.uploadAttachments(data.Attachments, post, team.Id, dryRun)
+		if err != nil {
+			return err
 		}
+		post.FileIds = fileIds
 	}
 
-	post.FileIds = fileIds
 	if post.Id == "" {
 		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 			return result.Err
@@ -1587,20 +1596,35 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			if err := a.ImportReply(&reply, post, dryRun); err != nil {
+			if err := a.ImportReply(&reply, post, team.Id, dryRun); err != nil {
 				return err
 			}
 		}
 	}
 
+	a.UpdateFileInfoWithPostId(post)
+	return nil
+}
+
+func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamId string, dryRun bool) ([]string, *model.AppError) {
+	fileIds := []string{}
+	for _, attachment := range *attachments {
+		fileInfo, err := a.ImportAttachment(&attachment, post, teamId, dryRun)
+		if err != nil {
+			return nil, err
+		}
+		fileIds = append(fileIds, fileInfo.Id)
+	}
+	return fileIds, nil
+}
+
+func (a *App) UpdateFileInfoWithPostId(post *model.Post) {
 	for _, fileId := range post.FileIds {
 		if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
 			mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, result.Err), mlog.String("post_id", post.Id))
 		}
 	}
-	return nil
 }
-
 func validateReactionImportData(data *ReactionImportData, parentCreateAt int64) *model.AppError {
 	if data.User == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.user_missing.error", nil, "", http.StatusBadRequest)
@@ -1915,7 +1939,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			if err := a.ImportReply(&reply, post, dryRun); err != nil {
+			if err := a.ImportReply(&reply, post, "noteam", dryRun); err != nil {
 				return err
 			}
 		}
