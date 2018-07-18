@@ -32,6 +32,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	redirectTo := r.URL.Query().Get("redirect_to")
+	extensionId := r.URL.Query().Get("extension_id")
 	relayProps := map[string]string{}
 	relayState := ""
 
@@ -45,6 +46,15 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(redirectTo) != 0 {
 		relayProps["redirect_to"] = redirectTo
+	}
+
+	if len(extensionId) != 0 {
+		relayProps["extension_id"] = extensionId
+		err := c.App.ValidateExtension(extensionId)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	if len(relayProps) > 0 {
@@ -141,6 +151,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if action == model.OAUTH_ACTION_MOBILE {
 			ReturnStatusOK(w)
+		} else if action == model.OAUTH_ACTION_CLIENT {
+			err = c.App.SendMessageToExtension(w, relayProps["extension_id"], c.Session.Token)
+
+			if err != nil {
+				c.Err = err
+				return
+			}
 		} else {
 			http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
 		}
