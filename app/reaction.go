@@ -55,6 +55,21 @@ func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppE
 	}
 }
 
+func (a *App) getReactionCountsForPost(postId string) (model.PostReactionCounts, *model.AppError) {
+	reactions, err := a.GetReactionsForPost(postId)
+	if err != nil {
+		return nil, err
+	}
+
+	reactionCounts := model.PostReactionCounts{}
+
+	for _, reaction := range reactions {
+		reactionCounts[reaction.EmojiName] += 1
+	}
+
+	return reactionCounts, nil
+}
+
 func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {

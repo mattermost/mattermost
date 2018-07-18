@@ -990,7 +990,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) (*model.Pos
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post, err := PreparePostForClient(originalPost)
+		post, err := a.PreparePostForClient(originalPost)
 		if err != nil {
 			return originalList, err
 		}
@@ -1005,16 +1005,12 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 	post := originalPost.Clone()
 
 	if post.ReactionCounts == nil {
-		reactions, err := a.GetReactionsForPost(post.Id)
+		reactionCounts, err := a.getReactionCountsForPost(post.Id)
 		if err != nil {
 			return post, err
 		}
 
-		post.ReactionCounts = make(model.PostReactionCounts)
-
-		for _, reaction := range reactions {
-			post.ReactionCounts[reaction.EmojiName] += 1
-		}
+		post.ReactionCounts = reactionCounts
 	}
 
 	if post.FileInfos == nil {
