@@ -1110,6 +1110,12 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(extensionId) != 0 {
 		relayProps["extension_id"] = extensionId
+		enabled := c.App.ExtensionSupportEnabled()
+		if !enabled {
+			c.Err = model.NewAppError("completeSaml", "api.user.saml.extension_unsupported", nil, "", http.StatusInternalServerError)
+			return
+		}
+
 		valid := c.App.ValidateExtension(extensionId)
 		if !valid {
 			params := map[string]interface{}{"extensionId": extensionId}
@@ -1223,13 +1229,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 func returnTokenToClient(extensionId string, c *Context, w http.ResponseWriter) {
 	var t *template.Template
 	var err error
-	if len(extensionId) != 0 {
-		t = template.New("complete_saml_extension_body")
-		t, err = t.ParseFiles("templates/complete_saml_extension_body.html")
-	} else {
-		t = template.New("complete_saml_body")
-		t, err = t.ParseFiles("templates/complete_saml_body.html")
+	if len(extensionId) == 0 {
+		c.Err = model.NewAppError("completeSaml", "api.user.saml.extension_id.app_error", nil, "", http.StatusInternalServerError)
+		return
 	}
+
+	t = template.New("complete_saml_extension_body")
+	t, err = t.ParseFiles("templates/complete_saml_extension_body.html")
 
 	if err != nil {
 		c.Err = model.NewAppError("completeSaml", "api.user.saml.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)

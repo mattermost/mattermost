@@ -3,6 +3,10 @@
 
 package app
 
+func (a *App) ExtensionSupportEnabled() bool {
+	return *a.Config().ExtensionSettings.EnableExperimentalExtensions
+}
+
 func (a *App) ValidateExtension(extensionID string) bool {
 	extensionIsValid := false
 	extensionIDs := a.Config().ExtensionSettings.AllowedExtensionsIDs

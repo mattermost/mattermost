@@ -3031,6 +3031,14 @@
     "translation": "Unable to process SAML login request."
   },
   {
+    "id": "api.user.saml.extension_unsupported",
+    "translation": "Extensions are not supported."
+  },
+  {
+    "id": "api.user.saml.extension_id.app_error",
+    "translation": "Invalid extension id"
+  },
+  {
     "id": "api.user.saml.invalid_extension",
     "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
   },
