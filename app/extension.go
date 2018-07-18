@@ -23,16 +23,12 @@ func (a *App) ValidateExtension(extensionID string) bool {
 		}
 	}
 
-	if !extensionIsValid {
-		return false
-	}
-
-	return true
+	return extensionIsValid
 }
 
 func (a *App) SendMessageToExtension(w http.ResponseWriter, extensionId string, token string) *model.AppError {
-	var t *template.Template
 	var err error
+	var t *template.Template
 	if len(extensionId) == 0 {
 		return model.NewAppError("completeSaml", "api.user.saml.extension_id.app_error", nil, "", http.StatusInternalServerError)
 	}
