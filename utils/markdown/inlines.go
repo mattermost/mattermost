@@ -427,7 +427,7 @@ func (p *inlineParser) parseCharacterReference() {
 	if semicolon := strings.IndexByte(p.raw[p.position:], ';'); semicolon == -1 {
 		p.inlines = append(p.inlines, &Text{
 			Text:  "&",
-			Range: Range{absPos, 1},
+			Range: Range{absPos, absPos + 1},
 		})
 	} else if s := CharacterReference(p.raw[p.position : p.position+semicolon]); s != "" {
 		p.position += semicolon + 1
@@ -438,7 +438,7 @@ func (p *inlineParser) parseCharacterReference() {
 	} else {
 		p.inlines = append(p.inlines, &Text{
 			Text:  "&",
-			Range: Range{absPos, 1},
+			Range: Range{absPos, absPos + 1},
 		})
 	}
 }
