@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -1122,6 +1123,131 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 
 	if len(posts.Posts) != 0 {
 		t.Fatal("should have no posts")
+	}
+}
+
+func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	var lastBeforePost *model.Post
+	for i := 0; i < 100; i++ {
+		if i == 40 {
+			lastBeforePost = th.CreatePost()
+		} else {
+			th.CreatePost()
+		}
+	}
+
+	// All returned posts are all read by the user, since it's created by the user itself.
+	posts, resp := Client.GetPostsAroundLastUnread(th.BasicChannel.Id)
+	CheckNoError(t, resp)
+
+	if len(posts.Order) != app.PER_PAGE_DEFAULT {
+		t.Fatal("Should return 60 posts only since there's no unread post")
+	}
+
+	// Set channel member's last viewed to 0.
+	// All returned posts are latest posts as if all previous posts were already read by the user.
+	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
+	channelMember.LastViewedAt = 0
+	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+
+	posts, resp = Client.GetPostsAroundLastUnread(th.BasicChannel.Id)
+	CheckNoError(t, resp)
+
+	if len(posts.Order) != app.PER_PAGE_DEFAULT {
+		t.Fatal("Should return 60 posts only since there's no unread post")
+	}
+
+	var lastUnreadPost *model.Post
+	var post *model.Post
+	for i := 0; i < 10; i++ {
+		if i == 0 {
+			lastUnreadPost = th.CreatePost()
+		} else {
+			post = th.CreatePost()
+		}
+	}
+
+	since := lastUnreadPost.CreateAt - 1
+	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
+	channelMember.LastViewedAt = since
+	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+
+	posts, resp = Client.GetPostsAroundLastUnread(th.BasicChannel.Id)
+	CheckNoError(t, resp)
+
+	if len(posts.Order) != 70 {
+		t.Fatal("Should return 70 posts")
+	}
+
+	for i, postId := range posts.Order {
+		post = posts.Posts[postId]
+		if i < 10 {
+			if post.CreateAt < channelMember.LastViewedAt {
+				t.Fatal("Should be unread post")
+			}
+		}
+
+		if i == 9 {
+			if post.Id != lastUnreadPost.Id {
+				t.Fatal("Should match the last unread post")
+			}
+		}
+
+		if i == 69 {
+			if post.Id != lastBeforePost.Id {
+				t.Fatal("Should match the last unread post")
+			}
+		}
+	}
+
+	var recentUnreadPost *model.Post
+	for i := 0; i < 100; i++ {
+		if i == 49 {
+			recentUnreadPost = th.CreatePost()
+		} else {
+			th.CreatePost()
+		}
+	}
+
+	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+
+	posts, resp = Client.GetPostsAroundLastUnread(th.BasicChannel.Id)
+	CheckNoError(t, resp)
+
+	if len(posts.Order) != 120 {
+		t.Fatal("Should return 120 posts")
+	}
+
+	for i, postId := range posts.Order {
+		post = posts.Posts[postId]
+
+		if i == 0 {
+			if post.Id != recentUnreadPost.Id {
+				t.Fatal("Should match recent unread post")
+			}
+		}
+
+		if i < 60 {
+			if post.CreateAt < channelMember.LastViewedAt {
+				t.Fatal("Should be unread post")
+			}
+		}
+
+		if i == 59 {
+			if post.Id != lastUnreadPost.Id {
+				t.Fatal("Should match the last unread post")
+			}
+		}
+
+		if i == 119 {
+			if post.Id != lastBeforePost.Id {
+				t.Fatal("Should match the last before post")
+			}
+		}
 	}
 }
 

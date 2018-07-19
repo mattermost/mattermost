@@ -547,7 +547,7 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 	})
 }
 
-func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
+func (s *SqlPostStore) GetPostsSince(channelId string, time int64, limit int, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			// If the last post in the channel's time is less than or equal to the time we are getting posts since,
@@ -579,7 +579,7 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 			WHERE
 			    (UpdateAt > :Time
 			        AND ChannelId = :ChannelId)
-			LIMIT 1000)
+			LIMIT :Limit)
 			UNION
 			(SELECT
 			    *
@@ -595,9 +595,9 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 			    WHERE
 			        UpdateAt > :Time
 			            AND ChannelId = :ChannelId
-			    LIMIT 1000) temp_tab))
+			    LIMIT :Limit) temp_tab))
 			ORDER BY CreateAt DESC`,
-			map[string]interface{}{"ChannelId": channelId, "Time": time})
+			map[string]interface{}{"ChannelId": channelId, "Time": time, "Limit": limit})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
