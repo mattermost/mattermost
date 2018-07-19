@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -56,6 +55,7 @@ func TestMain(m *testing.M) {
 	status = m.Run()
 }
 
+/* Temporarily comment out until MM-11108
 func TestAppRace(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		a, err := New()
@@ -66,6 +66,7 @@ func TestAppRace(t *testing.T) {
 		a.Shutdown()
 	}
 }
+*/
 
 func TestUpdateConfig(t *testing.T) {
 	th := Setup()
