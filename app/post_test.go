@@ -15,7 +15,6 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -232,16 +231,22 @@ func TestPostChannelMentions(t *testing.T) {
 }
 
 func TestPreparePostForClient(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
+	setup := func() *TestHelper {
+		th := Setup().InitBasic()
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ImageProxyType = ""
-		*cfg.ServiceSettings.ImageProxyURL = ""
-		*cfg.ServiceSettings.ImageProxyOptions = ""
-	})
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ImageProxyType = ""
+			*cfg.ServiceSettings.ImageProxyURL = ""
+			*cfg.ServiceSettings.ImageProxyOptions = ""
+		})
+
+		return th
+	}
 
 	t.Run("no metadata needed", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
 		post := th.CreatePost(th.BasicChannel)
 		message := post.Message
 
@@ -265,6 +270,9 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("metadata already set", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
 		post, err := th.App.PreparePostForClient(th.CreatePost(th.BasicChannel))
 		require.Nil(t, err)
 
@@ -276,23 +284,24 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("reaction counts", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
 		post := th.CreatePost(th.BasicChannel)
-		_, err := th.App.SaveReactionForPost(&model.Reaction{
-			UserId:    th.BasicUser.Id,
-			PostId:    post.Id,
-			EmojiName: "smile",
-		})
-		require.Nil(t, err)
+		th.AddReactionToPost(post, th.BasicUser, "smile")
 
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Equal(t, model.PostReactionCounts{
+		assert.Equal(t, model.ReactionCounts{
 			"smile": 1,
 		}, clientPost.ReactionCounts, "should've populated post.ReactionCounts")
 	})
 
 	t.Run("file infos", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
 		fileInfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"))
 		require.Nil(t, err)
 
@@ -312,28 +321,38 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("emojis", func(t *testing.T) {
-		result := <-th.App.Srv.Store.Emoji().Save(&model.Emoji{
-			CreatorId: th.BasicUser.Id,
-			Name:      "test",
-		})
-		require.Nil(t, result.Err)
+		th := setup()
+		defer th.TearDown()
 
-		emoji := result.Data.(*model.Emoji)
+		emoji1 := th.CreateEmoji()
+		emoji2 := th.CreateEmoji()
+		emoji3 := th.CreateEmoji()
 
 		post, err := th.App.CreatePost(&model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
-			Message:   ":test: :taco:",
+			Message:   ":" + emoji3.Name + ": :taco:",
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
+
+		th.AddReactionToPost(post, th.BasicUser, emoji1.Name)
+		th.AddReactionToPost(post, th.BasicUser, emoji2.Name)
+		th.AddReactionToPost(post, th.BasicUser2, emoji2.Name)
 
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Equal(t, []*model.Emoji{emoji}, clientPost.Emojis, "should've populated post.Emojis")
+		assert.Equal(t, model.ReactionCounts{
+			emoji1.Name: 1,
+			emoji2.Name: 2,
+		}, clientPost.ReactionCounts, "should've populated post.ReactionCounts")
+		assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3}, clientPost.Emojis, "should've populated post.Emojis")
 	})
 
 	t.Run("proxy linked images", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
 		testProxyLinkedImage(t, th, false)
 	})
 
@@ -343,17 +362,23 @@ func TestPreparePostForClient(t *testing.T) {
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
+	setup := func() *TestHelper {
+		th := Setup().InitBasic()
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
-		*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
-		*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
-		*cfg.ServiceSettings.ImageProxyOptions = "foo"
-	})
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
+			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
+			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+		})
+
+		return th
+	}
 
 	t.Run("proxy linked images", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
 		testProxyLinkedImage(t, th, true)
 	})
 
@@ -638,14 +663,13 @@ func TestMaxPostSize(t *testing.T) {
 	}
 }
 
-func TestGetCustomEmojisInString(t *testing.T) {
-	t.Parallel()
+func TestGetCustomEmojisForPost_Message(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
 
-	testEmojis := map[string]*model.Emoji{
-		"apple":  {Name: "apple"},
-		"banana": {Name: "banana"},
-		"carrot": {Name: "carrot"},
-	}
+	emoji1 := th.CreateEmoji()
+	emoji2 := th.CreateEmoji()
+	emoji3 := th.CreateEmoji()
 
 	testCases := []struct {
 		Description      string
@@ -661,42 +685,42 @@ func TestGetCustomEmojisInString(t *testing.T) {
 		},
 		{
 			Description: "one emoji",
-			Input:       "this is an :apple: string",
+			Input:       "this is an :" + emoji1.Name + ": string",
 			Expected: []*model.Emoji{
-				testEmojis["apple"],
+				emoji1,
 			},
 		},
 		{
 			Description: "two emojis",
-			Input:       "this is a :carrot: :banana: string",
+			Input:       "this is a :" + emoji3.Name + ": :" + emoji2.Name + ": string",
 			Expected: []*model.Emoji{
-				testEmojis["carrot"],
-				testEmojis["banana"],
+				emoji3,
+				emoji2,
 			},
 		},
 		{
 			Description: "punctuation around emojis",
-			Input:       ":carrot:/:apple: (:banana:)",
+			Input:       ":" + emoji3.Name + ":/:" + emoji1.Name + ": (:" + emoji2.Name + ":)",
 			Expected: []*model.Emoji{
-				testEmojis["carrot"],
-				testEmojis["apple"],
-				testEmojis["banana"],
+				emoji3,
+				emoji1,
+				emoji2,
 			},
 		},
 		{
 			Description: "adjacent emojis",
-			Input:       ":carrot::apple:",
+			Input:       ":" + emoji3.Name + "::" + emoji1.Name + ":",
 			Expected: []*model.Emoji{
-				testEmojis["carrot"],
-				testEmojis["apple"],
+				emoji3,
+				emoji1,
 			},
 		},
 		{
 			Description: "duplicate emojis",
-			Input:       ":apple: :apple: :apple: :banana: :banana: :apple:",
+			Input:       "" + emoji1.Name + ": :" + emoji1.Name + ": :" + emoji1.Name + ": :" + emoji2.Name + ": :" + emoji2.Name + ": :" + emoji1.Name + ":",
 			Expected: []*model.Emoji{
-				testEmojis["apple"],
-				testEmojis["banana"],
+				emoji1,
+				emoji2,
 			},
 		},
 		{
@@ -706,10 +730,10 @@ func TestGetCustomEmojisInString(t *testing.T) {
 		},
 		{
 			Description: "fake and real emojis",
-			Input:       ":tomato::apple: :potato: :banana:",
+			Input:       ":tomato::" + emoji1.Name + ": :potato: :" + emoji2.Name + ":",
 			Expected: []*model.Emoji{
-				testEmojis["apple"],
-				testEmojis["banana"],
+				emoji1,
+				emoji2,
 			},
 		},
 	}
@@ -717,39 +741,28 @@ func TestGetCustomEmojisInString(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			t.Parallel()
-
-			mockStore := &storetest.Store{}
-
-			mockStore.EmojiStore.On("GetMultipleByName", mock.AnythingOfType("[]string")).Return(
-				func(names []string) store.StoreChannel {
-					emojis := []*model.Emoji{}
-
-					for _, name := range names {
-						if _, ok := testEmojis[name]; ok {
-							emojis = append(emojis, testEmojis[name])
-						}
-					}
-
-					return storetest.NewStoreChannel(store.StoreResult{Data: emojis})
-				},
-			)
-
-			app := App{
-				Srv: &Server{
-					Store: mockStore,
-				},
-			}
-
-			emojis, err := app.getCustomEmojisInString(testCase.Input)
-			assert.Nil(t, err, "failed to get emojis in string")
+			emojis, err := th.App.getCustomEmojisForPost(testCase.Input, nil)
+			assert.Nil(t, err, "failed to get emojis in message")
 			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emojis")
-
-			// mockStore.AssertExpectations requires that some method of the mock store was called,
-			// but we skip it if there are nothing that looks like an emoji in the string
-			if !testCase.SkipExpectations {
-				mockStore.AssertExpectations(t)
-			}
 		})
 	}
+}
+
+func TestGetCustomEmojisForPost(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	emoji1 := th.CreateEmoji()
+	emoji2 := th.CreateEmoji()
+
+	reactions := []*model.Reaction{
+		{
+			UserId:    th.BasicUser.Id,
+			EmojiName: emoji1.Name,
+		},
+	}
+
+	emojis, err := th.App.getCustomEmojisForPost(":"+emoji2.Name+":", reactions)
+	assert.Nil(t, err, "failed to get emojis for post")
+	assert.ElementsMatch(t, emojis, []*model.Emoji{emoji1, emoji2}, "received incorrect emojis")
 }

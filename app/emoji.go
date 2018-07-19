@@ -163,6 +163,18 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 	}
 }
 
+func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableCustomEmoji {
+		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if result := <-a.Srv.Store.Emoji().GetMultipleByName(names); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Emoji), nil
+	}
+}
+
 func (a *App) GetEmojiImage(emojiId string) (imageByte []byte, imageType string, err *model.AppError) {
 	if result := <-a.Srv.Store.Emoji().Get(emojiId, true); result.Err != nil {
 		return nil, "", result.Err

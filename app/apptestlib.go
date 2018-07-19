@@ -379,6 +379,39 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	return scheme, roles
 }
 
+func (me *TestHelper) CreateEmoji() *model.Emoji {
+	utils.DisableDebugLogForTest()
+
+	result := <-me.App.Srv.Store.Emoji().Save(&model.Emoji{
+		CreatorId: me.BasicUser.Id,
+		Name:      model.NewRandomString(10),
+	})
+	if result.Err != nil {
+		panic(result.Err)
+	}
+
+	utils.EnableDebugLogForTest()
+
+	return result.Data.(*model.Emoji)
+}
+
+func (me *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emojiName string) *model.Reaction {
+	utils.DisableDebugLogForTest()
+
+	reaction, err := me.App.SaveReactionForPost(&model.Reaction{
+		UserId:    user.Id,
+		PostId:    post.Id,
+		EmojiName: emojiName,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	utils.EnableDebugLogForTest()
+
+	return reaction
+}
+
 func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
 	os.Remove(me.tempConfigPath)

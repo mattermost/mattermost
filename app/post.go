@@ -1004,13 +1004,25 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) (*model.Pos
 func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *model.AppError) {
 	post := originalPost.Clone()
 
-	if post.ReactionCounts == nil {
-		reactionCounts, err := a.getReactionCountsForPost(post.Id)
+	// TODO maybe move warnings into here since it might be better to continue on as best we can
+	// if something does go wrong
+	var err *model.AppError
+
+	needReactionCounts := post.ReactionCounts == nil
+	needEmojis := post.Emojis == nil
+	needImageDimensions := post.ImageDimensions == nil
+	needOpenGraphData := post.OpenGraphData == nil
+
+	var reactions []*model.Reaction
+	if needReactionCounts || needEmojis {
+		reactions, err = a.GetReactionsForPost(post.Id)
 		if err != nil {
 			return post, err
 		}
+	}
 
-		post.ReactionCounts = reactionCounts
+	if needReactionCounts {
+		post.ReactionCounts = model.CountReactions(reactions)
 	}
 
 	if post.FileInfos == nil {
@@ -1022,8 +1034,8 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 		post.FileInfos = fileInfos
 	}
 
-	if post.Emojis == nil {
-		emojis, err := a.getCustomEmojisInString(post.Message)
+	if needEmojis {
+		emojis, err := a.getCustomEmojisForPost(post.Message, reactions)
 		if err != nil {
 			return post, err
 		}
@@ -1032,9 +1044,6 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 	}
 
 	post = a.PostWithProxyAddedToImageURLs(post)
-
-	needImageDimensions := post.ImageDimensions == nil
-	needOpenGraphData := post.OpenGraphData == nil
 
 	if needImageDimensions || needOpenGraphData {
 		if needImageDimensions {
@@ -1051,8 +1060,12 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 	return post, nil
 }
 
-func (a *App) getCustomEmojisInString(str string) ([]*model.Emoji, *model.AppError) {
-	names := model.EMOJI_PATTERN.FindAllString(str, -1)
+func (a *App) getCustomEmojisForPost(message string, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
+	names := model.EMOJI_PATTERN.FindAllString(message, -1)
+
+	for _, reaction := range reactions {
+		names = append(names, reaction.EmojiName)
+	}
 
 	if len(names) == 0 {
 		return []*model.Emoji{}, nil
@@ -1064,11 +1077,7 @@ func (a *App) getCustomEmojisInString(str string) ([]*model.Emoji, *model.AppErr
 		names[i] = strings.Trim(name, ":")
 	}
 
-	if result := <-a.Srv.Store.Emoji().GetMultipleByName(names); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Emoji), nil
-	}
+	return a.GetMultipleEmojiByName(names)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

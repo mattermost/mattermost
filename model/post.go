@@ -82,14 +82,12 @@ type Post struct {
 	HasReactions  bool            `json:"has_reactions,omitempty"` // Deprecated, do not use this field any more
 
 	// Transient fields populated before sending posts to the client
-	ReactionCounts  PostReactionCounts     `json:"reaction_counts" db:"-"`
+	ReactionCounts  ReactionCounts         `json:"reaction_counts" db:"-"`
 	FileInfos       []*FileInfo            `json:"file_infos" db:"-"`
 	ImageDimensions []*PostImageDimensions `json:"image_dimensions" db:"-"`
 	OpenGraphData   []*opengraph.OpenGraph `json:"opengraph_data" db:"-"`
 	Emojis          []*Emoji               `json:"emojis" db:"-"`
 }
-
-type PostReactionCounts map[string]int
 
 type PostImageDimensions struct {
 	URL    string `json:"url"`
