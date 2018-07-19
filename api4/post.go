@@ -9,13 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-)
-
-const (
-	MAX_LIMIT_POSTS_SINCE = 1000
-	PAGE_DEFAULT          = 0
-	PER_PAGE_DEFAULT      = 60
 )
 
 func (api *API) InitPost() {
@@ -137,7 +132,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(c.Params.ChannelId, since, MAX_LIMIT_POSTS_SINCE)
+		list, err = c.App.GetPostsSince(c.Params.ChannelId, since, app.MAX_LIMIT_POSTS_SINCE)
 	} else if len(afterPost) > 0 {
 		etag = c.App.GetPostsEtag(c.Params.ChannelId)
 
@@ -201,7 +196,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(channelId, PAGE_DEFAULT, PER_PAGE_DEFAULT)
+		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, app.PER_PAGE_DEFAULT)
 	}
 
 	if len(etag) > 0 {
