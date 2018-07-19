@@ -3792,7 +3792,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "user", "user": {"username": "` + username2 + `", "email": "` + username2 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "user", "user": {"username": "` + username3 + `", "email": "` + username3 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
-{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachements":[{"path": "` + testImage + `"}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachments":[{"path": "` + testImage + `"}]}}
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `"]}}
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `", "` + username3 + `"]}}
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `"], "user": "` + username + `", "message": "Hello Direct Channel", "create_at": 123456789013}}
@@ -3985,7 +3985,6 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		t.Fatalf("Failed to get user3 from database.")
 	}
 
-
 	// Post with attachments.
 	time := model.GetMillis()
 	attachmentsPostTime := time
@@ -3994,16 +3993,16 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
 	data := &PostImportData{
-		Team:     &teamName,
-		Channel:  &channelName,
-		User:     &username,
-		Message:  ptrStr("Message with reply"),
-		CreateAt: &attachmentsPostTime,
+		Team:        &teamName,
+		Channel:     &channelName,
+		User:        &username,
+		Message:     ptrStr("Message with reply"),
+		CreateAt:    &attachmentsPostTime,
 		Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
 		Replies: &[]ReplyImportData{{
-			User:     &user4.Username,
-			Message:  ptrStr("Message reply"),
-			CreateAt: &attachmentsReplyTime,
+			User:        &user4.Username,
+			Message:     ptrStr("Message reply"),
+			CreateAt:    &attachmentsReplyTime,
 			Attachments: &[]AttachmentImportData{{Path: &testImage}},
 		}},
 	}
@@ -4056,10 +4055,10 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		User:     &user3.Username,
 		Message:  ptrStr("Message with Replies"),
 		CreateAt: ptrInt64(model.GetMillis()),
-		Replies:  &[]ReplyImportData{{
-			User:     &user4.Username,
-			Message:  ptrStr("Message reply with attachment"),
-			CreateAt: ptrInt64(model.GetMillis()),
+		Replies: &[]ReplyImportData{{
+			User:        &user4.Username,
+			Message:     ptrStr("Message reply with attachment"),
+			CreateAt:    ptrInt64(model.GetMillis()),
 			Attachments: &[]AttachmentImportData{{Path: &testImage}},
 		}},
 	}
@@ -4074,7 +4073,6 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	AssertFileIdsInPost(attachments, th, t)
 
 }
-
 
 func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileInfo {
 	if result := <-th.App.Srv.Store.FileInfo().GetForUser(userId); result.Err != nil {
