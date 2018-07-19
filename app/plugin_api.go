@@ -190,7 +190,7 @@ func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppEr
 	return api.app.GetChannel(channelId)
 }
 
-func (api *PluginAPI) GetChannelByName(name, teamId string) (*model.Channel, *model.AppError) {
+func (api *PluginAPI) GetChannelByName(teamId, name string) (*model.Channel, *model.AppError) {
 	return api.app.GetChannelByName(name, teamId)
 }
 
