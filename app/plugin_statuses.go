@@ -17,7 +17,7 @@ func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 
 	pluginStatuses, err := a.Plugins.Statuses()
 	if err != nil {
-		return nil, model.NewAppError("GetPluginStatuses", "Unable to get plugin statuses", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.get_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Add our cluster ID
