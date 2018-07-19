@@ -2430,6 +2430,16 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 	return PostListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
+func (c *Client4) GetPostsAroundLastUnread(channelId string) (*PostList, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts/unread", ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // SearchPosts returns any posts with matching terms string.
 func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
 	params := SearchParameter{
