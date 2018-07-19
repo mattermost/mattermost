@@ -194,6 +194,10 @@ func (api *PluginAPI) GetChannelByName(teamId, name string) (*model.Channel, *mo
 	return api.app.GetChannelByName(name, teamId)
 }
 
+func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string) (*model.Channel, *model.AppError) {
+	return api.app.GetChannelByNameForTeamName(channelName, teamName)
+}
+
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
 	return api.app.GetDirectChannel(userId1, userId2)
 }
