@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -20,6 +21,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/thread", api.ApiSessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.ApiSessionRequired(getFileInfosForPost)).Methods("GET")
 	api.BaseRoutes.PostsForChannel.Handle("", api.ApiSessionRequired(getPostsForChannel)).Methods("GET")
+	api.BaseRoutes.PostsForChannel.Handle("/unread", api.ApiSessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 	api.BaseRoutes.PostsForUser.Handle("/flagged", api.ApiSessionRequired(getFlaggedPostsForUser)).Methods("GET")
 
 	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
@@ -130,7 +132,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(c.Params.ChannelId, since)
+		list, err = c.App.GetPostsSince(c.Params.ChannelId, since, app.MAX_LIMIT_POSTS_SINCE)
 	} else if len(afterPost) > 0 {
 		etag = c.App.GetPostsEtag(c.Params.ChannelId)
 
@@ -166,6 +168,41 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
+}
+
+func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	channelId := c.Params.ChannelId
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, c.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	etag := ""
+	if len(postList.Order) == 0 {
+		etag = c.App.GetPostsEtag(channelId)
+
+		if c.HandleEtag(etag, "Get Posts", w, r) {
+			return
+		}
+
+		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, app.PER_PAGE_DEFAULT)
+	}
+
+	if len(etag) > 0 {
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	}
+	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(postList).ToJson()))
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
