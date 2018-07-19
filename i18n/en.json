@@ -3027,6 +3027,10 @@
     "translation": "Unable to get active plugins"
   },
   {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "Unable to get plugin statuses"
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
