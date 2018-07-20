@@ -219,7 +219,7 @@ func Getpeername(fd int) (sa Sockaddr, err error) {
 	if err = getpeername(fd, &rsa, &len); err != nil {
 		return
 	}
-	return anyToSockaddr(&rsa)
+	return anyToSockaddr(fd, &rsa)
 }
 
 func GetsockoptByte(fd, level, opt int) (value byte, err error) {
@@ -291,7 +291,7 @@ func Recvfrom(fd int, p []byte, flags int) (n int, from Sockaddr, err error) {
 		return
 	}
 	if rsa.Addr.Family != AF_UNSPEC {
-		from, err = anyToSockaddr(&rsa)
+		from, err = anyToSockaddr(fd, &rsa)
 	}
 	return
 }

@@ -860,9 +860,13 @@ func inBodyIM(p *parser) bool {
 			// The newline, if any, will be dealt with by the TextToken case.
 			p.framesetOK = false
 		case a.Form:
-			if p.oe.contains(a.Template) || p.form == nil {
-				p.popUntil(buttonScope, a.P)
-				p.addElement()
+			if p.form != nil && !p.oe.contains(a.Template) {
+				// Ignore the token
+				return true
+			}
+			p.popUntil(buttonScope, a.P)
+			p.addElement()
+			if !p.oe.contains(a.Template) {
 				p.form = p.top()
 			}
 		case a.Li:
@@ -1098,12 +1102,13 @@ func inBodyIM(p *parser) bool {
 			p.popUntil(defaultScope, p.tok.DataAtom)
 		case a.Form:
 			if p.oe.contains(a.Template) {
-				if !p.oe.contains(a.Form) {
+				i := p.indexOfElementInScope(defaultScope, a.Form)
+				if i == -1 {
 					// Ignore the token.
 					return true
 				}
 				p.generateImpliedEndTags()
-				if p.tok.DataAtom == a.Form {
+				if p.oe[i].DataAtom != a.Form {
 					// Ignore the token.
 					return true
 				}
