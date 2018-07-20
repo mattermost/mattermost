@@ -1105,6 +1105,7 @@ type TeamSettings struct {
 	ExperimentalHideTownSquareinLHS     *bool
 	ExperimentalTownSquareIsReadOnly    *bool
 	ExperimentalPrimaryTeam             *string
+	ExperimentalDefaultChannels         []string
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -1215,6 +1216,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.ExperimentalPrimaryTeam == nil {
 		s.ExperimentalPrimaryTeam = NewString("")
+	}
+
+	if s.ExperimentalDefaultChannels == nil {
+		s.ExperimentalDefaultChannels = []string{}
 	}
 
 	if s.EnableTeamCreation == nil {
