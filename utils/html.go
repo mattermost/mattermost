@@ -11,6 +11,7 @@ import (
 	"io"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync/atomic"
 
 	"github.com/fsnotify/fsnotify"
@@ -119,7 +120,10 @@ func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
 }
 
 func TranslateAsHtml(t i18n.TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
-	return template.HTML(t(translationID, escapeForHtml(args)))
+	message := t(translationID, escapeForHtml(args))
+	message = strings.Replace(message, "[[", "<strong>", -1)
+	message = strings.Replace(message, "]]", "</strong>", -1)
+	return template.HTML(message)
 }
 
 func escapeForHtml(arg interface{}) interface{} {
