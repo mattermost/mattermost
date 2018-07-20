@@ -1286,8 +1286,8 @@ type Z_GetChannelByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelByName(name, teamId string) (*model.Channel, *model.AppError) {
-	_args := &Z_GetChannelByNameArgs{name, teamId}
+func (g *apiRPCClient) GetChannelByName(teamId, name string) (*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelByNameArgs{teamId, name}
 	_returns := &Z_GetChannelByNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByName", _args, _returns); err != nil {
 		g.log.Error("RPC call to GetChannelByName API failed.", mlog.Err(err))
@@ -1297,11 +1297,41 @@ func (g *apiRPCClient) GetChannelByName(name, teamId string) (*model.Channel, *m
 
 func (s *apiRPCServer) GetChannelByName(args *Z_GetChannelByNameArgs, returns *Z_GetChannelByNameReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelByName(name, teamId string) (*model.Channel, *model.AppError)
+		GetChannelByName(teamId, name string) (*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelByName(args.A, args.B)
 	} else {
 		return fmt.Errorf("API GetChannelByName called but not implemented.")
+	}
+	return nil
+}
+
+type Z_GetChannelByNameForTeamNameArgs struct {
+	A string
+	B string
+}
+
+type Z_GetChannelByNameForTeamNameReturns struct {
+	A *model.Channel
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelByNameForTeamName(teamName, channelName string) (*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelByNameForTeamNameArgs{teamName, channelName}
+	_returns := &Z_GetChannelByNameForTeamNameReturns{}
+	if err := g.client.Call("Plugin.GetChannelByNameForTeamName", _args, _returns); err != nil {
+		g.log.Error("RPC call to GetChannelByNameForTeamName API failed.", mlog.Err(err))
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelByNameForTeamName(args *Z_GetChannelByNameForTeamNameArgs, returns *Z_GetChannelByNameForTeamNameReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelByNameForTeamName(teamName, channelName string) (*model.Channel, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelByNameForTeamName(args.A, args.B)
+	} else {
+		return fmt.Errorf("API GetChannelByNameForTeamName called but not implemented.")
 	}
 	return nil
 }

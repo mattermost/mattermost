@@ -101,14 +101,17 @@ type API interface {
 	// DeleteChannel deletes a channel.
 	DeleteChannel(channelId string) *model.AppError
 
-	// GetChannels gets a list of all channels.
+	// GetPublicChannelsForTeam gets a list of all channels.
 	GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError)
 
 	// GetChannel gets a channel.
 	GetChannel(channelId string) (*model.Channel, *model.AppError)
 
-	// GetChannelByName gets a channel by its name.
-	GetChannelByName(name, teamId string) (*model.Channel, *model.AppError)
+	// GetChannelByName gets a channel by its name, given a team id.
+	GetChannelByName(teamId, name string) (*model.Channel, *model.AppError)
+
+	// GetChannelByNameForTeamName gets a channel by its name, given a team name.
+	GetChannelByNameForTeamName(teamName, channelName string) (*model.Channel, *model.AppError)
 
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
@@ -149,13 +152,13 @@ type API interface {
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
-	// Set will store a key-value pair, unique per plugin.
+	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
 
-	// Get will retrieve a value based on the key. Returns nil for non-existent keys.
+	// KVGet will retrieve a value based on the key. Returns nil for non-existent keys.
 	KVGet(key string) ([]byte, *model.AppError)
 
-	// Delete will remove a key-value pair. Returns nil for non-existent keys.
+	// KVDelete will remove a key-value pair. Returns nil for non-existent keys.
 	KVDelete(key string) *model.AppError
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
