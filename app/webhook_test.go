@@ -470,3 +470,39 @@ func TestSplitWebhookPost(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	outgoingWebhook := model.OutgoingWebhook{
+		ChannelId: th.BasicChannel.Id,
+		TeamId: th.BasicChannel.TeamId,
+		CallbackURLs: []string{"http://nowhere.com"},
+		Username: "some-user-name",
+		IconURL: "http://some-icon/",
+		DisplayName: "some-display-name",
+		Description: "some-description",
+		CreatorId: th.BasicUser.Id,
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+
+	createdHook, err := th.App.CreateOutgoingWebhook(&outgoingWebhook)
+
+	if err != nil {
+		t.Fatalf("should not have failed: %v", err.Error())
+	}
+
+	assert.NotNil(t, createdHook, "should not be null")
+
+	assert.Equal(t, createdHook.ChannelId, outgoingWebhook.ChannelId)
+	assert.Equal(t, createdHook.TeamId, outgoingWebhook.TeamId)
+	assert.Equal(t, createdHook.CallbackURLs, outgoingWebhook.CallbackURLs)
+	assert.Equal(t, createdHook.Username, outgoingWebhook.Username)
+	assert.Equal(t, createdHook.IconURL, outgoingWebhook.IconURL)
+	assert.Equal(t, createdHook.DisplayName, outgoingWebhook.DisplayName)
+	assert.Equal(t, createdHook.Description, outgoingWebhook.Description)
+
+
+}

@@ -4375,6 +4375,13 @@
     "translation": "Invalid trigger words"
   },
   {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "Invalid username"
+  },{
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Invalid icon"
+  },
+  {
     "id": "model.plugin_command.error.app_error",
     "translation": "An error occurred while trying to execute this command."
   },
