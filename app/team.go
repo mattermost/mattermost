@@ -60,10 +60,10 @@ func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, 
 	return rteam, nil
 }
 
-func (a *App) isTeamEmailAddressAllowed(email string, RestrictCreationToDomains string) bool {
+func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) bool {
 	email = strings.ToLower(email)
-	// First check per team RestrictCreationToDomains, then app wide restrictions
-	for _, restriction := range []string{RestrictCreationToDomains, a.Config().TeamSettings.RestrictCreationToDomains} {
+	// First check per team allowedDomains, then app wide restrictions
+	for _, restriction := range []string{allowedDomains, a.Config().TeamSettings.RestrictCreationToDomains} {
 		// commas and @ signs are optional
 		// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
 		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(restriction, "@", " ", -1), ",", " ", -1))))
