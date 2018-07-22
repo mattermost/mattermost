@@ -540,20 +540,23 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 			waitUntilWebhookResposeIsCreatedAsPost(channel, th, t, createdPost)
 
-			webhookPost := <-createdPost
+			select {
+			case webhookPost := <-createdPost:
+				assert.Equal(t, webhookPost.Message, "sample response text from test server")
+				assert.Equal(t, webhookPost.Props["from_webhook"], "true")
+				if testCase.ExpectedIconUrl != "" {
+					assert.Equal(t, webhookPost.Props["override_icon_url"], testCase.ExpectedIconUrl)
+				} else {
+					assert.Nil(t, webhookPost.Props["override_icon_url"])
+				}
 
-			assert.Equal(t, webhookPost.Message, "sample response text from test server")
-			assert.Equal(t, webhookPost.Props["from_webhook"], "true")
-			if testCase.ExpectedIconUrl != "" {
-				assert.Equal(t, webhookPost.Props["override_icon_url"], testCase.ExpectedIconUrl)
-			} else {
-				assert.Nil(t, webhookPost.Props["override_icon_url"])
-			}
-
-			if testCase.ExpectedUsername != "" {
-				assert.Equal(t, webhookPost.Props["override_username"], testCase.ExpectedUsername)
-			} else {
-				assert.Nil(t, webhookPost.Props["override_username"])
+				if testCase.ExpectedUsername != "" {
+					assert.Equal(t, webhookPost.Props["override_username"], testCase.ExpectedUsername)
+				} else {
+					assert.Nil(t, webhookPost.Props["override_username"])
+				}
+			case <-time.After(5 * time.Second):
+				t.Fatal("Timeout, webhook response not created as post")
 			}
 
 		})
@@ -562,8 +565,8 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 func waitUntilWebhookResposeIsCreatedAsPost(channel *model.Channel, th *TestHelper, t *testing.T, createdPost chan *model.Post) {
 	go func() {
-		for {
-			time.Sleep(2 * time.Second)
+		for i := 0; i < 5; i++ {
+			time.Sleep(time.Second)
 			posts, _ := th.App.GetPosts(channel.Id, 0, 5)
 			if len(posts.Posts) > 0 {
 				for _, post := range posts.Posts {
