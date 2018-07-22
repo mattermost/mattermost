@@ -73,13 +73,33 @@ func TestAddUserToTeam(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-	ruser, _ := th.App.CreateUser(&user)
+	t.Run("add user", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
 
-	if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err != nil {
-		t.Log(err)
-		t.Fatal("Should add user to the team")
-	}
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+	})
+
+	t.Run("block user", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "isTeamEmailAllowed" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+	})
+
 }
 
 func TestAddUserToTeamByToken(t *testing.T) {
@@ -158,19 +178,62 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			t.Fatal("The token must be deleted after be used")
 		}
 	})
+
+	t.Run("block user", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil || err.Where != "isTeamEmailAllowed" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+	})
 }
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-	ruser, _ := th.App.CreateUser(&user)
+	t.Run("add user", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
 
-	if err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err != nil {
-		t.Log(err)
-		t.Fatal("Should add user to the team")
-	}
+		if err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+	})
+
+	t.Run("block user", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err == nil || err.Where != "isTeamEmailAllowed" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+	})
+
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
