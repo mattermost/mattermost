@@ -195,12 +195,12 @@ func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppEr
 	return api.app.GetChannel(channelId)
 }
 
-func (api *PluginAPI) GetChannelByName(teamId, name string) (*model.Channel, *model.AppError) {
-	return api.app.GetChannelByName(name, teamId, false)
+func (api *PluginAPI) GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	return api.app.GetChannelByName(name, teamId, includeDeleted)
 }
 
-func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string) (*model.Channel, *model.AppError) {
-	return api.app.GetChannelByNameForTeamName(channelName, teamName, false)
+func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	return api.app.GetChannelByNameForTeamName(channelName, teamName, includeDeleted)
 }
 
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
