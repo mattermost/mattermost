@@ -3959,7 +3959,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	_, err = th.App.GetChannelByName(channelName, team.Id)
+	_, err = th.App.GetChannelByName(channelName, team.Id, false)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	}
