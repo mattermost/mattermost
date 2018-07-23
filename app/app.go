@@ -680,3 +680,43 @@ func (a *App) DoEmojisPermissionsMigration() {
 		mlog.Critical(fmt.Sprint(result.Err))
 	}
 }
+
+func (a *App) StartElasticsearch() {
+	a.Go(func() {
+		if err := a.Elasticsearch.Start(); err != nil {
+			mlog.Error(err.Error())
+		}
+	})
+
+	a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if *oldConfig.ElasticsearchSettings.EnableIndexing == false && *newConfig.ElasticsearchSettings.EnableIndexing == true {
+			a.Go(func() {
+				if err := a.Elasticsearch.Start(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else if *oldConfig.ElasticsearchSettings.EnableIndexing == true && *newConfig.ElasticsearchSettings.EnableIndexing == false {
+			a.Go(func() {
+				if err := a.Elasticsearch.Stop(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		}
+	})
+
+	a.AddLicenseListener(func() {
+		if a.License() != nil {
+			a.Go(func() {
+				if err := a.Elasticsearch.Start(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else {
+			a.Go(func() {
+				if err := a.Elasticsearch.Stop(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		}
+	})
+}

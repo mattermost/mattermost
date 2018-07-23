@@ -176,11 +176,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	}
 
 	if a.Elasticsearch != nil {
-		a.Go(func() {
-			if err := a.Elasticsearch.Start(); err != nil {
-				mlog.Error(err.Error())
-			}
-		})
+		a.StartElasticsearch()
 	}
 
 	if *a.Config().JobSettings.RunJobs {

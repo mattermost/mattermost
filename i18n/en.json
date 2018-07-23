@@ -168,6 +168,14 @@
     "translation": "Channel is already deleted"
   },
   {
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "Elasticsearch is already started"
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch is already stopped"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
   },
