@@ -78,23 +78,27 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	}
 
 	// for now, format is hard-coded to actiance. In time, we'll have to support other formats and inject them into job data
-	if format, err := command.Flags().GetString("format"); err != nil {
+	format, err := command.Flags().GetString("format")
+	if err != nil {
 		return errors.New("format flag error")
-	} else if format != "actiance" {
+	}
+	if format != "actiance" {
 		return errors.New("unsupported export format")
 	}
 
 	startTime, err := command.Flags().GetInt64("exportFrom")
 	if err != nil {
 		return errors.New("exportFrom flag error")
-	} else if startTime < 0 {
+	}
+	if startTime < 0 {
 		return errors.New("exportFrom must be a positive integer")
 	}
 
 	timeoutSeconds, err := command.Flags().GetInt("timeoutSeconds")
 	if err != nil {
 		return errors.New("timeoutSeconds error")
-	} else if timeoutSeconds < 0 {
+	}
+	if timeoutSeconds < 0 {
 		return errors.New("timeoutSeconds must be a positive integer")
 	}
 
@@ -128,7 +132,8 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
 			return errors.New("exportFrom flag error")
-		} else if startTime < 0 {
+		}
+		if startTime < 0 {
 			return errors.New("exportFrom must be a positive integer")
 		}
 

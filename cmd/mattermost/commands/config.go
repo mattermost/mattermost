@@ -90,9 +90,13 @@ func configSubpathCmdF(command *cobra.Command, args []string) error {
 	path, err := command.Flags().GetString("path")
 	if err != nil {
 		return errors.Wrap(err, "failed reading path")
-	} else if path == "" {
+	}
+
+	if path == "" {
 		return utils.UpdateAssetsSubpathFromConfig(a.Config())
-	} else if err := utils.UpdateAssetsSubpath(path); err != nil {
+	}
+
+	if err := utils.UpdateAssetsSubpath(path); err != nil {
 		return errors.Wrap(err, "failed to update assets subpath")
 	}
 
