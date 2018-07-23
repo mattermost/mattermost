@@ -73,14 +73,14 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 //     be used directly after any stripping needed for security/privacy reasons.
 type Status struct {
 	// The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-	Code int32 `protobuf:"varint,1,opt,name=code" json:"code,omitempty"`
+	Code int32 `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
 	// A developer-facing error message, which should be in English. Any
 	// user-facing error message should be localized and sent in the
 	// [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-	Message string `protobuf:"bytes,2,opt,name=message" json:"message,omitempty"`
+	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	// A list of messages that carry the error details.  There is a common set of
 	// message types for APIs to use.
-	Details              []*any.Any `protobuf:"bytes,3,rep,name=details" json:"details,omitempty"`
+	Details              []*any.Any `protobuf:"bytes,3,rep,name=details,proto3" json:"details,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
 	XXX_unrecognized     []byte     `json:"-"`
 	XXX_sizecache        int32      `json:"-"`

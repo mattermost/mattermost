@@ -762,6 +762,9 @@ func (d *Decoder) decodeSlice(name string, data interface{}, val reflect.Value) 
 						val.Set(reflect.MakeSlice(sliceType, 0, 0))
 						return nil
 					}
+					// Create slice of maps of other sizes
+					return d.decodeSlice(name, []interface{}{data}, val)
+
 				case dataValKind == reflect.String && valElemType.Kind() == reflect.Uint8:
 					return d.decodeSlice(name, []byte(dataVal.String()), val)
 				// All other types we try to convert to the slice type
