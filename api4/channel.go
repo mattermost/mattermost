@@ -66,14 +66,15 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sc, err := c.App.CreateChannelWithUser(channel, c.Session.UserId); err != nil {
+	sc, err := c.App.CreateChannelWithUser(channel, c.Session.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		c.LogAudit("name=" + channel.Name)
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(sc.ToJson()))
 	}
+
+	c.LogAudit("name=" + channel.Name)
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(sc.ToJson()))
 }
 
 func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -153,16 +154,16 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := c.App.UpdateChannel(oldChannel); err != nil {
 		c.Err = err
 		return
-	} else {
-		if oldChannelDisplayName != channel.DisplayName {
-			if err := c.App.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
-				mlog.Error(err.Error())
-			}
-		}
-
-		c.LogAudit("name=" + channel.Name)
-		w.Write([]byte(oldChannel.ToJson()))
 	}
+
+	if oldChannelDisplayName != channel.DisplayName {
+		if err := c.App.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
+			mlog.Error(err.Error())
+		}
+	}
+
+	c.LogAudit("name=" + channel.Name)
+	w.Write([]byte(oldChannel.ToJson()))
 }
 
 func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -175,13 +176,19 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		c.Err = err
 		return
-	} else if !c.App.SessionHasPermissionToTeam(c.Session, oldPublicChannel.TeamId, model.PERMISSION_MANAGE_TEAM) {
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, oldPublicChannel.TeamId, model.PERMISSION_MANAGE_TEAM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
 		return
-	} else if oldPublicChannel.Type == model.CHANNEL_PRIVATE {
+	}
+
+	if oldPublicChannel.Type == model.CHANNEL_PRIVATE {
 		c.Err = model.NewAppError("convertChannelToPrivate", "api.channel.convert_channel_to_private.private_channel_error", nil, "", http.StatusBadRequest)
 		return
-	} else if oldPublicChannel.Name == model.DEFAULT_CHANNEL {
+	}
+
+	if oldPublicChannel.Name == model.DEFAULT_CHANNEL {
 		c.Err = model.NewAppError("convertChannelToPrivate", "api.channel.convert_channel_to_private.default_channel_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -194,13 +201,14 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 
 	oldPublicChannel.Type = model.CHANNEL_PRIVATE
 
-	if rchannel, err := c.App.UpdateChannelPrivacy(oldPublicChannel, user); err != nil {
+	rchannel, err := c.App.UpdateChannelPrivacy(oldPublicChannel, user)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		c.LogAudit("name=" + rchannel.Name)
-		w.Write([]byte(rchannel.ToJson()))
 	}
+
+	c.LogAudit("name=" + rchannel.Name)
+	w.Write([]byte(rchannel.ToJson()))
 }
 
 func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -321,13 +329,14 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sc, err := c.App.CreateDirectChannel(userIds[0], userIds[1]); err != nil {
+	sc, err := c.App.CreateDirectChannel(userIds[0], userIds[1])
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(sc.ToJson()))
 	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(sc.ToJson()))
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -358,13 +367,14 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if groupChannel, err := c.App.CreateGroupChannel(userIds, c.Session.UserId); err != nil {
+	groupChannel, err := c.App.CreateGroupChannel(userIds, c.Session.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(groupChannel.ToJson()))
 	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(groupChannel.ToJson()))
 }
 
 func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -458,15 +468,18 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if posts, err := c.App.GetPinnedPosts(c.Params.ChannelId); err != nil {
+	posts, err := c.App.GetPinnedPosts(c.Params.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
-	} else if c.HandleEtag(posts.Etag(), "Get Pinned Posts", w, r) {
-		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, posts.Etag())
-		w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
 	}
+
+	if c.HandleEtag(posts.Etag(), "Get Pinned Posts", w, r) {
+		return
+	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, posts.Etag())
+	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -761,12 +774,13 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if members, err := c.App.GetChannelMembersPage(c.Params.ChannelId, c.Params.Page, c.Params.PerPage); err != nil {
+	members, err := c.App.GetChannelMembersPage(c.Params.ChannelId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(members.ToJson()))
 	}
+
+	w.Write([]byte(members.ToJson()))
 }
 
 func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -786,12 +800,13 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if members, err := c.App.GetChannelMembersByIds(c.Params.ChannelId, userIds); err != nil {
+	members, err := c.App.GetChannelMembersByIds(c.Params.ChannelId, userIds)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(members.ToJson()))
 	}
+
+	w.Write([]byte(members.ToJson()))
 }
 
 func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -805,12 +820,13 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if member, err := c.App.GetChannelMember(c.Params.ChannelId, c.Params.UserId); err != nil {
+	member, err := c.App.GetChannelMember(c.Params.ChannelId, c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(member.ToJson()))
 	}
+
+	w.Write([]byte(member.ToJson()))
 }
 
 func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -829,12 +845,13 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if members, err := c.App.GetChannelMembersForUser(c.Params.TeamId, c.Params.UserId); err != nil {
+	members, err := c.App.GetChannelMembersForUser(c.Params.TeamId, c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(members.ToJson()))
 	}
+
+	w.Write([]byte(members.ToJson()))
 }
 
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -976,10 +993,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	if ok && len(postRootId) == 26 {
-		if rootPost, err := c.App.GetSinglePost(postRootId); err != nil {
+		rootPost, err := c.App.GetSinglePost(postRootId)
+		if err != nil {
 			c.Err = err
 			return
-		} else if rootPost.ChannelId != member.ChannelId {
+		}
+		if rootPost.ChannelId != member.ChannelId {
 			c.SetInvalidParam("post_root_id")
 			return
 		}
@@ -1016,14 +1035,15 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cm, err := c.App.AddChannelMember(member.UserId, channel, c.Session.UserId, postRootId); err != nil {
+	cm, err := c.App.AddChannelMember(member.UserId, channel, c.Session.UserId, postRootId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(cm.ToJson()))
 	}
+
+	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(cm.ToJson()))
 }
 
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
