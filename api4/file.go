@@ -161,7 +161,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = writeFileResponse(info.Name, info.MimeType, fileReader, forceDownload, w, r)
+	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, forceDownload, w, r)
 	if err != nil {
 		c.Err = err
 		return
@@ -198,7 +198,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if fileReader, err := c.App.FileReader(info.ThumbnailPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, fileReader, forceDownload, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, fileReader, forceDownload, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -267,7 +267,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	if fileReader, err := c.App.FileReader(info.PreviewPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, fileReader, forceDownload, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, fileReader, forceDownload, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -328,16 +328,21 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if fileReader, err := c.App.FileReader(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, fileReader, true, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, true, w, r); err != nil {
 		c.Err = err
 		return
 	}
 }
 
-func writeFileResponse(filename string, contentType string, fileReader io.Reader, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
+func writeFileResponse(filename string, contentType string, contentSize int64, fileReader io.Reader, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
-	w.Header().Set("Transfer-Encoding", "chunked")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	if contentSize > 0 {
+		w.Header().Set("Content-Length", strconv.Itoa(int(contentSize)))
+	} else {
+		w.Header().Set("Transfer-Encoding", "chunked")
+	}
 
 	if contentType == "" {
 		contentType = "application/octet-stream"
