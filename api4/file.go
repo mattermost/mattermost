@@ -340,8 +340,6 @@ func writeFileResponse(filename string, contentType string, contentSize int64, f
 
 	if contentSize > 0 {
 		w.Header().Set("Content-Length", strconv.Itoa(int(contentSize)))
-	} else {
-		w.Header().Set("Transfer-Encoding", "chunked")
 	}
 
 	if contentType == "" {
