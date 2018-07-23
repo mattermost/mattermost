@@ -28,12 +28,13 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if job, err := c.App.GetJob(c.Params.JobId); err != nil {
+	job, err := c.App.GetJob(c.Params.JobId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(job.ToJson()))
 	}
+
+	w.Write([]byte(job.ToJson()))
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -48,13 +49,14 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if job, err := c.App.CreateJob(job); err != nil {
+	job, err := c.App.CreateJob(job)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(job.ToJson()))
 	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(job.ToJson()))
 }
 
 func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -67,12 +69,13 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if jobs, err := c.App.GetJobsPage(c.Params.Page, c.Params.PerPage); err != nil {
+	jobs, err := c.App.GetJobsPage(c.Params.Page, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.JobsToJson(jobs)))
 	}
+
+	w.Write([]byte(model.JobsToJson(jobs)))
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -86,12 +89,13 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if jobs, err := c.App.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage); err != nil {
+	jobs, err := c.App.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.JobsToJson(jobs)))
 	}
+
+	w.Write([]byte(model.JobsToJson(jobs)))
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {

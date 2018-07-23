@@ -514,9 +514,9 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if action == model.OAUTH_ACTION_MOBILE {
 		ReturnStatusOK(w)
 		return
-	} else {
-		http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
 	}
+
+	http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
 }
 
 func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -534,12 +534,13 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint); err != nil {
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		http.Redirect(w, r, authUrl, http.StatusFound)
 	}
+
+	http.Redirect(w, r, authUrl, http.StatusFound)
 }
 
 func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -554,12 +555,13 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", ""); err != nil {
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", "")
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		http.Redirect(w, r, authUrl, http.StatusFound)
 	}
+
+	http.Redirect(w, r, authUrl, http.StatusFound)
 }
 
 func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -581,10 +583,11 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId); err != nil {
+	authUrl, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		http.Redirect(w, r, authUrl, http.StatusFound)
 	}
+
+	http.Redirect(w, r, authUrl, http.StatusFound)
 }

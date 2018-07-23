@@ -23,12 +23,13 @@ func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if role, err := c.App.GetRole(c.Params.RoleId); err != nil {
+	role, err := c.App.GetRole(c.Params.RoleId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(role.ToJson()))
 	}
+
+	w.Write([]byte(role.ToJson()))
 }
 
 func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -37,12 +38,13 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if role, err := c.App.GetRoleByName(c.Params.RoleName); err != nil {
+	role, err := c.App.GetRoleByName(c.Params.RoleName)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(role.ToJson()))
 	}
+
+	w.Write([]byte(role.ToJson()))
 }
 
 func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -67,12 +69,13 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		cleanedRoleNames = append(cleanedRoleNames, rolename)
 	}
 
-	if roles, err := c.App.GetRolesByNames(cleanedRoleNames); err != nil {
+	roles, err := c.App.GetRolesByNames(cleanedRoleNames)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.RoleListToJson(roles)))
 	}
+
+	w.Write([]byte(model.RoleListToJson(roles)))
 }
 
 func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -124,11 +127,12 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if role, err := c.App.PatchRole(oldRole, patch); err != nil {
+	role, err := c.App.PatchRole(oldRole, patch)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		c.LogAudit("")
-		w.Write([]byte(role.ToJson()))
 	}
+
+	c.LogAudit("")
+	w.Write([]byte(role.ToJson()))
 }

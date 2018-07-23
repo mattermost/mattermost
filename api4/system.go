@@ -341,20 +341,21 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	if license, err := c.App.SaveLicense(buf.Bytes()); err != nil {
-		if err.Id == model.EXPIRED_LICENSE_ERROR {
+	license, appErr := c.App.SaveLicense(buf.Bytes())
+	if appErr != nil {
+		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
 			c.LogAudit("failed - expired or non-started license")
-		} else if err.Id == model.INVALID_LICENSE_ERROR {
+		} else if appErr.Id == model.INVALID_LICENSE_ERROR {
 			c.LogAudit("failed - invalid license")
 		} else {
 			c.LogAudit("failed - unable to save license")
 		}
-		c.Err = err
+		c.Err = appErr
 		return
-	} else {
-		c.LogAudit("success")
-		w.Write([]byte(license.ToJson()))
 	}
+
+	c.LogAudit("success")
+	w.Write([]byte(license.ToJson()))
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
