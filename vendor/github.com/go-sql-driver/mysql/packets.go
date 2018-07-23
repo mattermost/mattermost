@@ -154,15 +154,15 @@ func (mc *mysqlConn) writePacket(data []byte) error {
 
 // Handshake Initialization Packet
 // http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::Handshake
-func (mc *mysqlConn) readHandshakePacket() ([]byte, string, error) {
-	data, err := mc.readPacket()
+func (mc *mysqlConn) readHandshakePacket() (data []byte, plugin string, err error) {
+	data, err = mc.readPacket()
 	if err != nil {
 		// for init we can rewrite this to ErrBadConn for sql.Driver to retry, since
 		// in connection initialization we don't risk retrying non-idempotent actions.
 		if err == ErrInvalidConn {
 			return nil, "", driver.ErrBadConn
 		}
-		return nil, "", err
+		return
 	}
 
 	if data[0] == iERR {
@@ -198,7 +198,6 @@ func (mc *mysqlConn) readHandshakePacket() ([]byte, string, error) {
 	}
 	pos += 2
 
-	plugin := ""
 	if len(data) > pos {
 		// character set [1 byte]
 		// status flags [2 bytes]
@@ -235,8 +234,6 @@ func (mc *mysqlConn) readHandshakePacket() ([]byte, string, error) {
 		copy(b[:], authData)
 		return b[:], plugin, nil
 	}
-
-	plugin = defaultAuthPlugin
 
 	// make a memory safe copy of the cipher slice
 	var b [8]byte

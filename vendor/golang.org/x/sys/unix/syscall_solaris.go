@@ -112,7 +112,7 @@ func Getsockname(fd int) (sa Sockaddr, err error) {
 	if err = getsockname(fd, &rsa, &len); err != nil {
 		return
 	}
-	return anyToSockaddr(&rsa)
+	return anyToSockaddr(fd, &rsa)
 }
 
 // GetsockoptString returns the string value of the socket option opt for the
@@ -314,7 +314,11 @@ func UtimesNanoAt(dirfd int, path string, ts []Timespec, flags int) error {
 
 // FcntlInt performs a fcntl syscall on fd with the provided command and argument.
 func FcntlInt(fd uintptr, cmd, arg int) (int, error) {
-	valptr, _, err := sysvicall6(uintptr(unsafe.Pointer(&procfcntl)), 3, uintptr(fd), uintptr(cmd), uintptr(arg), 0, 0, 0)
+	valptr, _, errno := sysvicall6(uintptr(unsafe.Pointer(&procfcntl)), 3, uintptr(fd), uintptr(cmd), uintptr(arg), 0, 0, 0)
+	var err error
+	if errno != 0 {
+		err = errno
+	}
 	return int(valptr), err
 }
 
@@ -356,7 +360,7 @@ func Futimes(fd int, tv []Timeval) error {
 	return futimesat(fd, nil, (*[2]Timeval)(unsafe.Pointer(&tv[0])))
 }
 
-func anyToSockaddr(rsa *RawSockaddrAny) (Sockaddr, error) {
+func anyToSockaddr(fd int, rsa *RawSockaddrAny) (Sockaddr, error) {
 	switch rsa.Addr.Family {
 	case AF_UNIX:
 		pp := (*RawSockaddrUnix)(unsafe.Pointer(rsa))
@@ -407,7 +411,7 @@ func Accept(fd int) (nfd int, sa Sockaddr, err error) {
 	if nfd == -1 {
 		return
 	}
-	sa, err = anyToSockaddr(&rsa)
+	sa, err = anyToSockaddr(fd, &rsa)
 	if err != nil {
 		Close(nfd)
 		nfd = 0
@@ -444,7 +448,7 @@ func Recvmsg(fd int, p, oob []byte, flags int) (n, oobn int, recvflags int, from
 	oobn = int(msg.Accrightslen)
 	// source address is only specified if the socket is unconnected
 	if rsa.Addr.Family != AF_UNSPEC {
-		from, err = anyToSockaddr(&rsa)
+		from, err = anyToSockaddr(fd, &rsa)
 	}
 	return
 }
