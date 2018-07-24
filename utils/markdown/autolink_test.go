@@ -356,6 +356,7 @@ func TestAutolinking(t *testing.T) {
 	// It is missing tests for:
 	// 1. Links surrounded by emphasis (emphasis not implemented on the server)
 	// 2. IPv6 addresses (not implemented on the server or by GitHub)
+	// 3. Custom URL schemes (not implemented)
 
 	for name, tc := range map[string]struct {
 		Markdown     string
@@ -436,6 +437,14 @@ func TestAutolinking(t *testing.T) {
 		"valid-link-19": {
 			Markdown:     `https://пример.срб/пример-26/`,
 			ExpectedHTML: `<p><a href="https://%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D1%80.%D1%81%D1%80%D0%B1/%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D1%80-26/">https://пример.срб/пример-26/</a></p>`,
+		},
+		"valid-link-20": {
+			Markdown:     `mailto://test@example.com`,
+			ExpectedHTML: `<p><a href="mailto://test@example.com">mailto://test@example.com</a></p>`,
+		},
+		"valid-link-21": {
+			Markdown:     `tel://555-123-4567`,
+			ExpectedHTML: `<p><a href="tel://555-123-4567">tel://555-123-4567</a></p>`,
 		},
 
 		"ip-address-1": {

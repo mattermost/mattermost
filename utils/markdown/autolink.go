@@ -13,8 +13,7 @@ import (
 // Based off of extensions/autolink.c from https://github.com/github/cmark
 
 var (
-	// Parsing for mailto and tel links isn't implemented yet
-	DefaultUrlSchemes = []string{"http", "https", "ftp"}
+	DefaultUrlSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
 )
 
 // Given a string with a w at the given position, tries to parse and return a link starting with "www."
