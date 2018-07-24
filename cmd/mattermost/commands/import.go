@@ -125,7 +125,9 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	if apply && validate {
 		CommandPrettyPrintln("Use only one of --apply or --validate.")
 		return nil
-	} else if apply && !validate {
+	}
+
+	if apply && !validate {
 		CommandPrettyPrintln("Running Bulk Import. This may take a long time.")
 	} else {
 		CommandPrettyPrintln("Running Bulk Import Data Validation.")
@@ -141,12 +143,12 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 			CommandPrettyPrintln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
 		}
 		return err
+	}
+
+	if apply {
+		CommandPrettyPrintln("Finished Bulk Import.")
 	} else {
-		if apply {
-			CommandPrettyPrintln("Finished Bulk Import.")
-		} else {
-			CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
-		}
+		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
 	}
 
 	return nil
