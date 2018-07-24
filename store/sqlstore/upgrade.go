@@ -503,12 +503,12 @@ func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
 			os.Exit(EXIT_GENERIC_FAILURE)
 		}
 		sqlStore.CreateColumnIfNotExists("Users", "AcceptedTermsOfServiceId", "varchar(64)", "varchar(64)", "")
-		saveSchemaVersion(sqlStore, VERSION_5_4_0)
+		// saveSchemaVersion(sqlStore, VERSION_5_4_0)
 	}
 }
 
 func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_4_0, VERSION_5_5_0) {
-		saveSchemaVersion(sqlStore, VERSION_5_5_0)
+		// saveSchemaVersion(sqlStore, VERSION_5_5_0)
 	}
 }
