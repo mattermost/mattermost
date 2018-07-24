@@ -70,6 +70,14 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	return backend.ReadFile(path)
 }
 
+func (a *App) FileReader(path string) (io.Reader, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	return backend.Reader(path)
+}
+
 func (a *App) FileExists(path string) (bool, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
