@@ -40,6 +40,14 @@ func isHexByte(c byte) bool {
 	return isHex(rune(c))
 }
 
+func isAlphanumeric(c rune) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+func isAlphanumericByte(c byte) bool {
+	return isAlphanumeric(rune(c))
+}
+
 func nextNonWhitespace(markdown string, position int) int {
 	for offset, c := range []byte(markdown[position:]) {
 		if !isWhitespaceByte(c) {
