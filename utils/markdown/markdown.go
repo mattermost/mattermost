@@ -32,8 +32,16 @@ func isWhitespaceByte(c byte) bool {
 	return isWhitespace(rune(c))
 }
 
+func isNumeric(c rune) bool {
+	return c >= '0' && c <= '9'
+}
+
+func isNumericByte(c byte) bool {
+	return isNumeric(rune(c))
+}
+
 func isHex(c rune) bool {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+	return isNumeric(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 }
 
 func isHexByte(c byte) bool {
@@ -41,7 +49,7 @@ func isHexByte(c byte) bool {
 }
 
 func isAlphanumeric(c rune) bool {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+	return isNumeric(c) || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
 func isAlphanumericByte(c byte) bool {

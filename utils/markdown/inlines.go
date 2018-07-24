@@ -254,7 +254,7 @@ func (p *inlineParser) parseLinkOrImageDelimiter() {
 	}
 }
 
-func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int) (destination, title Range, end int, ok bool) {
+func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int, isImage bool) (destination, title Range, end int, ok bool) {
 	if position >= len(p.raw) || p.raw[position] != '(' {
 		return
 	}
@@ -273,6 +273,23 @@ func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int) (destin
 	}
 	position = end
 
+	if isImage && position < len(p.raw) && isWhitespaceByte(p.raw[position]) {
+		dimensionsStart := nextNonWhitespace(p.raw, position)
+		if dimensionsStart >= len(p.raw) {
+			return
+		}
+
+		if p.raw[dimensionsStart] == '=' {
+			// Read optional image dimensions even if we don't use them
+			_, end, ok = parseImageDimensions(p.raw, dimensionsStart)
+			if !ok {
+				return
+			}
+
+			position = end
+		}
+	}
+
 	if position < len(p.raw) && isWhitespaceByte(p.raw[position]) {
 		titleStart := nextNonWhitespace(p.raw, position)
 		if titleStart >= len(p.raw) {
@@ -281,11 +298,13 @@ func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int) (destin
 			return destination, Range{titleStart, titleStart}, titleStart + 1, true
 		}
 
-		title, end, ok = parseLinkTitle(p.raw, titleStart)
-		if !ok {
-			return
+		if p.raw[titleStart] == '"' || p.raw[titleStart] == '\'' || p.raw[titleStart] == '(' {
+			title, end, ok = parseLinkTitle(p.raw, titleStart)
+			if !ok {
+				return
+			}
+			position = end
 		}
-		position = end
 	}
 
 	closingPosition := nextNonWhitespace(p.raw, position)
@@ -317,9 +336,11 @@ func (p *inlineParser) lookForLinkOrImage() {
 			break
 		}
 
+		isImage := d.Type == imageOpeningDelimiter
+
 		var inline Inline
 
-		if destination, title, next, ok := p.peekAtInlineLinkDestinationAndTitle(p.position + 1); ok {
+		if destination, title, next, ok := p.peekAtInlineLinkDestinationAndTitle(p.position+1, isImage); ok {
 			destinationMarkdownPosition := relativeToAbsolutePosition(p.ranges, destination.Position)
 			linkOrImage := InlineLinkOrImage{
 				Children:       append([]Inline(nil), p.inlines[d.TextNode+1:]...),
