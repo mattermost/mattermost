@@ -81,6 +81,14 @@ type ReferenceImage struct {
 	ReferenceLinkOrImage
 }
 
+type Autolink struct {
+	inlineBase
+
+	Children []Inline
+
+	Link string
+}
+
 type delimiterType int
 
 const (
@@ -182,7 +190,7 @@ func (p *inlineParser) parseEscapeCharacter() {
 }
 
 func (p *inlineParser) parseText() {
-	if next := strings.IndexAny(p.raw[p.position:], "\r\n\\`&![]"); next == -1 {
+	if next := strings.IndexAny(p.raw[p.position:], "\r\n\\`&![]wW:"); next == -1 {
 		absPos := relativeToAbsolutePosition(p.ranges, p.position)
 		p.inlines = append(p.inlines, &Text{
 			Text:  strings.TrimRightFunc(p.raw[p.position:], isWhitespace),
@@ -198,6 +206,12 @@ func (p *inlineParser) parseText() {
 				Range: Range{absPos, absPos + len(s)},
 			})
 		} else {
+			if next == 0 {
+				// Always read at least one character since 'w', 'W', and ':' may not actually match another
+				// type of node
+				next = 1
+			}
+
 			p.inlines = append(p.inlines, &Text{
 				Text:  p.raw[p.position : p.position+next],
 				Range: Range{absPos, absPos + next},
@@ -443,6 +457,60 @@ func (p *inlineParser) parseCharacterReference() {
 	}
 }
 
+func (p *inlineParser) parseAutolink(c rune) bool {
+	for element := p.delimiterStack.Back(); element != nil; element = element.Prev() {
+		d := element.Value.(*delimiter)
+		if !d.IsInactive {
+			return false
+		}
+	}
+
+	link := ""
+	text := ""
+	if c == ':' {
+		text = parseURLAutolink(p.raw, p.position)
+		link = text
+
+		// Since the current position is at the colon, we have to rewind the parsing slightly so that
+		// we don't duplicate the URL scheme
+		rewind := strings.Index(text, ":")
+		if rewind != -1 {
+			lastInline := p.inlines[len(p.inlines)-1]
+			lastText, ok := lastInline.(*Text)
+
+			if !ok {
+				// This should never occur since parseURLAutolink will only return a non-empty value
+				// when the previous text ends in a valid URL protocol which would mean that the previous
+				// node is a Text node
+				return false
+			}
+
+			p.inlines = p.inlines[0 : len(p.inlines)-1]
+			p.inlines = append(p.inlines, &Text{
+				Text:  lastText.Text[:len(lastText.Text)-rewind],
+				Range: Range{lastText.Range.Position, lastText.Range.End - rewind},
+			})
+			p.position -= rewind
+
+		}
+	} else if c == 'w' {
+		text = parseWWWAutolink(p.raw, p.position)
+		link = "http://" + text
+	}
+
+	if text == "" {
+		return false
+	}
+
+	p.inlines = append(p.inlines, &Autolink{
+		Link:     link,
+		Children: []Inline{&Text{Text: text}},
+	})
+	p.position += len(text)
+
+	return true
+}
+
 func (p *inlineParser) Parse() []Inline {
 	for _, r := range p.ranges {
 		p.raw += p.markdown[r.Position:r.End]
@@ -464,6 +532,12 @@ func (p *inlineParser) Parse() []Inline {
 			p.parseLinkOrImageDelimiter()
 		case ']':
 			p.lookForLinkOrImage()
+		case 'w', 'W', ':':
+			matched := p.parseAutolink(c)
+
+			if !matched {
+				p.parseText()
+			}
 		default:
 			p.parseText()
 		}
