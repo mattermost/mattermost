@@ -374,15 +374,15 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.SessionLengthWebInDays == nil {
-		s.SessionLengthWebInDays = NewInt(30)
+		s.SessionLengthWebInDays = NewInt(365)
 	}
 
 	if s.SessionLengthMobileInDays == nil {
-		s.SessionLengthMobileInDays = NewInt(30)
+		s.SessionLengthMobileInDays = NewInt(365)
 	}
 
 	if s.SessionLengthSSOInDays == nil {
-		s.SessionLengthSSOInDays = NewInt(30)
+		s.SessionLengthSSOInDays = NewInt(365)
 	}
 
 	if s.SessionCacheInMinutes == nil {
