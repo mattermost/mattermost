@@ -61,6 +61,8 @@ func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tableo.ColMap("Description").SetMaxSize(128)
 		tableo.ColMap("ContentType").SetMaxSize(128)
 		tableo.ColMap("TriggerWhen").SetMaxSize(1)
+		tableo.ColMap("Username").SetMaxSize(64)
+		tableo.ColMap("IconURL").SetMaxSize(1024)
 	}
 
 	return s

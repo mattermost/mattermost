@@ -239,6 +239,8 @@ func testWebhookStoreSaveOutgoing(t *testing.T, ss store.Store) {
 	o1.CreatorId = model.NewId()
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
+	o1.Username = "test-user-name"
+	o1.IconURL = "http://nowhere.com/icon"
 
 	if err := (<-ss.Webhook().SaveOutgoing(&o1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
@@ -255,6 +257,8 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 	o1.CreatorId = model.NewId()
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
+	o1.Username = "test-user-name"
+	o1.IconURL = "http://nowhere.com/icon"
 
 	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
 
@@ -461,10 +465,13 @@ func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {
 	o1.CreatorId = model.NewId()
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
+	o1.Username = "test-user-name"
+	o1.IconURL = "http://nowhere.com/icon"
 
 	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
 
 	o1.Token = model.NewId()
+	o1.Username = "another-test-user-name"
 
 	if r2 := <-ss.Webhook().UpdateOutgoing(o1); r2.Err != nil {
 		t.Fatal(r2.Err)

@@ -133,11 +133,11 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 						if len(webhookResp.Attachments) > 0 {
 							webhookResp.Props["attachments"] = webhookResp.Attachments
 						}
-						if a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" {
+						if a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" && webhookResp.Username == "" {
 							webhookResp.Username = hook.Username
 						}
 
-						if a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" {
+						if a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
 							webhookResp.IconURL = hook.IconURL
 						}
 						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
