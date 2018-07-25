@@ -192,7 +192,7 @@ func (a *AliasRemoveAction) Source() (interface{}, error) {
 // -- Service --
 
 // AliasService enables users to add or remove an alias.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-aliases.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-aliases.html
 // for details.
 type AliasService struct {
 	client  *Client
@@ -274,12 +274,7 @@ func (s *AliasService) Do(ctx context.Context) (*AliasResult, error) {
 	body["actions"] = actions
 
 	// Get response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +291,5 @@ func (s *AliasService) Do(ctx context.Context) (*AliasResult, error) {
 
 // AliasResult is the outcome of calling Do on AliasService.
 type AliasResult struct {
-	Acknowledged       bool   `json:"acknowledged"`
-	ShardsAcknowledged bool   `json:"shards_acknowledged"`
-	Index              string `json:"index,omitempty"`
+	Acknowledged bool `json:"acknowledged"`
 }

@@ -26,20 +26,21 @@ const (
 )
 
 type Team struct {
-	Id                 string `json:"id"`
-	CreateAt           int64  `json:"create_at"`
-	UpdateAt           int64  `json:"update_at"`
-	DeleteAt           int64  `json:"delete_at"`
-	DisplayName        string `json:"display_name"`
-	Name               string `json:"name"`
-	Description        string `json:"description"`
-	Email              string `json:"email"`
-	Type               string `json:"type"`
-	CompanyName        string `json:"company_name"`
-	AllowedDomains     string `json:"allowed_domains"`
-	InviteId           string `json:"invite_id"`
-	AllowOpenInvite    bool   `json:"allow_open_invite"`
-	LastTeamIconUpdate int64  `json:"last_team_icon_update,omitempty"`
+	Id                 string  `json:"id"`
+	CreateAt           int64   `json:"create_at"`
+	UpdateAt           int64   `json:"update_at"`
+	DeleteAt           int64   `json:"delete_at"`
+	DisplayName        string  `json:"display_name"`
+	Name               string  `json:"name"`
+	Description        string  `json:"description"`
+	Email              string  `json:"email"`
+	Type               string  `json:"type"`
+	CompanyName        string  `json:"company_name"`
+	AllowedDomains     string  `json:"allowed_domains"`
+	InviteId           string  `json:"invite_id"`
+	AllowOpenInvite    bool    `json:"allow_open_invite"`
+	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
+	SchemeId           *string `json:"scheme_id"`
 }
 
 type TeamPatch struct {

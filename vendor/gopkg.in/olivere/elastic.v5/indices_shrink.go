@@ -10,14 +10,14 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesShrinkService allows you to shrink an existing index into a
 // new index with fewer primary shards.
 //
 // For further details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-shrink-index.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-shrink-index.html.
 type IndicesShrinkService struct {
 	client              *Client
 	pretty              bool
@@ -102,7 +102,7 @@ func (s *IndicesShrinkService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.masterTimeout != "" {
 		params.Set("master_timeout", s.masterTimeout)
@@ -153,12 +153,7 @@ func (s *IndicesShrinkService) Do(ctx context.Context) (*IndicesShrinkResponse, 
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +168,6 @@ func (s *IndicesShrinkService) Do(ctx context.Context) (*IndicesShrinkResponse, 
 
 // IndicesShrinkResponse is the response of IndicesShrinkService.Do.
 type IndicesShrinkResponse struct {
-	Acknowledged       bool   `json:"acknowledged"`
-	ShardsAcknowledged bool   `json:"shards_acknowledged"`
-	Index              string `json:"index,omitempty"`
+	Acknowledged       bool `json:"acknowledged"`
+	ShardsAcknowledged bool `json:"shards_acknowledged"`
 }

@@ -88,7 +88,7 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	th.App.PermanentDeleteUser(user)
 
-	th.App.Config().TeamSettings.EnableUserCreation = false
+	*th.App.Config().TeamSettings.EnableUserCreation = false
 
 	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
 	if err == nil {
@@ -96,26 +96,8 @@ func TestCreateOAuthUser(t *testing.T) {
 	}
 }
 
-func TestDeactivateSSOUser(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	glUser := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
-
-	json := glUser.ToJson()
-	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer th.App.PermanentDeleteUser(user)
-
-	_, err = th.App.UpdateNonSSOUserActive(user.Id, false)
-	assert.Equal(t, "api.user.update_active.no_deactivate_sso.app_error", err.Id)
-}
-
 func TestCreateProfileImage(t *testing.T) {
-	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "luximbi.ttf")
+	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "nunito-bold.ttf")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -427,4 +409,118 @@ func TestGetUsersByStatus(t *testing.T) {
 			t.Fatal("expected to receive offline users last")
 		}
 	})
+}
+
+func TestCreateUserWithToken(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+
+	t.Run("invalid token", func(t *testing.T) {
+		if _, err := th.App.CreateUserWithToken(&user, "123"); err == nil {
+			t.Fatal("Should fail on unexisting token")
+		}
+	})
+
+	t.Run("invalid token type", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_VERIFY_EMAIL,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+			t.Fatal("Should fail on bad token type")
+		}
+	})
+
+	t.Run("expired token", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+		)
+		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+			t.Fatal("Should fail on expired token")
+		}
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": model.NewId(), "email": user.Email}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
+			t.Fatal("Should fail on bad team id")
+		}
+	})
+
+	t.Run("valid request", func(t *testing.T) {
+		invitationEmail := model.NewId() + "other-email@test.com"
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		newUser, err := th.App.CreateUserWithToken(&user, token.Token)
+		if err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+		if newUser.Email != invitationEmail {
+			t.Fatal("The user email must be the invitation one")
+		}
+		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+			t.Fatal("The token must be deleted after be used")
+		}
+	})
+}
+
+func TestPermanentDeleteUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	b := []byte("testimage")
+
+	finfo, err := th.App.DoUploadFile(time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "testfile.txt", b)
+
+	if err != nil {
+		t.Log(err)
+		t.Fatal("Unable to upload file")
+	}
+
+	err = th.App.PermanentDeleteUser(th.BasicUser)
+	if err != nil {
+		t.Log(err)
+		t.Fatal("Unable to delete user")
+	}
+
+	res, err := th.App.FileExists(finfo.Path)
+
+	if err != nil {
+		t.Log(err)
+		t.Fatal("Unable to check whether file exists")
+	}
+
+	if res {
+		t.Log(err)
+		t.Fatal("File was not deleted on FS")
+	}
+
+	finfo, err = th.App.GetFileInfo(finfo.Id)
+
+	if finfo != nil {
+		t.Log(err)
+		t.Fatal("Unable to find finfo")
+	}
+
+	if err == nil {
+		t.Log(err)
+		t.Fatal("GetFileInfo after DeleteUser is nil")
+	}
 }

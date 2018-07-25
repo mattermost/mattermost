@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -21,6 +22,7 @@ const (
 	IMAGE_DRIVER_LOCAL = "local"
 	IMAGE_DRIVER_S3    = "amazons3"
 
+	DATABASE_DRIVER_SQLITE   = "sqlite3"
 	DATABASE_DRIVER_MYSQL    = "mysql"
 	DATABASE_DRIVER_POSTGRES = "postgres"
 
@@ -85,6 +87,8 @@ const (
 	SERVICE_SETTINGS_DEFAULT_MAX_LOGIN_ATTEMPTS = 10
 	SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM    = ""
 	SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS = ":8065"
+	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_KEY     = "2_KtH_W5"
+	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
 
 	TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM       = 50
 	TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT        = ""
@@ -92,6 +96,8 @@ const (
 	TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT = 300
 
 	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
+
+	FILE_SETTINGS_DEFAULT_DIRECTORY = "./data/"
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
@@ -152,10 +158,16 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
 
+	TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH = "timezones.json"
+
+	COMPLIANCE_EXPORT_TYPE_CSV         = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
 	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
 	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
 	GLOBALRELAY_CUSTOMER_TYPE_A10      = "A10"
+
+	CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH   = "primary"
+	CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH = "secondary"
 )
 
 type ServiceSettings struct {
@@ -181,7 +193,6 @@ type ServiceSettings struct {
 	EnableOnlyAdminIntegrations                       *bool
 	EnablePostUsernameOverride                        bool
 	EnablePostIconOverride                            bool
-	EnableAPIv3                                       *bool
 	EnableLinkPreviews                                *bool
 	EnableTesting                                     bool
 	EnableDeveloper                                   *bool
@@ -203,6 +214,9 @@ type ServiceSettings struct {
 	WebserverMode                                     *string
 	EnableCustomEmoji                                 *bool
 	EnableEmojiPicker                                 *bool
+	EnableGifPicker                                   *bool
+	GfycatApiKey                                      *string
+	GfycatApiSecret                                   *string
 	RestrictCustomEmojiCreation                       *string
 	RestrictPostDelete                                *string
 	AllowEditPost                                     *string
@@ -219,12 +233,26 @@ type ServiceSettings struct {
 	EnableTutorial                                    *bool
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
 	ExperimentalGroupUnreadChannels                   *string
+	ExperimentalChannelOrganization                   *bool
 	ImageProxyType                                    *string
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
+	EnableAPITeamDeletion                             *bool
+	ExperimentalEnableHardenedMode                    *bool
+	ExperimentalLimitClientConfig                     *bool
+	EnableEmailInvitations                            *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
+	if s.EnableEmailInvitations == nil {
+		// If the site URL is also not present then assume this is a clean install
+		if s.SiteURL == nil {
+			s.EnableEmailInvitations = NewBool(false)
+		} else {
+			s.EnableEmailInvitations = NewBool(true)
+		}
+	}
+
 	if s.SiteURL == nil {
 		s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
 	}
@@ -239,10 +267,6 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ListenAddress == nil {
 		s.ListenAddress = NewString(SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS)
-	}
-
-	if s.EnableAPIv3 == nil {
-		s.EnableAPIv3 = NewBool(true)
 	}
 
 	if s.EnableLinkPreviews == nil {
@@ -407,6 +431,18 @@ func (s *ServiceSettings) SetDefaults() {
 		s.EnableEmojiPicker = NewBool(true)
 	}
 
+	if s.EnableGifPicker == nil {
+		s.EnableGifPicker = NewBool(false)
+	}
+
+	if s.GfycatApiKey == nil || *s.GfycatApiKey == "" {
+		s.GfycatApiKey = NewString(SERVICE_SETTINGS_DEFAULT_GFYCAT_API_KEY)
+	}
+
+	if s.GfycatApiSecret == nil || *s.GfycatApiSecret == "" {
+		s.GfycatApiSecret = NewString(SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET)
+	}
+
 	if s.RestrictCustomEmojiCreation == nil {
 		s.RestrictCustomEmojiCreation = NewString(RESTRICT_EMOJI_CREATION_ALL)
 	}
@@ -424,7 +460,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.PostEditTimeLimit == nil {
-		s.PostEditTimeLimit = NewInt(300)
+		s.PostEditTimeLimit = NewInt(-1)
 	}
 
 	if s.EnablePreviewFeatures == nil {
@@ -443,6 +479,11 @@ func (s *ServiceSettings) SetDefaults() {
 		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DEFAULT_ON)
 	}
 
+	if s.ExperimentalChannelOrganization == nil {
+		experimentalUnreadEnabled := *s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED
+		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
+	}
+
 	if s.ImageProxyType == nil {
 		s.ImageProxyType = NewString("")
 	}
@@ -454,17 +495,32 @@ func (s *ServiceSettings) SetDefaults() {
 	if s.ImageProxyOptions == nil {
 		s.ImageProxyOptions = NewString("")
 	}
+
+	if s.EnableAPITeamDeletion == nil {
+		s.EnableAPITeamDeletion = NewBool(false)
+	}
+
+	if s.ExperimentalEnableHardenedMode == nil {
+		s.ExperimentalEnableHardenedMode = NewBool(false)
+	}
+
+	if s.ExperimentalLimitClientConfig == nil {
+		s.ExperimentalLimitClientConfig = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
-	Enable                *bool
-	ClusterName           *string
-	OverrideHostname      *string
-	UseIpAddress          *bool
-	UseExperimentalGossip *bool
-	ReadOnlyConfig        *bool
-	GossipPort            *int
-	StreamingPort         *int
+	Enable                      *bool
+	ClusterName                 *string
+	OverrideHostname            *string
+	UseIpAddress                *bool
+	UseExperimentalGossip       *bool
+	ReadOnlyConfig              *bool
+	GossipPort                  *int
+	StreamingPort               *int
+	MaxIdleConns                *int
+	MaxIdleConnsPerHost         *int
+	IdleConnTimeoutMilliseconds *int
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -499,6 +555,18 @@ func (s *ClusterSettings) SetDefaults() {
 	if s.StreamingPort == nil {
 		s.StreamingPort = NewInt(8075)
 	}
+
+	if s.MaxIdleConns == nil {
+		s.MaxIdleConns = NewInt(100)
+	}
+
+	if s.MaxIdleConnsPerHost == nil {
+		s.MaxIdleConnsPerHost = NewInt(128)
+	}
+
+	if s.IdleConnTimeoutMilliseconds == nil {
+		s.IdleConnTimeoutMilliseconds = NewInt(90000)
+	}
 }
 
 type MetricsSettings struct {
@@ -518,6 +586,21 @@ func (s *MetricsSettings) SetDefaults() {
 
 	if s.BlockProfileRate == nil {
 		s.BlockProfileRate = NewInt(0)
+	}
+}
+
+type ExperimentalSettings struct {
+	ClientSideCertEnable *bool
+	ClientSideCertCheck  *string
+}
+
+func (s *ExperimentalSettings) SetDefaults() {
+	if s.ClientSideCertEnable == nil {
+		s.ClientSideCertEnable = NewBool(false)
+	}
+
+	if s.ClientSideCertCheck == nil {
+		s.ClientSideCertCheck = NewString(CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH)
 	}
 }
 
@@ -542,15 +625,16 @@ type SSOSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName               *string
-	DataSource               *string
-	DataSourceReplicas       []string
-	DataSourceSearchReplicas []string
-	MaxIdleConns             *int
-	MaxOpenConns             *int
-	Trace                    bool
-	AtRestEncryptKey         string
-	QueryTimeout             *int
+	DriverName                  *string
+	DataSource                  *string
+	DataSourceReplicas          []string
+	DataSourceSearchReplicas    []string
+	MaxIdleConns                *int
+	ConnMaxLifetimeMilliseconds *int
+	MaxOpenConns                *int
+	Trace                       bool
+	AtRestEncryptKey            string
+	QueryTimeout                *int
 }
 
 func (s *SqlSettings) SetDefaults() {
@@ -574,6 +658,10 @@ func (s *SqlSettings) SetDefaults() {
 		s.MaxOpenConns = NewInt(300)
 	}
 
+	if s.ConnMaxLifetimeMilliseconds == nil {
+		s.ConnMaxLifetimeMilliseconds = NewInt(3600000)
+	}
+
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewInt(30)
 	}
@@ -582,9 +670,10 @@ func (s *SqlSettings) SetDefaults() {
 type LogSettings struct {
 	EnableConsole          bool
 	ConsoleLevel           string
+	ConsoleJson            *bool
 	EnableFile             bool
 	FileLevel              string
-	FileFormat             string
+	FileJson               *bool
 	FileLocation           string
 	EnableWebhookDebugging bool
 	EnableDiagnostics      *bool
@@ -593,6 +682,14 @@ type LogSettings struct {
 func (s *LogSettings) SetDefaults() {
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.ConsoleJson == nil {
+		s.ConsoleJson = NewBool(true)
+	}
+
+	if s.FileJson == nil {
+		s.FileJson = NewBool(true)
 	}
 }
 
@@ -695,12 +792,12 @@ func (s *FileSettings) SetDefaults() {
 	}
 
 	if s.InitialFont == "" {
-		// Defaults to "luximbi.ttf"
-		s.InitialFont = "luximbi.ttf"
+		// Defaults to "nunito-bold.ttf"
+		s.InitialFont = "nunito-bold.ttf"
 	}
 
 	if s.Directory == "" {
-		s.Directory = "./data/"
+		s.Directory = FILE_SETTINGS_DEFAULT_DIRECTORY
 	}
 }
 
@@ -727,6 +824,7 @@ type EmailSettings struct {
 	EnableEmailBatching               *bool
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
+	EnablePreviewModeBanner           *bool
 	SkipServerCertificateVerification *bool
 	EmailNotificationContentsType     *string
 	LoginButtonColor                  *string
@@ -779,6 +877,10 @@ func (s *EmailSettings) SetDefaults() {
 		s.EmailBatchingInterval = NewInt(EMAIL_BATCHING_INTERVAL)
 	}
 
+	if s.EnablePreviewModeBanner == nil {
+		s.EnablePreviewModeBanner = NewBool(true)
+	}
+
 	if s.EnableSMTPAuth == nil {
 		s.EnableSMTPAuth = new(bool)
 		if s.ConnectionSecurity == CONN_SECURITY_NONE {
@@ -810,6 +912,21 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
+	}
+}
+
+type ExtensionSettings struct {
+	EnableExperimentalExtensions *bool
+	AllowedExtensionsIDs         []string
+}
+
+func (s *ExtensionSettings) SetDefaults() {
+	if s.EnableExperimentalExtensions == nil {
+		s.EnableExperimentalExtensions = NewBool(false)
+	}
+
+	if s.AllowedExtensionsIDs == nil {
+		s.AllowedExtensionsIDs = []string{}
 	}
 }
 
@@ -967,9 +1084,10 @@ func (s *ThemeSettings) SetDefaults() {
 type TeamSettings struct {
 	SiteName                            string
 	MaxUsersPerTeam                     *int
-	EnableTeamCreation                  bool
-	EnableUserCreation                  bool
+	EnableTeamCreation                  *bool
+	EnableUserCreation                  *bool
 	EnableOpenServer                    *bool
+	EnableUserDeactivation              *bool
 	RestrictCreationToDomains           string
 	EnableCustomBrand                   *bool
 	CustomBrandText                     *string
@@ -989,8 +1107,11 @@ type TeamSettings struct {
 	MaxNotificationsPerChannel          *int64
 	EnableConfirmNotificationsToChannel *bool
 	TeammateNameDisplay                 *string
+	ExperimentalEnableAutomaticReplies  *bool
+	ExperimentalHideTownSquareinLHS     *bool
 	ExperimentalTownSquareIsReadOnly    *bool
 	ExperimentalPrimaryTeam             *string
+	ExperimentalDefaultChannels         []string
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -1000,6 +1121,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableCustomBrand == nil {
 		s.EnableCustomBrand = NewBool(false)
+	}
+
+	if s.EnableUserDeactivation == nil {
+		s.EnableUserDeactivation = NewBool(false)
 	}
 
 	if s.CustomBrandText == nil {
@@ -1083,6 +1208,14 @@ func (s *TeamSettings) SetDefaults() {
 		s.EnableConfirmNotificationsToChannel = NewBool(true)
 	}
 
+	if s.ExperimentalEnableAutomaticReplies == nil {
+		s.ExperimentalEnableAutomaticReplies = NewBool(false)
+	}
+
+	if s.ExperimentalHideTownSquareinLHS == nil {
+		s.ExperimentalHideTownSquareinLHS = NewBool(false)
+	}
+
 	if s.ExperimentalTownSquareIsReadOnly == nil {
 		s.ExperimentalTownSquareIsReadOnly = NewBool(false)
 	}
@@ -1090,6 +1223,19 @@ func (s *TeamSettings) SetDefaults() {
 	if s.ExperimentalPrimaryTeam == nil {
 		s.ExperimentalPrimaryTeam = NewString("")
 	}
+
+	if s.ExperimentalDefaultChannels == nil {
+		s.ExperimentalDefaultChannels = []string{}
+	}
+
+	if s.EnableTeamCreation == nil {
+		s.EnableTeamCreation = NewBool(true)
+	}
+
+	if s.EnableUserCreation == nil {
+		s.EnableUserCreation = NewBool(true)
+	}
+
 }
 
 type ClientRequirements struct {
@@ -1123,8 +1269,9 @@ type LdapSettings struct {
 	NicknameAttribute  *string
 	IdAttribute        *string
 	PositionAttribute  *string
+	LoginIdAttribute   *string
 
-	// Syncronization
+	// Synchronization
 	SyncIntervalMinutes *int
 
 	// Advanced
@@ -1204,6 +1351,12 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.PositionAttribute == nil {
 		s.PositionAttribute = NewString(LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE)
+	}
+
+	// For those upgrading to the version when LoginIdAttribute was added
+	// they need IdAttribute == LoginIdAttribute not to break
+	if s.LoginIdAttribute == nil {
+		s.LoginIdAttribute = s.IdAttribute
 	}
 
 	if s.SyncIntervalMinutes == nil {
@@ -1291,6 +1444,9 @@ type SamlSettings struct {
 	IdpDescriptorUrl            *string
 	AssertionConsumerServiceURL *string
 
+	ScopingIDPProviderId *string
+	ScopingIDPName       *string
+
 	IdpCertificateFile    *string
 	PublicCertificateFile *string
 	PrivateKeyFile        *string
@@ -1350,6 +1506,14 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.AssertionConsumerServiceURL == nil {
 		s.AssertionConsumerServiceURL = NewString("")
+	}
+
+	if s.ScopingIDPProviderId == nil {
+		s.ScopingIDPProviderId = NewString("")
+	}
+
+	if s.ScopingIDPName == nil {
+		s.ScopingIDPName = NewString("")
 	}
 
 	if s.LoginButtonText == nil || *s.LoginButtonText == "" {
@@ -1591,7 +1755,7 @@ type PluginSettings struct {
 	EnableUploads   *bool
 	Directory       *string
 	ClientDirectory *string
-	Plugins         map[string]interface{}
+	Plugins         map[string]map[string]interface{}
 	PluginStates    map[string]*PluginState
 }
 
@@ -1621,7 +1785,7 @@ func (s *PluginSettings) SetDefaults() {
 	}
 
 	if s.Plugins == nil {
-		s.Plugins = make(map[string]interface{})
+		s.Plugins = make(map[string]map[string]interface{})
 	}
 
 	if s.PluginStates == nil {
@@ -1693,7 +1857,33 @@ func (s *MessageExportSettings) SetDefaults() {
 
 	if s.GlobalRelaySettings == nil {
 		s.GlobalRelaySettings = &GlobalRelayMessageExportSettings{}
-		s.GlobalRelaySettings.SetDefaults()
+	}
+	s.GlobalRelaySettings.SetDefaults()
+}
+
+type DisplaySettings struct {
+	CustomUrlSchemes     *[]string
+	ExperimentalTimezone *bool
+}
+
+func (s *DisplaySettings) SetDefaults() {
+	if s.CustomUrlSchemes == nil {
+		customUrlSchemes := []string{}
+		s.CustomUrlSchemes = &customUrlSchemes
+	}
+
+	if s.ExperimentalTimezone == nil {
+		s.ExperimentalTimezone = NewBool(false)
+	}
+}
+
+type TimezoneSettings struct {
+	SupportedTimezonesPath *string
+}
+
+func (s *TimezoneSettings) SetDefaults() {
+	if s.SupportedTimezonesPath == nil {
+		s.SupportedTimezonesPath = NewString(TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH)
 	}
 }
 
@@ -1708,6 +1898,7 @@ type Config struct {
 	PasswordSettings      PasswordSettings
 	FileSettings          FileSettings
 	EmailSettings         EmailSettings
+	ExtensionSettings     ExtensionSettings
 	RateLimitSettings     RateLimitSettings
 	PrivacySettings       PrivacySettings
 	SupportSettings       SupportSettings
@@ -1723,6 +1914,7 @@ type Config struct {
 	NativeAppSettings     NativeAppSettings
 	ClusterSettings       ClusterSettings
 	MetricsSettings       MetricsSettings
+	ExperimentalSettings  ExperimentalSettings
 	AnalyticsSettings     AnalyticsSettings
 	WebrtcSettings        WebrtcSettings
 	ElasticsearchSettings ElasticsearchSettings
@@ -1730,6 +1922,8 @@ type Config struct {
 	MessageExportSettings MessageExportSettings
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
+	DisplaySettings       DisplaySettings
+	TimezoneSettings      TimezoneSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -1783,6 +1977,7 @@ func (o *Config) SetDefaults() {
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
 	o.MetricsSettings.SetDefaults()
+	o.ExperimentalSettings.SetDefaults()
 	o.SupportSettings.SetDefaults()
 	o.AnnouncementSettings.SetDefaults()
 	o.ThemeSettings.SetDefaults()
@@ -1799,6 +1994,9 @@ func (o *Config) SetDefaults() {
 	o.JobSettings.SetDefaults()
 	o.WebrtcSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
+	o.TimezoneSettings.SetDefaults()
+	o.DisplaySettings.SetDefaults()
+	o.ExtensionSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -1811,7 +2009,7 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
-		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
@@ -1870,6 +2068,10 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
+	if err := o.DisplaySettings.isValid(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1912,6 +2114,10 @@ func (ss *SqlSettings) isValid() *AppError {
 
 	if *ss.MaxIdleConns <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_idle.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.ConnMaxLifetimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *ss.QueryTimeout <= 0 {
@@ -2017,6 +2223,10 @@ func (ls *LdapSettings) isValid() *AppError {
 
 		if *ls.IdAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_id", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.LoginIdAttribute == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_login_id", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -2223,7 +2433,7 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
 		} else if mes.BatchSize == nil || *mes.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
-		} else if mes.ExportFormat == nil || (*mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_ACTIANCE && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_GLOBALRELAY) {
+		} else if mes.ExportFormat == nil || (*mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_ACTIANCE && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_GLOBALRELAY && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_CSV) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_type.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -2243,6 +2453,26 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			}
 		}
 	}
+	return nil
+}
+
+func (ds *DisplaySettings) isValid() *AppError {
+	if len(*ds.CustomUrlSchemes) != 0 {
+		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9-]*\s*$`)
+
+		for _, scheme := range *ds.CustomUrlSchemes {
+			if !validProtocolPattern.MatchString(scheme) {
+				return NewAppError(
+					"Config.IsValid",
+					"model.config.is_valid.display.custom_url_schemes.app_error",
+					map[string]interface{}{"Scheme": scheme},
+					"",
+					http.StatusBadRequest,
+				)
+			}
+		}
+	}
+
 	return nil
 }
 

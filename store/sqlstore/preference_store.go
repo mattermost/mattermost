@@ -6,12 +6,11 @@ package sqlstore
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/gorp"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 type SqlPreferenceStore struct {
@@ -39,7 +38,7 @@ func (s SqlPreferenceStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlPreferenceStore) DeleteUnusedFeatures() {
-	l4g.Debug(utils.T("store.sql_preference.delete_unused_features.debug"))
+	mlog.Debug("Deleting any unused pre-release features")
 
 	sql := `DELETE
 		FROM Preferences

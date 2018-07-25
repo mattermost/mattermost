@@ -9,8 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -30,7 +29,7 @@ func (a *App) LoadLicense() {
 
 		if license != nil {
 			if _, err := a.SaveLicense(licenseBytes); err != nil {
-				l4g.Info("Failed to save license key loaded from disk err=%v", err.Error())
+				mlog.Info(fmt.Sprintf("Failed to save license key loaded from disk err=%v", err.Error()))
 			} else {
 				licenseId = license.Id
 			}
@@ -40,9 +39,9 @@ func (a *App) LoadLicense() {
 	if result := <-a.Srv.Store.License().Get(licenseId); result.Err == nil {
 		record := result.Data.(*model.LicenseRecord)
 		a.ValidateAndSetLicenseBytes([]byte(record.Bytes))
-		l4g.Info("License key valid unlocking enterprise features.")
+		mlog.Info("License key valid unlocking enterprise features.")
 	} else {
-		l4g.Info(utils.T("mattermost.load_license.find.warn"))
+		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
 	}
 }
 
@@ -113,7 +112,6 @@ func (a *App) License() *model.License {
 
 func (a *App) SetLicense(license *model.License) bool {
 	defer func() {
-		a.setDefaultRolesBasedOnConfig()
 		for _, listener := range a.licenseListeners {
 			listener()
 		}
@@ -141,7 +139,7 @@ func (a *App) ValidateAndSetLicenseBytes(b []byte) {
 		return
 	}
 
-	l4g.Warn(utils.T("utils.license.load_license.invalid.warn"))
+	mlog.Warn("No valid enterprise license found")
 }
 
 func (a *App) SetClientLicense(m map[string]string) {

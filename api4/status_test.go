@@ -17,7 +17,7 @@ func TestGetUserStatus(t *testing.T) {
 		t.Fatal("Should return offline status")
 	}
 
-	th.App.SetStatusOnline(th.BasicUser.Id, "", true)
+	th.App.SetStatusOnline(th.BasicUser.Id, true)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
 	if userStatus.Status != "online" {
@@ -80,8 +80,8 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 		}
 	}
 
-	th.App.SetStatusOnline(th.BasicUser.Id, "", true)
-	th.App.SetStatusOnline(th.BasicUser2.Id, "", true)
+	th.App.SetStatusOnline(th.BasicUser.Id, true)
+	th.App.SetStatusOnline(th.BasicUser2.Id, true)
 	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
 	CheckNoError(t, resp)
 	for _, userStatus := range usersStatuses {

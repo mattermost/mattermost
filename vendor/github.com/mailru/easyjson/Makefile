@@ -6,7 +6,7 @@ all: test
 
 .root/src/$(PKG):
 	mkdir -p $@
-	for i in $$PWD/* ; do ln -s $$i $@/`basename $$i` ; done 
+	for i in $$PWD/* ; do ln -s $$i $@/`basename $$i` ; done
 
 root: .root/src/$(PKG)
 
@@ -23,9 +23,11 @@ generate: root build
 		.root/src/$(PKG)/tests/data.go \
 		.root/src/$(PKG)/tests/omitempty.go \
 		.root/src/$(PKG)/tests/nothing.go \
-		.root/src/$(PKG)/tests/named_type.go
+		.root/src/$(PKG)/tests/named_type.go \
+		.root/src/$(PKG)/tests/custom_map_key_type.go \
+		.root/src/$(PKG)/tests/embedded_type.go
 
-	.root/bin/easyjson -all .root/src/$(PKG)/tests/data.go 
+	.root/bin/easyjson -all .root/src/$(PKG)/tests/data.go
 	.root/bin/easyjson -all .root/src/$(PKG)/tests/nothing.go
 	.root/bin/easyjson -all .root/src/$(PKG)/tests/errors.go
 	.root/bin/easyjson -snake_case .root/src/$(PKG)/tests/snake.go
@@ -33,6 +35,9 @@ generate: root build
 	.root/bin/easyjson -build_tags=use_easyjson .root/src/$(PKG)/benchmark/data.go
 	.root/bin/easyjson .root/src/$(PKG)/tests/nested_easy.go
 	.root/bin/easyjson .root/src/$(PKG)/tests/named_type.go
+	.root/bin/easyjson .root/src/$(PKG)/tests/custom_map_key_type.go
+	.root/bin/easyjson .root/src/$(PKG)/tests/embedded_type.go
+	.root/bin/easyjson -disallow_unknown_fields .root/src/$(PKG)/tests/disallow_unknown.go
 
 test: generate root
 	go test \

@@ -16,7 +16,7 @@ var (
 	// Centralize all regexps and regexp.Copy() where necessary.
 	signRE       *regexp.Regexp = regexp.MustCompile(`^[\s]*[+-]`)
 	whitespaceRE *regexp.Regexp = regexp.MustCompile(`[\s]+`)
-	ifNameRE     *regexp.Regexp = regexp.MustCompile(`^Ethernet adapter ([^:]+):`)
+	ifNameRE     *regexp.Regexp = regexp.MustCompile(`^(?:Ethernet|Wireless LAN) adapter ([^:]+):`)
 	ipAddrRE     *regexp.Regexp = regexp.MustCompile(`^   IPv[46] Address\. \. \. \. \. \. \. \. \. \. \. : ([^\s]+)`)
 )
 

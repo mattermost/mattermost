@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -49,6 +50,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -1091,63 +1093,25 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.User().Save(u2))
 
-	if result := <-ss.User().GetForLogin(u1.Username, true, true, true); result.Err != nil {
+	if result := <-ss.User().GetForLogin(u1.Username, true, true); result.Err != nil {
 		t.Fatal("Should have gotten user by username", result.Err)
 	} else if result.Data.(*model.User).Id != u1.Id {
 		t.Fatal("Should have gotten user1 by username")
 	}
 
-	if result := <-ss.User().GetForLogin(u1.Email, true, true, true); result.Err != nil {
+	if result := <-ss.User().GetForLogin(u1.Email, true, true); result.Err != nil {
 		t.Fatal("Should have gotten user by email", result.Err)
 	} else if result.Data.(*model.User).Id != u1.Id {
 		t.Fatal("Should have gotten user1 by email")
 	}
 
-	if result := <-ss.User().GetForLogin(*u2.AuthData, true, true, true); result.Err != nil {
-		t.Fatal("Should have gotten user by AD/LDAP AuthData", result.Err)
-	} else if result.Data.(*model.User).Id != u2.Id {
-		t.Fatal("Should have gotten user2 by AD/LDAP AuthData")
-	}
-
-	// prevent getting user by AuthData when they're not an LDAP user
-	if result := <-ss.User().GetForLogin(*u1.AuthData, true, true, true); result.Err == nil {
-		t.Fatal("Should not have gotten user by non-AD/LDAP AuthData")
-	}
-
 	// prevent getting user when different login methods are disabled
-	if result := <-ss.User().GetForLogin(u1.Username, false, true, true); result.Err == nil {
+	if result := <-ss.User().GetForLogin(u1.Username, false, true); result.Err == nil {
 		t.Fatal("Should have failed to get user1 by username")
 	}
 
-	if result := <-ss.User().GetForLogin(u1.Email, true, false, true); result.Err == nil {
+	if result := <-ss.User().GetForLogin(u1.Email, true, false); result.Err == nil {
 		t.Fatal("Should have failed to get user1 by email")
-	}
-
-	if result := <-ss.User().GetForLogin(*u2.AuthData, true, true, false); result.Err == nil {
-		t.Fatal("Should have failed to get user3 by AD/LDAP AuthData")
-	}
-
-	auth3 := model.NewId()
-
-	// test a special case where two users will have conflicting login information so we throw a special error
-	u3 := &model.User{
-		Email:       model.NewId(),
-		Username:    model.NewId(),
-		AuthService: model.USER_AUTH_SERVICE_LDAP,
-		AuthData:    &auth3,
-	}
-	store.Must(ss.User().Save(u3))
-
-	u4 := &model.User{
-		Email:       model.NewId(),
-		Username:    model.NewId(),
-		AuthService: model.USER_AUTH_SERVICE_LDAP,
-		AuthData:    &u3.Username,
-	}
-	store.Must(ss.User().Save(u4))
-
-	if err := (<-ss.User().GetForLogin(u3.Username, true, true, true)).Err; err == nil {
-		t.Fatal("Should have failed to get users with conflicting login information")
 	}
 }
 
@@ -2155,4 +2119,50 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 			t.Fatalf("etag should be the same")
 		}
 	}
+}
+
+func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
+	u1 := model.User{
+		Email:    model.NewId(),
+		Username: model.NewId(),
+		Roles:    "system_user system_admin system_post_all",
+	}
+	u2 := model.User{
+		Email:    model.NewId(),
+		Username: model.NewId(),
+		Roles:    "system_user custom_role system_admin another_custom_role",
+	}
+	u3 := model.User{
+		Email:    model.NewId(),
+		Username: model.NewId(),
+		Roles:    "system_user",
+	}
+	u4 := model.User{
+		Email:    model.NewId(),
+		Username: model.NewId(),
+		Roles:    "custom_only",
+	}
+
+	store.Must(ss.User().Save(&u1))
+	store.Must(ss.User().Save(&u2))
+	store.Must(ss.User().Save(&u3))
+	store.Must(ss.User().Save(&u4))
+
+	require.Nil(t, (<-ss.User().ClearAllCustomRoleAssignments()).Err)
+
+	r1 := <-ss.User().GetByUsername(u1.Username)
+	require.Nil(t, r1.Err)
+	assert.Equal(t, u1.Roles, r1.Data.(*model.User).Roles)
+
+	r2 := <-ss.User().GetByUsername(u2.Username)
+	require.Nil(t, r2.Err)
+	assert.Equal(t, "system_user system_admin", r2.Data.(*model.User).Roles)
+
+	r3 := <-ss.User().GetByUsername(u3.Username)
+	require.Nil(t, r3.Err)
+	assert.Equal(t, u3.Roles, r3.Data.(*model.User).Roles)
+
+	r4 := <-ss.User().GetByUsername(u4.Username)
+	require.Nil(t, r4.Err)
+	assert.Equal(t, "", r4.Data.(*model.User).Roles)
 }

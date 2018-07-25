@@ -5,11 +5,12 @@ package jobs
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -81,7 +82,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
-	job.Data["error"] = jobError.Message + " (" + jobError.DetailedError + ")"
+	job.Data["error"] = jobError.Message + " — " + jobError.DetailedError
 
 	if result := <-srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
 		return result.Err
@@ -105,6 +106,13 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 	return result.Err
 }
 
+func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
+	job.Status = model.JOB_STATUS_IN_PROGRESS
+	job.LastActivityAt = model.GetMillis()
+	result := <-srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
+	return result.Err
+}
+
 func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 	if result := <-srv.Store.Job().UpdateStatusOptimistically(jobId, model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED); result.Err != nil {
 		return result.Err
@@ -125,10 +133,10 @@ func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, can
 	for {
 		select {
 		case <-ctx.Done():
-			l4g.Debug("CancellationWatcher for Job: %v Aborting as job has finished.", jobId)
+			mlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v Aborting as job has finished.", jobId))
 			return
 		case <-time.After(CANCEL_WATCHER_POLLING_INTERVAL * time.Millisecond):
-			l4g.Debug("CancellationWatcher for Job: %v polling.", jobId)
+			mlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v polling.", jobId))
 			if result := <-srv.Store.Job().Get(jobId); result.Err == nil {
 				jobStatus := result.Data.(*model.Job)
 				if jobStatus.Status == model.JOB_STATUS_CANCEL_REQUESTED {

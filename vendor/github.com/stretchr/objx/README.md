@@ -74,7 +74,7 @@ To update Objx to the latest version, run:
     go get -u github.com/stretchr/objx
 
 ### Supported go versions
-We support the lastest four major Go versions, which are 1.6, 1.7, 1.8 and 1.9 at the moment.
+We support the lastest two major Go versions, which are 1.8 and 1.9 at the moment.
 
 ## Contributing
 Please feel free to submit issues, fork the repository and send pull requests!

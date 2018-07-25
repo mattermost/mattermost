@@ -28,6 +28,15 @@ func TestGetImage(t *testing.T) {
 	require.NoError(t, err)
 	r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
 
+	imageProxyType := th.App.Config().ServiceSettings.ImageProxyType
+	imageProxyOptions := th.App.Config().ServiceSettings.ImageProxyOptions
+	imageProxyURL := th.App.Config().ServiceSettings.ImageProxyURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.ImageProxyType = imageProxyType })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.ImageProxyOptions = imageProxyOptions })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.ImageProxyOptions = imageProxyURL })
+	}()
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.ImageProxyType = nil
 	})

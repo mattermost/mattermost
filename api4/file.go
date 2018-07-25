@@ -5,6 +5,7 @@ package api4
 
 import (
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -56,6 +57,8 @@ func (api *API) InitFile() {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFile", "api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -151,14 +154,14 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := c.App.ReadFile(info.Path)
+	fileReader, err := c.App.FileReader(info.Path)
 	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 		return
 	}
 
-	err = writeFileResponse(info.Name, info.MimeType, data, forceDownload, w, r)
+	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, forceDownload, w, r)
 	if err != nil {
 		c.Err = err
 		return
@@ -192,10 +195,10 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if data, err := c.App.ReadFile(info.ThumbnailPath); err != nil {
+	if fileReader, err := c.App.FileReader(info.ThumbnailPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, data, forceDownload, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, fileReader, forceDownload, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -261,10 +264,10 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if data, err := c.App.ReadFile(info.PreviewPath); err != nil {
+	if fileReader, err := c.App.FileReader(info.PreviewPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, data, forceDownload, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, fileReader, forceDownload, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -312,29 +315,32 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(hash) == 0 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		utils.RenderWebAppError(w, r, c.Err, c.App.AsymmetricSigningKey())
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}
 
 	if hash != app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt) {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		utils.RenderWebAppError(w, r, c.Err, c.App.AsymmetricSigningKey())
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}
 
-	if data, err := c.App.ReadFile(info.Path); err != nil {
+	if fileReader, err := c.App.FileReader(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, true, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, true, w, r); err != nil {
 		c.Err = err
 		return
 	}
 }
 
-func writeFileResponse(filename string, contentType string, bytes []byte, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
+func writeFileResponse(filename string, contentType string, contentSize int64, fileReader io.Reader, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
-	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	if contentSize > 0 {
+		w.Header().Set("Content-Length", strconv.Itoa(int(contentSize)))
+	}
 
 	if contentType == "" {
 		contentType = "application/octet-stream"
@@ -377,7 +383,7 @@ func writeFileResponse(filename string, contentType string, bytes []byte, forceD
 	w.Header().Set("X-Frame-Options", "DENY")
 	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
 
-	w.Write(bytes)
+	io.Copy(w, fileReader)
 
 	return nil
 }

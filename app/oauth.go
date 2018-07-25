@@ -6,14 +6,16 @@ package app
 import (
 	"bytes"
 	b64 "encoding/base64"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -226,7 +228,7 @@ func (a *App) GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret
 			accessData = &model.AccessData{ClientId: clientId, UserId: user.Id, Token: session.Token, RefreshToken: model.NewId(), RedirectUri: redirectUri, ExpiresAt: session.ExpiresAt, Scope: authData.Scope}
 
 			if result := <-a.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
-				l4g.Error(result.Err)
+				mlog.Error(fmt.Sprint(result.Err))
 				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 			}
 
@@ -295,7 +297,7 @@ func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData
 	accessData.RefreshToken = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 	if result := <-a.Srv.Store.OAuth().UpdateAccessData(accessData); result.Err != nil {
-		l4g.Error(result.Err)
+		mlog.Error(fmt.Sprint(result.Err))
 		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 	}
 	accessRsp := &model.AccessResponse{
@@ -455,7 +457,13 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
 			map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
 	} else {
-		authData = provider.GetAuthDataFromJson(bytes.NewReader(buf.Bytes()))
+		authUser := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
+
+		if authUser.AuthData != nil {
+			authData = *authUser.AuthData
+		} else {
+			authData = ""
+		}
 	}
 
 	if len(authData) == 0 {
@@ -528,7 +536,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.ReadCloser, em
 
 	a.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 
@@ -689,10 +697,13 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if resp, err := a.HTTPClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
+		bodyBytes, _ = ioutil.ReadAll(resp.Body)
+		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
 		ar = model.AccessResponseFromJson(resp.Body)
 		consumeAndClose(resp)
 
-		if ar == nil {
+		if ar == nil || resp.StatusCode != http.StatusOK {
 			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+string(bodyBytes), http.StatusInternalServerError)
 		}
 	}
@@ -716,6 +727,15 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if resp, err := a.HTTPClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, err.Error(), http.StatusInternalServerError)
 	} else {
+		bodyBytes, _ = ioutil.ReadAll(resp.Body)
+		if resp.StatusCode != http.StatusOK {
+			bodyString := string(bodyBytes)
+			mlog.Error("Error getting OAuth user: " + bodyString)
+			if service == model.SERVICE_GITLAB && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
+				return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "oauth.gitlab.tos.error", nil, "", http.StatusBadRequest)
+			}
+		}
+		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 		return resp.Body, teamId, stateProps, nil
 	}
 
@@ -774,7 +794,7 @@ func (a *App) SwitchOAuthToEmail(email, password, requesterId string) (string, *
 
 	a.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 

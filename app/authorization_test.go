@@ -18,9 +18,9 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 		permissionId string
 		shouldGrant  bool
 	}{
-		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, th.App.Role(model.SYSTEM_ADMIN_ROLE_ID).Permissions[0], true},
-		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, "non-existant-permission", false},
-		{[]string{model.CHANNEL_USER_ROLE_ID}, th.App.Role(model.CHANNEL_USER_ROLE_ID).Permissions[0], true},
+		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
+		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, "non-existent-permission", false},
+		{[]string{model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_READ_CHANNEL.Id, true},
 		{[]string{model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, false},
 		{[]string{model.SYSTEM_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
 		{[]string{model.CHANNEL_USER_ROLE_ID, model.SYSTEM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
@@ -29,7 +29,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 	}
 
 	for testnum, testcase := range cases {
-		if th.App.CheckIfRolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
+		if th.App.RolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
 			t.Fatal("Failed test case ", testnum)
 		}
 	}

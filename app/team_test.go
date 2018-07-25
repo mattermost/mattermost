@@ -7,15 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"fmt"
-
-	"sync/atomic"
-
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -111,6 +103,84 @@ func TestAddUserToTeam(t *testing.T) {
 		t.Log(err)
 		t.Fatal("Should add user to the team")
 	}
+}
+
+func TestAddUserToTeamByToken(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ := th.App.CreateUser(&user)
+
+	t.Run("invalid token", func(t *testing.T) {
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, "123"); err == nil {
+			t.Fatal("Should fail on unexisting token")
+		}
+	})
+
+	t.Run("invalid token type", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_VERIFY_EMAIL,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
+			t.Fatal("Should fail on bad token type")
+		}
+	})
+
+	t.Run("expired token", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
+			t.Fatal("Should fail on expired token")
+		}
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": model.NewId()}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
+			t.Fatal("Should fail on bad team id")
+		}
+	})
+
+	t.Run("invalid user id", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		defer th.App.DeleteToken(token)
+		if _, err := th.App.AddUserToTeamByToken(model.NewId(), token.Token); err == nil {
+			t.Fatal("Should fail on bad user id")
+		}
+	})
+
+	t.Run("valid request", func(t *testing.T) {
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+			t.Fatal("The token must be deleted after be used")
+		}
+	})
 }
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
@@ -402,65 +472,6 @@ func TestSanitizeTeams(t *testing.T) {
 	})
 }
 
-func TestAddUserToTeamByHashMismatchedInviteId(t *testing.T) {
-	mockStore := &storetest.Store{}
-	defer mockStore.AssertExpectations(t)
-
-	teamId := model.NewId()
-	userId := model.NewId()
-	inviteSalt := model.NewId()
-
-	inviteId := model.NewId()
-	teamInviteId := model.NewId()
-
-	// generate a fake email invite - stolen from SendInviteEmails() in email.go
-	props := make(map[string]string)
-	props["email"] = model.NewId() + "@mattermost.com"
-	props["id"] = teamId
-	props["display_name"] = model.NewId()
-	props["name"] = model.NewId()
-	props["time"] = fmt.Sprintf("%v", model.GetMillis())
-	props["invite_id"] = inviteId
-	data := model.MapToJson(props)
-	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, inviteSalt))
-
-	// when the server tries to validate the invite, it will pull the user from our mock store
-	// this can return nil, because we'll fail before we get to trying to use it
-	mockStore.UserStore.On("Get", userId).Return(
-		storetest.NewStoreChannel(store.StoreResult{
-			Data: nil,
-			Err:  nil,
-		}),
-	)
-
-	// the server will also pull the team. the one we return has a different invite id than the one in the email invite we made above
-	mockStore.TeamStore.On("Get", teamId).Return(
-		storetest.NewStoreChannel(store.StoreResult{
-			Data: &model.Team{
-				InviteId: teamInviteId,
-			},
-			Err: nil,
-		}),
-	)
-
-	app := App{
-		Srv: &Server{
-			Store: mockStore,
-		},
-		config: atomic.Value{},
-	}
-	app.config.Store(&model.Config{
-		EmailSettings: model.EmailSettings{
-			InviteSalt: inviteSalt,
-		},
-	})
-
-	// this should fail because the invite ids are mismatched
-	team, err := app.AddUserToTeamByHash(userId, hash, data)
-	assert.Nil(t, team)
-	assert.Equal(t, "api.user.create_user.signup_link_mismatched_invite_id.app_error", err.Id)
-}
-
 func TestJoinUserToTeam(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -547,4 +558,22 @@ func TestJoinUserToTeam(t *testing.T) {
 			t.Fatal("Should fail")
 		}
 	})
+}
+
+func TestAppUpdateTeamScheme(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	team := th.BasicTeam
+	mockID := model.NewString("x")
+	team.SchemeId = mockID
+
+	updatedTeam, err := th.App.UpdateTeamScheme(th.BasicTeam)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updatedTeam.SchemeId != mockID {
+		t.Fatal("Wrong Team SchemeId")
+	}
 }

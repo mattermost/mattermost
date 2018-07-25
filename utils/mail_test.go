@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -17,7 +18,7 @@ import (
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServer(cfg); err != nil {
@@ -40,14 +41,15 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServer:           cfg.EmailSettings.SMTPServer,
+			SmtpServerName:       cfg.EmailSettings.SMTPServer,
+			SmtpServerHost:       cfg.EmailSettings.SMTPServer,
 			SmtpPort:             cfg.EmailSettings.SMTPPort,
 		},
 	); err != nil {
@@ -60,7 +62,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			&SmtpConnectionInfo{
 				ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
 				SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-				SmtpServer:           cfg.EmailSettings.SMTPServer,
+				SmtpServerName:       cfg.EmailSettings.SMTPServer,
+				SmtpServerHost:       cfg.EmailSettings.SMTPServer,
 				SmtpPort:             cfg.EmailSettings.SMTPPort,
 				Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
 				SmtpUsername:         cfg.EmailSettings.SMTPUsername,
@@ -76,7 +79,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServer:           "wrongServer",
+			SmtpServerName:       "wrongServer",
+			SmtpServerHost:       "wrongServer",
 			SmtpPort:             "553",
 		},
 	); err == nil {
@@ -87,7 +91,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
 
@@ -129,7 +133,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 	T = GetUserTranslations("en")
 
@@ -151,8 +155,10 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	filePath2 := fmt.Sprintf("test2/%s", fileName)
 	fileContents1 := []byte("hello world")
 	fileContents2 := []byte("foo bar")
-	assert.Nil(t, fileBackend.WriteFile(fileContents1, filePath1))
-	assert.Nil(t, fileBackend.WriteFile(fileContents2, filePath2))
+	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents1), filePath1)
+	assert.Nil(t, err)
+	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents2), filePath2)
+	assert.Nil(t, err)
 	defer fileBackend.RemoveFile(filePath1)
 	defer fileBackend.RemoveFile(filePath2)
 
@@ -225,10 +231,11 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 func TestAuthMethods(t *testing.T) {
 	auth := &authChooser{
 		connectionInfo: &SmtpConnectionInfo{
-			SmtpUsername: "test",
-			SmtpPassword: "fakepass",
-			SmtpServer:   "fakeserver",
-			SmtpPort:     "25",
+			SmtpUsername:   "test",
+			SmtpPassword:   "fakepass",
+			SmtpServerName: "fakeserver",
+			SmtpServerHost: "fakeserver",
+			SmtpPort:       "25",
 		},
 	}
 	tests := []struct {

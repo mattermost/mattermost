@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -17,6 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
 func TestUpdatePostEditAt(t *testing.T) {
@@ -43,6 +46,45 @@ func TestUpdatePostEditAt(t *testing.T) {
 	} else if saved.EditAt == post.EditAt {
 		t.Fatal("should have updated post.EditAt when updating post message")
 	}
+
+	time.Sleep(time.Millisecond * 200)
+}
+
+func TestUpdatePostTimeLimit(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{}
+	*post = *th.BasicPost
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = -1
+	})
+	if _, err := th.App.UpdatePost(post, true); err != nil {
+		t.Fatal(err)
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = 1000000000
+	})
+	post.Message = model.NewId()
+	if _, err := th.App.UpdatePost(post, true); err != nil {
+		t.Fatal("should allow you to edit the post")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = 1
+	})
+	post.Message = model.NewId()
+	if _, err := th.App.UpdatePost(post, true); err == nil {
+		t.Fatal("should fail on update old post")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = -1
+	})
 }
 
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
@@ -257,6 +299,34 @@ func TestImageProxy(t *testing.T) {
 	}
 }
 
+func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
+	HTML := `
+		<html>
+			<head>
+				<meta property="og:url" content="https://example.com/apps/mattermost">
+				<meta property="og:image" content="https://images.example.com/image.png">
+			</head>
+		</html>
+	`
+	ContentType := "text/html; utf-8"
+
+	b.Run("with converting", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			r := forceHTMLEncodingToUTF8(strings.NewReader(HTML), ContentType)
+
+			og := opengraph.NewOpenGraph()
+			og.ProcessHTML(r)
+		}
+	})
+
+	b.Run("without converting", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			og := opengraph.NewOpenGraph()
+			og.ProcessHTML(strings.NewReader(HTML))
+		}
+	})
+}
+
 func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 	for name, tc := range map[string]struct {
 		HTML       string
@@ -343,6 +413,62 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 			} else if tc.ImageURL != "" {
 				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
 			}
+		})
+	}
+}
+
+func TestMaxPostSize(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Description         string
+		StoreMaxPostSize    int
+		ExpectedMaxPostSize int
+		ExpectedError       *model.AppError
+	}{
+		{
+			"error fetching max post size",
+			0,
+			model.POST_MESSAGE_MAX_RUNES_V1,
+			model.NewAppError("TestMaxPostSize", "this is an error", nil, "", http.StatusBadRequest),
+		},
+		{
+			"4000 rune limit",
+			4000,
+			4000,
+			nil,
+		},
+		{
+			"16383 rune limit",
+			16383,
+			16383,
+			nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			t.Parallel()
+
+			mockStore := &storetest.Store{}
+			defer mockStore.AssertExpectations(t)
+
+			mockStore.PostStore.On("GetMaxPostSize").Return(
+				storetest.NewStoreChannel(store.StoreResult{
+					Data: testCase.StoreMaxPostSize,
+					Err:  testCase.ExpectedError,
+				}),
+			)
+
+			app := App{
+				Srv: &Server{
+					Store: mockStore,
+				},
+				config: atomic.Value{},
+			}
+
+			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
 		})
 	}
 }

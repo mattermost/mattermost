@@ -6,6 +6,7 @@ package utils
 import (
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"net"
@@ -17,8 +18,8 @@ import (
 
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/html2text"
+	"github.com/jaytaylor/html2text"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -29,7 +30,8 @@ func encodeRFC2047Word(s string) string {
 type SmtpConnectionInfo struct {
 	SmtpUsername         string
 	SmtpPassword         string
-	SmtpServer           string
+	SmtpServerName       string
+	SmtpServerHost       string
 	SmtpPort             string
 	SkipCertVerification bool
 	ConnectionSecurity   string
@@ -42,11 +44,11 @@ type authChooser struct {
 }
 
 func (a *authChooser) Start(server *smtp.ServerInfo) (string, []byte, error) {
-	smtpAddress := a.connectionInfo.SmtpServer + ":" + a.connectionInfo.SmtpPort
+	smtpAddress := a.connectionInfo.SmtpServerName + ":" + a.connectionInfo.SmtpPort
 	a.Auth = LoginAuth(a.connectionInfo.SmtpUsername, a.connectionInfo.SmtpPassword, smtpAddress)
 	for _, method := range server.Auth {
 		if method == "PLAIN" {
-			a.Auth = smtp.PlainAuth("", a.connectionInfo.SmtpUsername, a.connectionInfo.SmtpPassword, a.connectionInfo.SmtpServer+":"+a.connectionInfo.SmtpPort)
+			a.Auth = smtp.PlainAuth("", a.connectionInfo.SmtpUsername, a.connectionInfo.SmtpPassword, a.connectionInfo.SmtpServerName+":"+a.connectionInfo.SmtpPort)
 			break
 		}
 	}
@@ -81,7 +83,7 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 		case "Password:":
 			return []byte(a.password), nil
 		default:
-			return nil, errors.New("Unkown fromServer")
+			return nil, errors.New("Unknown fromServer")
 		}
 	}
 	return nil, nil
@@ -91,11 +93,11 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 	var conn net.Conn
 	var err error
 
-	smtpAddress := connectionInfo.SmtpServer + ":" + connectionInfo.SmtpPort
+	smtpAddress := connectionInfo.SmtpServerHost + ":" + connectionInfo.SmtpPort
 	if connectionInfo.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: connectionInfo.SkipCertVerification,
-			ServerName:         connectionInfo.SmtpServer,
+			ServerName:         connectionInfo.SmtpServerName,
 		}
 
 		conn, err = tls.Dial("tcp", smtpAddress, tlsconfig)
@@ -117,23 +119,24 @@ func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServer:           config.EmailSettings.SMTPServer,
+			SmtpServerName:       config.EmailSettings.SMTPServer,
+			SmtpServerHost:       config.EmailSettings.SMTPServer,
 			SmtpPort:             config.EmailSettings.SMTPPort,
 		},
 	)
 }
 
 func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, *model.AppError) {
-	c, err := smtp.NewClient(conn, connectionInfo.SmtpServer+":"+connectionInfo.SmtpPort)
+	c, err := smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
 	if err != nil {
-		l4g.Error(T("utils.mail.new_client.open.error"), err)
+		mlog.Error(fmt.Sprintf("Failed to open a connection to SMTP server %v", err))
 		return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if hostname != "" {
 		err := c.Hello(hostname)
 		if err != nil {
-			l4g.Error(T("utils.mail.new_client.helo.error"), err)
+			mlog.Error(fmt.Sprintf("Failed to to set the HELO to SMTP server %v", err))
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -141,7 +144,7 @@ func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpC
 	if connectionInfo.ConnectionSecurity == model.CONN_SECURITY_STARTTLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: connectionInfo.SkipCertVerification,
-			ServerName:         connectionInfo.SmtpServer,
+			ServerName:         connectionInfo.SmtpServerName,
 		}
 		c.StartTLS(tlsconfig)
 	}
@@ -161,7 +164,8 @@ func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServer:           config.EmailSettings.SMTPServer,
+			SmtpServerName:       config.EmailSettings.SMTPServer,
+			SmtpServerHost:       config.EmailSettings.SMTPServer,
 			SmtpPort:             config.EmailSettings.SMTPPort,
 			Auth:                 *config.EmailSettings.EnableSMTPAuth,
 			SmtpUsername:         config.EmailSettings.SMTPUsername,
@@ -177,14 +181,14 @@ func TestConnection(config *model.Config) {
 
 	conn, err1 := ConnectToSMTPServer(config)
 	if err1 != nil {
-		l4g.Error(T("utils.mail.test.configured.error"), T(err1.Message), err1.DetailedError)
+		mlog.Error(fmt.Sprintf("SMTP server settings do not appear to be configured properly err=%v details=%v", T(err1.Message), err1.DetailedError))
 		return
 	}
 	defer conn.Close()
 
 	c, err2 := NewSMTPClient(conn, config)
 	if err2 != nil {
-		l4g.Error(T("utils.mail.test.configured.error"), T(err2.Message), err2.DetailedError)
+		mlog.Error(fmt.Sprintf("SMTP server settings do not appear to be configured properly err=%v details=%v", T(err2.Message), err2.DetailedError))
 		return
 	}
 	defer c.Quit()
@@ -221,17 +225,17 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subje
 		return err
 	}
 
-	return SendMail(c, mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, fileBackend)
+	return SendMail(c, mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
 }
 
-func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend FileBackend) *model.AppError {
-	l4g.Debug(T("utils.mail.send_mail.sending.debug"), mimeTo, subject)
+func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend FileBackend, date time.Time) *model.AppError {
+	mlog.Debug(fmt.Sprintf("sending mail to %v with subject of '%v'", smtpTo, subject))
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
 
 	txtBody, err := html2text.FromString(htmlBody)
 	if err != nil {
-		l4g.Warn(err)
+		mlog.Warn(fmt.Sprint(err))
 		txtBody = ""
 	}
 
@@ -249,7 +253,7 @@ func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject,
 
 	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
 	m.SetHeaders(headers)
-	m.SetDateHeader("Date", time.Now())
+	m.SetDateHeader("Date", date)
 	m.SetBody("text/plain", txtBody)
 	m.AddAlternative("text/html", htmlMessage)
 

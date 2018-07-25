@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndexService adds or updates a typed JSON document in a specified index,
 // making it searchable.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-index_.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-index_.html
 // for details.
 type IndexService struct {
 	client              *Client
@@ -172,7 +172,7 @@ func (s *IndexService) buildURL() (string, string, url.Values, error) {
 		})
 	} else {
 		// Automatic ID generation
-		// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-index_.html#index-creation
+		// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-index_.html#index-creation
 		method = "POST"
 		path, err = uritemplates.Expand("/{index}/{type}/", map[string]string{
 			"index": s.index,
@@ -186,7 +186,7 @@ func (s *IndexService) buildURL() (string, string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.waitForActiveShards != "" {
 		params.Set("wait_for_active_shards", s.waitForActiveShards)
@@ -264,12 +264,7 @@ func (s *IndexService) Do(ctx context.Context) (*IndexResponse, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: method,
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, method, path, params, body)
 	if err != nil {
 		return nil, err
 	}

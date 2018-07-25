@@ -18,13 +18,15 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -33,35 +35,42 @@ import (
 const (
 	TOKEN_TYPE_PASSWORD_RECOVERY  = "password_recovery"
 	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
-	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60 // 1 hour
+	TOKEN_TYPE_TEAM_INVITATION    = "team_invitation"
+	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60      // 1 hour
+	TEAM_INVITATION_EXPIRY_TIME   = 1000 * 60 * 60 * 48 // 48 hours
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
-func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
-	props := model.MapFromJson(strings.NewReader(data))
-
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusInternalServerError)
+	result := <-a.Srv.Store.Token().GetByToken(tokenId)
+	if result.Err != nil {
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
-	if t, err := strconv.ParseInt(props["time"], 10, 64); err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusInternalServerError)
+	token := result.Data.(*model.Token)
+	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	teamId := props["id"]
+	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+		a.DeleteToken(token)
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
 	var team *model.Team
-	if result := <-a.Srv.Store.Team().Get(teamId); result.Err != nil {
+	if result := <-a.Srv.Store.Team().Get(tokenData["teamId"]); result.Err != nil {
 		return nil, result.Err
 	} else {
 		team = result.Data.(*model.Team)
 	}
 
-	user.Email = props["email"]
+	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
 	var ruser *model.User
@@ -75,6 +84,10 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 	}
 
 	a.AddDirectChannels(team.Id, ruser)
+
+	if err := a.DeleteToken(token); err != nil {
+		return nil, err
+	}
 
 	return ruser, nil
 }
@@ -106,7 +119,7 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 	a.AddDirectChannels(team.Id, ruser)
 
 	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 	}
 
 	return ruser, nil
@@ -119,7 +132,7 @@ func (a *App) CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError)
 	}
 
 	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 	}
 
 	return ruser, nil
@@ -143,14 +156,14 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 	}
 
 	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 	}
 
 	return ruser, nil
 }
 
 func (a *App) IsUserSignUpAllowed() *model.AppError {
-	if !a.Config().EmailSettings.EnableSignUpWithEmail || !a.Config().TeamSettings.EnableUserCreation {
+	if !a.Config().EmailSettings.EnableSignUpWithEmail || !*a.Config().TeamSettings.EnableUserCreation {
 		err := model.NewAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
@@ -160,7 +173,7 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 func (a *App) IsFirstUserAccount() bool {
 	if a.SessionCacheLength() == 0 {
 		if cr := <-a.Srv.Store.User().GetTotalUsersCount(); cr.Err != nil {
-			l4g.Error(cr.Err)
+			mlog.Error(fmt.Sprint(cr.Err))
 			return false
 		} else {
 			count := cr.Data.(int64)
@@ -215,20 +228,20 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	if result := <-a.Srv.Store.User().Save(user); result.Err != nil {
-		l4g.Error(utils.T("api.user.create_user.save.error"), result.Err)
+		mlog.Error(fmt.Sprintf("Couldn't save the user err=%v", result.Err))
 		return nil, result.Err
 	} else {
 		ruser := result.Data.(*model.User)
 
 		if user.EmailVerified {
 			if err := a.VerifyUserEmail(ruser.Id); err != nil {
-				l4g.Error(utils.T("api.user.create_user.verified.error"), err)
+				mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", err))
 			}
 		}
 
 		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
 		if presult := <-a.Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
-			l4g.Error(utils.T("api.user.create_user.tutorial.error"), presult.Err.Message)
+			mlog.Error(fmt.Sprintf("Encountered error saving tutorial preference, err=%v", presult.Err.Message))
 		}
 
 		ruser.Sanitize(map[string]bool{})
@@ -238,7 +251,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 }
 
 func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
-	if !a.Config().TeamSettings.EnableUserCreation {
+	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -294,7 +307,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 
 		err = a.AddDirectChannels(teamId, user)
 		if err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	}
 
@@ -365,38 +378,6 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
 	if result := <-a.Srv.Store.User().GetByAuth(authData, authService); result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.User), nil
-	}
-}
-
-func (a *App) GetUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
-	license := a.License()
-	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && license != nil && *license.Features.LDAP
-
-	if result := <-a.Srv.Store.User().GetForLogin(
-		loginId,
-		*a.Config().EmailSettings.EnableSignInWithUsername && !onlyLdap,
-		*a.Config().EmailSettings.EnableSignInWithEmail && !onlyLdap,
-		ldapAvailable,
-	); result.Err != nil && result.Err.Id == "store.sql_user.get_for_login.multiple_users" {
-		// don't fall back to LDAP in this case since we already know there's an LDAP user, but that it shouldn't work
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
-	} else if result.Err != nil {
-		if !ldapAvailable {
-			// failed to find user and no LDAP server to fall back on
-			result.Err.StatusCode = http.StatusBadRequest
-			return nil, result.Err
-		}
-
-		// fall back to LDAP server to see if we can find a user
-		if ldapUser, ldapErr := a.Ldap.GetUser(loginId); ldapErr != nil {
-			ldapErr.StatusCode = http.StatusBadRequest
-			return nil, ldapErr
-		} else {
-			return ldapUser, nil
-		}
 	} else {
 		return result.Data.(*model.User), nil
 	}
@@ -716,12 +697,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 
 	initial := string(strings.ToUpper(username)[0])
 
-	fontDir, _ := utils.FindDir("fonts")
-	fontBytes, err := ioutil.ReadFile(fontDir + initialFont)
-	if err != nil {
-		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	font, err := freetype.ParseFont(fontBytes)
+	font, err := getFont(initialFont)
 	if err != nil {
 		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -739,7 +715,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/6, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
+	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/5, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -752,6 +728,21 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	} else {
 		return buf.Bytes(), nil
 	}
+}
+
+func getFont(initialFont string) (*truetype.Font, error) {
+	// Some people have the old default font still set, so just treat that as if they're using the new default
+	if initialFont == "luximbi.ttf" {
+		initialFont = "nunito-bold.ttf"
+	}
+
+	fontDir, _ := utils.FindDir("fonts")
+	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
+	if err != nil {
+		return nil, err
+	}
+
+	return freetype.ParseFont(fontBytes)
 }
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
@@ -774,7 +765,7 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 			}
 
 			if user.LastPictureUpdate == 0 {
-				if err := a.WriteFile(img, path); err != nil {
+				if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
 					return nil, false, err
 				}
 			}
@@ -830,7 +821,7 @@ func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model
 
 	path := "users/" + userId + "/profile.png"
 
-	if err := a.WriteFile(buf.Bytes(), path); err != nil {
+	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
 	}
 
@@ -839,7 +830,7 @@ func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model
 	a.InvalidateCacheForUser(userId)
 
 	if user, err := a.GetUser(userId); err != nil {
-		l4g.Error(utils.T("api.user.get_me.getting.error"), userId)
+		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", userId), mlog.String("user_id", userId))
 	} else {
 		options := a.Config().GetSanitizeOptions()
 		user.SanitizeProfile(options)
@@ -882,22 +873,6 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) UpdateNonSSOUserActive(userId string, active bool) (*model.User, *model.AppError) {
-	var user *model.User
-	var err *model.AppError
-	if user, err = a.GetUser(userId); err != nil {
-		return nil, err
-	}
-
-	if user.IsSSOUser() {
-		err := model.NewAppError("UpdateActive", "api.user.update_active.no_deactivate_sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
-		err.StatusCode = http.StatusBadRequest
-		return nil, err
-	}
-
-	return a.UpdateActive(user, active)
-}
-
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
 		user.DeleteAt = 0
@@ -915,9 +890,6 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		}
 
 		ruser := result.Data.([2]*model.User)[0]
-		options := a.Config().GetSanitizeOptions()
-		options["passwordupdate"] = false
-		ruser.Sanitize(options)
 
 		if !active {
 			a.SetStatusOffline(ruser.Id, false)
@@ -939,6 +911,8 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 			}
 		}
 
+		a.sendUpdatedUserEvent(*ruser)
+
 		return ruser, nil
 	}
 }
@@ -959,7 +933,7 @@ func (a *App) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *mo
 		return nil, err
 	}
 
-	a.sendUpdatedUserEvent(*updatedUser, asAdmin)
+	a.sendUpdatedUserEvent(*updatedUser)
 
 	return updatedUser, nil
 }
@@ -977,7 +951,7 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 		return nil, err
 	}
 
-	a.sendUpdatedUserEvent(*updatedUser, asAdmin)
+	a.sendUpdatedUserEvent(*updatedUser)
 
 	return updatedUser, nil
 }
@@ -1006,11 +980,18 @@ func (a *App) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.Us
 	return userAuth, nil
 }
 
-func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
-	a.SanitizeProfile(&user, asAdmin)
+func (a *App) sendUpdatedUserEvent(user model.User) {
+	adminCopyOfUser := user.DeepCopy()
+	a.SanitizeProfile(adminCopyOfUser, true)
+	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	adminMessage.Add("user", *adminCopyOfUser)
+	adminMessage.Broadcast.ContainsSensitiveData = true
+	a.Publish(adminMessage)
 
+	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", user)
+	message.Broadcast.ContainsSanitizedData = true
 	a.Publish(message)
 }
 
@@ -1035,21 +1016,23 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 			if rusers[0].Email != rusers[1].Email {
 				a.Go(func() {
 					if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
-						l4g.Error(err.Error())
+						mlog.Error(err.Error())
 					}
 				})
 
 				if a.Config().EmailSettings.RequireEmailVerification {
-					if err := a.SendEmailVerification(rusers[0]); err != nil {
-						l4g.Error(err.Error())
-					}
+					a.Go(func() {
+						if err := a.SendEmailVerification(rusers[0]); err != nil {
+							mlog.Error(err.Error())
+						}
+					})
 				}
 			}
 
 			if rusers[0].Username != rusers[1].Username {
 				a.Go(func() {
 					if err := a.SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
-						l4g.Error(err.Error())
+						mlog.Error(err.Error())
 					}
 				})
 			}
@@ -1094,12 +1077,12 @@ func (a *App) UpdateMfa(activate bool, userId, token string) *model.AppError {
 		var err *model.AppError
 
 		if user, err = a.GetUser(userId); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 			return
 		}
 
 		if err := a.SendMfaChangeEmail(user.Email, activate, user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 
@@ -1137,7 +1120,7 @@ func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method stri
 
 	a.Go(func() {
 		if err := a.SendPasswordChangeEmail(user.Email, method, user.Locale, a.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	})
 
@@ -1171,7 +1154,7 @@ func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		l4g.Error(err.Error())
+		mlog.Error(err.Error())
 	}
 
 	return nil
@@ -1238,6 +1221,10 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		return nil, err
 	}
 
+	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+		return nil, err
+	}
+
 	user.Roles = newRoles
 	uchan := a.Srv.Store.User().Update(user, true)
 	schan := a.Srv.Store.Session().UpdateRoles(user.Id, newRoles)
@@ -1251,7 +1238,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 
 	if result := <-schan; result.Err != nil {
 		// soft error since the user roles were still updated
-		l4g.Error(result.Err)
+		mlog.Error(fmt.Sprint(result.Err))
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
@@ -1267,9 +1254,9 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 }
 
 func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
-	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
+	mlog.Warn(fmt.Sprintf("Attempting to permanently delete account %v id=%v", user.Email, user.Id), mlog.String("user_id", user.Id))
 	if user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
-		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
+		mlog.Warn(fmt.Sprintf("You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", user.Email))
 	}
 
 	if _, err := a.UpdateActive(user, false); err != nil {
@@ -1312,6 +1299,45 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
+	fchan := a.Srv.Store.FileInfo().GetForUser(user.Id)
+	var infos []*model.FileInfo
+	if result := <-fchan; result.Err != nil {
+		mlog.Warn("Error getting file list for user from FileInfoStore")
+	} else {
+		infos = result.Data.([]*model.FileInfo)
+		for _, info := range infos {
+			res, err := a.FileExists(info.Path)
+
+			if err != nil {
+				mlog.Warn(
+					"Error checking existence of file",
+					mlog.String("path", info.Path),
+					mlog.Err(err),
+				)
+				continue
+			}
+
+			if !res {
+				mlog.Warn("File not found", mlog.String("path", info.Path))
+				continue
+			}
+
+			err = a.RemoveFile(info.Path)
+
+			if err != nil {
+				mlog.Warn(
+					"Unable to remove file",
+					mlog.String("path", info.Path),
+					mlog.Err(err),
+				)
+			}
+		}
+	}
+
+	if result := <-a.Srv.Store.FileInfo().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
 	if result := <-a.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
 		return result.Err
 	}
@@ -1324,7 +1350,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
+	mlog.Warn(fmt.Sprintf("Permanently deleted account %v id=%v", user.Email, user.Id), mlog.String("user_id", user.Id))
 
 	return nil
 }
@@ -1368,7 +1394,7 @@ func (a *App) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppErr
 			return err
 		}
 		if err := a.DeleteToken(token); err != nil {
-			l4g.Error(err.Error())
+			mlog.Error(err.Error())
 		}
 	}
 
@@ -1395,6 +1421,17 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 		}
 		return token, nil
 	}
+}
+
+func (a *App) GetTotalUsersStats() (*model.UsersStats, *model.AppError) {
+	stats := &model.UsersStats{}
+
+	if result := <-a.Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
+		return nil, result.Err
+	} else {
+		stats.TotalUsersCount = result.Data.(int64)
+	}
+	return stats, nil
 }
 
 func (a *App) VerifyUserEmail(userId string) *model.AppError {

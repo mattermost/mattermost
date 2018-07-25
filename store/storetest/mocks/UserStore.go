@@ -77,6 +77,22 @@ func (_m *UserStore) AnalyticsUniqueUserCount(teamId string) store.StoreChannel 
 	return r0
 }
 
+// ClearAllCustomRoleAssignments provides a mock function with given fields:
+func (_m *UserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // ClearCaches provides a mock function with given fields:
 func (_m *UserStore) ClearCaches() {
 	_m.Called()
@@ -258,13 +274,13 @@ func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChann
 	return r0
 }
 
-// GetForLogin provides a mock function with given fields: loginId, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled
-func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, allowSignInWithEmail bool, ldapEnabled bool) store.StoreChannel {
-	ret := _m.Called(loginId, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled)
+// GetForLogin provides a mock function with given fields: loginId, allowSignInWithUsername, allowSignInWithEmail
+func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, allowSignInWithEmail bool) store.StoreChannel {
+	ret := _m.Called(loginId, allowSignInWithUsername, allowSignInWithEmail)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool, bool, bool) store.StoreChannel); ok {
-		r0 = rf(loginId, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled)
+	if rf, ok := ret.Get(0).(func(string, bool, bool) store.StoreChannel); ok {
+		r0 = rf(loginId, allowSignInWithUsername, allowSignInWithEmail)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

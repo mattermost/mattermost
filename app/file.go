@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -54,7 +54,7 @@ const (
 	MaxImageSize                 = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
 	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
-	IMAGE_PREVIEW_PIXEL_WIDTH    = 1024
+	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
 )
 
 func (a *App) FileBackend() (utils.FileBackend, *model.AppError) {
@@ -70,6 +70,22 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	return backend.ReadFile(path)
 }
 
+func (a *App) FileReader(path string) (io.Reader, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	return backend.Reader(path)
+}
+
+func (a *App) FileExists(path string) (bool, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return false, err
+	}
+	return backend.FileExists(path)
+}
+
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
@@ -78,12 +94,13 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	return backend.MoveFile(oldPath, newPath)
 }
 
-func (a *App) WriteFile(f []byte, path string) *model.AppError {
+func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return backend.WriteFile(f, path)
+
+	return backend.WriteFile(fr, path)
 }
 
 func (a *App) RemoveFile(path string) *model.AppError {
@@ -98,7 +115,7 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	// Find the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
 	split := strings.SplitN(filename, "/", 5)
 	if len(split) < 5 {
-		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.unexpected_filename.error"), post.Id, filename)
+		mlog.Error("Unable to decipher filename when migrating post to use FileInfos", mlog.String("post_id", post.Id), mlog.String("filename", filename))
 		return nil
 	}
 
@@ -108,7 +125,13 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	name, _ := url.QueryUnescape(split[4])
 
 	if split[0] != "" || split[1] != post.ChannelId || split[2] != post.UserId || strings.Contains(split[4], "/") {
-		l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.mismatched_filename.warn"), post.Id, post.ChannelId, post.UserId, filename)
+		mlog.Warn(
+			"Found an unusual filename when migrating post to use FileInfos",
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+			mlog.String("user_id", post.UserId),
+			mlog.String("filename", filename),
+		)
 	}
 
 	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamId, channelId, userId, oldId)
@@ -117,13 +140,22 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	// Open the file and populate the fields of the FileInfo
 	var info *model.FileInfo
 	if data, err := a.ReadFile(path); err != nil {
-		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.file_not_found.error"), post.Id, filename, path, err)
+		mlog.Error(
+			fmt.Sprintf("File not found when migrating post to use FileInfos, err=%v", err),
+			mlog.String("post_id", post.Id),
+			mlog.String("filename", filename),
+			mlog.String("path", path),
+		)
 		return nil
 	} else {
 		var err *model.AppError
 		info, err = model.GetInfoForBytes(name, data)
 		if err != nil {
-			l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.info.app_error"), post.Id, filename, err)
+			mlog.Warn(
+				fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, err=%v", err),
+				mlog.String("post_id", post.Id),
+				mlog.String("filename", filename),
+			)
 		}
 	}
 
@@ -151,7 +183,7 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
 	if result := <-a.Srv.Store.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
-		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.teams.app_error"), post.Id, result.Err)
+		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfo, err=%v", result.Err), mlog.String("post_id", post.Id))
 	} else if teams := result.Data.([]*model.Team); len(teams) == 1 {
 		// The user has only one team so the post must've been sent from it
 		return teams[0].Id
@@ -173,7 +205,7 @@ var fileMigrationLock sync.Mutex
 // Creates and stores FileInfos for a post created before the FileInfos table existed.
 func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
-		l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.no_filenames.warn"), post.Id)
+		mlog.Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 
@@ -184,7 +216,11 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	var channel *model.Channel
 	if result := <-cchan; result.Err != nil {
-		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.channel.app_error"), post.Id, post.ChannelId, result.Err)
+		mlog.Error(
+			fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, err=%v", result.Err),
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+		)
 		return []*model.FileInfo{}
 	} else {
 		channel = result.Data.(*model.Channel)
@@ -202,7 +238,10 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	// Create FileInfo objects for this post
 	infos := make([]*model.FileInfo, 0, len(filenames))
 	if teamId == "" {
-		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.team_id.error"), post.Id, filenames)
+		mlog.Error(
+			fmt.Sprintf("Unable to find team id for files when migrating post to use FileInfos, filenames=%v", filenames),
+			mlog.String("post_id", post.Id),
+		)
 	} else {
 		for _, filename := range filenames {
 			info := a.GetInfoForFilename(post, teamId, filename)
@@ -219,26 +258,31 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	defer fileMigrationLock.Unlock()
 
 	if result := <-a.Srv.Store.Post().Get(post.Id); result.Err != nil {
-		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_again.app_error"), post.Id, result.Err)
+		mlog.Error(fmt.Sprintf("Unable to get post when migrating post to use FileInfos, err=%v", result.Err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	} else if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		if result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false); result.Err != nil {
-			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_file_infos_again.app_error"), post.Id, result.Err)
+			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", result.Err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
 		} else {
-			l4g.Debug(utils.T("api.file.migrate_filenames_to_file_infos.not_migrating_post.debug"), post.Id)
+			mlog.Debug("Post already migrated to use FileInfos", mlog.String("post_id", post.Id))
 			return result.Data.([]*model.FileInfo)
 		}
 	}
 
-	l4g.Debug(utils.T("api.file.migrate_filenames_to_file_infos.migrating_post.debug"), post.Id)
+	mlog.Debug("Migrating post to use FileInfos", mlog.String("post_id", post.Id))
 
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
 		if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
-			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_file_info.app_error"), post.Id, info.Id, info.Path, result.Err)
+			mlog.Error(
+				fmt.Sprintf("Unable to save file info when migrating post to use FileInfos, err=%v", result.Err),
+				mlog.String("post_id", post.Id),
+				mlog.String("file_info_id", info.Id),
+				mlog.String("file_info_path", info.Path),
+			)
 			continue
 		}
 
@@ -255,7 +299,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	// Update Posts to clear Filenames and set FileIds
 	if result := <-a.Srv.Store.Post().Update(newPost, post); result.Err != nil {
-		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_post.app_error"), post.Id, newPost.FileIds, post.Filenames, result.Err)
+		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, result.Err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	} else {
 		return savedInfos
@@ -265,11 +309,6 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 func (a *App) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
 	hash := GeneratePublicLinkHash(info.Id, *a.Config().FileSettings.PublicLinkSalt)
 	return fmt.Sprintf("%s/files/%v/public?h=%s", siteURL, info.Id, hash)
-}
-
-func (a *App) GeneratePublicLinkV3(siteURL string, info *model.FileInfo) string {
-	hash := GeneratePublicLinkHash(info.Id, *a.Config().FileSettings.PublicLinkSalt)
-	return fmt.Sprintf("%s%s/public/files/%v/get?h=%s", siteURL, model.API_URL_SUFFIX_V3, info.Id, hash)
 }
 
 func GeneratePublicLinkHash(fileId, salt string) string {
@@ -361,6 +400,14 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 		return nil, err
 	}
 
+	if orientation, err := getImageOrientation(bytes.NewReader(data)); err == nil &&
+		(orientation == RotatedCWMirrored ||
+			orientation == RotatedCCW ||
+			orientation == RotatedCCWMirrored ||
+			orientation == RotatedCW) {
+		info.Width, info.Height = info.Height, info.Width
+	}
+
 	info.Id = model.NewId()
 	info.CreatorId = userId
 
@@ -379,7 +426,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
-	if err := a.WriteFile(data, info.Path); err != nil {
+	if _, err := a.WriteFile(bytes.NewReader(data), info.Path); err != nil {
 		return nil, err
 	}
 
@@ -415,7 +462,7 @@ func prepareImage(fileData []byte) (*image.Image, int, int) {
 	// Decode image bytes into Image object
 	img, imgType, err := image.Decode(bytes.NewReader(fileData))
 	if err != nil {
-		l4g.Error(utils.T("api.file.handle_images_forget.decode.error"), err)
+		mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
 		return nil, 0, 0
 	}
 
@@ -492,12 +539,12 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, widt
 
 	buf := new(bytes.Buffer)
 	if err := jpeg.Encode(buf, thumbnail, &jpeg.Options{Quality: 90}); err != nil {
-		l4g.Error(utils.T("api.file.handle_images_forget.encode_jpeg.error"), thumbnailPath, err)
+		mlog.Error(fmt.Sprintf("Unable to encode image as jpeg path=%v err=%v", thumbnailPath, err))
 		return
 	}
 
-	if err := a.WriteFile(buf.Bytes(), thumbnailPath); err != nil {
-		l4g.Error(utils.T("api.file.handle_images_forget.upload_thumb.error"), thumbnailPath, err)
+	if _, err := a.WriteFile(buf, thumbnailPath); err != nil {
+		mlog.Error(fmt.Sprintf("Unable to upload thumbnail path=%v err=%v", thumbnailPath, err))
 		return
 	}
 }
@@ -514,12 +561,12 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	buf := new(bytes.Buffer)
 
 	if err := jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90}); err != nil {
-		l4g.Error(utils.T("api.file.handle_images_forget.encode_preview.error"), previewPath, err)
+		mlog.Error(fmt.Sprintf("Unable to encode image as preview jpg err=%v", err), mlog.String("path", previewPath))
 		return
 	}
 
-	if err := a.WriteFile(buf.Bytes(), previewPath); err != nil {
-		l4g.Error(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err)
+	if _, err := a.WriteFile(buf, previewPath); err != nil {
+		mlog.Error(fmt.Sprintf("Unable to upload preview err=%v", err), mlog.String("path", previewPath))
 		return
 	}
 }

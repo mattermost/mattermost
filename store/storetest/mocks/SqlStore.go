@@ -143,6 +143,20 @@ func (_m *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 	return r0
 }
 
+// CreateColumnIfNotExistsNoDefault provides a mock function with given fields: tableName, columnName, mySqlColType, postgresColType
+func (_m *SqlStore) CreateColumnIfNotExistsNoDefault(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
+	ret := _m.Called(tableName, columnName, mySqlColType, postgresColType)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, string, string) bool); ok {
+		r0 = rf(tableName, columnName, mySqlColType, postgresColType)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // CreateCompositeIndexIfNotExists provides a mock function with given fields: indexName, tableName, columnNames
 func (_m *SqlStore) CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
 	ret := _m.Called(indexName, tableName, columnNames)
@@ -397,6 +411,11 @@ func (_m *SqlStore) License() store.LicenseStore {
 	return r0
 }
 
+// LockToMaster provides a mock function with given fields:
+func (_m *SqlStore) LockToMaster() {
+	_m.Called()
+}
+
 // MarkSystemRanUnitTests provides a mock function with given fields:
 func (_m *SqlStore) MarkSystemRanUnitTests() {
 	_m.Called()
@@ -538,6 +557,38 @@ func (_m *SqlStore) RenameColumnIfExists(tableName string, oldColumnName string,
 	return r0
 }
 
+// Role provides a mock function with given fields:
+func (_m *SqlStore) Role() store.RoleStore {
+	ret := _m.Called()
+
+	var r0 store.RoleStore
+	if rf, ok := ret.Get(0).(func() store.RoleStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RoleStore)
+		}
+	}
+
+	return r0
+}
+
+// Scheme provides a mock function with given fields:
+func (_m *SqlStore) Scheme() store.SchemeStore {
+	ret := _m.Called()
+
+	var r0 store.SchemeStore
+	if rf, ok := ret.Get(0).(func() store.SchemeStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SchemeStore)
+		}
+	}
+
+	return r0
+}
+
 // Session provides a mock function with given fields:
 func (_m *SqlStore) Session() store.SessionStore {
 	ret := _m.Called()
@@ -658,6 +709,11 @@ func (_m *SqlStore) TotalSearchDbConnections() int {
 	}
 
 	return r0
+}
+
+// UnlockFromMaster provides a mock function with given fields:
+func (_m *SqlStore) UnlockFromMaster() {
+	_m.Called()
 }
 
 // User provides a mock function with given fields:

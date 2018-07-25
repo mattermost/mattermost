@@ -10,13 +10,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesPutMappingService allows to register specific mapping definition
 // for a specific type.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-put-mapping.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-put-mapping.html
 // for details.
 type IndicesPutMappingService struct {
 	client            *Client
@@ -142,7 +142,7 @@ func (s *IndicesPutMappingService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.ignoreUnavailable != nil {
 		params.Set("ignore_unavailable", fmt.Sprintf("%v", *s.ignoreUnavailable))
@@ -202,12 +202,7 @@ func (s *IndicesPutMappingService) Do(ctx context.Context) (*PutMappingResponse,
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "PUT", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +217,5 @@ func (s *IndicesPutMappingService) Do(ctx context.Context) (*PutMappingResponse,
 
 // PutMappingResponse is the response of IndicesPutMappingService.Do.
 type PutMappingResponse struct {
-	Acknowledged       bool   `json:"acknowledged"`
-	ShardsAcknowledged bool   `json:"shards_acknowledged"`
-	Index              string `json:"index,omitempty"`
+	Acknowledged bool `json:"acknowledged"`
 }

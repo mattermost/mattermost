@@ -17,8 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -28,6 +27,13 @@ func (a *App) Config() *model.Config {
 		return cfg.(*model.Config)
 	}
 	return &model.Config{}
+}
+
+func (a *App) EnvironmentConfig() map[string]interface{} {
+	if a.envConfig != nil {
+		return a.envConfig
+	}
+	return map[string]interface{}{}
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
@@ -46,16 +52,15 @@ func (a *App) PersistConfig() {
 func (a *App) LoadConfig(configFile string) *model.AppError {
 	old := a.Config()
 
-	cfg, configPath, err := utils.LoadConfig(configFile)
+	cfg, configPath, envConfig, err := utils.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
 
 	a.configFile = configPath
 
-	utils.ConfigureLog(&cfg.LogSettings)
-
 	a.config.Store(cfg)
+	a.envConfig = envConfig
 
 	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
 
@@ -86,13 +91,17 @@ func (a *App) ClientConfigHash() string {
 	return a.clientConfigHash
 }
 
+func (a *App) LimitedClientConfig() map[string]string {
+	return a.limitedClientConfig
+}
+
 func (a *App) EnableConfigWatch() {
 	if a.configWatcher == nil && !a.disableConfigWatch {
 		configWatcher, err := utils.NewConfigWatcher(a.ConfigFileName(), func() {
 			a.ReloadConfig()
 		})
 		if err != nil {
-			l4g.Error(err)
+			mlog.Error(fmt.Sprint(err))
 		}
 		a.configWatcher = configWatcher
 	}
@@ -206,10 +215,14 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
 		a.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
+
 	clientConfigJSON, _ := json.Marshal(a.clientConfig)
 	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
@@ -272,14 +285,30 @@ func (a *App) GetSiteURL() string {
 	return a.siteURL
 }
 
-// ClientConfigWithNoAccounts gets the configuration in a format suitable for sending to the client.
-func (a *App) ClientConfigWithNoAccounts() map[string]string {
+// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *App) ClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
 	for k, v := range a.ClientConfig() {
 		respCfg[k] = v
 	}
 
-	// NoAccounts is not actually part of the configuration, but is expected by the client.
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
+	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
+
+	return respCfg
+}
+
+// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *App) LimitedClientConfigWithComputed() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range a.LimitedClientConfig() {
+		respCfg[k] = v
+	}
+
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
 
 	return respCfg

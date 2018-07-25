@@ -4,10 +4,10 @@
 package app
 
 import (
-	l4g "github.com/alecthomas/log4go"
-
+	"fmt"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -55,7 +55,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			conn.WebSocket.Close()
 		} else {
 			wr.app.Go(func() {
-				wr.app.SetStatusOnline(session.UserId, session.Id, false)
+				wr.app.SetStatusOnline(session.UserId, false)
 				wr.app.UpdateLastActivityAtIfNeeded(*session)
 			})
 
@@ -91,7 +91,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 }
 
 func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
-	l4g.Error(utils.T("api.web_socket_router.log.error"), r.Seq, conn.UserId, err.SystemMessage(utils.T), err.DetailedError)
+	mlog.Error(fmt.Sprintf("websocket routing error: seq=%v uid=%v %v [details: %v]", r.Seq, conn.UserId, err.SystemMessage(utils.T), err.DetailedError))
 
 	err.DetailedError = ""
 	errorResp := model.NewWebSocketError(r.Seq, err)

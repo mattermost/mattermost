@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IngestGetPipelineService returns pipelines based on ID.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/get-pipeline-api.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/get-pipeline-api.html
 // for documentation.
 type IngestGetPipelineService struct {
 	client        *Client
@@ -68,7 +68,7 @@ func (s *IngestGetPipelineService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.masterTimeout != "" {
 		params.Set("master_timeout", s.masterTimeout)
@@ -95,11 +95,7 @@ func (s *IngestGetPipelineService) Do(ctx context.Context) (IngestGetPipelineRes
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

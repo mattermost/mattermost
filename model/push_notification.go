@@ -17,6 +17,7 @@ const (
 
 	PUSH_TYPE_MESSAGE = "message"
 	PUSH_TYPE_CLEAR   = "clear"
+	PUSH_MESSAGE_V2   = "v2"
 
 	// The category is set to handle a set of interactive Actions
 	// with the push notifications
@@ -44,6 +45,7 @@ type PushNotification struct {
 	OverrideUsername string `json:"override_username"`
 	OverrideIconUrl  string `json:"override_icon_url"`
 	FromWebhook      string `json:"from_webhook"`
+	Version          string `json:"version"`
 }
 
 func (me *PushNotification) ToJson() string {

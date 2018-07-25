@@ -45,6 +45,22 @@ func (_m *SystemStore) GetByName(name string) store.StoreChannel {
 	return r0
 }
 
+// PermanentDeleteByName provides a mock function with given fields: name
+func (_m *SystemStore) PermanentDeleteByName(name string) store.StoreChannel {
+	ret := _m.Called(name)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: system
 func (_m *SystemStore) Save(system *model.System) store.StoreChannel {
 	ret := _m.Called(system)

@@ -38,7 +38,7 @@ func (me *DndProvider) DoCommand(a *App, args *model.CommandArgs, message string
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_dnd.error")}
 	} else {
 		if status.Status == "dnd" {
-			a.SetStatusOnline(args.UserId, args.Session.Id, true)
+			a.SetStatusOnline(args.UserId, true)
 			return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_dnd.disabled")}
 		}
 	}

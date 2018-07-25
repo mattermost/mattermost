@@ -66,13 +66,13 @@ func (_m *PostStore) ClearCaches() {
 	_m.Called()
 }
 
-// Delete provides a mock function with given fields: postId, time
-func (_m *PostStore) Delete(postId string, time int64) store.StoreChannel {
-	ret := _m.Called(postId, time)
+// Delete provides a mock function with given fields: postId, time, deleteByID
+func (_m *PostStore) Delete(postId string, time int64, deleteByID string) store.StoreChannel {
+	ret := _m.Called(postId, time, deleteByID)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
-		r0 = rf(postId, time)
+	if rf, ok := ret.Get(0).(func(string, int64, string) store.StoreChannel); ok {
+		r0 = rf(postId, time, deleteByID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -153,6 +153,22 @@ func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, string, int, int) store.StoreChannel); ok {
 		r0 = rf(userId, teamId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetMaxPostSize provides a mock function with given fields:
+func (_m *PostStore) GetMaxPostSize() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

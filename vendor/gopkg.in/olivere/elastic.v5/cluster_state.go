@@ -10,12 +10,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // ClusterStateService allows to get a comprehensive state information of the whole cluster.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/cluster-state.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/cluster-state.html
 // for details.
 type ClusterStateService struct {
 	client            *Client
@@ -123,7 +123,7 @@ func (s *ClusterStateService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.allowNoIndices != nil {
 		params.Set("allow_no_indices", fmt.Sprintf("%v", *s.allowNoIndices))
@@ -165,11 +165,7 @@ func (s *ClusterStateService) Do(ctx context.Context) (*ClusterStateResponse, er
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -239,10 +235,10 @@ type clusterStateRoutingNode struct {
 }
 
 type indexTemplateMetaData struct {
-	IndexPatterns []string               `json:"index_patterns"` // e.g. ["store-*"]
-	Order         int                    `json:"order"`
-	Settings      map[string]interface{} `json:"settings"` // index settings
-	Mappings      map[string]interface{} `json:"mappings"` // type name -> mapping
+	Template string                 `json:"template"` // e.g. "store-*"
+	Order    int                    `json:"order"`
+	Settings map[string]interface{} `json:"settings"` // index settings
+	Mappings map[string]interface{} `json:"mappings"` // type name -> mapping
 }
 
 type indexMetaData struct {

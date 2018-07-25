@@ -8,7 +8,7 @@ package elastic
 // which improves the precision and recall of search results
 // (by taking stopwords into account), without sacrificing performance.
 // For more details, see:
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-common-terms-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/query-dsl-common-terms-query.html
 type CommonTermsQuery struct {
 	Query
 	name                       string
@@ -22,6 +22,7 @@ type CommonTermsQuery struct {
 	lowFreqMinimumShouldMatch  string
 	analyzer                   string
 	boost                      *float64
+	disableCoord               *bool
 	queryName                  string
 }
 
@@ -75,6 +76,11 @@ func (q *CommonTermsQuery) Boost(boost float64) *CommonTermsQuery {
 	return q
 }
 
+func (q *CommonTermsQuery) DisableCoord(disableCoord bool) *CommonTermsQuery {
+	q.disableCoord = &disableCoord
+	return q
+}
+
 func (q *CommonTermsQuery) QueryName(queryName string) *CommonTermsQuery {
 	q.queryName = queryName
 	return q
@@ -125,6 +131,9 @@ func (q *CommonTermsQuery) Source() (interface{}, error) {
 	}
 	if q.analyzer != "" {
 		query["analyzer"] = q.analyzer
+	}
+	if q.disableCoord != nil {
+		query["disable_coord"] = *q.disableCoord
 	}
 	if q.boost != nil {
 		query["boost"] = *q.boost

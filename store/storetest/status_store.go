@@ -4,7 +4,10 @@
 package storetest
 
 import (
+	"sort"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -13,6 +16,7 @@ import (
 func TestStatusStore(t *testing.T, ss store.Store) {
 	t.Run("", func(t *testing.T) { testStatusStore(t, ss) })
 	t.Run("ActiveUserCount", func(t *testing.T) { testActiveUserCount(t, ss) })
+	t.Run("GetAllFromTeam", func(t *testing.T) { testGetAllFromTeam(t, ss) })
 }
 
 func testStatusStore(t *testing.T, ss store.Store) {
@@ -102,5 +106,91 @@ func testActiveUserCount(t *testing.T, ss store.Store) {
 		if count <= 0 {
 			t.Fatal()
 		}
+	}
+}
+
+type ByUserId []*model.Status
+
+func (s ByUserId) Len() int           { return len(s) }
+func (s ByUserId) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s ByUserId) Less(i, j int) bool { return s[i].UserId < s[j].UserId }
+
+func testGetAllFromTeam(t *testing.T, ss store.Store) {
+	assertStatuses := func(expected, actual []*model.Status) {
+		sort.Sort(ByUserId(expected))
+		sort.Sort(ByUserId(actual))
+		assert.Equal(t, expected, actual)
+	}
+
+	team1 := model.Team{}
+	team1.DisplayName = model.NewId()
+	team1.Name = model.NewId()
+	team1.Email = model.NewId() + "@example.com"
+	team1.Type = model.TEAM_OPEN
+
+	if err := (<-ss.Team().Save(&team1)).Err; err != nil {
+		t.Fatal("couldn't save team", err)
+	}
+
+	team2 := model.Team{}
+	team2.DisplayName = model.NewId()
+	team2.Name = model.NewId()
+	team2.Email = model.NewId() + "@example.com"
+	team2.Type = model.TEAM_OPEN
+
+	if err := (<-ss.Team().Save(&team2)).Err; err != nil {
+		t.Fatal("couldn't save team", err)
+	}
+
+	team1Member1 := &model.TeamMember{TeamId: team1.Id, UserId: model.NewId()}
+	if response := <-ss.Team().SaveMember(team1Member1, -1); response.Err != nil {
+		t.Fatal(response.Err)
+	}
+	team1Member2 := &model.TeamMember{TeamId: team1.Id, UserId: model.NewId()}
+	if response := <-ss.Team().SaveMember(team1Member2, -1); response.Err != nil {
+		t.Fatal(response.Err)
+	}
+	team2Member1 := &model.TeamMember{TeamId: team2.Id, UserId: model.NewId()}
+	if response := <-ss.Team().SaveMember(team2Member1, -1); response.Err != nil {
+		t.Fatal(response.Err)
+	}
+	team2Member2 := &model.TeamMember{TeamId: team2.Id, UserId: model.NewId()}
+	if response := <-ss.Team().SaveMember(team2Member2, -1); response.Err != nil {
+		t.Fatal(response.Err)
+	}
+
+	team1Member1Status := &model.Status{UserId: team1Member1.UserId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	if err := (<-ss.Status().SaveOrUpdate(team1Member1Status)).Err; err != nil {
+		t.Fatal(err)
+	}
+	team1Member2Status := &model.Status{UserId: team1Member2.UserId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	if err := (<-ss.Status().SaveOrUpdate(team1Member2Status)).Err; err != nil {
+		t.Fatal(err)
+	}
+	team2Member1Status := &model.Status{UserId: team2Member1.UserId, Status: model.STATUS_ONLINE, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	if err := (<-ss.Status().SaveOrUpdate(team2Member1Status)).Err; err != nil {
+		t.Fatal(err)
+	}
+	team2Member2Status := &model.Status{UserId: team2Member2.UserId, Status: model.STATUS_OFFLINE, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	if err := (<-ss.Status().SaveOrUpdate(team2Member2Status)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if result := <-ss.Status().GetAllFromTeam(team1.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		assertStatuses([]*model.Status{
+			team1Member1Status,
+			team1Member2Status,
+		}, result.Data.([]*model.Status))
+	}
+
+	if result := <-ss.Status().GetAllFromTeam(team2.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		assertStatuses([]*model.Status{
+			team2Member1Status,
+			team2Member2Status,
+		}, result.Data.([]*model.Status))
 	}
 }

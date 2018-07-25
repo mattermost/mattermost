@@ -73,6 +73,7 @@ var StringToAlgorithm = reverseInt8(AlgorithmToString)
 // AlgorithmToHash is a map of algorithm crypto hash IDs to crypto.Hash's.
 var AlgorithmToHash = map[uint8]crypto.Hash{
 	RSAMD5:           crypto.MD5, // Deprecated in RFC 6725
+	DSA:              crypto.SHA1,
 	RSASHA1:          crypto.SHA1,
 	RSASHA1NSEC3SHA1: crypto.SHA1,
 	RSASHA256:        crypto.SHA256,
@@ -239,7 +240,7 @@ func (k *DNSKEY) ToDS(h uint8) *DS {
 // ToCDNSKEY converts a DNSKEY record to a CDNSKEY record.
 func (k *DNSKEY) ToCDNSKEY() *CDNSKEY {
 	c := &CDNSKEY{DNSKEY: *k}
-	c.Hdr = *k.Hdr.copyHeader()
+	c.Hdr = k.Hdr
 	c.Hdr.Rrtype = TypeCDNSKEY
 	return c
 }
@@ -247,7 +248,7 @@ func (k *DNSKEY) ToCDNSKEY() *CDNSKEY {
 // ToCDS converts a DS record to a CDS record.
 func (d *DS) ToCDS() *CDS {
 	c := &CDS{DS: *d}
-	c.Hdr = *d.Hdr.copyHeader()
+	c.Hdr = d.Hdr
 	c.Hdr.Rrtype = TypeCDS
 	return c
 }
@@ -541,20 +542,20 @@ func (k *DNSKEY) publicKeyRSA() *rsa.PublicKey {
 		explen = uint16(keybuf[1])<<8 | uint16(keybuf[2])
 		keyoff = 3
 	}
+	if explen > 4 {
+		// Larger exponent than supported by the crypto package.
+		return nil
+	}
 	pubkey := new(rsa.PublicKey)
 
 	pubkey.N = big.NewInt(0)
-	shift := uint64((explen - 1) * 8)
 	expo := uint64(0)
-	for i := int(explen - 1); i > 0; i-- {
-		expo += uint64(keybuf[keyoff+i]) << shift
-		shift -= 8
+	for i := 0; i < int(explen); i++ {
+		expo <<= 8
+		expo |= uint64(keybuf[keyoff+i])
 	}
-	// Remainder
-	expo += uint64(keybuf[keyoff])
-	if expo > (2<<31)+1 {
-		// Larger expo than supported.
-		// println("dns: F5 primes (or larger) are not supported")
+	if expo > 1<<31-1 {
+		// Larger exponent than supported by the crypto package.
 		return nil
 	}
 	pubkey.E = int(expo)

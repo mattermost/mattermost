@@ -13,7 +13,7 @@ func Inspect(markdown string, f func(interface{}) bool) {
 		}
 		switch v := block.(type) {
 		case *Paragraph:
-			for _, inline := range v.ParseInlines(referenceDefinitions) {
+			for _, inline := range MergeInlineText(v.ParseInlines(referenceDefinitions)) {
 				InspectInline(inline, func(inline Inline) bool {
 					return f(inline)
 				})

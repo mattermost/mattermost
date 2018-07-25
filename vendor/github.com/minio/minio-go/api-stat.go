@@ -66,6 +66,9 @@ var defaultFilterKeys = []string{
 	"x-amz-bucket-region",
 	"x-amz-request-id",
 	"x-amz-id-2",
+	"Content-Security-Policy",
+	"X-Xss-Protection",
+
 	// Add new headers to be ignored.
 }
 
@@ -115,7 +118,7 @@ func (c Client) statObject(ctx context.Context, bucketName, objectName string, o
 		return ObjectInfo{}, err
 	}
 	if resp != nil {
-		if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusPartialContent {
 			return ObjectInfo{}, httpRespToErrorResponse(resp, bucketName, objectName)
 		}
 	}

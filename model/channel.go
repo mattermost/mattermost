@@ -32,20 +32,22 @@ const (
 )
 
 type Channel struct {
-	Id            string `json:"id"`
-	CreateAt      int64  `json:"create_at"`
-	UpdateAt      int64  `json:"update_at"`
-	DeleteAt      int64  `json:"delete_at"`
-	TeamId        string `json:"team_id"`
-	Type          string `json:"type"`
-	DisplayName   string `json:"display_name"`
-	Name          string `json:"name"`
-	Header        string `json:"header"`
-	Purpose       string `json:"purpose"`
-	LastPostAt    int64  `json:"last_post_at"`
-	TotalMsgCount int64  `json:"total_msg_count"`
-	ExtraUpdateAt int64  `json:"extra_update_at"`
-	CreatorId     string `json:"creator_id"`
+	Id            string                 `json:"id"`
+	CreateAt      int64                  `json:"create_at"`
+	UpdateAt      int64                  `json:"update_at"`
+	DeleteAt      int64                  `json:"delete_at"`
+	TeamId        string                 `json:"team_id"`
+	Type          string                 `json:"type"`
+	DisplayName   string                 `json:"display_name"`
+	Name          string                 `json:"name"`
+	Header        string                 `json:"header"`
+	Purpose       string                 `json:"purpose"`
+	LastPostAt    int64                  `json:"last_post_at"`
+	TotalMsgCount int64                  `json:"total_msg_count"`
+	ExtraUpdateAt int64                  `json:"extra_update_at"`
+	CreatorId     string                 `json:"creator_id"`
+	SchemeId      *string                `json:"scheme_id"`
+	Props         map[string]interface{} `json:"props" db:"-"`
 }
 
 type ChannelPatch struct {
@@ -133,15 +135,11 @@ func (o *Channel) PreSave() {
 
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
-	o.ExtraUpdateAt = o.CreateAt
+	o.ExtraUpdateAt = 0
 }
 
 func (o *Channel) PreUpdate() {
 	o.UpdateAt = GetMillis()
-}
-
-func (o *Channel) ExtraUpdated() {
-	o.ExtraUpdateAt = GetMillis()
 }
 
 func (o *Channel) IsGroupOrDirect() bool {
@@ -164,6 +162,18 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.Purpose != nil {
 		o.Purpose = *patch.Purpose
 	}
+}
+
+func (o *Channel) MakeNonNil() {
+	if o.Props == nil {
+		o.Props = make(map[string]interface{})
+	}
+}
+
+func (o *Channel) AddProp(key string, value interface{}) {
+	o.MakeNonNil()
+
+	o.Props[key] = value
 }
 
 func GetDMNameFromIds(userId1, userId2 string) string {

@@ -6,8 +6,6 @@ package store
 import (
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -32,7 +30,7 @@ func Do(f func(result *StoreResult)) StoreChannel {
 func Must(sc StoreChannel) interface{} {
 	r := <-sc
 	if r.Err != nil {
-		l4g.Close()
+
 		time.Sleep(time.Second)
 		panic(r.Err)
 	}
@@ -61,12 +59,16 @@ type Store interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
+	Role() RoleStore
+	Scheme() SchemeStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
 	MarkSystemRanUnitTests()
 	Close()
+	LockToMaster()
+	UnlockFromMaster()
 	DropAllTables()
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
@@ -104,6 +106,10 @@ type TeamStore interface {
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) StoreChannel
+	GetTeamsByScheme(schemeId string, offset int, limit int) StoreChannel
+	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
+	ResetAllTeamSchemes() StoreChannel
+	ClearAllCustomRoleAssignments() StoreChannel
 }
 
 type ChannelStore interface {
@@ -161,6 +167,10 @@ type ChannelStore interface {
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
 	ClearCaches()
+	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
+	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
+	ResetAllChannelSchemes() StoreChannel
+	ClearAllCustomRoleAssignments() StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -175,7 +185,7 @@ type PostStore interface {
 	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
 	Get(id string) StoreChannel
 	GetSingle(id string) StoreChannel
-	Delete(postId string, time int64) StoreChannel
+	Delete(postId string, time int64, deleteByID string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	PermanentDeleteByChannel(channelId string) StoreChannel
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
@@ -198,6 +208,7 @@ type PostStore interface {
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
+	GetMaxPostSize() StoreChannel
 }
 
 type UserStore interface {
@@ -228,7 +239,7 @@ type UserStore interface {
 	GetByAuth(authData *string, authService string) StoreChannel
 	GetAllUsingAuthService(authService string) StoreChannel
 	GetByUsername(username string) StoreChannel
-	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled bool) StoreChannel
+	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
@@ -251,6 +262,7 @@ type UserStore interface {
 	AnalyticsGetSystemAdminCount() StoreChannel
 	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
+	ClearAllCustomRoleAssignments() StoreChannel
 }
 
 type SessionStore interface {
@@ -320,6 +332,7 @@ type SystemStore interface {
 	Update(system *model.System) StoreChannel
 	Get() StoreChannel
 	GetByName(name string) StoreChannel
+	PermanentDeleteByName(name string) StoreChannel
 }
 
 type WebhookStore interface {
@@ -419,11 +432,13 @@ type FileInfoStore interface {
 	Get(id string) StoreChannel
 	GetByPath(path string) StoreChannel
 	GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel
+	GetForUser(userId string) StoreChannel
 	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
 	PermanentDelete(fileId string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	PermanentDeleteByUser(userId string) StoreChannel
 	ClearCaches()
 }
 
@@ -467,4 +482,22 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+}
+
+type RoleStore interface {
+	Save(role *model.Role) StoreChannel
+	Get(roleId string) StoreChannel
+	GetByName(name string) StoreChannel
+	GetByNames(names []string) StoreChannel
+	Delete(roldId string) StoreChannel
+	PermanentDeleteAll() StoreChannel
+}
+
+type SchemeStore interface {
+	Save(scheme *model.Scheme) StoreChannel
+	Get(schemeId string) StoreChannel
+	GetByName(schemeName string) StoreChannel
+	GetAllPage(scope string, offset int, limit int) StoreChannel
+	Delete(schemeId string) StoreChannel
+	PermanentDeleteAll() StoreChannel
 }

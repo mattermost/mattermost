@@ -21,8 +21,6 @@ import (
 	"context"
 	"io"
 	"strings"
-
-	"github.com/minio/minio-go/pkg/policy"
 )
 
 // Core - Inherits Client and adds new methods to expose the low level S3 APIs.
@@ -50,9 +48,9 @@ func (c Core) ListObjects(bucket, prefix, marker, delimiter string, maxKeys int)
 }
 
 // ListObjectsV2 - Lists all the objects at a prefix, similar to ListObjects() but uses
-// continuationToken instead of marker to further filter the results.
-func (c Core) ListObjectsV2(bucketName, objectPrefix, continuationToken string, fetchOwner bool, delimiter string, maxkeys int) (ListBucketV2Result, error) {
-	return c.listObjectsV2Query(bucketName, objectPrefix, continuationToken, fetchOwner, delimiter, maxkeys)
+// continuationToken instead of marker to support iteration over the results.
+func (c Core) ListObjectsV2(bucketName, objectPrefix, continuationToken string, fetchOwner bool, delimiter string, maxkeys int, startAfter string) (ListBucketV2Result, error) {
+	return c.listObjectsV2Query(bucketName, objectPrefix, continuationToken, fetchOwner, delimiter, maxkeys, startAfter)
 }
 
 // CopyObject - copies an object from source object to destination object on server side.
@@ -78,10 +76,14 @@ func (c Core) PutObject(bucket, object string, data io.Reader, size int64, md5Ba
 			opts.ContentEncoding = v
 		} else if strings.ToLower(k) == "content-disposition" {
 			opts.ContentDisposition = v
+		} else if strings.ToLower(k) == "content-language" {
+			opts.ContentLanguage = v
 		} else if strings.ToLower(k) == "content-type" {
 			opts.ContentType = v
 		} else if strings.ToLower(k) == "cache-control" {
 			opts.CacheControl = v
+		} else if strings.ToLower(k) == strings.ToLower(amzWebsiteRedirectLocation) {
+			opts.WebsiteRedirectLocation = v
 		} else {
 			m[k] = metadata[k]
 		}
@@ -103,13 +105,7 @@ func (c Core) ListMultipartUploads(bucket, prefix, keyMarker, uploadIDMarker, de
 
 // PutObjectPart - Upload an object part.
 func (c Core) PutObjectPart(bucket, object, uploadID string, partID int, data io.Reader, size int64, md5Base64, sha256Hex string) (ObjectPart, error) {
-	return c.PutObjectPartWithMetadata(bucket, object, uploadID, partID, data, size, md5Base64, sha256Hex, nil)
-}
-
-// PutObjectPartWithMetadata - upload an object part with additional request metadata.
-func (c Core) PutObjectPartWithMetadata(bucket, object, uploadID string, partID int, data io.Reader,
-	size int64, md5Base64, sha256Hex string, metadata map[string]string) (ObjectPart, error) {
-	return c.uploadPart(context.Background(), bucket, object, uploadID, data, partID, md5Base64, sha256Hex, size, metadata)
+	return c.uploadPart(context.Background(), bucket, object, uploadID, data, partID, md5Base64, sha256Hex, size, nil)
 }
 
 // ListObjectParts - List uploaded parts of an incomplete upload.x
@@ -131,12 +127,12 @@ func (c Core) AbortMultipartUpload(bucket, object, uploadID string) error {
 }
 
 // GetBucketPolicy - fetches bucket access policy for a given bucket.
-func (c Core) GetBucketPolicy(bucket string) (policy.BucketAccessPolicy, error) {
+func (c Core) GetBucketPolicy(bucket string) (string, error) {
 	return c.getBucketPolicy(bucket)
 }
 
 // PutBucketPolicy - applies a new bucket access policy for a given bucket.
-func (c Core) PutBucketPolicy(bucket string, bucketPolicy policy.BucketAccessPolicy) error {
+func (c Core) PutBucketPolicy(bucket, bucketPolicy string) error {
 	return c.putBucketPolicy(bucket, bucketPolicy)
 }
 

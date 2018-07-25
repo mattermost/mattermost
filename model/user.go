@@ -22,7 +22,6 @@ const (
 	USER_NOTIFY_NONE             = "none"
 	DESKTOP_NOTIFY_PROP          = "desktop"
 	DESKTOP_SOUND_NOTIFY_PROP    = "desktop_sound"
-	DESKTOP_DURATION_NOTIFY_PROP = "desktop_duration"
 	MARK_UNREAD_NOTIFY_PROP      = "mark_unread"
 	PUSH_NOTIFY_PROP             = "push"
 	PUSH_STATUS_NOTIFY_PROP      = "push_status"
@@ -71,6 +70,7 @@ type User struct {
 	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
 	FailedAttempts     int       `json:"failed_attempts,omitempty"`
 	Locale             string    `json:"locale"`
+	Timezone           StringMap `json:"timezone"`
 	MfaActive          bool      `json:"mfa_active,omitempty"`
 	MfaSecret          string    `json:"mfa_secret,omitempty"`
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
@@ -86,12 +86,30 @@ type UserPatch struct {
 	Props       StringMap `json:"props,omitempty"`
 	NotifyProps StringMap `json:"notify_props,omitempty"`
 	Locale      *string   `json:"locale"`
+	Timezone    StringMap `json:"timezone"`
 }
 
 type UserAuth struct {
 	Password    string  `json:"password,omitempty"`
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
+}
+
+func (u *User) DeepCopy() *User {
+	copyUser := *u
+	if u.AuthData != nil {
+		copyUser.AuthData = NewString(*u.AuthData)
+	}
+	if u.Props != nil {
+		copyUser.Props = CopyStringMap(u.Props)
+	}
+	if u.NotifyProps != nil {
+		copyUser.NotifyProps = CopyStringMap(u.NotifyProps)
+	}
+	if u.Timezone != nil {
+		copyUser.Timezone = CopyStringMap(u.Timezone)
+	}
+	return &copyUser
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -208,6 +226,10 @@ func (u *User) PreSave() {
 		u.SetDefaultNotifications()
 	}
 
+	if u.Timezone == nil {
+		u.Timezone = DefaultUserTimezone()
+	}
+
 	if len(u.Password) > 0 {
 		u.Password = HashPassword(u.Password)
 	}
@@ -302,6 +324,10 @@ func (u *User) Patch(patch *UserPatch) {
 	if patch.Locale != nil {
 		u.Locale = *patch.Locale
 	}
+
+	if patch.Timezone != nil {
+		u.Timezone = patch.Timezone
+	}
 }
 
 // ToJson convert a User to a json string
@@ -380,11 +406,11 @@ func (u *User) AddNotifyProp(key string, value string) {
 }
 
 func (u *User) GetFullName() string {
-	if u.FirstName != "" && u.LastName != "" {
+	if len(u.FirstName) > 0 && len(u.LastName) > 0 {
 		return u.FirstName + " " + u.LastName
-	} else if u.FirstName != "" {
+	} else if len(u.FirstName) > 0 {
 		return u.FirstName
-	} else if u.LastName != "" {
+	} else if len(u.LastName) > 0 {
 		return u.LastName
 	} else {
 		return ""
@@ -395,13 +421,13 @@ func (u *User) GetDisplayName(nameFormat string) string {
 	displayName := u.Username
 
 	if nameFormat == SHOW_NICKNAME_FULLNAME {
-		if u.Nickname != "" {
+		if len(u.Nickname) > 0 {
 			displayName = u.Nickname
-		} else if fullName := u.GetFullName(); fullName != "" {
+		} else if fullName := u.GetFullName(); len(fullName) > 0 {
 			displayName = fullName
 		}
 	} else if nameFormat == SHOW_FULLNAME {
-		if fullName := u.GetFullName(); fullName != "" {
+		if fullName := u.GetFullName(); len(fullName) > 0 {
 			displayName = fullName
 		}
 	}
@@ -422,7 +448,7 @@ func IsValidUserRoles(userRoles string) bool {
 	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {
-		if !isValidRole(r) {
+		if !IsValidRoleName(r) {
 			return false
 		}
 	}
@@ -433,11 +459,6 @@ func IsValidUserRoles(userRoles string) bool {
 	}
 
 	return true
-}
-
-func isValidRole(roleId string) bool {
-	_, ok := DefaultRoles[roleId]
-	return ok
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions
@@ -474,6 +495,14 @@ func (u *User) IsLDAPUser() bool {
 
 func (u *User) IsSAMLUser() bool {
 	return u.AuthService == USER_AUTH_SERVICE_SAML
+}
+
+func (u *User) GetPreferredTimezone() string {
+	if u.Timezone["useAutomaticTimezone"] == "true" {
+		return u.Timezone["automaticTimezone"]
+	}
+
+	return u.Timezone["manualTimezone"]
 }
 
 // UserFromJson will decode the input and return a User
@@ -544,6 +573,7 @@ var restrictedUsernames = []string{
 	"all",
 	"channel",
 	"matterbot",
+	"system",
 }
 
 func IsValidUsername(s string) bool {

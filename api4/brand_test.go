@@ -34,11 +34,8 @@ func TestUploadBrandImage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ok, resp := Client.UploadBrandImage(data)
+	_, resp := Client.UploadBrandImage(data)
 	CheckForbiddenStatus(t, resp)
-	if ok {
-		t.Fatal("Should return false, set brand image not allowed")
-	}
 
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetProfileImage when request is terminated early by server
@@ -53,5 +50,5 @@ func TestUploadBrandImage(t *testing.T) {
 	}
 
 	_, resp = th.SystemAdminClient.UploadBrandImage(data)
-	CheckNotImplementedStatus(t, resp)
+	CheckCreatedStatus(t, resp)
 }

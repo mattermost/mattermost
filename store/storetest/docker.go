@@ -12,8 +12,7 @@ import (
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -31,7 +30,7 @@ type RunningContainer struct {
 }
 
 func (c *RunningContainer) Stop() error {
-	l4g.Info("Removing container: %v", c.Id)
+	mlog.Info(fmt.Sprintf("Removing container: %v", c.Id))
 	return exec.Command("docker", "rm", "-f", c.Id).Run()
 }
 
@@ -47,7 +46,7 @@ func NewMySQLContainer() (*RunningContainer, *model.SqlSettings, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	l4g.Info("Waiting for mysql connectivity")
+	mlog.Info("Waiting for mysql connectivity")
 	port := container.NetworkSettings.Ports["3306/tcp"][0].HostPort
 	if err := waitForPort(port); err != nil {
 		container.Stop()
@@ -66,7 +65,7 @@ func NewPostgreSQLContainer() (*RunningContainer, *model.SqlSettings, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	l4g.Info("Waiting for postgres connectivity")
+	mlog.Info("Waiting for postgres connectivity")
 	port := container.NetworkSettings.Ports["5432/tcp"][0].HostPort
 	if err := waitForPort(port); err != nil {
 		container.Stop()
@@ -77,17 +76,19 @@ func NewPostgreSQLContainer() (*RunningContainer, *model.SqlSettings, error) {
 
 func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	settings := &model.SqlSettings{
-		DriverName:               &driver,
-		DataSource:               &dataSource,
-		DataSourceReplicas:       []string{},
-		DataSourceSearchReplicas: []string{},
-		MaxIdleConns:             new(int),
-		MaxOpenConns:             new(int),
-		Trace:                    false,
-		AtRestEncryptKey:         model.NewRandomString(32),
-		QueryTimeout:             new(int),
+		DriverName:                  &driver,
+		DataSource:                  &dataSource,
+		DataSourceReplicas:          []string{},
+		DataSourceSearchReplicas:    []string{},
+		MaxIdleConns:                new(int),
+		ConnMaxLifetimeMilliseconds: new(int),
+		MaxOpenConns:                new(int),
+		Trace:                       false,
+		AtRestEncryptKey:            model.NewRandomString(32),
+		QueryTimeout:                new(int),
 	}
 	*settings.MaxIdleConns = 10
+	*settings.ConnMaxLifetimeMilliseconds = 3600000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 10
 	return settings
@@ -111,7 +112,7 @@ func runContainer(args []string) (*RunningContainer, error) {
 		exec.Command("docker", "rm", "-f", id).Run()
 		return nil, err
 	}
-	l4g.Info("Running container: %v", id)
+	mlog.Info(fmt.Sprintf("Running container: %v", id))
 	return &RunningContainer{containers[0]}, nil
 }
 

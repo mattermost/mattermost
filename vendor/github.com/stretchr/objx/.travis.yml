@@ -1,9 +1,8 @@
 language: go
 go:
-  - 1.6
-  - 1.7
   - 1.8
   - 1.9
+  - tip
 
 env:
   global:
@@ -15,14 +14,12 @@ before_script:
   - ./cc-test-reporter before-build
 
 install:
-  - wget https://github.com/go-task/task/releases/download/v1.4.4/task_linux_amd64.tar.gz
-  - tar xf task_linux_amd64.tar.gz
-  - mv task $HOME/gopath/bin
+- go get github.com/go-task/task/cmd/task
 
 script:
-  - task dl-deps
-  - task lint
-  - task test-coverage
+- task dl-deps
+- task lint
+- task test-coverage
 
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

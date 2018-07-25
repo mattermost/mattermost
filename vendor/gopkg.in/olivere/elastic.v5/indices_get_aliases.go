@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // AliasesService returns the aliases associated with one or more indices.
@@ -47,11 +47,11 @@ func (s *AliasesService) buildURL() (string, url.Values, error) {
 	var path string
 
 	if len(s.index) > 0 {
-		path, err = uritemplates.Expand("/{index}/_alias", map[string]string{
+		path, err = uritemplates.Expand("/{index}/_aliases", map[string]string{
 			"index": strings.Join(s.index, ","),
 		})
 	} else {
-		path = "/_alias"
+		path = "/_aliases"
 	}
 	if err != nil {
 		return "", url.Values{}, err
@@ -72,11 +72,7 @@ func (s *AliasesService) Do(ctx context.Context) (*AliasesResult, error) {
 	}
 
 	// Get response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}

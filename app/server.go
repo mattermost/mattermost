@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -14,12 +15,12 @@ import (
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -28,10 +29,17 @@ import (
 type Server struct {
 	Store           store.Store
 	WebSocketRouter *WebSocketRouter
-	Router          *mux.Router
-	Server          *http.Server
-	ListenAddr      *net.TCPAddr
-	RateLimiter     *RateLimiter
+
+	// RootRouter is the starting point for all HTTP requests to the server.
+	RootRouter *mux.Router
+
+	// Router is the starting point for all web, api4 and ws requests to the server. It differs
+	// from RootRouter only if the SiteURL contains a /subpath.
+	Router *mux.Router
+
+	Server      *http.Server
+	ListenAddr  *net.TCPAddr
+	RateLimiter *RateLimiter
 
 	didFinishListen chan struct{}
 }
@@ -49,8 +57,8 @@ type RecoveryLogger struct {
 }
 
 func (rl *RecoveryLogger) Println(i ...interface{}) {
-	l4g.Error("Please check the std error output for the stack trace")
-	l4g.Error(i)
+	mlog.Error("Please check the std error output for the stack trace")
+	mlog.Error(fmt.Sprint(i))
 }
 
 type CorsWrapper struct {
@@ -84,24 +92,32 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
-func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
-	if r.Host == "" {
-		http.Error(w, "Not Found", http.StatusNotFound)
+// golang.org/x/crypto/acme/autocert/autocert.go
+func handleHTTPRedirect(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" && r.Method != "HEAD" {
+		http.Error(w, "Use HTTPS", http.StatusBadRequest)
+		return
 	}
+	target := "https://" + stripPort(r.Host) + r.URL.RequestURI()
+	http.Redirect(w, r, target, http.StatusFound)
+}
 
-	url := r.URL
-	url.Host = r.Host
-	url.Scheme = "https"
-	http.Redirect(w, r, url.String(), http.StatusFound)
+// golang.org/x/crypto/acme/autocert/autocert.go
+func stripPort(hostport string) string {
+	host, _, err := net.SplitHostPort(hostport)
+	if err != nil {
+		return hostport
+	}
+	return net.JoinHostPort(host, "443")
 }
 
 func (a *App) StartServer() error {
-	l4g.Info(utils.T("api.server.start_server.starting.info"))
+	mlog.Info("Starting Server...")
 
-	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.Router}
+	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.RootRouter}
 
 	if *a.Config().RateLimitSettings.Enable {
-		l4g.Info(utils.T("api.server.start_server.rate.info"))
+		mlog.Info("RateLimiter is enabled")
 
 		rateLimiter, err := NewRateLimiter(&a.Config().RateLimitSettings)
 		if err != nil {
@@ -116,6 +132,7 @@ func (a *App) StartServer() error {
 		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
 		ReadTimeout:  time.Duration(*a.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*a.Config().ServiceSettings.WriteTimeout) * time.Second,
+		ErrorLog:     a.Log.StdLog(mlog.String("source", "httpserver")),
 	}
 
 	addr := *a.Config().ServiceSettings.ListenAddress
@@ -134,7 +151,7 @@ func (a *App) StartServer() error {
 	}
 	a.Srv.ListenAddr = listener.Addr().(*net.TCPAddr)
 
-	l4g.Info(utils.T("api.server.start_server.listening.info"), listener.Addr().String())
+	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
 
 	// Migration from old let's encrypt library
 	if *a.Config().ServiceSettings.UseLetsEncrypt {
@@ -149,26 +166,39 @@ func (a *App) StartServer() error {
 	}
 
 	if *a.Config().ServiceSettings.Forward80To443 {
-		if host, _, err := net.SplitHostPort(addr); err != nil {
-			l4g.Error("Unable to setup forwarding: " + err.Error())
+		if host, port, err := net.SplitHostPort(addr); err != nil {
+			mlog.Error("Unable to setup forwarding: " + err.Error())
+		} else if port != "443" {
+			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
 			httpListenAddress := net.JoinHostPort(host, "http")
 
 			if *a.Config().ServiceSettings.UseLetsEncrypt {
-				go http.ListenAndServe(httpListenAddress, m.HTTPHandler(nil))
+				server := &http.Server{
+					Addr:     httpListenAddress,
+					Handler:  m.HTTPHandler(nil),
+					ErrorLog: a.Log.StdLog(mlog.String("source", "le_forwarder_server")),
+				}
+				go server.ListenAndServe()
 			} else {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
-						l4g.Error("Unable to setup forwarding: " + err.Error())
+						mlog.Error("Unable to setup forwarding: " + err.Error())
 						return
 					}
 					defer redirectListener.Close()
 
-					http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
+					server := &http.Server{
+						Handler:  http.HandlerFunc(handleHTTPRedirect),
+						ErrorLog: a.Log.StdLog(mlog.String("source", "forwarder_server")),
+					}
+					server.Serve(redirectListener)
 				}()
 			}
 		}
+	} else if *a.Config().ServiceSettings.UseLetsEncrypt {
+		return errors.New(utils.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
 	}
 
 	a.Srv.didFinishListen = make(chan struct{})
@@ -192,7 +222,7 @@ func (a *App) StartServer() error {
 			err = a.Srv.Server.Serve(listener)
 		}
 		if err != nil && err != http.ErrServerClosed {
-			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
+			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
 			time.Sleep(time.Second)
 		}
 		close(a.Srv.didFinishListen)
@@ -208,7 +238,7 @@ func (a *App) StopServer() {
 		didShutdown := false
 		for a.Srv.didFinishListen != nil && !didShutdown {
 			if err := a.Srv.Server.Shutdown(ctx); err != nil {
-				l4g.Warn(err.Error())
+				mlog.Warn(err.Error())
 			}
 			timer := time.NewTimer(time.Millisecond * 50)
 			select {

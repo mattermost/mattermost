@@ -1,15 +1,11 @@
-// Package imaging provides basic image manipulation functions (resize, rotate, flip, crop, etc.).
-// This package is based on the standard Go image package and works best along with it.
-//
-// Image manipulation functions provided by the package take any image type
-// that implements `image.Image` interface as an input, and return a new image of
-// `*image.NRGBA` type (32bit RGBA colors, not premultiplied by alpha).
 package imaging
 
 import (
+	"bytes"
 	"errors"
 	"image"
 	"image/color"
+	"image/draw"
 	"image/gif"
 	"image/jpeg"
 	"image/png"
@@ -51,37 +47,73 @@ func (f Format) String() string {
 	}
 }
 
+var formatFromExt = map[string]Format{
+	".jpg":  JPEG,
+	".jpeg": JPEG,
+	".png":  PNG,
+	".tif":  TIFF,
+	".tiff": TIFF,
+	".bmp":  BMP,
+	".gif":  GIF,
+}
+
+// FormatFromFilename parses image format from filename extension:
+// "jpg" (or "jpeg"), "png", "gif", "tif" (or "tiff") and "bmp" are supported.
+func FormatFromFilename(filename string) (Format, error) {
+	ext := strings.ToLower(filepath.Ext(filename))
+	if f, ok := formatFromExt[ext]; ok {
+		return f, nil
+	}
+	return -1, ErrUnsupportedFormat
+}
+
 var (
 	// ErrUnsupportedFormat means the given image format (or file extension) is unsupported.
 	ErrUnsupportedFormat = errors.New("imaging: unsupported image format")
 )
 
+type fileSystem interface {
+	Create(string) (io.WriteCloser, error)
+	Open(string) (io.ReadCloser, error)
+}
+
+type localFS struct{}
+
+func (localFS) Create(name string) (io.WriteCloser, error) { return os.Create(name) }
+func (localFS) Open(name string) (io.ReadCloser, error)    { return os.Open(name) }
+
+var fs fileSystem = localFS{}
+
 // Decode reads an image from r.
 func Decode(r io.Reader) (image.Image, error) {
 	img, _, err := image.Decode(r)
-	if err != nil {
-		return nil, err
-	}
-	return toNRGBA(img), nil
+	return img, err
 }
 
 // Open loads an image from file
 func Open(filename string) (image.Image, error) {
-	file, err := os.Open(filename)
+	file, err := fs.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	img, err := Decode(file)
-	return img, err
+	return Decode(file)
 }
 
 type encodeConfig struct {
-	jpegQuality int
+	jpegQuality         int
+	gifNumColors        int
+	gifQuantizer        draw.Quantizer
+	gifDrawer           draw.Drawer
+	pngCompressionLevel png.CompressionLevel
 }
 
 var defaultEncodeConfig = encodeConfig{
-	jpegQuality: 95,
+	jpegQuality:         95,
+	gifNumColors:        256,
+	gifQuantizer:        nil,
+	gifDrawer:           nil,
+	pngCompressionLevel: png.DefaultCompression,
 }
 
 // EncodeOption sets an optional parameter for the Encode and Save functions.
@@ -92,6 +124,38 @@ type EncodeOption func(*encodeConfig)
 func JPEGQuality(quality int) EncodeOption {
 	return func(c *encodeConfig) {
 		c.jpegQuality = quality
+	}
+}
+
+// GIFNumColors returns an EncodeOption that sets the maximum number of colors
+// used in the GIF-encoded image. It ranges from 1 to 256.  Default is 256.
+func GIFNumColors(numColors int) EncodeOption {
+	return func(c *encodeConfig) {
+		c.gifNumColors = numColors
+	}
+}
+
+// GIFQuantizer returns an EncodeOption that sets the quantizer that is used to produce
+// a palette of the GIF-encoded image.
+func GIFQuantizer(quantizer draw.Quantizer) EncodeOption {
+	return func(c *encodeConfig) {
+		c.gifQuantizer = quantizer
+	}
+}
+
+// GIFDrawer returns an EncodeOption that sets the drawer that is used to convert
+// the source image to the desired palette of the GIF-encoded image.
+func GIFDrawer(drawer draw.Drawer) EncodeOption {
+	return func(c *encodeConfig) {
+		c.gifDrawer = drawer
+	}
+}
+
+// PNGCompressionLevel returns an EncodeOption that sets the compression level
+// of the PNG-encoded image. Default is png.DefaultCompression.
+func PNGCompressionLevel(level png.CompressionLevel) EncodeOption {
+	return func(c *encodeConfig) {
+		c.pngCompressionLevel = level
 	}
 }
 
@@ -122,13 +186,22 @@ func Encode(w io.Writer, img image.Image, format Format, opts ...EncodeOption) e
 		}
 
 	case PNG:
-		err = png.Encode(w, img)
+		enc := png.Encoder{CompressionLevel: cfg.pngCompressionLevel}
+		err = enc.Encode(w, img)
+
 	case GIF:
-		err = gif.Encode(w, img, &gif.Options{NumColors: 256})
+		err = gif.Encode(w, img, &gif.Options{
+			NumColors: cfg.gifNumColors,
+			Quantizer: cfg.gifQuantizer,
+			Drawer:    cfg.gifDrawer,
+		})
+
 	case TIFF:
 		err = tiff.Encode(w, img, &tiff.Options{Compression: tiff.Deflate, Predictor: true})
+
 	case BMP:
 		err = bmp.Encode(w, img)
+
 	default:
 		err = ErrUnsupportedFormat
 	}
@@ -147,27 +220,21 @@ func Encode(w io.Writer, img image.Image, format Format, opts ...EncodeOption) e
 //	err := imaging.Save(img, "out.jpg", imaging.JPEGQuality(80))
 //
 func Save(img image.Image, filename string, opts ...EncodeOption) (err error) {
-	formats := map[string]Format{
-		".jpg":  JPEG,
-		".jpeg": JPEG,
-		".png":  PNG,
-		".tif":  TIFF,
-		".tiff": TIFF,
-		".bmp":  BMP,
-		".gif":  GIF,
-	}
-
-	ext := strings.ToLower(filepath.Ext(filename))
-	f, ok := formats[ext]
-	if !ok {
-		return ErrUnsupportedFormat
-	}
-
-	file, err := os.Create(filename)
+	f, err := FormatFromFilename(filename)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	file, err := fs.Create(filename)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		cerr := file.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
 
 	return Encode(file, img, f, opts...)
 }
@@ -178,23 +245,28 @@ func New(width, height int, fillColor color.Color) *image.NRGBA {
 		return &image.NRGBA{}
 	}
 
-	dst := image.NewNRGBA(image.Rect(0, 0, width, height))
 	c := color.NRGBAModel.Convert(fillColor).(color.NRGBA)
-
-	if c.R == 0 && c.G == 0 && c.B == 0 && c.A == 0 {
-		return dst
+	if (c == color.NRGBA{0, 0, 0, 0}) {
+		return image.NewNRGBA(image.Rect(0, 0, width, height))
 	}
 
-	cs := []uint8{c.R, c.G, c.B, c.A}
-
-	// fill the first row
-	for x := 0; x < width; x++ {
-		copy(dst.Pix[x*4:(x+1)*4], cs)
+	return &image.NRGBA{
+		Pix:    bytes.Repeat([]byte{c.R, c.G, c.B, c.A}, width*height),
+		Stride: 4 * width,
+		Rect:   image.Rect(0, 0, width, height),
 	}
-	// copy the first row to other rows
-	for y := 1; y < height; y++ {
-		copy(dst.Pix[y*dst.Stride:y*dst.Stride+width*4], dst.Pix[0:width*4])
-	}
+}
 
+// Clone returns a copy of the given image.
+func Clone(img image.Image) *image.NRGBA {
+	src := newScanner(img)
+	dst := image.NewNRGBA(image.Rect(0, 0, src.w, src.h))
+	size := src.w * 4
+	parallel(0, src.h, func(ys <-chan int) {
+		for y := range ys {
+			i := y * dst.Stride
+			src.scan(0, y, src.w, y+1, dst.Pix[i:i+size])
+		}
+	})
 	return dst
 }

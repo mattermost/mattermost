@@ -97,50 +97,12 @@ func MustFromJSON(jsonString string) Map {
 //
 // Returns an error if the JSON is invalid.
 func FromJSON(jsonString string) (Map, error) {
-	var m Map
-	err := json.Unmarshal([]byte(jsonString), &m)
+	var data interface{}
+	err := json.Unmarshal([]byte(jsonString), &data)
 	if err != nil {
 		return Nil, err
 	}
-	m.tryConvertFloat64()
-	return m, nil
-}
-
-func (m Map) tryConvertFloat64() {
-	for k, v := range m {
-		switch v.(type) {
-		case float64:
-			f := v.(float64)
-			if float64(int(f)) == f {
-				m[k] = int(f)
-			}
-		case map[string]interface{}:
-			t := New(v)
-			t.tryConvertFloat64()
-			m[k] = t
-		case []interface{}:
-			m[k] = tryConvertFloat64InSlice(v.([]interface{}))
-		}
-	}
-}
-
-func tryConvertFloat64InSlice(s []interface{}) []interface{} {
-	for k, v := range s {
-		switch v.(type) {
-		case float64:
-			f := v.(float64)
-			if float64(int(f)) == f {
-				s[k] = int(f)
-			}
-		case map[string]interface{}:
-			t := New(v)
-			t.tryConvertFloat64()
-			s[k] = t
-		case []interface{}:
-			s[k] = tryConvertFloat64InSlice(v.([]interface{}))
-		}
-	}
-	return s
+	return New(data), nil
 }
 
 // FromBase64 creates a new Obj containing the data specified

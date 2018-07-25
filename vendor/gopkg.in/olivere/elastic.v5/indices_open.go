@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesOpenService opens an index.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-open-close.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-open-close.html
 // for details.
 type IndicesOpenService struct {
 	client            *Client
@@ -91,7 +91,7 @@ func (s *IndicesOpenService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.timeout != "" {
 		params.Set("timeout", s.timeout)
@@ -138,11 +138,7 @@ func (s *IndicesOpenService) Do(ctx context.Context) (*IndicesOpenResponse, erro
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "POST", path, params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +153,5 @@ func (s *IndicesOpenService) Do(ctx context.Context) (*IndicesOpenResponse, erro
 
 // IndicesOpenResponse is the response of IndicesOpenService.Do.
 type IndicesOpenResponse struct {
-	Acknowledged       bool   `json:"acknowledged"`
-	ShardsAcknowledged bool   `json:"shards_acknowledged"`
-	Index              string `json:"index,omitempty"`
+	Acknowledged bool `json:"acknowledged"`
 }

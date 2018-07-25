@@ -4,17 +4,18 @@
 package app
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
-	throttled "gopkg.in/throttled/throttled.v2"
-	"gopkg.in/throttled/throttled.v2/store/memstore"
+	"github.com/throttled/throttled"
+	"github.com/throttled/throttled/store/memstore"
 )
 
 type RateLimiter struct {
@@ -74,14 +75,14 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 func (rl *RateLimiter) RateLimitWriter(key string, w http.ResponseWriter) bool {
 	limited, context, err := rl.throttledRateLimiter.RateLimit(key, 1)
 	if err != nil {
-		l4g.Critical("Internal server error when rate limiting. Rate Limiting broken. Error:" + err.Error())
+		mlog.Critical("Internal server error when rate limiting. Rate Limiting broken. Error:" + err.Error())
 		return false
 	}
 
 	setRateLimitHeaders(w, context)
 
 	if limited {
-		l4g.Error("Denied due to throttling settings code=429 key=%v", key)
+		mlog.Error(fmt.Sprintf("Denied due to throttling settings code=429 key=%v", key))
 		http.Error(w, "limit exceeded", 429)
 	}
 

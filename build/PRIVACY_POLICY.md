@@ -18,7 +18,7 @@ When you deploy a Mattermost server with the Security Alert feature enabled, inf
 
 Error and Diagnostics Reporting Feature: 
 
-Mattermost offers an Error and Diagnostics Reporting feature that, when enabled, permits the transmission of information to Mattermost about your system that is needed to diagnose errors and improve the functionality of Mattermost software for deployments with your usage pattern. This information will be collected over an encrypted channel, and include reports of critical errors, configuration options, the version and type of software components deployed, such as Mattermost server, database and operating system, anonymous usage statistics including changes to system preferences and creation of channels and posts. If you are using an activated copy of Mattermost Enterprise Edition, Mattermost may also collect information about usage of enterprise features as well as commercial license key registration information. 
+Mattermost offers an Error and Diagnostics Reporting feature that, when enabled, permits the transmission of information to Mattermost about your system that is needed to diagnose errors and improve the functionality of Mattermost software for deployments with your usage pattern. This information will be collected over an encrypted channel, and include reports of critical errors, configuration options, the version and type of software components deployed, such as Mattermost server, database and operating system, anonymous usage statistics including changes to system preferences, creation of channels and posts, and feature usage. If you are using an activated copy of Mattermost Enterprise Edition, Mattermost may also collect information about usage of enterprise features as well as commercial license key registration information. 
 
 You may opt out of the Error and Diagnostics Reporting Feature by switching the feature off in the [System Console user interface or via the system configuration file (see link)]( https://docs.mattermost.com/administration/config-settings.html#enable-error-and-diagnostics-reporting).  If you opt out of the Error and Diagnostics Reporting feature, Mattermost will not collect your information required for reporting of errors and diagnostics from your deployment and may be less able to improve system performance for deployments with your usage pattern in future.
 
@@ -42,10 +42,10 @@ Internally, we restrict access to all personally identifiable information we rec
 
 Do we disclose any information to outside parties? 
 
-We do not sell, trade, or otherwise transfer the information we collect from you to unaffiliated third parties. We do, however, share the information we collect from you with trusted third parties who assist us in operating our site, conducting our business, or servicing you, provided that those parties agree to keep your information confidential and secure. We also reserve the right to release your information when we believe that release is necessary to comply with the law, enforce our site policies, or protect our own or another’s intellectual property rights, property, or safety.
+We do not sell, trade, or otherwise transfer the information we collect from you to unaffiliated third parties. We do, however, share the information we collect from you with trusted third parties who assist us in operating our site, conducting our business, or servicing you, provided that those parties agree to keep your information confidential and secure. This includes sharing the following anonymous usage statistics on the Gfycat feature with [Gfycat](https://gfycat.com/): which gifs are viewed and shared (without identifying specific users), how many users have used the feature, and the search terms and categories that are selected from the Gfycat picker. We also reserve the right to release your information when we believe that release is necessary to comply with the law, enforce our site policies, or protect our own or another’s intellectual property rights, property, or safety.
 
 Changes to our privacy policy
 
 If we decide to change this Privacy Policy, we will include those changes with updated versions of the software.
 
-Last revised September 2016.
+Last revised July 2018.

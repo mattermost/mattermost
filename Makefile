@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-common package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -43,7 +43,7 @@ else
 endif
 
 # Golang Flags
-GOPATH ?= $(GOPATH:):./vendor
+GOPATH ?= $(shell go env GOPATH)
 GOFLAGS ?= $(GOFLAGS:)
 GO=go
 GO_LINKER_FLAGS ?= -ldflags \
@@ -56,7 +56,7 @@ GO_LINKER_FLAGS ?= -ldflags \
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
 
-PLATFORM_FILES="./main.go"
+PLATFORM_FILES="./cmd/mattermost/main.go"
 
 # Output paths
 DIST_ROOT=dist
@@ -71,6 +71,9 @@ TESTFLAGSEE ?= -short
 # Packages lists
 TE_PACKAGES=$(shell go list ./...)
 TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
+
+# Plugins Packages
+PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -127,7 +130,7 @@ start-docker: ## Starts the docker containers for local development.
 	@if [ $(shell docker ps -a | grep -ci mattermost-minio) -eq 0 ]; then \
 		echo starting mattermost-minio; \
 		docker run --name mattermost-minio -p 9001:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
-		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:latest server /data > /dev/null; \
+		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:RELEASE.2018-05-25T19-49-13Z server /data > /dev/null; \
 		docker exec -it mattermost-minio /bin/sh -c "mkdir -p /data/mattermost-test" > /dev/null; \
 	elif [ $(shell docker ps | grep -ci mattermost-minio) -eq 0 ]; then \
 		echo restarting mattermost-minio; \
@@ -198,9 +201,9 @@ stop-docker: ## Stops the docker containers for local development.
 	fi
 
 		@if [ $(shell docker ps -a | grep -ci mattermost-minio) -eq 1 ]; then \
-    		echo stopping mattermost-minio; \
-    		docker stop mattermost-minio > /dev/null; \
-    	fi
+		echo stopping mattermost-minio; \
+		docker stop mattermost-minio > /dev/null; \
+	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 1 ]; then \
 		echo stopping mattermost-elasticsearch; \
@@ -273,29 +276,19 @@ gofmt: ## Runs gofmt against all packages.
 
 store-mocks: ## Creates mock files.
 	go get github.com/vektra/mockery/...
-	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
-update-jira-plugin: ## Updates Jira plugin.
-	go get github.com/mattermost/go-bindata/...
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_darwin_amd64.go plugin.tar.gz
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_linux_amd64.go plugin.tar.gz
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep windows-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_windows_amd64.go plugin.tar.gz
-	rm plugin.tar.gz
-	gofmt -s -w ./app/plugin/jira
+ldap-mocks: ## Creates mock files for ldap.
+	go get github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
-update-zoom-plugin: ## Updates Zoom plugin.
-	go get github.com/mattermost/go-bindata/...
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_darwin_amd64.go plugin.tar.gz
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_linux_amd64.go plugin.tar.gz
-	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep windows-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
-	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_windows_amd64.go plugin.tar.gz
-	rm plugin.tar.gz
-	gofmt -s -w ./app/plugin/zoom
+plugin-mocks: ## Creates mock files for plugins.
+	go get github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+
+pluginapi: ## Generates api and hooks glue code for plugins
+	go generate ./plugin
 
 check-licenses: ## Checks license status.
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
@@ -336,6 +329,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 test-server-race: test-te-race test-ee-race ## Checks for race conditions.
+	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
 
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
@@ -360,6 +354,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 test-server: test-te test-ee ## Runs tests.
+	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
@@ -384,10 +379,10 @@ test-data: start-docker ## Add test data to the local instance.
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) sampledata -w 1
 
 	@echo You may need to restart the Mattermost server before using the following
-	@echo ====================================================================================
-	@echo Login with a system admin account email=user-0@sample.mattermost.com password=user-0
-	@echo Login with a regular account email=user-1@sample.mattermost.com password=user-1
-	@echo ====================================================================================
+	@echo ========================================================================
+	@echo Login with a system admin account username=sysadmin password=sysadmin
+	@echo Login with a regular account username=user-1 password=user-1
+	@echo ========================================================================
 
 run-server: start-docker ## Starts the server.
 	@echo Running mattermost for development
@@ -477,14 +472,12 @@ clean: stop-docker ## Clean up everything except persistant server data.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
-	find . -type d -name data -not -path './vendor/*' | xargs rm -r
+	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
 	rm -rf logs
 
 	rm -f mattermost.log
 	rm -f mattermost.log.jsonl
 	rm -f npm-debug.log
-	rm -f api/mattermost.log
-	rm -f api/mattermost.log.jsonl
 	rm -f .prepare-go
 	rm -f enterprise
 	rm -f cover.out
@@ -493,6 +486,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	rm -f *.test
 	rm -f imports/imports.go
 	rm -f cmd/platform/cprofile*.out
+	rm -f cmd/mattermost/cprofile*.out
 
 nuke: clean clean-docker ## Clean plus removes persistant server data.
 	@echo BOOM

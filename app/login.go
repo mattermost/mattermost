@@ -11,47 +11,95 @@ import (
 
 	"github.com/avct/uasurfer"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
-func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId string, ldapOnly bool) (*model.User, *model.AppError) {
+func (a *App) CheckForClienSideCert(r *http.Request) (string, string, string) {
+	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
+	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
+	email := ""
+
+	if len(subject) > 0 {
+		for _, v := range strings.Split(subject, "/") {
+			kv := strings.Split(v, "=")
+			if len(kv) == 2 && kv[0] == "emailAddress" {
+				email = kv[1]
+			}
+		}
+	}
+
+	return pem, subject, email
+}
+
+func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+	// Do statistics
+	defer func() {
+		if a.Metrics != nil {
+			if user == nil || err != nil {
+				a.Metrics.IncrementLoginFail()
+			} else {
+				a.Metrics.IncrementLogin()
+			}
+		}
+	}()
+
 	if len(password) == 0 {
 		err := model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
-	var user *model.User
-	var err *model.AppError
+	// Get the MM user we are trying to login
+	if user, err = a.GetUserForLogin(id, loginId); err != nil {
+		return nil, err
+	}
 
-	if len(id) != 0 {
-		if user, err = a.GetUser(id); err != nil {
-			err.StatusCode = http.StatusBadRequest
-			if a.Metrics != nil {
-				a.Metrics.IncrementLoginFail()
-			}
-			return nil, err
-		}
-	} else {
-		if user, err = a.GetUserForLogin(loginId, ldapOnly); err != nil {
-			if a.Metrics != nil {
-				a.Metrics.IncrementLoginFail()
-			}
-			return nil, err
-		}
+	// If client side cert is enable and it's checking as a primary source
+	// then trust the proxy and cert that the correct user is supplied and allow
+	// them access
+	if *a.Config().ExperimentalSettings.ClientSideCertEnable && *a.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
+		return user, nil
 	}
 
 	// and then authenticate them
 	if user, err = a.authenticateUser(user, password, mfaToken); err != nil {
-		if a.Metrics != nil {
-			a.Metrics.IncrementLoginFail()
-		}
 		return nil, err
 	}
 
-	if a.Metrics != nil {
-		a.Metrics.IncrementLogin()
+	return user, nil
+}
+
+func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError) {
+	enableUsername := *a.Config().EmailSettings.EnableSignInWithUsername
+	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
+
+	// If we are given a userID then fail if we can't find a user with that ID
+	if len(id) != 0 {
+		if user, err := a.GetUser(id); err != nil {
+			if err.Id != store.MISSING_ACCOUNT_ERROR {
+				err.StatusCode = http.StatusInternalServerError
+				return nil, err
+			} else {
+				err.StatusCode = http.StatusBadRequest
+				return nil, err
+			}
+		} else {
+			return user, nil
+		}
 	}
 
-	return user, nil
+	// Try to get the user by username/email
+	if result := <-a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); result.Err == nil {
+		return result.Data.(*model.User), nil
+	}
+
+	// Try to get the user with LDAP if enabled
+	if *a.Config().LdapSettings.Enable && a.Ldap != nil {
+		if user, err := a.Ldap.GetUser(loginId); err == nil {
+			return user, nil
+		}
+	}
+
+	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
 func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
@@ -73,26 +121,10 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	ua := uasurfer.Parse(r.UserAgent())
 
-	plat := ua.OS.Platform.String()
-	if plat == "" {
-		plat = "unknown"
-	}
-
-	os := ua.OS.Name.String()
-	if os == "" {
-		os = "unknown"
-	}
-
-	bname := ua.Browser.Name.String()
-	if bname == "" {
-		bname = "unknown"
-	}
-
-	if strings.Contains(r.UserAgent(), "Mattermost") {
-		bname = "Desktop App"
-	}
-
-	bversion := ua.Browser.Version
+	plat := getPlatformName(ua)
+	os := getOSName(ua)
+	bname := getBrowserName(ua, r.UserAgent())
+	bversion := getBrowserVersion(ua, r.UserAgent())
 
 	session.AddProp(model.SESSION_PROP_PLATFORM, plat)
 	session.AddProp(model.SESSION_PROP_OS, os)

@@ -223,13 +223,19 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 				Posts.CreateAt AS PostCreateAt,
 				Posts.Message AS PostMessage,
 				Posts.Type AS PostType,
+				Posts.OriginalId AS PostOriginalId,
+				Posts.RootId AS PostRootId,
 				Posts.FileIds AS PostFileIds,
+				Teams.Id AS TeamId,
+				Teams.Name AS TeamName,
+				Teams.DisplayName AS TeamDisplayName,
 				Channels.Id AS ChannelId,
-				CASE 
+				CASE
 					WHEN Channels.Type = 'D' THEN 'Direct Message'
 					WHEN Channels.Type = 'G' THEN 'Group Message'
 					ELSE Channels.DisplayName
 				END AS ChannelDisplayName,
+				Channels.Name AS ChannelName,
 				Channels.Type AS ChannelType,
 				Users.Id AS UserId,
 				Users.Email AS UserEmail,
@@ -237,6 +243,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 			FROM
 				Posts
 				LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
+				LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 				LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 			WHERE
 				Posts.CreateAt > :StartTime AND

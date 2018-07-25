@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -120,7 +121,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 
 	// create a new user that joins the default channels
 	user := th.CreateUser()
-	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, model.CHANNEL_USER_ROLE_ID, "")
+	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
 	histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)).([]*model.ChannelMemberHistoryResult)
@@ -146,7 +147,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 
 	// create a new user that joins the default channels
 	user := th.CreateUser()
-	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, model.CHANNEL_USER_ROLE_ID, "")
+	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
 	histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)).([]*model.ChannelMemberHistoryResult)
@@ -160,6 +161,36 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 		}
 	}
 	assert.True(t, found)
+}
+
+func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	basicChannel2 := th.CreateChannel(th.BasicTeam)
+	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, basicChannel2.Name}
+	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
+
+	user := th.CreateUser()
+	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
+
+	for _, channelName := range defaultChannelList {
+		channel, err := th.App.GetChannelByName(channelName, th.BasicTeam.Id)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %s", err)
+		}
+
+		member, err := th.App.GetChannelMember(channel.Id, user.Id)
+
+		if member == nil {
+			t.Errorf("Expected member object, got nil")
+		}
+
+		if err != nil {
+			t.Errorf("Expected nil object, got %s", err)
+		}
+	}
 }
 
 func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
@@ -339,4 +370,282 @@ func TestRemoveUserFromChannelUpdatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
 	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
 	assert.NotNil(t, histories[0].LeaveTime)
+}
+
+func TestAddChannelMemberNoUserRequestor(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	// create a user and add it to a channel
+	user := th.CreateUser()
+	if _, err := th.App.AddTeamMember(th.BasicTeam.Id, user.Id); err != nil {
+		t.Fatal("Failed to add user to team. Error: " + err.Message)
+	}
+
+	groupUserIds := make([]string, 0)
+	groupUserIds = append(groupUserIds, th.BasicUser.Id)
+	groupUserIds = append(groupUserIds, user.Id)
+
+	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
+	userRequestorId := ""
+	postRootId := ""
+	if _, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId); err != nil {
+		t.Fatal("Failed to add user to channel. Error: " + err.Message)
+	}
+
+	// there should be a ChannelMemberHistory record for the user
+	histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)).([]*model.ChannelMemberHistoryResult)
+	assert.Len(t, histories, 2)
+	channelMemberHistoryUserIds := make([]string, 0)
+	for _, history := range histories {
+		assert.Equal(t, channel.Id, history.ChannelId)
+		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
+	}
+	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+
+	postList := store.Must(th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)).(*model.PostList)
+	if assert.Len(t, postList.Order, 1) {
+		post := postList.Posts[postList.Order[0]]
+
+		assert.Equal(t, model.POST_JOIN_CHANNEL, post.Type)
+		assert.Equal(t, user.Id, post.UserId)
+		assert.Equal(t, user.Username, post.Props["username"])
+	}
+}
+
+func TestAppUpdateChannelScheme(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	mockID := model.NewString("x")
+	channel.SchemeId = mockID
+
+	updatedChannel, err := th.App.UpdateChannelScheme(channel)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updatedChannel.SchemeId != mockID {
+		t.Fatal("Wrong Channel SchemeId")
+	}
+}
+
+func TestFillInChannelProps(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channelPublic1, err := th.App.CreateChannel(&model.Channel{DisplayName: "Public 1", Name: "public1", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channelPublic1)
+
+	channelPublic2, err := th.App.CreateChannel(&model.Channel{DisplayName: "Public 2", Name: "public2", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channelPublic2)
+
+	channelPrivate, err := th.App.CreateChannel(&model.Channel{DisplayName: "Private", Name: "private", Type: model.CHANNEL_PRIVATE, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channelPrivate)
+
+	otherTeamId := model.NewId()
+	otherTeam := &model.Team{
+		DisplayName: "dn_" + otherTeamId,
+		Name:        "name" + otherTeamId,
+		Email:       "success+" + otherTeamId + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+	otherTeam, err = th.App.CreateTeam(otherTeam)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteTeam(otherTeam)
+
+	channelOtherTeam, err := th.App.CreateChannel(&model.Channel{DisplayName: "Other Team Channel", Name: "other-team", Type: model.CHANNEL_OPEN, TeamId: otherTeam.Id}, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channelOtherTeam)
+
+	// Note that purpose is intentionally plaintext below.
+
+	t.Run("single channels", func(t *testing.T) {
+		testCases := []struct {
+			Description          string
+			Channel              *model.Channel
+			ExpectedChannelProps map[string]interface{}
+		}{
+			{
+				"channel on basic team without references",
+				&model.Channel{
+					TeamId:  th.BasicTeam.Id,
+					Header:  "No references",
+					Purpose: "No references",
+				},
+				nil,
+			},
+			{
+				"channel on basic team",
+				&model.Channel{
+					TeamId:  th.BasicTeam.Id,
+					Header:  "~public1, ~private, ~other-team",
+					Purpose: "~public2, ~private, ~other-team",
+				},
+				map[string]interface{}{
+					"channel_mentions": map[string]interface{}{
+						"public1": map[string]interface{}{
+							"display_name": "Public 1",
+						},
+					},
+				},
+			},
+			{
+				"channel on other team",
+				&model.Channel{
+					TeamId:  otherTeam.Id,
+					Header:  "~public1, ~private, ~other-team",
+					Purpose: "~public2, ~private, ~other-team",
+				},
+				map[string]interface{}{
+					"channel_mentions": map[string]interface{}{
+						"other-team": map[string]interface{}{
+							"display_name": "Other Team Channel",
+						},
+					},
+				},
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				err = th.App.FillInChannelProps(testCase.Channel)
+				require.Nil(t, err)
+
+				assert.Equal(t, testCase.ExpectedChannelProps, testCase.Channel.Props)
+			})
+		}
+	})
+
+	t.Run("multiple channels", func(t *testing.T) {
+		testCases := []struct {
+			Description          string
+			Channels             *model.ChannelList
+			ExpectedChannelProps map[string]interface{}
+		}{
+			{
+				"single channel on basic team",
+				&model.ChannelList{
+					{
+						Name:    "test",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "~public1, ~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+				},
+				map[string]interface{}{
+					"test": map[string]interface{}{
+						"channel_mentions": map[string]interface{}{
+							"public1": map[string]interface{}{
+								"display_name": "Public 1",
+							},
+						},
+					},
+				},
+			},
+			{
+				"multiple channels on basic team",
+				&model.ChannelList{
+					{
+						Name:    "test",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "~public1, ~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+					{
+						Name:    "test2",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+					{
+						Name:    "test3",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "No references",
+						Purpose: "No references",
+					},
+				},
+				map[string]interface{}{
+					"test": map[string]interface{}{
+						"channel_mentions": map[string]interface{}{
+							"public1": map[string]interface{}{
+								"display_name": "Public 1",
+							},
+						},
+					},
+					"test2": map[string]interface{}(nil),
+					"test3": map[string]interface{}(nil),
+				},
+			},
+			{
+				"multiple channels across teams",
+				&model.ChannelList{
+					{
+						Name:    "test",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "~public1, ~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+					{
+						Name:    "test2",
+						TeamId:  otherTeam.Id,
+						Header:  "~private, ~other-team",
+						Purpose: "~public2, ~private, ~other-team",
+					},
+					{
+						Name:    "test3",
+						TeamId:  th.BasicTeam.Id,
+						Header:  "No references",
+						Purpose: "No references",
+					},
+				},
+				map[string]interface{}{
+					"test": map[string]interface{}{
+						"channel_mentions": map[string]interface{}{
+							"public1": map[string]interface{}{
+								"display_name": "Public 1",
+							},
+						},
+					},
+					"test2": map[string]interface{}{
+						"channel_mentions": map[string]interface{}{
+							"other-team": map[string]interface{}{
+								"display_name": "Other Team Channel",
+							},
+						},
+					},
+					"test3": map[string]interface{}(nil),
+				},
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				err = th.App.FillInChannelsProps(testCase.Channels)
+				require.Nil(t, err)
+
+				for _, channel := range *testCase.Channels {
+					assert.Equal(t, testCase.ExpectedChannelProps[channel.Name], channel.Props)
+				}
+			})
+		}
+	})
+}
+
+func TestRenameChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
+
+	channel, err := th.App.RenameChannel(channel, "newchannelname", "New Display Name")
+	if err != nil {
+		t.Fatal("Failed to update channel name. Error: " + err.Error())
+	}
+	assert.Equal(t, "newchannelname", channel.Name)
+	assert.Equal(t, "New Display Name", channel.DisplayName)
 }

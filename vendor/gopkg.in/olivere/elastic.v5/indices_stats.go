@@ -10,11 +10,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesStatsService provides stats on various metrics of one or more
-// indices. See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-stats.html.
+// indices. See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-stats.html.
 type IndicesStatsService struct {
 	client           *Client
 	pretty           bool
@@ -135,7 +135,7 @@ func (s *IndicesStatsService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if len(s.groups) > 0 {
 		params.Set("groups", strings.Join(s.groups, ","))
@@ -180,11 +180,7 @@ func (s *IndicesStatsService) Do(ctx context.Context) (*IndicesStatsResponse, er
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -243,20 +239,25 @@ type IndexStatsDocs struct {
 }
 
 type IndexStatsStore struct {
-	Size        string `json:"size,omitempty"` // human size, e.g. 119.3mb
-	SizeInBytes int64  `json:"size_in_bytes,omitempty"`
+	Size                 string `json:"size,omitempty"` // human size, e.g. 119.3mb
+	SizeInBytes          int64  `json:"size_in_bytes,omitempty"`
+	ThrottleTime         string `json:"throttle_time,omitempty"` // human time, e.g. 0s
+	ThrottleTimeInMillis int64  `json:"throttle_time_in_millis,omitempty"`
 }
 
 type IndexStatsIndexing struct {
-	IndexTotal         int64  `json:"index_total,omitempty"`
-	IndexTime          string `json:"index_time,omitempty"`
-	IndexTimeInMillis  int64  `json:"index_time_in_millis,omitempty"`
-	IndexCurrent       int64  `json:"index_current,omitempty"`
-	DeleteTotal        int64  `json:"delete_total,omitempty"`
-	DeleteTime         string `json:"delete_time,omitempty"`
-	DeleteTimeInMillis int64  `json:"delete_time_in_millis,omitempty"`
-	DeleteCurrent      int64  `json:"delete_current,omitempty"`
-	NoopUpdateTotal    int64  `json:"noop_update_total,omitempty"`
+	IndexTotal           int64  `json:"index_total,omitempty"`
+	IndexTime            string `json:"index_time,omitempty"`
+	IndexTimeInMillis    int64  `json:"index_time_in_millis,omitempty"`
+	IndexCurrent         int64  `json:"index_current,omitempty"`
+	DeleteTotal          int64  `json:"delete_total,omitempty"`
+	DeleteTime           string `json:"delete_time,omitempty"`
+	DeleteTimeInMillis   int64  `json:"delete_time_in_millis,omitempty"`
+	DeleteCurrent        int64  `json:"delete_current,omitempty"`
+	NoopUpdateTotal      int64  `json:"noop_update_total,omitempty"`
+	IsThrottled          bool   `json:"is_throttled,omitempty"`
+	ThrottleTime         string `json:"throttle_time,omitempty"`
+	ThrottleTimeInMillis int64  `json:"throttle_time_in_millis,omitempty"`
 }
 
 type IndexStatsGet struct {
