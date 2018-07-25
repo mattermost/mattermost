@@ -28,6 +28,8 @@ type OutgoingWebhook struct {
 	DisplayName  string      `json:"display_name"`
 	Description  string      `json:"description"`
 	ContentType  string      `json:"content_type"`
+	Username     string      `json:"username"`
+	IconURL      string      `json:"icon_url"`
 }
 
 type OutgoingWebhookPayload struct {
@@ -179,6 +181,14 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 
 	if o.TriggerWhen > 1 {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.content_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.Username) > 64 {
+		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.username.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.IconURL) > 1024 {
+		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.icon_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
