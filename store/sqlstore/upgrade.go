@@ -476,7 +476,8 @@ func UpgradeDatabaseToVersion51(sqlStore SqlStore) {
 func UpgradeDatabaseToVersion52(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.2.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_1_0, VERSION_5_2_0) {
-
+	sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "Username", "varchar(64)", "varchar(64)", "")
+	sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "IconURL", "varchar(1024)", "varchar(1024)", "")
 	// 	saveSchemaVersion(sqlStore, VERSION_5_2_0)
 	// }
 }
