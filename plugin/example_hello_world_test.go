@@ -7,7 +7,9 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 )
 
-type HelloWorldPlugin struct{}
+type HelloWorldPlugin struct {
+	plugin.MattermostPlugin
+}
 
 func (p *HelloWorldPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, world!")
