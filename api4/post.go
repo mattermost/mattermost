@@ -216,10 +216,15 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, app.PER_PAGE_DEFAULT)
 	}
 
+	clientPostList, err := c.App.PreparePostListForClient(postList)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getPostsForChannelAroundLastUnread response", mlog.Any("err", err))
+	}
+
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(postList).ToJson()))
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -252,7 +257,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	clientPostList, err := c.App.PreparePostListForClient(list)
+	clientPostList, err := c.App.PreparePostListForClient(posts)
 	if err != nil {
 		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
 	}
