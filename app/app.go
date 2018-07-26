@@ -701,6 +701,17 @@ func (a *App) StartElasticsearch() {
 					mlog.Error(err.Error())
 				}
 			})
+		} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
+			a.Go(func() {
+				if *oldConfig.ElasticsearchSettings.EnableIndexing == true {
+					if err := a.Elasticsearch.Stop(); err != nil {
+						mlog.Error(err.Error())
+					}
+					if err := a.Elasticsearch.Start(); err != nil {
+						mlog.Error(err.Error())
+					}
+				}
+			})
 		}
 	})
 
