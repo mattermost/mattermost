@@ -457,6 +457,12 @@
   revision = "ae68e2d4c00fed4943b5f6698d504a5fe083da8a"
 
 [[projects]]
+  name = "github.com/rs/cors"
+  packages = ["."]
+  revision = "ca016a06a5753f8ba03029c0aa5e54afb1bf713f"
+  version = "v1.4.0"
+
+[[projects]]
   branch = "go1"
   name = "github.com/rwcarlsen/goexif"
   packages = [
@@ -773,6 +779,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "70c0a23e6c8edc03d3c11a5227b2a43caea33f6170bfde2cf7698dcddf529036"
+  inputs-digest = "254723dc4684977f7472e728e16f347059481f6b0ef917375f31e23d1b6c6ad0"
   solver-name = "gps-cdcl"
   solver-version = 1

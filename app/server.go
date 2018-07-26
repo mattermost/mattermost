@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -44,7 +45,7 @@ type Server struct {
 	didFinishListen chan struct{}
 }
 
-var allowedMethods []string = []string{
+var corsAllowedMethods []string = []string{
 	"POST",
 	"GET",
 	"OPTIONS",
@@ -59,35 +60,6 @@ type RecoveryLogger struct {
 func (rl *RecoveryLogger) Println(i ...interface{}) {
 	mlog.Error("Please check the std error output for the stack trace")
 	mlog.Error(fmt.Sprint(i))
-}
-
-type CorsWrapper struct {
-	config model.ConfigFunc
-	router *mux.Router
-}
-
-func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if allowed := *cw.config().ServiceSettings.AllowCorsFrom; allowed != "" {
-		if utils.CheckOrigin(r, allowed) {
-			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-
-			if r.Method == "OPTIONS" {
-				w.Header().Set(
-					"Access-Control-Allow-Methods",
-					strings.Join(allowedMethods, ", "))
-
-				w.Header().Set(
-					"Access-Control-Allow-Headers",
-					r.Header.Get("Access-Control-Request-Headers"))
-			}
-		}
-	}
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	cw.router.ServeHTTP(w, r)
 }
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
@@ -114,7 +86,28 @@ func stripPort(hostport string) string {
 func (a *App) StartServer() error {
 	mlog.Info("Starting Server...")
 
-	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.RootRouter}
+	var handler http.Handler = a.Srv.RootRouter
+	if allowedOrigins := *a.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
+		exposedCorsHeaders := *a.Config().ServiceSettings.CorsExposedHeaders
+		allowCredentials := *a.Config().ServiceSettings.CorsAllowCredentials
+		debug := *a.Config().ServiceSettings.CorsDebug
+		corsWrapper := cors.New(cors.Options{
+			AllowedOrigins:   strings.Fields(allowedOrigins),
+			AllowedMethods:   corsAllowedMethods,
+			AllowedHeaders:   []string{"*"},
+			ExposedHeaders:   strings.Fields(exposedCorsHeaders),
+			MaxAge:           86400,
+			AllowCredentials: allowCredentials,
+			Debug:            debug,
+		})
+
+		// If we have debugging of CORS turned on then forward messages to logs
+		if debug {
+			corsWrapper.Log = a.Log.StdLog(mlog.String("source", "cors"))
+		}
+
+		handler = corsWrapper.Handler(handler)
+	}
 
 	if *a.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")

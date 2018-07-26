@@ -203,6 +203,9 @@ type ServiceSettings struct {
 	EnforceMultifactorAuthentication                  *bool
 	EnableUserAccessTokens                            *bool
 	AllowCorsFrom                                     *string
+	CorsExposedHeaders                                *string
+	CorsAllowCredentials                              *bool
+	CorsDebug                                         *bool
 	AllowCookiesForSubdomains                         *bool
 	SessionLengthWebInDays                            *int
 	SessionLengthMobileInDays                         *int
@@ -411,6 +414,18 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.AllowCorsFrom == nil {
 		s.AllowCorsFrom = NewString(SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM)
+	}
+
+	if s.CorsExposedHeaders == nil {
+		s.CorsExposedHeaders = NewString("")
+	}
+
+	if s.CorsAllowCredentials == nil {
+		s.CorsAllowCredentials = NewBool(false)
+	}
+
+	if s.CorsDebug == nil {
+		s.CorsDebug = NewBool(false)
 	}
 
 	if s.AllowCookiesForSubdomains == nil {
