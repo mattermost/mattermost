@@ -3075,6 +3075,10 @@
     "translation": "Unable to install plugin. A plugin with the same ID is already installed."
   },
   {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
+  },
+  {
     "id": "app.plugin.invalid_id.app_error",
     "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },

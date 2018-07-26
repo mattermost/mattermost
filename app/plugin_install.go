@@ -17,11 +17,11 @@ import (
 )
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
-func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
-	return a.installPlugin(pluginFile)
+func (a *App) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	return a.installPlugin(pluginFile, replace)
 }
 
-func (a *App) installPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
+func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
 	if a.Plugins == nil || !*a.Config().PluginSettings.Enable {
 		return nil, model.NewAppError("installPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -63,7 +63,13 @@ func (a *App) installPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppEr
 	// Check that there is no plugin with the same ID
 	for _, bundle := range bundles {
 		if bundle.Manifest != nil && bundle.Manifest.Id == manifest.Id {
-			return nil, model.NewAppError("installPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			if !replace {
+				return nil, model.NewAppError("installPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			if err := a.RemovePlugin(manifest.Id); err != nil {
+				return nil, model.NewAppError("installPlugin", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 
