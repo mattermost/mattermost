@@ -118,7 +118,7 @@ type Hooks interface {
 
 	// FileWillBeUploaded is invoked when a file is uploaded, but before it is committed to backing store.
 	// Read from file to retrieve the body of the uploaded file. You may modify the body of the file by writing to output.
-	// Returned FileInfo will be used instead of input fileinfo. Return nil to reject the file upload and include a text reason as the second argument.
+	// Returned FileInfo will be used instead of input FileInfo. Return nil to reject the file upload and include a text reason as the second argument.
 	// Note that this method will be called for files uploaded by plugins, including the plugin that uploaded the post.
 	// FileInfo.Size will be automatically set properly if you modify the file.
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
