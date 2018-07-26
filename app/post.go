@@ -446,6 +446,7 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 		thread = result.Data.(*model.PostList)
 		if oldPost == nil {
 			err := model.NewAppError("UpdatePost", "api.post.rethread_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+<<<<<<< HEAD
 			return nil, err
 		}
 
@@ -625,7 +626,11 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 
 		if a.PluginsReady() {
 			a.Go(func() {
-				a.PluginEnv.Hooks().MessageHasBeenUpdated(newPost, oldPost)
+				pluginContext := &plugin.Context{}
+				a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
+					return true
+				}, plugin.MessageHasBeenUpdatedId)
 			})
 		}
 
