@@ -2360,7 +2360,7 @@ func (ss *ServiceSettings) isValid() *AppError {
 	if host == "" {
 		isValidHost = true
 	} else {
-		isValidHost = net.ParseIP(host) != nil
+		isValidHost = (net.ParseIP(host) != nil) || IsDomainName(host)
 	}
 	portInt, err := strconv.Atoi(port)
 	if err != nil || !isValidHost || portInt < 0 || portInt > math.MaxInt16 {
