@@ -41,6 +41,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log)
 	require.NoError(t, err)
 
+	app.Plugins = env
 	for _, code := range pluginCode {
 		pluginId := model.NewId()
 		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
@@ -49,8 +50,6 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
 		env.Activate(pluginId)
 	}
-
-	app.Plugins = env
 }
 
 func TestHookMessageWillBePosted(t *testing.T) {
