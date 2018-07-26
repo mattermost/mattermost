@@ -451,138 +451,6 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]
 		thread = result.Data.(*model.PostList)
 		if oldPost == nil {
-			err := model.NewAppError("RethreadPost", "api.post.rethread_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
-			return nil, err
-		}
-
-		if oldPost.DeleteAt != 0 {
-			err := model.NewAppError("RethreadPost", "api.post.rethread_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
-			return nil, err
-		}
-
-		if oldPost.IsSystemMessage() {
-			err := model.NewAppError("RethreadPost", "api.post.rethread_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
-			return nil, err
-		}
-
-		if a.License() != nil {
-			if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
-				err := model.NewAppError("RethreadPost", "api.post.rethread_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-				return nil, err
-			}
-		}
-	}
-
-	newPost := &model.Post{}
-	*newPost = *oldPost
-	
-	if newPost.RootId == "" && post.RootId != "" && post.RootId != newPost.Id{
-    	if _, ok := thread.Posts[post.Id]; ok && len(thread.Posts) == 1 {
-    		newPost.RootId = post.RootId
-    	}
-	}
-
-	if result := <-a.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
-		return nil, result.Err
-	} else {
-		rpost := result.Data.(*model.Post)
-
-		esInterface := a.Elasticsearch
-		if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-			a.Go(func() {
-				if rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
-					mlog.Error(fmt.Sprintf("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id))
-				} else {
-					esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
-				}
-			})
-		}
-
-		a.sendUpdatedPostEvent(rpost)
-
-		a.InvalidateCacheForChannelPosts(rpost.ChannelId)
-
-		return rpost, nil
-	}
-}
-
-func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
-	post.SanitizeProps()
-
-	var oldPost *model.Post
-	var thread *model.PostList
-	if result := <-a.Srv.Store.Post().Get(post.Id); result.Err != nil {
-		return nil, result.Err
-	} else {
-		oldPost = result.Data.(*model.PostList).Posts[post.Id]
-		thread = result.Data.(*model.PostList)
-		if oldPost == nil {
-			err := model.NewAppError("UpdatePost", "api.post.rethread_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
-			return nil, err
-		}
-
-		if oldPost.DeleteAt != 0 {
-			err := model.NewAppError("UpdatePost", "api.post.rethread_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
-			return nil, err
-		}
-
-		if oldPost.IsSystemMessage() {
-			err := model.NewAppError("UpdatePost", "api.post.rethread_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
-			return nil, err
-		}
-
-		if a.License() != nil {
-			if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
-				err := model.NewAppError("UpdatePost", "api.post.rethread_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-				return nil, err
-			}
-		}
-	}
-
-	newPost := &model.Post{}
-	*newPost = *oldPost
-	
-	if newPost.RootId == "" && post.RootId != "" && post.RootId != newPost.Id{
-    	if _, ok := thread.Posts[post.Id]; ok && len(thread.Posts) == 1 {
-    		newPost.RootId = post.RootId
-    	}
-	}
-
-	if result := <-a.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
-		return nil, result.Err
-	} else {
-		rpost := result.Data.(*model.Post)
-
-		esInterface := a.Elasticsearch
-		if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-			a.Go(func() {
-				if rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
-					mlog.Error(fmt.Sprintf("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id))
-				} else {
-					esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
-				}
-			})
-		}
-
-		a.sendUpdatedPostEvent(rpost)
-
-		a.InvalidateCacheForChannelPosts(rpost.ChannelId)
-
-		return rpost, nil
-	}
-}
-
-func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
-	post.SanitizeProps()
-
-	var oldPost *model.Post
-	var thread *model.PostList
-	if result := <-a.Srv.Store.Post().Get(post.Id); result.Err != nil {
-		return nil, result.Err
-	} else {
-		oldPost = result.Data.(*model.PostList).Posts[post.Id]
-		thread = result.Data.(*model.PostList)
-		if oldPost == nil {
 			err := model.NewAppError("UpdatePost", "api.post.rethread_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 			return nil, err
 		}
@@ -621,7 +489,11 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 
 		if a.PluginsReady() {
 			a.Go(func() {
-				a.PluginEnv.Hooks().MessageHasBeenUpdated(newPost, oldPost)
+				pluginContext := &plugin.Context{}
+				a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
+					return true
+				}, plugin.MessageHasBeenUpdatedId)
 			})
 		}
 
