@@ -473,7 +473,41 @@ func TestGetExplicitMentions(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
-
+		"ChineseKeywordMatchFully": {
+			Message: "番茄",
+			Keywords: map[string][]string{
+				"番茄": {id1},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"ChineseKeywordInTheMiddle": {
+			Message: "我爱吃番茄炒饭",
+			Keywords: map[string][]string{
+				"番茄": {id1},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MixedLanguageKeywordsInTheMiddle": {
+			Message: "我爱吃番茄carrot炒饭",
+			Keywords: map[string][]string{
+				"番茄":     {id1},
+				"carrot": {id2},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+			},
+		},
 		// The following tests cover cases where the message mentions @user.name, so we shouldn't assume that
 		// the user might be intending to mention some @user that isn't in the channel.
 		"Don't include potential mention that's part of an actual mention (without trailing period)": {
