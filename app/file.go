@@ -390,7 +390,7 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 }
 
 func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-	info, _, err := a.DoUploadFileExpectModification(now, rawChannelId, rawChannelId, rawUserId, rawFilename, data)
+	info, _, err := a.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 	return info, err
 }
 
