@@ -5,12 +5,14 @@ package app
 
 import (
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +28,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	hooks, err := a.Plugins.HooksForPlugin(params["plugin_id"])
 	if err != nil {
-		a.Log.Error("Access to route for non-existant plugin", mlog.String("missing_plugin_id", params["plugin_id"]), mlog.Err(err))
+		a.Log.Error("Access to route for non-existent plugin", mlog.String("missing_plugin_id", params["plugin_id"]), mlog.Err(err))
 		http.NotFound(w, r)
 		return
 	}
@@ -67,10 +69,12 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 
 	params := mux.Vars(r)
 
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
 	newQuery := r.URL.Query()
 	newQuery.Del("access_token")
 	r.URL.RawQuery = newQuery.Encode()
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, "/plugins/"+params["plugin_id"])
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", params["plugin_id"]))
 
 	handler(&plugin.Context{}, w, r)
 }

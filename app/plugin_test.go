@@ -4,6 +4,8 @@
 package app
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -50,6 +52,52 @@ func TestServePluginRequest(t *testing.T) {
 	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
 	th.App.ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
+}
+
+func TestPrivateServePluginRequest(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	testCases := []struct {
+		Description string
+		ConfigFunc  func(cfg *model.Config)
+		URL         string
+		ExpectedURL string
+	}{
+		{
+			"no subpath",
+			func(cfg *model.Config) {},
+			"/plugins/id/endpoint",
+			"/endpoint",
+		},
+		{
+			"subpath",
+			func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL += "/subpath" },
+			"/subpath/plugins/id/endpoint",
+			"/endpoint",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			th.App.UpdateConfig(testCase.ConfigFunc)
+			expectedBody := []byte("body")
+			request := httptest.NewRequest(http.MethodGet, testCase.URL, bytes.NewReader(expectedBody))
+			recorder := httptest.NewRecorder()
+
+			handler := func(context *plugin.Context, w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, testCase.ExpectedURL, r.URL.Path)
+
+				body, _ := ioutil.ReadAll(r.Body)
+				assert.Equal(t, expectedBody, body)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
+
+			th.App.servePluginRequest(recorder, request, handler)
+		})
+	}
+
 }
 
 func TestHandlePluginRequest(t *testing.T) {
