@@ -160,6 +160,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err.StatusCode = http.StatusNotFound
 		return
 	}
+	defer fileReader.Close()
 
 	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, forceDownload, w, r)
 	if err != nil {
@@ -195,10 +196,16 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fileReader, err := c.App.FileReader(info.ThumbnailPath); err != nil {
+	fileReader, err := c.App.FileReader(info.ThumbnailPath)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, fileReader, forceDownload, w, r); err != nil {
+		return
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, fileReader, forceDownload, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -264,10 +271,15 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fileReader, err := c.App.FileReader(info.PreviewPath); err != nil {
+	fileReader, err := c.App.FileReader(info.PreviewPath)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, fileReader, forceDownload, w, r); err != nil {
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, fileReader, forceDownload, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -325,10 +337,15 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fileReader, err := c.App.FileReader(info.Path); err != nil {
+	fileReader, err := c.App.FileReader(info.Path)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, true, w, r); err != nil {
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, true, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
