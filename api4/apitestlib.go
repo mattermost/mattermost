@@ -75,7 +75,7 @@ func StopTestStore() {
 	}
 }
 
-func setupTestHelper(enterprise bool) *TestHelper {
+func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
@@ -114,6 +114,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	if testStore != nil {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	}
+	if updateConfig != nil {
+		th.App.UpdateConfig(updateConfig)
 	}
 	serverErr := th.App.StartServer()
 	if serverErr != nil {
@@ -161,11 +164,15 @@ func setupTestHelper(enterprise bool) *TestHelper {
 }
 
 func SetupEnterprise() *TestHelper {
-	return setupTestHelper(true)
+	return setupTestHelper(true, nil)
 }
 
 func Setup() *TestHelper {
-	return setupTestHelper(false)
+	return setupTestHelper(false, nil)
+}
+
+func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
+	return setupTestHelper(false, updateConfig)
 }
 
 func (me *TestHelper) TearDown() {
