@@ -530,6 +530,8 @@ func TestListenAddressIsValidated(t *testing.T) {
 		"[::1]:8065":           true,
 		"localhost:8065":       true,
 		"test.com:8065":        true,
+		":0":                   true,
+		":33147":               true,
 		"123:8065":             false,
 		"[::1]:99999":          false,
 		"[::1]:-1":             false,
