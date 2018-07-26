@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) SyncPluginsActiveState() {
@@ -102,21 +103,23 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		a.Plugins = env
 	}
 
-	prepackagedPluginsDir := "./prepackaged_plugins"
-	if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
-		if !strings.HasSuffix(walkPath, ".tar.gz") {
+	prepackagedPluginsDir, found := utils.FindDir("prepackaged_plugins")
+	if found {
+		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+			if !strings.HasSuffix(walkPath, ".tar.gz") {
+				return nil
+			}
+
+			if fileReader, err := os.Open(walkPath); err != nil {
+				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
+			} else if _, err := a.InstallPlugin(fileReader, true); err != nil {
+				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
+			}
+
 			return nil
+		}); err != nil {
+			mlog.Error("Failed to complete unpacking prepackaged plugins", mlog.Err(err))
 		}
-
-		if fileReader, err := os.Open(walkPath); err != nil {
-			mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-		} else if _, err := a.InstallPlugin(fileReader, true); err != nil {
-			mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-		}
-
-		return nil
-	}); err != nil {
-		mlog.Error("Failed to complete unpacking prepackaged plugins", mlog.Err(err))
 	}
 
 	// Sync plugin active state when config changes. Also notify plugins.
