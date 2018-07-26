@@ -200,7 +200,10 @@ func (g *apiRPCClient) LoadPluginConfiguration(dest interface{}) error {
 	if err := g.client.Call("Plugin.LoadPluginConfiguration", _args, _returns); err != nil {
 		g.log.Error("RPC call to LoadPluginConfiguration API failed.", mlog.Err(err))
 	}
-	return json.Unmarshal(_returns.A, dest)
+	if err := json.Unmarshal(_returns.A, dest); err != nil {
+		g.log.Error("LoadPluginConfiguration API failed to unmarshal.", mlog.Err(err))
+	}
+	return nil
 }
 
 func (s *apiRPCServer) LoadPluginConfiguration(args *Z_LoadPluginConfigurationArgsArgs, returns *Z_LoadPluginConfigurationArgsReturns) error {

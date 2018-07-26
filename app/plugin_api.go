@@ -45,9 +45,14 @@ func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
 	}
 
 	if pluginSettingsJsonBytes, err := json.Marshal(finalConfig); err != nil {
-		return err
+		api.logger.Error("Error marshaling config for plugin", mlog.Err(err))
+		return nil
 	} else {
-		return json.Unmarshal(pluginSettingsJsonBytes, dest)
+		err := json.Unmarshal(pluginSettingsJsonBytes, dest)
+		if err != nil {
+			api.logger.Error("Error unmarshaling config for plugin", mlog.Err(err))
+		}
+		return nil
 	}
 }
 
