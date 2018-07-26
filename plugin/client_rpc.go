@@ -403,7 +403,6 @@ func (s *hooksRPCServer) FileWillBeUploaded(args *Z_FileWillBeUploadedArgs, retu
 	}
 	defer replacementFileConnection.Close()
 	returnFileWriter := replacementFileConnection
-	defer fileReader.Close()
 
 	if hook, ok := s.impl.(interface {
 		FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
