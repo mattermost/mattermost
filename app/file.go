@@ -70,7 +70,8 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	return backend.ReadFile(path)
 }
 
-func (a *App) FileReader(path string) (io.Reader, *model.AppError) {
+// Caller must close the first return value
+func (a *App) FileReader(path string) (io.ReadCloser, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
