@@ -8,6 +8,7 @@ package plugin
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -443,7 +444,7 @@ func (g *apiRPCClient) RegisterCommand(command *model.Command) error {
 	_args := &Z_RegisterCommandArgs{command}
 	_returns := &Z_RegisterCommandReturns{}
 	if err := g.client.Call("Plugin.RegisterCommand", _args, _returns); err != nil {
-		g.log.Error("RPC call to RegisterCommand API failed.", mlog.Err(err))
+		log.Printf("RPC call to RegisterCommand API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -472,7 +473,7 @@ func (g *apiRPCClient) UnregisterCommand(teamId, trigger string) error {
 	_args := &Z_UnregisterCommandArgs{teamId, trigger}
 	_returns := &Z_UnregisterCommandReturns{}
 	if err := g.client.Call("Plugin.UnregisterCommand", _args, _returns); err != nil {
-		g.log.Error("RPC call to UnregisterCommand API failed.", mlog.Err(err))
+		log.Printf("RPC call to UnregisterCommand API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -499,7 +500,7 @@ func (g *apiRPCClient) GetConfig() *model.Config {
 	_args := &Z_GetConfigArgs{}
 	_returns := &Z_GetConfigReturns{}
 	if err := g.client.Call("Plugin.GetConfig", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetConfig API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetConfig API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -527,7 +528,7 @@ func (g *apiRPCClient) SaveConfig(config *model.Config) *model.AppError {
 	_args := &Z_SaveConfigArgs{config}
 	_returns := &Z_SaveConfigReturns{}
 	if err := g.client.Call("Plugin.SaveConfig", _args, _returns); err != nil {
-		g.log.Error("RPC call to SaveConfig API failed.", mlog.Err(err))
+		log.Printf("RPC call to SaveConfig API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -556,7 +557,7 @@ func (g *apiRPCClient) CreateUser(user *model.User) (*model.User, *model.AppErro
 	_args := &Z_CreateUserArgs{user}
 	_returns := &Z_CreateUserReturns{}
 	if err := g.client.Call("Plugin.CreateUser", _args, _returns); err != nil {
-		g.log.Error("RPC call to CreateUser API failed.", mlog.Err(err))
+		log.Printf("RPC call to CreateUser API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -584,7 +585,7 @@ func (g *apiRPCClient) DeleteUser(userId string) *model.AppError {
 	_args := &Z_DeleteUserArgs{userId}
 	_returns := &Z_DeleteUserReturns{}
 	if err := g.client.Call("Plugin.DeleteUser", _args, _returns); err != nil {
-		g.log.Error("RPC call to DeleteUser API failed.", mlog.Err(err))
+		log.Printf("RPC call to DeleteUser API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -613,7 +614,7 @@ func (g *apiRPCClient) GetUser(userId string) (*model.User, *model.AppError) {
 	_args := &Z_GetUserArgs{userId}
 	_returns := &Z_GetUserReturns{}
 	if err := g.client.Call("Plugin.GetUser", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetUser API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetUser API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -642,7 +643,7 @@ func (g *apiRPCClient) GetUserByEmail(email string) (*model.User, *model.AppErro
 	_args := &Z_GetUserByEmailArgs{email}
 	_returns := &Z_GetUserByEmailReturns{}
 	if err := g.client.Call("Plugin.GetUserByEmail", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetUserByEmail API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetUserByEmail API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -671,7 +672,7 @@ func (g *apiRPCClient) GetUserByUsername(name string) (*model.User, *model.AppEr
 	_args := &Z_GetUserByUsernameArgs{name}
 	_returns := &Z_GetUserByUsernameReturns{}
 	if err := g.client.Call("Plugin.GetUserByUsername", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetUserByUsername API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetUserByUsername API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -700,7 +701,7 @@ func (g *apiRPCClient) UpdateUser(user *model.User) (*model.User, *model.AppErro
 	_args := &Z_UpdateUserArgs{user}
 	_returns := &Z_UpdateUserReturns{}
 	if err := g.client.Call("Plugin.UpdateUser", _args, _returns); err != nil {
-		g.log.Error("RPC call to UpdateUser API failed.", mlog.Err(err))
+		log.Printf("RPC call to UpdateUser API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -729,7 +730,7 @@ func (g *apiRPCClient) GetUserStatus(userId string) (*model.Status, *model.AppEr
 	_args := &Z_GetUserStatusArgs{userId}
 	_returns := &Z_GetUserStatusReturns{}
 	if err := g.client.Call("Plugin.GetUserStatus", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetUserStatus API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetUserStatus API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -758,7 +759,7 @@ func (g *apiRPCClient) GetUserStatusesByIds(userIds []string) ([]*model.Status, 
 	_args := &Z_GetUserStatusesByIdsArgs{userIds}
 	_returns := &Z_GetUserStatusesByIdsReturns{}
 	if err := g.client.Call("Plugin.GetUserStatusesByIds", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetUserStatusesByIds API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetUserStatusesByIds API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -788,7 +789,7 @@ func (g *apiRPCClient) UpdateUserStatus(userId, status string) (*model.Status, *
 	_args := &Z_UpdateUserStatusArgs{userId, status}
 	_returns := &Z_UpdateUserStatusReturns{}
 	if err := g.client.Call("Plugin.UpdateUserStatus", _args, _returns); err != nil {
-		g.log.Error("RPC call to UpdateUserStatus API failed.", mlog.Err(err))
+		log.Printf("RPC call to UpdateUserStatus API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -817,7 +818,7 @@ func (g *apiRPCClient) CreateTeam(team *model.Team) (*model.Team, *model.AppErro
 	_args := &Z_CreateTeamArgs{team}
 	_returns := &Z_CreateTeamReturns{}
 	if err := g.client.Call("Plugin.CreateTeam", _args, _returns); err != nil {
-		g.log.Error("RPC call to CreateTeam API failed.", mlog.Err(err))
+		log.Printf("RPC call to CreateTeam API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -845,7 +846,7 @@ func (g *apiRPCClient) DeleteTeam(teamId string) *model.AppError {
 	_args := &Z_DeleteTeamArgs{teamId}
 	_returns := &Z_DeleteTeamReturns{}
 	if err := g.client.Call("Plugin.DeleteTeam", _args, _returns); err != nil {
-		g.log.Error("RPC call to DeleteTeam API failed.", mlog.Err(err))
+		log.Printf("RPC call to DeleteTeam API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -873,7 +874,7 @@ func (g *apiRPCClient) GetTeams() ([]*model.Team, *model.AppError) {
 	_args := &Z_GetTeamsArgs{}
 	_returns := &Z_GetTeamsReturns{}
 	if err := g.client.Call("Plugin.GetTeams", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetTeams API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetTeams API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -902,7 +903,7 @@ func (g *apiRPCClient) GetTeam(teamId string) (*model.Team, *model.AppError) {
 	_args := &Z_GetTeamArgs{teamId}
 	_returns := &Z_GetTeamReturns{}
 	if err := g.client.Call("Plugin.GetTeam", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetTeam API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetTeam API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -931,7 +932,7 @@ func (g *apiRPCClient) GetTeamByName(name string) (*model.Team, *model.AppError)
 	_args := &Z_GetTeamByNameArgs{name}
 	_returns := &Z_GetTeamByNameReturns{}
 	if err := g.client.Call("Plugin.GetTeamByName", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetTeamByName API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetTeamByName API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -960,7 +961,7 @@ func (g *apiRPCClient) UpdateTeam(team *model.Team) (*model.Team, *model.AppErro
 	_args := &Z_UpdateTeamArgs{team}
 	_returns := &Z_UpdateTeamReturns{}
 	if err := g.client.Call("Plugin.UpdateTeam", _args, _returns); err != nil {
-		g.log.Error("RPC call to UpdateTeam API failed.", mlog.Err(err))
+		log.Printf("RPC call to UpdateTeam API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -990,7 +991,7 @@ func (g *apiRPCClient) CreateTeamMember(teamId, userId string) (*model.TeamMembe
 	_args := &Z_CreateTeamMemberArgs{teamId, userId}
 	_returns := &Z_CreateTeamMemberReturns{}
 	if err := g.client.Call("Plugin.CreateTeamMember", _args, _returns); err != nil {
-		g.log.Error("RPC call to CreateTeamMember API failed.", mlog.Err(err))
+		log.Printf("RPC call to CreateTeamMember API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1021,7 +1022,7 @@ func (g *apiRPCClient) CreateTeamMembers(teamId string, userIds []string, reques
 	_args := &Z_CreateTeamMembersArgs{teamId, userIds, requestorId}
 	_returns := &Z_CreateTeamMembersReturns{}
 	if err := g.client.Call("Plugin.CreateTeamMembers", _args, _returns); err != nil {
-		g.log.Error("RPC call to CreateTeamMembers API failed.", mlog.Err(err))
+		log.Printf("RPC call to CreateTeamMembers API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1051,7 +1052,7 @@ func (g *apiRPCClient) DeleteTeamMember(teamId, userId, requestorId string) *mod
 	_args := &Z_DeleteTeamMemberArgs{teamId, userId, requestorId}
 	_returns := &Z_DeleteTeamMemberReturns{}
 	if err := g.client.Call("Plugin.DeleteTeamMember", _args, _returns); err != nil {
-		g.log.Error("RPC call to DeleteTeamMember API failed.", mlog.Err(err))
+		log.Printf("RPC call to DeleteTeamMember API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -1082,7 +1083,7 @@ func (g *apiRPCClient) GetTeamMembers(teamId string, offset, limit int) ([]*mode
 	_args := &Z_GetTeamMembersArgs{teamId, offset, limit}
 	_returns := &Z_GetTeamMembersReturns{}
 	if err := g.client.Call("Plugin.GetTeamMembers", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetTeamMembers API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetTeamMembers API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1112,7 +1113,7 @@ func (g *apiRPCClient) GetTeamMember(teamId, userId string) (*model.TeamMember, 
 	_args := &Z_GetTeamMemberArgs{teamId, userId}
 	_returns := &Z_GetTeamMemberReturns{}
 	if err := g.client.Call("Plugin.GetTeamMember", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetTeamMember API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetTeamMember API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1143,7 +1144,7 @@ func (g *apiRPCClient) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*
 	_args := &Z_UpdateTeamMemberRolesArgs{teamId, userId, newRoles}
 	_returns := &Z_UpdateTeamMemberRolesReturns{}
 	if err := g.client.Call("Plugin.UpdateTeamMemberRoles", _args, _returns); err != nil {
-		g.log.Error("RPC call to UpdateTeamMemberRoles API failed.", mlog.Err(err))
+		log.Printf("RPC call to UpdateTeamMemberRoles API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1172,7 +1173,7 @@ func (g *apiRPCClient) CreateChannel(channel *model.Channel) (*model.Channel, *m
 	_args := &Z_CreateChannelArgs{channel}
 	_returns := &Z_CreateChannelReturns{}
 	if err := g.client.Call("Plugin.CreateChannel", _args, _returns); err != nil {
-		g.log.Error("RPC call to CreateChannel API failed.", mlog.Err(err))
+		log.Printf("RPC call to CreateChannel API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1200,7 +1201,7 @@ func (g *apiRPCClient) DeleteChannel(channelId string) *model.AppError {
 	_args := &Z_DeleteChannelArgs{channelId}
 	_returns := &Z_DeleteChannelReturns{}
 	if err := g.client.Call("Plugin.DeleteChannel", _args, _returns); err != nil {
-		g.log.Error("RPC call to DeleteChannel API failed.", mlog.Err(err))
+		log.Printf("RPC call to DeleteChannel API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -1231,7 +1232,7 @@ func (g *apiRPCClient) GetPublicChannelsForTeam(teamId string, offset, limit int
 	_args := &Z_GetPublicChannelsForTeamArgs{teamId, offset, limit}
 	_returns := &Z_GetPublicChannelsForTeamReturns{}
 	if err := g.client.Call("Plugin.GetPublicChannelsForTeam", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetPublicChannelsForTeam API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetPublicChannelsForTeam API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1260,7 +1261,7 @@ func (g *apiRPCClient) GetChannel(channelId string) (*model.Channel, *model.AppE
 	_args := &Z_GetChannelArgs{channelId}
 	_returns := &Z_GetChannelReturns{}
 	if err := g.client.Call("Plugin.GetChannel", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetChannel API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetChannel API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1290,7 +1291,7 @@ func (g *apiRPCClient) GetChannelByName(teamId, name string) (*model.Channel, *m
 	_args := &Z_GetChannelByNameArgs{teamId, name}
 	_returns := &Z_GetChannelByNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByName", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetChannelByName API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetChannelByName API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1320,7 +1321,7 @@ func (g *apiRPCClient) GetChannelByNameForTeamName(teamName, channelName string)
 	_args := &Z_GetChannelByNameForTeamNameArgs{teamName, channelName}
 	_returns := &Z_GetChannelByNameForTeamNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByNameForTeamName", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetChannelByNameForTeamName API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetChannelByNameForTeamName API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1350,7 +1351,7 @@ func (g *apiRPCClient) GetDirectChannel(userId1, userId2 string) (*model.Channel
 	_args := &Z_GetDirectChannelArgs{userId1, userId2}
 	_returns := &Z_GetDirectChannelReturns{}
 	if err := g.client.Call("Plugin.GetDirectChannel", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetDirectChannel API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetDirectChannel API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1379,7 +1380,7 @@ func (g *apiRPCClient) GetGroupChannel(userIds []string) (*model.Channel, *model
 	_args := &Z_GetGroupChannelArgs{userIds}
 	_returns := &Z_GetGroupChannelReturns{}
 	if err := g.client.Call("Plugin.GetGroupChannel", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetGroupChannel API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetGroupChannel API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1408,7 +1409,7 @@ func (g *apiRPCClient) UpdateChannel(channel *model.Channel) (*model.Channel, *m
 	_args := &Z_UpdateChannelArgs{channel}
 	_returns := &Z_UpdateChannelReturns{}
 	if err := g.client.Call("Plugin.UpdateChannel", _args, _returns); err != nil {
-		g.log.Error("RPC call to UpdateChannel API failed.", mlog.Err(err))
+		log.Printf("RPC call to UpdateChannel API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1438,7 +1439,7 @@ func (g *apiRPCClient) AddChannelMember(channelId, userId string) (*model.Channe
 	_args := &Z_AddChannelMemberArgs{channelId, userId}
 	_returns := &Z_AddChannelMemberReturns{}
 	if err := g.client.Call("Plugin.AddChannelMember", _args, _returns); err != nil {
-		g.log.Error("RPC call to AddChannelMember API failed.", mlog.Err(err))
+		log.Printf("RPC call to AddChannelMember API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1468,7 +1469,7 @@ func (g *apiRPCClient) GetChannelMember(channelId, userId string) (*model.Channe
 	_args := &Z_GetChannelMemberArgs{channelId, userId}
 	_returns := &Z_GetChannelMemberReturns{}
 	if err := g.client.Call("Plugin.GetChannelMember", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetChannelMember API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetChannelMember API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1499,7 +1500,7 @@ func (g *apiRPCClient) UpdateChannelMemberRoles(channelId, userId, newRoles stri
 	_args := &Z_UpdateChannelMemberRolesArgs{channelId, userId, newRoles}
 	_returns := &Z_UpdateChannelMemberRolesReturns{}
 	if err := g.client.Call("Plugin.UpdateChannelMemberRoles", _args, _returns); err != nil {
-		g.log.Error("RPC call to UpdateChannelMemberRoles API failed.", mlog.Err(err))
+		log.Printf("RPC call to UpdateChannelMemberRoles API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1530,7 +1531,7 @@ func (g *apiRPCClient) UpdateChannelMemberNotifications(channelId, userId string
 	_args := &Z_UpdateChannelMemberNotificationsArgs{channelId, userId, notifications}
 	_returns := &Z_UpdateChannelMemberNotificationsReturns{}
 	if err := g.client.Call("Plugin.UpdateChannelMemberNotifications", _args, _returns); err != nil {
-		g.log.Error("RPC call to UpdateChannelMemberNotifications API failed.", mlog.Err(err))
+		log.Printf("RPC call to UpdateChannelMemberNotifications API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1559,7 +1560,7 @@ func (g *apiRPCClient) DeleteChannelMember(channelId, userId string) *model.AppE
 	_args := &Z_DeleteChannelMemberArgs{channelId, userId}
 	_returns := &Z_DeleteChannelMemberReturns{}
 	if err := g.client.Call("Plugin.DeleteChannelMember", _args, _returns); err != nil {
-		g.log.Error("RPC call to DeleteChannelMember API failed.", mlog.Err(err))
+		log.Printf("RPC call to DeleteChannelMember API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -1588,7 +1589,7 @@ func (g *apiRPCClient) CreatePost(post *model.Post) (*model.Post, *model.AppErro
 	_args := &Z_CreatePostArgs{post}
 	_returns := &Z_CreatePostReturns{}
 	if err := g.client.Call("Plugin.CreatePost", _args, _returns); err != nil {
-		g.log.Error("RPC call to CreatePost API failed.", mlog.Err(err))
+		log.Printf("RPC call to CreatePost API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1617,7 +1618,7 @@ func (g *apiRPCClient) SendEphemeralPost(userId string, post *model.Post) *model
 	_args := &Z_SendEphemeralPostArgs{userId, post}
 	_returns := &Z_SendEphemeralPostReturns{}
 	if err := g.client.Call("Plugin.SendEphemeralPost", _args, _returns); err != nil {
-		g.log.Error("RPC call to SendEphemeralPost API failed.", mlog.Err(err))
+		log.Printf("RPC call to SendEphemeralPost API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -1645,7 +1646,7 @@ func (g *apiRPCClient) DeletePost(postId string) *model.AppError {
 	_args := &Z_DeletePostArgs{postId}
 	_returns := &Z_DeletePostReturns{}
 	if err := g.client.Call("Plugin.DeletePost", _args, _returns); err != nil {
-		g.log.Error("RPC call to DeletePost API failed.", mlog.Err(err))
+		log.Printf("RPC call to DeletePost API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -1674,7 +1675,7 @@ func (g *apiRPCClient) GetPost(postId string) (*model.Post, *model.AppError) {
 	_args := &Z_GetPostArgs{postId}
 	_returns := &Z_GetPostReturns{}
 	if err := g.client.Call("Plugin.GetPost", _args, _returns); err != nil {
-		g.log.Error("RPC call to GetPost API failed.", mlog.Err(err))
+		log.Printf("RPC call to GetPost API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1703,7 +1704,7 @@ func (g *apiRPCClient) UpdatePost(post *model.Post) (*model.Post, *model.AppErro
 	_args := &Z_UpdatePostArgs{post}
 	_returns := &Z_UpdatePostReturns{}
 	if err := g.client.Call("Plugin.UpdatePost", _args, _returns); err != nil {
-		g.log.Error("RPC call to UpdatePost API failed.", mlog.Err(err))
+		log.Printf("RPC call to UpdatePost API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1732,7 +1733,7 @@ func (g *apiRPCClient) KVSet(key string, value []byte) *model.AppError {
 	_args := &Z_KVSetArgs{key, value}
 	_returns := &Z_KVSetReturns{}
 	if err := g.client.Call("Plugin.KVSet", _args, _returns); err != nil {
-		g.log.Error("RPC call to KVSet API failed.", mlog.Err(err))
+		log.Printf("RPC call to KVSet API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -1761,7 +1762,7 @@ func (g *apiRPCClient) KVGet(key string) ([]byte, *model.AppError) {
 	_args := &Z_KVGetArgs{key}
 	_returns := &Z_KVGetReturns{}
 	if err := g.client.Call("Plugin.KVGet", _args, _returns); err != nil {
-		g.log.Error("RPC call to KVGet API failed.", mlog.Err(err))
+		log.Printf("RPC call to KVGet API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
@@ -1789,7 +1790,7 @@ func (g *apiRPCClient) KVDelete(key string) *model.AppError {
 	_args := &Z_KVDeleteArgs{key}
 	_returns := &Z_KVDeleteReturns{}
 	if err := g.client.Call("Plugin.KVDelete", _args, _returns); err != nil {
-		g.log.Error("RPC call to KVDelete API failed.", mlog.Err(err))
+		log.Printf("RPC call to KVDelete API failed: %s", err.Error())
 	}
 	return _returns.A
 }
@@ -1818,7 +1819,7 @@ func (g *apiRPCClient) PublishWebSocketEvent(event string, payload map[string]in
 	_args := &Z_PublishWebSocketEventArgs{event, payload, broadcast}
 	_returns := &Z_PublishWebSocketEventReturns{}
 	if err := g.client.Call("Plugin.PublishWebSocketEvent", _args, _returns); err != nil {
-		g.log.Error("RPC call to PublishWebSocketEvent API failed.", mlog.Err(err))
+		log.Printf("RPC call to PublishWebSocketEvent API failed: %s", err.Error())
 	}
 	return
 }
@@ -1846,7 +1847,7 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogDebugArgs{msg, keyValuePairs}
 	_returns := &Z_LogDebugReturns{}
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
-		g.log.Error("RPC call to LogDebug API failed.", mlog.Err(err))
+		log.Printf("RPC call to LogDebug API failed: %s", err.Error())
 	}
 	return
 }
@@ -1874,7 +1875,7 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogInfoArgs{msg, keyValuePairs}
 	_returns := &Z_LogInfoReturns{}
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
-		g.log.Error("RPC call to LogInfo API failed.", mlog.Err(err))
+		log.Printf("RPC call to LogInfo API failed: %s", err.Error())
 	}
 	return
 }
@@ -1902,7 +1903,7 @@ func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogErrorArgs{msg, keyValuePairs}
 	_returns := &Z_LogErrorReturns{}
 	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {
-		g.log.Error("RPC call to LogError API failed.", mlog.Err(err))
+		log.Printf("RPC call to LogError API failed: %s", err.Error())
 	}
 	return
 }
@@ -1930,7 +1931,7 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_args := &Z_LogWarnArgs{msg, keyValuePairs}
 	_returns := &Z_LogWarnReturns{}
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
-		g.log.Error("RPC call to LogWarn API failed.", mlog.Err(err))
+		log.Printf("RPC call to LogWarn API failed: %s", err.Error())
 	}
 	return
 }

@@ -55,7 +55,6 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface
 
 type apiRPCClient struct {
 	client *rpc.Client
-	log    *mlog.Logger
 }
 
 type apiRPCServer struct {
@@ -197,7 +196,7 @@ func (g *apiRPCClient) LoadPluginConfiguration(dest interface{}) error {
 	_args := &Z_LoadPluginConfigurationArgsArgs{}
 	_returns := &Z_LoadPluginConfigurationArgsReturns{}
 	if err := g.client.Call("Plugin.LoadPluginConfiguration", _args, _returns); err != nil {
-		g.log.Error("RPC call to LoadPluginConfiguration API failed.", mlog.Err(err))
+		log.Printf("RPC call to LoadPluginConfiguration API failed: %s", err.Error())
 	}
 	return json.Unmarshal(_returns.A, dest)
 }
