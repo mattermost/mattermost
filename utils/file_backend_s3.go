@@ -82,6 +82,7 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 	return nil
 }
 
+// Caller must close the first return value
 func (b *S3FileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
