@@ -471,10 +471,10 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 	newPost := &model.Post{}
 	*newPost = *oldPost
 	
-	if newPost.RootId == "" && post.RootId != "" && post.RootId != newPost.Id{
-    	if _, ok := thread.Posts[post.Id]; ok && len(thread.Posts) == 1 {
-    		newPost.RootId = post.RootId
-    	}
+	if newPost.RootId == "" && post.RootId != "" && post.RootId != newPost.Id {
+		if _, ok := thread.Posts[post.Id]; ok && len(thread.Posts) == 1 {
+			newPost.RootId = post.RootId
+		}
 	}
 
 	if result := <-a.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
