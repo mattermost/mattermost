@@ -4,7 +4,6 @@
 package model
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -256,7 +255,7 @@ func TestManifestClientManifest(t *testing.T) {
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
-			BundleHash: [md5.Size]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+			BundleHash: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 		},
 		SettingsSchema: &PluginSettingsSchema{
 			Header: "theheadertext",

@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"fmt"
+	"hash/fnv"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -182,9 +183,20 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 			return nil, false, errors.Wrapf(err, "unable to copy webapp bundle directory: %v", id)
 		}
 
+		sourceBundleFilepath := filepath.Join(destinationPath, filepath.Base(bundlePath))
+
+		sourceBundleFileContents, err := ioutil.ReadFile(sourceBundleFilepath)
+		if err != nil {
+			return nil, false, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+		}
+
+		hash := fnv.New64a()
+		hash.Write(sourceBundleFileContents)
+		pluginInfo.Manifest.Webapp.BundleHash = hash.Sum([]byte{})
+
 		if err := os.Rename(
-			filepath.Join(destinationPath, filepath.Base(bundlePath)),
-			filepath.Join(destinationPath, fmt.Sprintf("%s_bundle.js", id)),
+			sourceBundleFilepath,
+			filepath.Join(destinationPath, fmt.Sprintf("%s_%x_bundle.js", id, pluginInfo.Manifest.Webapp.BundleHash)),
 		); err != nil {
 			return nil, false, errors.Wrapf(err, "unable to rename webapp bundle: %v", id)
 		}

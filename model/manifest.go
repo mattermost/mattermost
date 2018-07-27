@@ -4,7 +4,6 @@
 package model
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -154,8 +153,8 @@ type ManifestWebapp struct {
 	// location of the manifest file.
 	BundlePath string `json:"bundle_path" yaml:"bundle_path"`
 
-	// BundleHash is the MD5 sum of the webapp bundle, computed when the plugin is loaded
-	BundleHash [md5.Size]byte `json:"-"`
+	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
+	BundleHash []byte `json:"-"`
 }
 
 func (m *Manifest) ToJson() string {
@@ -193,7 +192,7 @@ func (m *Manifest) ClientManifest() *Manifest {
 	if cm.Webapp != nil {
 		cm.Webapp = new(ManifestWebapp)
 		*cm.Webapp = *m.Webapp
-		cm.Webapp.BundlePath = "/static/" + m.Id + "/" + fmt.Sprintf("/static/%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
+		cm.Webapp.BundlePath = "/static/" + m.Id + "/" + fmt.Sprintf("%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
 	}
 	return cm
 }
