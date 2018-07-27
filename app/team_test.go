@@ -76,6 +76,7 @@ func TestAddUserToTeam(t *testing.T) {
 	t.Run("add user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
 
 		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err != nil {
 			t.Log(err)
@@ -83,7 +84,24 @@ func TestAddUserToTeam(t *testing.T) {
 		}
 	})
 
-	t.Run("block user", func(t *testing.T) {
+	t.Run("allow user by domain", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err != nil {
+			t.Log(err)
+			t.Fatal("Should have allowed whitelisted user")
+		}
+	})
+
+	t.Run("block user by domain", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
 		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
 			t.Log(err)
@@ -100,6 +118,37 @@ func TestAddUserToTeam(t *testing.T) {
 		}
 	})
 
+	t.Run("allow users by multiple domains", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "foo.com, bar.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@foo.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser1, _ := th.App.CreateUser(&user1)
+		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@bar.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser2, _ := th.App.CreateUser(&user2)
+		user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser3, _ := th.App.CreateUser(&user3)
+		defer th.App.PermanentDeleteUser(&user1)
+		defer th.App.PermanentDeleteUser(&user2)
+		defer th.App.PermanentDeleteUser(&user3)
+
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser1.Id, ""); err != nil {
+			t.Log(err)
+			t.Fatal("Should have allowed whitelisted user1")
+		}
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser2.Id, ""); err != nil {
+			t.Log(err)
+			t.Fatal("Should have allowed whitelisted user2")
+		}
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser3.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not have allowed restricted user3")
+		}
+
+	})
 }
 
 func TestAddUserToTeamByToken(t *testing.T) {
