@@ -278,6 +278,12 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.Session.IsOAuth {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	c.LogAudit("attempt")
 
 	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
@@ -358,7 +364,6 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Automatically allow if the app is trusted
 	if oauthApp.IsTrusted || isAuthorized {
-		authRequest.ResponseType = model.AUTHCODE_RESPONSE_TYPE
 		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
 
 		if err != nil {
@@ -418,7 +423,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	accessRsp, err := c.App.GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret, refreshToken)
+	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken)
 	if err != nil {
 		c.Err = err
 		return

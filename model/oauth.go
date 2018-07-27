@@ -109,7 +109,6 @@ func (a *OAuthApp) PreUpdate() {
 	a.UpdateAt = GetMillis()
 }
 
-// ToJson convert a User to a json string
 func (a *OAuthApp) ToJson() string {
 	b, _ := json.Marshal(a)
 	return string(b)
@@ -135,7 +134,6 @@ func (a *OAuthApp) IsValidRedirectURL(url string) bool {
 	return false
 }
 
-// OAuthAppFromJson will decode the input and return a User
 func OAuthAppFromJson(data io.Reader) *OAuthApp {
 	var app *OAuthApp
 	json.NewDecoder(data).Decode(&app)

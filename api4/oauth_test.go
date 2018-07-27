@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -665,6 +666,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 		State:        "123",
 	}
 
+	// Test auth code flow
 	ruri, resp := Client.AuthorizeOAuthApp(authRequest)
 	CheckNoError(t, resp)
 
@@ -683,6 +685,26 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 			t.Fatal("returned state doesn't match")
 		}
 	}
+
+	// Test implicit flow
+	authRequest.ResponseType = model.IMPLICIT_RESPONSE_TYPE
+	ruri, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+	require.False(t, len(ruri) == 0, "redirect url should be set")
+
+	ru, _ = url.Parse(ruri)
+	require.NotNil(t, ru, "redirect url unparseable")
+	values, err := url.ParseQuery(ru.Fragment)
+	require.Nil(t, err)
+	assert.False(t, len(values.Get("access_token")) == 0, "access_token not returned")
+	assert.Equal(t, authRequest.State, values.Get("state"), "returned state doesn't match")
+
+	oldToken := Client.AuthToken
+	Client.AuthToken = values.Get("access_token")
+	_, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckForbiddenStatus(t, resp)
+
+	Client.AuthToken = oldToken
 
 	authRequest.RedirectUri = ""
 	_, resp = Client.AuthorizeOAuthApp(authRequest)
