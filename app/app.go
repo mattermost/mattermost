@@ -68,7 +68,7 @@ type App struct {
 	envConfig              map[string]interface{}
 	configFile             string
 	configListeners        map[string]func(*model.Config, *model.Config)
-	clusterLeaderListeners map[string]func()
+	clusterLeaderListeners sync.Map
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
@@ -80,14 +80,15 @@ type App struct {
 
 	newStore func() store.Store
 
-	htmlTemplateWatcher  *utils.HTMLTemplateWatcher
-	sessionCache         *utils.Cache
-	configListenerId     string
-	licenseListenerId    string
-	logListenerId        string
-	disableConfigWatch   bool
-	configWatcher        *utils.ConfigWatcher
-	asymmetricSigningKey *ecdsa.PrivateKey
+	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
+	sessionCache            *utils.Cache
+	configListenerId        string
+	licenseListenerId       string
+	logListenerId           string
+	clusterLeaderListenerId string
+	disableConfigWatch      bool
+	configWatcher           *utils.ConfigWatcher
+	asymmetricSigningKey    *ecdsa.PrivateKey
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -117,12 +118,11 @@ func New(options ...Option) (outApp *App, outErr error) {
 		Srv: &Server{
 			RootRouter: rootRouter,
 		},
-		sessionCache:           utils.NewLru(model.SESSION_CACHE_SIZE),
-		configFile:             "config.json",
-		configListeners:        make(map[string]func(*model.Config, *model.Config)),
-		clusterLeaderListeners: make(map[string]func()),
-		clientConfig:           make(map[string]string),
-		licenseListeners:       map[string]func(){},
+		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
+		configFile:       "config.json",
+		configListeners:  make(map[string]func(*model.Config, *model.Config)),
+		clientConfig:     make(map[string]string),
+		licenseListeners: map[string]func(){},
 	}
 	defer func() {
 		if outErr != nil {
@@ -220,7 +220,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 		app.initJobs()
 	})
 
-	app.AddClusterLeaderChangedListener(func() {
+	app.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
 		app.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
 	})
 
@@ -276,6 +276,7 @@ func (a *App) Shutdown() {
 	a.RemoveConfigListener(a.configListenerId)
 	a.RemoveLicenseListener(a.licenseListenerId)
 	a.RemoveConfigListener(a.logListenerId)
+	a.RemoveClusterLeaderChangedListener(a.clusterLeaderListenerId)
 	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()

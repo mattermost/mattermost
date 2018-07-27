@@ -10,19 +10,20 @@ import "github.com/mattermost/mattermost-server/model"
 // be called.
 func (a *App) AddClusterLeaderChangedListener(listener func()) string {
 	id := model.NewId()
-	a.clusterLeaderListeners[id] = listener
+	a.clusterLeaderListeners.Store(id, listener)
 	return id
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
 func (a *App) RemoveClusterLeaderChangedListener(id string) {
-	delete(a.clusterLeaderListeners, id)
+	a.clusterLeaderListeners.Delete(id)
 }
 
 func (a *App) InvokeClusterLeaderChangedListeners() {
 	a.Go(func() {
-		for _, listener := range a.clusterLeaderListeners {
-			listener()
-		}
+		a.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
+			listener.(func())()
+			return true
+		})
 	})
 }
