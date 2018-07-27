@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -352,6 +353,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
 		[]string{"testhook.txt"},
 		[]string{},
+		time.Now(),
 	)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
