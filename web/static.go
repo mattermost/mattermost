@@ -85,11 +85,7 @@ func staticHandler(handler http.Handler) http.Handler {
 
 func pluginHandler(config model.ConfigFunc, handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if *config().ServiceSettings.EnableDeveloper {
-			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		} else {
-			w.Header().Set("Cache-Control", "max-age=31556926, public")
-		}
+		w.Header().Set("Cache-Control", "max-age=31556926, public")
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
 			return

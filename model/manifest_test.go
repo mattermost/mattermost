@@ -4,6 +4,7 @@
 package model
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -255,6 +256,7 @@ func TestManifestClientManifest(t *testing.T) {
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
+			BundleHash: [md5.Size]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 		},
 		SettingsSchema: &PluginSettingsSchema{
 			Header: "theheadertext",
@@ -281,10 +283,11 @@ func TestManifestClientManifest(t *testing.T) {
 
 	sanitized := manifest.ClientManifest()
 
-	assert.NotEmpty(t, sanitized.Id)
-	assert.NotEmpty(t, sanitized.Version)
-	assert.NotEmpty(t, sanitized.Webapp)
-	assert.NotEmpty(t, sanitized.SettingsSchema)
+	assert.Equal(t, manifest.Id, sanitized.Id)
+	assert.Equal(t, manifest.Version, sanitized.Version)
+	assert.Equal(t, "/static/theid_000102030405060708090a0b0c0d0e0f_bundle.js", sanitized.Webapp.BundlePath)
+	assert.Equal(t, manifest.Webapp.BundleHash, sanitized.Webapp.BundleHash)
+	assert.Equal(t, manifest.SettingsSchema, sanitized.SettingsSchema)
 	assert.Empty(t, sanitized.Name)
 	assert.Empty(t, sanitized.Description)
 	assert.Empty(t, sanitized.Server)
