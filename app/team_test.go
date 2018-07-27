@@ -94,7 +94,7 @@ func TestAddUserToTeam(t *testing.T) {
 		ruser, _ := th.App.CreateUser(&user)
 		defer th.App.PermanentDeleteUser(&user)
 
-		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "isTeamEmailAllowed" {
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
 			t.Log(err)
 			t.Fatal("Should not add restricted user")
 		}
@@ -196,7 +196,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		<-th.App.Srv.Store.Token().Save(token)
 
-		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil || err.Where != "isTeamEmailAllowed" {
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil || err.Where != "JoinUserToTeam" {
 			t.Log(err)
 			t.Fatal("Should not add restricted user")
 		}
@@ -228,7 +228,7 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		ruser, _ := th.App.CreateUser(&user)
 		defer th.App.PermanentDeleteUser(&user)
 
-		if err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err == nil || err.Where != "isTeamEmailAllowed" {
+		if err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err == nil || err.Where != "JoinUserToTeam" {
 			t.Log(err)
 			t.Fatal("Should not add restricted user")
 		}

@@ -435,7 +435,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 
 func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError {
 	if !a.isTeamEmailAllowed(user, team) {
-		return model.NewAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("JoinUserToTeam", "api.team.is_team_creation_allowed.domain.app_error", nil, "", http.StatusBadRequest)
 	}
 	tm, alreadyAdded, err := a.joinUserToTeam(team, user)
 	if err != nil {
