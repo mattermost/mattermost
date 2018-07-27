@@ -28,6 +28,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -366,7 +367,7 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, filenames[i], data)
+		info, data, err := a.DoUploadFileExpectModification(time.Now(), teamId, channelId, userId, filenames[i], data)
 		if err != nil {
 			return nil, err
 		}
@@ -390,6 +391,11 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 }
 
 func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+	info, _, err := a.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+	return info, err
+}
+
+func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamId := filepath.Base(rawTeamId)
 	channelId := filepath.Base(rawChannelId)
@@ -398,7 +404,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 	info, err := model.GetInfoForBytes(filename, data)
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
-		return nil, err
+		return nil, data, err
 	}
 
 	if orientation, err := getImageOrientation(bytes.NewReader(data)); err == nil &&
@@ -419,7 +425,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 		// Check dimensions before loading the whole thing into memory later on
 		if info.Width*info.Height > MaxImageSize {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
-			return nil, err
+			return nil, data, err
 		}
 
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
@@ -427,15 +433,33 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
+	if a.PluginsReady() {
+		pluginContext := &plugin.Context{}
+		var rejectionReason string
+		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			var newBytes bytes.Buffer
+			info, rejectionReason = hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
+			rejected := info == nil
+			if !rejected && newBytes.Len() != 0 {
+				data = newBytes.Bytes()
+				info.Size = int64(len(data))
+			}
+			return !rejected
+		}, plugin.FileWillBeUploadedId)
+		if info == nil {
+			return nil, data, model.NewAppError("DoUploadFile", "File rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if _, err := a.WriteFile(bytes.NewReader(data), info.Path); err != nil {
-		return nil, err
+		return nil, data, err
 	}
 
 	if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
-		return nil, result.Err
+		return nil, data, result.Err
 	}
 
-	return info, nil
+	return info, data, nil
 }
 
 func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {

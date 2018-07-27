@@ -4,6 +4,8 @@
 package app
 
 import (
+	"bytes"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -301,4 +303,70 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestHookFileWillBeUploaded(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("DeleteUser", "testhook.txt").Return(nil)
+	mockAPI.On("DeleteTeam", "inputfile").Return(nil)
+	SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"io"
+			"bytes"
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
+			p.API.DeleteUser(info.Name)
+			var buf bytes.Buffer
+			buf.ReadFrom(file)
+			p.API.DeleteTeam(buf.String())
+
+			outbuf := bytes.NewBufferString("changedtext")
+			io.Copy(output, outbuf)
+			info.Name = "modifiedinfo"
+			return info, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+
+	response, err := th.App.UploadFiles(
+		"noteam",
+		th.BasicChannel.Id,
+		th.BasicUser.Id,
+		[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
+		[]string{"testhook.txt"},
+		[]string{},
+	)
+	assert.Nil(t, err)
+	assert.NotNil(t, response)
+	assert.Equal(t, 1, len(response.FileInfos))
+	fileId := response.FileInfos[0].Id
+
+	fileInfo, err := th.App.GetFileInfo(fileId)
+	assert.Nil(t, err)
+	assert.NotNil(t, fileInfo)
+	assert.Equal(t, "modifiedinfo", fileInfo.Name)
+
+	fileReader, err := th.App.FileReader(fileInfo.Path)
+	assert.Nil(t, err)
+	var resultBuf bytes.Buffer
+	io.Copy(&resultBuf, fileReader)
+	assert.Equal(t, "changedtext", resultBuf.String())
 }
