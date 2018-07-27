@@ -39,7 +39,9 @@ const (
 // A plugin only need implement the hooks it cares about. The MattermostPlugin provides some
 // default implementations for convenience but may be overridden.
 type Hooks interface {
-	// OnActivate is invoked when the plugin is activated.
+	// OnActivate is invoked when the plugin is activated. If an error is returned, the plugin
+	// will be terminated. The plugin will not receive hooks until after OnActivate returns
+	// without error.
 	OnActivate() error
 
 	// Implemented returns a list of hooks that are implemented by the plugin.
@@ -47,7 +49,8 @@ type Hooks interface {
 	Implemented() ([]string, error)
 
 	// OnDeactivate is invoked when the plugin is deactivated. This is the plugin's last chance to
-	// use the API, and the plugin will be terminated shortly after this invocation.
+	// use the API, and the plugin will be terminated shortly after this invocation. The plugin
+	// will stop receiving hooks just prior to this method being called.
 	OnDeactivate() error
 
 	// OnConfigurationChange is invoked when configuration changes may have been made.
