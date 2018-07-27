@@ -13,12 +13,13 @@ import (
 )
 
 type Schedulers struct {
-	stop          chan bool
-	stopped       chan bool
-	configChanged chan *model.Config
-	listenerId    string
-	startOnce     sync.Once
-	jobs          *JobServer
+	stop                 chan bool
+	stopped              chan bool
+	configChanged        chan *model.Config
+	clusterLeaderChanged chan bool
+	listenerId           string
+	startOnce            sync.Once
+	jobs                 *JobServer
 
 	schedulers   []model.Scheduler
 	nextRunTimes []*time.Time
@@ -114,6 +115,14 @@ func (schedulers *Schedulers) Start() *Schedulers {
 							schedulers.setNextRunTime(newCfg, idx, now, false)
 						}
 					}
+				case isLeader := <-schedulers.clusterLeaderChanged:
+					for idx := range schedulers.schedulers {
+						if !isLeader {
+							schedulers.nextRunTimes[idx] = nil
+						} else {
+							schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
+						}
+					}
 				}
 			}
 		})
@@ -170,4 +179,9 @@ func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Sch
 func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
 	mlog.Debug("Schedulers received config change.")
 	schedulers.configChanged <- newConfig
+}
+
+func (schedulers *Schedulers) HandleClusterLeaderChange(isLeader bool) {
+	mlog.Debug("Schedulers received cluster leader change.")
+	schedulers.clusterLeaderChanged <- isLeader
 }

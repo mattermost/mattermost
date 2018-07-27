@@ -64,10 +64,11 @@ type App struct {
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
 
-	config          atomic.Value
-	envConfig       map[string]interface{}
-	configFile      string
-	configListeners map[string]func(*model.Config, *model.Config)
+	config                 atomic.Value
+	envConfig              map[string]interface{}
+	configFile             string
+	configListeners        map[string]func(*model.Config, *model.Config)
+	clusterLeaderListeners map[string]func()
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
@@ -116,11 +117,12 @@ func New(options ...Option) (outApp *App, outErr error) {
 		Srv: &Server{
 			RootRouter: rootRouter,
 		},
-		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
-		configFile:       "config.json",
-		configListeners:  make(map[string]func(*model.Config, *model.Config)),
-		clientConfig:     make(map[string]string),
-		licenseListeners: map[string]func(){},
+		sessionCache:           utils.NewLru(model.SESSION_CACHE_SIZE),
+		configFile:             "config.json",
+		configListeners:        make(map[string]func(*model.Config, *model.Config)),
+		clusterLeaderListeners: make(map[string]func()),
+		clientConfig:           make(map[string]string),
+		licenseListeners:       map[string]func(){},
 	}
 	defer func() {
 		if outErr != nil {
@@ -216,6 +218,10 @@ func New(options ...Option) (outApp *App, outErr error) {
 	app.initJobs()
 	app.AddLicenseListener(func() {
 		app.initJobs()
+	})
+
+	app.AddClusterLeaderChangedListener(func() {
+		app.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
 	})
 
 	subpath, err := utils.GetSubpathFromConfig(app.Config())
