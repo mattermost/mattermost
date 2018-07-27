@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"time"
 )
 
 func compileGo(t *testing.T, sourceCode, outputPath string) {
@@ -368,4 +369,145 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	var resultBuf bytes.Buffer
 	io.Copy(&resultBuf, fileReader)
 	assert.Equal(t, "changedtext", resultBuf.String())
+}
+
+func TestUserWillLogIn_Blocked(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+
+	if err != nil {
+		t.Errorf("Error updating user password: %s", err)
+	}
+
+	SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserWillLogIn(c *plugin.Context, user *model.User) string {
+			return "Blocked By Plugin"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.App.NewPluginAPI)
+
+	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
+
+	if user != nil {
+		t.Errorf("Expected nil, got %+v", user)
+	}
+
+	if err == nil {
+		t.Errorf("Expected err, got nil")
+	}
+}
+
+func TestUserWillLogInIn_Passed(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+
+	if err != nil {
+		t.Errorf("Error updating user password: %s", err)
+	}
+
+	SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserWillLogIn(c *plugin.Context, user *model.User) string {
+			return ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.App.NewPluginAPI)
+
+	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
+
+	if user == nil {
+		t.Errorf("Expected user object, got nil")
+	}
+
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+}
+
+func TestUserHasLoggedIn(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+
+	if err != nil {
+		t.Errorf("Error updating user password: %s", err)
+	}
+
+	SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasLoggedIn(c *plugin.Context, user *model.User) {
+			user.FirstName = "plugin-callback-success"
+			p.API.UpdateUser(user)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.App.NewPluginAPI)
+
+	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
+
+	if user == nil {
+		t.Errorf("Expected user object, got nil")
+	}
+
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	time.Sleep(2 * time.Second)
+
+	user, err = th.App.GetUser(th.BasicUser.Id)
+
+	if user.FirstName != "plugin-callback-success" {
+		t.Errorf("Expected firstname overwrite, got default")
+	}
 }
