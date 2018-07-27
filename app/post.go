@@ -459,13 +459,6 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 			err := model.NewAppError("UpdatePost", "api.post.rethread_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 			return nil, err
 		}
-
-		if a.License() != nil {
-			if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
-				err := model.NewAppError("UpdatePost", "api.post.rethread_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-				return nil, err
-			}
-		}
 	}
 
 	newPost := &model.Post{}
