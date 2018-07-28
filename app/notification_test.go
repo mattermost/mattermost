@@ -530,6 +530,15 @@ func TestGetExplicitMentions(t *testing.T) {
 				HereMentioned: true,
 			},
 		},
+		"should find the mentions with spaces": {
+			Message:  "this is an message with some spaces  in   it",
+			Keywords: map[string][]string{"some spaces  in   it": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 
