@@ -96,12 +96,15 @@ func TestCreateTeamSanitization(t *testing.T) {
 			Name:           GenerateTestTeamName(),
 			Email:          th.GenerateTestEmail(),
 			Type:           model.TEAM_OPEN,
+			AllowedDomains: "simulator.amazonses.com",
 		}
 
 		rteam, resp := th.Client.CreateTeam(team)
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 
@@ -111,12 +114,15 @@ func TestCreateTeamSanitization(t *testing.T) {
 			Name:           GenerateTestTeamName(),
 			Email:          th.GenerateTestEmail(),
 			Type:           model.TEAM_OPEN,
+			AllowedDomains: "simulator.amazonses.com",
 		}
 
 		rteam, resp := th.SystemAdminClient.CreateTeam(team)
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 }
@@ -177,6 +183,7 @@ func TestGetTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 
@@ -190,6 +197,8 @@ func TestGetTeamSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email != "" {
 			t.Fatal("should've sanitized email")
+		} else if rteam.AllowedDomains != "" {
+			t.Fatal("should've sanitized allowed domains")
 		}
 	})
 
@@ -198,6 +207,8 @@ func TestGetTeamSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 
@@ -206,6 +217,8 @@ func TestGetTeamSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 }
@@ -351,6 +364,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 
@@ -361,6 +375,8 @@ func TestUpdateTeamSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email for admin")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 
@@ -369,6 +385,8 @@ func TestUpdateTeamSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email for admin")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 }
@@ -445,6 +463,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 
@@ -455,6 +474,8 @@ func TestPatchTeamSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email for admin")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 
@@ -463,6 +484,8 @@ func TestPatchTeamSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email for admin")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 }
@@ -632,6 +655,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		Name:            GenerateTestTeamName(),
 		Email:           th.GenerateTestEmail(),
 		Type:            model.TEAM_OPEN,
+		AllowedDomains:  "simulator.amazonses.com",
 		AllowOpenInvite: true,
 	})
 	CheckNoError(t, resp)
@@ -640,6 +664,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		Name:            GenerateTestTeamName(),
 		Email:           th.GenerateTestEmail(),
 		Type:            model.TEAM_OPEN,
+		AllowedDomains:  "simulator.amazonses.com",
 		AllowOpenInvite: true,
 	})
 	CheckNoError(t, resp)
@@ -657,11 +682,15 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 				teamFound = true
 				if rteam.Email == "" {
 					t.Fatal("should not have sanitized email for team admin")
+				} else if rteam.AllowedDomains == "" {
+					t.Fatal("should not have sanitized allowed domains for team admin")
 				}
 			} else if rteam.Id == team2.Id {
 				team2Found = true
 				if rteam.Email != "" {
 					t.Fatal("should've sanitized email for non-admin")
+				} else if rteam.AllowedDomains != "" {
+					t.Fatal("should've sanitized allowed domains for non-admin")
 				}
 			}
 		}
@@ -681,6 +710,8 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 
 			if rteam.Email == "" {
 				t.Fatal("should not have sanitized email")
+			} else if rteam.AllowedDomains == "" {
+				t.Fatal("should not have sanitized allowed domains")
 			}
 		}
 	})
@@ -742,6 +773,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 
@@ -755,6 +787,8 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email != "" {
 			t.Fatal("should've sanitized email")
+		} else if rteam.AllowedDomains != "" {
+			t.Fatal("should've sanitized allowed domains")
 		}
 	})
 
@@ -763,6 +797,8 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 
@@ -771,6 +807,8 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		CheckNoError(t, resp)
 		if rteam.Email == "" {
 			t.Fatal("should not have sanitized email")
+		} else if rteam.AllowedDomains == "" {
+			t.Fatal("should not have sanitized allowed domains")
 		}
 	})
 }
@@ -866,6 +904,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 	team2, resp := th.Client.CreateTeam(&model.Team{
@@ -873,6 +912,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 
@@ -885,6 +925,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			if rteam.Email != "" {
 				t.Fatal("should've sanitized email")
+			} else if rteam.AllowedDomains != "" {
+				t.Fatal("should've sanitized allowed domains")
 			}
 		}
 	})
@@ -900,6 +942,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			if rteam.Email != "" {
 				t.Fatal("should've sanitized email")
+			} else if rteam.AllowedDomains != "" {
+				t.Fatal("should've sanitized allowed domains")
 			}
 		}
 	})
@@ -911,6 +955,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 			if rteam.Id == team.Id || rteam.Id == team2.Id || rteam.Id == th.BasicTeam.Id {
 				if rteam.Email == "" {
 					t.Fatal("should not have sanitized email")
+				} else if rteam.AllowedDomains == "" {
+					t.Fatal("should not have sanitized allowed domains")
 				}
 			}
 		}
@@ -922,6 +968,8 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		for _, rteam := range rteams {
 			if rteam.Email == "" {
 				t.Fatal("should not have sanitized email")
+			} else if rteam.AllowedDomains == "" {
+				t.Fatal("should not have sanitized allowed domains")
 			}
 		}
 	})
@@ -978,6 +1026,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 	team2, resp := th.Client.CreateTeam(&model.Team{
@@ -985,6 +1034,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 
@@ -1004,6 +1054,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 
 			if rteam.Email != "" {
 				t.Fatal("should've sanitized email")
+			} else if rteam.AllowedDomains != "" {
+				t.Fatal("should've sanitized allowed domains")
 			}
 		}
 	})
@@ -1018,6 +1070,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 
 			if rteam.Email == "" {
 				t.Fatal("should not have sanitized email")
+			} else if rteam.AllowedDomains == "" {
+				t.Fatal("should not have sanitized allowed domains")
 			}
 		}
 	})
@@ -1032,6 +1086,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 
 			if rteam.Email == "" {
 				t.Fatal("should not have sanitized email")
+			} else if rteam.AllowedDomains == "" {
+				t.Fatal("should not have sanitized allowed domains")
 			}
 		}
 	})

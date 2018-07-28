@@ -242,6 +242,7 @@ func CleanTeamName(s string) string {
 
 func (o *Team) Sanitize() {
 	o.Email = ""
+	o.AllowedDomains = ""
 }
 
 func (t *Team) Patch(patch *TeamPatch) {

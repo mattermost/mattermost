@@ -371,6 +371,7 @@ func TestSanitizeTeam(t *testing.T) {
 	team := &model.Team{
 		Id:             model.NewId(),
 		Email:          th.MakeEmail(),
+		AllowedDomains: "example.com",
 	}
 	copyTeam := func() *model.Team {
 		copy := &model.Team{}
@@ -392,7 +393,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email != "" {
+		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
 			t.Fatal("should've sanitized team")
 		}
 	})
@@ -411,7 +412,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email != "" {
+		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
 			t.Fatal("should've sanitized team")
 		}
 	})
@@ -430,7 +431,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email == "" {
+		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
 	})
@@ -449,7 +450,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email != "" {
+		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
 			t.Fatal("should've sanitized team")
 		}
 	})
@@ -468,7 +469,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email == "" {
+		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
 	})
@@ -487,7 +488,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email == "" {
+		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
 	})
@@ -502,10 +503,12 @@ func TestSanitizeTeams(t *testing.T) {
 			{
 				Id:             model.NewId(),
 				Email:          th.MakeEmail(),
+				AllowedDomains: "example.com",
 			},
 			{
 				Id:             model.NewId(),
 				Email:          th.MakeEmail(),
+				AllowedDomains: "example.com",
 			},
 		}
 
@@ -528,11 +531,11 @@ func TestSanitizeTeams(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeams(session, teams)
 
-		if sanitized[0].Email != "" {
+		if sanitized[0].Email != "" && sanitized[0].AllowedDomains != "" {
 			t.Fatal("should've sanitized first team")
 		}
 
-		if sanitized[1].Email == "" {
+		if sanitized[1].Email == "" && sanitized[1].AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized second team")
 		}
 	})
@@ -542,10 +545,12 @@ func TestSanitizeTeams(t *testing.T) {
 			{
 				Id:             model.NewId(),
 				Email:          th.MakeEmail(),
+				AllowedDomains: "example.com",
 			},
 			{
 				Id:             model.NewId(),
 				Email:          th.MakeEmail(),
+				AllowedDomains: "example.com",
 			},
 		}
 
@@ -563,11 +568,11 @@ func TestSanitizeTeams(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeams(session, teams)
 
-		if sanitized[0].Email == "" {
+		if sanitized[0].Email == "" && sanitized[0].AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized first team")
 		}
 
-		if sanitized[1].Email == "" {
+		if sanitized[1].Email == "" && sanitized[1].AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized second team")
 		}
 	})
