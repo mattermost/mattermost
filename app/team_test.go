@@ -118,6 +118,23 @@ func TestAddUserToTeam(t *testing.T) {
 		}
 	})
 
+	t.Run("block user with subdomain", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+	})
+
 	t.Run("allow users by multiple domains", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "foo.com, bar.com"
 		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
