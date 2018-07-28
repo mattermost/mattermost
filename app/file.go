@@ -321,7 +321,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	files := make([]io.ReadCloser, len(fileHeaders))
 	filenames := make([]string, len(fileHeaders))
 
@@ -338,13 +338,13 @@ func (a *App) UploadMultipartFiles(teamId string, channelId string, userId strin
 		filenames[i] = fileHeader.Filename
 	}
 
-	return a.UploadFiles(teamId, channelId, userId, files, filenames, clientIds)
+	return a.UploadFiles(teamId, channelId, userId, files, filenames, clientIds, now)
 }
 
 // Uploads some files to the given team and channel as the given user. files and filenames should have
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -367,7 +367,7 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, data, err := a.DoUploadFileExpectModification(time.Now(), teamId, channelId, userId, filenames[i], data)
+		info, data, err := a.DoUploadFileExpectModification(now, teamId, channelId, userId, filenames[i], data)
 		if err != nil {
 			return nil, err
 		}
@@ -417,6 +417,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 
 	info.Id = model.NewId()
 	info.CreatorId = userId
+	info.CreateAt = now.UnixNano() / int64(time.Millisecond)
 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + info.Id + "/"
 	info.Path = pathPrefix + filename
