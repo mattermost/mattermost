@@ -334,7 +334,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if webCon.AllChannelMembers == nil {
-			if result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true); result.Err != nil {
+			if result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false); result.Err != nil {
 				mlog.Error("webhub.shouldSendEvent: " + result.Err.Error())
 				return false
 			} else {

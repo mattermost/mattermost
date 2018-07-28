@@ -1280,6 +1280,7 @@ func (s *apiRPCServer) GetChannel(args *Z_GetChannelArgs, returns *Z_GetChannelR
 type Z_GetChannelByNameArgs struct {
 	A string
 	B string
+	C bool
 }
 
 type Z_GetChannelByNameReturns struct {
@@ -1287,8 +1288,8 @@ type Z_GetChannelByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelByName(teamId, name string) (*model.Channel, *model.AppError) {
-	_args := &Z_GetChannelByNameArgs{teamId, name}
+func (g *apiRPCClient) GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelByNameArgs{teamId, name, includeDeleted}
 	_returns := &Z_GetChannelByNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByName", _args, _returns); err != nil {
 		log.Printf("RPC call to GetChannelByName API failed: %s", err.Error())
@@ -1298,9 +1299,9 @@ func (g *apiRPCClient) GetChannelByName(teamId, name string) (*model.Channel, *m
 
 func (s *apiRPCServer) GetChannelByName(args *Z_GetChannelByNameArgs, returns *Z_GetChannelByNameReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelByName(teamId, name string) (*model.Channel, *model.AppError)
+		GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetChannelByName(args.A, args.B)
+		returns.A, returns.B = hook.GetChannelByName(args.A, args.B, args.C)
 	} else {
 		return fmt.Errorf("API GetChannelByName called but not implemented.")
 	}
@@ -1310,6 +1311,7 @@ func (s *apiRPCServer) GetChannelByName(args *Z_GetChannelByNameArgs, returns *Z
 type Z_GetChannelByNameForTeamNameArgs struct {
 	A string
 	B string
+	C bool
 }
 
 type Z_GetChannelByNameForTeamNameReturns struct {
@@ -1317,8 +1319,8 @@ type Z_GetChannelByNameForTeamNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelByNameForTeamName(teamName, channelName string) (*model.Channel, *model.AppError) {
-	_args := &Z_GetChannelByNameForTeamNameArgs{teamName, channelName}
+func (g *apiRPCClient) GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelByNameForTeamNameArgs{teamName, channelName, includeDeleted}
 	_returns := &Z_GetChannelByNameForTeamNameReturns{}
 	if err := g.client.Call("Plugin.GetChannelByNameForTeamName", _args, _returns); err != nil {
 		log.Printf("RPC call to GetChannelByNameForTeamName API failed: %s", err.Error())
@@ -1328,9 +1330,9 @@ func (g *apiRPCClient) GetChannelByNameForTeamName(teamName, channelName string)
 
 func (s *apiRPCServer) GetChannelByNameForTeamName(args *Z_GetChannelByNameForTeamNameArgs, returns *Z_GetChannelByNameForTeamNameReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelByNameForTeamName(teamName, channelName string) (*model.Channel, *model.AppError)
+		GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetChannelByNameForTeamName(args.A, args.B)
+		returns.A, returns.B = hook.GetChannelByNameForTeamName(args.A, args.B, args.C)
 	} else {
 		return fmt.Errorf("API GetChannelByNameForTeamName called but not implemented.")
 	}

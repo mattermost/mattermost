@@ -638,8 +638,9 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool) (*model.PostSearchResults, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms)
+	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ViewArchivedChannels
 
 	esInterface := a.Elasticsearch
 	if license := a.License(); esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {
@@ -651,7 +652,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			if params.Terms != "*" {
 				// Convert channel names to channel IDs
 				for idx, channelName := range params.InChannels {
-					if channel, err := a.GetChannelByName(channelName, teamId); err != nil {
+					if channel, err := a.GetChannelByName(channelName, teamId, includeDeleted); err != nil {
 						mlog.Error(fmt.Sprint(err))
 					} else {
 						params.InChannels[idx] = channel.Id
@@ -677,7 +678,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 		}
 
 		// We only allow the user to search in channels they are a member of.
-		userChannels, err := a.GetChannelsForUser(teamId, userId)
+		userChannels, err := a.GetChannelsForUser(teamId, userId, includeDeleted)
 		if err != nil {
 			mlog.Error(fmt.Sprint(err))
 			return nil, err
@@ -710,6 +711,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 		channels := []store.StoreChannel{}
 
 		for _, params := range paramsList {
+			params.IncludeDeletedChannels = includeDeleted
 			params.OrTerms = isOrSearch
 			// don't allow users to search for everything
 			if params.Terms != "*" {

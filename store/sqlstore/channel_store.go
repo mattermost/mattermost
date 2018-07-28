@@ -303,6 +303,11 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		if channel.DeleteAt != 0 {
+			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		if channel.Type == model.CHANNEL_DIRECT {
 			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
 			return
@@ -352,6 +357,11 @@ func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) 
 
 func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		if directchannel.DeleteAt != 0 {
+			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		if directchannel.Type != model.CHANNEL_DIRECT {
 			result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.not_direct.app_error", nil, "", http.StatusBadRequest)
 			return
@@ -629,10 +639,14 @@ func (s SqlChannelStore) PermanentDeleteMembersByChannel(channelId string) store
 	})
 }
 
-func (s SqlChannelStore) GetChannels(teamId string, userId string) store.StoreChannel {
+func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		query := "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0 AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName"
+		if includeDeleted {
+			query = "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName"
+		}
 		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data, "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0 AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		_, err := s.GetReplica().Select(data, query, map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
@@ -1100,7 +1114,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 	}
 
-	result := <-s.GetAllChannelMembersForUser(userId, true)
+	result := <-s.GetAllChannelMembersForUser(userId, true, false)
 	if result.Err != nil {
 		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + result.Err.Error())
 		return false
@@ -1147,7 +1161,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.St
 	})
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool) store.StoreChannel {
+func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
@@ -1161,6 +1175,11 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 
 		if s.metrics != nil {
 			s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
+		}
+
+		var deletedClause string
+		if !includeDeleted {
+			deletedClause = "Channels.DeleteAt = 0 AND"
 		}
 
 		var data allChannelMembers
@@ -1182,8 +1201,8 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 			LEFT JOIN
 				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 			WHERE
-				Channels.DeleteAt = 0
-				AND ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
+				`+deletedClause+`
+				ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
@@ -1515,8 +1534,13 @@ func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.S
 	})
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string) store.StoreChannel {
+func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		deleteFilter := "AND DeleteAt = 0"
+		if includeDeleted {
+			deleteFilter = ""
+		}
+
 		queryFormat := `
 			SELECT
 				*
@@ -1525,7 +1549,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string) store.St
 			WHERE
 				TeamId = :TeamId
 				AND Type = 'O'
-				AND DeleteAt = 0
+				` + deleteFilter + `
 				%v
 			LIMIT 50`
 
@@ -1555,8 +1579,12 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string) store.St
 	})
 }
 
-func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreChannel {
+func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		deleteFilter := "AND DeleteAt = 0"
+		if includeDeleted {
+			deleteFilter = ""
+		}
 		searchQuery := `
 			SELECT
 				*
@@ -1565,7 +1593,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreCha
 			WHERE
 				TeamId = :TeamId
 				AND Type = 'O'
-				AND DeleteAt = 0
+				` + deleteFilter + `
 				SEARCH_CLAUSE
 			ORDER BY DisplayName
 			LIMIT 100`

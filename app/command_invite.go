@@ -59,7 +59,7 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	if len(splitMessage) > 1 && splitMessage[1] != "" {
 		targetChannelName := strings.TrimPrefix(strings.TrimSpace(splitMessage[1]), "~")
 
-		if channelToJoin, err = a.GetChannelByName(targetChannelName, args.TeamId); err != nil {
+		if channelToJoin, err = a.GetChannelByName(targetChannelName, args.TeamId, false); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_invite.channel.error", map[string]interface{}{"Channel": targetChannelName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	} else {
