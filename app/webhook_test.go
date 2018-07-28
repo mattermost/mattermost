@@ -10,10 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
 	"net/http"
 	"net/http/httptest"
 	"time"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -489,7 +490,7 @@ func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		CreatorId:    th.BasicUser.Id,
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = model.NewBool(true) })
 
 	createdHook, err := th.App.CreateOutgoingWebhook(&outgoingWebhook)
 
@@ -606,9 +607,9 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.EnableOutgoingWebhooks = true
-				cfg.ServiceSettings.EnablePostUsernameOverride = testCase.EnablePostUsernameOverride
-				cfg.ServiceSettings.EnablePostIconOverride = testCase.EnablePostIconOverride
+				cfg.ServiceSettings.EnableOutgoingWebhooks = model.NewBool(true)
+				cfg.ServiceSettings.EnablePostUsernameOverride = model.NewBool(testCase.EnablePostUsernameOverride)
+				cfg.ServiceSettings.EnablePostIconOverride = model.NewBool(testCase.EnablePostIconOverride)
 			})
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

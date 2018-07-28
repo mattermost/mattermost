@@ -15,7 +15,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewBool(true) })
 
 	oapp := &model.OAuthApp{
 		Name:         "fakeoauthapp" + model.NewRandomString(10),
@@ -40,13 +40,13 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, session)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewBool(false) })
 
 	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
 	assert.NotNil(t, err, "should fail - oauth2 disabled")
 	assert.Nil(t, session)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewBool(true) })
 	authRequest.ClientId = "junk"
 
 	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
