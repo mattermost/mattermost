@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -69,6 +70,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	now := time.Now()
 	var resStruct *model.FileUploadResponse
 	var appErr *model.AppError
 
@@ -100,6 +102,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			[]io.ReadCloser{r.Body},
 			[]string{filename},
 			[]string{},
+			now,
 		)
 	} else {
 		m := r.MultipartForm
@@ -120,7 +123,14 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		resStruct, appErr = c.App.UploadMultipartFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
+		resStruct, appErr = c.App.UploadMultipartFiles(
+			FILE_TEAM_ID,
+			channelId,
+			c.Session.UserId,
+			m.File["files"],
+			m.Value["client_ids"],
+			now,
+		)
 	}
 
 	if appErr != nil {
