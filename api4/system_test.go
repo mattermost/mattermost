@@ -422,6 +422,7 @@ func TestEmailTest(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	config.EmailSettings.SetDefaults()
+	config.EmailSettings.SendEmailNotifications = model.NewBool(false)
 
 	inbucket_host := os.Getenv("CI_HOST")
 	if inbucket_host == "" {
