@@ -519,3 +519,45 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		})
 	}
 }
+
+func TestListenAddressIsValidated(t *testing.T) {
+
+	testValues := map[string]bool{
+		":8065":                true,
+		":9917":                true,
+		"0.0.0.0:9917":         true,
+		"[2001:db8::68]:9918":  true,
+		"[::1]:8065":           true,
+		"localhost:8065":       true,
+		"test.com:8065":        true,
+		":0":                   true,
+		":33147":               true,
+		"123:8065":             false,
+		"[::1]:99999":          false,
+		"[::1]:-1":             false,
+		"[::1]:8065a":          false,
+		"0.0.0:9917":           false,
+		"0.0.0.0:9917/":        false,
+		"0..0.0:9917/":         false,
+		"0.0.0222.0:9917/":     false,
+		"http://0.0.0.0:9917/": false,
+		"http://0.0.0.0:9917":  false,
+		"8065":                 false,
+		"[2001:db8::68]":       false,
+	}
+
+	for key, expected := range testValues {
+		ss := &ServiceSettings{
+			ListenAddress: NewString(key),
+		}
+		ss.SetDefaults()
+		if expected {
+			require.Nil(t, ss.isValid(), fmt.Sprintf("Got an error from '%v'.", key))
+		} else {
+			err := ss.isValid()
+			require.NotNil(t, err, fmt.Sprintf("Expected '%v' to throw an error.", key))
+			require.Equal(t, "model.config.is_valid.listen_address.app_error", err.Message)
+		}
+	}
+
+}
