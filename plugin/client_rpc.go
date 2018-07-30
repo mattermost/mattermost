@@ -67,6 +67,7 @@ func init() {
 	gob.Register([]*model.SlackAttachment{})
 	gob.Register([]interface{}{})
 	gob.Register(map[string]interface{}{})
+	gob.Register(&model.AppError{})
 }
 
 // These enforce compile time checks to make sure types implement the interface
