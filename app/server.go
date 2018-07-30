@@ -248,6 +248,7 @@ func (a *App) StopServer() {
 
 func (a *App) OriginChecker() func(*http.Request) bool {
 	if allowed := *a.Config().ServiceSettings.AllowCorsFrom; allowed != "" {
+		allowed += " " + *a.Config().ServiceSettings.SiteURL
 		return utils.OriginChecker(allowed)
 	}
 	return nil
