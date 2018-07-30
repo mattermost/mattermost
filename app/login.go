@@ -11,6 +11,7 @@ import (
 
 	"github.com/avct/uasurfer"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 )
 
@@ -63,6 +64,27 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	// and then authenticate them
 	if user, err = a.authenticateUser(user, password, mfaToken); err != nil {
 		return nil, err
+	}
+
+	if a.PluginsReady() {
+		var rejectionReason string
+		pluginContext := &plugin.Context{}
+		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
+			return rejectionReason == ""
+		}, plugin.UserWillLogInId)
+
+		if rejectionReason != "" {
+			return nil, model.NewAppError("AuthenticateUserForLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
+		}
+
+		a.Go(func() {
+			pluginContext := &plugin.Context{}
+			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasLoggedIn(pluginContext, user)
+				return true
+			}, plugin.UserHasLoggedInId)
+		})
 	}
 
 	return user, nil
