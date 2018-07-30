@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestComplianceStore(t *testing.T, ss store.Store) {
@@ -35,9 +36,8 @@ func testComplianceStore(t *testing.T, ss store.Store) {
 	result := <-c
 	compliances := result.Data.(model.Compliances)
 
-	if compliances[0].Status != model.COMPLIANCE_STATUS_RUNNING && compliance2.Id != compliances[0].Id {
-		t.Fatal()
-	}
+	require.Equal(t, model.COMPLIANCE_STATUS_RUNNING, compliances[0].Status)
+	require.Equal(t, compliance2.Id, compliances[0].Id)
 
 	compliance2.Status = model.COMPLIANCE_STATUS_FAILED
 	store.Must(ss.Compliance().Update(compliance2))
@@ -46,17 +46,14 @@ func testComplianceStore(t *testing.T, ss store.Store) {
 	result = <-c
 	compliances = result.Data.(model.Compliances)
 
-	if compliances[0].Status != model.COMPLIANCE_STATUS_FAILED && compliance2.Id != compliances[0].Id {
-		t.Fatal()
-	}
+	require.Equal(t, model.COMPLIANCE_STATUS_FAILED, compliances[0].Status)
+	require.Equal(t, compliance2.Id, compliances[0].Id)
 
 	c = ss.Compliance().GetAll(0, 1)
 	result = <-c
 	compliances = result.Data.(model.Compliances)
 
-	if len(compliances) != 1 {
-		t.Fatal("should only have returned 1")
-	}
+	require.Len(t, compliances, 1)
 
 	c = ss.Compliance().GetAll(1, 1)
 	result = <-c
@@ -67,9 +64,7 @@ func testComplianceStore(t *testing.T, ss store.Store) {
 	}
 
 	rc2 := (<-ss.Compliance().Get(compliance2.Id)).Data.(*model.Compliance)
-	if rc2.Status != compliance2.Status {
-		t.Fatal()
-	}
+	require.Equal(t, compliance2.Status, rc2.Status)
 }
 
 func testComplianceExport(t *testing.T, ss store.Store) {
