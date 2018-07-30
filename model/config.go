@@ -6,9 +6,12 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"math"
+	"net"
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -2352,7 +2355,15 @@ func (ss *ServiceSettings) isValid() *AppError {
 		}
 	}
 
-	if len(*ss.ListenAddress) == 0 {
+	host, port, err := net.SplitHostPort(*ss.ListenAddress)
+	var isValidHost bool
+	if host == "" {
+		isValidHost = true
+	} else {
+		isValidHost = (net.ParseIP(host) != nil) || IsDomainName(host)
+	}
+	portInt, err := strconv.Atoi(port)
+	if err != nil || !isValidHost || portInt < 0 || portInt > math.MaxUint16 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
 	}
 
