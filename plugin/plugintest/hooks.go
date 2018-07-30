@@ -5,6 +5,7 @@
 package plugintest
 
 import http "net/http"
+import io "io"
 import mock "github.com/stretchr/testify/mock"
 import model "github.com/mattermost/mattermost-server/model"
 import plugin "github.com/mattermost/mattermost-server/plugin"
@@ -39,6 +40,29 @@ func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// FileWillBeUploaded provides a mock function with given fields: c, info, file, output
+func (_m *Hooks) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
+	ret := _m.Called(c, info, file, output)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.FileInfo, io.Reader, io.Writer) *model.FileInfo); ok {
+		r0 = rf(c, info, file, output)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 string
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.FileInfo, io.Reader, io.Writer) string); ok {
+		r1 = rf(c, info, file, output)
+	} else {
+		r1 = ret.Get(1).(string)
 	}
 
 	return r0, r1
@@ -188,4 +212,23 @@ func (_m *Hooks) UserHasLeftChannel(c *plugin.Context, channelMember *model.Chan
 // UserHasLeftTeam provides a mock function with given fields: c, teamMember, actor
 func (_m *Hooks) UserHasLeftTeam(c *plugin.Context, teamMember *model.TeamMember, actor *model.User) {
 	_m.Called(c, teamMember, actor)
+}
+
+// UserHasLoggedIn provides a mock function with given fields: c, user
+func (_m *Hooks) UserHasLoggedIn(c *plugin.Context, user *model.User) {
+	_m.Called(c, user)
+}
+
+// UserWillLogIn provides a mock function with given fields: c, user
+func (_m *Hooks) UserWillLogIn(c *plugin.Context, user *model.User) string {
+	ret := _m.Called(c, user)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.User) string); ok {
+		r0 = rf(c, user)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
 }
