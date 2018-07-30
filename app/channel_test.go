@@ -175,7 +175,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
 
 	for _, channelName := range defaultChannelList {
-		channel, err := th.App.GetChannelByName(channelName, th.BasicTeam.Id)
+		channel, err := th.App.GetChannelByName(channelName, th.BasicTeam.Id, false)
 
 		if err != nil {
 			t.Errorf("Expected nil, got %s", err)

@@ -393,7 +393,7 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
 	}
 
-	channel, err := a.GetChannelByName(model.GetGroupNameFromUserIds(userIds), "")
+	channel, err := a.GetChannelByName(model.GetGroupNameFromUserIds(userIds), "", true)
 	if err != nil {
 		return nil, err
 	}
@@ -1011,16 +1011,26 @@ func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	}
 }
 
-func (a *App) GetChannelByName(channelName, teamId string) (*model.Channel, *model.AppError) {
-	if result := <-a.Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	var result store.StoreResult
+
+	if includeDeleted {
+		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(teamId, channelName, false)
+	} else {
+		result = <-a.Srv.Store.Channel().GetByName(teamId, channelName, false)
+	}
+
+	if result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
-	} else if result.Err != nil {
+	}
+
+	if result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Channel), nil
 	}
+
+	return result.Data.(*model.Channel), nil
 }
 
 func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
@@ -1035,7 +1045,7 @@ func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model
 	}
 }
 
-func (a *App) GetChannelByNameForTeamName(channelName, teamName string) (*model.Channel, *model.AppError) {
+func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var team *model.Team
 
 	if result := <-a.Srv.Store.Team().GetByName(teamName); result.Err != nil {
@@ -1045,19 +1055,28 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string) (*model.
 		team = result.Data.(*model.Team)
 	}
 
-	if result := <-a.Srv.Store.Channel().GetByName(team.Id, channelName, true); result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+	var result store.StoreResult
+	if includeDeleted {
+		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, false)
+	} else {
+		result = <-a.Srv.Store.Channel().GetByName(team.Id, channelName, false)
+	}
+
+	if result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
-	} else if result.Err != nil {
+	}
+
+	if result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Channel), nil
 	}
+
+	return result.Data.(*model.Channel), nil
 }
 
-func (a *App) GetChannelsForUser(teamId string, userId string) (*model.ChannelList, *model.AppError) {
-	if result := <-a.Srv.Store.Channel().GetChannels(teamId, userId); result.Err != nil {
+func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	if result := <-a.Srv.Store.Channel().GetChannels(teamId, userId, includeDeleted); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.ChannelList), nil
@@ -1494,7 +1513,9 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 }
 
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	if result := <-a.Srv.Store.Channel().AutocompleteInTeam(teamId, term); result.Err != nil {
+	includeDeleted := *a.Config().TeamSettings.ViewArchivedChannels
+
+	if result := <-a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.ChannelList), nil
@@ -1502,7 +1523,9 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 }
 
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	if result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term); result.Err != nil {
+	includeDeleted := *a.Config().TeamSettings.ViewArchivedChannels
+
+	if result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.ChannelList), nil

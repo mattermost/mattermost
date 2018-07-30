@@ -131,7 +131,7 @@ type ChannelStore interface {
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) StoreChannel
 	GetDeletedByName(team_id string, name string) StoreChannel
 	GetDeleted(team_id string, offset int, limit int) StoreChannel
-	GetChannels(teamId string, userId string) StoreChannel
+	GetChannels(teamId string, userId string, includeDeleted bool) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel
@@ -143,7 +143,7 @@ type ChannelStore interface {
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
-	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
+	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) StoreChannel
@@ -160,8 +160,8 @@ type ChannelStore interface {
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
-	AutocompleteInTeam(teamId string, term string) StoreChannel
-	SearchInTeam(teamId string, term string) StoreChannel
+	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
+	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel

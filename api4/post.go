@@ -330,6 +330,8 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	includeDeletedChannels := r.URL.Query().Get("include_deleted_channels") == "true"
+
 	props := model.StringInterfaceFromJson(r.Body)
 	terms, ok := props["terms"].(string)
 	if !ok || len(terms) == 0 {
@@ -341,7 +343,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics

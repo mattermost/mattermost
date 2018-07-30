@@ -1116,7 +1116,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			a.UpdateTeamMemberSchemeRoles(team.Id, user.Id, isSchemeUser, isSchemeAdmin)
 		}
 
-		if defaultChannel, err := a.GetChannelByName(model.DEFAULT_CHANNEL, team.Id); err != nil {
+		if defaultChannel, err := a.GetChannelByName(model.DEFAULT_CHANNEL, team.Id, true); err != nil {
 			return err
 		} else if _, err = a.addUserToChannel(user, defaultChannel, member); err != nil {
 			return err
@@ -1139,7 +1139,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 
 	// Loop through all channels.
 	for _, cdata := range *data {
-		channel, err := a.GetChannelByName(*cdata.Name, team.Id)
+		channel, err := a.GetChannelByName(*cdata.Name, team.Id, true)
 		if err != nil {
 			return err
 		}
