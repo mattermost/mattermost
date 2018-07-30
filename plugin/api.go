@@ -25,6 +25,9 @@ type API interface {
 	// UnregisterCommand unregisters a command previously registered via RegisterCommand.
 	UnregisterCommand(teamId, trigger string) error
 
+	// GetSession returns the session object for the Session ID
+	GetSession(sessionId string) (*model.Session, *model.AppError)
+
 	// GetConfig fetches the currently persisted config
 	GetConfig() *model.Config
 

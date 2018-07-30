@@ -499,6 +499,31 @@ func (_m *API) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*
 	return r0, r1
 }
 
+// GetSession provides a mock function with given fields: sessionId
+func (_m *API) GetSession(sessionId string) (*model.Session, *model.AppError) {
+	ret := _m.Called(sessionId)
+
+	var r0 *model.Session
+	if rf, ok := ret.Get(0).(func(string) *model.Session); ok {
+		r0 = rf(sessionId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Session)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(sessionId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetTeam provides a mock function with given fields: teamId
 func (_m *API) GetTeam(teamId string) (*model.Team, *model.AppError) {
 	ret := _m.Called(teamId)

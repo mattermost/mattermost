@@ -63,3 +63,18 @@ func TestSessionJson(t *testing.T) {
 
 	session.SetExpireInDays(10)
 }
+
+func TestSessionCSRF(t *testing.T) {
+	s := Session{}
+	token := s.GetCSRF()
+	assert.Empty(t, token)
+
+	token = s.GenerateCSRF()
+	assert.NotEmpty(t, token)
+
+	token2 := s.GetCSRF()
+	assert.NotEmpty(t, token2)
+	assert.Equal(t, token, token2)
+}
+
+
