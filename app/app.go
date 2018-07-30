@@ -439,6 +439,8 @@ func (a *App) initJobs() {
 	if jobsMigrationsInterface != nil {
 		a.Jobs.Migrations = jobsMigrationsInterface(a)
 	}
+	a.Jobs.Workers = a.Jobs.InitWorkers()
+	a.Jobs.Schedulers = a.Jobs.InitSchedulers()
 }
 
 func (a *App) DiagnosticId() string {

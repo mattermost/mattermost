@@ -29,10 +29,11 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 	mlog.Debug("Initialising schedulers.")
 
 	schedulers := &Schedulers{
-		stop:          make(chan bool),
-		stopped:       make(chan bool),
-		configChanged: make(chan *model.Config),
-		jobs:          srv,
+		stop:                 make(chan bool),
+		stopped:              make(chan bool),
+		configChanged:        make(chan *model.Config),
+		clusterLeaderChanged: make(chan bool),
+		jobs:                 srv,
 	}
 
 	if srv.DataRetentionJob != nil {
@@ -182,6 +183,9 @@ func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newCon
 }
 
 func (schedulers *Schedulers) HandleClusterLeaderChange(isLeader bool) {
-	mlog.Debug("Schedulers received cluster leader change.")
-	schedulers.clusterLeaderChanged <- isLeader
+	select {
+	case schedulers.clusterLeaderChanged <- isLeader:
+	default:
+		mlog.Debug("Did not send cluster leader change message to schedulers as no schedulers listening to notification channel.")
+	}
 }
