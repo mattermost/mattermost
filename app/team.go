@@ -60,13 +60,17 @@ func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, 
 	return rteam, nil
 }
 
+func (a *App) normalizeDomains(domains string) []string {
+	// commas and @ signs are optional
+	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
+	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+}
+
 func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) bool {
 	email = strings.ToLower(email)
 	// First check per team allowedDomains, then app wide restrictions
 	for _, restriction := range []string{allowedDomains, a.Config().TeamSettings.RestrictCreationToDomains} {
-		// commas and @ signs are optional
-		// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
-		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(restriction, "@", " ", -1), ",", " ", -1))))
+		domains := a.normalizeDomains(restriction)
 		if len(domains) <= 0 {
 			continue
 		}
@@ -100,6 +104,23 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	var err *model.AppError
 	if oldTeam, err = a.GetTeam(team.Id); err != nil {
 		return nil, err
+	}
+
+	validDomains := a.normalizeDomains(a.Config().TeamSettings.RestrictCreationToDomains)
+	if len(validDomains) > 0 {
+		for _, domain := range a.normalizeDomains(team.AllowedDomains) {
+			matched := false
+			for _, d := range validDomains {
+				if domain == d {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				err := model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]interface{}{"Domain": domain}, "", http.StatusBadRequest)
+				return nil, err
+			}
+		}
 	}
 
 	oldTeam.DisplayName = team.DisplayName

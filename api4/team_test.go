@@ -2008,20 +2008,20 @@ func TestInviteUsersToTeam(t *testing.T) {
 	})
 
 	t.Run("override restricted domains", func(t *testing.T) {
-		th.BasicTeam.AllowedDomains = "team.com,common.com"
+		th.BasicTeam.AllowedDomains = "invalid.com,common.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err == nil {
+			t.Fatal("Should not update the team")
+		}
+
+		th.BasicTeam.AllowedDomains = "common.com"
 		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
 			t.Log(err)
 			t.Fatal("Should update the team")
 		}
 
-		if err := th.App.InviteNewUsersToTeam([]string{"test@team.com"}, th.BasicTeam.Id, th.BasicUser.Id); err == nil || err.Where != "InviteNewUsersToTeam" {
-			t.Log(err)
-			t.Fatal("Global team restriction should not override per team restriction")
-		}
-
 		if err := th.App.InviteNewUsersToTeam([]string{"test@global.com"}, th.BasicTeam.Id, th.BasicUser.Id); err == nil || err.Where != "InviteNewUsersToTeam" {
 			t.Log(err)
-			t.Fatal("Per team restriction should not override global team restriction")
+			t.Fatal("Per team restriction should take precedence over the global restriction")
 		}
 
 		if err := th.App.InviteNewUsersToTeam([]string{"test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id); err != nil {
@@ -2035,7 +2035,6 @@ func TestInviteUsersToTeam(t *testing.T) {
 		}
 
 	})
-
 }
 
 func TestGetTeamInviteInfo(t *testing.T) {

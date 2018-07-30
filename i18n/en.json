@@ -1731,6 +1731,10 @@
     "translation": "Specified user is not a member of specified team."
   },
   {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+  },
+  {
     "id": "api.team.update_team_scheme.license.error",
     "translation": "Your license does not support updating a team's scheme"
   },
