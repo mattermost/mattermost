@@ -30,7 +30,7 @@ func (p *HelpPlugin) OnConfigurationChange() error {
 		return nil
 	}
 
-	channel, err := p.API.GetChannelByName(p.ChannelName, team.Id)
+	channel, err := p.API.GetChannelByName(p.ChannelName, team.Id, false)
 	if err != nil {
 		p.API.LogError("failed to find channel", "channel_name", p.ChannelName)
 		return nil

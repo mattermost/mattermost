@@ -901,7 +901,7 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		}
 
 		for _, team := range teamsForUser {
-			channelsForUser, err := a.GetChannelsForUser(team.Id, user.Id)
+			channelsForUser, err := a.GetChannelsForUser(team.Id, user.Id, false)
 			if err != nil {
 				return nil, err
 			}

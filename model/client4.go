@@ -1791,9 +1791,27 @@ func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Ch
 	}
 }
 
+func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, etag string) (*Channel, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+"?include_deleted=true", etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetChannelByNameForTeamName returns a channel based on the provided channel name and team name strings.
 func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamName string, etag string) (*Channel, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+"?include_deleted=true", etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -2120,6 +2138,17 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
 	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
 	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", StringInterfaceToJson(requestBody)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// SearchPosts returns any posts with matching terms string including deleted channels.
+func (c *Client4) SearchPostsIncludeDeletedChannels(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
+	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search?include_deleted_channels=true", StringInterfaceToJson(requestBody)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

@@ -108,10 +108,10 @@ type API interface {
 	GetChannel(channelId string) (*model.Channel, *model.AppError)
 
 	// GetChannelByName gets a channel by its name, given a team id.
-	GetChannelByName(teamId, name string) (*model.Channel, *model.AppError)
+	GetChannelByName(teamId, name string, includeDeleted bool) (*model.Channel, *model.AppError)
 
 	// GetChannelByNameForTeamName gets a channel by its name, given a team name.
-	GetChannelByNameForTeamName(teamName, channelName string) (*model.Channel, *model.AppError)
+	GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError)
 
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
