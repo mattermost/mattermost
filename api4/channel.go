@@ -90,6 +90,12 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The channel being updated in the payload must be the same one as indicated in the URL.
+	if channel.Id != c.Params.ChannelId {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+
 	var oldChannel *model.Channel
 	var err *model.AppError
 	if oldChannel, err = c.App.GetChannel(channel.Id); err != nil {
