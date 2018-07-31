@@ -62,7 +62,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	}
 
 	if postList := store.Must(ss.Post().Get(reaction2.PostId)).(*model.PostList); postList.Posts[post.Id].UpdateAt == secondUpdateAt {
-		t.Fatal("should've marked post as updated even if Haseactions doesn't change")
+		t.Fatal("should've marked post as updated even if HasReactions doesn't change")
 	}
 
 	// different post
