@@ -19,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"time"
 )
 
 func compileGo(t *testing.T, sourceCode, outputPath string) {

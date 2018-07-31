@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -248,6 +249,14 @@ func (a *App) StopServer() {
 
 func (a *App) OriginChecker() func(*http.Request) bool {
 	if allowed := *a.Config().ServiceSettings.AllowCorsFrom; allowed != "" {
+		if allowed != "*" {
+			siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
+			if err == nil {
+				siteURL.Path = ""
+				allowed += " " + siteURL.String()
+			}
+		}
+
 		return utils.OriginChecker(allowed)
 	}
 	return nil

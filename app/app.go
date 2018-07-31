@@ -64,10 +64,11 @@ type App struct {
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
 
-	config          atomic.Value
-	envConfig       map[string]interface{}
-	configFile      string
-	configListeners map[string]func(*model.Config, *model.Config)
+	config                 atomic.Value
+	envConfig              map[string]interface{}
+	configFile             string
+	configListeners        map[string]func(*model.Config, *model.Config)
+	clusterLeaderListeners sync.Map
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
@@ -79,14 +80,15 @@ type App struct {
 
 	newStore func() store.Store
 
-	htmlTemplateWatcher  *utils.HTMLTemplateWatcher
-	sessionCache         *utils.Cache
-	configListenerId     string
-	licenseListenerId    string
-	logListenerId        string
-	disableConfigWatch   bool
-	configWatcher        *utils.ConfigWatcher
-	asymmetricSigningKey *ecdsa.PrivateKey
+	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
+	sessionCache            *utils.Cache
+	configListenerId        string
+	licenseListenerId       string
+	logListenerId           string
+	clusterLeaderListenerId string
+	disableConfigWatch      bool
+	configWatcher           *utils.ConfigWatcher
+	asymmetricSigningKey    *ecdsa.PrivateKey
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -218,6 +220,10 @@ func New(options ...Option) (outApp *App, outErr error) {
 		app.initJobs()
 	})
 
+	app.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
+		app.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
+	})
+
 	subpath, err := utils.GetSubpathFromConfig(app.Config())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
@@ -270,6 +276,7 @@ func (a *App) Shutdown() {
 	a.RemoveConfigListener(a.configListenerId)
 	a.RemoveLicenseListener(a.licenseListenerId)
 	a.RemoveConfigListener(a.logListenerId)
+	a.RemoveClusterLeaderChangedListener(a.clusterLeaderListenerId)
 	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()
@@ -432,6 +439,8 @@ func (a *App) initJobs() {
 	if jobsMigrationsInterface != nil {
 		a.Jobs.Migrations = jobsMigrationsInterface(a)
 	}
+	a.Jobs.Workers = a.Jobs.InitWorkers()
+	a.Jobs.Schedulers = a.Jobs.InitSchedulers()
 }
 
 func (a *App) DiagnosticId() string {

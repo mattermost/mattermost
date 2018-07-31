@@ -6,11 +6,13 @@ package plugin
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
 )
 
@@ -172,15 +174,21 @@ func (env *Environment) Activate(id string) (reterr error) {
 			return fmt.Errorf("invalid webapp bundle path")
 		}
 		bundlePath = filepath.Join(env.pluginDir, id, bundlePath)
+		destinationPath := filepath.Join(env.webappPluginDir, id)
 
-		webappBundle, err := ioutil.ReadFile(bundlePath)
-		if err != nil {
-			return errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+		if err := os.RemoveAll(destinationPath); err != nil {
+			return errors.Wrapf(err, "unable to remove old webapp bundle directory: %v", destinationPath)
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/%s_bundle.js", env.webappPluginDir, id), webappBundle, 0644)
-		if err != nil {
-			return errors.Wrapf(err, "unable to write webapp bundle: %v", id)
+		if err := utils.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
+			return errors.Wrapf(err, "unable to copy webapp bundle directory: %v", id)
+		}
+
+		if err := os.Rename(
+			filepath.Join(destinationPath, filepath.Base(bundlePath)),
+			filepath.Join(destinationPath, fmt.Sprintf("%s_bundle.js", id)),
+		); err != nil {
+			return errors.Wrapf(err, "unable to rename webapp bundle: %v", id)
 		}
 	}
 
