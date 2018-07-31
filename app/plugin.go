@@ -40,7 +40,12 @@ func (a *App) SyncPluginsActiveState() {
 
 			// If it's not enabled we need to deactivate it
 			if !pluginEnabled {
-				a.Plugins.Deactivate(pluginId)
+				deactivated := a.Plugins.Deactivate(pluginId)
+				if deactivated && plugin.Manifest.HasClient() {
+					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
+					message.Add("manifest", plugin.Manifest.ClientManifest())
+					a.Publish(message)
+				}
 			}
 		}
 
@@ -60,8 +65,16 @@ func (a *App) SyncPluginsActiveState() {
 
 			// Activate plugin if enabled
 			if pluginEnabled {
-				if err := a.Plugins.Activate(pluginId); err != nil {
+				updatedManifest, activated, err := a.Plugins.Activate(pluginId)
+				if err != nil {
 					plugin.WrapLogger(a.Log).Error("Unable to activate plugin", mlog.Err(err))
+					continue
+				}
+
+				if activated && updatedManifest.HasClient() {
+					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
+					message.Add("manifest", updatedManifest.ClientManifest())
+					a.Publish(message)
 				}
 			}
 		}
@@ -194,12 +207,6 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
 	})
 
-	if manifest.HasClient() {
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ENABLED, "", "", "", nil)
-		message.Add("manifest", manifest.ClientManifest())
-		a.Publish(message)
-	}
-
 	// This call will cause SyncPluginsActiveState to be called and the plugin to be activated
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
@@ -239,12 +246,6 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	a.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
-
-	if manifest.HasClient() {
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
-		message.Add("manifest", manifest.ClientManifest())
-		a.Publish(message)
-	}
 
 	if err := a.SaveConfig(a.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
