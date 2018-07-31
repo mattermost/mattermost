@@ -284,7 +284,7 @@ func TestManifestClientManifest(t *testing.T) {
 
 	assert.Equal(t, manifest.Id, sanitized.Id)
 	assert.Equal(t, manifest.Version, sanitized.Version)
-	assert.Equal(t, "/static/theid_000102030405060708090a0b0c0d0e0f_bundle.js", sanitized.Webapp.BundlePath)
+	assert.Equal(t, "/static/theid/theid_000102030405060708090a0b0c0d0e0f_bundle.js", sanitized.Webapp.BundlePath)
 	assert.Equal(t, manifest.Webapp.BundleHash, sanitized.Webapp.BundleHash)
 	assert.Equal(t, manifest.SettingsSchema, sanitized.SettingsSchema)
 	assert.Empty(t, sanitized.Name)
