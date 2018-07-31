@@ -8,214 +8,340 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
-	userNotifyProps := make(map[string]string)
-	channelNotifyProps := make(map[string]string)
-
-	user := &model.User{Id: model.NewId(), Email: "unit@test.com"}
-
-	post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
-
-	// When the post is a System Message
-	systemPost := &model.Post{UserId: user.Id, Type: model.POST_JOIN_CHANNEL}
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
-	user.NotifyProps = userNotifyProps
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, systemPost, false) {
-		t.Fatal("Should have returned false")
+	tt := []struct {
+		name                 string
+		userNotifySetting    string
+		channelNotifySetting string
+		withSystemPost       bool
+		wasMentioned         bool
+		isMuted              bool
+		expected             bool
+	}{
+		{
+			name:                 "When post is a System Message and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: "",
+			withSystemPost:       true,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When post is a System Message and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: "",
+			withSystemPost:       true,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is ALL, no channel props is set and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: "",
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is ALL, no channel props is set and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: "",
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is MENTION, no channel props is set and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: "",
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is MENTION, no channel props is set and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: "",
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is NONE, no channel props is set and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: "",
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is NONE, no channel props is set and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: "",
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is ALL, channel is DEFAULT and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: model.CHANNEL_NOTIFY_DEFAULT,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is ALL, channel is DEFAULT and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: model.CHANNEL_NOTIFY_DEFAULT,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is MENTION, channel is DEFAULT and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: model.CHANNEL_NOTIFY_DEFAULT,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is MENTION, channel is DEFAULT and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: model.CHANNEL_NOTIFY_DEFAULT,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is NONE, channel is DEFAULT and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: model.CHANNEL_NOTIFY_DEFAULT,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is NONE, channel is DEFAULT and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: model.CHANNEL_NOTIFY_DEFAULT,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is ALL, channel is ALL and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: model.CHANNEL_NOTIFY_ALL,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is ALL, channel is ALL and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: model.CHANNEL_NOTIFY_ALL,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is MENTION, channel is ALL and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: model.CHANNEL_NOTIFY_ALL,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is MENTION, channel is ALL and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: model.CHANNEL_NOTIFY_ALL,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is NONE, channel is ALL and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: model.CHANNEL_NOTIFY_ALL,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is NONE, channel is ALL and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: model.CHANNEL_NOTIFY_ALL,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is ALL, channel is MENTION and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: model.CHANNEL_NOTIFY_MENTION,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is ALL, channel is MENTION and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: model.CHANNEL_NOTIFY_MENTION,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is MENTION, channel is MENTION and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: model.CHANNEL_NOTIFY_MENTION,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is MENTION, channel is MENTION and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: model.CHANNEL_NOTIFY_MENTION,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is NONE, channel is MENTION and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: model.CHANNEL_NOTIFY_MENTION,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is NONE, channel is MENTION and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: model.CHANNEL_NOTIFY_MENTION,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             true,
+		},
+		{
+			name:                 "When default is ALL, channel is NONE and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: model.CHANNEL_NOTIFY_NONE,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is ALL, channel is NONE and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: model.CHANNEL_NOTIFY_NONE,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is MENTION, channel is NONE and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: model.CHANNEL_NOTIFY_NONE,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is MENTION, channel is NONE and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_MENTION,
+			channelNotifySetting: model.CHANNEL_NOTIFY_NONE,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is NONE, channel is NONE and has no mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: model.CHANNEL_NOTIFY_NONE,
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is NONE, channel is NONE and has mentions",
+			userNotifySetting:    model.USER_NOTIFY_NONE,
+			channelNotifySetting: model.CHANNEL_NOTIFY_NONE,
+			withSystemPost:       false,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             false,
+		},
+		{
+			name:                 "When default is ALL, and channel is MUTED",
+			userNotifySetting:    model.USER_NOTIFY_ALL,
+			channelNotifySetting: "",
+			withSystemPost:       false,
+			wasMentioned:         false,
+			isMuted:              true,
+			expected:             false,
+		},
 	}
 
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, systemPost, true) {
-		t.Fatal("Should have returned false")
-	}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+			user.NotifyProps[model.PUSH_NOTIFY_PROP] = tc.userNotifySetting
+			post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
+			if tc.withSystemPost {
+				post.Type = model.POST_JOIN_CHANNEL
+			}
 
-	// When default is ALL and no channel props is set
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned true")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// When default is MENTION and no channel props is set
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
-	user.NotifyProps = userNotifyProps
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// When default is NONE and no channel props is set
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
-	user.NotifyProps = userNotifyProps
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned false")
-	}
-
-	// WHEN default is ALL and channel is DEFAULT
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_DEFAULT
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned true")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// WHEN default is MENTION and channel is DEFAULT
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_DEFAULT
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// WHEN default is NONE and channel is DEFAULT
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_DEFAULT
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned false")
-	}
-
-	// WHEN default is ALL and channel is ALL
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned true")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// WHEN default is MENTION and channel is ALL
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned true")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// WHEN default is NONE and channel is ALL
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned true")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// WHEN default is ALL and channel is MENTION
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// WHEN default is MENTION and channel is MENTION
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// WHEN default is NONE and channel is MENTION
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned true")
-	}
-
-	// WHEN default is ALL and channel is NONE
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_NONE
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned false")
-	}
-
-	// WHEN default is MENTION and channel is NONE
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_NONE
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned false")
-	}
-
-	// WHEN default is NONE and channel is NONE
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_NONE
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
-	}
-
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
-		t.Fatal("Should have returned false")
-	}
-
-	// WHEN default is ALL and channel is MUTED
-	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
-	user.NotifyProps = userNotifyProps
-	channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_MENTION
-	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
-		t.Fatal("Should have returned false")
+			channelNotifyProps := make(map[string]string)
+			if tc.channelNotifySetting != "" {
+				channelNotifyProps[model.PUSH_NOTIFY_PROP] = tc.channelNotifySetting
+			}
+			if tc.isMuted {
+				channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_MENTION
+			}
+			assert.Equal(t, tc.expected, DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, tc.wasMentioned))
+		})
 	}
 }
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
-	userNotifyProps := make(map[string]string)
 	userId := model.NewId()
 	channelId := model.NewId()
 
@@ -224,117 +350,190 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 	online := &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	dnd := &model.Status{UserId: userId, Status: model.STATUS_DND, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
-	userNotifyProps["push_status"] = model.STATUS_ONLINE
-	// WHEN props is ONLINE and user is offline
-	if !DoesStatusAllowPushNotification(userNotifyProps, offline, channelId) {
-		t.Fatal("Should have been true")
+	tt := []struct {
+		name              string
+		userNotifySetting string
+		status            *model.Status
+		channelId         string
+		expected          bool
+	}{
+		{
+			name:              "WHEN props is ONLINE and user is offline with channel",
+			userNotifySetting: model.STATUS_ONLINE,
+			status:            offline,
+			channelId:         channelId,
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is offline without channel",
+			userNotifySetting: model.STATUS_ONLINE,
+			status:            offline,
+			channelId:         "",
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is away with channel",
+			userNotifySetting: model.STATUS_ONLINE,
+			status:            away,
+			channelId:         channelId,
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is away without channel",
+			userNotifySetting: model.STATUS_ONLINE,
+			status:            away,
+			channelId:         "",
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is online with channel",
+			userNotifySetting: model.STATUS_ONLINE,
+			status:            online,
+			channelId:         channelId,
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is online without channel",
+			userNotifySetting: model.STATUS_ONLINE,
+			status:            online,
+			channelId:         "",
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is dnd with channel",
+			userNotifySetting: model.STATUS_ONLINE,
+			status:            dnd,
+			channelId:         channelId,
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is ONLINE and user is dnd without channel",
+			userNotifySetting: model.STATUS_ONLINE,
+			status:            dnd,
+			channelId:         "",
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is AWAY and user is offline with channel",
+			userNotifySetting: model.STATUS_AWAY,
+			status:            offline,
+			channelId:         channelId,
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is AWAY and user is offline without channel",
+			userNotifySetting: model.STATUS_AWAY,
+			status:            offline,
+			channelId:         "",
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is AWAY and user is away with channel",
+			userNotifySetting: model.STATUS_AWAY,
+			status:            away,
+			channelId:         channelId,
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is AWAY and user is away without channel",
+			userNotifySetting: model.STATUS_AWAY,
+			status:            away,
+			channelId:         "",
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is AWAY and user is online with channel",
+			userNotifySetting: model.STATUS_AWAY,
+			status:            online,
+			channelId:         channelId,
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is AWAY and user is online without channel",
+			userNotifySetting: model.STATUS_AWAY,
+			status:            online,
+			channelId:         "",
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is AWAY and user is dnd with channel",
+			userNotifySetting: model.STATUS_AWAY,
+			status:            dnd,
+			channelId:         channelId,
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is AWAY and user is dnd without channel",
+			userNotifySetting: model.STATUS_AWAY,
+			status:            dnd,
+			channelId:         "",
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is OFFLINE and user is offline with channel",
+			userNotifySetting: model.STATUS_OFFLINE,
+			status:            offline,
+			channelId:         channelId,
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is OFFLINE and user is offline without channel",
+			userNotifySetting: model.STATUS_OFFLINE,
+			status:            offline,
+			channelId:         "",
+			expected:          true,
+		},
+		{
+			name:              "WHEN props is OFFLINE and user is away with channel",
+			userNotifySetting: model.STATUS_OFFLINE,
+			status:            away,
+			channelId:         channelId,
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is OFFLINE and user is away without channel",
+			userNotifySetting: model.STATUS_OFFLINE,
+			status:            away,
+			channelId:         "",
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is OFFLINE and user is online with channel",
+			userNotifySetting: model.STATUS_OFFLINE,
+			status:            online,
+			channelId:         channelId,
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is OFFLINE and user is online without channel",
+			userNotifySetting: model.STATUS_OFFLINE,
+			status:            online,
+			channelId:         "",
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is OFFLINE and user is dnd with channel",
+			userNotifySetting: model.STATUS_OFFLINE,
+			status:            dnd,
+			channelId:         channelId,
+			expected:          false,
+		},
+		{
+			name:              "WHEN props is OFFLINE and user is dnd without channel",
+			userNotifySetting: model.STATUS_OFFLINE,
+			status:            dnd,
+			channelId:         "",
+			expected:          false,
+		},
 	}
 
-	if !DoesStatusAllowPushNotification(userNotifyProps, offline, "") {
-		t.Fatal("Should have been true")
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			userNotifyProps := make(map[string]string)
+			userNotifyProps["push_status"] = tc.userNotifySetting
+			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelId))
+		})
 	}
-
-	// WHEN props is ONLINE and user is away
-	if !DoesStatusAllowPushNotification(userNotifyProps, away, channelId) {
-		t.Fatal("Should have been true")
-	}
-
-	if !DoesStatusAllowPushNotification(userNotifyProps, away, "") {
-		t.Fatal("Should have been true")
-	}
-
-	// WHEN props is ONLINE and user is online
-	if !DoesStatusAllowPushNotification(userNotifyProps, online, channelId) {
-		t.Fatal("Should have been true")
-	}
-
-	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
-		t.Fatal("Should have been false")
-	}
-
-	// WHEN props is ONLINE and user is dnd
-	if DoesStatusAllowPushNotification(userNotifyProps, dnd, channelId) {
-		t.Fatal("Should have been false")
-	}
-
-	if DoesStatusAllowPushNotification(userNotifyProps, dnd, "") {
-		t.Fatal("Should have been false")
-	}
-
-	userNotifyProps["push_status"] = model.STATUS_AWAY
-	// WHEN props is AWAY and user is offline
-	if !DoesStatusAllowPushNotification(userNotifyProps, offline, channelId) {
-		t.Fatal("Should have been true")
-	}
-
-	if !DoesStatusAllowPushNotification(userNotifyProps, offline, "") {
-		t.Fatal("Should have been true")
-	}
-
-	// WHEN props is AWAY and user is away
-	if !DoesStatusAllowPushNotification(userNotifyProps, away, channelId) {
-		t.Fatal("Should have been true")
-	}
-
-	if !DoesStatusAllowPushNotification(userNotifyProps, away, "") {
-		t.Fatal("Should have been true")
-	}
-
-	// WHEN props is AWAY and user is online
-	if DoesStatusAllowPushNotification(userNotifyProps, online, channelId) {
-		t.Fatal("Should have been false")
-	}
-
-	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
-		t.Fatal("Should have been false")
-	}
-
-	// WHEN props is AWAY and user is dnd
-	if DoesStatusAllowPushNotification(userNotifyProps, dnd, channelId) {
-		t.Fatal("Should have been false")
-	}
-
-	if DoesStatusAllowPushNotification(userNotifyProps, dnd, "") {
-		t.Fatal("Should have been false")
-	}
-
-	userNotifyProps["push_status"] = model.STATUS_OFFLINE
-	// WHEN props is OFFLINE and user is offline
-	if !DoesStatusAllowPushNotification(userNotifyProps, offline, channelId) {
-		t.Fatal("Should have been true")
-	}
-
-	if !DoesStatusAllowPushNotification(userNotifyProps, offline, "") {
-		t.Fatal("Should have been true")
-	}
-
-	// WHEN props is OFFLINE and user is away
-	if DoesStatusAllowPushNotification(userNotifyProps, away, channelId) {
-		t.Fatal("Should have been false")
-	}
-
-	if DoesStatusAllowPushNotification(userNotifyProps, away, "") {
-		t.Fatal("Should have been false")
-	}
-
-	// WHEN props is OFFLINE and user is online
-	if DoesStatusAllowPushNotification(userNotifyProps, online, channelId) {
-		t.Fatal("Should have been false")
-	}
-
-	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
-		t.Fatal("Should have been false")
-	}
-
-	// WHEN props is OFFLINE and user is dnd
-	if DoesStatusAllowPushNotification(userNotifyProps, dnd, channelId) {
-		t.Fatal("Should have been false")
-	}
-
-	if DoesStatusAllowPushNotification(userNotifyProps, dnd, "") {
-		t.Fatal("Should have been false")
-	}
-
 }
 
 func TestGetPushNotificationMessage(t *testing.T) {
