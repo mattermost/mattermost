@@ -332,6 +332,8 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		State:        r.URL.Query().Get("state"),
 	}
 
+	loginHint := r.URL.Query().Get("login_hint")
+
 	if err := authRequest.IsValid(); err != nil {
 		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
 		return
@@ -345,7 +347,11 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// here we should check if the user is logged in
 	if len(c.Session.UserId) == 0 {
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
+		if loginHint == model.USER_AUTH_SERVICE_SAML {
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/login/sso/saml?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
+		} else {
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
+		}
 		return
 	}
 
