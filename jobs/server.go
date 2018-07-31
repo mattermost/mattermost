@@ -50,11 +50,11 @@ func (srv *JobServer) Config() *model.Config {
 }
 
 func (srv *JobServer) StartWorkers() {
-	srv.Workers = srv.InitWorkers().Start()
+	srv.Workers = srv.Workers.Start()
 }
 
 func (srv *JobServer) StartSchedulers() {
-	srv.Schedulers = srv.InitSchedulers().Start()
+	srv.Schedulers = srv.Schedulers.Start()
 }
 
 func (srv *JobServer) StopWorkers() {
