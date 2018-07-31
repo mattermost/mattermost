@@ -22,6 +22,7 @@ const (
 	TRACK_CONFIG_LOG            = "config_log"
 	TRACK_CONFIG_FILE           = "config_file"
 	TRACK_CONFIG_RATE           = "config_rate"
+	TRACK_CONFIG_EXTENSION      = "config_extension"
 	TRACK_CONFIG_EMAIL          = "config_email"
 	TRACK_CONFIG_PRIVACY        = "config_privacy"
 	TRACK_CONFIG_THEME          = "config_theme"
@@ -228,6 +229,9 @@ func (a *App) trackConfig() {
 		"isdefault_write_timeout":                                 isDefault(*cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
 		"isdefault_google_developer_key":                          isDefault(cfg.ServiceSettings.GoogleDeveloperKey, ""),
 		"isdefault_allow_cors_from":                               isDefault(*cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
+		"isdefault_cors_exposed_headers":                          isDefault(cfg.ServiceSettings.CorsExposedHeaders, ""),
+		"cors_allow_credentials":                                  *cfg.ServiceSettings.CorsAllowCredentials,
+		"cors_debug":                                              *cfg.ServiceSettings.CorsDebug,
 		"isdefault_allowed_untrusted_internal_connections":        isDefault(*cfg.ServiceSettings.AllowedUntrustedInternalConnections, ""),
 		"restrict_post_delete":                                    *cfg.ServiceSettings.RestrictPostDelete,
 		"allow_edit_post":                                         *cfg.ServiceSettings.AllowEditPost,
@@ -274,6 +278,7 @@ func (a *App) trackConfig() {
 		"max_users_per_team":                        *cfg.TeamSettings.MaxUsersPerTeam,
 		"max_channels_per_team":                     *cfg.TeamSettings.MaxChannelsPerTeam,
 		"teammate_name_display":                     *cfg.TeamSettings.TeammateNameDisplay,
+		"view_archived_channels":                    *cfg.TeamSettings.ViewArchivedChannels,
 		"isdefault_site_name":                       isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
 		"isdefault_custom_brand_text":               isDefault(*cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
 		"isdefault_custom_description_text":         isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
@@ -364,6 +369,10 @@ func (a *App) trackConfig() {
 		"isdefault_login_button_color":         isDefault(*cfg.EmailSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_EXTENSION, map[string]interface{}{
+		"enable_experimental_extensions": *cfg.ExtensionSettings.EnableExperimentalExtensions,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
