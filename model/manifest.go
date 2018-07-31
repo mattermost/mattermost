@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -151,6 +152,9 @@ type ManifestWebapp struct {
 	// The path to your webapp bundle. This should be relative to the root of your bundle and the
 	// location of the manifest file.
 	BundlePath string `json:"bundle_path" yaml:"bundle_path"`
+
+	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
+	BundleHash []byte `json:"-"`
 }
 
 func (m *Manifest) ToJson() string {
@@ -188,7 +192,7 @@ func (m *Manifest) ClientManifest() *Manifest {
 	if cm.Webapp != nil {
 		cm.Webapp = new(ManifestWebapp)
 		*cm.Webapp = *m.Webapp
-		cm.Webapp.BundlePath = "/static/" + m.Id + "/" + m.Id + "_bundle.js"
+		cm.Webapp.BundlePath = "/static/" + m.Id + "/" + fmt.Sprintf("%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
 	}
 	return cm
 }
