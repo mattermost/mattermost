@@ -1792,7 +1792,7 @@
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "{{.SiteName} チーム"
+    "translation": "{{.SiteName}} チーム"
   },
   {
     "id": "api.templates.email_organization",
