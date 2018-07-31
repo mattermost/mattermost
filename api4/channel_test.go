@@ -1974,6 +1974,21 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
+	// Leave deleted channel
+	th.LoginBasic()
+	deletedChannel := th.CreatePublicChannel()
+	th.App.AddUserToChannel(th.BasicUser, deletedChannel)
+	th.App.AddUserToChannel(th.BasicUser2, deletedChannel)
+
+	deletedChannel.DeleteAt = 1
+	th.App.UpdateChannel(deletedChannel)
+
+	_, resp = Client.RemoveUserFromChannel(deletedChannel.Id, th.BasicUser2.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(deletedChannel.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
 	th.LoginBasic()
 	private := th.CreatePrivateChannel()
 	th.App.AddUserToChannel(th.BasicUser2, private)
