@@ -210,6 +210,13 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(userId string, authRequest *mod
 		return nil, err
 	}
 
+	accessData := &model.AccessData{ClientId: authRequest.ClientId, UserId: user.Id, Token: session.Token, RefreshToken: "", RedirectUri: authRequest.RedirectUri, ExpiresAt: session.ExpiresAt, Scope: authRequest.Scope}
+
+	if result := <-a.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
+		mlog.Error(fmt.Sprint(result.Err))
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	return session, nil
 }
 
