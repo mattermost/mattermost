@@ -604,3 +604,32 @@ func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 		return result.Data.(*model.FileInfo), nil
 	}
 }
+
+func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+	newFileIds := []string{}
+
+	now := time.Now()
+
+	for _, fileId := range fileIds {
+		fileInfo := &model.FileInfo{}
+
+		if result := <-a.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+			return nil, result.Err
+		} else {
+			fileInfo = result.Data.(*model.FileInfo)
+		}
+
+		fileInfo.Id = model.NewId()
+		fileInfo.CreatorId = userId
+		fileInfo.CreateAt = now.UnixNano() / int64(time.Millisecond)
+		fileInfo.PostId = ""
+
+		if result := <-a.Srv.Store.FileInfo().Save(fileInfo); result.Err != nil {
+			return nil, result.Err
+		}
+
+		newFileIds = append(newFileIds, fileInfo.Id)
+	}
+
+	return newFileIds, nil
+}
