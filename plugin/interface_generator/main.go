@@ -16,8 +16,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"text/template"
 
-	"github.com/alecthomas/template"
 	"github.com/pkg/errors"
 )
 
