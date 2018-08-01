@@ -1316,3 +1316,14 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		}
 	})
 }
+
+func (us SqlUserStore) InferSystemInstallDate() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		createAt, err := us.GetReplica().SelectInt("SELECT CreateAt FROM Users ORDER BY CreateAt ASC LIMIT 1")
+		if err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetSystemInstallDate", "store.sql_user.get_system_install_date.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result.Data = createAt
+	})
+}

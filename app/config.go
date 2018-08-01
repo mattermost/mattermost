@@ -16,6 +16,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -208,6 +209,30 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	return nil
 }
 
+func (a *App) ensureInstallationDate() error {
+	_, err := a.getSystemInstallDate()
+	if err == nil {
+		return nil
+	}
+
+	result := <-a.Srv.Store.User().InferSystemInstallDate()
+	var installationDate int64
+	if result.Err == nil && result.Data.(int64) > 0 {
+		installationDate = result.Data.(int64)
+	} else {
+		installationDate = utils.MillisFromTime(time.Now())
+	}
+
+	result = <-a.Srv.Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
+		Value: strconv.FormatInt(installationDate, 10),
+	})
+	if result.Err != nil {
+		return result.Err
+	}
+	return nil
+}
+
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return a.asymmetricSigningKey
@@ -296,6 +321,10 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
 	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
+	installationDate, err := a.getSystemInstallDate()
+	if err == nil {
+		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
+	}
 
 	return respCfg
 }
