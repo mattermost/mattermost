@@ -312,7 +312,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					sender,
 					senderName,
 					mentionedUserIds[id],
-					(channelNotification || allNotification),
+					(channelNotification || hereNotification || allNotification),
 					replyToThreadType,
 				)
 			}
