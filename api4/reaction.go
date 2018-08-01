@@ -37,13 +37,13 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if reaction, err := c.App.SaveReactionForPost(reaction); err != nil {
+	reaction, err := c.App.SaveReactionForPost(reaction)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(reaction.ToJson()))
-		return
 	}
+
+	w.Write([]byte(reaction.ToJson()))
 }
 
 func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -57,13 +57,13 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if reactions, err := c.App.GetReactionsForPost(c.Params.PostId); err != nil {
+	reactions, err := c.App.GetReactionsForPost(c.Params.PostId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.ReactionsToJson(reactions)))
-		return
 	}
+
+	w.Write([]byte(model.ReactionsToJson(reactions)))
 }
 
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {

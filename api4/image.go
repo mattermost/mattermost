@@ -16,7 +16,8 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// security reasons.
 	if transform := c.App.ImageProxyAdder(); transform != nil {
 		http.Redirect(w, r, transform(r.URL.Query().Get("url")), http.StatusFound)
-	} else {
-		http.NotFound(w, r)
+		return
 	}
+
+	http.NotFound(w, r)
 }
