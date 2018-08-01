@@ -56,7 +56,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 	maxUsersPerTeam := 50
 
 	u1 := model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
 
 	if err := (<-ss.User().Save(&u1)).Err; err != nil {
@@ -87,7 +87,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 
 	for i := 0; i < 49; i++ {
 		u1.Id = ""
-		u1.Email = model.NewId()
+		u1.Email = MakeEmail()
 		u1.Username = model.NewId()
 		if err := (<-ss.User().Save(&u1)).Err; err != nil {
 			t.Fatal("couldn't save item", err)
@@ -97,7 +97,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 	}
 
 	u1.Id = ""
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
 	if err := (<-ss.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
@@ -110,12 +110,12 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 
 func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.AuthService = "ldap"
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
@@ -136,19 +136,19 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal("Update should have faile because id change")
 	}
 
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	if err := (<-ss.User().Update(u2, false)).Err; err == nil {
 		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
 	}
 
 	u3 := &model.User{}
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	oldEmail := u3.Email
 	u3.AuthService = "gitlab"
 	store.Must(ss.User().Save(u3))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u3.Id}, -1))
 
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	if result := <-ss.User().Update(u3, false); result.Err != nil {
 		t.Fatal("Update should not have failed")
 	} else {
@@ -158,7 +158,7 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 		}
 	}
 
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	if result := <-ss.User().Update(u3, true); result.Err != nil {
 		t.Fatal("Update should not have failed")
 	} else {
@@ -175,7 +175,7 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
@@ -197,7 +197,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 
 func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
@@ -217,7 +217,7 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 
 func testUserStoreGet(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
@@ -236,7 +236,7 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 
 func testUserCount(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
@@ -252,12 +252,12 @@ func testUserCount(t *testing.T, ss store.Store) {
 
 func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.AuthService = "someservice"
 	store.Must(ss.User().Save(u1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.AuthService = "someservice"
 	store.Must(ss.User().Save(u2))
 
@@ -273,11 +273,11 @@ func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
 
 func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 
 	if r1 := <-ss.User().GetAllProfiles(0, 100); r1.Err != nil {
@@ -315,7 +315,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	}
 
 	u3 := &model.User{}
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	store.Must(ss.User().Save(u3))
 
 	if r2 := <-ss.User().GetEtagForAllProfiles(); r2.Err != nil {
@@ -331,12 +331,12 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
@@ -376,7 +376,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	}
 
 	u3 := &model.User{}
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	store.Must(ss.User().Save(u3))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
 
@@ -393,12 +393,12 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
@@ -469,12 +469,12 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
@@ -548,14 +548,14 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 
 	u1 := &model.User{}
 	u1.Username = "a000000000" + model.NewId()
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 	defer ss.User().PermanentDelete(u1.Id)
 
 	u2 := &model.User{}
 	u2.Username = "a000000001" + model.NewId()
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	defer ss.User().PermanentDelete(u2.Id)
 
@@ -586,12 +586,12 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
@@ -674,12 +674,12 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
@@ -767,12 +767,12 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
@@ -909,13 +909,13 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Username = "username1" + model.NewId()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Username = "username2" + model.NewId()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
@@ -953,7 +953,7 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
 	team2Id := model.NewId()
 
 	u3 := &model.User{}
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	u3.Username = "username3" + model.NewId()
 	store.Must(ss.User().Save(u3))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: team2Id, UserId: u3.Id}, -1))
@@ -993,13 +993,13 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Roles = model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
@@ -1017,7 +1017,7 @@ func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
 	teamid := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamid, UserId: u1.Id}, -1))
 
@@ -1036,7 +1036,7 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	auth := "123" + model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.AuthData = &auth
 	u1.AuthService = "service"
 	store.Must(ss.User().Save(u1))
@@ -1056,7 +1056,7 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
@@ -1074,7 +1074,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	auth := model.NewId()
 
 	u1 := &model.User{
-		Email:       model.NewId(),
+		Email:       MakeEmail(),
 		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_GITLAB,
 		AuthData:    &auth,
@@ -1084,7 +1084,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	auth2 := model.NewId()
 
 	u2 := &model.User{
-		Email:       model.NewId(),
+		Email:       MakeEmail(),
 		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &auth2,
@@ -1117,7 +1117,7 @@ func testUserStoreUpdatePassword(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
@@ -1139,7 +1139,7 @@ func testUserStoreUpdatePassword(t *testing.T, ss store.Store) {
 
 func testUserStoreDelete(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
@@ -1152,7 +1152,7 @@ func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
@@ -1196,12 +1196,12 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	u1 := &model.User{}
 	u1.Username = "user1" + model.NewId()
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Username = "user2" + model.NewId()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
@@ -1272,7 +1272,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
 	u1 := model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(&u1))
 
 	time.Sleep(100 * time.Millisecond)
@@ -1289,7 +1289,7 @@ func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
 
 func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 	u1 := model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(&u1))
 
 	time.Sleep(100 * time.Millisecond)
@@ -1310,7 +1310,7 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 
 func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}))
 	tid := model.NewId()
@@ -1323,7 +1323,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 
 func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}))
 	tid := model.NewId()
@@ -1345,12 +1345,12 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 
 	u2 := &model.User{}
 	u2.Username = "jim-bobby" + model.NewId()
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 
 	u3 := &model.User{}
 	u3.Username = "jimbo" + model.NewId()
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	u3.DeleteAt = 1
 	store.Must(ss.User().Save(u3))
 
@@ -1359,7 +1359,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	u5.FirstName = "En"
 	u5.LastName = "Yu"
 	u5.Nickname = "enyu"
-	u5.Email = model.NewId() + "@simulator.amazonses.com"
+	u5.Email = MakeEmail()
 	store.Must(ss.User().Save(u5))
 
 	u6 := &model.User{}
@@ -1367,7 +1367,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	u6.FirstName = "Du_"
 	u6.LastName = "_DE"
 	u6.Nickname = "lodash"
-	u6.Email = model.NewId() + "@simulator.amazonses.com"
+	u6.Email = MakeEmail()
 	store.Must(ss.User().Save(u6))
 
 	tid := model.NewId()
@@ -1784,7 +1784,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	// Search Users not in Team.
 	u4 := &model.User{}
 	u4.Username = "simon" + model.NewId()
-	u4.Email = model.NewId()
+	u4.Email = MakeEmail()
 	u4.DeleteAt = 0
 	store.Must(ss.User().Save(u4))
 
@@ -1876,12 +1876,12 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 
 	u2 := &model.User{}
 	u2.Username = "jim-bobby" + model.NewId()
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 
 	u3 := &model.User{}
 	u3.Username = "jimbo" + model.NewId()
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	u3.DeleteAt = 1
 	store.Must(ss.User().Save(u3))
 
@@ -1926,7 +1926,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 
 	var count int64
@@ -1938,7 +1938,7 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	}
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.DeleteAt = model.GetMillis()
 	store.Must(ss.User().Save(u2))
 
@@ -1961,12 +1961,12 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	}
 
 	u1 := model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
 	u1.Roles = "system_user system_admin"
 
 	u2 := model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
 
 	if err := (<-ss.User().Save(&u1)).Err; err != nil {
@@ -1991,13 +1991,13 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 	store.Must(ss.User().UpdateUpdateAt(u1.Id))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.User().UpdateUpdateAt(u2.Id))
 
@@ -2103,7 +2103,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	time.Sleep(time.Millisecond * 10)
 	u3 := &model.User{}
-	u3.Email = model.NewId()
+	u3.Email = MakeEmail()
 	store.Must(ss.User().Save(u3))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
 	store.Must(ss.User().UpdateUpdateAt(u3.Id))
