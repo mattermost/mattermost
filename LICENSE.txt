@@ -12,7 +12,7 @@ You may be licensed to use source code to create compiled versions not produced 
 2. Under a commercial license available from Mattermost, Inc. by contacting commercial@mattermost.com
 
 You are licensed to use the source code in Admin Tools and Configuration Files (templates/, config/, model/,
-webapp/client, webapp/fonts, webapp/i18n, webapp/images and all subdirectories thereof) under the Apache License v2.0.
+plugin/ and all subdirectories thereof) under the Apache License v2.0.
 
 We promise that we will not enforce the copyleft provisions in AGPL v3.0 against you if your application (a) does not
 link to the Mattermost Platform directly, but exclusively uses the Mattermost Admin Tools and Configuration Files, and
