@@ -99,13 +99,13 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store) {
 	o1.Type = model.CHANNEL_DIRECT
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
@@ -175,13 +175,13 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store) {
 
 func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
@@ -329,13 +329,13 @@ func testChannelStoreGet(t *testing.T, ss store.Store) {
 	}
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
@@ -728,13 +728,13 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, 0, c1t1.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	u1 := model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
@@ -812,13 +812,13 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, 0, c1t1.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	u1 := model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
@@ -1263,7 +1263,7 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
-	t1.Email = model.NewId() + "@nowhere.com"
+	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
@@ -1554,7 +1554,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().Save(&c2, -1))
 
 	u1 := &model.User{
-		Email:    model.NewId(),
+		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
 	store.Must(ss.User().Save(u1))
@@ -1574,7 +1574,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 
 	u2 := model.User{
-		Email:    model.NewId(),
+		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
 	store.Must(ss.User().Save(&u2))
@@ -1595,7 +1595,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 
 	// make sure members of other channels aren't counted
 	u3 := model.User{
-		Email:    model.NewId(),
+		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
 	store.Must(ss.User().Save(&u3))
@@ -1616,7 +1616,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 
 	// make sure inactive users aren't counted
 	u4 := &model.User{
-		Email:    model.NewId(),
+		Email:    MakeEmail(),
 		DeleteAt: 10000,
 	}
 	store.Must(ss.User().Save(u4))
@@ -2114,12 +2114,12 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().Save(&p3, -1))
 
 	u1 := &model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(u1))
 
 	u2 := &model.User{}
-	u2.Email = model.NewId()
+	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
 	store.Must(ss.User().Save(u2))
 

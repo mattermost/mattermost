@@ -77,13 +77,87 @@ func TestMapJson(t *testing.T) {
 	}
 }
 
-func TestValidEmail(t *testing.T) {
-	if !IsValidEmail("corey+test@hulen.com") {
-		t.Error("email should be valid")
-	}
-
-	if IsValidEmail("@corey+test@hulen.com") {
-		t.Error("should be invalid")
+func TestIsValidEmail(t *testing.T) {
+	for _, testCase := range []struct {
+		Input    string
+		Expected bool
+	}{
+		{
+			Input:    "corey",
+			Expected: false,
+		},
+		{
+			Input:    "corey@example.com",
+			Expected: true,
+		},
+		{
+			Input:    "corey+test@example.com",
+			Expected: true,
+		},
+		{
+			Input:    "@corey+test@example.com",
+			Expected: false,
+		},
+		{
+			Input:    "firstname.lastname@example.com",
+			Expected: true,
+		},
+		{
+			Input:    "firstname.lastname@subdomain.example.com",
+			Expected: true,
+		},
+		{
+			Input:    "123454567@domain.com",
+			Expected: true,
+		},
+		{
+			Input:    "email@domain-one.com",
+			Expected: true,
+		},
+		{
+			Input:    "email@domain.co.jp",
+			Expected: true,
+		},
+		{
+			Input:    "firstname-lastname@domain.com",
+			Expected: true,
+		},
+		{
+			Input:    "@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "Billy Bob <billy@example.com>",
+			Expected: false,
+		},
+		{
+			Input:    "email.domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "email.@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "email@domain@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "(email@domain.com)",
+			Expected: false,
+		},
+		{
+			Input:    "email@汤.中国",
+			Expected: true,
+		},
+		{
+			Input:    "email1@domain.com, email2@domain.com",
+			Expected: false,
+		},
+	} {
+		t.Run(testCase.Input, func(t *testing.T) {
+			assert.Equal(t, testCase.Expected, IsValidEmail(testCase.Input))
+		})
 	}
 }
 
