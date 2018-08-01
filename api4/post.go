@@ -234,10 +234,10 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
-		w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(post).ToJson()))
 	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
+	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(post).ToJson()))
 }
 
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -313,10 +313,10 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {
 		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
-		w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
 	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
+	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -487,16 +487,19 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if infos, err := c.App.GetFileInfosForPost(c.Params.PostId, false); err != nil {
+	infos, err := c.App.GetFileInfosForPost(c.Params.PostId, false)
+	if err != nil {
 		c.Err = err
 		return
-	} else if c.HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
-		return
-	} else {
-		w.Header().Set("Cache-Control", "max-age=2592000, public")
-		w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
-		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
+
+	if c.HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
+		return
+	}
+
+	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
+	w.Write([]byte(model.FileInfosToJson(infos)))
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
