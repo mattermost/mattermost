@@ -381,7 +381,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	t4 := &model.Team{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Email:       model.NewId() + "@nowhere.com",
+		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &d4.Id,
 	}
