@@ -260,10 +260,6 @@
     "translation": "The channel has been archived or deleted"
   },
   {
-    "id": "api.channel.update_channel.permission.app_error",
-    "translation": "You don't have the appropriate permissions."
-  },
-  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
