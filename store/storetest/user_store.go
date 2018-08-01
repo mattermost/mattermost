@@ -1131,7 +1131,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 
 	// test a special case where two users will have conflicting login information so we throw a special error
 	u3 := &model.User{
-		Email:       model.NewId(),
+		Email:       MakeEmail(),
 		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &auth3,
@@ -1139,7 +1139,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u3))
 
 	u4 := &model.User{
-		Email:       model.NewId(),
+		Email:       MakeEmail(),
 		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &u3.Username,
