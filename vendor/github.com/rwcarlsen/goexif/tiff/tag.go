@@ -41,17 +41,17 @@ type DataType uint16
 
 const (
 	DTByte      DataType = 1
-	DTAscii              = 2
-	DTShort              = 3
-	DTLong               = 4
-	DTRational           = 5
-	DTSByte              = 6
-	DTUndefined          = 7
-	DTSShort             = 8
-	DTSLong              = 9
-	DTSRational          = 10
-	DTFloat              = 11
-	DTDouble             = 12
+	DTAscii     DataType = 2
+	DTShort     DataType = 3
+	DTLong      DataType = 4
+	DTRational  DataType = 5
+	DTSByte     DataType = 6
+	DTUndefined DataType = 7
+	DTSShort    DataType = 8
+	DTSLong     DataType = 9
+	DTSRational DataType = 10
+	DTFloat     DataType = 11
+	DTDouble    DataType = 12
 )
 
 var typeNames = map[DataType]string{
@@ -179,8 +179,15 @@ func (t *Tag) convertVals() error {
 
 	switch t.Type {
 	case DTAscii:
-		if len(t.Val) > 0 {
-			t.strVal = string(t.Val[:len(t.Val)-1]) // ignore the last byte (NULL).
+		if len(t.Val) <= 0 {
+			break
+		}
+		nullPos := bytes.IndexByte(t.Val, 0)
+		if nullPos == -1 {
+			t.strVal = string(t.Val)
+		} else {
+			// ignore all trailing NULL bytes, in case of a broken t.Count
+			t.strVal = string(t.Val[:nullPos])
 		}
 	case DTByte:
 		var v uint8

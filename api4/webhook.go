@@ -4,13 +4,9 @@
 package api4
 
 import (
-	"io"
 	"net/http"
-	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitWebhook() {
@@ -26,12 +22,6 @@ func (api *API) InitWebhook() {
 	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
 	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
 	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
-
-	api.BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", api.ApiHandler(commandWebhook)).Methods("POST")
-	api.BaseRoutes.Root.Handle("/hooks/{id:[A-Za-z0-9]+}", api.ApiHandler(incomingWebhook)).Methods("POST")
-
-	// Old endpoint for backwards compatibility
-	api.BaseRoutes.Root.Handle("/api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks/{id:[A-Za-z0-9]+}", api.ApiHandler(incomingWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -191,10 +181,16 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("fail - bad permissions")
 			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 			return
-		} else {
-			w.Write([]byte(hook.ToJson()))
+		}
+
+		if c.Session.UserId != hook.UserId && !c.App.SessionHasPermissionToTeam(c.Session, hook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
 			return
 		}
+
+		w.Write([]byte(hook.ToJson()))
+		return
 	}
 }
 
@@ -225,14 +221,20 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.LogAudit("fail - bad permissions")
 			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 			return
-		} else {
-			if err = c.App.DeleteIncomingWebhook(hookId); err != nil {
-				c.Err = err
-				return
-			}
-
-			ReturnStatusOK(w)
 		}
+
+		if c.Session.UserId != hook.UserId && !c.App.SessionHasPermissionToTeam(c.Session, hook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
+			return
+		}
+
+		if err = c.App.DeleteIncomingWebhook(hookId); err != nil {
+			c.Err = err
+			return
+		}
+
+		ReturnStatusOK(w)
 	}
 }
 
@@ -439,63 +441,4 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	ReturnStatusOK(w)
-}
-
-func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-
-	r.ParseForm()
-
-	var payload io.Reader
-	contentType := r.Header.Get("Content-Type")
-	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
-		payload = strings.NewReader(r.FormValue("payload"))
-	} else {
-		payload = r.Body
-	}
-
-	if c.App.Config().LogSettings.EnableWebhookDebugging {
-		var err error
-		payload, err = utils.InfoReader(
-			payload,
-			utils.T("api.webhook.incoming.debug"),
-		)
-		if err != nil {
-			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.debug.error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
-	parsedRequest, decodeError := model.IncomingWebhookRequestFromJson(payload)
-
-	if decodeError != nil {
-		c.Err = decodeError
-		return
-	}
-
-	err := c.App.HandleIncomingWebhook(id, parsedRequest)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
-}
-
-func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-
-	response := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
-
-	err := c.App.HandleCommandWebhook(id, response)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
 }

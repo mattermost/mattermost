@@ -15,11 +15,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -28,7 +28,6 @@ import (
 const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
-	MAX_DB_CONN_LIFETIME = 60
 	DB_PING_ATTEMPTS     = 18
 	DB_PING_TIMEOUT_SECS = 10
 )
@@ -59,6 +58,10 @@ const (
 	EXIT_REMOVE_INDEX_MYSQL          = 122
 	EXIT_REMOVE_INDEX_MISSING        = 123
 	EXIT_REMOVE_TABLE                = 134
+	EXIT_CREATE_INDEX_SQLITE         = 135
+	EXIT_REMOVE_INDEX_SQLITE         = 136
+	EXIT_TABLE_EXISTS_SQLITE         = 137
+	EXIT_DOES_COLUMN_EXISTS_SQLITE   = 138
 )
 
 type SqlSupplierOldStores struct {
@@ -86,6 +89,8 @@ type SqlSupplierOldStores struct {
 	userAccessToken      store.UserAccessTokenStore
 	plugin               store.PluginStore
 	channelMemberHistory store.ChannelMemberHistoryStore
+	role                 store.RoleStore
+	scheme               store.SchemeStore
 }
 
 type SqlSupplier struct {
@@ -99,6 +104,7 @@ type SqlSupplier struct {
 	searchReplicas []*gorp.DbMap
 	oldStores      SqlSupplierOldStores
 	settings       *model.SqlSettings
+	lockedToMaster bool
 }
 
 func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
@@ -135,10 +141,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
 
 	initSqlSupplierReactions(supplier)
+	initSqlSupplierRoles(supplier)
+	initSqlSupplierSchemes(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
-		l4g.Critical(utils.T("store.sql.creating_tables.critical"), err)
+		mlog.Critical(fmt.Sprintf("Error creating database tables: %v", err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_TABLE)
 	}
@@ -183,13 +191,13 @@ func (s *SqlSupplier) Next() store.LayeredStoreSupplier {
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
-		l4g.Critical(utils.T("store.sql.open_conn.critical"), err)
+		mlog.Critical(fmt.Sprintf("Failed to open SQL connection to err:%v", err.Error()))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DB_OPEN)
 	}
 
 	for i := 0; i < DB_PING_ATTEMPTS; i++ {
-		l4g.Info("Pinging SQL %v database", con_type)
+		mlog.Info(fmt.Sprintf("Pinging SQL %v database", con_type))
 		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
@@ -197,11 +205,11 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 			break
 		} else {
 			if i == DB_PING_ATTEMPTS-1 {
-				l4g.Critical("Failed to ping DB, server will exit err=%v", err)
+				mlog.Critical(fmt.Sprintf("Failed to ping DB, server will exit err=%v", err))
 				time.Sleep(time.Second)
 				os.Exit(EXIT_PING)
 			} else {
-				l4g.Error("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err)
+				mlog.Error(fmt.Sprintf("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err))
 				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
 			}
 		}
@@ -209,20 +217,20 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 
 	db.SetMaxIdleConns(*settings.MaxIdleConns)
 	db.SetMaxOpenConns(*settings.MaxOpenConns)
-	db.SetConnMaxLifetime(time.Duration(MAX_DB_CONN_LIFETIME) * time.Minute)
+	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 
 	var dbmap *gorp.DbMap
 
 	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
 
-	if *settings.DriverName == "sqlite3" {
+	if *settings.DriverName == model.DATABASE_DRIVER_SQLITE {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}, QueryTimeout: connectionTimeout}
 	} else if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
 	} else if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
 	} else {
-		l4g.Critical(utils.T("store.sql.dialect_driver.critical"))
+		mlog.Critical("Failed to create dialect specific driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_NO_DRIVER)
 	}
@@ -237,19 +245,14 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 func (s *SqlSupplier) initConnection() {
 	s.master = setupConnection("master", *s.settings.DataSource, s.settings)
 
-	if len(s.settings.DataSourceReplicas) == 0 {
-		s.replicas = make([]*gorp.DbMap, 1)
-		s.replicas[0] = s.master
-	} else {
+	if len(s.settings.DataSourceReplicas) > 0 {
 		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
 		for i, replica := range s.settings.DataSourceReplicas {
 			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
 		}
 	}
 
-	if len(s.settings.DataSourceSearchReplicas) == 0 {
-		s.searchReplicas = s.replicas
-	} else {
+	if len(s.settings.DataSourceSearchReplicas) > 0 {
 		s.searchReplicas = make([]*gorp.DbMap, len(s.settings.DataSourceSearchReplicas))
 		for i, replica := range s.settings.DataSourceSearchReplicas {
 			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, s.settings)
@@ -271,11 +274,19 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
+	if len(ss.settings.DataSourceSearchReplicas) == 0 {
+		return ss.GetReplica()
+	}
+
 	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
 	return ss.searchReplicas[rrNum]
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
+		return ss.GetMaster()
+	}
+
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
 	return ss.replicas[rrNum]
 }
@@ -285,7 +296,6 @@ func (ss *SqlSupplier) TotalMasterDbConnections() int {
 }
 
 func (ss *SqlSupplier) TotalReadDbConnections() int {
-
 	if len(ss.settings.DataSourceReplicas) == 0 {
 		return 0
 	}
@@ -330,7 +340,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 		)
 
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.table_exists.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_TABLE_EXISTS)
 		}
@@ -352,15 +362,29 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 		)
 
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.table_exists.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_TABLE_EXISTS_MYSQL)
 		}
 
 		return count > 0
 
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
+			tableName,
+		)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_TABLE_EXISTS_SQLITE)
+		}
+
+		return count > 0
+
 	} else {
-		l4g.Critical(utils.T("store.sql.column_exists_missing_driver.critical"))
+		mlog.Critical("Failed to check if column exists because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_COLUMN_EXISTS)
 		return false
@@ -384,7 +408,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 				return false
 			}
 
-			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_POSTGRES)
 		}
@@ -407,15 +431,30 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		)
 
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.column_exists.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_MYSQL)
 		}
 
 		return count > 0
 
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT COUNT(*) FROM pragma_table_info(?) WHERE name=?`,
+			tableName,
+			columnName,
+		)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_DOES_COLUMN_EXISTS_SQLITE)
+		}
+
+		return count > 0
+
 	} else {
-		l4g.Critical(utils.T("store.sql.column_exists_missing_driver.critical"))
+		mlog.Critical("Failed to check if column exists because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DOES_COLUMN_EXISTS_MISSING)
 		return false
@@ -431,7 +470,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_POSTGRES)
 		}
@@ -441,7 +480,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
@@ -449,7 +488,41 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 		return true
 
 	} else {
-		l4g.Critical(utils.T("store.sql.create_column_missing_driver.critical"))
+		mlog.Critical("Failed to create column because of missing driver")
+		time.Sleep(time.Second)
+		os.Exit(EXIT_CREATE_COLUMN_MISSING)
+		return false
+	}
+}
+
+func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
+
+	if ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
+
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType)
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_COLUMN_POSTGRES)
+		}
+
+		return true
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
+		}
+
+		return true
+
+	} else {
+		mlog.Critical("Failed to create column because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_COLUMN_MISSING)
 		return false
@@ -464,7 +537,7 @@ func (ss *SqlSupplier) RemoveColumnIfExists(tableName string, columnName string)
 
 	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
 	if err != nil {
-		l4g.Critical("Failed to drop column %v", err)
+		mlog.Critical(fmt.Sprintf("Failed to drop column %v", err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_REMOVE_COLUMN)
 	}
@@ -479,7 +552,7 @@ func (ss *SqlSupplier) RemoveTableIfExists(tableName string) bool {
 
 	_, err := ss.GetMaster().ExecNoTimeout("DROP TABLE " + tableName)
 	if err != nil {
-		l4g.Critical("Failed to drop table %v", err)
+		mlog.Critical(fmt.Sprintf("Failed to drop table %v", err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_REMOVE_TABLE)
 	}
@@ -500,7 +573,7 @@ func (ss *SqlSupplier) RenameColumnIfExists(tableName string, oldColumnName stri
 	}
 
 	if err != nil {
-		l4g.Critical(utils.T("store.sql.rename_column.critical"), err)
+		mlog.Critical(fmt.Sprintf("Failed to rename column %v", err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_RENAME_COLUMN)
 	}
@@ -522,7 +595,7 @@ func (ss *SqlSupplier) GetMaxLengthOfColumnIfExists(tableName string, columnName
 	}
 
 	if err != nil {
-		l4g.Critical(utils.T("store.sql.maxlength_column.critical"), err)
+		mlog.Critical(fmt.Sprintf("Failed to get max length of column %v", err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_MAX_COLUMN)
 	}
@@ -543,7 +616,7 @@ func (ss *SqlSupplier) AlterColumnTypeIfExists(tableName string, columnName stri
 	}
 
 	if err != nil {
-		l4g.Critical(utils.T("store.sql.alter_column_type.critical"), err)
+		mlog.Critical(fmt.Sprintf("Failed to alter column type %v", err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_ALTER_COLUMN)
 	}
@@ -584,7 +657,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 		query := ""
 		if indexType == INDEX_TYPE_FULL_TEXT {
 			if len(columnNames) != 1 {
-				l4g.Critical("Unable to create multi column full text index")
+				mlog.Critical("Unable to create multi column full text index")
 				os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 			}
 			columnName := columnNames[0]
@@ -596,8 +669,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_index.critical"), errExists)
-			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to create index %v, %v", errExists, err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 		}
@@ -605,7 +677,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to check index %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_MYSQL)
 		}
@@ -621,12 +693,19 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		_, err := ss.GetMaster().ExecNoTimeout("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_INDEX_SQLITE)
+		}
 	} else {
-		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
+		mlog.Critical("Failed to create index because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_INDEX_MISSING)
 	}
@@ -645,7 +724,7 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 
 		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_POSTGRES)
 		}
@@ -655,7 +734,7 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to check index %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
@@ -666,12 +745,19 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 
 		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName + " ON " + tableName)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		_, err := ss.GetMaster().ExecNoTimeout("DROP INDEX IF EXISTS " + indexName)
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to remove index %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_REMOVE_INDEX_SQLITE)
+		}
 	} else {
-		l4g.Critical(utils.T("store.sql.create_index_missing_driver.critical"))
+		mlog.Critical("Failed to create index because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_REMOVE_INDEX_MISSING)
 	}
@@ -708,11 +794,19 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 }
 
 func (ss *SqlSupplier) Close() {
-	l4g.Info(utils.T("store.sql.closing.info"))
+	mlog.Info("Closing SqlStore")
 	ss.master.Db.Close()
 	for _, replica := range ss.replicas {
 		replica.Db.Close()
 	}
+}
+
+func (ss *SqlSupplier) LockToMaster() {
+	ss.lockedToMaster = true
+}
+
+func (ss *SqlSupplier) UnlockFromMaster() {
+	ss.lockedToMaster = false
 }
 
 func (ss *SqlSupplier) Team() store.TeamStore {
@@ -809,6 +903,14 @@ func (ss *SqlSupplier) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 
 func (ss *SqlSupplier) Plugin() store.PluginStore {
 	return ss.oldStores.plugin
+}
+
+func (ss *SqlSupplier) Role() store.RoleStore {
+	return ss.oldStores.role
+}
+
+func (ss *SqlSupplier) Scheme() store.SchemeStore {
+	return ss.oldStores.scheme
 }
 
 func (ss *SqlSupplier) DropAllTables() {

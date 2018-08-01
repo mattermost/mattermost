@@ -6,11 +6,10 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/web"
 
 	_ "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -76,6 +75,8 @@ type Routes struct {
 	Compliance *mux.Router // 'api/v4/compliance'
 	Cluster    *mux.Router // 'api/v4/cluster'
 
+	Image *mux.Router // 'api/v4/image'
+
 	LDAP *mux.Router // 'api/v4/ldap'
 
 	Elasticsearch *mux.Router // 'api/v4/elasticsearch'
@@ -96,6 +97,9 @@ type Routes struct {
 
 	Reactions *mux.Router // 'api/v4/reactions'
 
+	Roles   *mux.Router // 'api/v4/roles'
+	Schemes *mux.Router // 'api/v4/schemes'
+
 	Emojis      *mux.Router // 'api/v4/emoji'
 	Emoji       *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
 	EmojiByName *mux.Router // 'api/v4/emoji/name/{emoji_name:[A-Za-z0-9_-\.]+}'
@@ -110,7 +114,7 @@ type API struct {
 	BaseRoutes *Routes
 }
 
-func Init(a *app.App, root *mux.Router, full bool) *API {
+func Init(a *app.App, root *mux.Router) *API {
 	api := &API{
 		App:        a,
 		BaseRoutes: &Routes{},
@@ -194,6 +198,11 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
 
+	api.BaseRoutes.Roles = api.BaseRoutes.ApiRoot.PathPrefix("/roles").Subrouter()
+	api.BaseRoutes.Schemes = api.BaseRoutes.ApiRoot.PathPrefix("/schemes").Subrouter()
+
+	api.BaseRoutes.Image = api.BaseRoutes.ApiRoot.PathPrefix("/image").Subrouter()
+
 	api.InitUser()
 	api.InitTeam()
 	api.InitChannel()
@@ -219,29 +228,19 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitWebrtc()
 	api.InitOpenGraph()
 	api.InitPlugin()
+	api.InitRole()
+	api.InitScheme()
+	api.InitImage()
 
-	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
+	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
-	// REMOVE CONDITION WHEN APIv3 REMOVED
-	if full {
-		a.InitEmailBatching()
-	}
+	a.InitEmailBatching()
 
 	return api
 }
 
-func Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-
-	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
-
-	w.WriteHeader(err.StatusCode)
-	err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'."
-	w.Write([]byte(err.ToJson()))
+func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
+	web.Handle404(api.App, w, r)
 }
 
-func ReturnStatusOK(w http.ResponseWriter) {
-	m := make(map[string]string)
-	m[model.STATUS] = model.STATUS_OK
-	w.Write([]byte(model.MapToJson(m)))
-}
+var ReturnStatusOK = web.ReturnStatusOK

@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	STATUS_OUT_OF_OFFICE   = "ooo"
 	STATUS_OFFLINE         = "offline"
 	STATUS_AWAY            = "away"
 	STATUS_DND             = "dnd"
@@ -23,47 +24,48 @@ type Status struct {
 	Status         string `json:"status"`
 	Manual         bool   `json:"manual"`
 	LastActivityAt int64  `json:"last_activity_at"`
-	ActiveChannel  string `json:"-" db:"-"`
+	ActiveChannel  string `json:"active_channel,omitempty" db:"-"`
 }
 
 func (o *Status) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	tempChannelId := o.ActiveChannel
+	o.ActiveChannel = ""
+	b, _ := json.Marshal(o)
+	o.ActiveChannel = tempChannelId
+	return string(b)
+}
+
+func (o *Status) ToClusterJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func StatusFromJson(data io.Reader) *Status {
-	decoder := json.NewDecoder(data)
-	var o Status
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Status
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func StatusListToJson(u []*Status) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
+	activeChannels := make([]string, len(u))
+	for index, s := range u {
+		activeChannels[index] = s.ActiveChannel
+		s.ActiveChannel = ""
 	}
+
+	b, _ := json.Marshal(u)
+
+	for index, s := range u {
+		s.ActiveChannel = activeChannels[index]
+	}
+
+	return string(b)
 }
 
 func StatusListFromJson(data io.Reader) []*Status {
-	decoder := json.NewDecoder(data)
 	var statuses []*Status
-	err := decoder.Decode(&statuses)
-	if err == nil {
-		return statuses
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&statuses)
+	return statuses
 }
 
 func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]interface{} {

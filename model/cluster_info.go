@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"io"
-	"strings"
 )
 
 type ClusterInfo struct {
@@ -18,36 +17,19 @@ type ClusterInfo struct {
 }
 
 func (me *ClusterInfo) ToJson() string {
-	b, err := json.Marshal(me)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
-}
-
-func (me *ClusterInfo) Copy() *ClusterInfo {
-	json := me.ToJson()
-	return ClusterInfoFromJson(strings.NewReader(json))
+	b, _ := json.Marshal(me)
+	return string(b)
 }
 
 func ClusterInfoFromJson(data io.Reader) *ClusterInfo {
-	decoder := json.NewDecoder(data)
-	var me ClusterInfo
-	err := decoder.Decode(&me)
-	if err == nil {
-		return &me
-	} else {
-		return nil
-	}
+	var me *ClusterInfo
+	json.NewDecoder(data).Decode(&me)
+	return me
 }
 
 func ClusterInfosToJson(objmap []*ClusterInfo) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 func ClusterInfosFromJson(data io.Reader) []*ClusterInfo {

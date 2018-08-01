@@ -24,8 +24,8 @@ type PubSub struct {
 
 	mu       sync.Mutex
 	cn       *pool.Conn
-	channels []string
-	patterns []string
+	channels map[string]struct{}
+	patterns map[string]struct{}
 	closed   bool
 
 	cmd *Cmd
@@ -67,12 +67,24 @@ func (c *PubSub) _conn(channels []string) (*pool.Conn, error) {
 func (c *PubSub) resubscribe(cn *pool.Conn) error {
 	var firstErr error
 	if len(c.channels) > 0 {
-		if err := c._subscribe(cn, "subscribe", c.channels...); err != nil && firstErr == nil {
+		channels := make([]string, len(c.channels))
+		i := 0
+		for channel := range c.channels {
+			channels[i] = channel
+			i++
+		}
+		if err := c._subscribe(cn, "subscribe", channels...); err != nil && firstErr == nil {
 			firstErr = err
 		}
 	}
 	if len(c.patterns) > 0 {
-		if err := c._subscribe(cn, "psubscribe", c.patterns...); err != nil && firstErr == nil {
+		patterns := make([]string, len(c.patterns))
+		i := 0
+		for pattern := range c.patterns {
+			patterns[i] = pattern
+			i++
+		}
+		if err := c._subscribe(cn, "psubscribe", patterns...); err != nil && firstErr == nil {
 			firstErr = err
 		}
 	}
@@ -127,42 +139,56 @@ func (c *PubSub) Close() error {
 	return nil
 }
 
-// Subscribes the client to the specified channels. It returns
+// Subscribe the client to the specified channels. It returns
 // empty subscription if there are no channels.
 func (c *PubSub) Subscribe(channels ...string) error {
 	c.mu.Lock()
 	err := c.subscribe("subscribe", channels...)
-	c.channels = appendIfNotExists(c.channels, channels...)
+	if c.channels == nil {
+		c.channels = make(map[string]struct{})
+	}
+	for _, channel := range channels {
+		c.channels[channel] = struct{}{}
+	}
 	c.mu.Unlock()
 	return err
 }
 
-// Subscribes the client to the given patterns. It returns
+// PSubscribe the client to the given patterns. It returns
 // empty subscription if there are no patterns.
 func (c *PubSub) PSubscribe(patterns ...string) error {
 	c.mu.Lock()
 	err := c.subscribe("psubscribe", patterns...)
-	c.patterns = appendIfNotExists(c.patterns, patterns...)
+	if c.patterns == nil {
+		c.patterns = make(map[string]struct{})
+	}
+	for _, pattern := range patterns {
+		c.patterns[pattern] = struct{}{}
+	}
 	c.mu.Unlock()
 	return err
 }
 
-// Unsubscribes the client from the given channels, or from all of
+// Unsubscribe the client from the given channels, or from all of
 // them if none is given.
 func (c *PubSub) Unsubscribe(channels ...string) error {
 	c.mu.Lock()
 	err := c.subscribe("unsubscribe", channels...)
-	c.channels = remove(c.channels, channels...)
+	for _, channel := range channels {
+		delete(c.channels, channel)
+	}
 	c.mu.Unlock()
 	return err
 }
 
-// Unsubscribes the client from the given patterns, or from all of
+// PUnsubscribe the client from the given patterns, or from all of
 // them if none is given.
 func (c *PubSub) PUnsubscribe(patterns ...string) error {
 	c.mu.Lock()
 	err := c.subscribe("punsubscribe", patterns...)
-	c.patterns = remove(c.patterns, patterns...)
+	for _, pattern := range patterns {
+		delete(c.patterns, pattern)
+	}
 	c.mu.Unlock()
 	return err
 }
@@ -196,7 +222,7 @@ func (c *PubSub) Ping(payload ...string) error {
 	return err
 }
 
-// Message received after a successful subscription to channel.
+// Subscription received after a successful subscription to channel.
 type Subscription struct {
 	// Can be "subscribe", "unsubscribe", "psubscribe" or "punsubscribe".
 	Kind string
@@ -370,32 +396,4 @@ func (c *PubSub) Channel() <-chan *Message {
 		}()
 	})
 	return c.ch
-}
-
-func appendIfNotExists(ss []string, es ...string) []string {
-loop:
-	for _, e := range es {
-		for _, s := range ss {
-			if s == e {
-				continue loop
-			}
-		}
-		ss = append(ss, e)
-	}
-	return ss
-}
-
-func remove(ss []string, es ...string) []string {
-	if len(es) == 0 {
-		return ss[:0]
-	}
-	for _, e := range es {
-		for i, s := range ss {
-			if s == e {
-				ss = append(ss[:i], ss[i+1:]...)
-				break
-			}
-		}
-	}
-	return ss
 }

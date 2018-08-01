@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"html/template"
 	"strconv"
+	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -40,7 +41,7 @@ func (a *App) AddNotificationEmailToBatch(user *model.User, post *model.Post, te
 	}
 
 	if !a.EmailBatching.Add(user, post, team) {
-		l4g.Error(utils.T("api.email_batching.add_notification_email_to_batch.channel_full.app_error"))
+		mlog.Error("Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize.")
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.channel_full.app_error", nil, "", http.StatusInternalServerError)
 	}
 
@@ -57,6 +58,8 @@ type EmailBatchingJob struct {
 	app                  *App
 	newNotifications     chan *batchedNotification
 	pendingNotifications map[string][]*batchedNotification
+	task                 *model.ScheduledTask
+	taskMutex            sync.Mutex
 }
 
 func NewEmailBatchingJob(a *App, bufferSize int) *EmailBatchingJob {
@@ -68,12 +71,17 @@ func NewEmailBatchingJob(a *App, bufferSize int) *EmailBatchingJob {
 }
 
 func (job *EmailBatchingJob) Start() {
-	if task := model.GetTaskByName(EMAIL_BATCHING_TASK_NAME); task != nil {
-		task.Cancel()
-	}
+	mlog.Debug(fmt.Sprintf("Email batching job starting. Checking for pending emails every %v seconds.", *job.app.Config().EmailSettings.EmailBatchingInterval))
+	newTask := model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*job.app.Config().EmailSettings.EmailBatchingInterval)*time.Second)
 
-	l4g.Debug(utils.T("api.email_batching.start.starting"), *job.app.Config().EmailSettings.EmailBatchingInterval)
-	model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*job.app.Config().EmailSettings.EmailBatchingInterval)*time.Second)
+	job.taskMutex.Lock()
+	oldTask := job.task
+	job.task = newTask
+	job.taskMutex.Unlock()
+
+	if oldTask != nil {
+		oldTask.Cancel()
+	}
 }
 
 func (job *EmailBatchingJob) Add(user *model.User, post *model.Post, team *model.Team) bool {
@@ -99,7 +107,7 @@ func (job *EmailBatchingJob) CheckPendingEmails() {
 	// without actually sending emails
 	job.checkPendingNotifications(time.Now(), job.app.sendBatchedEmailNotification)
 
-	l4g.Debug(utils.T("api.email_batching.check_pending_emails.finished_running"), len(job.pendingNotifications))
+	mlog.Debug(fmt.Sprintf("Email batching job ran. %v user(s) still have notifications pending.", len(job.pendingNotifications)))
 }
 
 func (job *EmailBatchingJob) handleNewNotifications() {
@@ -133,7 +141,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			}
 			tchan := job.app.Srv.Store.Team().GetByName(notifications[0].teamName)
 			if result := <-tchan; result.Err != nil {
-				l4g.Error("Unable to find Team id for notification", result.Err)
+				mlog.Error(fmt.Sprint("Unable to find Team id for notification", result.Err))
 				continue
 			} else if team, ok := result.Data.(*model.Team); ok {
 				inspectedTeamNames[notification.teamName] = team.Id
@@ -143,12 +151,12 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			// all queued notifications
 			mchan := job.app.Srv.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
 			if result := <-mchan; result.Err != nil {
-				l4g.Error("Unable to find ChannelMembers for user", result.Err)
+				mlog.Error(fmt.Sprint("Unable to find ChannelMembers for user", result.Err))
 				continue
 			} else if channelMembers, ok := result.Data.(*model.ChannelMembers); ok {
 				for _, channelMember := range *channelMembers {
 					if channelMember.LastViewedAt >= batchStartTime {
-						l4g.Debug("Deleted notifications for user %s", userId)
+						mlog.Debug(fmt.Sprintf("Deleted notifications for user %s", userId), mlog.String("user_id", userId))
 						delete(job.pendingNotifications, userId)
 						break
 					}
@@ -190,7 +198,7 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
-		l4g.Warn("api.email_batching.send_batched_email_notification.user.app_error")
+		mlog.Warn("Unable to find recipient for batched email notification")
 		return
 	} else {
 		user = result.Data.(*model.User)
@@ -204,7 +212,7 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 		var sender *model.User
 		schan := a.Srv.Store.User().Get(notification.post.UserId)
 		if result := <-schan; result.Err != nil {
-			l4g.Warn(utils.T("api.email_batching.render_batched_post.sender.app_error"))
+			mlog.Warn("Unable to find sender of post for batched email notification")
 			continue
 		} else {
 			sender = result.Data.(*model.User)
@@ -213,14 +221,14 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 		var channel *model.Channel
 		cchan := a.Srv.Store.Channel().Get(notification.post.ChannelId, true)
 		if result := <-cchan; result.Err != nil {
-			l4g.Warn(utils.T("api.email_batching.render_batched_post.channel.app_error"))
+			mlog.Warn("Unable to find channel of post for batched email notification")
 			continue
 		} else {
 			channel = result.Data.(*model.Channel)
 		}
 
 		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-		if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
+		if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
 			emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 		}
 
@@ -242,7 +250,7 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
 	if err := a.SendMail(user.Email, subject, body.Render()); err != nil {
-		l4g.Warn(utils.T("api.email_batchings.send_batched_email_notification.send.app_error"), user.Email, err)
+		mlog.Warn(fmt.Sprintf("Unable to send batched email notification err=%v", err), mlog.String("email", user.Email))
 	}
 }
 

@@ -8,13 +8,18 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
 func TestUpdatePostEditAt(t *testing.T) {
@@ -41,6 +46,45 @@ func TestUpdatePostEditAt(t *testing.T) {
 	} else if saved.EditAt == post.EditAt {
 		t.Fatal("should have updated post.EditAt when updating post message")
 	}
+
+	time.Sleep(time.Millisecond * 200)
+}
+
+func TestUpdatePostTimeLimit(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{}
+	*post = *th.BasicPost
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = -1
+	})
+	if _, err := th.App.UpdatePost(post, true); err != nil {
+		t.Fatal(err)
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = 1000000000
+	})
+	post.Message = model.NewId()
+	if _, err := th.App.UpdatePost(post, true); err != nil {
+		t.Fatal("should allow you to edit the post")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = 1
+	})
+	post.Message = model.NewId()
+	if _, err := th.App.UpdatePost(post, true); err == nil {
+		t.Fatal("should fail on update old post")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = -1
+	})
 }
 
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
@@ -190,6 +234,10 @@ func TestImageProxy(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+	})
+
 	for name, tc := range map[string]struct {
 		ProxyType       string
 		ProxyURL        string
@@ -204,19 +252,26 @@ func TestImageProxy(t *testing.T) {
 			ImageURL:        "http://mydomain.com/myimage",
 			ProxiedImageURL: "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765",
 		},
-		"willnorris/imageproxy": {
-			ProxyType:       "willnorris/imageproxy",
+		"atmos/camo_SameSite": {
+			ProxyType:       "atmos/camo",
 			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "x1000",
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/x1000/http://mydomain.com/myimage",
+			ProxyOptions:    "foo",
+			ImageURL:        "http://mymattermost.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/myimage",
 		},
-		"willnorris/imageproxy_WithSigning": {
-			ProxyType:       "willnorris/imageproxy",
+		"atmos/camo_PathOnly": {
+			ProxyType:       "atmos/camo",
 			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "x1000|foo",
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/x1000,sbhHVoG5d60UvnNtGh6Iy6x4PaMmnsh8JfZ7JfErKjGU=/http://mydomain.com/myimage",
+			ProxyOptions:    "foo",
+			ImageURL:        "/myimage",
+			ProxiedImageURL: "/myimage",
+		},
+		"atmos/camo_EmptyImageURL": {
+			ProxyType:       "atmos/camo",
+			ProxyURL:        "https://127.0.0.1",
+			ProxyOptions:    "foo",
+			ImageURL:        "",
+			ProxiedImageURL: "",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -244,25 +299,176 @@ func TestImageProxy(t *testing.T) {
 	}
 }
 
-var imageProxyBenchmarkSink *model.Post
+func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
+	HTML := `
+		<html>
+			<head>
+				<meta property="og:url" content="https://example.com/apps/mattermost">
+				<meta property="og:image" content="https://images.example.com/image.png">
+			</head>
+		</html>
+	`
+	ContentType := "text/html; utf-8"
 
-func BenchmarkPostWithProxyRemovedFromImageURLs(b *testing.B) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
+	b.Run("with converting", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			r := forceHTMLEncodingToUTF8(strings.NewReader(HTML), ContentType)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.ImageProxyType = model.NewString("willnorris/imageproxy")
-		cfg.ServiceSettings.ImageProxyOptions = model.NewString("x1000|foo")
-		cfg.ServiceSettings.ImageProxyURL = model.NewString("https://127.0.0.1")
+			og := opengraph.NewOpenGraph()
+			og.ProcessHTML(r)
+		}
 	})
 
-	post := &model.Post{
-		Message: "![foo](http://mydomain.com/myimage)",
+	b.Run("without converting", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			og := opengraph.NewOpenGraph()
+			og.ProcessHTML(strings.NewReader(HTML))
+		}
+	})
+}
+
+func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
+	for name, tc := range map[string]struct {
+		HTML       string
+		RequestURL string
+		URL        string
+		ImageURL   string
+	}{
+		"absolute URLs": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="https://example.com/apps/mattermost">
+						<meta property="og:image" content="https://images.example.com/image.png">
+					</head>
+				</html>`,
+			RequestURL: "https://example.com",
+			URL:        "https://example.com/apps/mattermost",
+			ImageURL:   "https://images.example.com/image.png",
+		},
+		"URLs starting with /": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+						<meta property="og:image" content="/image.png">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com",
+			URL:        "http://example.com/apps/mattermost",
+			ImageURL:   "http://example.com/image.png",
+		},
+		"HTTPS URLs starting with /": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+						<meta property="og:image" content="/image.png">
+					</head>
+				</html>`,
+			RequestURL: "https://example.com",
+			URL:        "https://example.com/apps/mattermost",
+			ImageURL:   "https://example.com/image.png",
+		},
+		"missing image URL": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com",
+			URL:        "http://example.com/apps/mattermost",
+			ImageURL:   "",
+		},
+		"relative URLs": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="index.html">
+						<meta property="og:image" content="../resources/image.png">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com/content/index.html",
+			URL:        "http://example.com/content/index.html",
+			ImageURL:   "http://example.com/resources/image.png",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			og := opengraph.NewOpenGraph()
+			if err := og.ProcessHTML(strings.NewReader(tc.HTML)); err != nil {
+				t.Fatal(err)
+			}
+
+			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
+
+			if og.URL != tc.URL {
+				t.Fatalf("incorrect url, expected %v, got %v", tc.URL, og.URL)
+			}
+
+			if len(og.Images) > 0 {
+				if og.Images[0].URL != tc.ImageURL {
+					t.Fatalf("incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
+				}
+			} else if tc.ImageURL != "" {
+				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
+			}
+		})
+	}
+}
+
+func TestMaxPostSize(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Description         string
+		StoreMaxPostSize    int
+		ExpectedMaxPostSize int
+		ExpectedError       *model.AppError
+	}{
+		{
+			"error fetching max post size",
+			0,
+			model.POST_MESSAGE_MAX_RUNES_V1,
+			model.NewAppError("TestMaxPostSize", "this is an error", nil, "", http.StatusBadRequest),
+		},
+		{
+			"4000 rune limit",
+			4000,
+			4000,
+			nil,
+		},
+		{
+			"16383 rune limit",
+			16383,
+			16383,
+			nil,
+		},
 	}
 
-	b.ResetTimer()
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			t.Parallel()
 
-	for i := 0; i < b.N; i++ {
-		imageProxyBenchmarkSink = th.App.PostWithProxyAddedToImageURLs(post)
+			mockStore := &storetest.Store{}
+			defer mockStore.AssertExpectations(t)
+
+			mockStore.PostStore.On("GetMaxPostSize").Return(
+				storetest.NewStoreChannel(store.StoreResult{
+					Data: testCase.StoreMaxPostSize,
+					Err:  testCase.ExpectedError,
+				}),
+			)
+
+			app := App{
+				Srv: &Server{
+					Store: mockStore,
+				},
+				config: atomic.Value{},
+			}
+
+			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
+		})
 	}
 }

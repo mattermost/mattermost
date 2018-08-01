@@ -4,13 +4,20 @@
 package app
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/md5"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"runtime/debug"
+	"strconv"
+	"strings"
 
-	l4g "github.com/alecthomas/log4go"
-
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -22,11 +29,19 @@ func (a *App) Config() *model.Config {
 	return &model.Config{}
 }
 
+func (a *App) EnvironmentConfig() map[string]interface{} {
+	if a.envConfig != nil {
+		return a.envConfig
+	}
+	return map[string]interface{}{}
+}
+
 func (a *App) UpdateConfig(f func(*model.Config)) {
 	old := a.Config()
 	updated := old.Clone()
 	f(updated)
 	a.config.Store(updated)
+
 	a.InvokeConfigListeners(old, updated)
 }
 
@@ -37,18 +52,17 @@ func (a *App) PersistConfig() {
 func (a *App) LoadConfig(configFile string) *model.AppError {
 	old := a.Config()
 
-	cfg, configPath, err := utils.LoadConfig(configFile)
+	cfg, configPath, envConfig, err := utils.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
 
 	a.configFile = configPath
 
-	utils.ConfigureLog(&cfg.LogSettings)
-
 	a.config.Store(cfg)
+	a.envConfig = envConfig
 
-	utils.SetSiteURL(*cfg.ServiceSettings.SiteURL)
+	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
 
 	a.InvokeConfigListeners(old, cfg)
 	return nil
@@ -77,13 +91,17 @@ func (a *App) ClientConfigHash() string {
 	return a.clientConfigHash
 }
 
+func (a *App) LimitedClientConfig() map[string]string {
+	return a.limitedClientConfig
+}
+
 func (a *App) EnableConfigWatch() {
 	if a.configWatcher == nil && !a.disableConfigWatch {
 		configWatcher, err := utils.NewConfigWatcher(a.ConfigFileName(), func() {
 			a.ReloadConfig()
 		})
 		if err != nil {
-			l4g.Error(err)
+			mlog.Error(fmt.Sprint(err))
 		}
 		a.configWatcher = configWatcher
 	}
@@ -116,8 +134,95 @@ func (a *App) InvokeConfigListeners(old, current *model.Config) {
 	}
 }
 
+// EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
+// AsymmetricSigningKey will always return a valid signing key.
+func (a *App) ensureAsymmetricSigningKey() error {
+	if a.asymmetricSigningKey != nil {
+		return nil
+	}
+
+	var key *model.SystemAsymmetricSigningKey
+
+	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+	if result.Err == nil {
+		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+			return err
+		}
+	}
+
+	// If we don't already have a key, try to generate one.
+	if key == nil {
+		newECDSAKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		if err != nil {
+			return err
+		}
+		newKey := &model.SystemAsymmetricSigningKey{
+			ECDSAKey: &model.SystemECDSAKey{
+				Curve: "P-256",
+				X:     newECDSAKey.X,
+				Y:     newECDSAKey.Y,
+				D:     newECDSAKey.D,
+			},
+		}
+		system := &model.System{
+			Name: model.SYSTEM_ASYMMETRIC_SIGNING_KEY,
+		}
+		v, err := json.Marshal(newKey)
+		if err != nil {
+			return err
+		}
+		system.Value = string(v)
+		if result = <-a.Srv.Store.System().Save(system); result.Err == nil {
+			// If we were able to save the key, use it, otherwise ignore the error.
+			key = newKey
+		}
+	}
+
+	// If we weren't able to save a new key above, another server must have beat us to it. Get the
+	// key from the database, and if that fails, error out.
+	if key == nil {
+		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+		if result.Err != nil {
+			return result.Err
+		} else if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+			return err
+		}
+	}
+
+	var curve elliptic.Curve
+	switch key.ECDSAKey.Curve {
+	case "P-256":
+		curve = elliptic.P256()
+	default:
+		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
+	}
+	a.asymmetricSigningKey = &ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: curve,
+			X:     key.ECDSAKey.X,
+			Y:     key.ECDSAKey.Y,
+		},
+		D: key.ECDSAKey.D,
+	}
+	a.regenerateClientConfig()
+	return nil
+}
+
+// AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
+func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
+	return a.asymmetricSigningKey
+}
+
 func (a *App) regenerateClientConfig() {
-	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId())
+	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+
+	if key := a.AsymmetricSigningKey(); key != nil {
+		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
+		a.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+	}
+
 	clientConfigJSON, _ := json.Marshal(a.clientConfig)
 	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
@@ -165,4 +270,46 @@ func (a *App) Desanitize(cfg *model.Config) {
 	for i := range cfg.SqlSettings.DataSourceSearchReplicas {
 		cfg.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
 	}
+}
+
+func (a *App) GetCookieDomain() string {
+	if *a.Config().ServiceSettings.AllowCookiesForSubdomains {
+		if siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL); err == nil {
+			return siteURL.Hostname()
+		}
+	}
+	return ""
+}
+
+func (a *App) GetSiteURL() string {
+	return a.siteURL
+}
+
+// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *App) ClientConfigWithComputed() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range a.ClientConfig() {
+		respCfg[k] = v
+	}
+
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
+	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
+
+	return respCfg
+}
+
+// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *App) LimitedClientConfigWithComputed() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range a.LimitedClientConfig() {
+		respCfg[k] = v
+	}
+
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
+
+	return respCfg
 }

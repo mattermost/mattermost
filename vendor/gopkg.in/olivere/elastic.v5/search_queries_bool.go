@@ -9,7 +9,7 @@ import "fmt"
 // A bool query matches documents matching boolean
 // combinations of other queries.
 // For more details, see:
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-bool-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/query-dsl-bool-query.html
 type BoolQuery struct {
 	Query
 	mustClauses        []Query
@@ -17,6 +17,7 @@ type BoolQuery struct {
 	filterClauses      []Query
 	shouldClauses      []Query
 	boost              *float64
+	disableCoord       *bool
 	minimumShouldMatch string
 	adjustPureNegative *bool
 	queryName          string
@@ -54,6 +55,11 @@ func (q *BoolQuery) Should(queries ...Query) *BoolQuery {
 
 func (q *BoolQuery) Boost(boost float64) *BoolQuery {
 	q.boost = &boost
+	return q
+}
+
+func (q *BoolQuery) DisableCoord(disableCoord bool) *BoolQuery {
+	q.disableCoord = &disableCoord
 	return q
 }
 
@@ -100,7 +106,7 @@ func (q *BoolQuery) Source() (interface{}, error) {
 	//				"term" : { "tag" : "elasticsearch" }
 	//			}
 	//		],
-	//		"minimum_should_match" : 1,
+	//		"minimum_number_should_match" : 1,
 	//		"boost" : 1.0
 	//	}
 	// }
@@ -188,6 +194,9 @@ func (q *BoolQuery) Source() (interface{}, error) {
 
 	if q.boost != nil {
 		boolClause["boost"] = *q.boost
+	}
+	if q.disableCoord != nil {
+		boolClause["disable_coord"] = *q.disableCoord
 	}
 	if q.minimumShouldMatch != "" {
 		boolClause["minimum_should_match"] = q.minimumShouldMatch

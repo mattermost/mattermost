@@ -11,19 +11,44 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (a *App) IsPasswordValid(password string) *model.AppError {
-	if utils.IsLicensed() && *utils.License().Features.PasswordRequirements {
-		return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
+type TokenLocation int
+
+const (
+	TokenLocationNotFound = iota
+	TokenLocationHeader
+	TokenLocationCookie
+	TokenLocationQueryString
+)
+
+func (tl TokenLocation) String() string {
+	switch tl {
+	case TokenLocationNotFound:
+		return "Not Found"
+	case TokenLocationHeader:
+		return "Header"
+	case TokenLocationCookie:
+		return "Cookie"
+	case TokenLocationQueryString:
+		return "QueryString"
+	default:
+		return "Unknown"
 	}
-	return utils.IsPasswordValid(password)
+}
+
+func (a *App) IsPasswordValid(password string) *model.AppError {
+	return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
 }
 
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	if err := a.CheckUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		return err
+	}
+
+	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
 	}
 
@@ -85,13 +110,21 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password strin
 	return user, nil
 }
 
-func (a *App) CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
-	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
-		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+		return err
 	}
 
 	if err := checkUserNotDisabled(user); err != nil {
@@ -105,8 +138,16 @@ func (a *App) CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaTok
 	return nil
 }
 
+func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
+	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
+		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	return nil
+}
+
 func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
-	if !user.MfaActive || !utils.IsLicensed() || !*utils.License().Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if license := a.License(); !user.MfaActive || license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
@@ -139,7 +180,8 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 }
 
 func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && utils.IsLicensed() && *utils.License().Features.LDAP
+	license := a.License()
+	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {
@@ -167,4 +209,27 @@ func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*mo
 			return user, nil
 		}
 	}
+}
+
+func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
+	authHeader := r.Header.Get(model.HEADER_AUTH)
+	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
+		// Default session token
+		return authHeader[7:], TokenLocationHeader
+	} else if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
+		// OAuth token
+		return authHeader[6:], TokenLocationHeader
+	}
+
+	// Attempt to parse the token from the cookie
+	if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
+		return cookie.Value, TokenLocationCookie
+	}
+
+	// Attempt to parse token out of the query string
+	if token := r.URL.Query().Get("access_token"); token != "" {
+		return token, TokenLocationQueryString
+	}
+
+	return "", TokenLocationNotFound
 }

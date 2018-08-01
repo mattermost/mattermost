@@ -370,7 +370,7 @@ func (c *Conn) writeFatal(err error) error {
 	return err
 }
 
-func (c *Conn) write(frameType int, deadline time.Time, bufs ...[]byte) error {
+func (c *Conn) write(frameType int, deadline time.Time, buf0, buf1 []byte) error {
 	<-c.mu
 	defer func() { c.mu <- true }()
 
@@ -382,15 +382,14 @@ func (c *Conn) write(frameType int, deadline time.Time, bufs ...[]byte) error {
 	}
 
 	c.conn.SetWriteDeadline(deadline)
-	for _, buf := range bufs {
-		if len(buf) > 0 {
-			_, err := c.conn.Write(buf)
-			if err != nil {
-				return c.writeFatal(err)
-			}
-		}
+	if len(buf1) == 0 {
+		_, err = c.conn.Write(buf0)
+	} else {
+		err = c.writeBufs(buf0, buf1)
 	}
-
+	if err != nil {
+		return c.writeFatal(err)
+	}
 	if frameType == CloseMessage {
 		c.writeFatal(ErrCloseSent)
 	}
@@ -1051,8 +1050,9 @@ func (c *Conn) CloseHandler() func(code int, text string) error {
 // if the close message is empty. The default close handler sends a close
 // message back to the peer.
 //
-// The application must read the connection to process close messages as
-// described in the section on Control Messages above.
+// The handler function is called from the NextReader, ReadMessage and message
+// reader Read methods. The application must read the connection to process
+// close messages as described in the section on Control Messages above.
 //
 // The connection read methods return a CloseError when a close message is
 // received. Most applications should handle close messages as part of their
@@ -1079,8 +1079,9 @@ func (c *Conn) PingHandler() func(appData string) error {
 // The appData argument to h is the PING message application data. The default
 // ping handler sends a pong to the peer.
 //
-// The application must read the connection to process ping messages as
-// described in the section on Control Messages above.
+// The handler function is called from the NextReader, ReadMessage and message
+// reader Read methods. The application must read the connection to process
+// ping messages as described in the section on Control Messages above.
 func (c *Conn) SetPingHandler(h func(appData string) error) {
 	if h == nil {
 		h = func(message string) error {
@@ -1105,8 +1106,9 @@ func (c *Conn) PongHandler() func(appData string) error {
 // The appData argument to h is the PONG message application data. The default
 // pong handler does nothing.
 //
-// The application must read the connection to process ping messages as
-// described in the section on Control Messages above.
+// The handler function is called from the NextReader, ReadMessage and message
+// reader Read methods. The application must read the connection to process
+// pong messages as described in the section on Control Messages above.
 func (c *Conn) SetPongHandler(h func(appData string) error) {
 	if h == nil {
 		h = func(string) error { return nil }

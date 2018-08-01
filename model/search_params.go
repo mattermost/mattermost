@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"regexp"
 	"strings"
 )
@@ -13,20 +12,12 @@ var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"]+`)
 var searchTermPuncEnd = regexp.MustCompile(`[^\pL\d\s*"]+$`)
 
 type SearchParams struct {
-	Terms      string
-	IsHashtag  bool
-	InChannels []string
-	FromUsers  []string
-	OrTerms    bool
-}
-
-func (o *SearchParams) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	Terms                  string
+	IsHashtag              bool
+	InChannels             []string
+	FromUsers              []string
+	OrTerms                bool
+	IncludeDeletedChannels bool
 }
 
 var searchFlags = [...]string{"from", "channel", "in"}

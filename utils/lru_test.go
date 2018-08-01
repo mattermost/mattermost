@@ -11,24 +11,13 @@ import "testing"
 import "time"
 
 func TestLRU(t *testing.T) {
-	evictCounter := 0
-	onEvicted := func(k interface{}, v interface{}) {
-		evictCounter += 1
-	}
-	l, err := NewLruWithEvict(128, onEvicted)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
+	l := NewLru(128)
 
 	for i := 0; i < 256; i++ {
 		l.Add(i, i)
 	}
 	if l.Len() != 128 {
 		t.Fatalf("bad len: %v", l.Len())
-	}
-
-	if evictCounter != 128 {
-		t.Fatalf("bad evict count: %v", evictCounter)
 	}
 
 	for i, k := range l.Keys() {
@@ -70,26 +59,6 @@ func TestLRU(t *testing.T) {
 	}
 	if _, ok := l.Get(200); ok {
 		t.Fatalf("should contain nothing")
-	}
-}
-
-// test that Add return true/false if an eviction occurred
-func TestLRUAdd(t *testing.T) {
-	evictCounter := 0
-	onEvicted := func(k interface{}, v interface{}) {
-		evictCounter += 1
-	}
-
-	l, err := NewLruWithEvict(1, onEvicted)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	if l.Add(1, 1) || evictCounter != 0 {
-		t.Errorf("should not have an eviction")
-	}
-	if !l.Add(2, 2) || evictCounter != 1 {
-		t.Errorf("should have an eviction")
 	}
 }
 

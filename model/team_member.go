@@ -11,10 +11,13 @@ import (
 )
 
 type TeamMember struct {
-	TeamId   string `json:"team_id"`
-	UserId   string `json:"user_id"`
-	Roles    string `json:"roles"`
-	DeleteAt int64  `json:"delete_at"`
+	TeamId        string `json:"team_id"`
+	UserId        string `json:"user_id"`
+	Roles         string `json:"roles"`
+	DeleteAt      int64  `json:"delete_at"`
+	SchemeUser    bool   `json:"scheme_user"`
+	SchemeAdmin   bool   `json:"scheme_admin"`
+	ExplicitRoles string `json:"explicit_roles"`
 }
 
 type TeamUnread struct {
@@ -24,43 +27,25 @@ type TeamUnread struct {
 }
 
 func (o *TeamMember) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *TeamUnread) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func TeamMemberFromJson(data io.Reader) *TeamMember {
-	decoder := json.NewDecoder(data)
-	var o TeamMember
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *TeamMember
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func TeamUnreadFromJson(data io.Reader) *TeamUnread {
-	decoder := json.NewDecoder(data)
-	var o TeamUnread
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *TeamUnread
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func TeamMembersToJson(o []*TeamMember) string {
@@ -72,14 +57,9 @@ func TeamMembersToJson(o []*TeamMember) string {
 }
 
 func TeamMembersFromJson(data io.Reader) []*TeamMember {
-	decoder := json.NewDecoder(data)
 	var o []*TeamMember
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func TeamsUnreadToJson(o []*TeamUnread) string {
@@ -91,14 +71,9 @@ func TeamsUnreadToJson(o []*TeamUnread) string {
 }
 
 func TeamsUnreadFromJson(data io.Reader) []*TeamUnread {
-	decoder := json.NewDecoder(data)
 	var o []*TeamUnread
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *TeamMember) IsValid() *AppError {

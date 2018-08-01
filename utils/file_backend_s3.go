@@ -4,17 +4,18 @@
 package utils
 
 import (
-	"bytes"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	s3 "github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
+	"github.com/minio/minio-go/pkg/encrypt"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -37,7 +38,10 @@ type S3FileBackend struct {
 // disables automatic region lookup.
 func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	var creds *credentials.Credentials
-	if b.signV2 {
+
+	if b.accessKey == "" && b.secretKey == "" {
+		creds = credentials.NewIAM("")
+	} else if b.signV2 {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV2)
 	} else {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV4)
@@ -58,24 +62,37 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 func (b *S3FileBackend) TestConnection() *model.AppError {
 	s3Clnt, err := b.s3New()
 	if err != nil {
-		return model.NewAppError("TestFileConnection", "Bad connection to S3 or minio.", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	exists, err := s3Clnt.BucketExists(b.bucket)
 	if err != nil {
-		return model.NewAppError("TestFileConnection", "Error checking if bucket exists.", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucket_exists.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if !exists {
-		l4g.Warn("Bucket specified does not exist. Attempting to create...")
+		mlog.Warn("Bucket specified does not exist. Attempting to create...")
 		err := s3Clnt.MakeBucket(b.bucket, b.region)
 		if err != nil {
-			l4g.Error("Unable to create bucket.")
-			return model.NewAppError("TestFileConnection", "Unable to create bucket", nil, err.Error(), http.StatusInternalServerError)
+			mlog.Error("Unable to create bucket.")
+			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucked_create.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	l4g.Info("Connection to S3 or minio is good. Bucket exists.")
+	mlog.Info("Connection to S3 or minio is good. Bucket exists.")
 	return nil
+}
+
+// Caller must close the first return value
+func (b *S3FileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
+	s3Clnt, err := b.s3New()
+	if err != nil {
+		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	minioObject, err := s3Clnt.GetObject(b.bucket, path, s3.GetObjectOptions{})
+	if err != nil {
+		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return minioObject, nil
 }
 
 func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
@@ -95,6 +112,25 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 }
 
+func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
+	s3Clnt, err := b.s3New()
+
+	if err != nil {
+		return false, model.NewAppError("FileExists", "api.file.file_exists.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	_, err = s3Clnt.StatObject(b.bucket, path, s3.StatObjectOptions{})
+
+	if err == nil {
+		return true, nil
+	}
+
+	if err.(s3.ErrorResponse).Code == "NoSuchKey" {
+		return false, nil
+	}
+
+	return false, model.NewAppError("FileExists", "api.file.file_exists.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+}
+
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	s3Clnt, err := b.s3New()
 	if err != nil {
@@ -102,7 +138,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	}
 
 	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
-	destination, err := s3.NewDestinationInfo(b.bucket, newPath, nil, s3CopyMetadata(b.encrypt))
+	destination, err := s3.NewDestinationInfo(b.bucket, newPath, encrypt.NewSSE(), nil)
 	if err != nil {
 		return model.NewAppError("copyFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -119,7 +155,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	}
 
 	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
-	destination, err := s3.NewDestinationInfo(b.bucket, newPath, nil, s3CopyMetadata(b.encrypt))
+	destination, err := s3.NewDestinationInfo(b.bucket, newPath, encrypt.NewSSE(), nil)
 	if err != nil {
 		return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -132,28 +168,26 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	return nil
 }
 
-func (b *S3FileBackend) WriteFile(f []byte, path string) *model.AppError {
+func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
-		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	options := s3.PutObjectOptions{}
-	if b.encrypt {
-		options.UserMetadata["x-amz-server-side-encryption"] = "AES256"
-	}
-
+	var contentType string
 	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
-		options.ContentType = model.GetImageMimeType(ext)
+		contentType = model.GetImageMimeType(ext)
 	} else {
-		options.ContentType = "binary/octet-stream"
+		contentType = "binary/octet-stream"
 	}
 
-	if _, err = s3Clnt.PutObject(b.bucket, path, bytes.NewReader(f), -1, options); err != nil {
-		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	options := s3PutOptions(b.encrypt, contentType)
+	written, err := s3Clnt.PutObject(b.bucket, path, fr, -1, options)
+	if err != nil {
+		return written, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return nil
+	return written, nil
 }
 
 func (b *S3FileBackend) RemoveFile(path string) *model.AppError {
@@ -230,8 +264,25 @@ func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
-func s3CopyMetadata(encrypt bool) map[string]string {
-	metaData := make(map[string]string)
-	metaData["x-amz-server-side-encryption"] = "AES256"
-	return metaData
+func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
+	options := s3.PutObjectOptions{}
+	if encrypted {
+		options.ServerSideEncryption = encrypt.NewSSE()
+	}
+	options.ContentType = contentType
+
+	return options
+}
+
+func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
+	if len(settings.AmazonS3Bucket) == 0 {
+		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+	}
+
+	// if S3 endpoint is not set call the set defaults to set that
+	if len(settings.AmazonS3Endpoint) == 0 {
+		settings.SetDefaults()
+	}
+
+	return nil
 }

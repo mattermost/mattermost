@@ -13,7 +13,7 @@ import "errors"
 // how the terms should be selected and how the query is formed.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-mlt-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/query-dsl-mlt-query.html
 type MoreLikeThisQuery struct {
 	fields                 []string
 	docs                   []*MoreLikeThisQueryItem
@@ -25,8 +25,8 @@ type MoreLikeThisQuery struct {
 	stopWords              []string
 	minDocFreq             *int
 	maxDocFreq             *int
-	minWordLength          *int
-	maxWordLength          *int
+	minWordLen             *int
+	maxWordLen             *int
 	boostTerms             *float64
 	boost                  *float64
 	analyzer               string
@@ -147,15 +147,15 @@ func (q *MoreLikeThisQuery) MaxDocFreq(maxDocFreq int) *MoreLikeThisQuery {
 
 // MinWordLength sets the minimum word length below which words will be
 // ignored. It defaults to 0.
-func (q *MoreLikeThisQuery) MinWordLength(minWordLength int) *MoreLikeThisQuery {
-	q.minWordLength = &minWordLength
+func (q *MoreLikeThisQuery) MinWordLen(minWordLen int) *MoreLikeThisQuery {
+	q.minWordLen = &minWordLen
 	return q
 }
 
-// MaxWordLength sets the maximum word length above which words will be ignored.
+// MaxWordLen sets the maximum word length above which words will be ignored.
 // Defaults to unbounded (0).
-func (q *MoreLikeThisQuery) MaxWordLength(maxWordLength int) *MoreLikeThisQuery {
-	q.maxWordLength = &maxWordLength
+func (q *MoreLikeThisQuery) MaxWordLen(maxWordLen int) *MoreLikeThisQuery {
+	q.maxWordLen = &maxWordLen
 	return q
 }
 
@@ -254,11 +254,11 @@ func (q *MoreLikeThisQuery) Source() (interface{}, error) {
 	if q.maxDocFreq != nil {
 		params["max_doc_freq"] = *q.maxDocFreq
 	}
-	if q.minWordLength != nil {
-		params["min_word_length"] = *q.minWordLength
+	if q.minWordLen != nil {
+		params["min_word_len"] = *q.minWordLen
 	}
-	if q.maxWordLength != nil {
-		params["max_word_length"] = *q.maxWordLength
+	if q.maxWordLen != nil {
+		params["max_word_len"] = *q.maxWordLen
 	}
 	if q.boostTerms != nil {
 		params["boost_terms"] = *q.boostTerms

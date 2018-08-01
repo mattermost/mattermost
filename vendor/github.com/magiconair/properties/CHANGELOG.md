@@ -1,10 +1,37 @@
 ## Changelog
 
+### [1.8](https://github.com/magiconair/properties/tree/v1.8) - 15 May 2018
+
+ * [PR #26](https://github.com/magiconair/properties/pull/26): Disable expansion during loading
+
+   This adds the option to disable property expansion during loading.
+
+   Thanks to [@kmala](https://github.com/kmala) for the patch.
+
+### [1.7.6](https://github.com/magiconair/properties/tree/v1.7.6) - 14 Feb 2018
+
+ * [PR #29](https://github.com/magiconair/properties/pull/29): Reworked expansion logic to handle more complex cases.
+
+   See PR for an example.
+
+   Thanks to [@yobert](https://github.com/yobert) for the fix.
+
+### [1.7.5](https://github.com/magiconair/properties/tree/v1.7.5) - 13 Feb 2018
+
+ * [PR #28](https://github.com/magiconair/properties/pull/28): Support duplicate expansions in the same value
+
+   Values which expand the same key multiple times (e.g. `key=${a} ${a}`) will no longer fail
+   with a `circular reference error`.
+
+   Thanks to [@yobert](https://github.com/yobert) for the fix.
+
 ### [1.7.4](https://github.com/magiconair/properties/tree/v1.7.4) - 31 Oct 2017
 
  * [Issue #23](https://github.com/magiconair/properties/issues/23): Ignore blank lines with whitespaces
+
  * [PR #24](https://github.com/magiconair/properties/pull/24): Update keys when DisableExpansion is enabled
-   Thanks to @mgurov for the fix.
+
+   Thanks to [@mgurov](https://github.com/mgurov) for the fix.
 
 ### [1.7.3](https://github.com/magiconair/properties/tree/v1.7.3) - 10 Jul 2017
 

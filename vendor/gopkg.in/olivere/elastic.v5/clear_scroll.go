@@ -12,7 +12,7 @@ import (
 
 // ClearScrollService clears one or more scroll contexts by their ids.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/search-request-scroll.html#_clear_scroll_api
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-request-scroll.html#_clear_scroll_api
 // for details.
 type ClearScrollService struct {
 	client   *Client
@@ -49,7 +49,7 @@ func (s *ClearScrollService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	return path, params, nil
 }
@@ -85,12 +85,7 @@ func (s *ClearScrollService) Do(ctx context.Context) (*ClearScrollResponse, erro
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "DELETE",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "DELETE", path, params, body)
 	if err != nil {
 		return nil, err
 	}

@@ -8,6 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/utils/jsonutils"
 )
 
 const (
@@ -27,22 +29,18 @@ type CommandResponse struct {
 }
 
 func (o *CommandResponse) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
-func CommandResponseFromHTTPBody(contentType string, body io.Reader) *CommandResponse {
+func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandResponse, error) {
 	if strings.TrimSpace(strings.Split(contentType, ";")[0]) == "application/json" {
 		return CommandResponseFromJson(body)
 	}
 	if b, err := ioutil.ReadAll(body); err == nil {
-		return CommandResponseFromPlainText(string(b))
+		return CommandResponseFromPlainText(string(b)), nil
 	}
-	return nil
+	return nil, nil
 }
 
 func CommandResponseFromPlainText(text string) *CommandResponse {
@@ -51,15 +49,19 @@ func CommandResponseFromPlainText(text string) *CommandResponse {
 	}
 }
 
-func CommandResponseFromJson(data io.Reader) *CommandResponse {
-	decoder := json.NewDecoder(data)
-	var o CommandResponse
+func CommandResponseFromJson(data io.Reader) (*CommandResponse, error) {
+	b, err := ioutil.ReadAll(data)
+	if err != nil {
+		return nil, err
+	}
 
-	if err := decoder.Decode(&o); err != nil {
-		return nil
+	var o CommandResponse
+	err = json.Unmarshal(b, &o)
+	if err != nil {
+		return nil, jsonutils.HumanizeJsonError(err, b)
 	}
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)
 
-	return &o
+	return &o, nil
 }

@@ -17,6 +17,7 @@ type CompliancePost struct {
 	// From Channel
 	ChannelName        string
 	ChannelDisplayName string
+	ChannelType        string
 
 	// From User
 	UserUsername string
@@ -45,6 +46,7 @@ func CompliancePostHeader() []string {
 
 		"ChannelName",
 		"ChannelDisplayName",
+		"ChannelType",
 
 		"UserUsername",
 		"UserEmail",
@@ -92,6 +94,7 @@ func (me *CompliancePost) Row() []string {
 
 		cleanComplianceStrings(me.ChannelName),
 		cleanComplianceStrings(me.ChannelDisplayName),
+		cleanComplianceStrings(me.ChannelType),
 
 		cleanComplianceStrings(me.UserUsername),
 		cleanComplianceStrings(me.UserEmail),

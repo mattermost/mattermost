@@ -4,14 +4,13 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/model"
 	"io"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type OauthProvider interface {
-	GetIdentifier() string
 	GetUserFromJson(data io.Reader) *model.User
-	GetAuthDataFromJson(data io.Reader) string
 }
 
 var oauthProviders = make(map[string]OauthProvider)

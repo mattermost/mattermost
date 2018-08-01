@@ -17,6 +17,7 @@ const (
 	OAUTH_ACTION_EMAIL_TO_SSO = "email_to_sso"
 	OAUTH_ACTION_SSO_TO_EMAIL = "sso_to_email"
 	OAUTH_ACTION_MOBILE       = "mobile"
+	OAUTH_ACTION_CLIENT       = "client"
 )
 
 type OAuthApp struct {
@@ -108,14 +109,9 @@ func (a *OAuthApp) PreUpdate() {
 	a.UpdateAt = GetMillis()
 }
 
-// ToJson convert a User to a json string
 func (a *OAuthApp) ToJson() string {
-	b, err := json.Marshal(a)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(a)
+	return string(b)
 }
 
 // Generate a valid strong etag so the browser can cache the results
@@ -138,54 +134,19 @@ func (a *OAuthApp) IsValidRedirectURL(url string) bool {
 	return false
 }
 
-// OAuthAppFromJson will decode the input and return a User
 func OAuthAppFromJson(data io.Reader) *OAuthApp {
-	decoder := json.NewDecoder(data)
-	var app OAuthApp
-	err := decoder.Decode(&app)
-	if err == nil {
-		return &app
-	} else {
-		return nil
-	}
-}
-
-func OAuthAppMapToJson(a map[string]*OAuthApp) string {
-	b, err := json.Marshal(a)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
-}
-
-func OAuthAppMapFromJson(data io.Reader) map[string]*OAuthApp {
-	decoder := json.NewDecoder(data)
-	var apps map[string]*OAuthApp
-	err := decoder.Decode(&apps)
-	if err == nil {
-		return apps
-	} else {
-		return nil
-	}
+	var app *OAuthApp
+	json.NewDecoder(data).Decode(&app)
+	return app
 }
 
 func OAuthAppListToJson(l []*OAuthApp) string {
-	b, err := json.Marshal(l)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(l)
+	return string(b)
 }
 
 func OAuthAppListFromJson(data io.Reader) []*OAuthApp {
-	decoder := json.NewDecoder(data)
 	var o []*OAuthApp
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

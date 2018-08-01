@@ -28,6 +28,8 @@ type OutgoingWebhook struct {
 	DisplayName  string      `json:"display_name"`
 	Description  string      `json:"description"`
 	ContentType  string      `json:"content_type"`
+	Username     string      `json:"username"`
+	IconURL      string      `json:"icon_url"`
 }
 
 type OutgoingWebhookPayload struct {
@@ -58,12 +60,8 @@ type OutgoingWebhookResponse struct {
 const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
 
 func (o *OutgoingWebhookPayload) ToJSON() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *OutgoingWebhookPayload) ToFormValues() string {
@@ -85,63 +83,36 @@ func (o *OutgoingWebhookPayload) ToFormValues() string {
 }
 
 func (o *OutgoingWebhook) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func OutgoingWebhookFromJson(data io.Reader) *OutgoingWebhook {
-	decoder := json.NewDecoder(data)
-	var o OutgoingWebhook
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *OutgoingWebhook
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func OutgoingWebhookListToJson(l []*OutgoingWebhook) string {
-	b, err := json.Marshal(l)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(l)
+	return string(b)
 }
 
 func OutgoingWebhookListFromJson(data io.Reader) []*OutgoingWebhook {
-	decoder := json.NewDecoder(data)
 	var o []*OutgoingWebhook
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *OutgoingWebhookResponse) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func OutgoingWebhookResponseFromJson(data io.Reader) *OutgoingWebhookResponse {
-	decoder := json.NewDecoder(data)
-	var o OutgoingWebhookResponse
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *OutgoingWebhookResponse
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *OutgoingWebhook) IsValid() *AppError {
@@ -210,6 +181,14 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 
 	if o.TriggerWhen > 1 {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.content_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.Username) > 64 {
+		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.username.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.IconURL) > 1024 {
+		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.icon_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

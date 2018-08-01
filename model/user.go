@@ -22,7 +22,6 @@ const (
 	USER_NOTIFY_NONE             = "none"
 	DESKTOP_NOTIFY_PROP          = "desktop"
 	DESKTOP_SOUND_NOTIFY_PROP    = "desktop_sound"
-	DESKTOP_DURATION_NOTIFY_PROP = "desktop_duration"
 	MARK_UNREAD_NOTIFY_PROP      = "mark_unread"
 	PUSH_NOTIFY_PROP             = "push"
 	PUSH_STATUS_NOTIFY_PROP      = "push_status"
@@ -71,6 +70,7 @@ type User struct {
 	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
 	FailedAttempts     int       `json:"failed_attempts,omitempty"`
 	Locale             string    `json:"locale"`
+	Timezone           StringMap `json:"timezone"`
 	MfaActive          bool      `json:"mfa_active,omitempty"`
 	MfaSecret          string    `json:"mfa_secret,omitempty"`
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
@@ -86,12 +86,30 @@ type UserPatch struct {
 	Props       StringMap `json:"props,omitempty"`
 	NotifyProps StringMap `json:"notify_props,omitempty"`
 	Locale      *string   `json:"locale"`
+	Timezone    StringMap `json:"timezone"`
 }
 
 type UserAuth struct {
 	Password    string  `json:"password,omitempty"`
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
+}
+
+func (u *User) DeepCopy() *User {
+	copyUser := *u
+	if u.AuthData != nil {
+		copyUser.AuthData = NewString(*u.AuthData)
+	}
+	if u.Props != nil {
+		copyUser.Props = CopyStringMap(u.Props)
+	}
+	if u.NotifyProps != nil {
+		copyUser.NotifyProps = CopyStringMap(u.NotifyProps)
+	}
+	if u.Timezone != nil {
+		copyUser.Timezone = CopyStringMap(u.Timezone)
+	}
+	return &copyUser
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -162,6 +180,14 @@ func InvalidUserError(fieldName string, userId string) *AppError {
 	return NewAppError("User.IsValid", id, nil, details, http.StatusBadRequest)
 }
 
+func NormalizeUsername(username string) string {
+	return strings.ToLower(username)
+}
+
+func NormalizeEmail(email string) string {
+	return strings.ToLower(email)
+}
+
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
@@ -178,8 +204,8 @@ func (u *User) PreSave() {
 		u.AuthData = nil
 	}
 
-	u.Username = strings.ToLower(u.Username)
-	u.Email = strings.ToLower(u.Email)
+	u.Username = NormalizeUsername(u.Username)
+	u.Email = NormalizeEmail(u.Email)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
@@ -200,6 +226,10 @@ func (u *User) PreSave() {
 		u.SetDefaultNotifications()
 	}
 
+	if u.Timezone == nil {
+		u.Timezone = DefaultUserTimezone()
+	}
+
 	if len(u.Password) > 0 {
 		u.Password = HashPassword(u.Password)
 	}
@@ -207,8 +237,8 @@ func (u *User) PreSave() {
 
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
-	u.Username = strings.ToLower(u.Username)
-	u.Email = strings.ToLower(u.Email)
+	u.Username = NormalizeUsername(u.Username)
+	u.Email = NormalizeEmail(u.Email)
 	u.UpdateAt = GetMillis()
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -294,34 +324,26 @@ func (u *User) Patch(patch *UserPatch) {
 	if patch.Locale != nil {
 		u.Locale = *patch.Locale
 	}
+
+	if patch.Timezone != nil {
+		u.Timezone = patch.Timezone
+	}
 }
 
 // ToJson convert a User to a json string
 func (u *User) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func (u *UserPatch) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func (u *UserAuth) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 // Generate a valid strong etag so the browser can cache the results
@@ -377,12 +399,6 @@ func (u *User) MakeNonNil() {
 	}
 }
 
-func (u *User) AddProp(key string, value string) {
-	u.MakeNonNil()
-
-	u.Props[key] = value
-}
-
 func (u *User) AddNotifyProp(key string, value string) {
 	u.MakeNonNil()
 
@@ -390,11 +406,11 @@ func (u *User) AddNotifyProp(key string, value string) {
 }
 
 func (u *User) GetFullName() string {
-	if u.FirstName != "" && u.LastName != "" {
+	if len(u.FirstName) > 0 && len(u.LastName) > 0 {
 		return u.FirstName + " " + u.LastName
-	} else if u.FirstName != "" {
+	} else if len(u.FirstName) > 0 {
 		return u.FirstName
-	} else if u.LastName != "" {
+	} else if len(u.LastName) > 0 {
 		return u.LastName
 	} else {
 		return ""
@@ -405,13 +421,13 @@ func (u *User) GetDisplayName(nameFormat string) string {
 	displayName := u.Username
 
 	if nameFormat == SHOW_NICKNAME_FULLNAME {
-		if u.Nickname != "" {
+		if len(u.Nickname) > 0 {
 			displayName = u.Nickname
-		} else if fullName := u.GetFullName(); fullName != "" {
+		} else if fullName := u.GetFullName(); len(fullName) > 0 {
 			displayName = fullName
 		}
 	} else if nameFormat == SHOW_FULLNAME {
-		if fullName := u.GetFullName(); fullName != "" {
+		if fullName := u.GetFullName(); len(fullName) > 0 {
 			displayName = fullName
 		}
 	}
@@ -432,7 +448,7 @@ func IsValidUserRoles(userRoles string) bool {
 	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {
-		if !isValidRole(r) {
+		if !IsValidRoleName(r) {
 			return false
 		}
 	}
@@ -443,11 +459,6 @@ func IsValidUserRoles(userRoles string) bool {
 	}
 
 	return true
-}
-
-func isValidRole(roleId string) bool {
-	_, ok := DefaultRoles[roleId]
-	return ok
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions
@@ -486,78 +497,53 @@ func (u *User) IsSAMLUser() bool {
 	return u.AuthService == USER_AUTH_SERVICE_SAML
 }
 
+func (u *User) GetPreferredTimezone() string {
+	if u.Timezone["useAutomaticTimezone"] == "true" {
+		return u.Timezone["automaticTimezone"]
+	}
+
+	return u.Timezone["manualTimezone"]
+}
+
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
-	decoder := json.NewDecoder(data)
-	var user User
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *User
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserPatchFromJson(data io.Reader) *UserPatch {
-	decoder := json.NewDecoder(data)
-	var user UserPatch
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *UserPatch
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserAuthFromJson(data io.Reader) *UserAuth {
-	decoder := json.NewDecoder(data)
-	var user UserAuth
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *UserAuth
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserMapToJson(u map[string]*User) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func UserMapFromJson(data io.Reader) map[string]*User {
-	decoder := json.NewDecoder(data)
 	var users map[string]*User
-	err := decoder.Decode(&users)
-	if err == nil {
-		return users
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&users)
+	return users
 }
 
 func UserListToJson(u []*User) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func UserListFromJson(data io.Reader) []*User {
-	decoder := json.NewDecoder(data)
 	var users []*User
-	err := decoder.Decode(&users)
-	if err == nil {
-		return users
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&users)
+	return users
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
@@ -587,6 +573,7 @@ var restrictedUsernames = []string{
 	"all",
 	"channel",
 	"matterbot",
+	"system",
 }
 
 func IsValidUsername(s string) bool {
@@ -608,7 +595,7 @@ func IsValidUsername(s string) bool {
 }
 
 func CleanUsername(s string) string {
-	s = strings.ToLower(strings.Replace(s, " ", "-", -1))
+	s = NormalizeUsername(strings.Replace(s, " ", "-", -1))
 
 	for _, value := range reservedName {
 		if s == value {

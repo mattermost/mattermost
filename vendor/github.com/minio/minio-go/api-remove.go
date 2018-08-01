@@ -129,10 +129,8 @@ func processRemoveMultiObjectsResponse(body io.Reader, objects []string, errorCh
 	}
 }
 
-// RemoveObjects remove multiples objects from a bucket.
-// The list of objects to remove are received from objectsCh.
-// Remove failures are sent back via error channel.
-func (c Client) RemoveObjects(bucketName string, objectsCh <-chan string) <-chan RemoveObjectError {
+// RemoveObjectsWithContext - Identical to RemoveObjects call, but accepts context to facilitate request cancellation.
+func (c Client) RemoveObjectsWithContext(ctx context.Context, bucketName string, objectsCh <-chan string) <-chan RemoveObjectError {
 	errorCh := make(chan RemoveObjectError, 1)
 
 	// Validate if bucket name is valid.
@@ -189,7 +187,7 @@ func (c Client) RemoveObjects(bucketName string, objectsCh <-chan string) <-chan
 			// Generate remove multi objects XML request
 			removeBytes := generateRemoveMultiObjectsRequest(batch)
 			// Execute GET on bucket to list objects.
-			resp, err := c.executeMethod(context.Background(), "POST", requestMetadata{
+			resp, err := c.executeMethod(ctx, "POST", requestMetadata{
 				bucketName:       bucketName,
 				queryValues:      urlValues,
 				contentBody:      bytes.NewReader(removeBytes),
@@ -197,6 +195,12 @@ func (c Client) RemoveObjects(bucketName string, objectsCh <-chan string) <-chan
 				contentMD5Base64: sumMD5Base64(removeBytes),
 				contentSHA256Hex: sum256Hex(removeBytes),
 			})
+			if resp != nil {
+				if resp.StatusCode != http.StatusOK {
+					e := httpRespToErrorResponse(resp, bucketName, "")
+					errorCh <- RemoveObjectError{ObjectName: "", Err: e}
+				}
+			}
 			if err != nil {
 				for _, b := range batch {
 					errorCh <- RemoveObjectError{ObjectName: b, Err: err}
@@ -213,6 +217,13 @@ func (c Client) RemoveObjects(bucketName string, objectsCh <-chan string) <-chan
 	return errorCh
 }
 
+// RemoveObjects removes multiple objects from a bucket.
+// The list of objects to remove are received from objectsCh.
+// Remove failures are sent back via error channel.
+func (c Client) RemoveObjects(bucketName string, objectsCh <-chan string) <-chan RemoveObjectError {
+	return c.RemoveObjectsWithContext(context.Background(), bucketName, objectsCh)
+}
+
 // RemoveIncompleteUpload aborts an partially uploaded object.
 func (c Client) RemoveIncompleteUpload(bucketName, objectName string) error {
 	// Input validation.
@@ -222,18 +233,20 @@ func (c Client) RemoveIncompleteUpload(bucketName, objectName string) error {
 	if err := s3utils.CheckValidObjectName(objectName); err != nil {
 		return err
 	}
-	// Find multipart upload id of the object to be aborted.
-	uploadID, err := c.findUploadID(bucketName, objectName)
+	// Find multipart upload ids of the object to be aborted.
+	uploadIDs, err := c.findUploadIDs(bucketName, objectName)
 	if err != nil {
 		return err
 	}
-	if uploadID != "" {
-		// Upload id found, abort the incomplete multipart upload.
+
+	for _, uploadID := range uploadIDs {
+		// abort incomplete multipart upload, based on the upload id passed.
 		err := c.abortMultipartUpload(context.Background(), bucketName, objectName, uploadID)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 

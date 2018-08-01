@@ -11,7 +11,7 @@ package elastic
 // same manner as has_child query.
 //
 // For more details, see
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.0/query-dsl-has-parent-query.html
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.2/query-dsl-has-parent-query.html
 type HasParentQuery struct {
 	query      Query
 	parentType string
@@ -19,6 +19,7 @@ type HasParentQuery struct {
 	score      *bool
 	queryName  string
 	innerHit   *InnerHit
+	ignoreUnmapped *bool
 }
 
 // NewHasParentQuery creates and initializes a new has_parent query.
@@ -52,6 +53,13 @@ func (q *HasParentQuery) QueryName(queryName string) *HasParentQuery {
 // reusing the defined type and query.
 func (q *HasParentQuery) InnerHit(innerHit *InnerHit) *HasParentQuery {
 	q.innerHit = innerHit
+	return q
+}
+
+// IgnoreUnmapped specifies whether unmapped types should be ignored.
+// If set to false, the query failes when an unmapped type is found.
+func (q *HasParentQuery) IgnoreUnmapped(ignore bool) *HasParentQuery {
+	q.ignoreUnmapped = &ignore
 	return q
 }
 
@@ -92,6 +100,9 @@ func (q *HasParentQuery) Source() (interface{}, error) {
 			return nil, err
 		}
 		query["inner_hits"] = src
+	}
+	if q.ignoreUnmapped != nil {
+		query["ignore_unmapped"] = *q.ignoreUnmapped
 	}
 	return source, nil
 }

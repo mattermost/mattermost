@@ -11,12 +11,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesExistsService checks if an index or indices exist or not.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-exists.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-exists.html
 // for details.
 type IndicesExistsService struct {
 	client            *Client
@@ -90,7 +90,7 @@ func (s *IndicesExistsService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.local != nil {
 		params.Set("local", fmt.Sprintf("%v", *s.local))
@@ -133,12 +133,7 @@ func (s *IndicesExistsService) Do(ctx context.Context) (bool, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method:       "HEAD",
-		Path:         path,
-		Params:       params,
-		IgnoreErrors: []int{404},
-	})
+	res, err := s.client.PerformRequest(ctx, "HEAD", path, params, nil, 404)
 	if err != nil {
 		return false, err
 	}

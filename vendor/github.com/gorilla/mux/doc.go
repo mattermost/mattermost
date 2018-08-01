@@ -239,8 +239,7 @@ as well:
 	                                 "category", "technology",
 	                                 "id", "42")
 
-Since **vX.Y.Z**, mux supports the addition of middlewares to a [Router](https://godoc.org/github.com/gorilla/mux#Router), which are executed if a
-match is found (including subrouters). Middlewares are defined using the de facto standard type:
+Mux supports the addition of middlewares to a Router, which are executed in the order they are added if a match is found, including its subrouters. Middlewares are (typically) small pieces of code which take one request, do something with it, and pass it down to another middleware or the final handler. Some common use cases for middleware are request logging, header manipulation, or ResponseWriter hijacking.
 
 	type MiddlewareFunc func(http.Handler) http.Handler
 
@@ -261,7 +260,7 @@ Middlewares can be added to a router using `Router.Use()`:
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler)
-	r.AddMiddleware(simpleMw)
+	r.Use(simpleMw)
 
 A more complex authentication middleware, which maps session token to users, could be written as:
 
@@ -288,7 +287,7 @@ A more complex authentication middleware, which maps session token to users, cou
 				log.Printf("Authenticated user %s\n", user)
 				next.ServeHTTP(w, r)
 			} else {
-				http.Error(w, "Forbidden", 403)
+				http.Error(w, "Forbidden", http.StatusForbidden)
 			}
 		})
 	}

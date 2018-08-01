@@ -26,8 +26,12 @@ const (
 
 var webhookCache = utils.NewLru(WEBHOOK_CACHE_SIZE)
 
-func ClearWebhookCaches() {
+func (s SqlWebhookStore) ClearCaches() {
 	webhookCache.Purge()
+
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Webhook - Purge")
+	}
 }
 
 func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
@@ -57,6 +61,8 @@ func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tableo.ColMap("Description").SetMaxSize(128)
 		tableo.ColMap("ContentType").SetMaxSize(128)
 		tableo.ColMap("TriggerWhen").SetMaxSize(1)
+		tableo.ColMap("Username").SetMaxSize(64)
+		tableo.ColMap("IconURL").SetMaxSize(1024)
 	}
 
 	return s
@@ -78,6 +84,9 @@ func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 
 func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
 	webhookCache.Remove(webhookId)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("Webhook - Remove by WebhookId")
+	}
 }
 
 func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) store.StoreChannel {
@@ -164,7 +173,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) store.Stor
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncomingByUser", "store.sql_webhooks.permanent_delete_incoming_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		ClearWebhookCaches()
+		s.ClearCaches()
 	})
 }
 
@@ -175,7 +184,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByChannel(channelId string) stor
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncomingByChannel", "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		ClearWebhookCaches()
+		s.ClearCaches()
 	})
 }
 
@@ -322,7 +331,7 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) stor
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoingByChannel", "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		ClearWebhookCaches()
+		s.ClearCaches()
 	})
 }
 

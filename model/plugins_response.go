@@ -10,7 +10,6 @@ import (
 
 type PluginInfo struct {
 	Manifest
-	Prepackaged bool `json:"prepackaged"`
 }
 
 type PluginsResponse struct {
@@ -19,21 +18,12 @@ type PluginsResponse struct {
 }
 
 func (m *PluginsResponse) ToJson() string {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(m)
+	return string(b)
 }
 
 func PluginsResponseFromJson(data io.Reader) *PluginsResponse {
-	decoder := json.NewDecoder(data)
-	var m PluginsResponse
-	err := decoder.Decode(&m)
-	if err == nil {
-		return &m
-	} else {
-		return nil
-	}
+	var m *PluginsResponse
+	json.NewDecoder(data).Decode(&m)
+	return m
 }

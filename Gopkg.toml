@@ -1,0 +1,69 @@
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#   name = "github.com/x/y"
+#   version = "2.4.0"
+#
+# [prune]
+#   non-go = false
+#   go-tests = true
+#   unused-packages = true
+
+# To keep us on latest since maintainer stopped releasing versions
+[[constraint]]
+  name = "github.com/go-sql-driver/mysql"
+  branch = "master"
+
+# Constaint to bring us to latest master for bug fixes
+[[constraint]]
+  name = "github.com/gorilla/websocket"
+  branch = "master"
+
+# To keep us on latest since maintainer stopped releasing versions
+[[constraint]]
+  name = "github.com/hashicorp/memberlist"
+  branch = "master"
+
+# To avoid pulling old gorp version, we use master of our fork
+[[constraint]]
+  name = "github.com/mattermost/gorp"
+  branch = "master"
+
+# Fork for adding our own method to viper EnvSettings
+[[constraint]]
+  name = "github.com/mattermost/viper"
+  source = "https://github.com/mattermost/viper"
+  branch = "mattermost"
+
+# Keep back because of breaking API changes
+[[constraint]]
+  name = "github.com/segmentio/analytics-go"
+  version = "2.1.1"
+
+# Lock to control when plugins use new versions
+[[constraint]]
+  name = "github.com/hashicorp/go-hclog"
+  revision = "69ff559dc25f3b435631604f573a5fa1efdb6433"
+
+[[constraint]]
+  name = "github.com/hashicorp/go-plugin"
+  revision = "e8d22c780116115ae5624720c9af0c97afe4f551"
+
+[prune]
+  go-tests = true
+  unused-packages = true

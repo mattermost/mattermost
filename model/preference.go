@@ -47,23 +47,14 @@ type Preference struct {
 }
 
 func (o *Preference) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func PreferenceFromJson(data io.Reader) *Preference {
-	decoder := json.NewDecoder(data)
-	var o Preference
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Preference
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Preference) IsValid() *AppError {

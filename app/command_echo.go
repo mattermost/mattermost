@@ -4,11 +4,12 @@
 package app
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -89,7 +90,7 @@ func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		time.Sleep(time.Duration(delay) * time.Second)
 
 		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
-			l4g.Error(args.T("api.command_echo.create.app_error"), err)
+			mlog.Error(fmt.Sprintf("Unable to create /echo post, err=%v", err))
 		}
 	})
 

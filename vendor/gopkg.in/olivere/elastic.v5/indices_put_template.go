@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesPutTemplateService creates or updates index mappings.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/indices-templates.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-templates.html.
 type IndicesPutTemplateService struct {
 	client        *Client
 	pretty        bool
@@ -118,7 +118,7 @@ func (s *IndicesPutTemplateService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.order != nil {
 		params.Set("order", fmt.Sprintf("%v", s.order))
@@ -181,12 +181,7 @@ func (s *IndicesPutTemplateService) Do(ctx context.Context) (*IndicesPutTemplate
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "PUT", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +196,5 @@ func (s *IndicesPutTemplateService) Do(ctx context.Context) (*IndicesPutTemplate
 
 // IndicesPutTemplateResponse is the response of IndicesPutTemplateService.Do.
 type IndicesPutTemplateResponse struct {
-	Acknowledged       bool   `json:"acknowledged"`
-	ShardsAcknowledged bool   `json:"shards_acknowledged"`
-	Index              string `json:"index,omitempty"`
+	Acknowledged bool `json:"acknowledged,omitempty"`
 }

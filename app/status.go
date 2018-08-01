@@ -4,8 +4,9 @@
 package app
 
 import (
-	l4g "github.com/alecthomas/log4go"
+	"fmt"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -28,7 +29,7 @@ func (a *App) AddStatusCache(status *model.Status) {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     status.ToJson(),
+			Data:     status.ToClusterJson(),
 		}
 		a.Cluster.SendClusterMessage(msg)
 	}
@@ -86,7 +87,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 			statuses := result.Data.([]*model.Status)
 
 			for _, s := range statuses {
-				a.AddStatusCache(s)
+				a.AddStatusCacheSkipClusterSend(s)
 				statusMap[s.UserId] = s.Status
 			}
 		}
@@ -133,7 +134,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 			statuses := result.Data.([]*model.Status)
 
 			for _, s := range statuses {
-				a.AddStatusCache(s)
+				a.AddStatusCacheSkipClusterSend(s)
 			}
 
 			statusMap = append(statusMap, statuses...)
@@ -160,7 +161,23 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	return statusMap, nil
 }
 
-func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
+// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
+// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
+// while an 'away' device is still connected
+func (a *App) SetStatusLastActivityAt(userId string, activityAt int64) {
+	var status *model.Status
+	var err *model.AppError
+	if status, err = a.GetStatus(userId); err != nil {
+		return
+	}
+
+	status.LastActivityAt = activityAt
+
+	a.AddStatusCacheSkipClusterSend(status)
+	a.SetStatusAwayIfNeeded(userId, false)
+}
+
+func (a *App) SetStatusOnline(userId string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -208,7 +225,7 @@ func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
 		}
 
 		if result := <-schan; result.Err != nil {
-			l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+			mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
 		}
 	}
 
@@ -221,9 +238,7 @@ func (a *App) BroadcastStatus(status *model.Status) {
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
-	a.Go(func() {
-		a.Publish(event)
-	})
+	a.Publish(event)
 }
 
 func (a *App) SetStatusOffline(userId string, manual bool) {
@@ -238,18 +253,7 @@ func (a *App) SetStatusOffline(userId string, manual bool) {
 
 	status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
-	a.AddStatusCache(status)
-
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
-	}
-
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", model.STATUS_OFFLINE)
-	event.Add("user_id", status.UserId)
-	a.Go(func() {
-		a.Publish(event)
-	})
+	a.SaveAndBroadcastStatus(status)
 }
 
 func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
@@ -281,18 +285,7 @@ func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 	status.Manual = manual
 	status.ActiveChannel = ""
 
-	a.AddStatusCache(status)
-
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
-	}
-
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", model.STATUS_AWAY)
-	event.Add("user_id", status.UserId)
-	a.Go(func() {
-		a.Publish(event)
-	})
+	a.SaveAndBroadcastStatus(status)
 }
 
 func (a *App) SetStatusDoNotDisturb(userId string) {
@@ -309,18 +302,34 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 	status.Status = model.STATUS_DND
 	status.Manual = true
 
+	a.SaveAndBroadcastStatus(status)
+}
+
+func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", status.UserId, result.Err))
 	}
 
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", model.STATUS_DND)
-	event.Add("user_id", status.UserId)
-	a.Go(func() {
-		a.Publish(event)
-	})
+	a.BroadcastStatus(status)
+}
+
+func (a *App) SetStatusOutOfOffice(userId string) {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	status, err := a.GetStatus(userId)
+
+	if err != nil {
+		status = &model.Status{UserId: userId, Status: model.STATUS_OUT_OF_OFFICE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	}
+
+	status.Status = model.STATUS_OUT_OF_OFFICE
+	status.Manual = true
+
+	a.SaveAndBroadcastStatus(status)
 }
 
 func GetStatusFromCache(userId string) *model.Status {

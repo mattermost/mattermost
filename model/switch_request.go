@@ -15,27 +15,18 @@ type SwitchRequest struct {
 	Password       string `json:"password"`
 	NewPassword    string `json:"new_password"`
 	MfaCode        string `json:"mfa_code"`
-	LdapId         string `json:"ldap_id"`
+	LdapLoginId    string `json:"ldap_id"`
 }
 
 func (o *SwitchRequest) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func SwitchRequestFromJson(data io.Reader) *SwitchRequest {
-	decoder := json.NewDecoder(data)
-	var o SwitchRequest
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *SwitchRequest
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *SwitchRequest) EmailToOAuth() bool {

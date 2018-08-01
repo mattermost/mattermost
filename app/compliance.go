@@ -9,11 +9,10 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
-	if !*a.Config().ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance {
+	if license := a.License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance {
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -25,7 +24,7 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 }
 
 func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
-	if !*a.Config().ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || a.Compliance == nil {
+	if license := a.License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -44,7 +43,7 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 }
 
 func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
-	if !*a.Config().ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || a.Compliance == nil {
+	if license := a.License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance == nil {
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 

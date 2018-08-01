@@ -16,7 +16,7 @@ import (
 // a docs array with all the fetched documents, each element similar
 // in structure to a document provided by the Get API.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-multi-get.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-multi-get.html
 // for details.
 type MgetService struct {
 	client       *Client
@@ -124,12 +124,7 @@ func (s *MgetService) Do(ctx context.Context) (*MgetResponse, error) {
 	}
 
 	// Get response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -199,8 +194,8 @@ func (item *MultiGetItem) Version(version int64) *MultiGetItem {
 	return item
 }
 
-// VersionType can be "internal", "external", "external_gt", or "external_gte".
-// See org.elasticsearch.index.VersionType in Elasticsearch source.
+// VersionType can be "internal", "external", "external_gt", "external_gte",
+// or "force". See org.elasticsearch.index.VersionType in Elasticsearch source.
 // It is "internal" by default.
 func (item *MultiGetItem) VersionType(versionType string) *MultiGetItem {
 	item.versionType = versionType

@@ -5,43 +5,51 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 )
 
 const (
-	WEBSOCKET_EVENT_TYPING              = "typing"
-	WEBSOCKET_EVENT_POSTED              = "posted"
-	WEBSOCKET_EVENT_POST_EDITED         = "post_edited"
-	WEBSOCKET_EVENT_POST_DELETED        = "post_deleted"
-	WEBSOCKET_EVENT_CHANNEL_DELETED     = "channel_deleted"
-	WEBSOCKET_EVENT_CHANNEL_CREATED     = "channel_created"
-	WEBSOCKET_EVENT_CHANNEL_UPDATED     = "channel_updated"
-	WEBSOCKET_EVENT_DIRECT_ADDED        = "direct_added"
-	WEBSOCKET_EVENT_GROUP_ADDED         = "group_added"
-	WEBSOCKET_EVENT_NEW_USER            = "new_user"
-	WEBSOCKET_EVENT_ADDED_TO_TEAM       = "added_to_team"
-	WEBSOCKET_EVENT_LEAVE_TEAM          = "leave_team"
-	WEBSOCKET_EVENT_UPDATE_TEAM         = "update_team"
-	WEBSOCKET_EVENT_USER_ADDED          = "user_added"
-	WEBSOCKET_EVENT_USER_UPDATED        = "user_updated"
-	WEBSOCKET_EVENT_USER_ROLE_UPDATED   = "user_role_updated"
-	WEBSOCKET_EVENT_MEMBERROLE_UPDATED  = "memberrole_updated"
-	WEBSOCKET_EVENT_USER_REMOVED        = "user_removed"
-	WEBSOCKET_EVENT_PREFERENCE_CHANGED  = "preference_changed"
-	WEBSOCKET_EVENT_PREFERENCES_CHANGED = "preferences_changed"
-	WEBSOCKET_EVENT_PREFERENCES_DELETED = "preferences_deleted"
-	WEBSOCKET_EVENT_EPHEMERAL_MESSAGE   = "ephemeral_message"
-	WEBSOCKET_EVENT_STATUS_CHANGE       = "status_change"
-	WEBSOCKET_EVENT_HELLO               = "hello"
-	WEBSOCKET_EVENT_WEBRTC              = "webrtc"
-	WEBSOCKET_AUTHENTICATION_CHALLENGE  = "authentication_challenge"
-	WEBSOCKET_EVENT_REACTION_ADDED      = "reaction_added"
-	WEBSOCKET_EVENT_REACTION_REMOVED    = "reaction_removed"
-	WEBSOCKET_EVENT_RESPONSE            = "response"
-	WEBSOCKET_EVENT_EMOJI_ADDED         = "emoji_added"
-	WEBSOCKET_EVENT_CHANNEL_VIEWED      = "channel_viewed"
-	WEBSOCKET_EVENT_PLUGIN_ACTIVATED    = "plugin_activated"   // EXPERIMENTAL - SUBJECT TO CHANGE
-	WEBSOCKET_EVENT_PLUGIN_DEACTIVATED  = "plugin_deactivated" // EXPERIMENTAL - SUBJECT TO CHANGE
+	WEBSOCKET_EVENT_TYPING                  = "typing"
+	WEBSOCKET_EVENT_POSTED                  = "posted"
+	WEBSOCKET_EVENT_POST_EDITED             = "post_edited"
+	WEBSOCKET_EVENT_POST_DELETED            = "post_deleted"
+	WEBSOCKET_EVENT_CHANNEL_CONVERTED       = "channel_converted"
+	WEBSOCKET_EVENT_CHANNEL_CREATED         = "channel_created"
+	WEBSOCKET_EVENT_CHANNEL_DELETED         = "channel_deleted"
+	WEBSOCKET_EVENT_CHANNEL_UPDATED         = "channel_updated"
+	WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED  = "channel_member_updated"
+	WEBSOCKET_EVENT_DIRECT_ADDED            = "direct_added"
+	WEBSOCKET_EVENT_GROUP_ADDED             = "group_added"
+	WEBSOCKET_EVENT_NEW_USER                = "new_user"
+	WEBSOCKET_EVENT_ADDED_TO_TEAM           = "added_to_team"
+	WEBSOCKET_EVENT_LEAVE_TEAM              = "leave_team"
+	WEBSOCKET_EVENT_UPDATE_TEAM             = "update_team"
+	WEBSOCKET_EVENT_DELETE_TEAM             = "delete_team"
+	WEBSOCKET_EVENT_USER_ADDED              = "user_added"
+	WEBSOCKET_EVENT_USER_UPDATED            = "user_updated"
+	WEBSOCKET_EVENT_USER_ROLE_UPDATED       = "user_role_updated"
+	WEBSOCKET_EVENT_MEMBERROLE_UPDATED      = "memberrole_updated"
+	WEBSOCKET_EVENT_USER_REMOVED            = "user_removed"
+	WEBSOCKET_EVENT_PREFERENCE_CHANGED      = "preference_changed"
+	WEBSOCKET_EVENT_PREFERENCES_CHANGED     = "preferences_changed"
+	WEBSOCKET_EVENT_PREFERENCES_DELETED     = "preferences_deleted"
+	WEBSOCKET_EVENT_EPHEMERAL_MESSAGE       = "ephemeral_message"
+	WEBSOCKET_EVENT_STATUS_CHANGE           = "status_change"
+	WEBSOCKET_EVENT_HELLO                   = "hello"
+	WEBSOCKET_EVENT_WEBRTC                  = "webrtc"
+	WEBSOCKET_AUTHENTICATION_CHALLENGE      = "authentication_challenge"
+	WEBSOCKET_EVENT_REACTION_ADDED          = "reaction_added"
+	WEBSOCKET_EVENT_REACTION_REMOVED        = "reaction_removed"
+	WEBSOCKET_EVENT_RESPONSE                = "response"
+	WEBSOCKET_EVENT_EMOJI_ADDED             = "emoji_added"
+	WEBSOCKET_EVENT_CHANNEL_VIEWED          = "channel_viewed"
+	WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED = "plugin_statuses_changed"
+	WEBSOCKET_EVENT_PLUGIN_ENABLED          = "plugin_enabled"
+	WEBSOCKET_EVENT_PLUGIN_DISABLED         = "plugin_disabled"
+	WEBSOCKET_EVENT_ROLE_UPDATED            = "role_updated"
+	WEBSOCKET_EVENT_LICENSE_CHANGED         = "license_changed"
+	WEBSOCKET_EVENT_CONFIG_CHANGED          = "config_changed"
 )
 
 type WebSocketMessage interface {
@@ -51,10 +59,18 @@ type WebSocketMessage interface {
 }
 
 type WebsocketBroadcast struct {
-	OmitUsers map[string]bool `json:"omit_users"` // broadcast is omitted for users listed here
-	UserId    string          `json:"user_id"`    // broadcast only occurs for this user
-	ChannelId string          `json:"channel_id"` // broadcast only occurs for users in this channel
-	TeamId    string          `json:"team_id"`    // broadcast only occurs for users in this team
+	OmitUsers             map[string]bool `json:"omit_users"` // broadcast is omitted for users listed here
+	UserId                string          `json:"user_id"`    // broadcast only occurs for this user
+	ChannelId             string          `json:"channel_id"` // broadcast only occurs for users in this channel
+	TeamId                string          `json:"team_id"`    // broadcast only occurs for users in this team
+	ContainsSanitizedData bool            `json:"-"`
+	ContainsSensitiveData bool            `json:"-"`
+}
+
+type precomputedWebSocketEventJSON struct {
+	Event     json.RawMessage
+	Data      json.RawMessage
+	Broadcast json.RawMessage
 }
 
 type WebSocketEvent struct {
@@ -62,6 +78,21 @@ type WebSocketEvent struct {
 	Data      map[string]interface{} `json:"data"`
 	Broadcast *WebsocketBroadcast    `json:"broadcast"`
 	Sequence  int64                  `json:"seq"`
+
+	precomputedJSON *precomputedWebSocketEventJSON
+}
+
+// PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
+// This makes ToJson much more efficient when sending the same event to multiple connections.
+func (m *WebSocketEvent) PrecomputeJSON() {
+	event, _ := json.Marshal(m.Event)
+	data, _ := json.Marshal(m.Data)
+	broadcast, _ := json.Marshal(m.Broadcast)
+	m.precomputedJSON = &precomputedWebSocketEventJSON{
+		Event:     json.RawMessage(event),
+		Data:      json.RawMessage(data),
+		Broadcast: json.RawMessage(broadcast),
+	}
 }
 
 func (m *WebSocketEvent) Add(key string, value interface{}) {
@@ -82,23 +113,17 @@ func (o *WebSocketEvent) EventType() string {
 }
 
 func (o *WebSocketEvent) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
+	if o.precomputedJSON != nil {
+		return fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, o.precomputedJSON.Event, o.precomputedJSON.Data, o.precomputedJSON.Broadcast, o.Sequence)
 	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
-	decoder := json.NewDecoder(data)
-	var o WebSocketEvent
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *WebSocketEvent
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 type WebSocketResponse struct {
@@ -129,21 +154,12 @@ func (o *WebSocketResponse) EventType() string {
 }
 
 func (o *WebSocketResponse) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func WebSocketResponseFromJson(data io.Reader) *WebSocketResponse {
-	decoder := json.NewDecoder(data)
-	var o WebSocketResponse
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *WebSocketResponse
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

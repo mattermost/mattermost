@@ -10,6 +10,7 @@ import (
 	"github.com/go-redis/redis/internal"
 	"github.com/go-redis/redis/internal/pool"
 	"github.com/go-redis/redis/internal/proto"
+	"github.com/go-redis/redis/internal/util"
 )
 
 type Cmder interface {
@@ -81,9 +82,9 @@ func cmdFirstKeyPos(cmd Cmder, info *CommandInfo) int {
 	case "eval", "evalsha":
 		if cmd.stringArg(2) != "0" {
 			return 3
-		} else {
-			return 0
 		}
+
+		return 0
 	case "publish":
 		return 1
 	}
@@ -436,7 +437,7 @@ func NewStringCmd(args ...interface{}) *StringCmd {
 }
 
 func (cmd *StringCmd) Val() string {
-	return internal.BytesToString(cmd.val)
+	return util.BytesToString(cmd.val)
 }
 
 func (cmd *StringCmd) Result() (string, error) {
@@ -1021,4 +1022,31 @@ func (cmd *CommandsInfoCmd) readReply(cn *pool.Conn) error {
 	}
 	cmd.val = v.(map[string]*CommandInfo)
 	return nil
+}
+
+//------------------------------------------------------------------------------
+
+type cmdsInfoCache struct {
+	fn func() (map[string]*CommandInfo, error)
+
+	once internal.Once
+	cmds map[string]*CommandInfo
+}
+
+func newCmdsInfoCache(fn func() (map[string]*CommandInfo, error)) *cmdsInfoCache {
+	return &cmdsInfoCache{
+		fn: fn,
+	}
+}
+
+func (c *cmdsInfoCache) Get() (map[string]*CommandInfo, error) {
+	err := c.once.Do(func() error {
+		cmds, err := c.fn()
+		if err != nil {
+			return err
+		}
+		c.cmds = cmds
+		return nil
+	})
+	return c.cmds, err
 }

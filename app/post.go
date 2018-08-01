@@ -6,20 +6,22 @@ package app
 import (
 	"crypto/hmac"
 	"crypto/sha1"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+	"golang.org/x/net/html/charset"
 )
 
 var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
@@ -79,15 +81,13 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 		// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 		if _, ok := post.Props["from_webhook"]; !ok {
 			if result := <-a.Srv.Store.Channel().UpdateLastViewedAt([]string{post.ChannelId}, post.UserId); result.Err != nil {
-				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, post.UserId, result.Err)
+				mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, result.Err))
 			}
 
 			if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
 				message.Add("channel_id", post.ChannelId)
-				a.Go(func() {
-					a.Publish(message)
-				})
+				a.Publish(message)
 			}
 		}
 
@@ -124,10 +124,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		user = result.Data.(*model.User)
 	}
 
-	if utils.IsLicensed() && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
+	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
 		channel.Name == model.DEFAULT_CHANNEL &&
-		!a.CheckIfRolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		!a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
 		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
@@ -161,11 +161,33 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, err
 	}
 
+	if a.PluginsReady() {
+		var rejectionReason string
+		pluginContext := &plugin.Context{}
+		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			post, rejectionReason = hooks.MessageWillBePosted(pluginContext, post)
+			return post != nil
+		}, plugin.MessageWillBePostedId)
+		if post == nil {
+			return nil, model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		}
+	}
+
 	var rpost *model.Post
 	if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err
 	} else {
 		rpost = result.Data.(*model.Post)
+	}
+
+	if a.PluginsReady() {
+		a.Go(func() {
+			pluginContext := &plugin.Context{}
+			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.MessageHasBeenPosted(pluginContext, rpost)
+				return true
+			}, plugin.MessageHasBeenPostedId)
+		})
 	}
 
 	esInterface := a.Elasticsearch
@@ -185,7 +207,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 		for _, fileId := range post.FileIds {
 			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
-				l4g.Error(utils.T("api.post.create_post.attach_files.error"), post.Id, post.FileIds, post.UserId, result.Err)
+				mlog.Error(fmt.Sprintf("Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v", post.Id, post.FileIds, post.UserId, result.Err), mlog.String("post_id", post.Id))
 			}
 		}
 
@@ -269,7 +291,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	if triggerWebhooks {
 		a.Go(func() {
 			if err := a.handleWebhookEvents(post, team, channel, user); err != nil {
-				l4g.Error(err.Error())
+				mlog.Error(err.Error())
 			}
 		})
 	}
@@ -315,10 +337,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
 	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
-
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 
 	return post
 }
@@ -331,13 +350,6 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, result.Err
 	} else {
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]
-
-		if utils.IsLicensed() {
-			if *a.Config().ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER && post.Message != oldPost.Message {
-				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_denied.app_error", nil, "", http.StatusForbidden)
-				return nil, err
-			}
-		}
 
 		if oldPost == nil {
 			err := model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
@@ -354,8 +366,8 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 			return nil, err
 		}
 
-		if utils.IsLicensed() {
-			if *a.Config().ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
+		if a.License() != nil {
+			if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
 				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 				return nil, err
 			}
@@ -382,16 +394,38 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, err
 	}
 
+	if a.PluginsReady() {
+		var rejectionReason string
+		pluginContext := &plugin.Context{}
+		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
+			return post != nil
+		}, plugin.MessageWillBeUpdatedId)
+		if newPost == nil {
+			return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if result := <-a.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
 		return nil, result.Err
 	} else {
 		rpost := result.Data.(*model.Post)
 
+		if a.PluginsReady() {
+			a.Go(func() {
+				pluginContext := &plugin.Context{}
+				a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+					hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
+					return true
+				}, plugin.MessageHasBeenUpdatedId)
+			})
+		}
+
 		esInterface := a.Elasticsearch
 		if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 			a.Go(func() {
 				if rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
-					l4g.Error("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id)
+					mlog.Error(fmt.Sprintf("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id))
 				} else {
 					esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
 				}
@@ -425,10 +459,7 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
 	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
-
-	a.Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
@@ -555,23 +586,21 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 	}
 }
 
-func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
+func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
 	if result := <-a.Srv.Store.Post().GetSingle(postId); result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		post := result.Data.(*model.Post)
 
-		if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis()); result.Err != nil {
+		if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
 			return nil, result.Err
 		}
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
 		message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+		a.Publish(message)
 
-		a.Go(func() {
-			a.Publish(message)
-		})
 		a.Go(func() {
 			a.DeletePostFiles(post)
 		})
@@ -594,7 +623,7 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 
 func (a *App) DeleteFlaggedPosts(postId string) {
 	if result := <-a.Srv.Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postId); result.Err != nil {
-		l4g.Warn(utils.T("api.post.delete_flagged_post.app_error.warn"), result.Err)
+		mlog.Warn(fmt.Sprintf("Unable to delete flagged post preference when deleting post, err=%v", result.Err))
 		return
 	}
 }
@@ -605,15 +634,16 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 
 	if result := <-a.Srv.Store.FileInfo().DeleteForPost(post.Id); result.Err != nil {
-		l4g.Warn(utils.T("api.post.delete_post_files.app_error.warn"), post.Id, result.Err)
+		mlog.Warn(fmt.Sprintf("Encountered error when deleting files for post, post_id=%v, err=%v", post.Id, result.Err), mlog.String("post_id", post.Id))
 	}
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostList, *model.AppError) {
+func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool) (*model.PostSearchResults, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms)
+	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ViewArchivedChannels
 
 	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && utils.IsLicensed() && *utils.License().Features.Elasticsearch {
+	if license := a.License(); esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {
@@ -622,8 +652,8 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			if params.Terms != "*" {
 				// Convert channel names to channel IDs
 				for idx, channelName := range params.InChannels {
-					if channel, err := a.GetChannelByName(channelName, teamId); err != nil {
-						l4g.Error(err)
+					if channel, err := a.GetChannelByName(channelName, teamId, includeDeleted); err != nil {
+						mlog.Error(fmt.Sprint(err))
 					} else {
 						params.InChannels[idx] = channel.Id
 					}
@@ -632,7 +662,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 				// Convert usernames to user IDs
 				for idx, username := range params.FromUsers {
 					if user, err := a.GetUserByUsername(username); err != nil {
-						l4g.Error(err)
+						mlog.Error(fmt.Sprint(err))
 					} else {
 						params.FromUsers[idx] = user.Id
 					}
@@ -644,17 +674,17 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 
 		// If the processed search params are empty, return empty search results.
 		if len(finalParamsList) == 0 {
-			return model.NewPostList(), nil
+			return model.MakePostSearchResults(model.NewPostList(), nil), nil
 		}
 
 		// We only allow the user to search in channels they are a member of.
-		userChannels, err := a.GetChannelsForUser(teamId, userId)
+		userChannels, err := a.GetChannelsForUser(teamId, userId, includeDeleted)
 		if err != nil {
-			l4g.Error(err)
+			mlog.Error(fmt.Sprint(err))
 			return nil, err
 		}
 
-		postIds, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList)
+		postIds, matches, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList)
 		if err != nil {
 			return nil, err
 		}
@@ -672,7 +702,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			}
 		}
 
-		return postList, nil
+		return model.MakePostSearchResults(postList, matches), nil
 	} else {
 		if !*a.Config().ServiceSettings.EnablePostSearch {
 			return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
@@ -681,6 +711,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 		channels := []store.StoreChannel{}
 
 		for _, params := range paramsList {
+			params.IncludeDeletedChannels = includeDeleted
 			params.OrTerms = isOrSearch
 			// don't allow users to search for everything
 			if params.Terms != "*" {
@@ -700,7 +731,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 
 		posts.SortByCreateAt()
 
-		return posts, nil
+		return model.MakePostSearchResults(posts, nil), nil
 	}
 }
 
@@ -734,21 +765,83 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 	return infos, nil
 }
 
-func (a *App) GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
+func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := a.HTTPClient(false).Get(url)
+	res, err := a.HTTPClient(false).Get(requestURL)
 	if err != nil {
-		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", url, err.Error())
+		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error()))
 		return og
 	}
 	defer consumeAndClose(res)
 
-	if err := og.ProcessHTML(res.Body); err != nil {
-		l4g.Error("GetOpenGraphMetadata processing failed for url=%v with err=%v", url, err.Error())
+	contentType := res.Header.Get("Content-Type")
+	body := forceHTMLEncodingToUTF8(res.Body, contentType)
+
+	if err := og.ProcessHTML(body); err != nil {
+		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error()))
+	}
+
+	makeOpenGraphURLsAbsolute(og, requestURL)
+
+	// The URL should be the link the user provided in their message, not a redirected one.
+	if og.URL != "" {
+		og.URL = requestURL
 	}
 
 	return og
+}
+
+func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
+	r, err := charset.NewReader(body, contentType)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("forceHTMLEncodingToUTF8 failed to convert for contentType=%v with err=%v", contentType, err.Error()))
+		return body
+	}
+	return r
+}
+
+func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
+	parsedRequestURL, err := url.Parse(requestURL)
+	if err != nil {
+		mlog.Warn(fmt.Sprintf("makeOpenGraphURLsAbsolute failed to parse url=%v", requestURL))
+		return
+	}
+
+	makeURLAbsolute := func(resultURL string) string {
+		if resultURL == "" {
+			return resultURL
+		}
+
+		parsedResultURL, err := url.Parse(resultURL)
+		if err != nil {
+			mlog.Warn(fmt.Sprintf("makeOpenGraphURLsAbsolute failed to parse result url=%v", resultURL))
+			return resultURL
+		}
+
+		if parsedResultURL.IsAbs() {
+			return resultURL
+		}
+
+		return parsedRequestURL.ResolveReference(parsedResultURL).String()
+	}
+
+	og.URL = makeURLAbsolute(og.URL)
+
+	for _, image := range og.Images {
+		image.URL = makeURLAbsolute(image.URL)
+		image.SecureURL = makeURLAbsolute(image.SecureURL)
+	}
+
+	for _, audio := range og.Audios {
+		audio.URL = makeURLAbsolute(audio.URL)
+		audio.SecureURL = makeURLAbsolute(audio.SecureURL)
+	}
+
+	for _, video := range og.Videos {
+		video.URL = makeURLAbsolute(video.URL)
+		video.SecureURL = makeURLAbsolute(video.SecureURL)
+	}
 }
 
 func (a *App) DoPostAction(postId string, actionId string, userId string) *model.AppError {
@@ -876,6 +969,10 @@ func (a *App) imageProxyConfig() (proxyType, proxyURL, options, siteURL string) 
 		proxyURL += "/"
 	}
 
+	if siteURL == "" || siteURL[len(siteURL)-1] != '/' {
+		siteURL += "/"
+	}
+
 	if cfg.ServiceSettings.ImageProxyOptions != nil {
 		options = *cfg.ServiceSettings.ImageProxyOptions
 	}
@@ -890,12 +987,8 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 
 	return func(url string) string {
-		if strings.HasPrefix(url, proxyURL) {
+		if url == "" || url[0] == '/' || strings.HasPrefix(url, siteURL) || strings.HasPrefix(url, proxyURL) {
 			return url
-		}
-
-		if url[0] == '/' {
-			url = siteURL + url
 		}
 
 		switch proxyType {
@@ -904,18 +997,6 @@ func (a *App) ImageProxyAdder() func(string) string {
 			mac.Write([]byte(url))
 			digest := hex.EncodeToString(mac.Sum(nil))
 			return proxyURL + digest + "/" + hex.EncodeToString([]byte(url))
-		case "willnorris/imageproxy":
-			options := strings.Split(options, "|")
-			if len(options) > 1 {
-				mac := hmac.New(sha256.New, []byte(options[1]))
-				mac.Write([]byte(url))
-				digest := base64.URLEncoding.EncodeToString(mac.Sum(nil))
-				if options[0] == "" {
-					return proxyURL + "s" + digest + "/" + url
-				}
-				return proxyURL + options[0] + ",s" + digest + "/" + url
-			}
-			return proxyURL + options[0] + "/" + url
 		}
 
 		return url
@@ -938,14 +1019,19 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 					}
 				}
 			}
-		case "willnorris/imageproxy":
-			if strings.HasPrefix(url, proxyURL) {
-				if slash := strings.IndexByte(url[len(proxyURL):], '/'); slash >= 0 {
-					return url[len(proxyURL)+slash+1:]
-				}
-			}
 		}
 
 		return url
 	}
+}
+
+func (a *App) MaxPostSize() int {
+	maxPostSize := model.POST_MESSAGE_MAX_RUNES_V1
+	if result := <-a.Srv.Store.Post().GetMaxPostSize(); result.Err != nil {
+		mlog.Error(fmt.Sprint(result.Err))
+	} else {
+		maxPostSize = result.Data.(int)
+	}
+
+	return maxPostSize
 }

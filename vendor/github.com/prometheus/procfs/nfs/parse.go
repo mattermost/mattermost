@@ -178,8 +178,17 @@ func parseV3Stats(v []uint64) (V3Stats, error) {
 
 func parseClientV4Stats(v []uint64) (ClientV4Stats, error) {
 	values := int(v[0])
-	if len(v[1:]) != values || values < 59 {
-		return ClientV4Stats{}, fmt.Errorf("invalid V4Stats line %q", v)
+	if len(v[1:]) != values {
+		return ClientV4Stats{}, fmt.Errorf("invalid ClientV4Stats line %q", v)
+	}
+
+	// This function currently supports mapping 59 NFS v4 client stats.  Older
+	// kernels may emit fewer stats, so we must detect this and pad out the
+	// values to match the expected slice size.
+	if values < 59 {
+		newValues := make([]uint64, 60)
+		copy(newValues, v)
+		v = newValues
 	}
 
 	return ClientV4Stats{
@@ -195,8 +204,8 @@ func parseClientV4Stats(v []uint64) (ClientV4Stats, error) {
 		Setattr:            v[10],
 		FsInfo:             v[11],
 		Renew:              v[12],
-		SetClientId:        v[13],
-		SetClientIdConfirm: v[14],
+		SetClientID:        v[13],
+		SetClientIDConfirm: v[14],
 		Lock:               v[15],
 		Lockt:              v[16],
 		Locku:              v[17],
@@ -215,13 +224,13 @@ func parseClientV4Stats(v []uint64) (ClientV4Stats, error) {
 		ReadDir:            v[30],
 		ServerCaps:         v[31],
 		DelegReturn:        v[32],
-		GetAcl:             v[33],
-		SetAcl:             v[34],
+		GetACL:             v[33],
+		SetACL:             v[34],
 		FsLocations:        v[35],
 		ReleaseLockowner:   v[36],
 		Secinfo:            v[37],
 		FsidPresent:        v[38],
-		ExchangeId:         v[39],
+		ExchangeID:         v[39],
 		CreateSession:      v[40],
 		DestroySession:     v[41],
 		Sequence:           v[42],
@@ -232,11 +241,11 @@ func parseClientV4Stats(v []uint64) (ClientV4Stats, error) {
 		LayoutCommit:       v[47],
 		LayoutReturn:       v[48],
 		SecinfoNoName:      v[49],
-		TestStateId:        v[50],
-		FreeStateId:        v[51],
+		TestStateID:        v[50],
+		FreeStateID:        v[51],
 		GetDeviceList:      v[52],
 		BindConnToSession:  v[53],
-		DestroyClientId:    v[54],
+		DestroyClientID:    v[54],
 		Seek:               v[55],
 		Allocate:           v[56],
 		DeAllocate:         v[57],

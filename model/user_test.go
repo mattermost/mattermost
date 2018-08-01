@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPasswordHash(t *testing.T) {
@@ -20,6 +22,36 @@ func TestPasswordHash(t *testing.T) {
 	if ComparePassword(hash, "Test2") {
 		t.Fatal("Passwords should not have matched")
 	}
+}
+
+func TestUserDeepCopy(t *testing.T) {
+	id := NewId()
+	authData := "authdata"
+	mapKey := "key"
+	mapValue := "key"
+
+	user := &User{Id: id, AuthData: NewString(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
+	user.Props[mapKey] = mapValue
+	user.NotifyProps[mapKey] = mapValue
+	user.Timezone[mapKey] = mapValue
+
+	copyUser := user.DeepCopy()
+	copyUser.Id = "someid"
+	*copyUser.AuthData = "changed"
+	copyUser.Props[mapKey] = "changed"
+	copyUser.NotifyProps[mapKey] = "changed"
+	copyUser.Timezone[mapKey] = "changed"
+
+	assert.Equal(t, id, user.Id)
+	assert.Equal(t, authData, *user.AuthData)
+	assert.Equal(t, mapValue, user.Props[mapKey])
+	assert.Equal(t, mapValue, user.NotifyProps[mapKey])
+	assert.Equal(t, mapValue, user.Timezone[mapKey])
+
+	user = &User{Id: id}
+	copyUser = user.DeepCopy()
+
+	assert.Equal(t, id, user.Id)
 }
 
 func TestUserJson(t *testing.T) {
@@ -36,6 +68,13 @@ func TestUserPreSave(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreSave()
 	user.Etag(true, true)
+	if user.Timezone == nil {
+		t.Fatal("Timezone is nil")
+	}
+
+	if user.Timezone["useAutomaticTimezone"] != "true" {
+		t.Fatal("Timezone is not set to default")
+	}
 }
 
 func TestUserPreUpdate(t *testing.T) {
@@ -233,6 +272,7 @@ var usernames = []struct {
 	{"spin'punch", false},
 	{"spin*punch", false},
 	{"all", false},
+	{"system", false},
 }
 
 func TestValidUsername(t *testing.T) {
@@ -240,6 +280,30 @@ func TestValidUsername(t *testing.T) {
 		if IsValidUsername(v.value) != v.expected {
 			t.Errorf("expect %v as %v", v.value, v.expected)
 		}
+	}
+}
+
+func TestNormalizeUsername(t *testing.T) {
+	if NormalizeUsername("Spin-punch") != "spin-punch" {
+		t.Fatal("didn't normalize username properly")
+	}
+	if NormalizeUsername("PUNCH") != "punch" {
+		t.Fatal("didn't normalize username properly")
+	}
+	if NormalizeUsername("spin") != "spin" {
+		t.Fatal("didn't normalize username properly")
+	}
+}
+
+func TestNormalizeEmail(t *testing.T) {
+	if NormalizeEmail("TEST@EXAMPLE.COM") != "test@example.com" {
+		t.Fatal("didn't normalize email properly")
+	}
+	if NormalizeEmail("TEST2@example.com") != "test2@example.com" {
+		t.Fatal("didn't normalize email properly")
+	}
+	if NormalizeEmail("test3@example.com") != "test3@example.com" {
+		t.Fatal("didn't normalize email properly")
 	}
 }
 
@@ -263,11 +327,11 @@ func TestCleanUsername(t *testing.T) {
 
 func TestRoles(t *testing.T) {
 
-	if IsValidUserRoles("admin") {
+	if !IsValidUserRoles("team_user") {
 		t.Fatal()
 	}
 
-	if IsValidUserRoles("junk") {
+	if IsValidUserRoles("system_admin") {
 		t.Fatal()
 	}
 

@@ -198,6 +198,11 @@ func (_m *Store) License() store.LicenseStore {
 	return r0
 }
 
+// LockToMaster provides a mock function with given fields:
+func (_m *Store) LockToMaster() {
+	_m.Called()
+}
+
 // MarkSystemRanUnitTests provides a mock function with given fields:
 func (_m *Store) MarkSystemRanUnitTests() {
 	_m.Called()
@@ -277,6 +282,38 @@ func (_m *Store) Reaction() store.ReactionStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.ReactionStore)
+		}
+	}
+
+	return r0
+}
+
+// Role provides a mock function with given fields:
+func (_m *Store) Role() store.RoleStore {
+	ret := _m.Called()
+
+	var r0 store.RoleStore
+	if rf, ok := ret.Get(0).(func() store.RoleStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RoleStore)
+		}
+	}
+
+	return r0
+}
+
+// Scheme provides a mock function with given fields:
+func (_m *Store) Scheme() store.SchemeStore {
+	ret := _m.Called()
+
+	var r0 store.SchemeStore
+	if rf, ok := ret.Get(0).(func() store.SchemeStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SchemeStore)
 		}
 	}
 
@@ -403,6 +440,11 @@ func (_m *Store) TotalSearchDbConnections() int {
 	}
 
 	return r0
+}
+
+// UnlockFromMaster provides a mock function with given fields:
+func (_m *Store) UnlockFromMaster() {
+	_m.Called()
 }
 
 // User provides a mock function with given fields:

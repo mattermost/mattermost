@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func TestUploadFile(t *testing.T) {
+func TestUploadFileAsMultipart(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
@@ -119,7 +119,132 @@ func TestUploadFile(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
 
 	_, resp = th.SystemAdminClient.UploadFile(data, channel.Id, "test.png")
-	if resp.StatusCode != http.StatusNotImplemented && resp.StatusCode != 0 {
+	if resp.StatusCode == 0 {
+		t.Log("file upload request failed completely")
+	} else if resp.StatusCode != http.StatusNotImplemented {
+		// This should return an HTTP 501, but it occasionally causes the http client itself to error
+		t.Fatalf("should've returned HTTP 501 or failed completely, got %v instead", resp.StatusCode)
+	}
+}
+
+func TestUploadFileAsRequestBody(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	channel := th.BasicChannel
+
+	var uploadInfo *model.FileInfo
+	var data []byte
+	var err error
+	if data, err = readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else if fileResp, resp := Client.UploadFileAsRequestBody(data, channel.Id, "test.png"); resp.Error != nil {
+		t.Fatal(resp.Error)
+	} else if len(fileResp.FileInfos) != 1 {
+		t.Fatal("should've returned a single file infos")
+	} else {
+		uploadInfo = fileResp.FileInfos[0]
+	}
+
+	// The returned file info from the upload call will be missing some fields that will be stored in the database
+	if uploadInfo.CreatorId != user.Id {
+		t.Fatal("file should be assigned to user")
+	} else if uploadInfo.PostId != "" {
+		t.Fatal("file shouldn't have a post")
+	} else if uploadInfo.Path != "" {
+		t.Fatal("file path should not be set on returned info")
+	} else if uploadInfo.ThumbnailPath != "" {
+		t.Fatal("file thumbnail path should not be set on returned info")
+	} else if uploadInfo.PreviewPath != "" {
+		t.Fatal("file preview path should not be set on returned info")
+	}
+
+	var info *model.FileInfo
+	if result := <-th.App.Srv.Store.FileInfo().Get(uploadInfo.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		info = result.Data.(*model.FileInfo)
+	}
+
+	if info.Id != uploadInfo.Id {
+		t.Fatal("file id from response should match one stored in database")
+	} else if info.CreatorId != user.Id {
+		t.Fatal("file should be assigned to user")
+	} else if info.PostId != "" {
+		t.Fatal("file shouldn't have a post")
+	} else if info.Path == "" {
+		t.Fatal("file path should be set in database")
+	} else if info.ThumbnailPath == "" {
+		t.Fatal("file thumbnail path should be set in database")
+	} else if info.PreviewPath == "" {
+		t.Fatal("file preview path should be set in database")
+	}
+
+	date := time.Now().Format("20060102")
+
+	// This also makes sure that the relative path provided above is sanitized out
+	expectedPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test.png", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
+	if info.Path != expectedPath {
+		t.Logf("file is saved in %v", info.Path)
+		t.Fatalf("file should've been saved in %v", expectedPath)
+	}
+
+	expectedThumbnailPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_thumb.jpg", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
+	if info.ThumbnailPath != expectedThumbnailPath {
+		t.Logf("file thumbnail is saved in %v", info.ThumbnailPath)
+		t.Fatalf("file thumbnail should've been saved in %v", expectedThumbnailPath)
+	}
+
+	expectedPreviewPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_preview.jpg", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
+	if info.PreviewPath != expectedPreviewPath {
+		t.Logf("file preview is saved in %v", info.PreviewPath)
+		t.Fatalf("file preview should've been saved in %v", expectedPreviewPath)
+	}
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	if err := th.cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+
+	_, resp := Client.UploadFileAsRequestBody(data, model.NewId(), "test.png")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.UploadFileAsRequestBody(data, "../../junk", "test.png")
+	if resp.StatusCode == 0 {
+		t.Log("file upload request failed completely")
+	} else if resp.StatusCode != http.StatusBadRequest {
+		// This should return an HTTP 400, but it occasionally causes the http client itself to error
+		t.Fatalf("should've returned HTTP 400 or failed completely, got %v instead", resp.StatusCode)
+	}
+
+	_, resp = th.SystemAdminClient.UploadFileAsRequestBody(data, model.NewId(), "test.png")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UploadFileAsRequestBody(data, "../../junk", "test.png")
+	if resp.StatusCode == 0 {
+		t.Log("file upload request failed completely")
+	} else if resp.StatusCode != http.StatusBadRequest {
+		// This should return an HTTP 400, but it occasionally causes the http client itself to error
+		t.Fatalf("should've returned HTTP 400 or failed completely, got %v instead", resp.StatusCode)
+	}
+
+	_, resp = th.SystemAdminClient.UploadFileAsRequestBody(data, channel.Id, "test.png")
+	CheckNoError(t, resp)
+
+	enableFileAttachments := *th.App.Config().FileSettings.EnableFileAttachments
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = enableFileAttachments })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
+
+	_, resp = th.SystemAdminClient.UploadFileAsRequestBody(data, channel.Id, "test.png")
+	if resp.StatusCode == 0 {
+		t.Log("file upload request failed completely")
+	} else if resp.StatusCode != http.StatusNotImplemented {
 		// This should return an HTTP 501, but it occasionally causes the http client itself to error
 		t.Fatalf("should've returned HTTP 501 or failed completely, got %v instead", resp.StatusCode)
 	}
@@ -234,7 +359,8 @@ func TestGetFileHeaders(t *testing.T) {
 	t.Run("js", testHeaders(data, "test.js", "text/plain", false))
 	t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false))
 	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false))
-	t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
+	// Not every platform can recognize these
+	//t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
 	t.Run("no extension", testHeaders(data, "test", "application/octet-stream", false))
 	t.Run("no extension 2", testHeaders([]byte("<html></html>"), "test", "application/octet-stream", false))
 }

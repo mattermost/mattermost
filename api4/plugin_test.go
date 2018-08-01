@@ -6,25 +6,16 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPlugin(t *testing.T) {
-	pluginDir, err := ioutil.TempDir("", "mm-plugin-test")
-	require.NoError(t, err)
-	defer os.RemoveAll(pluginDir)
-
-	webappDir, err := ioutil.TempDir("", "mm-webapp-test")
-	require.NoError(t, err)
-	defer os.RemoveAll(webappDir)
-
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
@@ -46,14 +37,8 @@ func TestPlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableUploads = true
 	})
 
-	th.App.InitPlugins(pluginDir, webappDir, nil)
-	defer func() {
-		th.App.ShutDownPlugins()
-		th.App.PluginEnv = nil
-	}()
-
 	path, _ := utils.FindDir("tests")
-	file, err := os.Open(path + "/testplugin.tar.gz")
+	file, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +93,7 @@ func TestPlugin(t *testing.T) {
 	assert.False(t, found)
 
 	// Successful activate
-	ok, resp := th.SystemAdminClient.ActivatePlugin(manifest.Id)
+	ok, resp := th.SystemAdminClient.EnablePlugin(manifest.Id)
 	CheckNoError(t, resp)
 	assert.True(t, ok)
 
@@ -125,12 +110,16 @@ func TestPlugin(t *testing.T) {
 	assert.True(t, found)
 
 	// Activate error case
-	ok, resp = th.SystemAdminClient.ActivatePlugin("junk")
+	ok, resp = th.SystemAdminClient.EnablePlugin("junk")
+	CheckBadRequestStatus(t, resp)
+	assert.False(t, ok)
+
+	ok, resp = th.SystemAdminClient.EnablePlugin("JUNK")
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, ok)
 
 	// Successful deactivate
-	ok, resp = th.SystemAdminClient.DeactivatePlugin(manifest.Id)
+	ok, resp = th.SystemAdminClient.DisablePlugin(manifest.Id)
 	CheckNoError(t, resp)
 	assert.True(t, ok)
 
@@ -147,7 +136,7 @@ func TestPlugin(t *testing.T) {
 	assert.True(t, found)
 
 	// Deactivate error case
-	ok, resp = th.SystemAdminClient.DeactivatePlugin("junk")
+	ok, resp = th.SystemAdminClient.DisablePlugin("junk")
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, ok)
 
@@ -161,7 +150,7 @@ func TestPlugin(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Successful webapp get
-	_, resp = th.SystemAdminClient.ActivatePlugin(manifest.Id)
+	_, resp = th.SystemAdminClient.EnablePlugin(manifest.Id)
 	CheckNoError(t, resp)
 
 	manifests, resp := th.Client.GetWebappPlugins()

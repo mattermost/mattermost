@@ -38,28 +38,32 @@ type Session struct {
 }
 
 func (me *Session) DeepCopy() *Session {
-	copy := *me
-	return &copy
+	copySession := *me
+
+	if me.Props != nil {
+		copySession.Props = CopyStringMap(me.Props)
+	}
+
+	if me.TeamMembers != nil {
+		copySession.TeamMembers = make([]*TeamMember, len(me.TeamMembers))
+		for index, tm := range me.TeamMembers {
+			copySession.TeamMembers[index] = new(TeamMember)
+			*copySession.TeamMembers[index] = *tm
+		}
+	}
+
+	return &copySession
 }
 
 func (me *Session) ToJson() string {
-	b, err := json.Marshal(me)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(me)
+	return string(b)
 }
 
 func SessionFromJson(data io.Reader) *Session {
-	decoder := json.NewDecoder(data)
-	var me Session
-	err := decoder.Decode(&me)
-	if err == nil {
-		return &me
-	} else {
-		return nil
-	}
+	var me *Session
+	json.NewDecoder(data).Decode(&me)
+	return me
 }
 
 func (me *Session) PreSave() {
@@ -140,12 +144,7 @@ func SessionsToJson(o []*Session) string {
 }
 
 func SessionsFromJson(data io.Reader) []*Session {
-	decoder := json.NewDecoder(data)
 	var o []*Session
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

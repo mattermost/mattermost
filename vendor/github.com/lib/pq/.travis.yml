@@ -1,11 +1,9 @@
 language: go
 
 go:
-  - 1.5.x
-  - 1.6.x
-  - 1.7.x
   - 1.8.x
   - 1.9.x
+  - 1.10.x
   - master
 
 sudo: true
@@ -16,7 +14,7 @@ env:
     - PQGOSSLTESTS=1
     - PQSSLCERTTEST_PATH=$PWD/certs
     - PGHOST=127.0.0.1
-    - MEGACHECK_VERSION=2017.2.1
+    - MEGACHECK_VERSION=2017.2.2
   matrix:
     - PGVERSION=10
     - PGVERSION=9.6
@@ -46,13 +44,7 @@ script:
   - >
     goimports -d -e $(find -name '*.go') | awk '{ print } END { exit NR == 0 ? 0 : 1 }'
   - go vet ./...
-    # For compatibility with Go 1.5, launch only if megacheck is present.
-  - >
-    which megacheck > /dev/null && megacheck -go 1.5 ./...
-    || echo 'megacheck is not supported, skipping check'
-    # For compatibility with Go 1.5, launch only if golint is present.
-  - >
-    which golint > /dev/null && golint ./...
-    || echo 'golint is not supported, skipping check'
+  - megacheck -go 1.8 ./...
+  - golint ./...
   - PQTEST_BINARY_PARAMETERS=no  go test -race -v ./...
   - PQTEST_BINARY_PARAMETERS=yes go test -race -v ./...

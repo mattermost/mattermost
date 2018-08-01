@@ -4,19 +4,20 @@
 package app
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"runtime"
 	"strconv"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
-	SECURITY_URL           = "https://d7zmvsa9e04kk.cloudfront.net"
+	SECURITY_URL           = "https://securityupdatecheck.mattermost.com"
 	SECURITY_UPDATE_PERIOD = 86400000 // 24 hours in milliseconds.
 
 	PROP_SECURITY_ID                = "id"
@@ -38,7 +39,7 @@ func (a *App) DoSecurityUpdateCheck() {
 			currentTime := model.GetMillis()
 
 			if (currentTime - lastSecurityTime) > SECURITY_UPDATE_PERIOD {
-				l4g.Debug(utils.T("mattermost.security_checks.debug"))
+				mlog.Debug("Checking for security update from Mattermost")
 
 				v := url.Values{}
 
@@ -75,7 +76,7 @@ func (a *App) DoSecurityUpdateCheck() {
 
 				res, err := http.Get(SECURITY_URL + "/security?" + v.Encode())
 				if err != nil {
-					l4g.Error(utils.T("mattermost.security_info.error"))
+					mlog.Error("Failed to get security update information from Mattermost.")
 					return
 				}
 
@@ -86,26 +87,26 @@ func (a *App) DoSecurityUpdateCheck() {
 					if bulletin.AppliesToVersion == model.CurrentVersion {
 						if props["SecurityBulletin_"+bulletin.Id] == "" {
 							if results := <-a.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
-								l4g.Error(utils.T("mattermost.system_admins.error"))
+								mlog.Error("Failed to get system admins for security update information from Mattermost.")
 								return
 							} else {
 								users := results.Data.(map[string]*model.User)
 
 								resBody, err := http.Get(SECURITY_URL + "/bulletins/" + bulletin.Id)
 								if err != nil {
-									l4g.Error(utils.T("mattermost.security_bulletin.error"))
+									mlog.Error("Failed to get security bulletin details")
 									return
 								}
 
 								body, err := ioutil.ReadAll(resBody.Body)
 								res.Body.Close()
 								if err != nil || resBody.StatusCode != 200 {
-									l4g.Error(utils.T("mattermost.security_bulletin_read.error"))
+									mlog.Error("Failed to read security bulletin details")
 									return
 								}
 
 								for _, user := range users {
-									l4g.Info(utils.T("mattermost.send_bulletin.info"), bulletin.Id, user.Email)
+									mlog.Info(fmt.Sprintf("Sending security bulletin for %v to %v", bulletin.Id, user.Email))
 									a.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
 								}
 							}

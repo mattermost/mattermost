@@ -5,12 +5,12 @@ package api4
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"runtime"
-	"strconv"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -18,10 +18,13 @@ import (
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
 
+	api.BaseRoutes.System.Handle("/timezones", api.ApiSessionRequired(getSupportedTimezones)).Methods("GET")
+
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(updateConfig)).Methods("PUT")
 	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiSessionRequired(configReload)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/config/client", api.ApiHandler(getClientConfig)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/config/environment", api.ApiSessionRequired(getEnvironmentConfig)).Methods("GET")
 
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(addLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(removeLicense)).Methods("DELETE")
@@ -29,6 +32,7 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.ApiRoot.Handle("/audits", api.ApiSessionRequired(getAudits)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/email/test", api.ApiSessionRequired(testEmail)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/file/s3_test", api.ApiSessionRequired(testS3)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/database/recycle", api.ApiSessionRequired(databaseRecycle)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/caches/invalidate", api.ApiSessionRequired(invalidateCaches)).Methods("POST")
 
@@ -58,7 +62,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		rdata := map[string]string{}
 		rdata["status"] = "unhealthy"
 
-		l4g.Warn(utils.T("api.system.go_routines"), actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold)
+		mlog.Warn(fmt.Sprintf("The number of running goroutines is over the health threshold %v of %v", actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(model.MapToJson(rdata)))
@@ -120,6 +124,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	// Do not allow plugin uploads to be toggled through the API
+	cfg.PluginSettings.EnableUploads = c.App.GetConfig().PluginSettings.EnableUploads
 
 	err := c.App.SaveConfig(cfg, true)
 	if err != nil {
@@ -223,7 +230,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		err.Where = "client"
 		c.LogError(err)
 	} else {
-		l4g.Debug(msg)
+		mlog.Debug(fmt.Sprint(msg))
 	}
 
 	m["message"] = msg
@@ -243,14 +250,26 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respCfg := map[string]string{}
-	for k, v := range c.App.ClientConfig() {
-		respCfg[k] = v
+	var config map[string]string
+	if *c.App.Config().ServiceSettings.ExperimentalLimitClientConfig && len(c.Session.UserId) == 0 {
+		config = c.App.LimitedClientConfigWithComputed()
+	} else {
+		config = c.App.ClientConfigWithComputed()
 	}
 
-	respCfg["NoAccounts"] = strconv.FormatBool(c.App.IsFirstUserAccount())
+	w.Write([]byte(model.MapToJson(config)))
+}
 
-	w.Write([]byte(model.MapToJson(respCfg)))
+func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	envConfig := c.App.GetEnvironmentConfig()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Write([]byte(model.StringInterfaceToJson(envConfig)))
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -266,7 +285,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := utils.GetClientLicenseEtag(true)
+	etag := c.App.GetClientLicenseEtag(true)
 	if c.HandleEtag(etag, "Get Client License", w, r) {
 		return
 	}
@@ -274,9 +293,9 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var clientLicense map[string]string
 
 	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		clientLicense = utils.ClientLicense()
+		clientLicense = c.App.ClientLicense()
 	} else {
-		clientLicense = utils.GetSanitizedClientLicense()
+		clientLicense = c.App.GetSanitizedClientLicense()
 	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
@@ -380,4 +399,50 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(rows.ToJson()))
+}
+
+func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
+	supportedTimezones := c.App.Timezones()
+
+	if supportedTimezones != nil {
+		w.Write([]byte(model.TimezonesToJson(supportedTimezones)))
+		return
+	}
+
+	emptyTimezones := make([]string, 0)
+	w.Write([]byte(model.TimezonesToJson(emptyTimezones)))
+}
+
+func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
+	cfg := model.ConfigFromJson(r.Body)
+	if cfg == nil {
+		cfg = c.App.Config()
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	err := utils.CheckMandatoryS3Fields(&cfg.FileSettings)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
+	}
+
+	license := c.App.License()
+	backend, appErr := utils.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
+	if appErr == nil {
+		appErr = backend.TestConnection()
+	}
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	ReturnStatusOK(w)
 }

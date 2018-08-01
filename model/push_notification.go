@@ -17,6 +17,7 @@ const (
 
 	PUSH_TYPE_MESSAGE = "message"
 	PUSH_TYPE_CLEAR   = "clear"
+	PUSH_MESSAGE_V2   = "v2"
 
 	// The category is set to handle a set of interactive Actions
 	// with the push notifications
@@ -44,15 +45,12 @@ type PushNotification struct {
 	OverrideUsername string `json:"override_username"`
 	OverrideIconUrl  string `json:"override_icon_url"`
 	FromWebhook      string `json:"from_webhook"`
+	Version          string `json:"version"`
 }
 
 func (me *PushNotification) ToJson() string {
-	b, err := json.Marshal(me)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(me)
+	return string(b)
 }
 
 func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
@@ -66,12 +64,7 @@ func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
 }
 
 func PushNotificationFromJson(data io.Reader) *PushNotification {
-	decoder := json.NewDecoder(data)
-	var me PushNotification
-	err := decoder.Decode(&me)
-	if err == nil {
-		return &me
-	} else {
-		return nil
-	}
+	var me *PushNotification
+	json.NewDecoder(data).Decode(&me)
+	return me
 }

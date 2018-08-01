@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // BulkService allows for batching bulk requests and sending them to
@@ -23,7 +23,7 @@ import (
 // reuse BulkService to send many batches. You do not have to create a new
 // BulkService for each batch.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for more details.
 type BulkService struct {
 	client  *Client
@@ -52,7 +52,8 @@ func NewBulkService(client *Client) *BulkService {
 	return builder
 }
 
-func (s *BulkService) reset() {
+// Reset cleans up the request queue
+func (s *BulkService) Reset() {
 	s.requests = make([]BulkableRequest, 0)
 	s.sizeInBytes = 0
 	s.sizeInBytesCursor = 0
@@ -243,7 +244,7 @@ func (s *BulkService) Do(ctx context.Context) (*BulkResponse, error) {
 	}
 
 	// Get response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
+	res, err := s.client.PerformRequestWithOptions(ctx, PerformRequestOptions{
 		Method:      "POST",
 		Path:        path,
 		Params:      params,
@@ -262,7 +263,7 @@ func (s *BulkService) Do(ctx context.Context) (*BulkResponse, error) {
 	}
 
 	// Reset so the request can be reused
-	s.reset()
+	s.Reset()
 
 	return ret, nil
 }
@@ -320,12 +321,10 @@ type BulkResponseItem struct {
 	Type          string        `json:"_type,omitempty"`
 	Id            string        `json:"_id,omitempty"`
 	Version       int64         `json:"_version,omitempty"`
-	Result        string        `json:"result,omitempty"`
-	Shards        *shardsInfo   `json:"_shards,omitempty"`
-	SeqNo         int64         `json:"_seq_no,omitempty"`
-	PrimaryTerm   int64         `json:"_primary_term,omitempty"`
 	Status        int           `json:"status,omitempty"`
+	Result        string        `json:"result,omitempty"`
 	ForcedRefresh bool          `json:"forced_refresh,omitempty"`
+	Found         bool          `json:"found,omitempty"`
 	Error         *ErrorDetails `json:"error,omitempty"`
 	GetResult     *GetResult    `json:"get,omitempty"`
 }

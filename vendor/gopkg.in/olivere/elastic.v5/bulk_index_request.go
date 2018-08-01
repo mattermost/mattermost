@@ -14,7 +14,7 @@ import (
 
 // BulkIndexRequest is a request to add a document to Elasticsearch.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for details.
 type BulkIndexRequest struct {
 	BulkableRequest
@@ -29,6 +29,7 @@ type BulkIndexRequest struct {
 	doc             interface{}
 	pipeline        string
 	retryOnConflict *int
+	ttl             string
 
 	source []string
 
@@ -40,15 +41,15 @@ type bulkIndexRequestCommand map[string]bulkIndexRequestCommandOp
 
 //easyjson:json
 type bulkIndexRequestCommandOp struct {
-	Index  string `json:"_index,omitempty"`
-	Id     string `json:"_id,omitempty"`
-	Type   string `json:"_type,omitempty"`
-	Parent string `json:"parent,omitempty"`
-	// RetryOnConflict is "_retry_on_conflict" for 6.0 and "retry_on_conflict" for 6.1+.
-	RetryOnConflict *int   `json:"retry_on_conflict,omitempty"`
-	Routing         string `json:"routing,omitempty"`
-	Version         int64  `json:"version,omitempty"`
-	VersionType     string `json:"version_type,omitempty"`
+	Id              string `json:"_id,omitempty"`
+	Index           string `json:"_index,omitempty"`
+	TTL             string `json:"_ttl,omitempty"`
+	Type            string `json:"_type,omitempty"`
+	Parent          string `json:"_parent,omitempty"`
+	RetryOnConflict *int   `json:"_retry_on_conflict,omitempty"`
+	Routing         string `json:"_routing,omitempty"`
+	Version         int64  `json:"_version,omitempty"`
+	VersionType     string `json:"_version_type,omitempty"`
 	Pipeline        string `json:"pipeline,omitempty"`
 }
 
@@ -95,7 +96,7 @@ func (r *BulkIndexRequest) Id(id string) *BulkIndexRequest {
 
 // OpType specifies if this request should follow create-only or upsert
 // behavior. This follows the OpType of the standard document index API.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-index_.html#operation-type
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-index_.html#operation-type
 // for details.
 func (r *BulkIndexRequest) OpType(opType string) *BulkIndexRequest {
 	r.opType = opType
@@ -128,7 +129,7 @@ func (r *BulkIndexRequest) Version(version int64) *BulkIndexRequest {
 // VersionType specifies how versions are created. It can be e.g. internal,
 // external, external_gte, or force.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-index_.html#index-versioning
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-index_.html#index-versioning
 // for details.
 func (r *BulkIndexRequest) VersionType(versionType string) *BulkIndexRequest {
 	r.versionType = versionType
@@ -146,6 +147,13 @@ func (r *BulkIndexRequest) Doc(doc interface{}) *BulkIndexRequest {
 // RetryOnConflict specifies how often to retry in case of a version conflict.
 func (r *BulkIndexRequest) RetryOnConflict(retryOnConflict int) *BulkIndexRequest {
 	r.retryOnConflict = &retryOnConflict
+	r.source = nil
+	return r
+}
+
+// TTL is an expiration time for the document.
+func (r *BulkIndexRequest) TTL(ttl string) *BulkIndexRequest {
+	r.ttl = ttl
 	r.source = nil
 	return r
 }
@@ -169,7 +177,7 @@ func (r *BulkIndexRequest) String() string {
 
 // Source returns the on-wire representation of the index request,
 // split into an action-and-meta-data line and an (optional) source line.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-bulk.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-bulk.html
 // for details.
 func (r *BulkIndexRequest) Source() ([]string, error) {
 	// { "index" : { "_index" : "test", "_type" : "type1", "_id" : "1" } }
@@ -191,6 +199,7 @@ func (r *BulkIndexRequest) Source() ([]string, error) {
 		Version:         r.version,
 		VersionType:     r.versionType,
 		RetryOnConflict: r.retryOnConflict,
+		TTL:             r.ttl,
 		Pipeline:        r.pipeline,
 	}
 	command := bulkIndexRequestCommand{

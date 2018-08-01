@@ -20,6 +20,7 @@ type MetricsInterface interface {
 
 	IncrementClusterRequest()
 	ObserveClusterRequestDuration(elapsed float64)
+	IncrementClusterEventType(eventType string)
 
 	IncrementLogin()
 	IncrementLoginFail()
@@ -29,8 +30,10 @@ type MetricsInterface interface {
 
 	IncrementMemCacheHitCounter(cacheName string)
 	IncrementMemCacheMissCounter(cacheName string)
+	IncrementMemCacheInvalidationCounter(cacheName string)
 	IncrementMemCacheMissCounterSession()
 	IncrementMemCacheHitCounterSession()
+	IncrementMemCacheInvalidationCounterSession()
 
 	IncrementWebsocketEvent(eventType string)
 	IncrementWebSocketBroadcast(eventType string)

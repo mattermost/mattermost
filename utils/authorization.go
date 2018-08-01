@@ -7,15 +7,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
-	roles := make(map[string]*model.Role)
-	for id, role := range model.DefaultRoles {
-		copy := &model.Role{}
-		*copy = *role
-		roles[id] = copy
-	}
-
-	if IsLicensed() {
+func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Config, isLicensed bool) map[string]*model.Role {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPublicChannelCreation {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -35,7 +28,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPublicChannelManagement {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -64,7 +57,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPublicChannelDeletion {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -93,7 +86,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPrivateChannelCreation {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -113,7 +106,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPrivateChannelManagement {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -142,7 +135,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPrivateChannelDeletion {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -172,7 +165,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 	}
 
 	// Restrict permissions for Private Channel Manage Members
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPrivateChannelManageMembers {
 		case model.PERMISSIONS_ALL:
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
@@ -214,7 +207,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 	}
 
 	// Grant permissions for inviting and adding users to a team.
-	if IsLicensed() {
+	if isLicensed {
 		if *cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
 			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
 				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
@@ -222,8 +215,8 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 				model.PERMISSION_ADD_USER_TO_TEAM.Id,
 			)
 		} else if *cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_ALL {
-			roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(
-				roles[model.SYSTEM_USER_ROLE_ID].Permissions,
+			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
+				roles[model.TEAM_USER_ROLE_ID].Permissions,
 				model.PERMISSION_INVITE_USER.Id,
 				model.PERMISSION_ADD_USER_TO_TEAM.Id,
 			)
@@ -236,17 +229,12 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.ServiceSettings.RestrictPostDelete {
 		case model.PERMISSIONS_DELETE_POST_ALL:
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
 				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 				model.PERMISSION_DELETE_POST.Id,
-			)
-			roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_POST.Id,
-				model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 			)
 			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
 				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
@@ -272,10 +260,33 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if cfg.TeamSettings.EnableTeamCreation {
+	if *cfg.TeamSettings.EnableTeamCreation {
 		roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(
 			roles[model.SYSTEM_USER_ROLE_ID].Permissions,
 			model.PERMISSION_CREATE_TEAM.Id,
+		)
+	}
+
+	if isLicensed {
+		switch *cfg.ServiceSettings.AllowEditPost {
+		case model.ALLOW_EDIT_POST_ALWAYS, model.ALLOW_EDIT_POST_TIME_LIMIT:
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
+				model.PERMISSION_EDIT_POST.Id,
+			)
+			roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions = append(
+				roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions,
+				model.PERMISSION_EDIT_POST.Id,
+			)
+		}
+	} else {
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
+			model.PERMISSION_EDIT_POST.Id,
+		)
+		roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions = append(
+			roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions,
+			model.PERMISSION_EDIT_POST.Id,
 		)
 	}
 

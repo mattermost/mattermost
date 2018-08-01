@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // IndicesSegmentsService provides low level segments information that a
@@ -20,7 +20,7 @@ import (
 // optimization information, data "wasted" on deletes, and so on.
 //
 // Find further documentation at
-// https://www.elastic.co/guide/en/elasticsearch/reference/6.1/indices-segments.html.
+// https://www.elastic.co/guide/en/elasticsearch/reference/5.6/indices-segments.html.
 type IndicesSegmentsService struct {
 	client             *Client
 	pretty             bool
@@ -154,7 +154,7 @@ func (s *IndicesSegmentsService) Do(ctx context.Context) (*IndicesSegmentsRespon
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
+	res, err := s.client.PerformRequestWithOptions(ctx, PerformRequestOptions{
 		Method: "GET",
 		Path:   path,
 		Params: params,
@@ -217,16 +217,7 @@ type IndexSegmentsDetails struct {
 	Version       string                  `json:"version,omitempty"`
 	Compound      bool                    `json:"compound,omitempty"`
 	MergeId       string                  `json:"merge_id,omitempty"`
-	Sort          []*IndexSegmentsSort    `json:"sort,omitempty"`
 	RAMTree       []*IndexSegmentsRamTree `json:"ram_tree,omitempty"`
-	Attributes    map[string]string       `json:"attributes,omitempty"`
-}
-
-type IndexSegmentsSort struct {
-	Field   string      `json:"field,omitempty"`
-	Mode    string      `json:"mode,omitempty"`
-	Missing interface{} `json:"missing,omitempty"`
-	Reverse bool        `json:"reverse,omitempty"`
 }
 
 type IndexSegmentsRamTree struct {

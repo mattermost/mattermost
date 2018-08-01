@@ -15,9 +15,11 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 	"unicode"
 
@@ -79,12 +81,8 @@ func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
 }
 
 func (er *AppError) ToJson() string {
-	b, err := json.Marshal(er)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(er)
+	return string(b)
 }
 
 // AppErrorFromJson will decode the input and return an AppError
@@ -150,22 +148,24 @@ func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+func CopyStringMap(originalMap map[string]string) map[string]string {
+	copyMap := make(map[string]string)
+	for k, v := range originalMap {
+		copyMap[k] = v
+	}
+	return copyMap
+}
+
 // MapToJson converts a map to a json string
 func MapToJson(objmap map[string]string) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 // MapToJson converts a map to a json string
 func MapBoolToJson(objmap map[string]bool) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 // MapFromJson will decode the key/value pair map
@@ -193,11 +193,8 @@ func MapBoolFromJson(data io.Reader) map[string]bool {
 }
 
 func ArrayToJson(objmap []string) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 func ArrayFromJson(data io.Reader) []string {
@@ -229,11 +226,8 @@ func ArrayFromInterface(data interface{}) []string {
 }
 
 func StringInterfaceToJson(objmap map[string]interface{}) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
@@ -248,12 +242,8 @@ func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
 }
 
 func StringToJson(s string) string {
-	b, err := json.Marshal(s)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(s)
+	return string(b)
 }
 
 func StringFromJson(data io.Reader) string {
@@ -414,23 +404,8 @@ func ClearMentionTags(post string) string {
 	return post
 }
 
-var UrlRegex = regexp.MustCompile(`^((?:[a-z]+:\/\/)?(?:(?:[a-z0-9\-]+\.)+(?:[a-z]{2}|aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|local|internal))(:[0-9]{1,5})?(?:\/[a-z0-9_\-\.~]+)*(\/([a-z0-9_\-\.]*)(?:\?[a-z0-9+_~\-\.%=&amp;]*)?)?(?:#[a-zA-Z0-9!$&'()*+.=-_~:@/?]*)?)(?:\s+|$)$`)
-var PartialUrlRegex = regexp.MustCompile(`/([A-Za-z0-9]{26})/([A-Za-z0-9]{26})/((?:[A-Za-z0-9]{26})?.+(?:\.[A-Za-z0-9]{3,})?)`)
-
 func IsValidHttpUrl(rawUrl string) bool {
 	if strings.Index(rawUrl, "http://") != 0 && strings.Index(rawUrl, "https://") != 0 {
-		return false
-	}
-
-	if _, err := url.ParseRequestURI(rawUrl); err != nil {
-		return false
-	}
-
-	return true
-}
-
-func IsValidHttpsUrl(rawUrl string) bool {
-	if strings.Index(rawUrl, "https://") != 0 {
 		return false
 	}
 
@@ -503,4 +478,115 @@ func IsValidId(value string) bool {
 	}
 
 	return true
+}
+
+// checkNowhereNil checks that the given interface value is not nil, and if a struct, that all of
+// its public fields are also nowhere nil
+func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
+	if value == nil {
+		return false
+	}
+
+	v := reflect.ValueOf(value)
+	switch v.Type().Kind() {
+	case reflect.Ptr:
+		if v.IsNil() {
+			t.Logf("%s was nil", name)
+			return false
+		}
+
+		return checkNowhereNil(t, fmt.Sprintf("(*%s)", name), v.Elem().Interface())
+
+	case reflect.Map:
+		if v.IsNil() {
+			t.Logf("%s was nil", name)
+			return false
+		}
+
+		// Don't check map values
+		return true
+
+	case reflect.Struct:
+		nowhereNil := true
+		for i := 0; i < v.NumField(); i++ {
+			f := v.Field(i)
+			// Ignore unexported fields
+			if v.Type().Field(i).PkgPath != "" {
+				continue
+			}
+
+			nowhereNil = nowhereNil && checkNowhereNil(t, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), f.Interface())
+		}
+
+		return nowhereNil
+
+	case reflect.Array:
+		fallthrough
+	case reflect.Chan:
+		fallthrough
+	case reflect.Func:
+		fallthrough
+	case reflect.Interface:
+		fallthrough
+	case reflect.UnsafePointer:
+		t.Logf("unhandled field %s, type: %s", name, v.Type().Kind())
+		return false
+
+	default:
+		return true
+	}
+}
+
+// Copied from https://golang.org/src/net/dnsclient.go#L119
+func IsDomainName(s string) bool {
+	// See RFC 1035, RFC 3696.
+	// Presentation format has dots before every label except the first, and the
+	// terminal empty label is optional here because we assume fully-qualified
+	// (absolute) input. We must therefore reserve space for the first and last
+	// labels' length octets in wire format, where they are necessary and the
+	// maximum total length is 255.
+	// So our _effective_ maximum is 253, but 254 is not rejected if the last
+	// character is a dot.
+	l := len(s)
+	if l == 0 || l > 254 || l == 254 && s[l-1] != '.' {
+		return false
+	}
+
+	last := byte('.')
+	ok := false // Ok once we've seen a letter.
+	partlen := 0
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		default:
+			return false
+		case 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_':
+			ok = true
+			partlen++
+		case '0' <= c && c <= '9':
+			// fine
+			partlen++
+		case c == '-':
+			// Byte before dash cannot be dot.
+			if last == '.' {
+				return false
+			}
+			partlen++
+		case c == '.':
+			// Byte before dot cannot be dot, dash.
+			if last == '.' || last == '-' {
+				return false
+			}
+			if partlen > 63 || partlen == 0 {
+				return false
+			}
+			partlen = 0
+		}
+		last = c
+	}
+	if last == '-' || partlen > 63 {
+		return false
+	}
+
+	return ok
 }

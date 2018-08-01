@@ -1,5 +1,9 @@
 package fake
 
+import (
+	"strings"
+)
+
 // Company generates company name
 func Company() string {
 	return lookup(lang, "companies", true)
@@ -8,7 +12,7 @@ func Company() string {
 // JobTitle generates job title
 func JobTitle() string {
 	job := lookup(lang, "jobs", true)
-	return join(job, jobTitleSuffix())
+	return strings.Replace(job, "#{N}", jobTitleSuffix(), 1)
 }
 
 func jobTitleSuffix() string {

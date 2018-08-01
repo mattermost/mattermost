@@ -40,11 +40,25 @@ func (me *HeaderProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		return &model.CommandResponse{Text: args.T("api.command_channel_header.channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if channel.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
-		return &model.CommandResponse{Text: args.T("api.command_channel_header.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	}
+	switch channel.Type {
+	case model.CHANNEL_OPEN:
+		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+			return &model.CommandResponse{Text: args.T("api.command_channel_header.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+	case model.CHANNEL_PRIVATE:
+		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+			return &model.CommandResponse{Text: args.T("api.command_channel_header.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
+
+	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
+		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
+		channelMember, err := a.GetChannelMember(args.ChannelId, args.Session.UserId)
+		if err != nil || channelMember == nil {
+			return &model.CommandResponse{Text: args.T("api.command_channel_header.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
+
+	default:
 		return &model.CommandResponse{Text: args.T("api.command_channel_header.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

@@ -4,9 +4,12 @@
 package app
 
 import (
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -74,6 +77,249 @@ func checkNoError(t *testing.T, err *model.AppError) {
 	if err != nil {
 		debug.PrintStack()
 		t.Fatalf("Unexpected Error: %v", err.Error())
+	}
+}
+
+func TestImportValidateSchemeImportData(t *testing.T) {
+	// Test with minimum required valid properties and team scope.
+	data := SchemeImportData{
+		Name:        ptrStr("name"),
+		DisplayName: ptrStr("display name"),
+		Scope:       ptrStr("team"),
+		DefaultTeamAdminRole: &RoleImportData{
+			Name:        ptrStr("name"),
+			DisplayName: ptrStr("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultTeamUserRole: &RoleImportData{
+			Name:        ptrStr("name"),
+			DisplayName: ptrStr("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultChannelAdminRole: &RoleImportData{
+			Name:        ptrStr("name"),
+			DisplayName: ptrStr("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultChannelUserRole: &RoleImportData{
+			Name:        ptrStr("name"),
+			DisplayName: ptrStr("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+	}
+	if err := validateSchemeImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.", err)
+	}
+
+	// Test with various invalid names.
+	data.Name = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid name.")
+	}
+
+	data.Name = ptrStr("")
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid name.")
+	}
+
+	data.Name = ptrStr(strings.Repeat("1234567890", 100))
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid name.")
+	}
+
+	data.Name = ptrStr("name")
+	// Test with invalid display name.
+	data.DisplayName = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid display name.")
+	}
+
+	data.DisplayName = ptrStr("")
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid display name.")
+	}
+
+	data.DisplayName = ptrStr(strings.Repeat("1234567890", 100))
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid display name.")
+	}
+
+	data.DisplayName = ptrStr("display name")
+
+	// Test with various missing roles.
+	data.DefaultTeamAdminRole = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing role.")
+	}
+
+	data.DefaultTeamAdminRole = &RoleImportData{
+		Name:        ptrStr("name"),
+		DisplayName: ptrStr("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultTeamUserRole = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing role.")
+	}
+
+	data.DefaultTeamUserRole = &RoleImportData{
+		Name:        ptrStr("name"),
+		DisplayName: ptrStr("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultChannelAdminRole = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing role.")
+	}
+
+	data.DefaultChannelAdminRole = &RoleImportData{
+		Name:        ptrStr("name"),
+		DisplayName: ptrStr("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultChannelUserRole = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing role.")
+	}
+
+	data.DefaultChannelUserRole = &RoleImportData{
+		Name:        ptrStr("name"),
+		DisplayName: ptrStr("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+
+	// Test with various invalid roles.
+	data.DefaultTeamAdminRole.Name = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid role.")
+	}
+
+	data.DefaultTeamAdminRole.Name = ptrStr("name")
+	data.DefaultTeamUserRole.Name = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid role.")
+	}
+
+	data.DefaultTeamUserRole.Name = ptrStr("name")
+	data.DefaultChannelAdminRole.Name = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid role.")
+	}
+
+	data.DefaultChannelAdminRole.Name = ptrStr("name")
+	data.DefaultChannelUserRole.Name = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid role.")
+	}
+
+	data.DefaultChannelUserRole.Name = ptrStr("name")
+
+	// Change to a Channel scope role, and check with missing or extra roles again.
+	data.Scope = ptrStr("channel")
+	data.DefaultTeamAdminRole = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to spurious role.")
+	}
+
+	data.DefaultTeamAdminRole = &RoleImportData{
+		Name:        ptrStr("name"),
+		DisplayName: ptrStr("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultTeamUserRole = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to spurious role.")
+	}
+
+	data.DefaultTeamAdminRole = nil
+	if err := validateSchemeImportData(&data); err != nil {
+		t.Fatal("Should have succeeded.")
+	}
+
+	// Test with all combinations of optional parameters.
+	data.Description = ptrStr(strings.Repeat("1234567890", 1024))
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid description.")
+	}
+
+	data.Description = ptrStr("description")
+	if err := validateSchemeImportData(&data); err != nil {
+		t.Fatal("Should have succeeded.")
+	}
+}
+
+func TestImportValidateRoleImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := RoleImportData{
+		Name:        ptrStr("name"),
+		DisplayName: ptrStr("display name"),
+	}
+	if err := validateRoleImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.", err)
+	}
+
+	// Test with various invalid names.
+	data.Name = nil
+	if err := validateRoleImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid name.")
+	}
+
+	data.Name = ptrStr("")
+	if err := validateRoleImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid name.")
+	}
+
+	data.Name = ptrStr(strings.Repeat("1234567890", 100))
+	if err := validateRoleImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid name.")
+	}
+
+	data.Name = ptrStr("name")
+	// Test with invalid display name.
+	data.DisplayName = nil
+	if err := validateRoleImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid display name.")
+	}
+
+	data.DisplayName = ptrStr("")
+	if err := validateRoleImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid display name.")
+	}
+
+	data.DisplayName = ptrStr(strings.Repeat("1234567890", 100))
+	if err := validateRoleImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid display name.")
+	}
+
+	data.DisplayName = ptrStr("display name")
+
+	// Test with various valid/invalid permissions.
+	data.Permissions = &[]string{}
+	if err := validateRoleImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.", err)
+	}
+
+	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
+	if err := validateRoleImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.", err)
+	}
+
+	data.Permissions = &[]string{"invite_user", "add_user_to_team", "derp"}
+	if err := validateRoleImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to invalid permission.", err)
+	}
+
+	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
+
+	// Test with various valid/invalid descriptions.
+	data.Description = ptrStr(strings.Repeat("1234567890", 1024))
+	if err := validateRoleImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to invalid description.", err)
+	}
+
+	data.Description = ptrStr("description")
+	if err := validateRoleImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.", err)
 	}
 }
 
@@ -176,6 +422,19 @@ func TestImportValidateTeamImportData(t *testing.T) {
 	data.Description = ptrStr(strings.Repeat("abcdefghij ", 26))
 	if err := validateTeamImportData(&data); err == nil {
 		t.Fatal("Should have failed due to too long description.")
+	}
+
+	// Test with an empty scheme name.
+	data.Description = ptrStr("abcdefg")
+	data.Scheme = ptrStr("")
+	if err := validateTeamImportData(&data); err == nil {
+		t.Fatal("Should have failed due to empty scheme name.")
+	}
+
+	// Test with a valid scheme name.
+	data.Scheme = ptrStr("abcdefg")
+	if err := validateTeamImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with valid scheme name.")
 	}
 }
 
@@ -290,6 +549,19 @@ func TestImportValidateChannelImportData(t *testing.T) {
 	if err := validateChannelImportData(&data); err == nil {
 		t.Fatal("Should have failed due to too long purpose.")
 	}
+
+	// Test with an empty scheme name.
+	data.Purpose = ptrStr("abcdefg")
+	data.Scheme = ptrStr("")
+	if err := validateChannelImportData(&data); err == nil {
+		t.Fatal("Should have failed due to empty scheme name.")
+	}
+
+	// Test with a valid scheme name.
+	data.Scheme = ptrStr("abcdefg")
+	if err := validateChannelImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with valid scheme name.")
+	}
 }
 
 func TestImportValidateUserImportData(t *testing.T) {
@@ -370,7 +642,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	// Test a valid User with all fields populated.
 	testsDir, _ := utils.FindDir("tests")
 	data = UserImportData{
-		ProfileImage: ptrStr(testsDir + "test.png"),
+		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
 		Username:     ptrStr("bob"),
 		Email:        ptrStr("bob@example.com"),
 		AuthService:  ptrStr("ldap"),
@@ -411,10 +683,6 @@ func TestImportValidateUserImportData(t *testing.T) {
 	}
 	data.Position = ptrStr("The Boss")
 
-	data.Roles = ptrStr("system_user wat")
-	if err := validateUserImportData(&data); err == nil {
-		t.Fatal("Validation should have failed due to too unrecognised role.")
-	}
 	data.Roles = nil
 	if err := validateUserImportData(&data); err != nil {
 		t.Fatal("Validation failed but should have been valid.")
@@ -433,10 +701,6 @@ func TestImportValidateUserImportData(t *testing.T) {
 	checkError(t, validateUserImportData(&data))
 
 	data.NotifyProps.Desktop = ptrStr(model.USER_NOTIFY_ALL)
-	data.NotifyProps.DesktopDuration = ptrStr("invalid")
-	checkError(t, validateUserImportData(&data))
-
-	data.NotifyProps.DesktopDuration = ptrStr("5")
 	data.NotifyProps.DesktopSound = ptrStr("invalid")
 	checkError(t, validateUserImportData(&data))
 
@@ -478,12 +742,6 @@ func TestImportValidateUserTeamsImportData(t *testing.T) {
 	}
 	data[0].Name = ptrStr("teamname")
 
-	// Invalid Roles
-	data[0].Roles = ptrStr("wtf")
-	if err := validateUserTeamsImportData(&data); err == nil {
-		t.Fatal("Should have failed due to invalid roles.")
-	}
-
 	// Valid (nil roles)
 	data[0].Roles = nil
 	if err := validateUserTeamsImportData(&data); err != nil {
@@ -515,12 +773,6 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 		t.Fatal("Should have failed due to invalid name.")
 	}
 	data[0].Name = ptrStr("channelname")
-
-	// Invalid Roles
-	data[0].Roles = ptrStr("wtf")
-	if err := validateUserChannelsImportData(&data); err == nil {
-		t.Fatal("Should have failed due to invalid roles.")
-	}
 
 	// Valid (nil roles)
 	data[0].Roles = nil
@@ -643,12 +895,13 @@ func TestImportValidateReactionImportData(t *testing.T) {
 func TestImportValidateReplyImportData(t *testing.T) {
 	// Test with minimum required valid properties.
 	parentCreateAt := model.GetMillis() - 100
+	maxPostSize := 10000
 	data := ReplyImportData{
 		User:     ptrStr("username"),
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateReplyImportData(&data, parentCreateAt); err != nil {
+	if err := validateReplyImportData(&data, parentCreateAt, maxPostSize); err != nil {
 		t.Fatal("Validation failed but should have been valid.")
 	}
 
@@ -657,7 +910,7 @@ func TestImportValidateReplyImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+	if err := validateReplyImportData(&data, parentCreateAt, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -665,7 +918,7 @@ func TestImportValidateReplyImportData(t *testing.T) {
 		User:     ptrStr("username"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+	if err := validateReplyImportData(&data, parentCreateAt, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -673,17 +926,17 @@ func TestImportValidateReplyImportData(t *testing.T) {
 		User:    ptrStr("username"),
 		Message: ptrStr("message"),
 	}
-	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+	if err := validateReplyImportData(&data, parentCreateAt, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
 	// Test with invalid message.
 	data = ReplyImportData{
 		User:     ptrStr("username"),
-		Message:  ptrStr(strings.Repeat("1234567890", 500)),
+		Message:  ptrStr(strings.Repeat("0", maxPostSize+1)),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+	if err := validateReplyImportData(&data, parentCreateAt, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to too long message.")
 	}
 
@@ -693,7 +946,7 @@ func TestImportValidateReplyImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(0),
 	}
-	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+	if err := validateReplyImportData(&data, parentCreateAt, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to 0 create-at value.")
 	}
 
@@ -702,12 +955,13 @@ func TestImportValidateReplyImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(parentCreateAt - 100),
 	}
-	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+	if err := validateReplyImportData(&data, parentCreateAt, maxPostSize); err == nil {
 		t.Fatal("Should have failed due parent with newer create-at value.")
 	}
 }
 
 func TestImportValidatePostImportData(t *testing.T) {
+	maxPostSize := 10000
 
 	// Test with minimum required valid properties.
 	data := PostImportData{
@@ -717,7 +971,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validatePostImportData(&data); err != nil {
+	if err := validatePostImportData(&data, maxPostSize); err != nil {
 		t.Fatal("Validation failed but should have been valid.")
 	}
 
@@ -728,7 +982,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validatePostImportData(&data); err == nil {
+	if err := validatePostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -738,7 +992,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validatePostImportData(&data); err == nil {
+	if err := validatePostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -748,7 +1002,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validatePostImportData(&data); err == nil {
+	if err := validatePostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -758,7 +1012,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		User:     ptrStr("username"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validatePostImportData(&data); err == nil {
+	if err := validatePostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -768,7 +1022,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		User:    ptrStr("username"),
 		Message: ptrStr("message"),
 	}
-	if err := validatePostImportData(&data); err == nil {
+	if err := validatePostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -777,10 +1031,10 @@ func TestImportValidatePostImportData(t *testing.T) {
 		Team:     ptrStr("teamname"),
 		Channel:  ptrStr("channelname"),
 		User:     ptrStr("username"),
-		Message:  ptrStr(strings.Repeat("1234567890", 500)),
+		Message:  ptrStr(strings.Repeat("0", maxPostSize+1)),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validatePostImportData(&data); err == nil {
+	if err := validatePostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to too long message.")
 	}
 
@@ -792,7 +1046,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(0),
 	}
-	if err := validatePostImportData(&data); err == nil {
+	if err := validatePostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to 0 create-at value.")
 	}
 
@@ -816,7 +1070,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		Reactions: &reactions,
 		Replies:   &replies,
 	}
-	if err := validatePostImportData(&data); err != nil {
+	if err := validatePostImportData(&data, maxPostSize); err != nil {
 		t.Fatal("Should have succeeded.")
 	}
 }
@@ -932,6 +1186,7 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 }
 
 func TestImportValidateDirectPostImportData(t *testing.T) {
+	maxPostSize := 10000
 
 	// Test with minimum required valid properties.
 	data := DirectPostImportData{
@@ -943,7 +1198,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err != nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err != nil {
 		t.Fatal("Validation failed but should have been valid.")
 	}
 
@@ -953,7 +1208,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -965,7 +1220,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -977,7 +1232,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		User:     ptrStr("username"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -989,7 +1244,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		User:    ptrStr("username"),
 		Message: ptrStr("message"),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to missing required property.")
 	}
 
@@ -1000,7 +1255,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:        ptrStr("message"),
 		CreateAt:       ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to unsuitable number of members.")
 	}
 
@@ -1012,7 +1267,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to unsuitable number of members.")
 	}
 
@@ -1033,7 +1288,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to unsuitable number of members.")
 	}
 
@@ -1048,7 +1303,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err != nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err != nil {
 		t.Fatal("Validation failed but should have been valid.")
 	}
 
@@ -1059,10 +1314,10 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 		},
 		User:     ptrStr("username"),
-		Message:  ptrStr(strings.Repeat("1234567890", 500)),
+		Message:  ptrStr(strings.Repeat("0", maxPostSize+1)),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to too long message.")
 	}
 
@@ -1076,7 +1331,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(0),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Should have failed due to 0 create-at value.")
 	}
 
@@ -1096,7 +1351,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err == nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err == nil {
 		t.Fatal("Validation should have failed due to non-member flagged.")
 	}
 
@@ -1114,7 +1369,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := validateDirectPostImportData(&data); err != nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1145,14 +1400,318 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Replies:   &replies,
 	}
 
-	if err := validateDirectPostImportData(&data); err != nil {
+	if err := validateDirectPostImportData(&data, maxPostSize); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestImportImportScheme(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	// Mark the phase 2 permissions migration as completed.
+	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+
+	defer func() {
+		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	}()
+
+	// Try importing an invalid scheme in dryRun mode.
+	data := SchemeImportData{
+		Name:  ptrStr(model.NewId()),
+		Scope: ptrStr("team"),
+		DefaultTeamUserRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultTeamAdminRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultChannelUserRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultChannelAdminRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		Description: ptrStr("description"),
+	}
+
+	if err := th.App.ImportScheme(&data, true); err == nil {
+		t.Fatalf("Should have failed to import.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+		t.Fatalf("Scheme should not have imported.")
+	}
+
+	// Try importing a valid scheme in dryRun mode.
+	data.DisplayName = ptrStr("display name")
+
+	if err := th.App.ImportScheme(&data, true); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+		t.Fatalf("Scheme should not have imported.")
+	}
+
+	// Try importing an invalid scheme.
+	data.DisplayName = nil
+
+	if err := th.App.ImportScheme(&data, false); err == nil {
+		t.Fatalf("Should have failed to import.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+		t.Fatalf("Scheme should not have imported.")
+	}
+
+	// Try importing a valid scheme with all params set.
+	data.DisplayName = ptrStr("display name")
+
+	if err := th.App.ImportScheme(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
+		t.Fatalf("Failed to import scheme: %v", res.Err)
+	} else {
+		scheme := res.Data.(*model.Scheme)
+		assert.Equal(t, *data.Name, scheme.Name)
+		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
+		assert.Equal(t, *data.Description, scheme.Description)
+		assert.Equal(t, *data.Scope, scheme.Scope)
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+	}
+
+	// Try modifying all the fields and re-importing.
+	data.DisplayName = ptrStr("new display name")
+	data.Description = ptrStr("new description")
+
+	if err := th.App.ImportScheme(&data, false); err != nil {
+		t.Fatalf("Should have succeeded: %v", err)
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
+		t.Fatalf("Failed to import scheme: %v", res.Err)
+	} else {
+		scheme := res.Data.(*model.Scheme)
+		assert.Equal(t, *data.Name, scheme.Name)
+		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
+		assert.Equal(t, *data.Description, scheme.Description)
+		assert.Equal(t, *data.Scope, scheme.Scope)
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+	}
+
+	// Try changing the scope of the scheme and reimporting.
+	data.Scope = ptrStr("channel")
+
+	if err := th.App.ImportScheme(&data, false); err == nil {
+		t.Fatalf("Should have failed to import.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
+		t.Fatalf("Failed to import scheme: %v", res.Err)
+	} else {
+		scheme := res.Data.(*model.Scheme)
+		assert.Equal(t, *data.Name, scheme.Name)
+		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
+		assert.Equal(t, *data.Description, scheme.Description)
+		assert.Equal(t, "team", scheme.Scope)
+	}
+}
+
+func TestImportImportRole(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	// Try importing an invalid role in dryRun mode.
+	rid1 := model.NewId()
+	data := RoleImportData{
+		Name: &rid1,
+	}
+
+	if err := th.App.ImportRole(&data, true, false); err == nil {
+		t.Fatalf("Should have failed to import.")
+	}
+
+	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err == nil {
+		t.Fatalf("Role should not have imported.")
+	}
+
+	// Try importing the valid role in dryRun mode.
+	data.DisplayName = ptrStr("display name")
+
+	if err := th.App.ImportRole(&data, true, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err == nil {
+		t.Fatalf("Role should not have imported as we are in dry run mode.")
+	}
+
+	// Try importing an invalid role.
+	data.DisplayName = nil
+
+	if err := th.App.ImportRole(&data, false, false); err == nil {
+		t.Fatalf("Should have failed to import.")
+	}
+
+	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err == nil {
+		t.Fatalf("Role should not have imported.")
+	}
+
+	// Try importing a valid role with all params set.
+	data.DisplayName = ptrStr("display name")
+	data.Description = ptrStr("description")
+	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
+
+	if err := th.App.ImportRole(&data, false, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err != nil {
+		t.Fatalf("Should have found the imported role.")
+	} else {
+		role := res.Data.(*model.Role)
+		assert.Equal(t, *data.Name, role.Name)
+		assert.Equal(t, *data.DisplayName, role.DisplayName)
+		assert.Equal(t, *data.Description, role.Description)
+		assert.Equal(t, *data.Permissions, role.Permissions)
+		assert.False(t, role.BuiltIn)
+		assert.False(t, role.SchemeManaged)
+	}
+
+	// Try changing all the params and reimporting.
+	data.DisplayName = ptrStr("new display name")
+	data.Description = ptrStr("description")
+	data.Permissions = &[]string{"use_slash_commands"}
+
+	if err := th.App.ImportRole(&data, false, true); err != nil {
+		t.Fatalf("Should have succeeded. %v", err)
+	}
+
+	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err != nil {
+		t.Fatalf("Should have found the imported role.")
+	} else {
+		role := res.Data.(*model.Role)
+		assert.Equal(t, *data.Name, role.Name)
+		assert.Equal(t, *data.DisplayName, role.DisplayName)
+		assert.Equal(t, *data.Description, role.Description)
+		assert.Equal(t, *data.Permissions, role.Permissions)
+		assert.False(t, role.BuiltIn)
+		assert.True(t, role.SchemeManaged)
+	}
+
+	// Check that re-importing with only required fields doesn't update the others.
+	data2 := RoleImportData{
+		Name:        &rid1,
+		DisplayName: ptrStr("new display name again"),
+	}
+
+	if err := th.App.ImportRole(&data2, false, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err != nil {
+		t.Fatalf("Should have found the imported role.")
+	} else {
+		role := res.Data.(*model.Role)
+		assert.Equal(t, *data2.Name, role.Name)
+		assert.Equal(t, *data2.DisplayName, role.DisplayName)
+		assert.Equal(t, *data.Description, role.Description)
+		assert.Equal(t, *data.Permissions, role.Permissions)
+		assert.False(t, role.BuiltIn)
+		assert.False(t, role.SchemeManaged)
 	}
 }
 
 func TestImportImportTeam(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
+
+	// Mark the phase 2 permissions migration as completed.
+	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+
+	defer func() {
+		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	}()
+
+	scheme1 := th.SetupTeamScheme()
+	scheme2 := th.SetupTeamScheme()
 
 	// Check how many teams are in the database.
 	var teamsCount int64
@@ -1168,6 +1727,7 @@ func TestImportImportTeam(t *testing.T) {
 		Type:            ptrStr("XYZ"),
 		Description:     ptrStr("The team description."),
 		AllowOpenInvite: ptrBool(true),
+		Scheme:          &scheme1.Name,
 	}
 
 	// Try importing an invalid team in dryRun mode.
@@ -1182,13 +1742,7 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Check that no more teams are in the DB.
-	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		if r.Data.(int64) != teamsCount {
-			t.Fatalf("Teams got persisted in dry run mode.")
-		}
-	} else {
-		t.Fatalf("Failed to get team count.")
-	}
+	th.CheckTeamCount(t, teamsCount)
 
 	// Do an invalid team in apply mode, check db changes.
 	data.Type = ptrStr("XYZ")
@@ -1197,36 +1751,26 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Check that no more teams are in the DB.
-	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		if r.Data.(int64) != teamsCount {
-			t.Fatalf("Invalid team got persisted.")
-		}
-	} else {
-		t.Fatalf("Failed to get team count.")
-	}
+	th.CheckTeamCount(t, teamsCount)
 
 	// Do a valid team in apply mode, check db changes.
 	data.Type = ptrStr("O")
 	if err := th.App.ImportTeam(&data, false); err != nil {
-		t.Fatalf("Received an error importing valid team.")
+		t.Fatalf("Received an error importing valid team: %v", err)
 	}
 
 	// Check that one more team is in the DB.
-	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		if r.Data.(int64)-1 != teamsCount {
-			t.Fatalf("Team did not get saved in apply run mode. analytics=%v teamcount=%v", r.Data.(int64), teamsCount)
-		}
-	} else {
-		t.Fatalf("Failed to get team count.")
-	}
+	th.CheckTeamCount(t, teamsCount+1)
 
 	// Get the team and check that all the fields are correct.
 	if team, err := th.App.GetTeamByName(*data.Name); err != nil {
 		t.Fatalf("Failed to get team from database.")
 	} else {
-		if team.DisplayName != *data.DisplayName || team.Type != *data.Type || team.Description != *data.Description || team.AllowOpenInvite != *data.AllowOpenInvite {
-			t.Fatalf("Imported team properties do not match import data.")
-		}
+		assert.Equal(t, *data.DisplayName, team.DisplayName)
+		assert.Equal(t, *data.Type, team.Type)
+		assert.Equal(t, *data.Description, team.Description)
+		assert.Equal(t, *data.AllowOpenInvite, team.AllowOpenInvite)
+		assert.Equal(t, scheme1.Id, *team.SchemeId)
 	}
 
 	// Alter all the fields of that team (apart from unique identifier) and import again.
@@ -1234,6 +1778,7 @@ func TestImportImportTeam(t *testing.T) {
 	data.Type = ptrStr("P")
 	data.Description = ptrStr("The new description")
 	data.AllowOpenInvite = ptrBool(false)
+	data.Scheme = &scheme2.Name
 
 	// Check that the original number of teams are again in the DB (because this query doesn't include deleted).
 	data.Type = ptrStr("O")
@@ -1241,27 +1786,33 @@ func TestImportImportTeam(t *testing.T) {
 		t.Fatalf("Received an error importing updated valid team.")
 	}
 
-	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		if r.Data.(int64)-1 != teamsCount {
-			t.Fatalf("Team alterations did not get saved in apply run mode. analytics=%v teamcount=%v", r.Data.(int64), teamsCount)
-		}
-	} else {
-		t.Fatalf("Failed to get team count.")
-	}
+	th.CheckTeamCount(t, teamsCount+1)
 
 	// Get the team and check that all fields are correct.
 	if team, err := th.App.GetTeamByName(*data.Name); err != nil {
 		t.Fatalf("Failed to get team from database.")
 	} else {
-		if team.DisplayName != *data.DisplayName || team.Type != *data.Type || team.Description != *data.Description || team.AllowOpenInvite != *data.AllowOpenInvite {
-			t.Fatalf("Updated team properties do not match import data.")
-		}
+		assert.Equal(t, *data.DisplayName, team.DisplayName)
+		assert.Equal(t, *data.Type, team.Type)
+		assert.Equal(t, *data.Description, team.Description)
+		assert.Equal(t, *data.AllowOpenInvite, team.AllowOpenInvite)
+		assert.Equal(t, scheme2.Id, *team.SchemeId)
 	}
 }
 
 func TestImportImportChannel(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
+
+	// Mark the phase 2 permissions migration as completed.
+	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+
+	defer func() {
+		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	}()
+
+	scheme1 := th.SetupChannelScheme()
+	scheme2 := th.SetupChannelScheme()
 
 	// Import a Team.
 	teamName := model.NewId()
@@ -1290,19 +1841,14 @@ func TestImportImportChannel(t *testing.T) {
 		Type:        ptrStr("O"),
 		Header:      ptrStr("Channe Header"),
 		Purpose:     ptrStr("Channel Purpose"),
+		Scheme:      &scheme1.Name,
 	}
 	if err := th.App.ImportChannel(&data, true); err == nil {
 		t.Fatalf("Expected error due to invalid name.")
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != channelCount {
-			t.Fatalf("Channels got persisted in dry run mode.")
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	th.CheckChannelsCount(t, channelCount)
 
 	// Do a valid channel with a nonexistent team in dry-run mode.
 	data.Name = ptrStr("channelname")
@@ -1312,13 +1858,7 @@ func TestImportImportChannel(t *testing.T) {
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != channelCount {
-			t.Fatalf("Channels got persisted in dry run mode.")
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	th.CheckChannelsCount(t, channelCount)
 
 	// Do a valid channel in dry-run mode.
 	data.Team = &teamName
@@ -1327,13 +1867,7 @@ func TestImportImportChannel(t *testing.T) {
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != channelCount {
-			t.Fatalf("Channels got persisted in dry run mode.")
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	th.CheckChannelsCount(t, channelCount)
 
 	// Do an invalid channel in apply mode.
 	data.Name = nil
@@ -1342,29 +1876,17 @@ func TestImportImportChannel(t *testing.T) {
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != channelCount {
-			t.Fatalf("Invalid channel got persisted in apply mode.")
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	th.CheckChannelsCount(t, channelCount)
 
-	// Do a valid channel in apply mode with a nonexistant team.
+	// Do a valid channel in apply mode with a non-existent team.
 	data.Name = ptrStr("channelname")
 	data.Team = ptrStr(model.NewId())
 	if err := th.App.ImportChannel(&data, false); err == nil {
-		t.Fatalf("Expected error due to non-existant team (apply mode).")
+		t.Fatalf("Expected error due to non-existent team (apply mode).")
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != channelCount {
-			t.Fatalf("Invalid team channel got persisted in apply mode.")
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	th.CheckChannelsCount(t, channelCount)
 
 	// Do a valid channel in apply mode.
 	data.Team = &teamName
@@ -1372,22 +1894,19 @@ func TestImportImportChannel(t *testing.T) {
 		t.Fatalf("Expected success in apply mode: %v", err.Error())
 	}
 
-	// Check that no more channels are in the DB.
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != channelCount+1 {
-			t.Fatalf("Channels did not get persisted in apply mode: found %v expected %v + 1", r.Data.(int64), channelCount)
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	// Check that 1 more channel is in the DB.
+	th.CheckChannelsCount(t, channelCount+1)
 
 	// Get the Channel and check all the fields are correct.
-	if channel, err := th.App.GetChannelByName(*data.Name, team.Id); err != nil {
+	if channel, err := th.App.GetChannelByName(*data.Name, team.Id, false); err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	} else {
-		if channel.Name != *data.Name || channel.DisplayName != *data.DisplayName || channel.Type != *data.Type || channel.Header != *data.Header || channel.Purpose != *data.Purpose {
-			t.Fatalf("Imported team properties do not match Import Data.")
-		}
+		assert.Equal(t, *data.Name, channel.Name)
+		assert.Equal(t, *data.DisplayName, channel.DisplayName)
+		assert.Equal(t, *data.Type, channel.Type)
+		assert.Equal(t, *data.Header, channel.Header)
+		assert.Equal(t, *data.Purpose, channel.Purpose)
+		assert.Equal(t, scheme1.Id, *channel.SchemeId)
 	}
 
 	// Alter all the fields of that channel.
@@ -1395,26 +1914,24 @@ func TestImportImportChannel(t *testing.T) {
 	data.Type = ptrStr(model.CHANNEL_PRIVATE)
 	data.Header = ptrStr("New Header")
 	data.Purpose = ptrStr("New Purpose")
+	data.Scheme = &scheme2.Name
 	if err := th.App.ImportChannel(&data, false); err != nil {
 		t.Fatalf("Expected success in apply mode: %v", err.Error())
 	}
 
 	// Check channel count the same.
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != channelCount {
-			t.Fatalf("Updated channel did not get correctly persisted in apply mode.")
-		}
-	} else {
-		t.Fatalf("Failed to get channel count.")
-	}
+	th.CheckChannelsCount(t, channelCount)
 
 	// Get the Channel and check all the fields are correct.
-	if channel, err := th.App.GetChannelByName(*data.Name, team.Id); err != nil {
+	if channel, err := th.App.GetChannelByName(*data.Name, team.Id, false); err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	} else {
-		if channel.Name != *data.Name || channel.DisplayName != *data.DisplayName || channel.Type != *data.Type || channel.Header != *data.Header || channel.Purpose != *data.Purpose {
-			t.Fatalf("Updated team properties do not match Import Data.")
-		}
+		assert.Equal(t, *data.Name, channel.Name)
+		assert.Equal(t, *data.DisplayName, channel.DisplayName)
+		assert.Equal(t, *data.Type, channel.Type)
+		assert.Equal(t, *data.Header, channel.Header)
+		assert.Equal(t, *data.Purpose, channel.Purpose)
+		assert.Equal(t, scheme2.Id, *channel.SchemeId)
 	}
 
 }
@@ -1487,7 +2004,7 @@ func TestImportImportUser(t *testing.T) {
 	username := model.NewId()
 	testsDir, _ := utils.FindDir("tests")
 	data = UserImportData{
-		ProfileImage: ptrStr(testsDir + "test.png"),
+		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
 		Username:     &username,
 		Email:        ptrStr(model.NewId() + "@example.com"),
 		Nickname:     ptrStr(model.NewId()),
@@ -1543,7 +2060,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Alter all the fields of that user.
 	data.Email = ptrStr(model.NewId() + "@example.com")
-	data.ProfileImage = ptrStr(testsDir + "testgif.gif")
+	data.ProfileImage = ptrStr(filepath.Join(testsDir, "testgif.gif"))
 	data.AuthService = ptrStr("ldap")
 	data.AuthData = &username
 	data.Nickname = ptrStr(model.NewId())
@@ -1640,7 +2157,7 @@ func TestImportImportUser(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	channel, err := th.App.GetChannelByName(channelName, team.Id)
+	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	}
@@ -1942,7 +2459,7 @@ func TestImportImportUser(t *testing.T) {
 	data = UserImportData{
 		Username:           &username,
 		Email:              ptrStr(model.NewId() + "@example.com"),
-		Theme:              ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		Theme:              ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
 		UseMilitaryTime:    ptrStr("true"),
 		CollapsePreviews:   ptrStr("true"),
 		MessageDisplay:     ptrStr("compact"),
@@ -1970,7 +2487,7 @@ func TestImportImportUser(t *testing.T) {
 	data = UserImportData{
 		Username:           &username,
 		Email:              ptrStr(model.NewId() + "@example.com"),
-		Theme:              ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		Theme:              ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
 		UseMilitaryTime:    ptrStr("false"),
 		CollapsePreviews:   ptrStr("false"),
 		MessageDisplay:     ptrStr("clean"),
@@ -1992,7 +2509,6 @@ func TestImportImportUser(t *testing.T) {
 	// Set Notify Props
 	data.NotifyProps = &UserNotifyPropsImportData{
 		Desktop:          ptrStr(model.USER_NOTIFY_ALL),
-		DesktopDuration:  ptrStr("5"),
 		DesktopSound:     ptrStr("true"),
 		Email:            ptrStr("true"),
 		Mobile:           ptrStr(model.USER_NOTIFY_ALL),
@@ -2011,7 +2527,6 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_ALL)
-	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "5")
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "true")
 	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "true")
 	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_ALL)
@@ -2023,7 +2538,6 @@ func TestImportImportUser(t *testing.T) {
 	// Change Notify Props
 	data.NotifyProps = &UserNotifyPropsImportData{
 		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
-		DesktopDuration:  ptrStr("3"),
 		DesktopSound:     ptrStr("false"),
 		Email:            ptrStr("false"),
 		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
@@ -2042,7 +2556,6 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
-	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "3")
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
@@ -2059,7 +2572,6 @@ func TestImportImportUser(t *testing.T) {
 	}
 	data.NotifyProps = &UserNotifyPropsImportData{
 		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
-		DesktopDuration:  ptrStr("3"),
 		DesktopSound:     ptrStr("false"),
 		Email:            ptrStr("false"),
 		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
@@ -2079,7 +2591,6 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
-	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "3")
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
@@ -2087,6 +2598,126 @@ func TestImportImportUser(t *testing.T) {
 	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "false")
 	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ANY)
 	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
+
+	// Test importing a user with roles set to a team and a channel which are affected by an override scheme.
+	// The import subsystem should translate `channel_admin/channel_user/team_admin/team_user`
+	// to the appropriate scheme-managed-role booleans.
+
+	// Mark the phase 2 permissions migration as completed.
+	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+
+	defer func() {
+		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	}()
+
+	teamSchemeData := &SchemeImportData{
+		Name:        ptrStr(model.NewId()),
+		DisplayName: ptrStr(model.NewId()),
+		Scope:       ptrStr("team"),
+		DefaultTeamUserRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultTeamAdminRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultChannelUserRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultChannelAdminRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		Description: ptrStr("description"),
+	}
+
+	if err := th.App.ImportScheme(teamSchemeData, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	var teamScheme *model.Scheme
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*teamSchemeData.Name); res.Err != nil {
+		t.Fatalf("Failed to import scheme: %v", res.Err)
+	} else {
+		teamScheme = res.Data.(*model.Scheme)
+	}
+
+	teamData := &TeamImportData{
+		Name:            ptrStr(model.NewId()),
+		DisplayName:     ptrStr("Display Name"),
+		Type:            ptrStr("O"),
+		Description:     ptrStr("The team description."),
+		AllowOpenInvite: ptrBool(true),
+		Scheme:          &teamScheme.Name,
+	}
+	if err := th.App.ImportTeam(teamData, false); err != nil {
+		t.Fatalf("Import should have succeeded: %v", err.Error())
+	}
+	team, err = th.App.GetTeamByName(teamName)
+	if err != nil {
+		t.Fatalf("Failed to get team from database.")
+	}
+
+	channelData := &ChannelImportData{
+		Team:        &teamName,
+		Name:        ptrStr(model.NewId()),
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+		Header:      ptrStr("Channe Header"),
+		Purpose:     ptrStr("Channel Purpose"),
+	}
+	if err := th.App.ImportChannel(channelData, false); err != nil {
+		t.Fatalf("Import should have succeeded.")
+	}
+	channel, err = th.App.GetChannelByName(*channelData.Name, team.Id, false)
+	if err != nil {
+		t.Fatalf("Failed to get channel from database: %v", err.Error())
+	}
+
+	// Test with a valid team & valid channel name in apply mode.
+	userData := &UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+		Teams: &[]UserTeamImportData{
+			{
+				Name:  &team.Name,
+				Roles: ptrStr("team_user team_admin"),
+				Channels: &[]UserChannelImportData{
+					{
+						Name:  &channel.Name,
+						Roles: ptrStr("channel_admin channel_user"),
+					},
+				},
+			},
+		},
+	}
+	if err := th.App.ImportUser(userData, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	user, err = th.App.GetUserByUsername(*userData.Username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	teamMember, err := th.App.GetTeamMember(team.Id, user.Id)
+	if err != nil {
+		t.Fatalf("Failed to get the team member")
+	}
+	assert.True(t, teamMember.SchemeAdmin)
+	assert.True(t, teamMember.SchemeUser)
+	assert.Equal(t, "", teamMember.ExplicitRoles)
+
+	channelMember, err := th.App.GetChannelMember(channel.Id, user.Id)
+	if err != nil {
+		t.Fatalf("Failed to get the channel member")
+	}
+	assert.True(t, channelMember.SchemeAdmin)
+	assert.True(t, channelMember.SchemeUser)
+	assert.Equal(t, "", channelMember.ExplicitRoles)
+
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
@@ -2124,7 +2755,7 @@ func TestImportImportPost(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	channel, err := th.App.GetChannelByName(channelName, team.Id)
+	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	}
@@ -2513,7 +3144,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 	}
 	if err := th.App.ImportDirectChannel(&data, true); err != nil {
-		t.Fatalf("Expected success as cannot validate existance of channel members in dry run mode.")
+		t.Fatalf("Expected success as cannot validate existence of channel members in dry run mode.")
 	}
 
 	// Check that no more channels are in the DB.
@@ -2527,7 +3158,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 	}
 	if err := th.App.ImportDirectChannel(&data, true); err != nil {
-		t.Fatalf("Expected success as cannot validate existance of channel members in dry run mode.")
+		t.Fatalf("Expected success as cannot validate existence of channel members in dry run mode.")
 	}
 
 	// Check that no more channels are in the DB.
@@ -3131,17 +3762,28 @@ func TestImportImportLine(t *testing.T) {
 	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type direct_post with a nil direct_post.")
 	}
+
+	// Try import line with scheme type but nil scheme.
+	line.Type = "scheme"
+	if err := th.App.ImportLine(line, false); err == nil {
+		t.Fatalf("Expected an error when importing a line with type scheme with a nil scheme.")
+	}
 }
 
 func TestImportBulkImport(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+
 	teamName := model.NewId()
 	channelName := model.NewId()
 	username := model.NewId()
 	username2 := model.NewId()
 	username3 := model.NewId()
+	emojiName := model.NewId()
+	testsDir, _ := utils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
 
 	// Run bulk import with a valid 1 of everything.
 	data1 := `{"type": "version", "version": 1}
@@ -3150,11 +3792,12 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "user", "user": {"username": "` + username2 + `", "email": "` + username2 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "user", "user": {"username": "` + username3 + `", "email": "` + username3 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
-{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachments":[{"path": "` + testImage + `"}]}}
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `"]}}
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `", "` + username3 + `"]}}
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `"], "user": "` + username + `", "message": "Hello Direct Channel", "create_at": 123456789013}}
-{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789014}}`
+{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789014}}
+{"type": "emoji", "emoji": {"name": "` + emojiName + `", "image": "` + testImage + `"}}`
 
 	if err, line := th.App.BulkImport(strings.NewReader(data1), false, 2); err != nil || line != 0 {
 		t.Fatalf("BulkImport should have succeeded: %v, %v", err.Error(), line)
@@ -3194,5 +3837,263 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	data.Version = nil
 	if _, err := processImportDataFileVersionLine(data); err == nil {
 		t.Fatalf("Expected error on invalid version line.")
+	}
+}
+
+func TestImportValidateEmojiImportData(t *testing.T) {
+	data := EmojiImportData{
+		Name:  ptrStr("parrot"),
+		Image: ptrStr("/path/to/image"),
+	}
+
+	err := validateEmojiImportData(&data)
+	assert.Nil(t, err, "Validation should succeed")
+
+	*data.Name = "smiley"
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+
+	*data.Name = ""
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+
+	*data.Name = ""
+	*data.Image = ""
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+
+	*data.Image = "/path/to/image"
+	data.Name = nil
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+
+	data.Name = ptrStr("parrot")
+	data.Image = nil
+	err = validateEmojiImportData(&data)
+	assert.NotNil(t, err)
+}
+
+func TestImportImportEmoji(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+
+	testsDir, _ := utils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+
+	data := EmojiImportData{Name: ptrStr(model.NewId())}
+	err := th.App.ImportEmoji(&data, true)
+	assert.NotNil(t, err, "Invalid emoji should have failed dry run")
+
+	result := <-th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	assert.Nil(t, result.Data, "Emoji should not have been imported")
+
+	data.Image = ptrStr(testImage)
+	err = th.App.ImportEmoji(&data, true)
+	assert.Nil(t, err, "Valid emoji should have passed dry run")
+
+	data = EmojiImportData{Name: ptrStr(model.NewId())}
+	err = th.App.ImportEmoji(&data, false)
+	assert.NotNil(t, err, "Invalid emoji should have failed apply mode")
+
+	data.Image = ptrStr("non-existent-file")
+	err = th.App.ImportEmoji(&data, false)
+	assert.NotNil(t, err, "Emoji with bad image file should have failed apply mode")
+
+	data.Image = ptrStr(testImage)
+	err = th.App.ImportEmoji(&data, false)
+	assert.Nil(t, err, "Valid emoji should have succeeded apply mode")
+
+	result = <-th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	assert.NotNil(t, result.Data, "Emoji should have been imported")
+
+	err = th.App.ImportEmoji(&data, false)
+	assert.Nil(t, err, "Second run should have succeeded apply mode")
+}
+
+func TestImportAttachment(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	testsDir, _ := utils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+	invalidPath := "some-invalid-path"
+
+	userId := model.NewId()
+	data := AttachmentImportData{Path: &testImage}
+	_, err := th.App.ImportAttachment(&data, &model.Post{UserId: userId, ChannelId: "some-channel"}, "some-team", true)
+	assert.Nil(t, err, "sample run without errors")
+
+	attachments := GetAttachments(userId, th, t)
+	assert.Equal(t, len(attachments), 1)
+
+	data = AttachmentImportData{Path: &invalidPath}
+	_, err = th.App.ImportAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team", true)
+	assert.NotNil(t, err, "should have failed when opening the file")
+	assert.Equal(t, err.Id, "app.import.attachment.bad_file.error")
+}
+
+func TestImportPostAndRepliesWithAttachments(t *testing.T) {
+
+	th := Setup()
+	defer th.TearDown()
+
+	// Create a Team.
+	teamName := model.NewId()
+	th.App.ImportTeam(&TeamImportData{
+		Name:        &teamName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	team, err := th.App.GetTeamByName(teamName)
+	if err != nil {
+		t.Fatalf("Failed to get team from database.")
+	}
+
+	// Create a Channel.
+	channelName := model.NewId()
+	th.App.ImportChannel(&ChannelImportData{
+		Team:        &teamName,
+		Name:        &channelName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	_, err = th.App.GetChannelByName(channelName, team.Id, false)
+	if err != nil {
+		t.Fatalf("Failed to get channel from database.")
+	}
+
+	// Create a user3.
+	username := model.NewId()
+	th.App.ImportUser(&UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user3, err := th.App.GetUserByUsername(username)
+	if err != nil {
+		t.Fatalf("Failed to get user3 from database.")
+	}
+
+	username2 := model.NewId()
+	th.App.ImportUser(&UserImportData{
+		Username: &username2,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user4, err := th.App.GetUserByUsername(username2)
+	if err != nil {
+		t.Fatalf("Failed to get user3 from database.")
+	}
+
+	// Post with attachments.
+	time := model.GetMillis()
+	attachmentsPostTime := time
+	attachmentsReplyTime := time + 1
+	testsDir, _ := utils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
+	data := &PostImportData{
+		Team:        &teamName,
+		Channel:     &channelName,
+		User:        &username,
+		Message:     ptrStr("Message with reply"),
+		CreateAt:    &attachmentsPostTime,
+		Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
+		Replies: &[]ReplyImportData{{
+			User:        &user4.Username,
+			Message:     ptrStr("Message reply"),
+			CreateAt:    &attachmentsReplyTime,
+			Attachments: &[]AttachmentImportData{{Path: &testImage}},
+		}},
+	}
+
+	if err := th.App.ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+
+	attachments := GetAttachments(user3.Id, th, t)
+	assert.Equal(t, len(attachments), 2)
+	assert.Contains(t, attachments[0].Path, team.Id)
+	assert.Contains(t, attachments[1].Path, team.Id)
+	AssertFileIdsInPost(attachments, th, t)
+
+	attachments = GetAttachments(user4.Id, th, t)
+	assert.Equal(t, len(attachments), 1)
+	assert.Contains(t, attachments[0].Path, team.Id)
+	AssertFileIdsInPost(attachments, th, t)
+
+	// Reply with Attachments in Direct Post
+
+	// Create direct post users.
+
+	username3 := model.NewId()
+	th.App.ImportUser(&UserImportData{
+		Username: &username3,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user3, err = th.App.GetUserByUsername(username3)
+	if err != nil {
+		t.Fatalf("Failed to get user3 from database.")
+	}
+
+	username4 := model.NewId()
+	th.App.ImportUser(&UserImportData{
+		Username: &username4,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+
+	user4, err = th.App.GetUserByUsername(username4)
+	if err != nil {
+		t.Fatalf("Failed to get user3 from database.")
+	}
+
+	directImportData := &DirectPostImportData{
+		ChannelMembers: &[]string{
+			user3.Username,
+			user4.Username,
+		},
+		User:     &user3.Username,
+		Message:  ptrStr("Message with Replies"),
+		CreateAt: ptrInt64(model.GetMillis()),
+		Replies: &[]ReplyImportData{{
+			User:        &user4.Username,
+			Message:     ptrStr("Message reply with attachment"),
+			CreateAt:    ptrInt64(model.GetMillis()),
+			Attachments: &[]AttachmentImportData{{Path: &testImage}},
+		}},
+	}
+
+	if err := th.App.ImportDirectPost(directImportData, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+
+	attachments = GetAttachments(user4.Id, th, t)
+	assert.Equal(t, len(attachments), 1)
+	assert.Contains(t, attachments[0].Path, "noteam")
+	AssertFileIdsInPost(attachments, th, t)
+
+}
+
+func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileInfo {
+	if result := <-th.App.Srv.Store.FileInfo().GetForUser(userId); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		return result.Data.([]*model.FileInfo)
+	}
+	return nil
+}
+
+func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
+	postId := files[0].PostId
+	assert.NotNil(t, postId)
+
+	if result := <-th.App.Srv.Store.Post().GetPostsByIds([]string{postId}); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		assert.Equal(t, len(posts), 1)
+		for _, file := range files {
+			assert.Contains(t, posts[0].FileIds, file.Id)
+		}
 	}
 }

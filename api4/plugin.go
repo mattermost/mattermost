@@ -8,7 +8,7 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -17,17 +17,17 @@ const (
 )
 
 func (api *API) InitPlugin() {
-	l4g.Debug("EXPERIMENTAL: Initializing plugin api")
+	mlog.Debug("EXPERIMENTAL: Initializing plugin api")
 
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(uploadPlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
 
-	api.BaseRoutes.Plugin.Handle("/activate", api.ApiSessionRequired(activatePlugin)).Methods("POST")
-	api.BaseRoutes.Plugin.Handle("/deactivate", api.ApiSessionRequired(deactivatePlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/statuses", api.ApiSessionRequired(getPluginStatuses)).Methods("GET")
+	api.BaseRoutes.Plugin.Handle("/enable", api.ApiSessionRequired(enablePlugin)).Methods("POST")
+	api.BaseRoutes.Plugin.Handle("/disable", api.ApiSessionRequired(disablePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
-
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -66,7 +66,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	manifest, unpackErr := c.App.InstallPlugin(file)
+	manifest, unpackErr := c.App.InstallPlugin(file, false)
 
 	if unpackErr != nil {
 		c.Err = unpackErr
@@ -97,6 +97,26 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(response.ToJson()))
 }
 
+func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("getPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	response, err := c.App.GetClusterPluginStatuses()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(response.ToJson()))
+}
+
 func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePluginId()
 	if c.Err != nil {
@@ -104,7 +124,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !*c.App.Config().PluginSettings.Enable {
-		c.Err = model.NewAppError("getPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("removePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -144,7 +164,7 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.ManifestListToJson(clientManifests)))
 }
 
-func activatePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePluginId()
 	if c.Err != nil {
 		return
@@ -168,7 +188,7 @@ func activatePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func deactivatePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePluginId()
 	if c.Err != nil {
 		return

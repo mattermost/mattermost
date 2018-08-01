@@ -13,8 +13,11 @@ import (
 
 	"encoding/base64"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -67,14 +70,14 @@ func TestCreateTeam(t *testing.T) {
 	_, resp = Client.CreateTeam(rteam)
 	CheckUnauthorizedStatus(t, resp)
 
-	// Update permission
-	enableTeamCreation := th.App.Config().TeamSettings.EnableTeamCreation
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableTeamCreation = enableTeamCreation })
-		th.App.SetDefaultRolesBasedOnConfig()
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableTeamCreation = false })
-	th.App.SetDefaultRolesBasedOnConfig()
+
+	th.RemovePermissionFromRole(model.PERMISSION_CREATE_TEAM.Id, model.SYSTEM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_CREATE_TEAM.Id, model.SYSTEM_ADMIN_ROLE_ID)
 
 	th.LoginBasic()
 	_, resp = Client.CreateTeam(team)
@@ -537,22 +540,30 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
 	team, _ = Client.CreateTeam(team)
 
+	enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPITeamDeletion = &enableAPITeamDeletion })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = false })
+
+	// Does not error when deletion is disabled, just soft deletes
 	ok, resp := Client.PermanentDeleteTeam(team.Id)
 	CheckNoError(t, resp)
+	assert.True(t, ok)
 
-	if !ok {
-		t.Fatal("should have returned true")
-	}
-
-	// The team is deleted in the background, its only soft deleted at this
-	// time
 	rteam, err := th.App.GetTeam(team.Id)
-	if err != nil {
-		t.Fatal("should have returned archived team")
-	}
-	if rteam.DeleteAt == 0 {
-		t.Fatal("should have not set to zero")
-	}
+	assert.Nil(t, err)
+	assert.True(t, rteam.DeleteAt > 0)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = true })
+
+	ok, resp = Client.PermanentDeleteTeam(team.Id)
+	CheckNoError(t, resp)
+	assert.True(t, ok)
+
+	_, err = th.App.GetTeam(team.Id)
+	assert.NotNil(t, err)
 
 	ok, resp = Client.PermanentDeleteTeam("junk")
 	CheckBadRequestStatus(t, resp)
@@ -569,6 +580,10 @@ func TestGetAllTeams(t *testing.T) {
 
 	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
 	_, resp := Client.CreateTeam(team)
+	CheckNoError(t, resp)
+
+	team2 := &model.Team{DisplayName: "Name2", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	_, resp = Client.CreateTeam(team2)
 	CheckNoError(t, resp)
 
 	rrteams, resp := Client.GetAllTeams("", 0, 1)
@@ -613,6 +628,17 @@ func TestGetAllTeams(t *testing.T) {
 
 	if len(rrteams2) != 0 {
 		t.Fatal("wrong number of teams - should be 0")
+	}
+
+	rrteams, resp = Client.GetAllTeams("", 0, 2)
+	CheckNoError(t, resp)
+	rrteams2, resp = Client.GetAllTeams("", 1, 2)
+	CheckNoError(t, resp)
+
+	for _, t1 := range rrteams {
+		for _, t2 := range rrteams2 {
+			assert.NotEqual(t, t1.Id, t2.Id, "different pages should not have the same teams")
+		}
 	}
 
 	Client.Logout()
@@ -1144,6 +1170,17 @@ func TestGetTeamMembers(t *testing.T) {
 		t.Fatal("should be no member")
 	}
 
+	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 2, "")
+	CheckNoError(t, resp)
+	rmembers2, resp := Client.GetTeamMembers(team.Id, 1, 2, "")
+	CheckNoError(t, resp)
+
+	for _, tm1 := range rmembers {
+		for _, tm2 := range rmembers2 {
+			assert.NotEqual(t, tm1.UserId+tm1.TeamId, tm2.UserId+tm2.TeamId, "different pages should not have the same members")
+		}
+	}
+
 	_, resp = Client.GetTeamMembers("junk", 0, 100, "")
 	CheckBadRequestStatus(t, resp)
 
@@ -1250,7 +1287,7 @@ func TestAddTeamMember(t *testing.T) {
 	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 	if resp.Error == nil {
-		t.Fatalf("Error is nhul")
+		t.Fatalf("Error is nil")
 	}
 	Client.Logout()
 
@@ -1292,31 +1329,18 @@ func TestAddTeamMember(t *testing.T) {
 
 	Client.Logout()
 
-	// Check effects of config and license changes.
-	restrictTeamInvite := *th.App.Config().TeamSettings.RestrictTeamInvite
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite })
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-		th.App.SetDefaultRolesBasedOnConfig()
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
 
 	// Set the config so that only team admins can add a user to a team.
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
-	th.App.SetDefaultRolesBasedOnConfig()
-	th.LoginBasic()
+	th.AddPermissionToRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_USER_ROLE_ID)
 
-	// Test without the EE license to see that the permission restriction is ignored.
-	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
-	CheckNoError(t, resp)
-
-	// Add an EE license.
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
-	th.App.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
 	// Check that a regular user can't add someone to the team.
@@ -1326,61 +1350,36 @@ func TestAddTeamMember(t *testing.T) {
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
-	th.App.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
 	// Should work as a team admin.
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
-	// Change permission level to System Admin
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN })
-	th.App.SetDefaultRolesBasedOnConfig()
+	// Change permission level to team user
+	th.AddPermissionToRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
-	// Should not work as team admin.
-	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
-	CheckForbiddenStatus(t, resp)
-
-	// Should work as system admin.
-	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
-	CheckNoError(t, resp)
-
-	// Change permission level to All
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL })
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
-	th.App.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
 	// Should work as a regular user.
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
-	// Reset config and license.
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite })
-	utils.SetIsLicensed(isLicensed)
-	utils.SetLicense(license)
-	th.App.SetDefaultRolesBasedOnConfig()
-	th.LoginBasic()
-
-	// by hash and data
+	// by token
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	dataObject := make(map[string]string)
-	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis())
-	dataObject["id"] = team.Id
+	token := model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"teamId": team.Id}),
+	)
+	<-th.App.Srv.Store.Token().Save(token)
 
-	data := model.MapToJson(dataObject)
-	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1395,36 +1394,42 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMemberFromInvite("junk", data, "")
+	if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+		t.Fatal("The token must be deleted after be used")
+	}
+
+	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
 
-	_, resp = Client.AddTeamMemberFromInvite(hashed, "junk", "")
-	CheckBadRequestStatus(t, resp)
+	// expired token of more than 50 hours
+	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	token.CreateAt = model.GetMillis() - 1000*60*60*50
+	<-th.App.Srv.Store.Token().Save(token)
 
-	// expired data of more than 50 hours
-	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
-	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
-
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
+	th.App.DeleteToken(token)
 
 	// invalid team id
-	dataObject["id"] = GenerateTestId()
-	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
+	testId := GenerateTestId()
+	token = model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"teamId": testId}),
+	)
+	<-th.App.Srv.Store.Token().Save(token)
 
-	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
-	CheckBadRequestStatus(t, resp)
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
+	CheckNotFoundStatus(t, resp)
+	th.App.DeleteToken(token)
 
 	// by invite_id
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	tm, resp = Client.AddTeamMemberFromInvite("", "", team.InviteId)
+	tm, resp = Client.AddTeamMemberFromInvite("", team.InviteId)
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -1439,7 +1444,7 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMemberFromInvite("", "", "junk")
+	tm, resp = Client.AddTeamMemberFromInvite("", "junk")
 	CheckNotFoundStatus(t, resp)
 
 	if tm != nil {
@@ -1506,31 +1511,18 @@ func TestAddTeamMembers(t *testing.T) {
 
 	Client.Logout()
 
-	// Check effects of config and license changes.
-	restrictTeamInvite := *th.App.Config().TeamSettings.RestrictTeamInvite
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite })
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-		th.App.SetDefaultRolesBasedOnConfig()
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
 
 	// Set the config so that only team admins can add a user to a team.
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
-	th.App.SetDefaultRolesBasedOnConfig()
-	th.LoginBasic()
+	th.AddPermissionToRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_USER_ROLE_ID)
 
-	// Test without the EE license to see that the permission restriction is ignored.
-	_, resp = Client.AddTeamMembers(team.Id, userList)
-	CheckNoError(t, resp)
-
-	// Add an EE license.
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
-	th.App.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
 	// Check that a regular user can't add someone to the team.
@@ -1540,37 +1532,20 @@ func TestAddTeamMembers(t *testing.T) {
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
-	th.App.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
 	// Should work as a team admin.
 	_, resp = Client.AddTeamMembers(team.Id, userList)
 	CheckNoError(t, resp)
 
-	// Change permission level to System Admin
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN })
-	th.App.SetDefaultRolesBasedOnConfig()
+	// Change permission level to team user
+	th.AddPermissionToRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_INVITE_USER.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
-	// Should not work as team admin.
-	_, resp = Client.AddTeamMembers(team.Id, userList)
-	CheckForbiddenStatus(t, resp)
-
-	// Should work as system admin.
-	_, resp = th.SystemAdminClient.AddTeamMembers(team.Id, userList)
-	CheckNoError(t, resp)
-
-	// Change permission level to All
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL })
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
-	th.App.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -1705,7 +1680,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// user 1 (team admin) tries to demote system admin (not member of a team)
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
@@ -1714,7 +1689,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	// Note from API v3
 	// Note to anyone who thinks this (above) test is wrong:
 	// This operation will not affect the system admin's permissions because they have global access to all teams.
-	// Their team level permissions are irrelavent. A team admin should be able to manage team level permissions.
+	// Their team level permissions are irrelevant. A team admin should be able to manage team level permissions.
 
 	// System admins should be able to manipulate permission no matter what their team level permissions are.
 	// system admin promotes user 2
@@ -1731,7 +1706,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// user 1 (team admin) tries to promote a random user
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TEAM_ADMIN)
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "junk")
@@ -1740,6 +1715,81 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	// user 1 (team admin) demotes himself
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_MEMBER)
 	CheckNoError(t, resp)
+}
+
+func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	SystemAdminClient := th.SystemAdminClient
+	th.LoginBasic()
+
+	s1 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  false,
+	}
+	_, r1 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s1)
+	CheckNoError(t, r1)
+
+	tm1, rtm1 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm1)
+	assert.Equal(t, false, tm1.SchemeUser)
+	assert.Equal(t, false, tm1.SchemeAdmin)
+
+	s2 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  true,
+	}
+	_, r2 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s2)
+	CheckNoError(t, r2)
+
+	tm2, rtm2 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm2)
+	assert.Equal(t, true, tm2.SchemeUser)
+	assert.Equal(t, false, tm2.SchemeAdmin)
+
+	s3 := &model.SchemeRoles{
+		SchemeAdmin: true,
+		SchemeUser:  false,
+	}
+	_, r3 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s3)
+	CheckNoError(t, r3)
+
+	tm3, rtm3 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm3)
+	assert.Equal(t, false, tm3.SchemeUser)
+	assert.Equal(t, true, tm3.SchemeAdmin)
+
+	s4 := &model.SchemeRoles{
+		SchemeAdmin: true,
+		SchemeUser:  true,
+	}
+	_, r4 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s4)
+	CheckNoError(t, r4)
+
+	tm4, rtm4 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm4)
+	assert.Equal(t, true, tm4.SchemeUser)
+	assert.Equal(t, true, tm4.SchemeAdmin)
+
+	_, resp := SystemAdminClient.UpdateTeamMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, model.NewId(), s4)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles("ASDF", th.BasicUser.Id, s4)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, "ASDF", s4)
+	CheckBadRequestStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = th.Client.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s4)
+	CheckForbiddenStatus(t, resp)
+
+	SystemAdminClient.Logout()
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, s4)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetMyTeamsUnread(t *testing.T) {
@@ -1890,6 +1940,20 @@ func TestInviteUsersToTeam(t *testing.T) {
 	utils.DeleteMailBox(user1)
 	utils.DeleteMailBox(user2)
 
+	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
+	restrictCreationToDomains := th.App.Config().TeamSettings.RestrictCreationToDomains
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableEmailInvitations = &enableEmailInvitations })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+	_, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+	if resp.Error == nil {
+		t.Fatal("Should be disabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 	okMsg, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	CheckNoError(t, resp)
 	if !okMsg {
@@ -1929,10 +1993,6 @@ func TestInviteUsersToTeam(t *testing.T) {
 		}
 	}
 
-	restrictCreationToDomains := th.App.Config().TeamSettings.RestrictCreationToDomains
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains })
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = "@example.com" })
 
 	err := th.App.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
@@ -1972,4 +2032,192 @@ func TestGetTeamInviteInfo(t *testing.T) {
 
 	_, resp = Client.GetTeamInviteInfo("junk")
 	CheckNotFoundStatus(t, resp)
+}
+
+func TestSetTeamIcon(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	data, err := readTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	th.LoginTeamAdmin()
+
+	ok, resp := Client.SetTeamIcon(team.Id, data)
+	if !ok {
+		t.Fatal(resp.Error)
+	}
+	CheckNoError(t, resp)
+
+	ok, resp = Client.SetTeamIcon(model.NewId(), data)
+	if ok {
+		t.Fatal("Should return false, set team icon not allowed")
+	}
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
+
+	_, resp = Client.SetTeamIcon(team.Id, data)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	Client.Logout()
+
+	_, resp = Client.SetTeamIcon(team.Id, data)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	teamBefore, err := th.App.GetTeam(team.Id)
+	require.Nil(t, err)
+
+	_, resp = th.SystemAdminClient.SetTeamIcon(team.Id, data)
+	CheckNoError(t, resp)
+
+	teamAfter, err := th.App.GetTeam(team.Id)
+	require.Nil(t, err)
+	assert.True(t, teamBefore.LastTeamIconUpdate < teamAfter.LastTeamIconUpdate, "LastTeamIconUpdate should have been updated for team")
+
+	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}
+	if err := th.cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGetTeamIcon(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	// should always fail because no initial image and no auto creation
+	_, resp := Client.GetTeamIcon(team.Id, "")
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.GetTeamIcon(team.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestRemoveTeamIcon(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	th.LoginTeamAdmin()
+	data, _ := readTestFile("test.png")
+	Client.SetTeamIcon(team.Id, data)
+
+	_, resp := Client.RemoveTeamIcon(team.Id)
+	CheckNoError(t, resp)
+	teamAfter, _ := th.App.GetTeam(team.Id)
+	if teamAfter.LastTeamIconUpdate != 0 {
+		t.Fatal("should update LastTeamIconUpdate to 0")
+	}
+
+	Client.SetTeamIcon(team.Id, data)
+
+	_, resp = th.SystemAdminClient.RemoveTeamIcon(team.Id)
+	CheckNoError(t, resp)
+	teamAfter, _ = th.App.GetTeam(team.Id)
+	if teamAfter.LastTeamIconUpdate != 0 {
+		t.Fatal("should update LastTeamIconUpdate to 0")
+	}
+
+	Client.SetTeamIcon(team.Id, data)
+	Client.Logout()
+
+	_, resp = Client.RemoveTeamIcon(team.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic()
+	_, resp = Client.RemoveTeamIcon(team.Id)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestUpdateTeamScheme(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team, _ = th.SystemAdminClient.CreateTeam(team)
+
+	teamScheme := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme, _ = th.SystemAdminClient.CreateScheme(teamScheme)
+	channelScheme := &model.Scheme{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Description: "Some description",
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme, _ = th.SystemAdminClient.CreateScheme(channelScheme)
+
+	// Test the setup/base case.
+	_, resp := th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckNoError(t, resp)
+
+	// Test the return to default scheme
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "")
+	CheckNoError(t, resp)
+
+	// Test various invalid team and scheme id combinations.
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, "x")
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme("x", teamScheme.Id)
+	CheckBadRequestStatus(t, resp)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme("x", "x")
+	CheckBadRequestStatus(t, resp)
+
+	// Test that permissions are required.
+	_, resp = th.Client.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// Test that a license is requried.
+	th.App.SetLicense(nil)
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckNotImplementedStatus(t, resp)
+	th.App.SetLicense(model.NewTestLicense(""))
+
+	// Test an invalid scheme scope.
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
+	fmt.Printf("resp: %+v\n", resp)
+	CheckBadRequestStatus(t, resp)
+
+	// Test that an unauthenticated user gets rejected.
+	th.SystemAdminClient.Logout()
+	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
+	CheckUnauthorizedStatus(t, resp)
 }

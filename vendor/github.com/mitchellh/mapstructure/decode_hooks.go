@@ -115,6 +115,25 @@ func StringToTimeDurationHookFunc() DecodeHookFunc {
 	}
 }
 
+// StringToTimeHookFunc returns a DecodeHookFunc that converts
+// strings to time.Time.
+func StringToTimeHookFunc(layout string) DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{}) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+		if t != reflect.TypeOf(time.Time{}) {
+			return data, nil
+		}
+
+		// Convert it by parsing
+		return time.Parse(layout, data.(string))
+	}
+}
+
 // WeaklyTypedHook is a DecodeHookFunc which adds support for weak typing to
 // the decoder.
 //

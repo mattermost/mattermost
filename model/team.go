@@ -26,19 +26,21 @@ const (
 )
 
 type Team struct {
-	Id              string `json:"id"`
-	CreateAt        int64  `json:"create_at"`
-	UpdateAt        int64  `json:"update_at"`
-	DeleteAt        int64  `json:"delete_at"`
-	DisplayName     string `json:"display_name"`
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	Email           string `json:"email"`
-	Type            string `json:"type"`
-	CompanyName     string `json:"company_name"`
-	AllowedDomains  string `json:"allowed_domains"`
-	InviteId        string `json:"invite_id"`
-	AllowOpenInvite bool   `json:"allow_open_invite"`
+	Id                 string  `json:"id"`
+	CreateAt           int64   `json:"create_at"`
+	UpdateAt           int64   `json:"update_at"`
+	DeleteAt           int64   `json:"delete_at"`
+	DisplayName        string  `json:"display_name"`
+	Name               string  `json:"name"`
+	Description        string  `json:"description"`
+	Email              string  `json:"email"`
+	Type               string  `json:"type"`
+	CompanyName        string  `json:"company_name"`
+	AllowedDomains     string  `json:"allowed_domains"`
+	InviteId           string  `json:"invite_id"`
+	AllowOpenInvite    bool    `json:"allow_open_invite"`
+	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
+	SchemeId           *string `json:"scheme_id"`
 }
 
 type TeamPatch struct {
@@ -54,14 +56,9 @@ type Invites struct {
 }
 
 func InvitesFromJson(data io.Reader) *Invites {
-	decoder := json.NewDecoder(data)
-	var o Invites
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Invites
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Invites) ToEmailList() []string {
@@ -73,72 +70,41 @@ func (o *Invites) ToEmailList() []string {
 }
 
 func (o *Invites) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *Team) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func TeamFromJson(data io.Reader) *Team {
-	decoder := json.NewDecoder(data)
-	var o Team
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Team
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func TeamMapToJson(u map[string]*Team) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func TeamMapFromJson(data io.Reader) map[string]*Team {
-	decoder := json.NewDecoder(data)
 	var teams map[string]*Team
-	err := decoder.Decode(&teams)
-	if err == nil {
-		return teams
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&teams)
+	return teams
 }
 
 func TeamListToJson(t []*Team) string {
-	b, err := json.Marshal(t)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(t)
+	return string(b)
 }
 
 func TeamListFromJson(data io.Reader) []*Team {
-	decoder := json.NewDecoder(data)
 	var teams []*Team
-	err := decoder.Decode(&teams)
-	if err == nil {
-		return teams
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&teams)
+	return teams
 }
 
 func (o *Team) Etag() string {
@@ -276,15 +242,6 @@ func CleanTeamName(s string) string {
 func (o *Team) Sanitize() {
 	o.Email = ""
 	o.AllowedDomains = ""
-}
-
-func (o *Team) SanitizeForNotLoggedIn() {
-	o.Email = ""
-	o.AllowedDomains = ""
-	o.CompanyName = ""
-	if !o.AllowOpenInvite {
-		o.InviteId = ""
-	}
 }
 
 func (t *Team) Patch(patch *TeamPatch) {

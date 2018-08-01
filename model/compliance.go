@@ -38,12 +38,8 @@ type Compliance struct {
 type Compliances []Compliance
 
 func (o *Compliance) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (me *Compliance) PreSave() {
@@ -56,7 +52,7 @@ func (me *Compliance) PreSave() {
 	}
 
 	me.Count = 0
-	me.Emails = strings.ToLower(me.Emails)
+	me.Emails = NormalizeEmail(me.Emails)
 	me.Keywords = strings.ToLower(me.Keywords)
 
 	me.CreateAt = GetMillis()
@@ -103,14 +99,9 @@ func (me *Compliance) IsValid() *AppError {
 }
 
 func ComplianceFromJson(data io.Reader) *Compliance {
-	decoder := json.NewDecoder(data)
-	var o Compliance
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Compliance
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o Compliances) ToJson() string {
@@ -122,12 +113,7 @@ func (o Compliances) ToJson() string {
 }
 
 func CompliancesFromJson(data io.Reader) Compliances {
-	decoder := json.NewDecoder(data)
 	var o Compliances
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

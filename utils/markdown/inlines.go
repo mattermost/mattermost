@@ -21,7 +21,8 @@ func (inlineBase) IsInline() bool { return true }
 type Text struct {
 	inlineBase
 
-	Text string
+	Text  string
+	Range Range
 }
 
 type CodeSpan struct {
@@ -78,6 +79,14 @@ type ReferenceLink struct {
 
 type ReferenceImage struct {
 	ReferenceLinkOrImage
+}
+
+type Autolink struct {
+	inlineBase
+
+	Children []Inline
+
+	Link string
 }
 
 type delimiterType int
@@ -141,8 +150,10 @@ func (p *inlineParser) parseBackticks() {
 		return
 	}
 	p.position += len(opening)
+	absPos := relativeToAbsolutePosition(p.ranges, p.position-len(opening))
 	p.inlines = append(p.inlines, &Text{
-		Text: opening,
+		Text:  opening,
+		Range: Range{absPos, absPos + len(opening)},
 	})
 }
 
@@ -162,32 +173,48 @@ func (p *inlineParser) parseLineEnding() {
 
 func (p *inlineParser) parseEscapeCharacter() {
 	if p.position+1 < len(p.raw) && isEscapableByte(p.raw[p.position+1]) {
+		absPos := relativeToAbsolutePosition(p.ranges, p.position+1)
 		p.inlines = append(p.inlines, &Text{
-			Text: string(p.raw[p.position+1]),
+			Text:  string(p.raw[p.position+1]),
+			Range: Range{absPos, absPos + len(string(p.raw[p.position+1]))},
 		})
 		p.position += 2
 	} else {
+		absPos := relativeToAbsolutePosition(p.ranges, p.position)
 		p.inlines = append(p.inlines, &Text{
-			Text: `\`,
+			Text:  `\`,
+			Range: Range{absPos, absPos + 1},
 		})
 		p.position++
 	}
 }
 
 func (p *inlineParser) parseText() {
-	if next := strings.IndexAny(p.raw[p.position:], "\r\n\\`&![]"); next == -1 {
+	if next := strings.IndexAny(p.raw[p.position:], "\r\n\\`&![]wW:"); next == -1 {
+		absPos := relativeToAbsolutePosition(p.ranges, p.position)
 		p.inlines = append(p.inlines, &Text{
-			Text: strings.TrimRightFunc(p.raw[p.position:], isWhitespace),
+			Text:  strings.TrimRightFunc(p.raw[p.position:], isWhitespace),
+			Range: Range{absPos, absPos + len(p.raw[p.position:])},
 		})
 		p.position = len(p.raw)
 	} else {
+		absPos := relativeToAbsolutePosition(p.ranges, p.position)
 		if p.raw[p.position+next] == '\r' || p.raw[p.position+next] == '\n' {
+			s := strings.TrimRightFunc(p.raw[p.position:p.position+next], isWhitespace)
 			p.inlines = append(p.inlines, &Text{
-				Text: strings.TrimRightFunc(p.raw[p.position:p.position+next], isWhitespace),
+				Text:  s,
+				Range: Range{absPos, absPos + len(s)},
 			})
 		} else {
+			if next == 0 {
+				// Always read at least one character since 'w', 'W', and ':' may not actually match another
+				// type of node
+				next = 1
+			}
+
 			p.inlines = append(p.inlines, &Text{
-				Text: p.raw[p.position : p.position+next],
+				Text:  p.raw[p.position : p.position+next],
+				Range: Range{absPos, absPos + next},
 			})
 		}
 		p.position += next
@@ -195,9 +222,11 @@ func (p *inlineParser) parseText() {
 }
 
 func (p *inlineParser) parseLinkOrImageDelimiter() {
+	absPos := relativeToAbsolutePosition(p.ranges, p.position)
 	if p.raw[p.position] == '[' {
 		p.inlines = append(p.inlines, &Text{
-			Text: "[",
+			Text:  "[",
+			Range: Range{absPos, absPos + 1},
 		})
 		p.delimiterStack.PushBack(&delimiter{
 			Type:     linkOpeningDelimiter,
@@ -207,7 +236,8 @@ func (p *inlineParser) parseLinkOrImageDelimiter() {
 		p.position++
 	} else if p.raw[p.position] == '!' && p.position+1 < len(p.raw) && p.raw[p.position+1] == '[' {
 		p.inlines = append(p.inlines, &Text{
-			Text: "![",
+			Text:  "![",
+			Range: Range{absPos, absPos + 2},
 		})
 		p.delimiterStack.PushBack(&delimiter{
 			Type:     imageOpeningDelimiter,
@@ -217,7 +247,8 @@ func (p *inlineParser) parseLinkOrImageDelimiter() {
 		p.position += 2
 	} else {
 		p.inlines = append(p.inlines, &Text{
-			Text: "!",
+			Text:  "!",
+			Range: Range{absPos, absPos + 1},
 		})
 		p.position++
 	}
@@ -347,8 +378,10 @@ func (p *inlineParser) lookForLinkOrImage() {
 			break
 		}
 	}
+	absPos := relativeToAbsolutePosition(p.ranges, p.position)
 	p.inlines = append(p.inlines, &Text{
-		Text: "]",
+		Text:  "]",
+		Range: Range{absPos, absPos + 1},
 	})
 	p.position++
 }
@@ -403,21 +436,79 @@ func CharacterReference(ref string) string {
 }
 
 func (p *inlineParser) parseCharacterReference() {
+	absPos := relativeToAbsolutePosition(p.ranges, p.position)
 	p.position++
 	if semicolon := strings.IndexByte(p.raw[p.position:], ';'); semicolon == -1 {
 		p.inlines = append(p.inlines, &Text{
-			Text: "&",
+			Text:  "&",
+			Range: Range{absPos, absPos + 1},
 		})
 	} else if s := CharacterReference(p.raw[p.position : p.position+semicolon]); s != "" {
 		p.position += semicolon + 1
 		p.inlines = append(p.inlines, &Text{
-			Text: s,
+			Text:  s,
+			Range: Range{absPos, absPos + len(s)},
 		})
 	} else {
 		p.inlines = append(p.inlines, &Text{
-			Text: "&",
+			Text:  "&",
+			Range: Range{absPos, absPos + 1},
 		})
 	}
+}
+
+func (p *inlineParser) parseAutolink(c rune) bool {
+	for element := p.delimiterStack.Back(); element != nil; element = element.Prev() {
+		d := element.Value.(*delimiter)
+		if !d.IsInactive {
+			return false
+		}
+	}
+
+	link := ""
+	text := ""
+	if c == ':' {
+		text = parseURLAutolink(p.raw, p.position)
+		link = text
+
+		// Since the current position is at the colon, we have to rewind the parsing slightly so that
+		// we don't duplicate the URL scheme
+		rewind := strings.Index(text, ":")
+		if rewind != -1 {
+			lastInline := p.inlines[len(p.inlines)-1]
+			lastText, ok := lastInline.(*Text)
+
+			if !ok {
+				// This should never occur since parseURLAutolink will only return a non-empty value
+				// when the previous text ends in a valid URL protocol which would mean that the previous
+				// node is a Text node
+				return false
+			}
+
+			p.inlines = p.inlines[0 : len(p.inlines)-1]
+			p.inlines = append(p.inlines, &Text{
+				Text:  lastText.Text[:len(lastText.Text)-rewind],
+				Range: Range{lastText.Range.Position, lastText.Range.End - rewind},
+			})
+			p.position -= rewind
+
+		}
+	} else if c == 'w' {
+		text = parseWWWAutolink(p.raw, p.position)
+		link = "http://" + text
+	}
+
+	if text == "" {
+		return false
+	}
+
+	p.inlines = append(p.inlines, &Autolink{
+		Link:     link,
+		Children: []Inline{&Text{Text: text}},
+	})
+	p.position += len(text)
+
+	return true
 }
 
 func (p *inlineParser) Parse() []Inline {
@@ -441,6 +532,12 @@ func (p *inlineParser) Parse() []Inline {
 			p.parseLinkOrImageDelimiter()
 		case ']':
 			p.lookForLinkOrImage()
+		case 'w', 'W', ':':
+			matched := p.parseAutolink(c)
+
+			if !matched {
+				p.parseText()
+			}
 		default:
 			p.parseText()
 		}
@@ -451,6 +548,40 @@ func (p *inlineParser) Parse() []Inline {
 
 func ParseInlines(markdown string, ranges []Range, referenceDefinitions []*ReferenceDefinition) (inlines []Inline) {
 	return newInlineParser(markdown, ranges, referenceDefinitions).Parse()
+}
+
+func MergeInlineText(inlines []Inline) []Inline {
+	var ret []Inline
+	for i, v := range inlines {
+		// always add first node
+		if i == 0 {
+			ret = append(ret, v)
+			continue
+		}
+		// not a text node? nothing to merge
+		text, ok := v.(*Text)
+		if !ok {
+			ret = append(ret, v)
+			continue
+		}
+		// previous node is not a text node? nothing to merge
+		prevText, ok := ret[len(ret)-1].(*Text)
+		if !ok {
+			ret = append(ret, v)
+			continue
+		}
+		// previous node is not right before this one
+		if prevText.Range.End != text.Range.Position {
+			ret = append(ret, v)
+			continue
+		}
+		// we have two consecutive text nodes
+		ret[len(ret)-1] = &Text{
+			Text:  prevText.Text + text.Text,
+			Range: Range{prevText.Range.Position, text.Range.End},
+		}
+	}
+	return ret
 }
 
 func Unescape(markdown string) string {

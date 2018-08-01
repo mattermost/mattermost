@@ -6,21 +6,23 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
+	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
-	"gopkg.in/throttled/throttled.v2"
-	"gopkg.in/throttled/throttled.v2/store/memstore"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -29,14 +31,22 @@ import (
 type Server struct {
 	Store           store.Store
 	WebSocketRouter *WebSocketRouter
-	Router          *mux.Router
-	Server          *http.Server
-	ListenAddr      *net.TCPAddr
+
+	// RootRouter is the starting point for all HTTP requests to the server.
+	RootRouter *mux.Router
+
+	// Router is the starting point for all web, api4 and ws requests to the server. It differs
+	// from RootRouter only if the SiteURL contains a /subpath.
+	Router *mux.Router
+
+	Server      *http.Server
+	ListenAddr  *net.TCPAddr
+	RateLimiter *RateLimiter
 
 	didFinishListen chan struct{}
 }
 
-var allowedMethods []string = []string{
+var corsAllowedMethods []string = []string{
 	"POST",
 	"GET",
 	"OPTIONS",
@@ -49,99 +59,74 @@ type RecoveryLogger struct {
 }
 
 func (rl *RecoveryLogger) Println(i ...interface{}) {
-	l4g.Error("Please check the std error output for the stack trace")
-	l4g.Error(i)
-}
-
-type CorsWrapper struct {
-	config model.ConfigFunc
-	router *mux.Router
-}
-
-func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if allowed := *cw.config().ServiceSettings.AllowCorsFrom; allowed != "" {
-		if utils.CheckOrigin(r, allowed) {
-			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-
-			if r.Method == "OPTIONS" {
-				w.Header().Set(
-					"Access-Control-Allow-Methods",
-					strings.Join(allowedMethods, ", "))
-
-				w.Header().Set(
-					"Access-Control-Allow-Headers",
-					r.Header.Get("Access-Control-Request-Headers"))
-			}
-		}
-	}
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	cw.router.ServeHTTP(w, r)
+	mlog.Error("Please check the std error output for the stack trace")
+	mlog.Error(fmt.Sprint(i))
 }
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
-type VaryBy struct{}
-
-func (m *VaryBy) Key(r *http.Request) string {
-	return utils.GetIpAddress(r)
+// golang.org/x/crypto/acme/autocert/autocert.go
+func handleHTTPRedirect(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" && r.Method != "HEAD" {
+		http.Error(w, "Use HTTPS", http.StatusBadRequest)
+		return
+	}
+	target := "https://" + stripPort(r.Host) + r.URL.RequestURI()
+	http.Redirect(w, r, target, http.StatusFound)
 }
 
-func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
-	if r.Host == "" {
-		http.Error(w, "Not Found", http.StatusNotFound)
+// golang.org/x/crypto/acme/autocert/autocert.go
+func stripPort(hostport string) string {
+	host, _, err := net.SplitHostPort(hostport)
+	if err != nil {
+		return hostport
+	}
+	return net.JoinHostPort(host, "443")
+}
+
+func (a *App) StartServer() error {
+	mlog.Info("Starting Server...")
+
+	var handler http.Handler = a.Srv.RootRouter
+	if allowedOrigins := *a.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
+		exposedCorsHeaders := *a.Config().ServiceSettings.CorsExposedHeaders
+		allowCredentials := *a.Config().ServiceSettings.CorsAllowCredentials
+		debug := *a.Config().ServiceSettings.CorsDebug
+		corsWrapper := cors.New(cors.Options{
+			AllowedOrigins:   strings.Fields(allowedOrigins),
+			AllowedMethods:   corsAllowedMethods,
+			AllowedHeaders:   []string{"*"},
+			ExposedHeaders:   strings.Fields(exposedCorsHeaders),
+			MaxAge:           86400,
+			AllowCredentials: allowCredentials,
+			Debug:            debug,
+		})
+
+		// If we have debugging of CORS turned on then forward messages to logs
+		if debug {
+			corsWrapper.Log = a.Log.StdLog(mlog.String("source", "cors"))
+		}
+
+		handler = corsWrapper.Handler(handler)
 	}
 
-	url := r.URL
-	url.Host = r.Host
-	url.Scheme = "https"
-	http.Redirect(w, r, url.String(), http.StatusFound)
-}
-
-func (a *App) StartServer() {
-	l4g.Info(utils.T("api.server.start_server.starting.info"))
-
-	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.Router}
-
 	if *a.Config().RateLimitSettings.Enable {
-		l4g.Info(utils.T("api.server.start_server.rate.info"))
+		mlog.Info("RateLimiter is enabled")
 
-		store, err := memstore.New(*a.Config().RateLimitSettings.MemoryStoreSize)
+		rateLimiter, err := NewRateLimiter(&a.Config().RateLimitSettings)
 		if err != nil {
-			l4g.Critical(utils.T("api.server.start_server.rate_limiting_memory_store"))
-			return
+			return err
 		}
 
-		quota := throttled.RateQuota{
-			MaxRate:  throttled.PerSec(*a.Config().RateLimitSettings.PerSec),
-			MaxBurst: *a.Config().RateLimitSettings.MaxBurst,
-		}
-
-		rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
-		if err != nil {
-			l4g.Critical(utils.T("api.server.start_server.rate_limiting_rate_limiter"))
-			return
-		}
-
-		httpRateLimiter := throttled.HTTPRateLimiter{
-			RateLimiter: rateLimiter,
-			VaryBy:      &VaryBy{},
-			DeniedHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				l4g.Error("%v: Denied due to throttling settings code=429 ip=%v", r.URL.Path, utils.GetIpAddress(r))
-				throttled.DefaultDeniedHandler.ServeHTTP(w, r)
-			}),
-		}
-
-		handler = httpRateLimiter.RateLimit(handler)
+		a.Srv.RateLimiter = rateLimiter
+		handler = rateLimiter.RateLimitHandler(handler)
 	}
 
 	a.Srv.Server = &http.Server{
 		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
 		ReadTimeout:  time.Duration(*a.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*a.Config().ServiceSettings.WriteTimeout) * time.Second,
+		ErrorLog:     a.Log.StdLog(mlog.String("source", "httpserver")),
 	}
 
 	addr := *a.Config().ServiceSettings.ListenAddress
@@ -155,12 +140,12 @@ func (a *App) StartServer() {
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
-		return
+		errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+		return err
 	}
 	a.Srv.ListenAddr = listener.Addr().(*net.TCPAddr)
 
-	l4g.Info(utils.T("api.server.start_server.listening.info"), listener.Addr().String())
+	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
 
 	// Migration from old let's encrypt library
 	if *a.Config().ServiceSettings.UseLetsEncrypt {
@@ -175,21 +160,39 @@ func (a *App) StartServer() {
 	}
 
 	if *a.Config().ServiceSettings.Forward80To443 {
-		if *a.Config().ServiceSettings.UseLetsEncrypt {
-			go http.ListenAndServe(":http", m.HTTPHandler(nil))
+		if host, port, err := net.SplitHostPort(addr); err != nil {
+			mlog.Error("Unable to setup forwarding: " + err.Error())
+		} else if port != "443" {
+			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
-			go func() {
-				redirectListener, err := net.Listen("tcp", ":80")
-				if err != nil {
-					listener.Close()
-					l4g.Error("Unable to setup forwarding: " + err.Error())
-					return
-				}
-				defer redirectListener.Close()
+			httpListenAddress := net.JoinHostPort(host, "http")
 
-				http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
-			}()
+			if *a.Config().ServiceSettings.UseLetsEncrypt {
+				server := &http.Server{
+					Addr:     httpListenAddress,
+					Handler:  m.HTTPHandler(nil),
+					ErrorLog: a.Log.StdLog(mlog.String("source", "le_forwarder_server")),
+				}
+				go server.ListenAndServe()
+			} else {
+				go func() {
+					redirectListener, err := net.Listen("tcp", httpListenAddress)
+					if err != nil {
+						mlog.Error("Unable to setup forwarding: " + err.Error())
+						return
+					}
+					defer redirectListener.Close()
+
+					server := &http.Server{
+						Handler:  http.HandlerFunc(handleHTTPRedirect),
+						ErrorLog: a.Log.StdLog(mlog.String("source", "forwarder_server")),
+					}
+					server.Serve(redirectListener)
+				}()
+			}
 		}
+	} else if *a.Config().ServiceSettings.UseLetsEncrypt {
+		return errors.New(utils.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
 	}
 
 	a.Srv.didFinishListen = make(chan struct{})
@@ -213,36 +216,13 @@ func (a *App) StartServer() {
 			err = a.Srv.Server.Serve(listener)
 		}
 		if err != nil && err != http.ErrServerClosed {
-			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
+			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
 			time.Sleep(time.Second)
 		}
 		close(a.Srv.didFinishListen)
 	}()
-}
 
-type tcpKeepAliveListener struct {
-	*net.TCPListener
-}
-
-func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
-	tc, err := ln.AcceptTCP()
-	if err != nil {
-		return
-	}
-	tc.SetKeepAlive(true)
-	tc.SetKeepAlivePeriod(3 * time.Minute)
-	return tc, nil
-}
-
-func (a *App) Listen(addr string) (net.Listener, error) {
-	if addr == "" {
-		addr = ":http"
-	}
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	return tcpKeepAliveListener{ln.(*net.TCPListener)}, nil
+	return nil
 }
 
 func (a *App) StopServer() {
@@ -252,7 +232,7 @@ func (a *App) StopServer() {
 		didShutdown := false
 		for a.Srv.didFinishListen != nil && !didShutdown {
 			if err := a.Srv.Server.Shutdown(ctx); err != nil {
-				l4g.Warn(err.Error())
+				mlog.Warn(err.Error())
 			}
 			timer := time.NewTimer(time.Millisecond * 50)
 			select {
@@ -269,6 +249,14 @@ func (a *App) StopServer() {
 
 func (a *App) OriginChecker() func(*http.Request) bool {
 	if allowed := *a.Config().ServiceSettings.AllowCorsFrom; allowed != "" {
+		if allowed != "*" {
+			siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
+			if err == nil {
+				siteURL.Path = ""
+				allowed += " " + siteURL.String()
+			}
+		}
+
 		return utils.OriginChecker(allowed)
 	}
 	return nil

@@ -77,6 +77,27 @@ func (_m *UserStore) AnalyticsUniqueUserCount(teamId string) store.StoreChannel 
 	return r0
 }
 
+// ClearAllCustomRoleAssignments provides a mock function with given fields:
+func (_m *UserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// ClearCaches provides a mock function with given fields:
+func (_m *UserStore) ClearCaches() {
+	_m.Called()
+}
+
 // Get provides a mock function with given fields: id
 func (_m *UserStore) Get(id string) store.StoreChannel {
 	ret := _m.Called(id)
@@ -253,13 +274,13 @@ func (_m *UserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChann
 	return r0
 }
 
-// GetForLogin provides a mock function with given fields: loginId, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled
-func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, allowSignInWithEmail bool, ldapEnabled bool) store.StoreChannel {
-	ret := _m.Called(loginId, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled)
+// GetForLogin provides a mock function with given fields: loginId, allowSignInWithUsername, allowSignInWithEmail
+func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, allowSignInWithEmail bool) store.StoreChannel {
+	ret := _m.Called(loginId, allowSignInWithUsername, allowSignInWithEmail)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool, bool, bool) store.StoreChannel); ok {
-		r0 = rf(loginId, allowSignInWithUsername, allowSignInWithEmail, ldapEnabled)
+	if rf, ok := ret.Get(0).(func(string, bool, bool) store.StoreChannel); ok {
+		r0 = rf(loginId, allowSignInWithUsername, allowSignInWithEmail)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -335,6 +356,22 @@ func (_m *UserStore) GetProfilesByUsernames(usernames []string, teamId string) s
 
 // GetProfilesInChannel provides a mock function with given fields: channelId, offset, limit
 func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(channelId, offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(channelId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetProfilesInChannelByStatus provides a mock function with given fields: channelId, offset, limit
+func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) store.StoreChannel {
 	ret := _m.Called(channelId, offset, limit)
 
 	var r0 store.StoreChannel

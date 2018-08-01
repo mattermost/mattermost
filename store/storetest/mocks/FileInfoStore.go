@@ -29,6 +29,11 @@ func (_m *FileInfoStore) AttachToPost(fileId string, postId string) store.StoreC
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *FileInfoStore) ClearCaches() {
+	_m.Called()
+}
+
 // DeleteForPost provides a mock function with given fields: postId
 func (_m *FileInfoStore) DeleteForPost(postId string) store.StoreChannel {
 	ret := _m.Called(postId)
@@ -93,6 +98,22 @@ func (_m *FileInfoStore) GetForPost(postId string, readFromMaster bool, allowFro
 	return r0
 }
 
+// GetForUser provides a mock function with given fields: userId
+func (_m *FileInfoStore) GetForUser(userId string) store.StoreChannel {
+	ret := _m.Called(userId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // InvalidateFileInfosForPostCache provides a mock function with given fields: postId
 func (_m *FileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	_m.Called(postId)
@@ -121,6 +142,22 @@ func (_m *FileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) store.
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(int64, int64) store.StoreChannel); ok {
 		r0 = rf(endTime, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// PermanentDeleteByUser provides a mock function with given fields: userId
+func (_m *FileInfoStore) PermanentDeleteByUser(userId string) store.StoreChannel {
+	ret := _m.Called(userId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

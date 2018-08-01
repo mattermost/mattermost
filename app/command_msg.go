@@ -6,7 +6,7 @@ package app
 import (
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -50,7 +50,7 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 
 	var userProfile *model.User
 	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
-		l4g.Error(result.Err.Error())
+		mlog.Error(result.Err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		userProfile = result.Data.(*model.User)
@@ -66,14 +66,18 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 	targetChannelId := ""
 	if channel := <-a.Srv.Store.Channel().GetByName(args.TeamId, channelName, true); channel.Err != nil {
 		if channel.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+			if !a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_DIRECT_CHANNEL) {
+				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			}
+
 			if directChannel, err := a.CreateDirectChannel(args.UserId, userProfile.Id); err != nil {
-				l4g.Error(err.Error())
+				mlog.Error(err.Error())
 				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			} else {
 				targetChannelId = directChannel.Id
 			}
 		} else {
-			l4g.Error(channel.Err.Error())
+			mlog.Error(channel.Err.Error())
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	} else {

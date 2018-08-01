@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -93,10 +93,20 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 		}
 	}
 
-	groupChannel, channelErr := a.CreateGroupChannel(targetUsersSlice, args.UserId)
-	if channelErr != nil {
-		l4g.Error(channelErr.Error())
-		return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	var groupChannel *model.Channel
+	var channelErr *model.AppError
+
+	if a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
+		groupChannel, channelErr = a.CreateGroupChannel(targetUsersSlice, args.UserId)
+		if channelErr != nil {
+			mlog.Error(channelErr.Error())
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
+	} else {
+		groupChannel, channelErr = a.GetGroupChannel(targetUsersSlice)
+		if channelErr != nil {
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
 	}
 
 	if len(parsedMessage) > 0 {

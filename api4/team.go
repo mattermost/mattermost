@@ -6,6 +6,9 @@ package api4
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -19,6 +22,7 @@ const (
 func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(getAllTeams)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateTeamScheme)).Methods("PUT")
 	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequired(searchTeams)).Methods("POST")
 	api.BaseRoutes.TeamsForUser.Handle("", api.ApiSessionRequired(getTeamsForUser)).Methods("GET")
 	api.BaseRoutes.TeamsForUser.Handle("/unread", api.ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
@@ -28,6 +32,11 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(deleteTeam)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiSessionRequired(patchTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/stats", api.ApiSessionRequired(getTeamStats)).Methods("GET")
+
+	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequired(setTeamIcon)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequired(removeTeamIcon)).Methods("DELETE")
+
 	api.BaseRoutes.TeamMembers.Handle("", api.ApiSessionRequired(getTeamMembers)).Methods("GET")
 	api.BaseRoutes.TeamMembers.Handle("/ids", api.ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
 	api.BaseRoutes.TeamMembersForUser.Handle("", api.ApiSessionRequired(getTeamMembersForUser)).Methods("GET")
@@ -42,7 +51,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.TeamMember.Handle("", api.ApiSessionRequired(getTeamMember)).Methods("GET")
 	api.BaseRoutes.TeamByName.Handle("/exists", api.ApiSessionRequired(teamExists)).Methods("GET")
 	api.BaseRoutes.TeamMember.Handle("/roles", api.ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
-
+	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.ApiSessionRequired(updateTeamMemberSchemeRoles)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/import", api.ApiSessionRequired(importTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/invite/email", api.ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.ApiHandler(getInviteInfo)).Methods("GET")
@@ -191,7 +200,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	if c.Params.Permanent {
+	if c.Params.Permanent && *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
 		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)
@@ -280,7 +289,7 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page, c.Params.PerPage); err != nil {
+	if members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -371,15 +380,14 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
-	hash := r.URL.Query().Get("hash")
-	data := r.URL.Query().Get("data")
+	tokenId := r.URL.Query().Get("token")
 	inviteId := r.URL.Query().Get("invite_id")
 
 	var member *model.TeamMember
 	var err *model.AppError
 
-	if len(hash) > 0 && len(data) > 0 {
-		member, err = c.App.AddTeamMemberByHash(c.Session.UserId, hash, data)
+	if len(tokenId) > 0 {
+		member, err = c.App.AddTeamMemberByToken(c.Session.UserId, tokenId)
 	} else if len(inviteId) > 0 {
 		member, err = c.App.AddTeamMemberByInviteId(inviteId, c.Session.UserId)
 	} else {
@@ -533,14 +541,39 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
+func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	schemeRoles := model.SchemeRolesFromJson(r.Body)
+	if schemeRoles == nil {
+		c.SetInvalidParam("scheme_roles")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM_ROLES) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM_ROLES)
+		return
+	}
+
+	if _, err := c.App.UpdateTeamMemberSchemeRoles(c.Params.TeamId, c.Params.UserId, schemeRoles.SchemeUser, schemeRoles.SchemeAdmin); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var teams []*model.Team
 	var err *model.AppError
 
 	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		teams, err = c.App.GetAllTeamsPage(c.Params.Page, c.Params.PerPage)
+		teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	} else {
-		teams, err = c.App.GetAllOpenTeamsPage(c.Params.Page, c.Params.PerPage)
+		teams, err = c.App.GetAllOpenTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	}
 
 	if err != nil {
@@ -728,4 +761,157 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		result["id"] = team.Id
 		w.Write([]byte(model.MapToJson(result)))
 	}
+}
+
+func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if team, err := c.App.GetTeam(c.Params.TeamId); err != nil {
+		c.Err = err
+		return
+	} else {
+		if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) &&
+			(team.Type != model.TEAM_OPEN || team.AllowOpenInvite) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
+		etag := strconv.FormatInt(team.LastTeamIconUpdate, 10)
+
+		if c.HandleEtag(etag, "Get Team Icon", w, r) {
+			return
+		}
+
+		if img, err := c.App.GetTeamIcon(team); err != nil {
+			c.Err = err
+			return
+		} else {
+			w.Header().Set("Content-Type", "image/png")
+			w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+			w.Write(img)
+		}
+	}
+}
+
+func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
+		c.Err = model.NewAppError("setTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
+		c.Err = model.NewAppError("setTeamIcon", "api.team.set_team_icon.parse.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	m := r.MultipartForm
+
+	imageArray, ok := m.File["image"]
+	if !ok {
+		c.Err = model.NewAppError("setTeamIcon", "api.team.set_team_icon.no_file.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if len(imageArray) <= 0 {
+		c.Err = model.NewAppError("setTeamIcon", "api.team.set_team_icon.array.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	imageData := imageArray[0]
+
+	if err := c.App.SetTeamIcon(c.Params.TeamId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
+}
+
+func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	if err := c.App.RemoveTeamIcon(c.Params.TeamId); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
+}
+
+func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	schemeID := model.SchemeIDFromJson(r.Body)
+	if schemeID == nil || (len(*schemeID) != 26 && *schemeID != "") {
+		c.SetInvalidParam("scheme_id")
+		return
+	}
+
+	if c.App.License() == nil {
+		c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if *schemeID != "" {
+		scheme, err := c.App.GetScheme(*schemeID)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if scheme.Scope != model.SCHEME_SCOPE_TEAM {
+			c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.scheme_scope.error", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	team.SchemeId = schemeID
+
+	_, err = c.App.UpdateTeamScheme(team)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }

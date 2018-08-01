@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -25,13 +24,16 @@ const (
 	POST_LEAVE_CHANNEL          = "system_leave_channel"
 	POST_JOIN_TEAM              = "system_join_team"
 	POST_LEAVE_TEAM             = "system_leave_team"
+	POST_AUTO_RESPONDER         = "system_auto_responder"
 	POST_ADD_REMOVE             = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL         = "system_add_to_channel"
 	POST_REMOVE_FROM_CHANNEL    = "system_remove_from_channel"
+	POST_MOVE_CHANNEL           = "system_move_channel"
 	POST_ADD_TO_TEAM            = "system_add_to_team"
 	POST_REMOVE_FROM_TEAM       = "system_remove_from_team"
 	POST_HEADER_CHANGE          = "system_header_change"
 	POST_DISPLAYNAME_CHANGE     = "system_displayname_change"
+	POST_CONVERT_CHANNEL        = "system_convert_channel"
 	POST_PURPOSE_CHANGE         = "system_purpose_change"
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
 	POST_EPHEMERAL              = "system_ephemeral"
@@ -39,11 +41,15 @@ const (
 	POST_FILEIDS_MAX_RUNES      = 150
 	POST_FILENAMES_MAX_RUNES    = 4000
 	POST_HASHTAGS_MAX_RUNES     = 1000
-	POST_MESSAGE_MAX_RUNES      = 4000
+	POST_MESSAGE_MAX_RUNES_V1   = 4000
+	POST_MESSAGE_MAX_BYTES_V2   = 65535                         // Maximum size of a TEXT column in MySQL
+	POST_MESSAGE_MAX_RUNES_V2   = POST_MESSAGE_MAX_BYTES_V2 / 4 // Assume a worst-case representation
 	POST_PROPS_MAX_RUNES        = 8000
 	POST_PROPS_MAX_USER_RUNES   = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
 	POST_CUSTOM_TYPE_PREFIX     = "custom_"
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
+	POST_PROPS_ADDED_USER_ID    = "addedUserId"
+	POST_PROPS_DELETE_BY        = "deleteBy"
 )
 
 type Post struct {
@@ -73,6 +79,11 @@ type Post struct {
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
+}
+
+type PostEphemeral struct {
+	UserID string `json:"user_id"`
+	Post   *Post  `json:"post"`
 }
 
 type PostPatch struct {
@@ -121,30 +132,26 @@ type PostActionIntegrationResponse struct {
 func (o *Post) ToJson() string {
 	copy := *o
 	copy.StripActionIntegrations()
-	b, err := json.Marshal(&copy)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(&copy)
+	return string(b)
+}
+
+func (o *Post) ToUnsanitizedJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func PostFromJson(data io.Reader) *Post {
-	decoder := json.NewDecoder(data)
-	var o Post
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Post
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Post) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
-func (o *Post) IsValid() *AppError {
+func (o *Post) IsValid(maxPostSize int) *AppError {
 
 	if len(o.Id) != 26 {
 		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
@@ -182,7 +189,7 @@ func (o *Post) IsValid() *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(o.Message) > POST_MESSAGE_MAX_RUNES {
+	if utf8.RuneCountInString(o.Message) > maxPostSize {
 		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -194,6 +201,7 @@ func (o *Post) IsValid() *AppError {
 	case
 		POST_DEFAULT,
 		POST_JOIN_LEAVE,
+		POST_AUTO_RESPONDER,
 		POST_ADD_REMOVE,
 		POST_JOIN_CHANNEL,
 		POST_LEAVE_CHANNEL,
@@ -201,12 +209,14 @@ func (o *Post) IsValid() *AppError {
 		POST_LEAVE_TEAM,
 		POST_ADD_TO_CHANNEL,
 		POST_REMOVE_FROM_CHANNEL,
+		POST_MOVE_CHANNEL,
 		POST_ADD_TO_TEAM,
 		POST_REMOVE_FROM_TEAM,
 		POST_SLACK_ATTACHMENT,
 		POST_HEADER_CHANGE,
 		POST_PURPOSE_CHANGE,
 		POST_DISPLAYNAME_CHANGE,
+		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
 		POST_CHANGE_CHANNEL_PRIVACY:
 	default:
@@ -332,29 +342,13 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	return &post
 }
 
-var channelMentionRegexp = regexp.MustCompile(`\B~[a-zA-Z0-9\-_]+`)
-
-func (o *Post) ChannelMentions() (names []string) {
-	if strings.Contains(o.Message, "~") {
-		alreadyMentioned := make(map[string]bool)
-		for _, match := range channelMentionRegexp.FindAllString(o.Message, -1) {
-			name := match[1:]
-			if !alreadyMentioned[name] {
-				names = append(names, name)
-				alreadyMentioned[name] = true
-			}
-		}
-	}
-	return
+func (o *Post) ChannelMentions() []string {
+	return ChannelMentions(o.Message)
 }
 
 func (r *PostActionIntegrationRequest) ToJson() string {
-	b, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(r)
+	return string(b)
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
@@ -430,6 +424,11 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 		copy.MessageSource = o.Message
 	}
 	return &copy
+}
+
+func (o *PostEphemeral) ToUnsanitizedJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced

@@ -4,14 +4,20 @@
 package storetest
 
 import (
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestTeamStore(t *testing.T, ss store.Store) {
+	createDefaultRoles(t, ss)
+
 	t.Run("Save", func(t *testing.T) { testTeamStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, ss) })
 	t.Run("UpdateDisplayName", func(t *testing.T) { testTeamStoreUpdateDisplayName(t, ss) })
@@ -33,6 +39,11 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("MemberCount", func(t *testing.T) { testTeamStoreMemberCount(t, ss) })
 	t.Run("GetChannelUnreadsForAllTeams", func(t *testing.T) { testGetChannelUnreadsForAllTeams(t, ss) })
 	t.Run("GetChannelUnreadsForTeam", func(t *testing.T) { testGetChannelUnreadsForTeam(t, ss) })
+	t.Run("UpdateLastTeamIconUpdate", func(t *testing.T) { testUpdateLastTeamIconUpdate(t, ss) })
+	t.Run("GetTeamsByScheme", func(t *testing.T) { testGetTeamsByScheme(t, ss) })
+	t.Run("MigrateTeamMembers", func(t *testing.T) { testTeamStoreMigrateTeamMembers(t, ss) })
+	t.Run("ResetAllTeamSchemes", func(t *testing.T) { testResetAllTeamSchemes(t, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testTeamStoreClearAllCustomRoleAssignments(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -814,6 +825,37 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	if r := <-ss.Team().GetMember("", m1.UserId); r.Err == nil {
 		t.Fatal("empty team id - should have failed")
 	}
+
+	// Test with a custom team scheme.
+	s2 := &model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+	t.Log(s2)
+
+	t2 := store.Must(ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "z-z-z" + model.NewId() + "b",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s2.Id,
+	})).(*model.Team)
+
+	defer func() {
+		<-ss.Team().PermanentDelete(t2.Id)
+	}()
+
+	m2 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeUser: true}
+	store.Must(ss.Team().SaveMember(m2, -1))
+
+	r2 := <-ss.Team().GetMember(m2.TeamId, m2.UserId)
+	require.Nil(t, r2.Err)
+	m3 := r2.Data.(*model.TeamMember)
+	t.Log(m3)
+
+	assert.Equal(t, s2.DefaultTeamUserRole, m3.Roles)
 }
 
 func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
@@ -1002,4 +1044,251 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 			t.Fatal("subtraction failed")
 		}
 	}
+}
+
+func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
+
+	// team icon initially updated a second ago
+	lastTeamIconUpdateInitial := model.GetMillis() - 1000
+
+	o1 := &model.Team{}
+	o1.DisplayName = "Display Name"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.LastTeamIconUpdate = lastTeamIconUpdateInitial
+	o1 = (<-ss.Team().Save(o1)).Data.(*model.Team)
+
+	curTime := model.GetMillis()
+
+	if err := (<-ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	ro1 := (<-ss.Team().Get(o1.Id)).Data.(*model.Team)
+	if ro1.LastTeamIconUpdate <= lastTeamIconUpdateInitial {
+		t.Fatal("LastTeamIconUpdate not updated")
+	}
+}
+
+func testGetTeamsByScheme(t *testing.T, ss store.Store) {
+	// Create some schemes.
+	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+
+	s2 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+
+	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
+
+	// Create and save some teams.
+	t1 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+
+	t2 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+
+	t3 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+	}
+
+	t1 = (<-ss.Team().Save(t1)).Data.(*model.Team)
+	t2 = (<-ss.Team().Save(t2)).Data.(*model.Team)
+	t3 = (<-ss.Team().Save(t3)).Data.(*model.Team)
+
+	// Get the teams by a valid Scheme ID.
+	res1 := <-ss.Team().GetTeamsByScheme(s1.Id, 0, 100)
+	assert.Nil(t, res1.Err)
+	d1 := res1.Data.([]*model.Team)
+	assert.Len(t, d1, 2)
+
+	// Get the teams by a valid Scheme ID where there aren't any matching Teams.
+	res2 := <-ss.Team().GetTeamsByScheme(s2.Id, 0, 100)
+	assert.Nil(t, res2.Err)
+	d2 := res2.Data.([]*model.Team)
+	assert.Len(t, d2, 0)
+
+	// Get the teams by an invalid Scheme ID.
+	res3 := <-ss.Team().GetTeamsByScheme(model.NewId(), 0, 100)
+	assert.Nil(t, res3.Err)
+	d3 := res3.Data.([]*model.Team)
+	assert.Len(t, d3, 0)
+}
+
+func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
+	s1 := model.NewId()
+	t1 := &model.Team{
+		DisplayName: "Name",
+		Name:        "z-z-z" + model.NewId() + "b",
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		InviteId:    model.NewId(),
+		SchemeId:    &s1,
+	}
+	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
+
+	tm1 := &model.TeamMember{
+		TeamId:        t1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_admin team_user",
+	}
+	tm2 := &model.TeamMember{
+		TeamId:        t1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_user",
+	}
+	tm3 := &model.TeamMember{
+		TeamId:        t1.Id,
+		UserId:        model.NewId(),
+		ExplicitRoles: "something_else",
+	}
+
+	tm1 = (<-ss.Team().SaveMember(tm1, -1)).Data.(*model.TeamMember)
+	tm2 = (<-ss.Team().SaveMember(tm2, -1)).Data.(*model.TeamMember)
+	tm3 = (<-ss.Team().SaveMember(tm3, -1)).Data.(*model.TeamMember)
+
+	lastDoneTeamId := strings.Repeat("0", 26)
+	lastDoneUserId := strings.Repeat("0", 26)
+
+	for {
+		res := <-ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
+		if assert.Nil(t, res.Err) {
+			if res.Data == nil {
+				break
+			}
+			data := res.Data.(map[string]string)
+			lastDoneTeamId = data["TeamId"]
+			lastDoneUserId = data["UserId"]
+		}
+	}
+
+	res1 := <-ss.Team().GetMember(tm1.TeamId, tm1.UserId)
+	assert.Nil(t, res1.Err)
+	tm1b := res1.Data.(*model.TeamMember)
+	assert.Equal(t, "", tm1b.ExplicitRoles)
+	assert.True(t, tm1b.SchemeUser)
+	assert.True(t, tm1b.SchemeAdmin)
+
+	res2 := <-ss.Team().GetMember(tm2.TeamId, tm2.UserId)
+	assert.Nil(t, res2.Err)
+	tm2b := res2.Data.(*model.TeamMember)
+	assert.Equal(t, "", tm2b.ExplicitRoles)
+	assert.True(t, tm2b.SchemeUser)
+	assert.False(t, tm2b.SchemeAdmin)
+
+	res3 := <-ss.Team().GetMember(tm3.TeamId, tm3.UserId)
+	assert.Nil(t, res3.Err)
+	tm3b := res3.Data.(*model.TeamMember)
+	assert.Equal(t, "something_else", tm3b.ExplicitRoles)
+	assert.False(t, tm3b.SchemeUser)
+	assert.False(t, tm3b.SchemeAdmin)
+}
+
+func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
+	s1 := &model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+
+	t1 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+
+	t2 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       model.NewId() + "@nowhere.com",
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+
+	t1 = (<-ss.Team().Save(t1)).Data.(*model.Team)
+	t2 = (<-ss.Team().Save(t2)).Data.(*model.Team)
+
+	assert.Equal(t, s1.Id, *t1.SchemeId)
+	assert.Equal(t, s1.Id, *t2.SchemeId)
+
+	res := <-ss.Team().ResetAllTeamSchemes()
+	assert.Nil(t, res.Err)
+
+	t1 = (<-ss.Team().Get(t1.Id)).Data.(*model.Team)
+	t2 = (<-ss.Team().Get(t2.Id)).Data.(*model.Team)
+
+	assert.Equal(t, "", *t1.SchemeId)
+	assert.Equal(t, "", *t2.SchemeId)
+}
+
+func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
+	m1 := &model.TeamMember{
+		TeamId:        model.NewId(),
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_user team_admin team_post_all_public",
+	}
+	m2 := &model.TeamMember{
+		TeamId:        model.NewId(),
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_user custom_role team_admin another_custom_role",
+	}
+	m3 := &model.TeamMember{
+		TeamId:        model.NewId(),
+		UserId:        model.NewId(),
+		ExplicitRoles: "team_user",
+	}
+	m4 := &model.TeamMember{
+		TeamId:        model.NewId(),
+		UserId:        model.NewId(),
+		ExplicitRoles: "custom_only",
+	}
+
+	store.Must(ss.Team().SaveMember(m1, -1))
+	store.Must(ss.Team().SaveMember(m2, -1))
+	store.Must(ss.Team().SaveMember(m3, -1))
+	store.Must(ss.Team().SaveMember(m4, -1))
+
+	require.Nil(t, (<-ss.Team().ClearAllCustomRoleAssignments()).Err)
+
+	r1 := <-ss.Team().GetMember(m1.TeamId, m1.UserId)
+	require.Nil(t, r1.Err)
+	assert.Equal(t, m1.ExplicitRoles, r1.Data.(*model.TeamMember).Roles)
+
+	r2 := <-ss.Team().GetMember(m2.TeamId, m2.UserId)
+	require.Nil(t, r2.Err)
+	assert.Equal(t, "team_user team_admin", r2.Data.(*model.TeamMember).Roles)
+
+	r3 := <-ss.Team().GetMember(m3.TeamId, m3.UserId)
+	require.Nil(t, r3.Err)
+	assert.Equal(t, m3.ExplicitRoles, r3.Data.(*model.TeamMember).Roles)
+
+	r4 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
+	require.Nil(t, r4.Err)
+	assert.Equal(t, "", r4.Data.(*model.TeamMember).Roles)
 }

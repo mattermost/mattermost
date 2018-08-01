@@ -11,14 +11,14 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/olivere/elastic/uritemplates"
+	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // MultiTermvectorService returns information and statistics on terms in the
 // fields of a particular document. The document could be stored in the
 // index or artificially provided by the user.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.0/docs-multi-termvectors.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-multi-termvectors.html
 // for documentation.
 type MultiTermvectorService struct {
 	client          *Client
@@ -198,7 +198,7 @@ func (s *MultiTermvectorService) buildURL() (string, url.Values, error) {
 	// Add query string parameters
 	params := url.Values{}
 	if s.pretty {
-		params.Set("pretty", "true")
+		params.Set("pretty", "1")
 	}
 	if s.fieldStatistics != nil {
 		params.Set("field_statistics", fmt.Sprintf("%v", *s.fieldStatistics))
@@ -278,12 +278,7 @@ func (s *MultiTermvectorService) Do(ctx context.Context) (*MultiTermvectorRespon
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-		Body:   body,
-	})
+	res, err := s.client.PerformRequest(ctx, "GET", path, params, body)
 	if err != nil {
 		return nil, err
 	}

@@ -1,12 +1,10 @@
 # Elastic
 
-**This is a development branch that is actively being worked on. DO NOT USE IN PRODUCTION!**
-
 Elastic is an [Elasticsearch](http://www.elasticsearch.org/) client for the
 [Go](http://www.golang.org/) programming language.
 
-[![Build Status](https://travis-ci.org/olivere/elastic.svg?branch=release-branch.v6)](https://travis-ci.org/olivere/elastic)
-[![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](http://godoc.org/github.com/olivere/elastic)
+[![Build Status](https://travis-ci.org/olivere/elastic.svg?branch=release-branch.v5)](https://travis-ci.org/olivere/elastic)
+[![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](http://godoc.org/gopkg.in/olivere/elastic.v5)
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/olivere/elastic/master/LICENSE)
 
 See the [wiki](https://github.com/olivere/elastic/wiki) for additional information about Elastic.
@@ -14,45 +12,34 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for additional informati
 
 ## Releases
 
-**The release branches (e.g. [`release-branch.v6`](https://github.com/olivere/elastic/tree/release-branch.v6))
+**The release branches (e.g. [`release-branch.v5`](https://github.com/olivere/elastic/tree/release-branch.v5))
 are actively being worked on and can break at any time.
-If you want to use stable versions of Elastic, please use a dependency manager like [dep](https://github.com/golang/dep).**
+If you want to use stable versions of Elastic, please use the packages released via [gopkg.in](https://gopkg.in).**
 
 Here's the version matrix:
 
-Elasticsearch version | Elastic version  | Package URL | Remarks |
-----------------------|------------------|-------------|---------|
-6.x                   | 6.0              | [`github.com/olivere/elastic`](https://github.com/olivere/elastic) ([source](https://github.com/olivere/elastic/tree/release-branch.v6) [doc](http://godoc.org/github.com/olivere/elastic)) | Use a dependency manager (see below).
-5.x                   | 5.0              | [`gopkg.in/olivere/elastic.v5`](https://gopkg.in/olivere/elastic.v5) ([source](https://github.com/olivere/elastic/tree/release-branch.v5) [doc](http://godoc.org/gopkg.in/olivere/elastic.v5)) | Actively maintained.
-2.x                   | 3.0              | [`gopkg.in/olivere/elastic.v3`](https://gopkg.in/olivere/elastic.v3) ([source](https://github.com/olivere/elastic/tree/release-branch.v3) [doc](http://godoc.org/gopkg.in/olivere/elastic.v3)) | Deprecated. Please update.
-1.x                   | 2.0              | [`gopkg.in/olivere/elastic.v2`](https://gopkg.in/olivere/elastic.v2) ([source](https://github.com/olivere/elastic/tree/release-branch.v2) [doc](http://godoc.org/gopkg.in/olivere/elastic.v2)) | Deprecated. Please update.
-0.9-1.3               | 1.0              | [`gopkg.in/olivere/elastic.v1`](https://gopkg.in/olivere/elastic.v1) ([source](https://github.com/olivere/elastic/tree/release-branch.v1) [doc](http://godoc.org/gopkg.in/olivere/elastic.v1)) | Deprecated. Please update.
+Elasticsearch version | Elastic version -| Package URL
+----------------------|------------------|------------
+5.x                   | 5.0              | [`gopkg.in/olivere/elastic.v5`](https://gopkg.in/olivere/elastic.v5) ([source](https://github.com/olivere/elastic/tree/release-branch.v5) [doc](http://godoc.org/gopkg.in/olivere/elastic.v5))
+2.x                   | 3.0              | [`gopkg.in/olivere/elastic.v3`](https://gopkg.in/olivere/elastic.v3) ([source](https://github.com/olivere/elastic/tree/release-branch.v3) [doc](http://godoc.org/gopkg.in/olivere/elastic.v3))
+1.x                   | 2.0              | [`gopkg.in/olivere/elastic.v2`](https://gopkg.in/olivere/elastic.v2) ([source](https://github.com/olivere/elastic/tree/release-branch.v2) [doc](http://godoc.org/gopkg.in/olivere/elastic.v2))
+0.9-1.3               | 1.0              | [`gopkg.in/olivere/elastic.v1`](https://gopkg.in/olivere/elastic.v1) ([source](https://github.com/olivere/elastic/tree/release-branch.v1) [doc](http://godoc.org/gopkg.in/olivere/elastic.v1))
 
 **Example:**
 
-You have installed Elasticsearch 6.0.0 and want to use Elastic.
-As listed above, you should use Elastic 6.0.
+You have installed Elasticsearch 5.0.0 and want to use Elastic.
+As listed above, you should use Elastic 5.0.
+So you first install the stable release of Elastic 5.0 from gopkg.in.
 
-To use the required version of Elastic in your application, it is strongly
-advised to use a tool like
-[dep](https://github.com/golang/dep)
-or
-[Glide](https://glide.sh/)
-to manage that dependency. Make sure to use a version such as `^6.0.0`.
-
-To use Elastic, simply import:
-
-```go
-import "github.com/olivere/elastic"
+```sh
+$ go get gopkg.in/olivere/elastic.v5
 ```
 
-### Elastic 6.0
+You then import it with this import path:
 
-Elastic 6.0 targets Elasticsearch 6.x which was [released on 14th November 2017](https://www.elastic.co/blog/elasticsearch-6-0-0-released).
-
-Notice that there are will be a lot of [breaking changes in Elasticsearch 6.0](https://www.elastic.co/guide/en/elasticsearch/reference/6.0/breaking-changes-6.0.html)
-and we used this as an opportunity to [clean up and refactor Elastic](https://github.com/olivere/elastic/blob/release-branch.v6/CHANGELOG-6.0.md)
-as we did in the transition from earlier versions of Elastic.
+```go
+import elastic "gopkg.in/olivere/elastic.v5"
+```
 
 ### Elastic 5.0
 
@@ -120,7 +107,7 @@ The client connects to Elasticsearch on `http://127.0.0.1:9200` by default.
 You typically create one client for your app. Here's a complete example of
 creating a client, creating an index, adding a document, executing a search etc.
 
-An example is available [here](https://olivere.github.io/elastic/).
+An example is available [here](https://olivere.github.io/elastic/)
 
 Here's a [link to a complete working example for v3](https://gist.github.com/olivere/114347ff9d9cfdca7bdc0ecea8b82263).
 
@@ -148,7 +135,7 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
 - [x] Search
 - [x] Search Template
 - [ ] Multi Search Template
-- [ ] Search Shards API
+- [x] Search Shards API
 - [x] Suggesters
   - [x] Term Suggester
   - [x] Phrase Suggester
@@ -156,10 +143,12 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Context Suggester
 - [x] Multi Search API
 - [x] Count API
-- [ ] Validate API
+- [ ] Search Exists API
+- [x] Validate API
 - [x] Explain API
 - [x] Profile API
 - [x] Field Capabilities API
+- [x] Field Stats API
 
 ### Aggregations
 
@@ -168,7 +157,7 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Cardinality
   - [x] Extended Stats
   - [x] Geo Bounds
-  - [ ] Geo Centroid
+  - [x] Geo Centroid
   - [x] Max
   - [x] Min
   - [x] Percentiles
@@ -179,11 +168,11 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Top Hits
   - [x] Value Count
 - Bucket Aggregations
-  - [ ] Adjacency Matrix
+  - [x] Adjacency Matrix
   - [x] Children
   - [x] Date Histogram
   - [x] Date Range
-  - [ ] Diversified Sampler
+  - [x] Diversified Sampler
   - [x] Filter
   - [x] Filters
   - [x] Geo Distance
@@ -197,7 +186,6 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Reverse Nested
   - [x] Sampler
   - [x] Significant Terms
-  - [x] Significant Text
   - [x] Terms
 - Pipeline Aggregations
   - [x] Avg Bucket

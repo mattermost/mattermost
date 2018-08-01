@@ -4,10 +4,13 @@
 package api4
 
 import (
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -55,6 +58,8 @@ func (api *API) InitFile() {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFile", "api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -65,32 +70,71 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
+	now := time.Now()
+	var resStruct *model.FileUploadResponse
+	var appErr *model.AppError
+
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil && err != http.ErrNotMultipart {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	} else if err == http.ErrNotMultipart {
+		defer r.Body.Close()
+
+		c.RequireChannelId()
+		c.RequireFilename()
+
+		if c.Err != nil {
+			return
+		}
+
+		channelId := c.Params.ChannelId
+		filename := c.Params.Filename
+
+		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
+			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
+			return
+		}
+
+		resStruct, appErr = c.App.UploadFiles(
+			FILE_TEAM_ID,
+			channelId,
+			c.Session.UserId,
+			[]io.ReadCloser{r.Body},
+			[]string{filename},
+			[]string{},
+			now,
+		)
+	} else {
+		m := r.MultipartForm
+
+		props := m.Value
+		if len(props["channel_id"]) == 0 {
+			c.SetInvalidParam("channel_id")
+			return
+		}
+		channelId := props["channel_id"][0]
+		if len(channelId) == 0 {
+			c.SetInvalidParam("channel_id")
+			return
+		}
+
+		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
+			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
+			return
+		}
+
+		resStruct, appErr = c.App.UploadMultipartFiles(
+			FILE_TEAM_ID,
+			channelId,
+			c.Session.UserId,
+			m.File["files"],
+			m.Value["client_ids"],
+			now,
+		)
 	}
 
-	m := r.MultipartForm
-
-	props := m.Value
-	if len(props["channel_id"]) == 0 {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-	channelId := props["channel_id"][0]
-	if len(channelId) == 0 {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
-		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
-		return
-	}
-
-	resStruct, err := c.App.UploadFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -120,14 +164,15 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := c.App.ReadFile(info.Path)
+	fileReader, err := c.App.FileReader(info.Path)
 	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 		return
 	}
+	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, info.MimeType, data, forceDownload, w, r)
+	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, forceDownload, w, r)
 	if err != nil {
 		c.Err = err
 		return
@@ -161,10 +206,16 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if data, err := c.App.ReadFile(info.ThumbnailPath); err != nil {
+	fileReader, err := c.App.FileReader(info.ThumbnailPath)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, data, forceDownload, w, r); err != nil {
+		return
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, fileReader, forceDownload, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -230,10 +281,15 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if data, err := c.App.ReadFile(info.PreviewPath); err != nil {
+	fileReader, err := c.App.FileReader(info.PreviewPath)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, data, forceDownload, w, r); err != nil {
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, fileReader, forceDownload, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -281,29 +337,37 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(hash) == 0 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}
 
 	if hash != app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt) {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}
 
-	if data, err := c.App.ReadFile(info.Path); err != nil {
+	fileReader, err := c.App.FileReader(info.Path)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, true, w, r); err != nil {
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, true, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
 }
 
-func writeFileResponse(filename string, contentType string, bytes []byte, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
+func writeFileResponse(filename string, contentType string, contentSize int64, fileReader io.Reader, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
-	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	if contentSize > 0 {
+		w.Header().Set("Content-Length", strconv.Itoa(int(contentSize)))
+	}
 
 	if contentType == "" {
 		contentType = "application/octet-stream"
@@ -346,7 +410,7 @@ func writeFileResponse(filename string, contentType string, bytes []byte, forceD
 	w.Header().Set("X-Frame-Options", "DENY")
 	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
 
-	w.Write(bytes)
+	io.Copy(w, fileReader)
 
 	return nil
 }
