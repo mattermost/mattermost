@@ -126,7 +126,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
-
+	session.GenerateCSRF()
 	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
 	if len(deviceId) > 0 {

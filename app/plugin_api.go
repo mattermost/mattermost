@@ -65,6 +65,16 @@ func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	return nil
 }
 
+func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {
+	session, err := api.app.GetSessionById(sessionId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
+}
+
 func (api *PluginAPI) GetConfig() *model.Config {
 	return api.app.GetConfig()
 }
