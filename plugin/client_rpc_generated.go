@@ -558,6 +558,35 @@ func (s *apiRPCServer) UnregisterCommand(args *Z_UnregisterCommandArgs, returns 
 	return nil
 }
 
+type Z_GetSessionArgs struct {
+	A string
+}
+
+type Z_GetSessionReturns struct {
+	A *model.Session
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetSession(sessionId string) (*model.Session, *model.AppError) {
+	_args := &Z_GetSessionArgs{sessionId}
+	_returns := &Z_GetSessionReturns{}
+	if err := g.client.Call("Plugin.GetSession", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSession API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetSession(args *Z_GetSessionArgs, returns *Z_GetSessionReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSession(sessionId string) (*model.Session, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetSession(args.A)
+	} else {
+		return fmt.Errorf("API GetSession called but not implemented.")
+	}
+	return nil
+}
+
 type Z_GetConfigArgs struct {
 }
 
