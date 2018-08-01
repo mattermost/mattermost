@@ -1,6 +1,6 @@
 [
   {
-    "id": "actiance.xml.output.formatter.marshalToXml.appError",
+    "id": "actiance.export.marshalToXml.appError",
     "translation": "Konnte Export nicht in XML konvertieren."
   },
   {
@@ -41,7 +41,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>Ihre Mattermost E-Mail-Einrichtung scheint korrekt zu sein!"
+    "translation": "Ihre Mattermost E-Mail-Einrichtung scheint korrekt zu sein!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -1736,11 +1736,15 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "Sie haben ihr Konto auf {{ .SiteURL }} deaktiviert.<br>Falls diese Änderung nicht durch Sie durchgeführt wurde oder Sie ihr Konto reaktivieren möchten, kontaktieren Sie bitte ihren Systemadministrator."
+    "translation": "You deactivated your account on {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
     "translation": "Ihr Konto auf {{ .ServerURL }} wurde deaktiviert"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -1748,7 +1752,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Ihre E-Mail-Adresse für {{.TeamDisplayName}} wurde in {{.NewEmail}} geändert.<br>Wenn Sie diese Änderungen nicht durchgeführt haben, kontaktieren Sie bitte den Systemadministrator."
+    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1779,12 +1783,24 @@
     "translation": "Um Ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an Ihrer Team-Site an und wählen dann Kontoeinstellungen > Benachrichtigungen."
   },
   {
-    "id": "api.templates.email_info",
-    "translation": "Bei Fragen senden Sie uns jederzeit eine E-Mail an <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Beste Grüße<br> Das {{.SiteName}} Team<br>"
+    "id": "api.templates.email_info1",
+    "translation": "Any questions at all, mail us any time: "
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "Best wishes,"
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "The {{.SiteName}} Team"
   },
   {
     "id": "api.templates.email_organization",
     "translation": "Versandt durch "
+  },
+  {
+    "id": "api.templates.email_warning",
+    "translation": "If you did not make this change, please contact the system administrator."
   },
   {
     "id": "api.templates.invite_body.button",
@@ -1792,11 +1808,11 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nachdem Sie <strong>{{.TeamDisplayName}}</strong> beigetreten sind, können Sie sich bei Ihrem neuen Team anmelden und auf all diese Funktionen von folgender Webadresse aus zugreifen:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nachdem Sie [[{{.TeamDisplayName}}]] beigetreten sind, können Sie sich bei Ihrem neuen Team anmelden und auf all diese Funktionen von folgender Webadresse aus zugreifen:"
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "Das Team {{.SenderStatus}} <strong>{{.SenderName}}</strong> hat Sie eingeladen, dem Team <strong>{{.TeamDisplayName}}</strong> beizutreten."
+    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1808,7 +1824,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-Faktor-Authentifizierung wurde Ihrem Zugang auf {{ .SiteURL }} hinzugefügt.<br>Wenn diese Änderung nicht durch Sie initiiert wurde, kontaktieren Sie bitte Ihren Systemadministrator."
+    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1820,7 +1836,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-Faktor-Authentifizierung wurde aus Ihrem Zugang auf {{ .SiteURL }} entfernt.<br>Wenn diese Änderung nicht durch Sie initiiert wurde kontaktieren Sie bitte Ihren Systemadministrator."
+    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1828,7 +1844,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Ihr Passwort wurde aktualisiert für {{.TeamDisplayName}} bei {{ .TeamURL }} durch {{.Method}}.<br>Falls Sie diese Änderung nicht veranlasst haben, wenden Sie sich bitte an den Systemadministrator."
+    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1847,8 +1863,12 @@
     "translation": "Passwort zurücksetzen"
   },
   {
-    "id": "api.templates.reset_body.info",
-    "translation": "Um Ihr Passwort zu ändern, klicken Sie unten auf \"Passwort zurücksetzen\".<br>Wenn Sie Ihr Passwort nicht zurücksetzen möchten, ignorieren Sie bitte diese E-Mail und das Passwort wird gleich bleiben. Der Passwortzurücksetzenlink wird in 24 Stunden ablaufen."
+    "id": "api.templates.reset_body.info1",
+    "translation": "To change your password, click \"Reset Password\" below."
+  },
+  {
+    "id": "api.templates.reset_body.info2",
+    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1860,7 +1880,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Sie haben Ihre Anmeldemethode für {{ .SiteName }} auf {{.Method}} geändert.<br>Falls Sie diese Änderung nicht veranlasst haben, wenden Sie sich bitte an den Systemadministrator."
+    "translation": "Ihre Anmeldemethode wurde aktualisiert bei {{ .SiteName }}"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1876,7 +1896,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Ein Benutzer-Zugriffs-Token wurde Ihrem Konto auf {{ .SiteURL }} hinzugefügt. Es kann für den Zugang zu {{.SiteName}} mit Ihrem Konto verwendet werden.<br>Wenn diese Änderung nicht durch Sie ausgeführt wurde, wenden Sie sich bitte bei Ihrem Systemadministrator."
+    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -1888,7 +1908,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Ihr Benutzername für {{.TeamDisplayName}} wurde in {{.NewUsername}} geändert.<br>Wenn Sie diese Änderungen nicht durchgeführt haben, kontaktieren Sie bitte den Systemadministrator."
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2159,6 +2179,22 @@
     "translation": "Kann Passwort für SSO-Konten nicht zurücksetzen"
   },
   {
+    "id": "api.user.saml.app_error",
+    "translation": "Unable to process SAML login request."
+  },
+  {
+    "id": "api.user.saml.extension_id.app_error",
+    "translation": "Ungültige Action-ID"
+  },
+  {
+    "id": "api.user.saml.extension_unsupported",
+    "translation": "Extensions are not supported."
+  },
+  {
+    "id": "api.user.saml.invalid_extension",
+    "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+  },
+  {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
   },
@@ -2393,6 +2429,14 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster-API-Endpunkt nicht gefunden."
+  },
+  {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "Error reading the file at: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "Error uploading the file: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2944,7 +2988,11 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "Kanal: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}.{{.Month}}"
+    "translation": "Channel: {{.ChannelName}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.full2",
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -2952,7 +3000,11 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "Kanal: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}}.{{.Month}}"
+    "translation": "Channel: {{.ChannelName}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.full2",
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3011,12 +3063,20 @@
     "translation": "Konnte aktive Plugins nicht abrufen."
   },
   {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "Konnte Plugin-Status-Zustand nicht setzen"
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Konnte Plugin nicht installieren."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Konnte Plugin nicht installieren. Ein Plugin mit der selben ID ist bereits installiert."
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3159,6 +3219,10 @@
     "translation": "Hochgeladene Datei wurde aus dem Global-Relay-Export entfernt, das sie zu groß zum Versenden war."
   },
   {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "Konnte temporäre CSV-Exportdatei nicht erstellen."
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance Funktionalität durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie Ihren Systemadministrator wegen eines Enterprise Lizenzupgrades."
   },
@@ -3255,12 +3319,20 @@
     "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "Elasticsearch ist nicht gestartet"
+  },
+  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Fehler beim Erstellen der Elasticsearch-Massenverarbeitung"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "Fehler beim Starten der Elasticsearch-Massenverarbeitung"
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch ist nicht gestartet"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3329,6 +3401,46 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Ungültiger AD/LDAP-Filter"
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Konnte die ZIP-Exportdatei nicht erstellen."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "Unable to deliver the email to Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "Unable to set the email From address."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "Unable to set the email message."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "Unable to write the email message."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "Unable to read the email information."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "Unable to set the email To address."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "Unable to get the information of the export temporary file"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "Unable to get the an email from the temporary file"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "Unable to open the export temporary file"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -4299,6 +4411,10 @@
     "translation": "Aktualisiert am muss eine gültige Zeit sein"
   },
   {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Ungültiger scope"
+  },
+  {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
     "translation": "Ungültige Callback-URLs"
   },
@@ -4353,6 +4469,10 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Ungültige Auslösewörter"
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "Ungültiger Benutzername"
   },
   {
     "id": "model.plugin_command.error.app_error",
