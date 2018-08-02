@@ -296,7 +296,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	mockAPI.On("DeleteUser", "message").Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil)
 
 	SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -313,7 +313,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		}
 
 		func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
-			p.API.DeleteUser(post.Message)
+			p.API.LogDebug(post.Message)
 		}
 
 		func main() {
@@ -386,8 +386,8 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	mockAPI.On("DeleteUser", "message_edited").Return(nil)
-	mockAPI.On("DeleteTeam", "message_").Return(nil)
+	mockAPI.On("LogDebug", "message_edited").Return(nil)
+	mockAPI.On("LogDebug", "message_").Return(nil)
 	SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
@@ -403,8 +403,8 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		}
 
 		func (p *MyPlugin) MessageHasBeenUpdated(c *plugin.Context, newPost, oldPost *model.Post) {
-			p.API.DeleteUser(newPost.Message)
-			p.API.DeleteTeam(oldPost.Message)
+			p.API.LogDebug(newPost.Message)
+			p.API.LogDebug(oldPost.Message)
 		}
 
 		func main() {
@@ -437,8 +437,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-		mockAPI.On("DeleteUser", "testhook.txt").Return(nil)
-		mockAPI.On("DeleteTeam", "inputfile").Return(nil)
+		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
+		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
@@ -483,8 +483,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-		mockAPI.On("DeleteUser", "testhook.txt").Return(nil)
-		mockAPI.On("DeleteTeam", "inputfile").Return(nil)
+		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
+		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
@@ -531,8 +531,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-		mockAPI.On("DeleteUser", "testhook.txt").Return(nil)
-		mockAPI.On("DeleteTeam", "inputfile").Return(nil)
+		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
+		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
@@ -589,8 +589,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-		mockAPI.On("DeleteUser", "testhook.txt").Return(nil)
-		mockAPI.On("DeleteTeam", "inputfile").Return(nil)
+		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
+		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
@@ -607,10 +607,10 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 
 			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
-				p.API.DeleteUser(info.Name)
+				p.API.LogDebug(info.Name)
 				var buf bytes.Buffer
 				buf.ReadFrom(file)
-				p.API.DeleteTeam(buf.String())
+				p.API.LogDebug(buf.String())
 
 				outbuf := bytes.NewBufferString("changedtext")
 				io.Copy(output, outbuf)
