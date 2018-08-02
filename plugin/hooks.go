@@ -71,7 +71,10 @@ type Hooks interface {
 
 	// MessageWillBePosted is invoked when a message is posted by a user before it is committed
 	// to the database. If you also want to act on edited posts, see MessageWillBeUpdated.
-	// Return values should be the modified post or nil if rejected and an explanation for the user.
+	//
+	// To reject a post, return an non-empty string describing why the post was rejected.
+	// To modify the post, return the replacement, non-nil *model.Post and an empty string.
+	// To allow the post, return a nil *model.Post and an empty string.
 	//
 	// If you don't need to modify or reject posts, use MessageHasBeenPosted instead.
 	//

@@ -56,113 +56,238 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 }
 
 func TestHookMessageWillBePosted(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
+	t.Run("rejected", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
 
-	SetAppEnvironmentWithPlugins(t,
-		[]string{
+		SetAppEnvironmentWithPlugins(t, []string{
 			`
-		package main
+			package main
 
-		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
-		)
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
 
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
 
-		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			post.Message = post.Message + "fromplugin"
-			return post, ""
-		}
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				return nil, "rejected"
+			}
 
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`}, th.App, th.App.NewPluginAPI)
-
-	post := &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: th.BasicChannel.Id,
-		Message:   "message_",
-		CreateAt:  model.GetMillis() - 10000,
-	}
-	post, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, "message_fromplugin", post.Message)
-	if result := <-th.App.Srv.Store.Post().GetSingle(post.Id); result.Err != nil {
-		t.Fatal(err)
-	} else {
-		assert.Equal(t, "message_fromplugin", result.Data.(*model.Post).Message)
-	}
-}
-
-func TestHookMessageWillBePostedMultiple(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	SetAppEnvironmentWithPlugins(t,
-		[]string{
-			`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			
-			post.Message = "prefix_" + post.Message
-			return post, ""
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`,
-			`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			post.Message = post.Message + "_suffix"
-			return post, ""
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`,
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
 		}, th.App, th.App.NewPluginAPI)
 
-	post := &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: th.BasicChannel.Id,
-		Message:   "message",
-		CreateAt:  model.GetMillis() - 10000,
-	}
-	post, err := th.App.CreatePost(post, th.BasicChannel, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, "prefix_message_suffix", post.Message)
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message_",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		post, err := th.App.CreatePost(post, th.BasicChannel, false)
+		if assert.NotNil(t, err) {
+			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
+		}
+	})
+
+	t.Run("rejected, returned post ignored", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				post.Message = "ignored"
+				return post, "rejected"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.App.NewPluginAPI)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message_",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		post, err := th.App.CreatePost(post, th.BasicChannel, false)
+		if assert.NotNil(t, err) {
+			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
+		}
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.App.NewPluginAPI)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		post, err := th.App.CreatePost(post, th.BasicChannel, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "message", post.Message)
+		if result := <-th.App.Srv.Store.Post().GetSingle(post.Id); result.Err != nil {
+			t.Fatal(err)
+		} else {
+			assert.Equal(t, "message", result.Data.(*model.Post).Message)
+		}
+	})
+
+	t.Run("updated", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				post.Message = post.Message + "_fromplugin"
+				return post, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.App.NewPluginAPI)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		post, err := th.App.CreatePost(post, th.BasicChannel, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "message_fromplugin", post.Message)
+		if result := <-th.App.Srv.Store.Post().GetSingle(post.Id); result.Err != nil {
+			t.Fatal(err)
+		} else {
+			assert.Equal(t, "message_fromplugin", result.Data.(*model.Post).Message)
+		}
+	})
+
+	t.Run("multiple updated", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				
+				post.Message = "prefix_" + post.Message
+				return post, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				post.Message = post.Message + "_suffix"
+				return post, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.App.NewPluginAPI)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		post, err := th.App.CreatePost(post, th.BasicChannel, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "prefix_message_suffix", post.Message)
+	})
 }
 
 func TestHookMessageHasBeenPosted(t *testing.T) {
