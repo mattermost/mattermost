@@ -1812,7 +1812,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "Echipa {{.SenderStatus}} [[{{.SenderName}}]] v-a invitat să vă alăturați [[{{{.TeamDisplayName}}]]."
+    "translation": "Echipa {{.SenderStatus}} [[{{.SenderName}}]] v-a invitat să vă alăturați [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
