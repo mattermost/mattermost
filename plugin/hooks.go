@@ -74,7 +74,7 @@ type Hooks interface {
 	//
 	// To reject a post, return an non-empty string describing why the post was rejected.
 	// To modify the post, return the replacement, non-nil *model.Post and an empty string.
-	// To allow the post, return a nil *model.Post and an empty string.
+	// To allow the post without modification, return a nil *model.Post and an empty string.
 	//
 	// If you don't need to modify or reject posts, use MessageHasBeenPosted instead.
 	//
@@ -132,8 +132,12 @@ type Hooks interface {
 	UserHasLoggedIn(c *Context, user *model.User)
 
 	// FileWillBeUploaded is invoked when a file is uploaded, but before it is committed to backing store.
-	// Read from file to retrieve the body of the uploaded file. You may modify the body of the file by writing to output.
-	// Returned FileInfo will be used instead of input FileInfo. Return nil to reject the file upload and include a text reason as the second argument.
+	// Read from file to retrieve the body of the uploaded file.
+	//
+	// To reject a file upload, return an non-empty string describing why the file was rejected.
+	// To modify the file, write to the output and/or return a non-nil *model.FileInfo, as well as an empty string.
+	// To allow the file without modification, do not write to the output and return a nil *model.FileInfo and an empty string.
+	//
 	// Note that this method will be called for files uploaded by plugins, including the plugin that uploaded the post.
 	// FileInfo.Size will be automatically set properly if you modify the file.
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
