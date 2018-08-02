@@ -45,34 +45,11 @@ func TestCreateTeamWithUser(t *testing.T) {
 	}
 
 	if _, err := th.App.CreateTeamWithUser(team, th.BasicUser.Id); err != nil {
-		t.Log(err)
-		t.Fatal("Should create a new team with existing user")
+		t.Fatal("Should create a new team with existing user", err)
 	}
 
 	if _, err := th.App.CreateTeamWithUser(team, model.NewId()); err == nil {
 		t.Fatal("Should not create a new team - user does not exist")
-	}
-
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-	ruser, _ := th.App.CreateUser(&user)
-
-	id = model.NewId()
-	team2 := &model.Team{
-		DisplayName: "dn_" + id,
-		Name:        "name" + id,
-		Email:       "success2+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
-	}
-
-	//Fail to create a team with user when user has set email without domain
-	if _, err := th.App.CreateTeamWithUser(team2, ruser.Id); err == nil {
-		t.Log(err.Message)
-		t.Fatal("Should not create a team with user when user has set email without domain")
-	} else {
-		if err.Id != "model.team.is_valid.email.app_error" {
-			t.Log(err)
-			t.Fatal("Invalid error message")
-		}
 	}
 }
 
