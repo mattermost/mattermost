@@ -102,10 +102,44 @@ func TestPreparePostForClient(t *testing.T) {
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.FileInfos, "should've populated post.FileInfos")
 	})
-
-	t.Run("emojis", func(t *testing.T) {
+	t.Run("emojis without custom emojis enabled", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableCustomEmoji = false
+		})
+
+		emoji := th.CreateEmoji()
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   ":" + emoji.Name + ": :taco:",
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		th.AddReactionToPost(post, th.BasicUser, "smile")
+		th.AddReactionToPost(post, th.BasicUser, "angry")
+		th.AddReactionToPost(post, th.BasicUser2, "angry")
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		assert.Equal(t, model.ReactionCounts{
+			"smile": 1,
+			"angry": 2,
+		}, clientPost.ReactionCounts, "should've populated post.ReactionCounts")
+		assert.ElementsMatch(t, []*model.Emoji{}, clientPost.Emojis, "should've populated empty post.Emojis")
+	})
+
+	t.Run("emojis with custom emojis enabled", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableCustomEmoji = true
+		})
 
 		emoji1 := th.CreateEmoji()
 		emoji2 := th.CreateEmoji()
@@ -121,6 +155,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser, emoji1.Name)
 		th.AddReactionToPost(post, th.BasicUser, emoji2.Name)
 		th.AddReactionToPost(post, th.BasicUser2, emoji2.Name)
+		th.AddReactionToPost(post, th.BasicUser2, "angry")
 
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
@@ -128,6 +163,7 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.Equal(t, model.ReactionCounts{
 			emoji1.Name: 1,
 			emoji2.Name: 2,
+			"angry":     1,
 		}, clientPost.ReactionCounts, "should've populated post.ReactionCounts")
 		assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3}, clientPost.Emojis, "should've populated post.Emojis")
 	})

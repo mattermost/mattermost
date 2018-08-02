@@ -86,6 +86,11 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 }
 
 func (a *App) getCustomEmojisForPost(message string, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableCustomEmoji {
+		// Only custom emoji are returned
+		return []*model.Emoji{}, nil
+	}
+
 	names := model.EMOJI_PATTERN.FindAllString(message, -1)
 
 	for _, reaction := range reactions {
