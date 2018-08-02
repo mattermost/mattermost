@@ -38,13 +38,16 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		return nil, result.Err
 	} else {
 		reaction = result.Data.(*model.Reaction)
-
-		a.Go(func() {
-			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
-		})
-
-		return reaction, nil
 	}
+
+	// The post is always modified since the UpdateAt always changes
+	a.InvalidateCacheForChannelPosts(post.ChannelId)
+
+	a.Go(func() {
+		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
+	})
+
+	return reaction, nil
 }
 
 func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
@@ -86,11 +89,14 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 
 	if result := <-a.Srv.Store.Reaction().Delete(reaction); result.Err != nil {
 		return result.Err
-	} else {
-		a.Go(func() {
-			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
-		})
 	}
+
+	// The post is always modified since the UpdateAt always changes
+	a.InvalidateCacheForChannelPosts(post.ChannelId)
+
+	a.Go(func() {
+		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
+	})
 
 	return nil
 }
@@ -105,9 +111,6 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	if err != nil {
 		mlog.Error("Failed to prepare new post for client after reaction", mlog.Any("err", err))
 	}
-
-	// The post is always modified since the UpdateAt always changes
-	a.InvalidateCacheForChannelPosts(post.ChannelId)
 
 	clientPost.HasReactions = hasReactions
 	clientPost.UpdateAt = model.GetMillis()
