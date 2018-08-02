@@ -1820,6 +1820,36 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 	return nil
 }
 
+type Z_CopyFileInfosArgs struct {
+	A string
+	B []string
+}
+
+type Z_CopyFileInfosReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+	_args := &Z_CopyFileInfosArgs{userId, fileIds}
+	_returns := &Z_CopyFileInfosReturns{}
+	if err := g.client.Call("Plugin.CopyFileInfos", _args, _returns); err != nil {
+		log.Printf("RPC call to CopyFileInfos API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CopyFileInfos(args *Z_CopyFileInfosArgs, returns *Z_CopyFileInfosReturns) error {
+	if hook, ok := s.impl.(interface {
+		CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CopyFileInfos(args.A, args.B)
+	} else {
+		return fmt.Errorf("API CopyFileInfos called but not implemented.")
+	}
+	return nil
+}
+
 type Z_KVSetArgs struct {
 	A string
 	B []byte

@@ -37,6 +37,31 @@ func (_m *API) AddChannelMember(channelId string, userId string) (*model.Channel
 	return r0, r1
 }
 
+// CopyFileInfos provides a mock function with given fields: userId, fileIds
+func (_m *API) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+	ret := _m.Called(userId, fileIds)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, []string) []string); ok {
+		r0 = rf(userId, fileIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(userId, fileIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateChannel provides a mock function with given fields: channel
 func (_m *API) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	ret := _m.Called(channel)
