@@ -141,7 +141,7 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) store.StoreChannel {
 			FROM
 				Emoji
 			WHERE
-				Name in `+keys+`
+				Name IN `+keys+`
 				AND DeleteAt = 0`, params); err != nil {
 			result.Err = model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
 		} else {
@@ -173,7 +173,7 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) store.StoreChann
 func (es SqlEmojiStore) Delete(id string, time int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if sqlResult, err := es.GetMaster().Exec(
-			`Update
+			`UPDATE
 				Emoji
 			SET
 				DeleteAt = :DeleteAt,
