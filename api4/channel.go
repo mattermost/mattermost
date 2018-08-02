@@ -1064,11 +1064,6 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Params.UserId != c.Session.UserId {
-		if channel.DeleteAt > 0 {
-			c.Err = model.NewAppError("RemoveUserFromChannel", "api.channel.remove_user_from_channel.deleted.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-
 		if channel.Type == model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
 			return

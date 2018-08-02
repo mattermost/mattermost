@@ -1983,9 +1983,6 @@ func TestRemoveChannelMember(t *testing.T) {
 	deletedChannel.DeleteAt = 1
 	th.App.UpdateChannel(deletedChannel)
 
-	_, resp = Client.RemoveUserFromChannel(deletedChannel.Id, th.BasicUser2.Id)
-	CheckBadRequestStatus(t, resp)
-
 	_, resp = Client.RemoveUserFromChannel(deletedChannel.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
