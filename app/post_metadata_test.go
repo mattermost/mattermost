@@ -102,6 +102,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.FileInfos, "should've populated post.FileInfos")
 	})
+
 	t.Run("emojis without custom emojis enabled", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
