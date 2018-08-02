@@ -12,7 +12,7 @@ func TestMapStringsToQueryParams(t *testing.T) {
 
 		if len(params) != 1 || params["Fruit0"] != "apple" {
 			t.Fatal("returned incorrect params", params)
-		} else if keys != ":Fruit0" {
+		} else if keys != "(:Fruit0)" {
 			t.Fatal("returned incorrect query", keys)
 		}
 	})
@@ -25,7 +25,7 @@ func TestMapStringsToQueryParams(t *testing.T) {
 		if len(params) != 3 || params["Vegetable0"] != "carrot" ||
 			params["Vegetable1"] != "tomato" || params["Vegetable2"] != "potato" {
 			t.Fatal("returned incorrect params", params)
-		} else if keys != ":Vegetable0,:Vegetable1,:Vegetable2" {
+		} else if keys != "(:Vegetable0,:Vegetable1,:Vegetable2)" {
 			t.Fatal("returned incorrect query", keys)
 		}
 	})

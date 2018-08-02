@@ -126,10 +126,9 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Equal(t, model.ReactionCounts{
-			"smile": 1,
-			"angry": 2,
-		}, clientPost.ReactionCounts, "should've populated post.ReactionCounts")
+		assert.Len(t, clientPost.ReactionCounts, 2, "should've populated post.ReactionCounts")
+		assert.Equal(t, 1, clientPost.ReactionCounts["smile"], "should've populated post.ReactionCounts for smile")
+		assert.Equal(t, 2, clientPost.ReactionCounts["angry"], "should've populated post.ReactionCounts for angry")
 		assert.ElementsMatch(t, []*model.Emoji{}, clientPost.Emojis, "should've populated empty post.Emojis")
 	})
 
@@ -160,11 +159,10 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Equal(t, model.ReactionCounts{
-			emoji1.Name: 1,
-			emoji2.Name: 2,
-			"angry":     1,
-		}, clientPost.ReactionCounts, "should've populated post.ReactionCounts")
+		assert.Len(t, clientPost.ReactionCounts, 3, "should've populated post.ReactionCounts")
+		assert.Equal(t, 1, clientPost.ReactionCounts[emoji1.Name], "should've populated post.ReactionCounts for emoji1")
+		assert.Equal(t, 2, clientPost.ReactionCounts[emoji2.Name], "should've populated post.ReactionCounts for emoji2")
+		assert.Equal(t, 1, clientPost.ReactionCounts["angry"], "should've populated post.ReactionCounts for angry")
 		assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3}, clientPost.Emojis, "should've populated post.Emojis")
 	})
 
@@ -242,4 +240,116 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	} else {
 		assert.Equal(t, clientPost.Message, fmt.Sprintf(postTemplate, imageURL), "shouldn't have replaced linked image URLs")
 	}
+}
+
+func TestGetCustomEmojisForPost_Message(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCustomEmoji = true
+	})
+
+	emoji1 := th.CreateEmoji()
+	emoji2 := th.CreateEmoji()
+	emoji3 := th.CreateEmoji()
+
+	testCases := []struct {
+		Description      string
+		Input            string
+		Expected         []*model.Emoji
+		SkipExpectations bool
+	}{
+		{
+			Description:      "no emojis",
+			Input:            "this is a string",
+			Expected:         []*model.Emoji{},
+			SkipExpectations: true,
+		},
+		{
+			Description: "one emoji",
+			Input:       "this is an :" + emoji1.Name + ": string",
+			Expected: []*model.Emoji{
+				emoji1,
+			},
+		},
+		{
+			Description: "two emojis",
+			Input:       "this is a :" + emoji3.Name + ": :" + emoji2.Name + ": string",
+			Expected: []*model.Emoji{
+				emoji3,
+				emoji2,
+			},
+		},
+		{
+			Description: "punctuation around emojis",
+			Input:       ":" + emoji3.Name + ":/:" + emoji1.Name + ": (:" + emoji2.Name + ":)",
+			Expected: []*model.Emoji{
+				emoji3,
+				emoji1,
+				emoji2,
+			},
+		},
+		{
+			Description: "adjacent emojis",
+			Input:       ":" + emoji3.Name + "::" + emoji1.Name + ":",
+			Expected: []*model.Emoji{
+				emoji3,
+				emoji1,
+			},
+		},
+		{
+			Description: "duplicate emojis",
+			Input:       "" + emoji1.Name + ": :" + emoji1.Name + ": :" + emoji1.Name + ": :" + emoji2.Name + ": :" + emoji2.Name + ": :" + emoji1.Name + ":",
+			Expected: []*model.Emoji{
+				emoji1,
+				emoji2,
+			},
+		},
+		{
+			Description: "fake emojis",
+			Input:       "these don't exist :tomato: :potato: :rotato:",
+			Expected:    []*model.Emoji{},
+		},
+		{
+			Description: "fake and real emojis",
+			Input:       ":tomato::" + emoji1.Name + ": :potato: :" + emoji2.Name + ":",
+			Expected: []*model.Emoji{
+				emoji1,
+				emoji2,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			emojis, err := th.App.getCustomEmojisForPost(testCase.Input, nil)
+			assert.Nil(t, err, "failed to get emojis in message")
+			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emojis")
+		})
+	}
+}
+
+func TestGetCustomEmojisForPost(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCustomEmoji = true
+	})
+
+	emoji1 := th.CreateEmoji()
+	emoji2 := th.CreateEmoji()
+
+	reactions := []*model.Reaction{
+		{
+			UserId:    th.BasicUser.Id,
+			EmojiName: emoji1.Name,
+		},
+	}
+
+	emojis, err := th.App.getCustomEmojisForPost(":"+emoji2.Name+":", reactions)
+	assert.Nil(t, err, "failed to get emojis for post")
+	assert.ElementsMatch(t, emojis, []*model.Emoji{emoji1, emoji2}, "received incorrect emojis")
 }
