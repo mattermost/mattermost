@@ -165,6 +165,7 @@ func ParseSearchParams(text string) []*SearchParams {
 			InChannels: inChannels,
 			FromUsers:  fromUsers,
 			AfterDate:  afterDate,
+			BeforeDate: beforeDate,
 			OnDate:     onDate,
 		})
 	}
