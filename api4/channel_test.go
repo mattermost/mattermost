@@ -846,8 +846,6 @@ func TestDeleteChannel(t *testing.T) {
 
 	if ch, err := th.App.GetChannel(publicChannel1.Id); err == nil && ch.DeleteAt == 0 {
 		t.Fatal("should have failed to get deleted channel")
-	} else if err := th.App.JoinChannel(ch, user2.Id); err == nil {
-		t.Fatal("should have failed to join deleted channel")
 	}
 
 	post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}

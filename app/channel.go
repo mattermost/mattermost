@@ -740,10 +740,6 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 }
 
 func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMember *model.TeamMember) (*model.ChannelMember, *model.AppError) {
-	if channel.DeleteAt > 0 {
-		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if channel.Type != model.CHANNEL_OPEN && channel.Type != model.CHANNEL_PRIVATE {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1178,10 +1174,6 @@ func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, 
 }
 
 func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError {
-	if channel.DeleteAt > 0 {
-		return model.NewAppError("JoinChannel", "api.channel.join_channel.already_deleted.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	userChan := a.Srv.Store.User().Get(userId)
 	memberChan := a.Srv.Store.Channel().GetMember(channel.Id, userId)
 
