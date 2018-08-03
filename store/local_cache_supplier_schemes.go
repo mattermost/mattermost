@@ -18,11 +18,10 @@ func (s *LocalCacheSupplier) handleClusterInvalidateScheme(msg *model.ClusterMes
 }
 
 func (s *LocalCacheSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	result := s.Next().SchemeSave(ctx, scheme, hints...)
 	if len(scheme.Id) != 0 {
 		s.doInvalidateCacheCluster(s.schemeCache, scheme.Id)
 	}
-	return result
+	return s.Next().SchemeSave(ctx, scheme, hints...)
 }
 
 func (s *LocalCacheSupplier) SchemeGet(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
@@ -57,5 +56,6 @@ func (s *LocalCacheSupplier) SchemeGetAllPage(ctx context.Context, scope string,
 func (s *LocalCacheSupplier) SchemePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	result := s.Next().SchemePermanentDeleteAll(ctx, hints...)
 	s.doClearCacheCluster(s.schemeCache)
+	s.doClearCacheCluster(s.roleCache)
 	return result
 }
