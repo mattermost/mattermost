@@ -33,7 +33,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 
 	// and a test user
 	user := model.User{
-		Email:    model.NewId() + "@mattermost.com",
+		Email:    MakeEmail(),
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
@@ -56,7 +56,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 
 	// and a test user
 	user := model.User{
-		Email:    model.NewId() + "@mattermost.com",
+		Email:    MakeEmail(),
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
@@ -82,7 +82,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 
 	// and a test user
 	user := model.User{
-		Email:    model.NewId() + "@mattermost.com",
+		Email:    MakeEmail(),
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
@@ -165,7 +165,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 
 	// and a test user
 	user := model.User{
-		Email:    model.NewId() + "@mattermost.com",
+		Email:    MakeEmail(),
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
@@ -267,14 +267,14 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 	// and two test users
 	user := model.User{
-		Email:    model.NewId() + "@mattermost.com",
+		Email:    MakeEmail(),
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
 	user2 := model.User{
-		Email:    model.NewId() + "@mattermost.com",
+		Email:    MakeEmail(),
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
