@@ -166,6 +166,66 @@ func TestParseSearchFlags(t *testing.T) {
 	} else if len(flags) != 2 || flags[0][0] != "in" || flags[0][1] != "here" || flags[1][0] != "from" || flags[1][1] != "someone" {
 		t.Fatalf("got incorrect flags %v", flags)
 	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after:1-1-2018")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "1-1-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana before:1-1-2018")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "before" || flags[0][1] != "1-1-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after:1-1-2018 before:1-10-2018")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 2 || flags[0][0] != "after" || flags[0][1] != "1-1-2018" || flags[1][0] != "before" || flags[1][1] != "1-10-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("#apple #banana after:1-1-2018")); len(words) != 2 || words[0] != "#apple" || words[1] != "#banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "1-1-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("#apple #banana before:1-1-2018")); len(words) != 2 || words[0] != "#apple" || words[1] != "#banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "before" || flags[0][1] != "1-1-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("#apple #banana after:1-1-2018 before:1-10-2018")); len(words) != 2 || words[0] != "#apple" || words[1] != "#banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 2 || flags[0][0] != "after" || flags[0][1] != "1-1-2018" || flags[1][0] != "before" || flags[1][1] != "1-10-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after: 1-1-2018")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "1-1-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana before: 1-1-2018")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "before" || flags[0][1] != "1-1-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after: 1-1-2018 before: 1-10-2018")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 2 || flags[0][0] != "after" || flags[0][1] != "1-1-2018" || flags[1][0] != "before" || flags[1][1] != "1-10-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after: 1-1-2018 before: 1-10-2018 #fruit")); len(words) != 3 || words[0] != "apple" || words[1] != "banana" || words[2] != "#fruit" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 2 || flags[0][0] != "after" || flags[0][1] != "1-1-2018" || flags[1][0] != "before" || flags[1][1] != "1-10-2018" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
 }
 
 func TestParseSearchParams(t *testing.T) {

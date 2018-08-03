@@ -4,9 +4,11 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,6 +29,28 @@ func TestRandomString(t *testing.T) {
 		if len(r) != 32 {
 			t.Fatal("should be 32 chars")
 		}
+	}
+}
+
+func TestGetMillisForTime(t *testing.T) {
+	thisTimeMillis := int64(1471219200000)
+	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := GetMillisForTime(thisTime)
+
+	if thisTimeMillis != result {
+		t.Fatalf(fmt.Sprintf("millis are not the same: %d and %d", thisTimeMillis, result))
+	}
+}
+
+func TestParseDateFilterToTime(t *testing.T) {
+	testString := "08-15-2016"
+	compareTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := ParseDateFilterToTime(testString)
+
+	if result != compareTime {
+		t.Fatalf(fmt.Sprintf("parsed date doesn't match the expected result: parsed result %v and expected time %v", result, compareTime))
 	}
 }
 

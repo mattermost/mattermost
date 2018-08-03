@@ -148,6 +148,32 @@ func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+// GetMillisForTime is a convience method to get milliseconds since epoch for provided Time.
+func GetMillisForTime(thisTime time.Time) int64 {
+	return thisTime.UnixNano() / int64(time.Millisecond)
+}
+
+// ParseDateFilterToTime is a convience method to get Time from string
+func ParseDateFilterToTime(filterString string) time.Time {
+	resultTime, err := time.Parse("01-02-2006", filterString)
+	if err != nil {
+		return time.Now()
+	}
+	return resultTime
+}
+
+// GetStartOfDayMillis is a convience method to get milliseconds since epoch for provided date's start of day
+func GetStartOfDayMillis(thisTime time.Time) int64 {
+	resultTime := time.Date(thisTime.Year(), thisTime.Month(), thisTime.Day(), 0, 0, 0, 0, time.UTC)
+	return GetMillisForTime(resultTime)
+}
+
+// GetEndOfDayMillis is a convience method to get milliseconds since epoch for provided date's end of day
+func GetEndOfDayMillis(thisTime time.Time) int64 {
+	resultTime := time.Date(thisTime.Year(), thisTime.Month(), thisTime.Day(), 23, 59, 59, 999999999, time.UTC)
+	return GetMillisForTime(resultTime)
+}
+
 func CopyStringMap(originalMap map[string]string) map[string]string {
 	copyMap := make(map[string]string)
 	for k, v := range originalMap {

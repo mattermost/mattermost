@@ -16,11 +16,14 @@ type SearchParams struct {
 	IsHashtag              bool
 	InChannels             []string
 	FromUsers              []string
+	AfterDate              string
+	BeforeDate             string
+	OnDate                 string
 	OrTerms                bool
 	IncludeDeletedChannels bool
 }
 
-var searchFlags = [...]string{"from", "channel", "in"}
+var searchFlags = [...]string{"from", "channel", "in", "before", "after", "on"}
 
 func splitWords(text string) []string {
 	words := []string{}
@@ -120,6 +123,9 @@ func ParseSearchParams(text string) []*SearchParams {
 
 	inChannels := []string{}
 	fromUsers := []string{}
+	afterDate := ""
+	beforeDate := ""
+	onDate := ""
 
 	for _, flagPair := range flags {
 		flag := flagPair[0]
@@ -129,6 +135,12 @@ func ParseSearchParams(text string) []*SearchParams {
 			inChannels = append(inChannels, value)
 		} else if flag == "from" {
 			fromUsers = append(fromUsers, value)
+		} else if flag == "after" {
+			afterDate = value
+		} else if flag == "before" {
+			beforeDate = value
+		} else if flag == "on" {
+			onDate = value
 		}
 	}
 
@@ -140,6 +152,9 @@ func ParseSearchParams(text string) []*SearchParams {
 			IsHashtag:  false,
 			InChannels: inChannels,
 			FromUsers:  fromUsers,
+			AfterDate:  afterDate,
+			BeforeDate: beforeDate,
+			OnDate:     onDate,
 		})
 	}
 
@@ -149,16 +164,21 @@ func ParseSearchParams(text string) []*SearchParams {
 			IsHashtag:  true,
 			InChannels: inChannels,
 			FromUsers:  fromUsers,
+			AfterDate:  afterDate,
+			OnDate:     onDate,
 		})
 	}
 
 	// special case for when no terms are specified but we still have a filter
-	if len(plainTerms) == 0 && len(hashtagTerms) == 0 && (len(inChannels) != 0 || len(fromUsers) != 0) {
+	if len(plainTerms) == 0 && len(hashtagTerms) == 0 && (len(inChannels) != 0 || len(fromUsers) != 0) && (len(afterDate) != 0 || len(beforeDate) != 0) && len(onDate) != 0 {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:      "",
 			IsHashtag:  false,
 			InChannels: inChannels,
 			FromUsers:  fromUsers,
+			AfterDate:  afterDate,
+			BeforeDate: beforeDate,
+			OnDate:     onDate,
 		})
 	}
 

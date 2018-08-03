@@ -829,6 +829,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 							AND UserId = :UserId
 							` + deletedQueryPart + `
 							CHANNEL_FILTER)
+				CREATEDATE_CLAUSE							
 				SEARCH_CLAUSE
 				ORDER BY CreateAt DESC
 			LIMIT 100`
@@ -887,6 +888,39 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 						AND Username = :FromUser)`, 1)
 		} else {
 			searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)
+		}
+
+		// handle after: before: on: filters
+		if len(params.AfterDate) > 1 || len(params.BeforeDate) > 1 || len(params.OnDate) > 1 {
+			dateClause := ""
+
+			if len(params.OnDate) > 1 {
+				onDate := model.ParseDateFilterToTime(params.OnDate)
+
+				// between `on date` start of day and end of day
+				dateClause = fmt.Sprintf("AND CreateAt BETWEEN %d AND %d ", model.GetStartOfDayMillis(onDate), model.GetEndOfDayMillis(onDate))
+			} else if len(params.AfterDate) > 1 && len(params.BeforeDate) > 1 {
+				afterDate := model.ParseDateFilterToTime(params.AfterDate)
+				beforeDate := model.ParseDateFilterToTime(params.BeforeDate)
+
+				// between clause
+				dateClause = fmt.Sprintf("AND CreateAt BETWEEN %d AND %d ", model.GetStartOfDayMillis(afterDate), model.GetEndOfDayMillis(beforeDate))
+			} else if len(params.AfterDate) > 1 {
+				afterDate := model.ParseDateFilterToTime(params.AfterDate)
+
+				// greater than `after date`
+				dateClause = fmt.Sprintf("AND CreateAt >= %d ", model.GetMillisForTime(afterDate))
+			} else if len(params.BeforeDate) > 1 {
+				beforeDate := model.ParseDateFilterToTime(params.BeforeDate)
+
+				// less than `before date`
+				dateClause = fmt.Sprintf("AND CreateAt <= %d ", model.GetMillisForTime(beforeDate))
+			}
+
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", dateClause, 1)
+		} else {
+			// no create date filters set
+			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "", 1)
 		}
 
 		if terms == "" {
