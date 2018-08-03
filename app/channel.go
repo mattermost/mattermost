@@ -1380,11 +1380,6 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 }
 
 func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
-	if channel.DeleteAt > 0 {
-		err := model.NewAppError("RemoveUserFromChannel", "api.channel.remove_user_from_channel.deleted.app_error", nil, "", http.StatusBadRequest)
-		return err
-	}
-
 	if channel.Name == model.DEFAULT_CHANNEL {
 		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 	}
@@ -1449,11 +1444,6 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 	if userIdToRemove == removerUserId {
 		a.postLeaveChannelMessage(user, channel)
 	} else {
-
-		if err != nil {
-			return err
-		}
-
 		a.Go(func() {
 			a.postRemoveFromChannelMessage(removerUserId, user, channel)
 		})
