@@ -171,7 +171,7 @@ func ParseSearchParams(text string) []*SearchParams {
 	}
 
 	// special case for when no terms are specified but we still have a filter
-	if len(plainTerms) == 0 && len(hashtagTerms) == 0 && (len(inChannels) != 0 || len(fromUsers) != 0) && (len(afterDate) != 0 || len(beforeDate) != 0) && len(onDate) != 0 {
+	if len(plainTerms) == 0 && len(hashtagTerms) == 0 && (len(inChannels) != 0 || len(fromUsers) != 0 || len(afterDate) != 0 || len(beforeDate) != 0 || len(onDate) != 0) {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:      "",
 			IsHashtag:  false,
