@@ -118,34 +118,39 @@ func TestUserIsValid(t *testing.T) {
 
 	user.Id = NewId()
 	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "create_at", user.Id) {
-		t.Fatal()
+		t.Fatal(err)
 	}
 
 	user.CreateAt = GetMillis()
 	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "update_at", user.Id) {
-		t.Fatal()
+		t.Fatal(err)
 	}
 
 	user.UpdateAt = GetMillis()
 	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "username", user.Id) {
-		t.Fatal()
+		t.Fatal(err)
 	}
 
 	user.Username = NewId() + "^hello#"
 	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "username", user.Id) {
-		t.Fatal()
+		t.Fatal(err)
 	}
 
 	user.Username = NewId()
-	user.Email = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
-		t.Fatal()
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "email", user.Id) {
+		t.Fatal(err)
 	}
 
-	user.Email = strings.Repeat("a", 128)
+	user.Email = strings.Repeat("01234567890", 20)
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "email", user.Id) {
+		t.Fatal(err)
+	}
+
+	user.Email = "user@example.com"
+
 	user.Nickname = strings.Repeat("a", 65)
 	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "nickname", user.Id) {
-		t.Fatal()
+		t.Fatal(err)
 	}
 
 	user.Nickname = strings.Repeat("a", 64)

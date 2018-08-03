@@ -279,16 +279,18 @@ func IsLower(s string) bool {
 }
 
 func IsValidEmail(email string) bool {
-
 	if !IsLower(email) {
 		return false
 	}
 
-	if _, err := mail.ParseAddress(email); err == nil {
-		return true
+	if addr, err := mail.ParseAddress(email); err != nil {
+		return false
+	} else if addr.Name != "" {
+		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" which we don't allow
+		return false
 	}
 
-	return false
+	return true
 }
 
 var reservedName = []string{
