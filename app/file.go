@@ -435,20 +435,27 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	}
 
 	if a.PluginsReady() {
+		var rejectionError *model.AppError
 		pluginContext := &plugin.Context{}
-		var rejectionReason string
 		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			var newBytes bytes.Buffer
-			info, rejectionReason = hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
-			rejected := info == nil
-			if !rejected && newBytes.Len() != 0 {
+			replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("DoUploadFile", "File rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			if replacementInfo != nil {
+				info = replacementInfo
+			}
+			if newBytes.Len() != 0 {
 				data = newBytes.Bytes()
 				info.Size = int64(len(data))
 			}
-			return !rejected
+
+			return true
 		}, plugin.FileWillBeUploadedId)
-		if info == nil {
-			return nil, data, model.NewAppError("DoUploadFile", "File rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		if rejectionError != nil {
+			return nil, data, rejectionError
 		}
 	}
 
