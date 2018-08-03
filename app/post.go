@@ -162,14 +162,22 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	if a.PluginsReady() {
-		var rejectionReason string
+		var rejectionError *model.AppError
 		pluginContext := &plugin.Context{}
 		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			post, rejectionReason = hooks.MessageWillBePosted(pluginContext, post)
-			return post != nil
+			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			if replacementPost != nil {
+				post = replacementPost
+			}
+
+			return true
 		}, plugin.MessageWillBePostedId)
-		if post == nil {
-			return nil, model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		if rejectionError != nil {
+			return nil, rejectionError
 		}
 	}
 
