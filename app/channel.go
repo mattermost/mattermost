@@ -726,13 +726,16 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 			}
 		}
 
-		if dresult := <-a.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); dresult.Err != nil {
+		deleteAt := model.GetMillis()
+
+		if dresult := <-a.Srv.Store.Channel().Delete(channel.Id, deleteAt); dresult.Err != nil {
 			return dresult.Err
 		}
 		a.InvalidateCacheForChannel(channel)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
 		message.Add("channel_id", channel.Id)
+		message.Add("delete_at", deleteAt)
 		a.Publish(message)
 	}
 
