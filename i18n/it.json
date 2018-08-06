@@ -92,10 +92,6 @@
     "translation": "Impossibile aggiungere gli utenti al canale perché sono stati rimossi dal gruppo."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Il canale è stato archiviato o eliminato"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Impossibile aggiungere l'utente a questo tipo di canale"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Impossibile eliminare i canali diretti o di gruppo"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Il canale è già stato eliminato"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",

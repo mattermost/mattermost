@@ -92,10 +92,6 @@
     "translation": "既にチームから削除されたユーザーのため、チャンネルに追加することはできません。"
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "チャンネルはアーカイブされているか削除されています"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "この種類のチャンネルにはユーザーを追加することはできません"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "ダイレクトメッセージチャンネルもしくはグループメッセージチャンネルを削除できません"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "チャンネルは既に削除されています"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
