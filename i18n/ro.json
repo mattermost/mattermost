@@ -92,10 +92,6 @@
     "translation": "Nu sa reușit adăugarea utilizatorului la canal, deoarece a fost eliminat din echipă."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Canalul a fost arhivat sau șters"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Nu se poate adăuga utilizator la acest tip de canal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Nu se pot șterge canalele de mesaje directe sau de grup"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Canalul este deja șters"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -1520,7 +1512,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Opriți utilizatorul cu e-mail {{.Email}} și parola {{.Password}} a fost importată.\n"
+    "translation": "Utilizatorul Slack cu e-mail {{.Email}} și parola {{.Password}} a fost importat(ă).\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -3076,7 +3068,7 @@
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
+    "translation": "Nu se poate instala plugin-ul. Un plugin cu același ID-ul este deja instalat și nu a fost eliminate."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3320,7 +3312,7 @@
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch nu este pornit"
+    "translation": "Elasticsearch este deja pornit"
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
@@ -3332,7 +3324,7 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped"
+    "translation": "Elasticsearch este deja oprit"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3644,7 +3636,7 @@
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
-    "translation": "Domeniu %s invalid"
+    "translation": "Scop invalid"
   },
   {
     "id": "model.authorize.is_valid.state.app_error",
@@ -4412,7 +4404,7 @@
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "Domeniu %s invalid"
+    "translation": "Icoană invalidă"
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
@@ -5740,7 +5732,7 @@
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "A reuşit să regăsească membrii echipei"
+    "translation": "Nu am reușit să recupereze membrii echipei"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",

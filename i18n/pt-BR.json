@@ -92,10 +92,6 @@
     "translation": "Falha ao adicionar o usuário ao canal porque ele foi removido desta equipe."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "O canal foi deletado ou arquivado"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Não foi possível adicionar usuário para este tipo de canal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Não é possível deletar os canais de mensagens diretas ou em grupo"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "O canal já foi apagado"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",

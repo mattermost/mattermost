@@ -92,10 +92,6 @@
     "translation": "Impossible d'ajouter l'utilisateur au canal car il a été exclu de l'équipe."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Le canal a été archivé ou effacé"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Impossible d'ajouter l'utilisateur à ce type de canal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Impossible de supprimer des canaux de groupe ou de messages personnels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Le can est déjà supprimé"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",

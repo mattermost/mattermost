@@ -92,10 +92,6 @@
     "translation": "Takımdan çıkarılmış olduğundan kullanıcı kanala eklenemedi."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Kanal arşivlenmiş ya da silinmiş"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Bu kanal türüne kullanıcı eklenemez"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Doğrudan ya da grup ileti kanalları silinemez"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Kanal zaten silinmiş"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",

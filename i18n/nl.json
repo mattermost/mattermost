@@ -92,10 +92,6 @@
     "translation": "Fout bij toevoegen van gebruiker aan kanaal omdat de gebruiker verwijderd is van het team."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Het kanaal is gearchiveerd of verwijderd"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",

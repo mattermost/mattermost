@@ -92,10 +92,6 @@
     "translation": "无法将用户添加到频道，因为用户已从团队中移除。"
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "该频道已归档或者被删除"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "不能添加用户到该频道类型"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "无法删除私信或组消息频道"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "频道已被删除"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -1444,7 +1436,7 @@
   },
   {
     "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
+    "translation": "只读频道无法发反应。"
   },
   {
     "id": "api.roles.patch_roles.license.error",

@@ -92,10 +92,6 @@
     "translation": "Fehler beim Hinzufügen des Benutzers zum Kanal, da dieser aus dem Team entfernt worden ist."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Der Kanal wurde archiviert oder gelöscht."
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Der Benutzer konnte diesem Kanaltyp nicht hinzugefügt werden."
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Kann Direkt- oder Gruppen-Nachrichtenkanäle nicht löschen"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Der Kanal ist bereits gelöscht."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",

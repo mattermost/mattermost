@@ -92,10 +92,6 @@
     "translation": "Nie udało się dodać użytkownika do kanału, ponieważ został on usunięty z zespołu."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Kanał został zarchiwizowany lub usunięty"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Nie można dodać użytkownika do kanału tego typu"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Kanał jest już usunięty"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
