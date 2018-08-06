@@ -1744,7 +1744,7 @@
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "如果这不是您的操作或者您想重新激活您的帐号，请联系您的系统管理员。"
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -1784,11 +1784,11 @@
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Any questions at all, mail us any time: "
+    "translation": "如有任何问题，请随时给我们发邮件："
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Best wishes,"
+    "translation": "此致"
   },
   {
     "id": "api.templates.email_info3",
@@ -1824,7 +1824,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
+    "translation": "多重验证添加到了您在 {{ .SiteURL }} 的帐号。"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1836,7 +1836,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
+    "translation": "多重验证已从您在 {{ .SiteURL }} 的帐号移除。"
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1844,7 +1844,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
+    "translation": "您在 {{ .TeamURL }} 上 {{.TeamDisplayName}} 的密码已由 {{.Method}} 修改。"
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1896,7 +1896,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
+    "translation": "个人访问令牌添加到了您在  {{ .SiteURL }} 的帐号。它们可以用来以您的帐号访问 {{.SiteName}}。"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -2192,7 +2192,7 @@
   },
   {
     "id": "api.user.saml.invalid_extension",
-    "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+    "translation": "扩展 extension_id={{.ExtensionId}} 不支持。"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2452,7 +2452,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+    "translation": "导入表情符图像文件出错。表情符：“{{.EmojiName}}”"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -3076,7 +3076,7 @@
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
+    "translation": "无法安装插件。已经有同样 ID 的插件存在并且无法被移除。"
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3412,7 +3412,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
+    "translation": "无法设定邮件 From 地址。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
@@ -3428,7 +3428,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
+    "translation": "无法设定邮件 To 地址。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
