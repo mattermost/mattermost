@@ -744,7 +744,7 @@
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to direct message this user."
+    "translation": "У Вас нет соответствующих прав для удаления участника."
   },
   {
     "id": "api.command_mute.desc",
