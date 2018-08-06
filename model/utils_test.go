@@ -45,7 +45,7 @@ func TestGetMillisForTime(t *testing.T) {
 
 func TestParseDateFilterToTimeISO8601(t *testing.T) {
 	testString := "2016-08-01"
-	compareTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+	compareTime := time.Date(2016, time.August, 1, 0, 0, 0, 0, time.UTC)
 
 	result := ParseDateFilterToTime(testString)
 
