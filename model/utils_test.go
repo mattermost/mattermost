@@ -43,9 +43,20 @@ func TestGetMillisForTime(t *testing.T) {
 	}
 }
 
-func TestParseDateFilterToTime(t *testing.T) {
-	testString := "08-15-2016"
+func TestParseDateFilterToTimeISO8601(t *testing.T) {
+	testString := "2016-08-01"
 	compareTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := ParseDateFilterToTime(testString)
+
+	if result != compareTime {
+		t.Fatalf(fmt.Sprintf("parsed date doesn't match the expected result: parsed result %v and expected time %v", result, compareTime))
+	}
+}
+
+func TestParseDateFilterToTimeNeedZeroPadding(t *testing.T) {
+	testString := "2016-8-1"
+	compareTime := time.Date(2016, time.August, 1, 0, 0, 0, 0, time.UTC)
 
 	result := ParseDateFilterToTime(testString)
 

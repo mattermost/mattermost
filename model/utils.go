@@ -155,11 +155,23 @@ func GetMillisForTime(thisTime time.Time) int64 {
 
 // ParseDateFilterToTime is a convience method to get Time from string
 func ParseDateFilterToTime(filterString string) time.Time {
-	resultTime, err := time.Parse("01-02-2006", filterString)
+	resultTime, err := time.Parse("2006-01-02", PadDateStringZeros(filterString))
 	if err != nil {
 		return time.Now()
 	}
 	return resultTime
+}
+
+// PadDateStringZeros is a convience method to pad 2 digit date parts with zeros to meet ISO 8601 format
+func PadDateStringZeros(dateString string) string {
+	parts := strings.Split(dateString, "-")
+	for index, part := range parts {
+		if len(part) == 1 {
+			parts[index] = "0" + part
+		}
+	}
+	dateString = strings.Join(parts[:], "-")
+	return dateString
 }
 
 // GetStartOfDayMillis is a convience method to get milliseconds since epoch for provided date's start of day
