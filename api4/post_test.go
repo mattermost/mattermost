@@ -1146,11 +1146,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}
 
 	// All returned posts are all read by the user, since it's created by the user itself.
-	posts, resp := Client.GetPostsAroundLastUnread(user.Id, channel.Id)
+	posts, resp := Client.GetPostsAroundLastUnread(user.Id, channel.Id, 10, 20)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != app.PER_PAGE_DEFAULT {
-		t.Fatal("Should return 60 posts only since there's no unread post")
+	if len(posts.Order) != 10 {
+		t.Fatal("Should return 10 posts only since there's no unread post")
 	}
 
 	// Set channel member's last viewed to 0.
@@ -1159,11 +1159,11 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember.LastViewedAt = 0
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
-	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id)
+	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id, 20, 40)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != app.PER_PAGE_DEFAULT {
-		t.Fatal("Should return 60 posts only since there's no unread post")
+	if len(posts.Order) != 20 {
+		t.Fatal("Should return 20 posts only since there's no unread post")
 	}
 
 	// create next 10 posts (100-109), and marked index 100 as the last unread post
@@ -1184,7 +1184,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember.LastViewedAt = since
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
-	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id)
+	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id, 60, 60)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != 70 {
@@ -1228,7 +1228,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 	time.Sleep(20 * time.Millisecond)
 
-	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id)
+	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id, 60, 60)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != 120 {

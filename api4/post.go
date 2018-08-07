@@ -189,7 +189,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId)
+	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter)
 	if err != nil {
 		c.Err = err
 		return
@@ -203,7 +203,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, app.PER_PAGE_DEFAULT)
+		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, c.Params.LimitBefore)
 	}
 
 	if len(etag) > 0 {
