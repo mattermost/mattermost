@@ -321,8 +321,8 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
 	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
-	installationDate, err := a.getSystemInstallDate()
-	if err == nil {
+	respCfg["InstallationDate"] = ""
+	if installationDate, err := a.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
 
