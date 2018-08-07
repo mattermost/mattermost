@@ -472,6 +472,36 @@ func TestConfigFromEnviroVars(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("plugin directory settings", func(t *testing.T) {
+		os.Setenv("MM_PLUGINSETTINGS_DIRECTORY", "/temp/plugins")
+		os.Setenv("MM_PLUGINSETTINGS_CLIENTDIRECTORY", "/temp/clientplugins")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_DIRECTORY")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_CLIENTDIRECTORY")
+
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		if *cfg.PluginSettings.Directory != "/temp/plugins" {
+			t.Fatal("Couldn't read Directory from environment var")
+		}
+		if *cfg.PluginSettings.ClientDirectory != "/temp/clientplugins" {
+			t.Fatal("Couldn't read ClientDirectory from environment var")
+		}
+
+		if pluginSettings, ok := envCfg["PluginSettings"]; !ok {
+			t.Fatal("PluginSettings is missing from envConfig")
+		} else if pluginSettingsAsMap, ok := pluginSettings.(map[string]interface{}); !ok {
+			t.Fatal("PluginSettings is not a map in envConfig")
+		} else {
+			if directory, ok := pluginSettingsAsMap["Directory"].(bool); !ok || !directory {
+				t.Fatal("Directory should be in envConfig")
+			}
+			if clientDirectory, ok := pluginSettingsAsMap["ClientDirectory"].(bool); !ok || !clientDirectory {
+				t.Fatal("ClientDirectory should be in envConfig")
+			}
+		}
+	})
 }
 
 func TestValidateLocales(t *testing.T) {
