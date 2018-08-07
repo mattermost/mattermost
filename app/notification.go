@@ -352,8 +352,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
+	clientPost, err := a.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare new post for client", mlog.Any("err", err))
+	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", clientPost.ToJson())
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", channelName)
 	message.Add("channel_name", channel.Name)

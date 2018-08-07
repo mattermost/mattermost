@@ -350,8 +350,13 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 		post.Props = model.StringInterface{}
 	}
 
+	clientPost, err := a.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare ephemeral post for client", mlog.Any("err", err))
+	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", clientPost.ToJson())
 	a.Publish(message)
 
 	return post
@@ -472,8 +477,13 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 }
 
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
+	clientPost, err := a.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare updated post for client", mlog.Any("err", err))
+	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", clientPost.ToJson())
 	a.Publish(message)
 }
 
@@ -644,8 +654,13 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 			return nil, result.Err
 		}
 
+		clientPost, err := a.PreparePostForClient(post)
+		if err != nil {
+			mlog.Error("Failed to prepare deleted post for client", mlog.Any("err", err))
+		}
+
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-		message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+		message.Add("post", clientPost.ToJson())
 		a.Publish(message)
 
 		a.Go(func() {
@@ -986,13 +1001,6 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 	}
 
 	return nil
-}
-
-func (a *App) PostListWithProxyAddedToImageURLs(list *model.PostList) *model.PostList {
-	if f := a.ImageProxyAdder(); f != nil {
-		return list.WithRewrittenImageURLs(f)
-	}
-	return list
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
