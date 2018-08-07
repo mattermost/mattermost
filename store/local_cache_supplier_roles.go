@@ -18,10 +18,11 @@ func (s *LocalCacheSupplier) handleClusterInvalidateRole(msg *model.ClusterMessa
 }
 
 func (s *LocalCacheSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().RoleSave(ctx, role, hints...)
 	if len(role.Id) != 0 {
-		defer s.doInvalidateCacheCluster(s.roleCache, role.Name)
+		s.doInvalidateCacheCluster(s.roleCache, role.Name)
 	}
-	return s.Next().RoleSave(ctx, role, hints...)
+	return result
 }
 
 func (s *LocalCacheSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
@@ -81,8 +82,10 @@ func (s *LocalCacheSupplier) RoleDelete(ctx context.Context, roleId string, hint
 }
 
 func (s *LocalCacheSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	defer s.roleCache.Purge()
-	defer s.doClearCacheCluster(s.roleCache)
+	result := s.Next().RolePermanentDeleteAll(ctx, hints...)
 
-	return s.Next().RolePermanentDeleteAll(ctx, hints...)
+	s.roleCache.Purge()
+	s.doClearCacheCluster(s.roleCache)
+
+	return result
 }
