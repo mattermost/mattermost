@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -1108,19 +1107,9 @@ func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.Sto
 
 func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		keys := bytes.Buffer{}
-		params := make(map[string]interface{})
-		for i, postId := range postIds {
-			if keys.Len() > 0 {
-				keys.WriteString(",")
-			}
+		keys, params := MapStringsToQueryParams(postIds, "Post")
 
-			key := "Post" + strconv.Itoa(i)
-			keys.WriteString(":" + key)
-			params[key] = postId
-		}
-
-		query := `SELECT * FROM Posts WHERE Id in (` + keys.String() + `) and DeleteAt = 0 ORDER BY CreateAt DESC`
+		query := `SELECT * FROM Posts WHERE Id IN ` + keys + ` AND DeleteAt = 0 ORDER BY CreateAt DESC`
 
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts, query, params)

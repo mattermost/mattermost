@@ -18,13 +18,15 @@ func (s *LocalCacheSupplier) handleClusterInvalidateReaction(msg *model.ClusterM
 }
 
 func (s *LocalCacheSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().ReactionSave(ctx, reaction, hints...)
 	s.doInvalidateCacheCluster(s.reactionCache, reaction.PostId)
-	return s.Next().ReactionSave(ctx, reaction, hints...)
+	return result
 }
 
 func (s *LocalCacheSupplier) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().ReactionDelete(ctx, reaction, hints...)
 	s.doInvalidateCacheCluster(s.reactionCache, reaction.PostId)
-	return s.Next().ReactionDelete(ctx, reaction, hints...)
+	return result
 }
 
 func (s *LocalCacheSupplier) ReactionGetForPost(ctx context.Context, postId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {

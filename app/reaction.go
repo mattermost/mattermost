@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -37,13 +38,16 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		return nil, result.Err
 	} else {
 		reaction = result.Data.(*model.Reaction)
-
-		a.Go(func() {
-			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
-		})
-
-		return reaction, nil
 	}
+
+	// The post is always modified since the UpdateAt always changes
+	a.InvalidateCacheForChannelPosts(post.ChannelId)
+
+	a.Go(func() {
+		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
+	})
+
+	return reaction, nil
 }
 
 func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
@@ -85,11 +89,14 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 
 	if result := <-a.Srv.Store.Reaction().Delete(reaction); result.Err != nil {
 		return result.Err
-	} else {
-		a.Go(func() {
-			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
-		})
 	}
+
+	// The post is always modified since the UpdateAt always changes
+	a.InvalidateCacheForChannelPosts(post.ChannelId)
+
+	a.Go(func() {
+		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
+	})
 
 	return nil
 }
@@ -100,11 +107,15 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	message.Add("reaction", reaction.ToJson())
 	a.Publish(message)
 
-	// The post is always modified since the UpdateAt always changes
-	a.InvalidateCacheForChannelPosts(post.ChannelId)
-	post.HasReactions = hasReactions
-	post.UpdateAt = model.GetMillis()
+	clientPost, err := a.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare new post for client after reaction", mlog.Any("err", err))
+	}
+
+	clientPost.HasReactions = hasReactions
+	clientPost.UpdateAt = model.GetMillis()
+
 	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	umessage.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	umessage.Add("post", clientPost.ToJson())
 	a.Publish(umessage)
 }

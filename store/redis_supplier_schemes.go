@@ -10,31 +10,37 @@ import (
 )
 
 func (s *RedisSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().SchemeSave(ctx, scheme, hints...)
 	// TODO: Redis caching.
-	return s.Next().SchemeSave(ctx, scheme, hints...)
+	return result
 }
 
 func (s *RedisSupplier) SchemeGet(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().SchemeGet(ctx, schemeId, hints...)
 	// TODO: Redis caching.
-	return s.Next().SchemeGet(ctx, schemeId, hints...)
+	return result
 }
 
 func (s *RedisSupplier) SchemeGetByName(ctx context.Context, schemeName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().SchemeGetByName(ctx, schemeName, hints...)
 	// TODO: Redis caching.
-	return s.Next().SchemeGetByName(ctx, schemeName, hints...)
+	return result
 }
 
 func (s *RedisSupplier) SchemeDelete(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().SchemeDelete(ctx, schemeId, hints...)
 	// TODO: Redis caching.
-	return s.Next().SchemeDelete(ctx, schemeId, hints...)
+	return result
 }
 
 func (s *RedisSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().SchemeGetAllPage(ctx, scope, offset, limit, hints...)
 	// TODO: Redis caching.
-	return s.Next().SchemeGetAllPage(ctx, scope, offset, limit, hints...)
+	return result
 }
 
 func (s *RedisSupplier) SchemePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().SchemePermanentDeleteAll(ctx, hints...)
 	// TODO: Redis caching.
-	return s.Next().SchemePermanentDeleteAll(ctx, hints...)
+	return result
 }

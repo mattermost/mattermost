@@ -484,8 +484,13 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, posts.Etag())
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	clientPostList, err := c.App.PreparePostListForClient(posts)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
+	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {

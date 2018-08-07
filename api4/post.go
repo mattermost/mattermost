@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -69,8 +70,13 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SetStatusOnline(c.Session.UserId, false)
 	c.App.UpdateLastActivityAtIfNeeded(c.Session)
 
+	clientPost, err := c.App.PreparePostForClient(rp)
+	if err != nil {
+		mlog.Error("Failed to prepare post for createPost response", mlog.Any("err", err))
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+	w.Write([]byte(clientPost.ToJson()))
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -97,8 +103,13 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
+	clientPost, err := c.App.PreparePostForClient(rp)
+	if err != nil {
+		mlog.Error("Failed to prepare post for createEphemeralPost response", mlog.Any("err", err))
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+	w.Write([]byte(clientPost.ToJson()))
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -167,7 +178,13 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
+
+	clientPostList, err := c.App.PreparePostListForClient(list)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getPostsForChannel response", mlog.Any("err", err))
+	}
+
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -199,10 +216,15 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, app.PER_PAGE_DEFAULT)
 	}
 
+	clientPostList, err := c.App.PreparePostListForClient(postList)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getPostsForChannelAroundLastUnread response", mlog.Any("err", err))
+	}
+
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(postList).ToJson()))
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -235,7 +257,12 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	clientPostList, err := c.App.PreparePostListForClient(posts)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
+	}
+
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -269,12 +296,17 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	post, err = c.App.PreparePostForClient(post)
+	if err != nil {
+		mlog.Error("Failed to prepare post for getPost response", mlog.Any("err", err))
+	}
+
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
 	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(post).ToJson()))
+	w.Write([]byte(post.ToJson()))
 }
 
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -352,8 +384,14 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
+	clientPostList, err := c.App.PreparePostListForClient(list)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
+	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
+
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -394,7 +432,12 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results = model.MakePostSearchResults(c.App.PostListWithProxyAddedToImageURLs(results.PostList), results.Matches)
+	clientPostList, err := c.App.PreparePostListForClient(results.PostList)
+	if err != nil {
+		mlog.Error("Failed to prepare posts for searchPosts response", mlog.Any("err", err))
+	}
+
+	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(results.ToJson()))
@@ -439,7 +482,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rpost).ToJson()))
+	rpost, err = c.App.PreparePostForClient(rpost)
+	if err != nil {
+		mlog.Error("Failed to prepare post for updatePost response", mlog.Any("err", err))
+	}
+
+	w.Write([]byte(rpost.ToJson()))
 }
 
 func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -479,7 +527,12 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(patchedPost).ToJson()))
+	patchedPost, err = c.App.PreparePostForClient(patchedPost)
+	if err != nil {
+		mlog.Error("Failed to prepare post for patchPost response", mlog.Any("err", err))
+	}
+
+	w.Write([]byte(patchedPost.ToJson()))
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {

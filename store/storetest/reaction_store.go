@@ -61,8 +61,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	if postList := store.Must(ss.Post().Get(reaction2.PostId)).(*model.PostList); postList.Posts[post.Id].UpdateAt != secondUpdateAt {
-		t.Fatal("shouldn't mark as updated when HasReactions hasn't changed")
+	if postList := store.Must(ss.Post().Get(reaction2.PostId)).(*model.PostList); postList.Posts[post.Id].UpdateAt == secondUpdateAt {
+		t.Fatal("should've marked post as updated even if HasReactions doesn't change")
 	}
 
 	// different post
@@ -123,7 +123,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 	if postList := store.Must(ss.Post().Get(post.Id)).(*model.PostList); postList.Posts[post.Id].HasReactions {
 		t.Fatal("should've set HasReactions = false on post")
 	} else if postList.Posts[post.Id].UpdateAt == firstUpdateAt {
-		t.Fatal("shouldn't mark as updated when HasReactions has changed after deleting reactions")
+		t.Fatal("should mark post as updated after deleting reactions")
 	}
 }
 

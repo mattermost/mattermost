@@ -77,6 +77,22 @@ func (_m *EmojiStore) GetList(offset int, limit int, sort string) store.StoreCha
 	return r0
 }
 
+// GetMultipleByName provides a mock function with given fields: names
+func (_m *EmojiStore) GetMultipleByName(names []string) store.StoreChannel {
+	ret := _m.Called(names)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func([]string) store.StoreChannel); ok {
+		r0 = rf(names)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: emoji
 func (_m *EmojiStore) Save(emoji *model.Emoji) store.StoreChannel {
 	ret := _m.Called(emoji)
