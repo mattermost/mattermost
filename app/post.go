@@ -467,6 +467,7 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 	}
 
 	newPost := &model.Post{}
+	oldPost.CreateAt = model.GetMillis()
 	*newPost = *oldPost
 
 	if newPost.RootId == "" && post.RootId != "" && post.RootId != newPost.Id {
