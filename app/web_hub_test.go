@@ -53,8 +53,10 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	defer s.Close()
 
 	th.App.HubStart()
-	registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	th.App.HubStop()
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	defer wc1.Close()
+	defer wc2.Close()
+	defer wc3.Close()
 }
