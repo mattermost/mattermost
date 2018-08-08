@@ -86,7 +86,19 @@ type Autolink struct {
 
 	Children []Inline
 
-	Link string
+	RawDestination Range
+
+	markdown string
+}
+
+func (i *Autolink) Destination() string {
+	destination := Unescape(i.markdown[i.RawDestination.Position:i.RawDestination.End])
+
+	if strings.HasPrefix(destination, "www") {
+		destination = "http://" + destination
+	}
+
+	return destination
 }
 
 type delimiterType int
@@ -486,15 +498,18 @@ func (p *inlineParser) parseAutolink(c rune) bool {
 		}
 	}
 
-	link := ""
-	text := ""
+	var link Range
 	if c == ':' {
-		text = parseURLAutolink(p.raw, p.position)
-		link = text
+		var ok bool
+		link, ok = parseURLAutolink(p.raw, p.position)
+
+		if !ok {
+			return false
+		}
 
 		// Since the current position is at the colon, we have to rewind the parsing slightly so that
 		// we don't duplicate the URL scheme
-		rewind := strings.Index(text, ":")
+		rewind := strings.Index(p.raw[link.Position:link.End], ":")
 		if rewind != -1 {
 			lastInline := p.inlines[len(p.inlines)-1]
 			lastText, ok := lastInline.(*Text)
@@ -512,22 +527,30 @@ func (p *inlineParser) parseAutolink(c rune) bool {
 				Range: Range{lastText.Range.Position, lastText.Range.End - rewind},
 			})
 			p.position -= rewind
-
 		}
-	} else if c == 'w' {
-		text = parseWWWAutolink(p.raw, p.position)
-		link = "http://" + text
+	} else if c == 'w' || c == 'W' {
+		var ok bool
+		link, ok = parseWWWAutolink(p.raw, p.position)
+
+		if !ok {
+			return false
+		}
 	}
 
-	if text == "" {
-		return false
-	}
+	linkMarkdownPosition := relativeToAbsolutePosition(p.ranges, link.Position)
+	linkRange := Range{linkMarkdownPosition, linkMarkdownPosition + link.End - link.Position}
 
 	p.inlines = append(p.inlines, &Autolink{
-		Link:     link,
-		Children: []Inline{&Text{Text: text}},
+		Children: []Inline{
+			&Text{
+				Text:  p.raw[link.Position:link.End],
+				Range: linkRange,
+			},
+		},
+		RawDestination: linkRange,
+		markdown:       p.markdown,
 	})
-	p.position += len(text)
+	p.position += (link.End - link.Position)
 
 	return true
 }
