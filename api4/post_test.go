@@ -1130,23 +1130,30 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
-	user := th.BasicUser
-	channel := th.BasicChannel
+	userId := th.BasicUser.Id
+	channelId := th.BasicChannel.Id
 
-	// create 100 posts (0-99), and marked index 40 as the last before post
-	var lastBeforePost *model.Post
-	for i := 0; i < 100; i++ {
-		if i == 40 {
-			lastBeforePost = th.CreatePost()
+	post := &model.Post{}
+	post.ChannelId = channelId
+	post.UserId = userId
+
+	// create 100 posts (1-100), and marked 41st post as the last before post
+	var lastBeforePostId string
+	for i := 1; i <= 100; i++ {
+		post.Id = ""
+		post.Message = "zz" + model.NewId() + "a"
+		post.CreateAt = int64(i) * 2
+
+		if i == 41 {
+			lastBeforePost := store.Must(th.App.Srv.Store.Post().Save(post)).(*model.Post)
+			lastBeforePostId = lastBeforePost.Id
 		} else {
-			th.CreatePost()
+			store.Must(th.App.Srv.Store.Post().Save(post))
 		}
-
-		time.Sleep(5 * time.Millisecond)
 	}
 
 	// All returned posts are all read by the user, since it's created by the user itself.
-	posts, resp := Client.GetPostsAroundLastUnread(user.Id, channel.Id, 10, 20)
+	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 10, 20)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != 10 {
@@ -1155,80 +1162,83 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
-	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(channel.Id, user.Id)).(*model.ChannelMember)
+	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
 	channelMember.LastViewedAt = 0
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
-	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id, 20, 40)
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 40)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != 20 {
 		t.Fatal("Should return 20 posts only since there's no unread post")
 	}
 
-	// create next 10 posts (100-109), and marked index 100 as the last unread post
-	var lastUnreadPost *model.Post
-	var post *model.Post
-	for i := 0; i < 10; i++ {
-		if i == 0 {
-			lastUnreadPost = th.CreatePost()
-		} else {
-			post = th.CreatePost()
-		}
+	// create next 10 posts (101-110), and marked 101st as the last unread post
+	var lastUnreadPostId string
+	var lastUnreadPostCreateAt int64
+	for i := 101; i <= 110; i++ {
+		post.Id = ""
+		post.Message = "zz" + model.NewId() + "a"
+		post.CreateAt = int64(i) * 2
 
-		time.Sleep(5 * time.Millisecond)
+		if i == 101 {
+			lastUnreadPost := store.Must(th.App.Srv.Store.Post().Save(post)).(*model.Post)
+			lastUnreadPostId = lastUnreadPost.Id
+			lastUnreadPostCreateAt = lastUnreadPost.CreateAt
+		} else {
+			store.Must(th.App.Srv.Store.Post().Save(post))
+		}
 	}
 
-	since := lastUnreadPost.CreateAt - 1
-	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channel.Id, user.Id)).(*model.ChannelMember)
+	since := lastUnreadPostCreateAt - 1
+	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
 	channelMember.LastViewedAt = since
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
-	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id, 60, 60)
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 60, 60)
 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 70 {
+	// should return 70 + 2 posts (system_join_channel and initial post)
+	if len(posts.Order) != 72 {
 		t.Fatal("Should return 70 posts")
 	}
 
 	for i, postId := range posts.Order {
 		post = posts.Posts[postId]
-		if i < 10 {
+		if i < 12 {
 			if post.CreateAt < channelMember.LastViewedAt {
 				t.Fatal("Should be unread post")
 			}
 		}
 
-		if i == 9 {
-			if post.Id != lastUnreadPost.Id {
+		if i == 11 {
+			if post.Id != lastUnreadPostId {
 				t.Fatal("Should match the last unread post")
 			}
 		}
 
-		if i == 69 {
-			if post.Id != lastBeforePost.Id {
+		if i == 71 {
+			if post.Id != lastBeforePostId {
 				t.Fatal("Should match the last unread post")
 			}
 		}
 	}
 
-	// create next 100 posts (110-209), and marked index 160 as the recent unread post
-	var recentUnreadPost *model.Post
-	for i := 0; i < 100; i++ {
-		if i == 49 {
-			recentUnreadPost = th.CreatePost()
+	// create next 100 posts (111-210), and marked 160th post as the recent unread post
+	var recentUnreadPostId string
+	for i := 111; i <= 210; i++ {
+		post.Id = ""
+		post.Message = "zz" + model.NewId() + "a"
+		post.CreateAt = int64(i) * 2
+		if i == 160 {
+			recentUnreadPost := store.Must(th.App.Srv.Store.Post().Save(post)).(*model.Post)
+			recentUnreadPostId = recentUnreadPost.Id
 		} else {
-			th.CreatePost()
+			store.Must(th.App.Srv.Store.Post().Save(post))
 		}
-
-		time.Sleep(5 * time.Millisecond)
 	}
 
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
-
-	time.Sleep(20 * time.Millisecond)
-
-	posts, resp = Client.GetPostsAroundLastUnread(user.Id, channel.Id, 60, 60)
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 60, 60)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != 120 {
@@ -1240,35 +1250,35 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 		// the 1st post should match the recent unread post
 		if i == 0 {
-			if post.Id != recentUnreadPost.Id {
+			if post.Id != recentUnreadPostId {
 				t.Fatal("Should match recent unread post")
 			}
 		}
 
-		// the 0 - 59th posts should be all unread posts
+		// 0 - 59th posts should be all unread posts
 		if i < 60 {
 			if post.CreateAt < channelMember.LastViewedAt {
 				t.Fatal("Should be unread post")
 			}
 		}
 
-		// the 60th - 120th posts should be all read posts
+		// 60th - 120th posts should be all read posts
 		if i >= 60 {
 			if post.CreateAt > channelMember.LastViewedAt {
 				t.Fatal("Should be read post")
 			}
 		}
 
-		// the 59th post should equal to last unread post
+		// index 59 or 60th post should equal to last unread post
 		if i == 59 {
-			if post.Id != lastUnreadPost.Id {
+			if post.Id != lastUnreadPostId {
 				t.Fatal("Should match the last unread post")
 			}
 		}
 
-		// the 119th post should equal to last before post
+		// index 119 or 120th post should equal to last before post
 		if i == 119 {
-			if post.Id != lastBeforePost.Id {
+			if post.Id != lastBeforePostId {
 				t.Fatal("Should match the last before post")
 			}
 		}
