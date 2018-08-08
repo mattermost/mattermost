@@ -157,7 +157,7 @@ func RenderInlineHTML(inline Inline) (result string) {
 		}
 		result += "</a>"
 	case *Autolink:
-		result += `<a href="` + htmlEscaper.Replace(escapeURL(v.Link)) + `">`
+		result += `<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `">`
 		for _, inline := range v.Children {
 			result += RenderInlineHTML(inline)
 		}
