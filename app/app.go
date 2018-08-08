@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"path"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -210,6 +211,10 @@ func New(options ...Option) (outApp *App, outErr error) {
 	app.Srv.Store = app.newStore()
 	if err := app.ensureAsymmetricSigningKey(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
+	}
+
+	if err := app.ensureInstallationDate(); err != nil {
+		return nil, errors.Wrapf(err, "unable to ensure installation date")
 	}
 
 	app.EnsureDiagnosticId()
@@ -739,4 +744,17 @@ func (a *App) StartElasticsearch() {
 			})
 		}
 	})
+}
+
+func (a *App) getSystemInstallDate() (int64, *model.AppError) {
+	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	if result.Err != nil {
+		return 0, result.Err
+	}
+	systemData := result.Data.(*model.System)
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value, nil
 }

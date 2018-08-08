@@ -263,6 +263,7 @@ type UserStore interface {
 	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
+	InferSystemInstallDate() StoreChannel
 }
 
 type SessionStore interface {
