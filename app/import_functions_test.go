@@ -1700,6 +1700,60 @@ func TestImportImportPost(t *testing.T) {
 			}
 		}
 	}
+
+	// Update post with replies.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &user2.Username,
+		Message:  ptrStr("Message with reply"),
+		CreateAt: &replyPostTime,
+		Replies: &[]ReplyImportData{{
+			User:     &username,
+			Message:  ptrStr("Message reply"),
+			CreateAt: &replyTime,
+		}},
+	}
+	if err := th.App.ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
+
+	// Create new post with replies based on the previous one.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &user2.Username,
+		Message:  ptrStr("Message with reply 2"),
+		CreateAt: &replyPostTime,
+		Replies: &[]ReplyImportData{{
+			User:     &username,
+			Message:  ptrStr("Message reply"),
+			CreateAt: &replyTime,
+		}},
+	}
+	if err := th.App.ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, th.App, initialPostCount, 10, team.Id)
+
+	// Create new reply for existing post with replies.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &user2.Username,
+		Message:  ptrStr("Message with reply"),
+		CreateAt: &replyPostTime,
+		Replies: &[]ReplyImportData{{
+			User:     &username,
+			Message:  ptrStr("Message reply 2"),
+			CreateAt: &replyTime,
+		}},
+	}
+	if err := th.App.ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
 }
 
 func TestImportImportDirectChannel(t *testing.T) {

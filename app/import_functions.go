@@ -763,7 +763,7 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 
 	var reply *model.Post
 	for _, r := range replies {
-		if r.Message == *data.Message {
+		if r.Message == *data.Message && r.RootId == post.Id {
 			reply = r
 			break
 		}
@@ -784,7 +784,7 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 		if err != nil {
 			return err
 		}
-		reply.FileIds = fileIds
+		reply.FileIds = append(reply.FileIds, fileIds...)
 	}
 
 	if reply.Id == "" {
@@ -819,6 +819,8 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 			fmt.Print(err)
 			return nil, fileUploadError
 		}
+
+		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
 
 		mlog.Info(fmt.Sprintf("uploading file with name %s", file.Name()))
 		return fileInfo, nil
@@ -889,7 +891,7 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		if err != nil {
 			return err
 		}
-		post.FileIds = fileIds
+		post.FileIds = append(post.FileIds, fileIds...)
 	}
 
 	if post.Id == "" {
