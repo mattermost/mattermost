@@ -181,9 +181,11 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 
 	if *a.Config().JobSettings.RunJobs {
 		a.Jobs.StartWorkers()
+		defer a.Jobs.StopWorkers()
 	}
 	if *a.Config().JobSettings.RunScheduler {
 		a.Jobs.StartSchedulers()
+		defer a.Jobs.StopSchedulers()
 	}
 
 	notifyReady()
@@ -200,9 +202,6 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	if a.Metrics != nil {
 		a.Metrics.StopServer()
 	}
-
-	a.Jobs.StopSchedulers()
-	a.Jobs.StopWorkers()
 
 	return nil
 }
