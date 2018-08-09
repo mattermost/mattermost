@@ -19,7 +19,7 @@ func (s *LocalCacheSupplier) handleClusterInvalidateScheme(msg *model.ClusterMes
 
 func (s *LocalCacheSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	if len(scheme.Id) != 0 {
-		s.doInvalidateCacheCluster(s.schemeCache, scheme.Id)
+		defer s.doInvalidateCacheCluster(s.schemeCache, scheme.Id)
 	}
 	return s.Next().SchemeSave(ctx, scheme, hints...)
 }
@@ -41,12 +41,10 @@ func (s *LocalCacheSupplier) SchemeGetByName(ctx context.Context, schemeName str
 }
 
 func (s *LocalCacheSupplier) SchemeDelete(ctx context.Context, schemeId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	result := s.Next().SchemeDelete(ctx, schemeId, hints...)
+	defer s.doInvalidateCacheCluster(s.schemeCache, schemeId)
+	defer s.doClearCacheCluster(s.roleCache)
 
-	s.doInvalidateCacheCluster(s.schemeCache, schemeId)
-	s.doClearCacheCluster(s.roleCache)
-
-	return result
+	return s.Next().SchemeDelete(ctx, schemeId, hints...)
 }
 
 func (s *LocalCacheSupplier) SchemeGetAllPage(ctx context.Context, scope string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
@@ -54,8 +52,8 @@ func (s *LocalCacheSupplier) SchemeGetAllPage(ctx context.Context, scope string,
 }
 
 func (s *LocalCacheSupplier) SchemePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	result := s.Next().SchemePermanentDeleteAll(ctx, hints...)
-	s.doClearCacheCluster(s.schemeCache)
-	s.doClearCacheCluster(s.roleCache)
-	return result
+	defer s.doClearCacheCluster(s.schemeCache)
+	defer s.doClearCacheCluster(s.roleCache)
+
+	return s.Next().SchemePermanentDeleteAll(ctx, hints...)
 }

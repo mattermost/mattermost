@@ -81,10 +81,8 @@ func (s *LocalCacheSupplier) RoleDelete(ctx context.Context, roleId string, hint
 }
 
 func (s *LocalCacheSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	result := s.Next().RolePermanentDeleteAll(ctx, hints...)
+	defer s.roleCache.Purge()
+	defer s.doClearCacheCluster(s.roleCache)
 
-	s.roleCache.Purge()
-	s.doClearCacheCluster(s.roleCache)
-
-	return result
+	return s.Next().RolePermanentDeleteAll(ctx, hints...)
 }
