@@ -47,7 +47,11 @@ func TestReadConfig_PluginSettings(t *testing.T) {
 				"com.example.plugin": {
 					"number": 1,
 					"string": "abc",
-					"boolean": false
+					"boolean": false,
+					"abc.def.ghi": {
+						"abc": 123,
+						"def": "456"
+					}
 				}
 			},
 			"PluginStates": {
@@ -65,6 +69,10 @@ func TestReadConfig_PluginSettings(t *testing.T) {
 		"number":  float64(1),
 		"string":  "abc",
 		"boolean": false,
+		"abc.def.ghi": map[string]interface{}{
+			"abc": float64(123),
+			"def": "456",
+		},
 	}, config.PluginSettings.Plugins["com.example.plugin"])
 	assert.Contains(t, config.PluginSettings.PluginStates, "com.example.plugin")
 	assert.Equal(t, model.PluginState{
