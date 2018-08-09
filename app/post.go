@@ -465,15 +465,30 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 			return nil, err
 		}
 	}
+
 	var originalRootId string
 	originalRootId = oldPost.RootId
 	newPost := &model.Post{}
 	oldPost.CreateAt = model.GetMillis()
 	*newPost = *oldPost
 
-	if newPost.RootId == "" && post.RootId != "" && post.RootId != newPost.Id {
+	if post.RootId != "" && post.RootId != newPost.Id {
 		if _, ok := thread.Posts[post.Id]; ok && len(thread.Posts) == 1 {
 			newPost.RootId = post.RootId
+		} else if newPost.RootId != "" {
+			newPost.RootId = post.RootId
+		}
+	}
+
+	if a.PluginsReady() {
+		var rejectionReason string
+		pluginContext := &plugin.Context{}
+		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
+			return post != nil
+		}, plugin.MessageWillBeUpdatedId)
+		if newPost == nil {
+			return nil, model.NewAppError("RethreadPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
 	}
 
