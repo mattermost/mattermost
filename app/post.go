@@ -465,7 +465,8 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 			return nil, err
 		}
 	}
-
+	var originalRootId string
+	originalRootId = oldPost.RootId
 	newPost := &model.Post{}
 	oldPost.CreateAt = model.GetMillis()
 	*newPost = *oldPost
@@ -502,7 +503,7 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 			})
 		}
 
-		a.sendUpdatedPostEvent(rpost)
+		a.sendRethreadedPostEvent(rpost, originalRootId)
 
 		a.InvalidateCacheForChannelPosts(rpost.ChannelId)
 
@@ -529,6 +530,13 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
 	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	a.Publish(message)
+}
+
+func (a *App) sendRethreadedPostEvent(post *model.Post, originalRootId string) {
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_RETHREADED, "", post.ChannelId, "", nil)
+	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("original_root_id", originalRootId)
 	a.Publish(message)
 }
 

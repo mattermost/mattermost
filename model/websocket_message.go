@@ -12,6 +12,7 @@ import (
 const (
 	WEBSOCKET_EVENT_TYPING                  = "typing"
 	WEBSOCKET_EVENT_POSTED                  = "posted"
+	WEBSOCKET_EVENT_POST_RETHREADED         = "post_rethreaded"
 	WEBSOCKET_EVENT_POST_EDITED             = "post_edited"
 	WEBSOCKET_EVENT_POST_DELETED            = "post_deleted"
 	WEBSOCKET_EVENT_CHANNEL_CONVERTED       = "channel_converted"
