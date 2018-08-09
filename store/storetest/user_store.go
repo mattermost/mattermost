@@ -246,9 +246,7 @@ func testUserCount(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	} else {
 		count := result.Data.(int64)
-		if count <= 0 {
-			t.Fatal()
-		}
+		require.False(t, count <= 0, "expected count > 0, got %d", count)
 	}
 }
 

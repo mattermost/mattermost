@@ -34,18 +34,14 @@ func TestAppError(t *testing.T) {
 	err := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
 	json := err.ToJson()
 	rerr := AppErrorFromJson(strings.NewReader(json))
-	if err.Message != rerr.Message {
-		t.Fatal()
-	}
+	require.Equal(t, err.Message, rerr.Message)
 
 	t.Log(err.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {
 	rerr := AppErrorFromJson(strings.NewReader("<html><body>This is a broken test</body></html>"))
-	if "body: <html><body>This is a broken test</body></html>" != rerr.DetailedError {
-		t.Fatal()
-	}
+	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
 }
 
 func TestCopyStringMap(t *testing.T) {
@@ -173,9 +169,7 @@ func TestValidLower(t *testing.T) {
 
 func TestEtag(t *testing.T) {
 	etag := Etag("hello", 24)
-	if len(etag) <= 0 {
-		t.Fatal()
-	}
+	require.NotEqual(t, "", etag)
 }
 
 var hashtags = map[string]string{
