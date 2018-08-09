@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestPreferenceIsValid(t *testing.T) {
@@ -16,54 +18,34 @@ func TestPreferenceIsValid(t *testing.T) {
 		Name:     NewId(),
 	}
 
-	if err := preference.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, preference.IsValid())
 
 	preference.UserId = NewId()
-	if err := preference.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, preference.IsValid())
 
 	preference.Category = strings.Repeat("01234567890", 20)
-	if err := preference.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, preference.IsValid())
 
 	preference.Category = PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
-	if err := preference.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, preference.IsValid())
 
 	preference.Name = strings.Repeat("01234567890", 20)
-	if err := preference.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, preference.IsValid())
 
 	preference.Name = NewId()
-	if err := preference.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, preference.IsValid())
 
 	preference.Value = strings.Repeat("01234567890", 201)
-	if err := preference.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, preference.IsValid())
 
 	preference.Value = "1234garbage"
-	if err := preference.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, preference.IsValid())
 
 	preference.Category = PREFERENCE_CATEGORY_THEME
-	if err := preference.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, preference.IsValid())
 
 	preference.Value = `{"color": "#ff0000", "color2": "#faf"}`
-	if err := preference.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, preference.IsValid())
 }
 
 func TestPreferencePreUpdate(t *testing.T) {
@@ -79,11 +61,9 @@ func TestPreferencePreUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if props["color"] != "#ff0000" || props["color2"] != "#faf" || props["codeTheme"] != "github" {
-		t.Fatal("shouldn't have changed valid props")
-	}
+	require.Equal(t, "#ff0000", props["color"], "shouldn't have changed valid props")
+	require.Equal(t, "#faf", props["color2"], "shouldn't have changed valid props")
+	require.Equal(t, "github", props["codeTheme"], "shouldn't have changed valid props")
 
-	if props["invalid"] == "invalid" {
-		t.Fatal("should have changed invalid prop")
-	}
+	require.NotEqual(t, "invalid", props["invalid"], "should have changed invalid prop")
 }

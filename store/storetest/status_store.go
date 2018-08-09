@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -103,9 +104,7 @@ func testActiveUserCount(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	} else {
 		count := result.Data.(int64)
-		if count <= 0 {
-			t.Fatal()
-		}
+		require.True(t, count > 0, "expected count > 0, got %d", count)
 	}
 }
 

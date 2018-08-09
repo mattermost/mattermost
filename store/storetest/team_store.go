@@ -590,10 +590,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
-
-		if len(ms) != 2 {
-			t.Fatal()
-		}
+		require.Len(t, ms, 2)
 	}
 
 	if r1 := <-ss.Team().GetMembers(teamId2, 0, 100); r1.Err != nil {
@@ -601,14 +598,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 1 {
-			t.Fatal()
-		}
-
-		if ms[0].UserId != m3.UserId {
-			t.Fatal()
-
-		}
+		require.Len(t, ms, 1)
+		require.Equal(t, m3.UserId, ms[0].UserId)
 	}
 
 	if r1 := <-ss.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
@@ -616,14 +607,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 1 {
-			t.Fatal()
-		}
-
-		if ms[0].TeamId != m1.TeamId {
-			t.Fatal()
-
-		}
+		require.Len(t, ms, 1)
+		require.Equal(t, m1.TeamId, ms[0].TeamId)
 	}
 
 	if r1 := <-ss.Team().RemoveMember(teamId1, m1.UserId); r1.Err != nil {
@@ -635,14 +620,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 1 {
-			t.Fatal()
-		}
-
-		if ms[0].UserId != m2.UserId {
-			t.Fatal()
-
-		}
+		require.Len(t, ms, 1)
+		require.Equal(t, m2.UserId, ms[0].UserId)
 	}
 
 	store.Must(ss.Team().SaveMember(m1, -1))
@@ -656,9 +635,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 0 {
-			t.Fatal()
-		}
+		require.Len(t, ms, 0)
 	}
 
 	uid := model.NewId()
@@ -672,9 +649,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 2 {
-			t.Fatal()
-		}
+		require.Len(t, ms, 2)
 	}
 
 	if r1 := <-ss.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
@@ -686,9 +661,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 0 {
-			t.Fatal()
-		}
+		require.Len(t, ms, 0)
 	}
 }
 
