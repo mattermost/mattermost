@@ -37,6 +37,41 @@ func TestReadConfig(t *testing.T) {
 	require.EqualError(t, err, "parsing error at line 3, character 5: invalid character 'm' looking for beginning of object key string")
 }
 
+func TestReadConfig_PluginSettings(t *testing.T) {
+	TranslationsPreInit()
+
+	config, _, err := ReadConfig(bytes.NewReader([]byte(`{
+		"PluginSettings": {
+			"Directory": "/temp/mattermost-plugins",
+			"Plugins": {
+				"com.example.plugin": {
+					"number": 1,
+					"string": "abc",
+					"boolean": false
+				}
+			},
+			"PluginStates": {
+				"com.example.plugin": {
+					"enable": true
+				}
+			}
+		}
+	}`)), false)
+	require.Nil(t, err)
+
+	assert.Equal(t, "/temp/mattermost-plugins", *config.PluginSettings.Directory)
+	assert.Contains(t, config.PluginSettings.Plugins, "com.example.plugin")
+	assert.Equal(t, map[string]interface{}{
+		"number":  float64(1),
+		"string":  "abc",
+		"boolean": false,
+	}, config.PluginSettings.Plugins["com.example.plugin"])
+	assert.Contains(t, config.PluginSettings.PluginStates, "com.example.plugin")
+	assert.Equal(t, model.PluginState{
+		Enable: true,
+	}, *config.PluginSettings.PluginStates["com.example.plugin"])
+}
+
 func TestTimezoneConfig(t *testing.T) {
 	TranslationsPreInit()
 	supportedTimezones := LoadTimezones("timezones.json")
