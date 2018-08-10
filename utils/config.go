@@ -247,12 +247,6 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map
 
 	var config model.Config
 	unmarshalErr := v.Unmarshal(&config)
-	if unmarshalErr == nil {
-		// https://github.com/spf13/viper/issues/324
-		// https://github.com/spf13/viper/issues/348
-		config.PluginSettings = model.PluginSettings{}
-		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
-	}
 
 	envConfig := v.EnvSettings()
 
