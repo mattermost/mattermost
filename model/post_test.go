@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -11,14 +12,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostJson(t *testing.T) {
+func TestPostToJson(t *testing.T) {
 	o := Post{Id: NewId(), Message: NewId()}
-	json := o.ToJson()
-	ro := PostFromJson(strings.NewReader(json))
+	j := o.ToJson()
+	ro := PostFromJson(strings.NewReader(j))
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	assert.Equal(t, o, *ro)
+}
+
+func TestPostActionIntegrationRequestToJson(t *testing.T) {
+	o := PostActionIntegrationRequest{UserId: NewId(), Context: StringInterface{"a": "abc"}}
+	j := o.ToJson()
+
+	var ro *PostActionIntegrationRequest
+	json.NewDecoder(strings.NewReader(j)).Decode(&ro)
+
+	assert.Equal(t, o, *ro)
+}
+
+func TestPostActionIntegrationResponseToJson(t *testing.T) {
+	o := PostActionIntegrationResponse{Update: &Post{Id: NewId(), Message: NewId()}, EphemeralText: NewId()}
+	j := o.ToJson()
+
+	var ro *PostActionIntegrationResponse
+	json.NewDecoder(strings.NewReader(j)).Decode(&ro)
+
+	assert.Equal(t, o, *ro)
 }
 
 func TestPostIsValid(t *testing.T) {

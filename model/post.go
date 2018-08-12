@@ -351,6 +351,11 @@ func (r *PostActionIntegrationRequest) ToJson() string {
 	return string(b)
 }
 
+func (r *PostActionIntegrationResponse) ToJson() string {
+	b, _ := json.Marshal(r)
+	return string(b)
+}
+
 func (o *Post) Attachments() []*SlackAttachment {
 	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
 		return attachments
