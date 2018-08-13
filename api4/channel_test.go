@@ -2038,6 +2038,19 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
+
+	// Test on preventing removal of user from a direct channel
+	directChannel, resp := Client.CreateDirectChannel(user1.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(directChannel.Id, user1.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(directChannel.Id, user2.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(directChannel.Id, user1.Id)
+	CheckBadRequestStatus(t, resp)
 }
 
 func TestAutocompleteChannels(t *testing.T) {

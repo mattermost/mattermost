@@ -1069,6 +1069,11 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.Type == model.CHANNEL_DIRECT {
+		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if c.Params.UserId != c.Session.UserId {
 		if channel.Type == model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
