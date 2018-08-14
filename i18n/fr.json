@@ -2184,7 +2184,7 @@
   },
   {
     "id": "api.user.saml.invalid_extension",
-    "translation": "L'extension ayant l'extension_id={{. ExtensionId}} n'est pas supportée."
+    "translation": "L'extension ayant l'extension_id={{.ExtensionId}} n'est pas supportée."
   },
   {
     "id": "api.user.saml.not_available.app_error",
