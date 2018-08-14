@@ -2051,6 +2051,17 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.RemoveUserFromChannel(directChannel.Id, user1.Id)
 	CheckBadRequestStatus(t, resp)
+
+	// Test on preventing removal of user from a group channel
+	user3 := th.CreateUser()
+	groupChannel, resp := Client.CreateGroupChannel([]string{user1.Id, user2.Id, user3.Id})
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(groupChannel.Id, user1.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(groupChannel.Id, user1.Id)
+	CheckBadRequestStatus(t, resp)
 }
 
 func TestAutocompleteChannels(t *testing.T) {
