@@ -1164,11 +1164,11 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.St
 
 func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		cache_key := userId
+		if includeDeleted {
+			cache_key += "_deleted"
+		}
 		if allowFromCache {
-			cache_key := userId
-			if includeDeleted {
-				cache_key += "_deleted"
-			}
 			if cacheItem, ok := allChannelMembersForUserCache.Get(cache_key); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
@@ -1218,7 +1218,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		result.Data = ids
 
 		if allowFromCache {
-			allChannelMembersForUserCache.AddWithExpiresInSecs(userId, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
+			allChannelMembersForUserCache.AddWithExpiresInSecs(cache_key, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
 		}
 	})
 }
