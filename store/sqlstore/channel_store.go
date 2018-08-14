@@ -1093,6 +1093,7 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) store.StoreC
 
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	allChannelMembersForUserCache.Remove(userId)
+	allChannelMembersForUserCache.Remove(userId + "_deleted")
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Remove by UserId")
 	}
@@ -1164,7 +1165,11 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.St
 func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
-			if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
+			cache_key := userId
+			if includeDeleted {
+				cache_key += "_deleted"
+			}
+			if cacheItem, ok := allChannelMembersForUserCache.Get(cache_key); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 				}
