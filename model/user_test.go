@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPasswordHash(t *testing.T) {
@@ -117,41 +118,34 @@ func TestUserIsValid(t *testing.T) {
 	}
 
 	user.Id = NewId()
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "create_at", user.Id) {
-		t.Fatal(err)
-	}
+	err := user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "create_at", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.CreateAt = GetMillis()
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "update_at", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "update_at", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.UpdateAt = GetMillis()
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "username", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "username", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.Username = NewId() + "^hello#"
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "username", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "username", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.Username = NewId()
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "email", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "email", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.Email = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "email", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "email", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.Email = "user@example.com"
 
 	user.Nickname = strings.Repeat("a", 65)
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "nickname", user.Id) {
-		t.Fatal(err)
-	}
+	err = user.IsValid()
+	require.True(t, HasExpectedUserIsValidError(err, "nickname", user.Id), "expected user is valid error: %s", err.Error())
 
 	user.Nickname = strings.Repeat("a", 64)
 	if err := user.IsValid(); err != nil {
@@ -331,28 +325,10 @@ func TestCleanUsername(t *testing.T) {
 }
 
 func TestRoles(t *testing.T) {
-
-	if !IsValidUserRoles("team_user") {
-		t.Fatal()
-	}
-
-	if IsValidUserRoles("system_admin") {
-		t.Fatal()
-	}
-
-	if !IsValidUserRoles("system_user system_admin") {
-		t.Fatal()
-	}
-
-	if IsInRole("system_admin junk", "admin") {
-		t.Fatal()
-	}
-
-	if !IsInRole("system_admin junk", "system_admin") {
-		t.Fatal()
-	}
-
-	if IsInRole("admin", "system_admin") {
-		t.Fatal()
-	}
+	require.True(t, IsValidUserRoles("team_user"))
+	require.False(t, IsValidUserRoles("system_admin"))
+	require.True(t, IsValidUserRoles("system_user system_admin"))
+	require.False(t, IsInRole("system_admin junk", "admin"))
+	require.True(t, IsInRole("system_admin junk", "system_admin"))
+	require.False(t, IsInRole("admin", "system_admin"))
 }

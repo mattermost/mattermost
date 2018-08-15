@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestClusterMessage(t *testing.T) {
@@ -17,9 +19,7 @@ func TestClusterMessage(t *testing.T) {
 	json := m.ToJson()
 	result := ClusterMessageFromJson(strings.NewReader(json))
 
-	if result.Data != "hello" {
-		t.Fatal()
-	}
+	require.Equal(t, "hello", result.Data)
 
 	badresult := ClusterMessageFromJson(strings.NewReader("junk"))
 	if badresult != nil {

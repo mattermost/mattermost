@@ -301,7 +301,7 @@ func GetServerIpAddress() string {
 	} else {
 		for _, addr := range addrs {
 
-			if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+			if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() && !ip.IP.IsLinkLocalUnicast() && !ip.IP.IsLinkLocalMulticast() {
 				if ip.IP.To4() != nil {
 					return ip.IP.String()
 				}
