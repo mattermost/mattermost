@@ -92,10 +92,6 @@
     "translation": "既にチームから削除されたユーザーのため、チャンネルに追加することはできません。"
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "チャンネルはアーカイブされているか削除されています"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "この種類のチャンネルにはユーザーを追加することはできません"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "ダイレクトメッセージチャンネルもしくはグループメッセージチャンネルを削除できません"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "チャンネルは既に削除されています"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -3119,6 +3111,10 @@
     "translation": "要求された移行処理が完了していないため、このAPIエンドポイントにアクセスできません。"
   },
   {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "インストール日時を解析できませんでした"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "このチームは登録ユーザー数の上限に達しました。システム管理者に上限値を上げるよう依頼してください。"
   },
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "ユーザーのプロフィールを探す際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "最初のユーザー作成日時の基づくシステム日時を推測できませんでした"
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
