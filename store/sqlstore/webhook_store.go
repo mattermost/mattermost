@@ -20,8 +20,9 @@ type SqlWebhookStore struct {
 }
 
 const (
-	WEBHOOK_CACHE_SIZE = 25000
-	WEBHOOK_CACHE_SEC  = 900 // 15 minutes
+	WEBHOOK_CACHE_SIZE       = 25000
+	WEBHOOK_CACHE_SEC        = 15 * 60
+	MAX_DESCRIPTION_LENGTH   = 500
 )
 
 var webhookCache = utils.NewLru(WEBHOOK_CACHE_SIZE)
@@ -47,7 +48,7 @@ func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("TeamId").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
-		table.ColMap("Description").SetMaxSize(128)
+		table.ColMap("Description").SetMaxSize(MAX_DESCRIPTION_LENGTH)
 
 		tableo := db.AddTableWithName(model.OutgoingWebhook{}, "OutgoingWebhooks").SetKeys(false, "Id")
 		tableo.ColMap("Id").SetMaxSize(26)
@@ -58,7 +59,7 @@ func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tableo.ColMap("TriggerWords").SetMaxSize(1024)
 		tableo.ColMap("CallbackURLs").SetMaxSize(1024)
 		tableo.ColMap("DisplayName").SetMaxSize(64)
-		tableo.ColMap("Description").SetMaxSize(128)
+		tableo.ColMap("Description").SetMaxSize(MAX_DESCRIPTION_LENGTH)
 		tableo.ColMap("ContentType").SetMaxSize(128)
 		tableo.ColMap("TriggerWhen").SetMaxSize(1)
 		tableo.ColMap("Username").SetMaxSize(64)

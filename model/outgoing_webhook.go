@@ -57,7 +57,10 @@ type OutgoingWebhookResponse struct {
 	ResponseType string             `json:"response_type"`
 }
 
-const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
+const (
+	OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
+	MAX_DESCRIPTION_LENGTH              = 500
+)
 
 func (o *OutgoingWebhookPayload) ToJSON() string {
 	b, _ := json.Marshal(o)
@@ -171,8 +174,8 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.Description) > 128 {
-		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.description.app_error", nil, "", http.StatusBadRequest)
+	if len(o.Description) > MAX_DESCRIPTION_LENGTH {
+		o.Description = o.Description[0:MAX_DESCRIPTION_LENGTH-1]
 	}
 
 	if len(o.ContentType) > 128 {
