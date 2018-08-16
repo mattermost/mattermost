@@ -92,10 +92,6 @@
     "translation": "Takımdan çıkarılmış olduğundan kullanıcı kanala eklenemedi."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Kanal arşivlenmiş ya da silinmiş"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Bu kanal türüne kullanıcı eklenemez"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Doğrudan ya da grup ileti kanalları silinemez"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Kanal zaten silinmiş"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -3119,6 +3111,10 @@
     "translation": "API bağlantı noktasına erişilemediğinden istenilen aktarımlar yapılamadı."
   },
   {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Kurulum tarihi işlenemedi"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticinizle görüşün."
   },
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Kullanıcı profilleri bulunurken bir sorun çıktı"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "İlk kullanıcı ekleme tarihine göre sistem tarihi belirlenemedi."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
