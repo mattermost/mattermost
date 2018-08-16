@@ -27,7 +27,6 @@ import (
 const (
 	MAX_LIMIT_POSTS_SINCE = 1000
 	PAGE_DEFAULT          = 0
-	PER_PAGE_DEFAULT      = 60
 )
 
 var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
@@ -610,7 +609,7 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 	}
 }
 
-func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int) (*model.PostList, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
@@ -620,7 +619,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string) (*mod
 	}
 
 	var postListSince *model.PostList
-	if postListSince, err = a.GetPostsSince(channelId, member.LastViewedAt, PER_PAGE_DEFAULT); err != nil {
+	if postListSince, err = a.GetPostsSince(channelId, member.LastViewedAt, limitAfter); err != nil {
 		return nil, err
 	} else if len(postListSince.Order) == 0 {
 		return model.NewPostList(), nil
@@ -629,7 +628,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string) (*mod
 	var lastUnreadPostId = postListSince.Order[len(postListSince.Order)-1]
 	var postListBefore *model.PostList
 	if lastUnreadPostId != "" {
-		if postListBefore, err = a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, PER_PAGE_DEFAULT); err != nil {
+		if postListBefore, err = a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitBefore); err != nil {
 			return nil, err
 		}
 	}
