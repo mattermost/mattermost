@@ -92,10 +92,6 @@
     "translation": "Error al agregar el usuario al canal porque ha sido removido del equipo."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "El canal ha sido archivado o eliminado"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "No se puede agregar al usuario a este tipo de canal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "No se pueden eliminar canales de grupo o mensajes directos"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "El canal ya está eliminado"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -1824,7 +1816,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "La autenticación de factor multiple ha sido agregada a tu cuenta en {{ .SireURL }}."
+    "translation": "La autenticación de factor multiple ha sido agregada a tu cuenta en {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -3117,6 +3109,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "Este endpoint de la API no es accesible porque requiere una migración que todavía no se ha completado."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Fallo al analizar la fecha de instalación"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Encontramos un error mientras buscamos los perfiles de usuario"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "No puede inferir la fecha del sistema basado en la fecha en que el primer usuario fue creado."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
