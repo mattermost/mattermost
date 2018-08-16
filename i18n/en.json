@@ -5943,10 +5943,6 @@
     "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
   },
   {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
-  },
-  {
     "id": "store.sql_user.get_new_users.app_error",
     "translation": "We encountered an error while finding the new users"
   },
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

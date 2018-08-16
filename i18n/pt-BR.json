@@ -92,10 +92,6 @@
     "translation": "Falha ao adicionar o usuário ao canal porque ele foi removido desta equipe."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "O canal foi deletado ou arquivado"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Não foi possível adicionar usuário para este tipo de canal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Não é possível deletar os canais de mensagens diretas ou em grupo"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "O canal já foi apagado"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -2496,11 +2488,11 @@
   },
   {
     "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Erro ao importar a postagem direta. Falha ao salvar as preferências."
+    "translation": "Erro ao importar mensagem direta. Falha ao salvar as preferências."
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Usuário do post não existe"
+    "translation": "Usuário da publicação não existe"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -2536,19 +2528,19 @@
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "Erro ao importar post. O canal com o nome \"{{.ChannelName}}\" não foi encontrado."
+    "translation": "Erro ao importar publicação. O canal com o nome \"{{.ChannelName}}\" não foi encontrado."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": "Erro ao importar a postagem. Falha ao salvar as preferências."
+    "translation": "Erro ao importar publicação. Falha ao salvar as preferências."
   },
   {
     "id": "app.import.import_post.team_not_found.error",
-    "translation": "Erro ao importar post. A equipe com o nome \"{{.TeamName}}\" não foi encontrada."
+    "translation": "Erro ao importar publicação. A equipe com o nome \"{{.TeamName}}\" não foi encontrada."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "Erro ao importar post. O usuário com o nome \"{{.Username}}\" não foi encontrado."
+    "translation": "Erro ao importar publicação. O usuário com o nome \"{{.Username}}\" não foi encontrado."
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
@@ -2640,7 +2632,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Propriedade obrigatória do post direto não foi informada: channel_members"
+    "translation": "Propriedade obrigatória da mensagem direta não foi informada: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
@@ -2668,7 +2660,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Postagem só pode ser marcada por membros que estão no canal. \"{{.Username}}\" não é membro."
+    "translation": "Mensagens diretas só pode ser marcada por membros que estão no canal. \"{{.Username}}\" não é membro."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3119,6 +3111,10 @@
     "translation": "Este endpoint da API não está acessível, pois as migrações exigidas ainda não foram concluídas."
   },
   {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Falha ao analisar a data de instalação"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Esta equipe alcançou o número máximo de contas permitidas. Contate o administrador do sistema para ajustar um limite maior."
   },
@@ -3284,7 +3280,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "A postagem mais antiga não pode ser obtida do banco de dados."
+    "translation": "A publicação mais antiga não pode ser obtida do banco de dados."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4320,7 +4316,7 @@
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
-    "translation": "Ícone de postagem inválido"
+    "translation": "Ícone de publicação inválido"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4576,7 +4572,7 @@
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
-    "translation": "Id da postagem inválida"
+    "translation": "Id da publicação inválida"
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",
@@ -5400,7 +5396,7 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Não foi possível determinar o tamanho máximo de postagem suportado"
+    "translation": "Não foi possível determinar o tamanho máximo de publicação suportado"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -5500,7 +5496,7 @@
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Não é possível obter as reações para a postagem"
+    "translation": "Não é possível obter as reações para a publicação"
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Encontramos um erro enquanto procurava os perfis de usuários"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Não é possível inferir a data do sistema com base na data de criação do primeiro usuário."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
