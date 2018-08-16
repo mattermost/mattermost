@@ -314,7 +314,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
 		"team_admin": []string{
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
 			model.PERMISSION_IMPORT_TEAM.Id,

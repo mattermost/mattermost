@@ -28,7 +28,6 @@ func createDefaultRoles(t *testing.T, ss store.Store) {
 		Name:        model.TEAM_ADMIN_ROLE_ID,
 		DisplayName: model.TEAM_ADMIN_ROLE_ID,
 		Permissions: []string{
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
 	})
