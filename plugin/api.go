@@ -155,11 +155,12 @@ type API interface {
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
-	// CopyFileInfos creates a copy of FileInfo objects provided in the list of FileIds
-	// these new FileInfo objects will not be linked to any post and will
-	// be ready to provide to a new CreatePost call
-	// this should be used when you want to create a copy of a post including
-	// file attachments without duplicating the file uploads
+	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
+	// recording the given user id as the new creator and returning the new set of file ids.
+	//
+	// The duplicate FileInfo objects are not initially linked to a post, but may now be passed
+	// to CreatePost. Use this API to duplicate a post and its file attachments without
+	// actually duplicating the uploaded files.
 	CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin.
