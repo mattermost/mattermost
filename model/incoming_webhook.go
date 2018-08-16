@@ -13,7 +13,6 @@ import (
 
 const (
 	DEFAULT_WEBHOOK_USERNAME = "webhook"
-	MAX_DESCRIPTION_LENGTH   = 500
 )
 
 type IncomingWebhook struct {
@@ -94,8 +93,8 @@ func (o *IncomingWebhook) IsValid() *AppError {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.Description) > MAX_DESCRIPTION_LENGTH {
-		o.Description = o.Description[0:MAX_DESCRIPTION_LENGTH-1]
+	if len(o.Description) > 500 {
+		o.Description = o.Description[0:500-1]
 	}
 
 	if len(o.Username) > 64 {
