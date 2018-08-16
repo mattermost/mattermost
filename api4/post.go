@@ -22,8 +22,9 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/thread", api.ApiSessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.ApiSessionRequired(getFileInfosForPost)).Methods("GET")
 	api.BaseRoutes.PostsForChannel.Handle("", api.ApiSessionRequired(getPostsForChannel)).Methods("GET")
-	api.BaseRoutes.PostsForChannel.Handle("/unread", api.ApiSessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 	api.BaseRoutes.PostsForUser.Handle("/flagged", api.ApiSessionRequired(getFlaggedPostsForUser)).Methods("GET")
+
+	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.ApiSessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
 
 	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(updatePost)).Methods("PUT")
@@ -188,8 +189,14 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireChannelId()
+	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
+		return
+	}
+
+	userId := c.Params.UserId
+	if !c.App.SessionHasPermissionToUser(c.Session, userId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
@@ -199,7 +206,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, c.Session.UserId)
+	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter)
 	if err != nil {
 		c.Err = err
 		return
@@ -213,7 +220,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, app.PER_PAGE_DEFAULT)
+		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, c.Params.LimitBefore)
 	}
 
 	clientPostList, err := c.App.PreparePostListForClient(postList)
