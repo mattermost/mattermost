@@ -92,10 +92,6 @@
     "translation": "无法将用户添加到频道，因为用户已从团队中移除。"
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "该频道已归档或者被删除"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "不能添加用户到该频道类型"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "无法删除私信或组消息频道"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "频道已被删除"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -1444,7 +1436,7 @@
   },
   {
     "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
+    "translation": "只读频道无法发反应。"
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -3117,6 +3109,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "API 无法访问因为需要的数据转移未完成。"
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "解析安装日期失败"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "我们查找用户配置文件遇到了一个错误"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "无法按照首个用户创建日期判断系统日期。"
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
