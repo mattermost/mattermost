@@ -143,6 +143,15 @@ type API interface {
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
 
+	// AddReaction add a reaction to a post.
+	AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+
+	// RemoveReaction remove a reaction from a post.
+	RemoveReaction(reaction *model.Reaction) *model.AppError
+
+	// GetReaction get the reactions of a post.
+	GetReactions(postId string) ([]*model.Reaction, *model.AppError)
+
 	// SendEphemeralPost creates an ephemeral post.
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 

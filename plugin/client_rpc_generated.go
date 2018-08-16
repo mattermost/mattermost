@@ -1705,6 +1705,92 @@ func (s *apiRPCServer) CreatePost(args *Z_CreatePostArgs, returns *Z_CreatePostR
 	return nil
 }
 
+type Z_AddReactionArgs struct {
+	A *model.Reaction
+}
+
+type Z_AddReactionReturns struct {
+	A *model.Reaction
+	B *model.AppError
+}
+
+func (g *apiRPCClient) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	_args := &Z_AddReactionArgs{reaction}
+	_returns := &Z_AddReactionReturns{}
+	if err := g.client.Call("Plugin.AddReaction", _args, _returns); err != nil {
+		log.Printf("RPC call to AddReaction API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) AddReaction(args *Z_AddReactionArgs, returns *Z_AddReactionReturns) error {
+	if hook, ok := s.impl.(interface {
+		AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.AddReaction(args.A)
+	} else {
+		return fmt.Errorf("API AddReaction called but not implemented.")
+	}
+	return nil
+}
+
+type Z_RemoveReactionArgs struct {
+	A *model.Reaction
+}
+
+type Z_RemoveReactionReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RemoveReaction(reaction *model.Reaction) *model.AppError {
+	_args := &Z_RemoveReactionArgs{reaction}
+	_returns := &Z_RemoveReactionReturns{}
+	if err := g.client.Call("Plugin.RemoveReaction", _args, _returns); err != nil {
+		log.Printf("RPC call to RemoveReaction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RemoveReaction(args *Z_RemoveReactionArgs, returns *Z_RemoveReactionReturns) error {
+	if hook, ok := s.impl.(interface {
+		RemoveReaction(reaction *model.Reaction) *model.AppError
+	}); ok {
+		returns.A = hook.RemoveReaction(args.A)
+	} else {
+		return fmt.Errorf("API RemoveReaction called but not implemented.")
+	}
+	return nil
+}
+
+type Z_GetReactionsArgs struct {
+	A string
+}
+
+type Z_GetReactionsReturns struct {
+	A []*model.Reaction
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+	_args := &Z_GetReactionsArgs{postId}
+	_returns := &Z_GetReactionsReturns{}
+	if err := g.client.Call("Plugin.GetReactions", _args, _returns); err != nil {
+		log.Printf("RPC call to GetReactions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetReactions(args *Z_GetReactionsArgs, returns *Z_GetReactionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetReactions(postId string) ([]*model.Reaction, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetReactions(args.A)
+	} else {
+		return fmt.Errorf("API GetReactions called but not implemented.")
+	}
+	return nil
+}
+
 type Z_SendEphemeralPostArgs struct {
 	A string
 	B *model.Post

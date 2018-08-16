@@ -258,6 +258,18 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	return api.app.CreatePostMissingChannel(post, true)
 }
 
+func (api *PluginAPI) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	return api.app.SaveReactionForPost(reaction)
+}
+
+func (api *PluginAPI) RemoveReaction(reaction *model.Reaction) *model.AppError {
+	return api.app.DeleteReactionForPost(reaction)
+}
+
+func (api *PluginAPI) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+	return api.app.GetReactionsForPost(postId)
+}
+
 func (api *PluginAPI) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return api.app.SendEphemeralPost(userId, post)
 }

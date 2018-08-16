@@ -37,6 +37,31 @@ func (_m *API) AddChannelMember(channelId string, userId string) (*model.Channel
 	return r0, r1
 }
 
+// AddReaction provides a mock function with given fields: reaction
+func (_m *API) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	ret := _m.Called(reaction)
+
+	var r0 *model.Reaction
+	if rf, ok := ret.Get(0).(func(*model.Reaction) *model.Reaction); ok {
+		r0 = rf(reaction)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Reaction)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Reaction) *model.AppError); ok {
+		r1 = rf(reaction)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CopyFileInfos provides a mock function with given fields: userId, fileIds
 func (_m *API) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
 	ret := _m.Called(userId, fileIds)
@@ -524,6 +549,31 @@ func (_m *API) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*
 	return r0, r1
 }
 
+// GetReactions provides a mock function with given fields: postId
+func (_m *API) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+	ret := _m.Called(postId)
+
+	var r0 []*model.Reaction
+	if rf, ok := ret.Get(0).(func(string) []*model.Reaction); ok {
+		r0 = rf(postId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Reaction)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(postId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetSession provides a mock function with given fields: sessionId
 func (_m *API) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	ret := _m.Called(sessionId)
@@ -916,6 +966,22 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 		r0 = rf(command)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RemoveReaction provides a mock function with given fields: reaction
+func (_m *API) RemoveReaction(reaction *model.Reaction) *model.AppError {
+	ret := _m.Called(reaction)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Reaction) *model.AppError); ok {
+		r0 = rf(reaction)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0
