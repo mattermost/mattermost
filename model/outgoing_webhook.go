@@ -57,10 +57,7 @@ type OutgoingWebhookResponse struct {
 	ResponseType string             `json:"response_type"`
 }
 
-const (
-	OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
-	MAX_DESCRIPTION_LENGTH              = 500
-)
+const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
 
 func (o *OutgoingWebhookPayload) ToJSON() string {
 	b, _ := json.Marshal(o)
