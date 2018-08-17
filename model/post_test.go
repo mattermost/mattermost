@@ -20,6 +20,11 @@ func TestPostToJson(t *testing.T) {
 	assert.Equal(t, o, *ro)
 }
 
+func TestPostFromJsonError(t *testing.T) {
+	ro := PostFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
+}
+
 func TestPostActionIntegrationRequestToJson(t *testing.T) {
 	o := PostActionIntegrationRequest{UserId: NewId(), Context: StringInterface{"a": "abc"}}
 	j := o.ToJson()
