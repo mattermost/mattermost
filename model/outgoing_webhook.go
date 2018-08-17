@@ -172,7 +172,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 	}
 
 	if len(o.Description) > 500 {
-		o.Description = o.Description[0:500-1]
+		o.Description = o.Description[0 : 500-1]
 	}
 
 	if len(o.ContentType) > 128 {

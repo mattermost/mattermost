@@ -94,7 +94,7 @@ func (o *IncomingWebhook) IsValid() *AppError {
 	}
 
 	if len(o.Description) > 500 {
-		o.Description = o.Description[0:500-1]
+		o.Description = o.Description[0 : 500-1]
 	}
 
 	if len(o.Username) > 64 {
