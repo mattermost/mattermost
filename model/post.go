@@ -351,6 +351,15 @@ func (r *PostActionIntegrationRequest) ToJson() string {
 	return string(b)
 }
 
+func PostActionIntegrationRequesteFromJson(data io.Reader) *PostActionIntegrationRequest {
+	var o *PostActionIntegrationRequest
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
 func (r *PostActionIntegrationResponse) ToJson() string {
 	b, _ := json.Marshal(r)
 	return string(b)

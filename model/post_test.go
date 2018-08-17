@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -17,17 +16,22 @@ func TestPostToJson(t *testing.T) {
 	j := o.ToJson()
 	ro := PostFromJson(strings.NewReader(j))
 
+	assert.NotNil(t, ro)
 	assert.Equal(t, o, *ro)
 }
 
 func TestPostActionIntegrationRequestToJson(t *testing.T) {
 	o := PostActionIntegrationRequest{UserId: NewId(), Context: StringInterface{"a": "abc"}}
 	j := o.ToJson()
+	ro := PostActionIntegrationRequesteFromJson(strings.NewReader(j))
 
-	var ro *PostActionIntegrationRequest
-	json.NewDecoder(strings.NewReader(j)).Decode(&ro)
-
+	assert.NotNil(t, ro)
 	assert.Equal(t, o, *ro)
+}
+
+func TestPostActionIntegrationRequestToJsonError(t *testing.T) {
+	ro := PostActionIntegrationRequesteFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
 }
 
 func TestPostActionIntegrationResponseToJson(t *testing.T) {
@@ -35,6 +39,7 @@ func TestPostActionIntegrationResponseToJson(t *testing.T) {
 	j := o.ToJson()
 	ro := PostActionIntegrationResponseFromJson(strings.NewReader(j))
 
+	assert.NotNil(t, ro)
 	assert.Equal(t, o, *ro)
 }
 
