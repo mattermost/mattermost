@@ -33,11 +33,14 @@ func TestPostActionIntegrationRequestToJson(t *testing.T) {
 func TestPostActionIntegrationResponseToJson(t *testing.T) {
 	o := PostActionIntegrationResponse{Update: &Post{Id: NewId(), Message: NewId()}, EphemeralText: NewId()}
 	j := o.ToJson()
-
-	var ro *PostActionIntegrationResponse
-	json.NewDecoder(strings.NewReader(j)).Decode(&ro)
+	ro := PostActionIntegrationResponseFromJson(strings.NewReader(j))
 
 	assert.Equal(t, o, *ro)
+}
+
+func TestPostActionIntegrationResponseToJsonError(t *testing.T) {
+	ro := PostActionIntegrationResponseFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
 }
 
 func TestPostIsValid(t *testing.T) {
