@@ -29,7 +29,7 @@ func TestPostActionIntegrationRequestToJson(t *testing.T) {
 	assert.Equal(t, o, *ro)
 }
 
-func TestPostActionIntegrationRequestToJsonError(t *testing.T) {
+func TestPostActionIntegrationRequestFromJsonError(t *testing.T) {
 	ro := PostActionIntegrationRequesteFromJson(strings.NewReader(""))
 	assert.Nil(t, ro)
 }
@@ -43,7 +43,7 @@ func TestPostActionIntegrationResponseToJson(t *testing.T) {
 	assert.Equal(t, o, *ro)
 }
 
-func TestPostActionIntegrationResponseToJsonError(t *testing.T) {
+func TestPostActionIntegrationResponseFromJsonError(t *testing.T) {
 	ro := PostActionIntegrationResponseFromJson(strings.NewReader(""))
 	assert.Nil(t, ro)
 }
