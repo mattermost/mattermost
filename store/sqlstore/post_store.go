@@ -783,7 +783,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 		termMap := map[string]bool{}
 		terms := params.Terms
 
-		if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 {
+		if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 && len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
 			result.Data = []*model.Post{}
 			return
 		}

@@ -167,6 +167,12 @@ func TestParseSearchFlags(t *testing.T) {
 		t.Fatalf("got incorrect flags %v", flags)
 	}
 
+	if words, flags := parseSearchFlags(splitWords("after:2018-1-1")); len(words) != 0 {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
 	if words, flags := parseSearchFlags(splitWords("apple banana after:2018-1-1")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
 		t.Fatalf("got incorrect words %v", words)
 	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" {
@@ -285,5 +291,13 @@ func TestParseSearchParams(t *testing.T) {
 
 	if sp := ParseSearchParams("wildcar*"); len(sp) != 1 || sp[0].Terms != "wildcar*" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
+	}
+
+	if sp := ParseSearchParams("after:2018-8-1 testing"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
+		t.Fatalf("Incorrect output from parse search params: %v", sp)
+	}
+
+	if sp := ParseSearchParams("after:2018-8-1"); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
+		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 }
