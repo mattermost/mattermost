@@ -869,6 +869,7 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 
 	request := &model.PostActionIntegrationRequest{
 		UserId:  userId,
+		PostId:  postId,
 		Context: action.Integration.Context,
 	}
 
