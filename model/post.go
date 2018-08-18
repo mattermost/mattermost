@@ -121,6 +121,7 @@ type PostActionIntegration struct {
 
 type PostActionIntegrationRequest struct {
 	UserId  string          `json:"user_id"`
+	PostId  string          `json:"post_id"`
 	Context StringInterface `json:"context,omitempty"`
 }
 
