@@ -279,6 +279,14 @@ func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, 
 	return api.app.CopyFileInfos(userId, fileIds)
 }
 
+func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	return api.app.GetFileInfo(fileId)
+}
+
+func (api *PluginAPI) ReadFileAtPath(path string) ([]byte, *model.AppError) {
+	return api.app.ReadFile(path)
+}
+
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }

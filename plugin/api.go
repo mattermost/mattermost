@@ -163,6 +163,12 @@ type API interface {
 	// actually duplicating the uploaded files.
 	CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError)
 
+	// GetFileInfo gets a File Info for a specific fileId
+	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+
+	// ReadFileAtPath reads the file from the backend for a specific path
+	ReadFileAtPath(path string) ([]byte, *model.AppError)
+
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
 
