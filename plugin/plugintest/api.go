@@ -849,6 +849,48 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.A
 	return r0, r1
 }
 
+// HasPermissionTo provides a mock function with given fields: userId, permission
+func (_m *API) HasPermissionTo(userId string, permission *model.Permission) bool {
+	ret := _m.Called(userId, permission)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, *model.Permission) bool); ok {
+		r0 = rf(userId, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// HasPermissionToChannel provides a mock function with given fields: userId, channelId, permission
+func (_m *API) HasPermissionToChannel(userId string, channelId string, permission *model.Permission) bool {
+	ret := _m.Called(userId, channelId, permission)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, *model.Permission) bool); ok {
+		r0 = rf(userId, channelId, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// HasPermissionToTeam provides a mock function with given fields: userId, teamId, permission
+func (_m *API) HasPermissionToTeam(userId string, teamId string, permission *model.Permission) bool {
+	ret := _m.Called(userId, teamId, permission)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, *model.Permission) bool); ok {
+		r0 = rf(userId, teamId, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // KVDelete provides a mock function with given fields: key
 func (_m *API) KVDelete(key string) *model.AppError {
 	ret := _m.Called(key)

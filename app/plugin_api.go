@@ -311,6 +311,18 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]int
 	})
 }
 
+func (api *PluginAPI) HasPermissionTo(userId string, permission *model.Permission) bool {
+	return api.app.HasPermissionTo(userId, permission)
+}
+
+func (api *PluginAPI) HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool {
+	return api.app.HasPermissionToTeam(userId, teamId, permission)
+}
+
+func (api *PluginAPI) HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool {
+	return api.app.HasPermissionToChannel(userId, channelId, permission)
+}
+
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
 	api.logger.Debug(msg, keyValuePairs...)
 }

@@ -2051,6 +2051,95 @@ func (s *apiRPCServer) PublishWebSocketEvent(args *Z_PublishWebSocketEventArgs, 
 	return nil
 }
 
+type Z_HasPermissionToArgs struct {
+	A string
+	B *model.Permission
+}
+
+type Z_HasPermissionToReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionTo(userId string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToArgs{userId, permission}
+	_returns := &Z_HasPermissionToReturns{}
+	if err := g.client.Call("Plugin.HasPermissionTo", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionTo API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionTo(args *Z_HasPermissionToArgs, returns *Z_HasPermissionToReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionTo(userId string, permission *model.Permission) bool
+	}); ok {
+		returns.A = hook.HasPermissionTo(args.A, args.B)
+	} else {
+		return fmt.Errorf("API HasPermissionTo called but not implemented.")
+	}
+	return nil
+}
+
+type Z_HasPermissionToTeamArgs struct {
+	A string
+	B string
+	C *model.Permission
+}
+
+type Z_HasPermissionToTeamReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToTeamArgs{userId, teamId, permission}
+	_returns := &Z_HasPermissionToTeamReturns{}
+	if err := g.client.Call("Plugin.HasPermissionToTeam", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionToTeam API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionToTeam(args *Z_HasPermissionToTeamArgs, returns *Z_HasPermissionToTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool
+	}); ok {
+		returns.A = hook.HasPermissionToTeam(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API HasPermissionToTeam called but not implemented.")
+	}
+	return nil
+}
+
+type Z_HasPermissionToChannelArgs struct {
+	A string
+	B string
+	C *model.Permission
+}
+
+type Z_HasPermissionToChannelReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToChannelArgs{userId, channelId, permission}
+	_returns := &Z_HasPermissionToChannelReturns{}
+	if err := g.client.Call("Plugin.HasPermissionToChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionToChannel API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionToChannel(args *Z_HasPermissionToChannelArgs, returns *Z_HasPermissionToChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool
+	}); ok {
+		returns.A = hook.HasPermissionToChannel(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API HasPermissionToChannel called but not implemented.")
+	}
+	return nil
+}
+
 type Z_LogDebugArgs struct {
 	A string
 	B []interface{}
