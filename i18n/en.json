@@ -92,10 +92,6 @@
     "translation": "Failed to add user to channel because they have been removed from the team."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "The channel has been archived or deleted"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Can not add user to this channel type"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -3119,6 +3111,10 @@
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
   },
   {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Failed to parse installation date"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
   },
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

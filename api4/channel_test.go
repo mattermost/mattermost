@@ -846,8 +846,6 @@ func TestDeleteChannel(t *testing.T) {
 
 	if ch, err := th.App.GetChannel(publicChannel1.Id); err == nil && ch.DeleteAt == 0 {
 		t.Fatal("should have failed to get deleted channel")
-	} else if err := th.App.JoinChannel(ch, user2.Id); err == nil {
-		t.Fatal("should have failed to join deleted channel")
 	}
 
 	post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
@@ -1972,6 +1970,18 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	// Leave deleted channel
+	th.LoginBasic()
+	deletedChannel := th.CreatePublicChannel()
+	th.App.AddUserToChannel(th.BasicUser, deletedChannel)
+	th.App.AddUserToChannel(th.BasicUser2, deletedChannel)
+
+	deletedChannel.DeleteAt = 1
+	th.App.UpdateChannel(deletedChannel)
+
+	_, resp = Client.RemoveUserFromChannel(deletedChannel.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	th.LoginBasic()

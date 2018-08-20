@@ -78,6 +78,11 @@ func TestSendNotifications(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	th.BasicChannel.DeleteAt = 1
+	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	assert.Nil(t, err)
+	assert.Len(t, mentions, 0)
 }
 
 func TestGetExplicitMentions(t *testing.T) {

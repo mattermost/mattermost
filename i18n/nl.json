@@ -92,10 +92,6 @@
     "translation": "Fout bij toevoegen van gebruiker aan kanaal omdat de gebruiker verwijderd is van het team."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Het kanaal is gearchiveerd of verwijderd"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -381,7 +373,7 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel header."
+    "translation": "You don't have the appropriate permissions to edit the channel header."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
@@ -413,7 +405,7 @@
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel purpose."
+    "translation": "You don't have the appropriate permissions to edit the channel purpose."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
@@ -445,7 +437,7 @@
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "You do not have the appropriate permissions to rename the channel."
+    "translation": "You don't have the appropriate permissions to rename the channel."
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
@@ -840,7 +832,7 @@
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "You do not have the appropriate permissions to remove the member."
+    "translation": "You don't have the appropriate permissions to remove the member."
   },
   {
     "id": "api.command_remove.user_not_in_channel",
@@ -3117,6 +3109,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Failed to parse installation date"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

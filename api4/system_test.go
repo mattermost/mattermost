@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetPing(t *testing.T) {
@@ -47,9 +48,7 @@ func TestGetConfig(t *testing.T) {
 	cfg, resp := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	}
+	require.NotEqual(t, "", cfg.TeamSettings.SiteName)
 
 	if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
 		t.Fatal("did not sanitize properly")
@@ -121,28 +120,14 @@ func TestUpdateConfig(t *testing.T) {
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	} else {
-		if cfg.TeamSettings.SiteName != "MyFancyName" {
-			t.Log("It should update the SiteName")
-			t.Fatal()
-		}
-	}
+	require.Equal(t, "MyFancyName", cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 	//Revert the change
 	cfg.TeamSettings.SiteName = SiteName
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	} else {
-		if cfg.TeamSettings.SiteName != SiteName {
-			t.Log("It should update the SiteName")
-			t.Fatal()
-		}
-	}
+	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
 		oldEnableUploads := *th.App.GetConfig().PluginSettings.EnableUploads

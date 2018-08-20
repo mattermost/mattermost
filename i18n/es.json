@@ -92,10 +92,6 @@
     "translation": "Error al agregar el usuario al canal porque ha sido removido del equipo."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "El canal ha sido archivado o eliminado"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "No se puede agregar al usuario a este tipo de canal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "No se pueden eliminar canales de grupo o mensajes directos"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "El canal ya está eliminado"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -445,7 +437,7 @@
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "No tienes los permisos adecuados para renombrar el canal."
+    "translation": "No tienes los permisos adecuados para cambiar el nombre del canal."
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
@@ -1812,7 +1804,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "Has sido invitado por {{.SenderStatus}} [[{{.SenderName}}]] a unirte al equipo [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1824,7 +1816,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "La autenticación de factor multiple ha sido agregada a tu cuenta en {{ .SireURL }}."
+    "translation": "La autenticación de factor multiple ha sido agregada a tu cuenta en {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1836,7 +1828,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
+    "translation": "La autenticación de multiples factores ha sido removida de tu cuenta en {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1844,7 +1836,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
+    "translation": "Tu contraseña ha sido actualizada para {{.TeamDisplayName}} en {{ .TeamURL }} vía {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1864,11 +1856,11 @@
   },
   {
     "id": "api.templates.reset_body.info1",
-    "translation": "To change your password, click \"Reset Password\" below."
+    "translation": "Para cambiar tu contraseña, haz clic en \"Reiniciar Contraseña\"."
   },
   {
     "id": "api.templates.reset_body.info2",
-    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
+    "translation": "Si no quisiste realizar un cambio de contraseña, por favor ignora este correo y tu contraseña permanecerá igual. Este enlace para reiniciar la contraseña expirará en 24 horas."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1880,7 +1872,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Haz actualizado el método de inicio de sesión en {{ .SiteName }}"
+    "translation": "Haz actualizado el método de inicio de sesión en {{ .SiteName }} a {{.Method}}."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1896,7 +1888,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
+    "translation": "Un token de acceso personal ha sido agregado a tu cuenta en {{ .SiteURL}}. El mismo puede ser utilizado para acceder a {{.SiteName}} con tu cuenta."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -1908,7 +1900,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}."
+    "translation": "Tu nombre de usuario para {{.TeamDisplayName}} fue cambiado por {{.NewUsername}}."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2180,19 +2172,19 @@
   },
   {
     "id": "api.user.saml.app_error",
-    "translation": "Unable to process SAML login request."
+    "translation": "No se ha podido procesar la petición SAML de inicio de sesión."
   },
   {
     "id": "api.user.saml.extension_id.app_error",
-    "translation": "Id de acción no válida"
+    "translation": "Id de extensión no válida"
   },
   {
     "id": "api.user.saml.extension_unsupported",
-    "translation": "Extensions are not supported."
+    "translation": "Las extensiones no están soportadas."
   },
   {
     "id": "api.user.saml.invalid_extension",
-    "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+    "translation": "La extensión con extension_id={{.ExtensionId}} no está soportada."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2432,11 +2424,11 @@
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": "Error reading the file at: \"{{.FilePath}}\""
+    "translation": "Error leyendo el archivo: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": "Error uploading the file: \"{{.FilePath}}\""
+    "translation": "Error cargando el archivo: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2988,11 +2980,11 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "Canal: {{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}} {{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3000,11 +2992,11 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "Canal: {{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+    "translation": "@{{.SenderName}} - {{.Month}} {{.Day}} {{.Hour}}:{{.Minute}} {{.Timezone}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3064,7 +3056,7 @@
   },
   {
     "id": "app.plugin.get_statuses.app_error",
-    "translation": "No se pudo configurar el complemento de estado."
+    "translation": "No se pudo obtener el estatus de los complementos"
   },
   {
     "id": "app.plugin.install.app_error",
@@ -3076,7 +3068,7 @@
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
+    "translation": "No se puede instalar el complemento. Un complemento con el mismo ID ya está instalado y no pudo ser removido."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3117,6 +3109,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "Este endpoint de la API no es accesible porque requiere una migración que todavía no se ha completado."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Fallo al analizar la fecha de instalación"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3220,7 +3216,7 @@
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "No se puede crear un archivo temporal de exportación a CSV."
+    "translation": "No se puede abrir el archivo temporal para exportación."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3404,43 +3400,43 @@
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "No se puede crear el archivo de exportación zip."
+    "translation": "No se puede crear el archivo eml."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
+    "translation": "No se pudo entregar el correo electrónico a Global Relay."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
+    "translation": "No se puede establecer la dirección Desde para el correo electrónico."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
+    "translation": "No se puede establecer el mensaje del correo electrónico."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
+    "translation": "No se puede escribir el mensaje del correo electrónico."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
+    "translation": "No se puede leer la información del correo electrónico."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
+    "translation": "No se puede establecer la dirección Para del correo electrónico."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file"
+    "translation": "No se puede obtener la información del archivo temporal de exportación"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file"
+    "translation": "No se puede obtener el correo electrónico desde el archivo temporal"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file"
+    "translation": "No se puede abrir el archivo temporal de exportación"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -4412,7 +4408,7 @@
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "Alcance inválido"
+    "translation": "Icono no válido"
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Encontramos un error mientras buscamos los perfiles de usuario"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "No puede inferir la fecha del sistema basado en la fecha en que el primer usuario fue creado."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

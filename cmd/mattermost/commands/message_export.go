@@ -44,25 +44,15 @@ var ActianceExportCmd = &cobra.Command{
 	RunE:    buildExportCmdF("actiance"),
 }
 
-var GlobalRelayExportCmd = &cobra.Command{
-	Use:     "global-relay",
-	Short:   "Export data from Mattermost in Global Relay format",
-	Long:    "Export data from Mattermost in Global Relay format",
-	Example: "export global-relay --exportFrom=12345",
-	RunE:    buildExportCmdF("globalrelay"),
-}
-
 func init() {
 	ScheduleExportCmd.Flags().String("format", "actiance", "The format to export data")
 	ScheduleExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
-	GlobalRelayExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	MessageExportCmd.AddCommand(ScheduleExportCmd)
 	MessageExportCmd.AddCommand(CsvExportCmd)
 	MessageExportCmd.AddCommand(ActianceExportCmd)
-	MessageExportCmd.AddCommand(GlobalRelayExportCmd)
 	RootCmd.AddCommand(MessageExportCmd)
 }
 

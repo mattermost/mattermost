@@ -65,6 +65,16 @@ func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	return nil
 }
 
+func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {
+	session, err := api.app.GetSessionById(sessionId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
+}
+
 func (api *PluginAPI) GetConfig() *model.Config {
 	return api.app.GetConfig()
 }
@@ -248,6 +258,18 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	return api.app.CreatePostMissingChannel(post, true)
 }
 
+func (api *PluginAPI) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	return api.app.SaveReactionForPost(reaction)
+}
+
+func (api *PluginAPI) RemoveReaction(reaction *model.Reaction) *model.AppError {
+	return api.app.DeleteReactionForPost(reaction)
+}
+
+func (api *PluginAPI) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+	return api.app.GetReactionsForPost(postId)
+}
+
 func (api *PluginAPI) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return api.app.SendEphemeralPost(userId, post)
 }
@@ -263,6 +285,18 @@ func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return api.app.UpdatePost(post, false)
+}
+
+func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+	return api.app.CopyFileInfos(userId, fileIds)
+}
+
+func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	return api.app.GetFileInfo(fileId)
+}
+
+func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
+	return api.app.ReadFile(path)
 }
 
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
@@ -283,6 +317,18 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]int
 		Data:      payload,
 		Broadcast: broadcast,
 	})
+}
+
+func (api *PluginAPI) HasPermissionTo(userId string, permission *model.Permission) bool {
+	return api.app.HasPermissionTo(userId, permission)
+}
+
+func (api *PluginAPI) HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool {
+	return api.app.HasPermissionToTeam(userId, teamId, permission)
+}
+
+func (api *PluginAPI) HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool {
+	return api.app.HasPermissionToChannel(userId, channelId, permission)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {

@@ -5,6 +5,7 @@ Mattermost is an open source, private cloud, Slack-alternative from [https://mat
 It's written in Golang and React and runs as a single Linux binary with MySQL or PostgreSQL. Every month on the 16th [a new compiled version is released under an MIT license](https://www.mattermost.org/download/).
 
 - [Review product documentation](http://docs.mattermost.com/).
+- [Review developer documentation](http://developers.mattermost.com/).
 - [Download compiled version](https://mattermost.org/download).
 
 <img width="1006" alt="screenshot at nov 29 14-11-32" src="https://user-images.githubusercontent.com/29708087/33394101-404e23e4-d50f-11e7-8fe5-99d4802a9768.png">

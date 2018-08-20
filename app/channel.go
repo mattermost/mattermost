@@ -726,13 +726,16 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 			}
 		}
 
-		if dresult := <-a.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); dresult.Err != nil {
+		deleteAt := model.GetMillis()
+
+		if dresult := <-a.Srv.Store.Channel().Delete(channel.Id, deleteAt); dresult.Err != nil {
 			return dresult.Err
 		}
 		a.InvalidateCacheForChannel(channel)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
 		message.Add("channel_id", channel.Id)
+		message.Add("delete_at", deleteAt)
 		a.Publish(message)
 	}
 
@@ -740,10 +743,6 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 }
 
 func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMember *model.TeamMember) (*model.ChannelMember, *model.AppError) {
-	if channel.DeleteAt > 0 {
-		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if channel.Type != model.CHANNEL_OPEN && channel.Type != model.CHANNEL_PRIVATE {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1178,10 +1177,6 @@ func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, 
 }
 
 func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError {
-	if channel.DeleteAt > 0 {
-		return model.NewAppError("JoinChannel", "api.channel.join_channel.already_deleted.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	userChan := a.Srv.Store.User().Get(userId)
 	memberChan := a.Srv.Store.Channel().GetMember(channel.Id, userId)
 
@@ -1380,11 +1375,6 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 }
 
 func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
-	if channel.DeleteAt > 0 {
-		err := model.NewAppError("RemoveUserFromChannel", "api.channel.remove_user_from_channel.deleted.app_error", nil, "", http.StatusBadRequest)
-		return err
-	}
-
 	if channel.Name == model.DEFAULT_CHANNEL {
 		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 	}
@@ -1449,11 +1439,6 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 	if userIdToRemove == removerUserId {
 		a.postLeaveChannelMessage(user, channel)
 	} else {
-
-		if err != nil {
-			return err
-		}
-
 		a.Go(func() {
 			a.postRemoveFromChannelMessage(removerUserId, user, channel)
 		})

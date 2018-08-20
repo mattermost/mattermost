@@ -105,7 +105,8 @@
         "ExperimentalEnableAutomaticReplies": false,
         "ExperimentalHideTownSquareinLHS": false,
         "ExperimentalTownSquareIsReadOnly": false,
-        "ExperimentalPrimaryTeam": ""
+        "ExperimentalPrimaryTeam": "",
+        "ExperimentalDefaultChannels": ""
     },
     "DisplaySettings": {
         "CustomUrlSchemes": [],

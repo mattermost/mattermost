@@ -9,15 +9,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/alecthomas/template"
-  packages = [
-    ".",
-    "parse"
-  ]
-  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
-
-[[projects]]
-  branch = "master"
   name = "github.com/armon/go-metrics"
   packages = ["."]
   revision = "3c58d8115a78a6879e5df75ae900846768d36895"
@@ -779,6 +770,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "254723dc4684977f7472e728e16f347059481f6b0ef917375f31e23d1b6c6ad0"
+  inputs-digest = "726929919f42dc47011821d1c6eae04af59a385b020f688be2f195c88b395eb5"
   solver-name = "gps-cdcl"
   solver-version = 1

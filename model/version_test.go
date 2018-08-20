@@ -6,100 +6,59 @@ package model
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSplitVersion(t *testing.T) {
 	major1, minor1, patch1 := SplitVersion("junk")
-	if major1 != 0 || minor1 != 0 || patch1 != 0 {
-		t.Fatal()
-	}
+	require.EqualValues(t, 0, major1)
+	require.EqualValues(t, 0, minor1)
+	require.EqualValues(t, 0, patch1)
 
 	major2, minor2, patch2 := SplitVersion("1.2.3")
-	if major2 != 1 || minor2 != 2 || patch2 != 3 {
-		t.Fatal()
-	}
+	require.EqualValues(t, 1, major2)
+	require.EqualValues(t, 2, minor2)
+	require.EqualValues(t, 3, patch2)
 
 	major3, minor3, patch3 := SplitVersion("1.2")
-	if major3 != 1 || minor3 != 2 || patch3 != 0 {
-		t.Fatal()
-	}
+	require.EqualValues(t, 1, major3)
+	require.EqualValues(t, 2, minor3)
+	require.EqualValues(t, 0, patch3)
 
 	major4, minor4, patch4 := SplitVersion("1")
-	if major4 != 1 || minor4 != 0 || patch4 != 0 {
-		t.Fatal()
-	}
+	require.EqualValues(t, 1, major4)
+	require.EqualValues(t, 0, minor4)
+	require.EqualValues(t, 0, patch4)
 
 	major5, minor5, patch5 := SplitVersion("1.2.3.junkgoeswhere")
-	if major5 != 1 || minor5 != 2 || patch5 != 3 {
-		t.Fatal()
-	}
+	require.EqualValues(t, 1, major5)
+	require.EqualValues(t, 2, minor5)
+	require.EqualValues(t, 3, patch5)
 }
 
 func TestGetPreviousVersion(t *testing.T) {
-	if GetPreviousVersion("1.3.0") != "1.2.0" {
-		t.Fatal()
-	}
-
-	if GetPreviousVersion("1.2.1") != "1.1.0" {
-		t.Fatal()
-	}
-
-	if GetPreviousVersion("1.1.0") != "1.0.0" {
-		t.Fatal()
-	}
-
-	if GetPreviousVersion("1.0.0") != "0.7.0" {
-		t.Fatal()
-	}
-
-	if GetPreviousVersion("0.7.1") != "0.6.0" {
-		t.Fatal()
-	}
-
-	if GetPreviousVersion("0.5.0") != "" {
-		t.Fatal()
-	}
+	require.Equal(t, "1.2.0", GetPreviousVersion("1.3.0"))
+	require.Equal(t, "1.1.0", GetPreviousVersion("1.2.1"))
+	require.Equal(t, "1.0.0", GetPreviousVersion("1.1.0"))
+	require.Equal(t, "0.7.0", GetPreviousVersion("1.0.0"))
+	require.Equal(t, "0.6.0", GetPreviousVersion("0.7.1"))
+	require.Equal(t, "", GetPreviousVersion("0.5.0"))
 }
 
 func TestIsCurrentVersion(t *testing.T) {
 	major, minor, patch := SplitVersion(CurrentVersion)
 
-	if !IsCurrentVersion(CurrentVersion) {
-		t.Fatal()
-	}
-
-	if !IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major, minor, patch+100)) {
-		t.Fatal()
-	}
-
-	if IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major, minor+1, patch)) {
-		t.Fatal()
-	}
-
-	if IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major+1, minor, patch)) {
-		t.Fatal()
-	}
+	require.True(t, IsCurrentVersion(CurrentVersion))
+	require.True(t, IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major, minor, patch+100)))
+	require.False(t, IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major, minor+1, patch)))
+	require.False(t, IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major+1, minor, patch)))
 }
 
 func TestIsPreviousVersionsSupported(t *testing.T) {
-
-	if !IsPreviousVersionsSupported(versionsWithoutHotFixes[0]) {
-		t.Fatal()
-	}
-
-	if !IsPreviousVersionsSupported(versionsWithoutHotFixes[1]) {
-		t.Fatal()
-	}
-
-	if !IsPreviousVersionsSupported(versionsWithoutHotFixes[2]) {
-		t.Fatal()
-	}
-
-	if IsPreviousVersionsSupported(versionsWithoutHotFixes[4]) {
-		t.Fatal()
-	}
-
-	if IsPreviousVersionsSupported(versionsWithoutHotFixes[5]) {
-		t.Fatal()
-	}
+	require.True(t, IsPreviousVersionsSupported(versionsWithoutHotFixes[0]))
+	require.True(t, IsPreviousVersionsSupported(versionsWithoutHotFixes[1]))
+	require.True(t, IsPreviousVersionsSupported(versionsWithoutHotFixes[2]))
+	require.False(t, IsPreviousVersionsSupported(versionsWithoutHotFixes[4]))
+	require.False(t, IsPreviousVersionsSupported(versionsWithoutHotFixes[5]))
 }

@@ -92,10 +92,6 @@
     "translation": "Невозможно добавить пользователя к каналу, так как он был удален из команды."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Данный канал был перемещён в архив, либо удалён"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Не могу добавить пользователя в канал этого типа"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Канал уже удалён"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -265,7 +257,7 @@
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Невозможно установить схему команды так как данная схема не является схемой команды."
+    "translation": "Невозможно применить схему к каналу, так как данная схема не является схемой канала."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -648,7 +640,7 @@
   },
   {
     "id": "api.command_invite_people.permission.app_error",
-    "translation": "You don't have permission to invite new users to this server."
+    "translation": "У вас нет прав для приглашения новых участников."
   },
   {
     "id": "api.command_join.desc",
@@ -744,7 +736,7 @@
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to direct message this user."
+    "translation": "У Вас нет соответствующих прав для удаления участника."
   },
   {
     "id": "api.command_mute.desc",
@@ -3117,6 +3109,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Failed to parse installation date"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Возникла ошибка при поиске пользовательских профилей"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

@@ -37,6 +37,49 @@ func TestReadConfig(t *testing.T) {
 	require.EqualError(t, err, "parsing error at line 3, character 5: invalid character 'm' looking for beginning of object key string")
 }
 
+func TestReadConfig_PluginSettings(t *testing.T) {
+	TranslationsPreInit()
+
+	config, _, err := ReadConfig(bytes.NewReader([]byte(`{
+		"PluginSettings": {
+			"Directory": "/temp/mattermost-plugins",
+			"Plugins": {
+				"com.example.plugin": {
+					"number": 1,
+					"string": "abc",
+					"boolean": false,
+					"abc.def.ghi": {
+						"abc": 123,
+						"def": "456"
+					}
+				}
+			},
+			"PluginStates": {
+				"com.example.plugin": {
+					"enable": true
+				}
+			}
+		}
+	}`)), false)
+	require.Nil(t, err)
+
+	assert.Equal(t, "/temp/mattermost-plugins", *config.PluginSettings.Directory)
+	assert.Contains(t, config.PluginSettings.Plugins, "com.example.plugin")
+	assert.Equal(t, map[string]interface{}{
+		"number":  float64(1),
+		"string":  "abc",
+		"boolean": false,
+		"abc.def.ghi": map[string]interface{}{
+			"abc": float64(123),
+			"def": "456",
+		},
+	}, config.PluginSettings.Plugins["com.example.plugin"])
+	assert.Contains(t, config.PluginSettings.PluginStates, "com.example.plugin")
+	assert.Equal(t, model.PluginState{
+		Enable: true,
+	}, *config.PluginSettings.PluginStates["com.example.plugin"])
+}
+
 func TestTimezoneConfig(t *testing.T) {
 	TranslationsPreInit()
 	supportedTimezones := LoadTimezones("timezones.json")
@@ -469,6 +512,36 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		} else {
 			if termsOfServiceLinkInEnv, ok := supportSettingsAsMap["TermsOfServiceLink"].(bool); !ok || !termsOfServiceLinkInEnv {
 				t.Fatal("TermsOfServiceLink should be in envConfig")
+			}
+		}
+	})
+
+	t.Run("plugin directory settings", func(t *testing.T) {
+		os.Setenv("MM_PLUGINSETTINGS_DIRECTORY", "/temp/plugins")
+		os.Setenv("MM_PLUGINSETTINGS_CLIENTDIRECTORY", "/temp/clientplugins")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_DIRECTORY")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_CLIENTDIRECTORY")
+
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		if *cfg.PluginSettings.Directory != "/temp/plugins" {
+			t.Fatal("Couldn't read Directory from environment var")
+		}
+		if *cfg.PluginSettings.ClientDirectory != "/temp/clientplugins" {
+			t.Fatal("Couldn't read ClientDirectory from environment var")
+		}
+
+		if pluginSettings, ok := envCfg["PluginSettings"]; !ok {
+			t.Fatal("PluginSettings is missing from envConfig")
+		} else if pluginSettingsAsMap, ok := pluginSettings.(map[string]interface{}); !ok {
+			t.Fatal("PluginSettings is not a map in envConfig")
+		} else {
+			if directory, ok := pluginSettingsAsMap["Directory"].(bool); !ok || !directory {
+				t.Fatal("Directory should be in envConfig")
+			}
+			if clientDirectory, ok := pluginSettingsAsMap["ClientDirectory"].(bool); !ok || !clientDirectory {
+				t.Fatal("ClientDirectory should be in envConfig")
 			}
 		}
 	})

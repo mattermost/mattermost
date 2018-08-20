@@ -161,3 +161,34 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
 	assert.Equal(t, 1, len(infos))
 }
+
+func TestCopyFileInfos(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	teamId := model.NewId()
+	channelId := model.NewId()
+	userId := model.NewId()
+	filename := "test"
+	data := []byte("abcd")
+
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	require.Nil(t, err)
+	defer func() {
+		<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.RemoveFile(info1.Path)
+	}()
+
+	infoIds, err := th.App.CopyFileInfos(userId, []string{info1.Id})
+	require.Nil(t, err)
+
+	info2, err := th.App.GetFileInfo(infoIds[0])
+	require.Nil(t, err)
+	defer func() {
+		<-th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
+		th.App.RemoveFile(info2.Path)
+	}()
+
+	assert.NotEqual(t, info1.Id, info2.Id, "should not be equal")
+	assert.Equal(t, info2.PostId, "", "should be empty string")
+}

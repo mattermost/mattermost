@@ -37,6 +37,56 @@ func (_m *API) AddChannelMember(channelId string, userId string) (*model.Channel
 	return r0, r1
 }
 
+// AddReaction provides a mock function with given fields: reaction
+func (_m *API) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	ret := _m.Called(reaction)
+
+	var r0 *model.Reaction
+	if rf, ok := ret.Get(0).(func(*model.Reaction) *model.Reaction); ok {
+		r0 = rf(reaction)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Reaction)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Reaction) *model.AppError); ok {
+		r1 = rf(reaction)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// CopyFileInfos provides a mock function with given fields: userId, fileIds
+func (_m *API) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+	ret := _m.Called(userId, fileIds)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, []string) []string); ok {
+		r0 = rf(userId, fileIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(userId, fileIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateChannel provides a mock function with given fields: channel
 func (_m *API) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	ret := _m.Called(channel)
@@ -424,6 +474,31 @@ func (_m *API) GetDirectChannel(userId1 string, userId2 string) (*model.Channel,
 	return r0, r1
 }
 
+// GetFileInfo provides a mock function with given fields: fileId
+func (_m *API) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	ret := _m.Called(fileId)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(string) *model.FileInfo); ok {
+		r0 = rf(fileId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(fileId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGroupChannel provides a mock function with given fields: userIds
 func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userIds)
@@ -490,6 +565,56 @@ func (_m *API) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
 		r1 = rf(teamId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetReactions provides a mock function with given fields: postId
+func (_m *API) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+	ret := _m.Called(postId)
+
+	var r0 []*model.Reaction
+	if rf, ok := ret.Get(0).(func(string) []*model.Reaction); ok {
+		r0 = rf(postId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Reaction)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(postId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetSession provides a mock function with given fields: sessionId
+func (_m *API) GetSession(sessionId string) (*model.Session, *model.AppError) {
+	ret := _m.Called(sessionId)
+
+	var r0 *model.Session
+	if rf, ok := ret.Get(0).(func(string) *model.Session); ok {
+		r0 = rf(sessionId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Session)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(sessionId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -749,6 +874,48 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.A
 	return r0, r1
 }
 
+// HasPermissionTo provides a mock function with given fields: userId, permission
+func (_m *API) HasPermissionTo(userId string, permission *model.Permission) bool {
+	ret := _m.Called(userId, permission)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, *model.Permission) bool); ok {
+		r0 = rf(userId, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// HasPermissionToChannel provides a mock function with given fields: userId, channelId, permission
+func (_m *API) HasPermissionToChannel(userId string, channelId string, permission *model.Permission) bool {
+	ret := _m.Called(userId, channelId, permission)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, *model.Permission) bool); ok {
+		r0 = rf(userId, channelId, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// HasPermissionToTeam provides a mock function with given fields: userId, teamId, permission
+func (_m *API) HasPermissionToTeam(userId string, teamId string, permission *model.Permission) bool {
+	ret := _m.Called(userId, teamId, permission)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, *model.Permission) bool); ok {
+		r0 = rf(userId, teamId, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // KVDelete provides a mock function with given fields: key
 func (_m *API) KVDelete(key string) *model.AppError {
 	ret := _m.Called(key)
@@ -857,6 +1024,31 @@ func (_m *API) PublishWebSocketEvent(event string, payload map[string]interface{
 	_m.Called(event, payload, broadcast)
 }
 
+// ReadFile provides a mock function with given fields: path
+func (_m *API) ReadFile(path string) ([]byte, *model.AppError) {
+	ret := _m.Called(path)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(path)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(path)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // RegisterCommand provides a mock function with given fields: command
 func (_m *API) RegisterCommand(command *model.Command) error {
 	ret := _m.Called(command)
@@ -866,6 +1058,22 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 		r0 = rf(command)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RemoveReaction provides a mock function with given fields: reaction
+func (_m *API) RemoveReaction(reaction *model.Reaction) *model.AppError {
+	ret := _m.Called(reaction)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Reaction) *model.AppError); ok {
+		r0 = rf(reaction)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0

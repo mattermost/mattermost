@@ -92,10 +92,6 @@
     "translation": "Nie udało się dodać użytkownika do kanału, ponieważ został on usunięty z zespołu."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Kanał został zarchiwizowany lub usunięty"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Nie można dodać użytkownika do kanału tego typu"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Kanał jest już usunięty"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -744,7 +736,7 @@
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to direct message this user."
+    "translation": "Nie posiadasz odpowiednich uprawnień do usunięcia członka."
   },
   {
     "id": "api.command_mute.desc",
@@ -3117,6 +3109,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Failed to parse installation date"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Wystąpił błąd podczas wyszukiwania profili użytkowników"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
