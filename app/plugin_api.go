@@ -258,6 +258,18 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	return api.app.CreatePostMissingChannel(post, true)
 }
 
+func (api *PluginAPI) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	return api.app.SaveReactionForPost(reaction)
+}
+
+func (api *PluginAPI) RemoveReaction(reaction *model.Reaction) *model.AppError {
+	return api.app.DeleteReactionForPost(reaction)
+}
+
+func (api *PluginAPI) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+	return api.app.GetReactionsForPost(postId)
+}
+
 func (api *PluginAPI) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return api.app.SendEphemeralPost(userId, post)
 }
@@ -305,6 +317,18 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]int
 		Data:      payload,
 		Broadcast: broadcast,
 	})
+}
+
+func (api *PluginAPI) HasPermissionTo(userId string, permission *model.Permission) bool {
+	return api.app.HasPermissionTo(userId, permission)
+}
+
+func (api *PluginAPI) HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool {
+	return api.app.HasPermissionToTeam(userId, teamId, permission)
+}
+
+func (api *PluginAPI) HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool {
+	return api.app.HasPermissionToChannel(userId, channelId, permission)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {
