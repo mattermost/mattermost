@@ -167,7 +167,7 @@ type API interface {
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
 	// ReadFileAtPath reads the file from the backend for a specific path
-	ReadFileAtPath(path string) ([]byte, *model.AppError)
+	ReadFile(path string) ([]byte, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError

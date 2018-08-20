@@ -932,8 +932,8 @@ func (_m *API) PublishWebSocketEvent(event string, payload map[string]interface{
 	_m.Called(event, payload, broadcast)
 }
 
-// ReadFileAtPath provides a mock function with given fields: path
-func (_m *API) ReadFileAtPath(path string) ([]byte, *model.AppError) {
+// ReadFile provides a mock function with given fields: path
+func (_m *API) ReadFile(path string) ([]byte, *model.AppError) {
 	ret := _m.Called(path)
 
 	var r0 []byte

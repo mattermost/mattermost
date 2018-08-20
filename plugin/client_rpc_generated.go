@@ -1879,31 +1879,31 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 	return nil
 }
 
-type Z_ReadFileAtPathArgs struct {
+type Z_ReadFileArgs struct {
 	A string
 }
 
-type Z_ReadFileAtPathReturns struct {
+type Z_ReadFileReturns struct {
 	A []byte
 	B *model.AppError
 }
 
-func (g *apiRPCClient) ReadFileAtPath(path string) ([]byte, *model.AppError) {
-	_args := &Z_ReadFileAtPathArgs{path}
-	_returns := &Z_ReadFileAtPathReturns{}
-	if err := g.client.Call("Plugin.ReadFileAtPath", _args, _returns); err != nil {
-		log.Printf("RPC call to ReadFileAtPath API failed: %s", err.Error())
+func (g *apiRPCClient) ReadFile(path string) ([]byte, *model.AppError) {
+	_args := &Z_ReadFileArgs{path}
+	_returns := &Z_ReadFileReturns{}
+	if err := g.client.Call("Plugin.ReadFile", _args, _returns); err != nil {
+		log.Printf("RPC call to ReadFile API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) ReadFileAtPath(args *Z_ReadFileAtPathArgs, returns *Z_ReadFileAtPathReturns) error {
+func (s *apiRPCServer) ReadFile(args *Z_ReadFileArgs, returns *Z_ReadFileReturns) error {
 	if hook, ok := s.impl.(interface {
-		ReadFileAtPath(path string) ([]byte, *model.AppError)
+		ReadFile(path string) ([]byte, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.ReadFileAtPath(args.A)
+		returns.A, returns.B = hook.ReadFile(args.A)
 	} else {
-		return fmt.Errorf("API ReadFileAtPath called but not implemented.")
+		return fmt.Errorf("API ReadFile called but not implemented.")
 	}
 	return nil
 }
