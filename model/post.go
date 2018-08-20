@@ -352,6 +352,29 @@ func (r *PostActionIntegrationRequest) ToJson() string {
 	return string(b)
 }
 
+func PostActionIntegrationRequesteFromJson(data io.Reader) *PostActionIntegrationRequest {
+	var o *PostActionIntegrationRequest
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
+func (r *PostActionIntegrationResponse) ToJson() string {
+	b, _ := json.Marshal(r)
+	return string(b)
+}
+
+func PostActionIntegrationResponseFromJson(data io.Reader) *PostActionIntegrationResponse {
+	var o *PostActionIntegrationResponse
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
 func (o *Post) Attachments() []*SlackAttachment {
 	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
 		return attachments
