@@ -143,6 +143,15 @@ type API interface {
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
 
+	// AddReaction add a reaction to a post.
+	AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+
+	// RemoveReaction remove a reaction from a post.
+	RemoveReaction(reaction *model.Reaction) *model.AppError
+
+	// GetReaction get the reactions of a post.
+	GetReactions(postId string) ([]*model.Reaction, *model.AppError)
+
 	// SendEphemeralPost creates an ephemeral post.
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 
@@ -183,6 +192,15 @@ type API interface {
 	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
 	// broadcast determines to which users to send the event
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+
+	// HasPermissionTo check if the user has the permission at system scope.
+	HasPermissionTo(userId string, permission *model.Permission) bool
+
+	// HasPermissionToTeam check if the user has the permission at team scope.
+	HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool
+
+	// HasPermissionToChannel check if the user has the permission at channel scope.
+	HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool
 
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
