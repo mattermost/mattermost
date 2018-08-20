@@ -97,7 +97,7 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Este canal foi convertido para um Canal Público e membros de qualquer equipe podem se juntar."
+    "translation": "Este canal foi convertido em um Canal Público e pode ser acompanhado por qualquer membro da equipe."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v juntou-se ao canal."
+    "translation": "%v entrou no canal."
   },
   {
     "id": "api.channel.leave.default.app_error",
@@ -604,7 +604,7 @@
   },
   {
     "id": "api.command_invite.fail.app_error",
-    "translation": "Ocorreu um erro enquanto conectava ao canal."
+    "translation": "Ocorreu um erro ao entrar no canal."
   },
   {
     "id": "api.command_invite.hint",
@@ -644,11 +644,11 @@
   },
   {
     "id": "api.command_join.desc",
-    "translation": "Junte-se ao canal aberto"
+    "translation": "Entrar no canal aberto"
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Ocorreu um erro enquanto conectava ao canal."
+    "translation": "Ocorreu um erro ao entrar no canal."
   },
   {
     "id": "api.command_join.hint",
@@ -664,7 +664,7 @@
   },
   {
     "id": "api.command_join.name",
-    "translation": "juntar"
+    "translation": "entrar"
   },
   {
     "id": "api.command_kick.name",
@@ -1796,7 +1796,7 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Participar da Equipe"
+    "translation": "Entrar na Equipe"
   },
   {
     "id": "api.templates.invite_body.extra_info",
@@ -1812,7 +1812,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para se juntar a equipe {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para entrar na equipe {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -1920,7 +1920,7 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Você entrou para {{ .ServerURL }}"
+    "translation": "Você entrou em {{ .ServerURL }}"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1948,11 +1948,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Você entrou para {{ .ServerURL }}"
+    "translation": "Você entrou em {{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{ .SiteName }}] Você se juntou {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] Você entrou em {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -4996,7 +4996,7 @@
   },
   {
     "id": "store.sql_channel_member_history.log_leave_event.update_error",
-    "translation": "Falha ao gravar o histórico de membros do canal. Falha ao atualizar o registro de junção existente"
+    "translation": "Falha ao gravar o histórico de membros do canal. Falha ao atualizar o registro de entrada existente"
   },
   {
     "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
