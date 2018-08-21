@@ -232,6 +232,10 @@
     "translation": "Cannot remove user from the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Cannot remove user from a channel."
+  },
+  {
     "id": "api.channel.remove_member.removed",
     "translation": "%v removed from the channel."
   },
