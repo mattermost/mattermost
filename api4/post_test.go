@@ -1496,6 +1496,57 @@ func TestSearchPostsFromUser(t *testing.T) {
 	}
 }
 
+func TestSearchPostsWithDateFlags(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.LoginBasic()
+	Client := th.Client
+
+	message := "sgtitlereview\n with return"
+	_ = th.CreateMessagePost(message)
+
+	message = "other message with no return"
+	_ = th.CreateMessagePost(message)
+
+	message = "other message with no return"
+	_ = th.CreateMessagePost(message)
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "return", false); len(posts.Order) != 3 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "on:", false); len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "after:", false); len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "before:", false); len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "on:2018-08-01", false); len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ := Client.SearchPosts(th.BasicTeam.Id, "after:2018-08-01", false)
+	resultCount := 0
+	for _, post := range posts.Posts {
+		if post.UserId == th.BasicUser.Id {
+			resultCount = resultCount + 1
+		}
+	}
+	if resultCount != 3 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-01", false); len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+}
+
 func TestGetFileInfosForPost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
