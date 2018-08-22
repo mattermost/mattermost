@@ -587,7 +587,7 @@ func TestUpdatePost(t *testing.T) {
 	Client.Logout()
 
 	_, resp = th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
-	CheckNoError(t, resp)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestPatchPost(t *testing.T) {
@@ -672,7 +672,7 @@ func TestPatchPost(t *testing.T) {
 
 	th.LoginTeamAdmin()
 	_, resp = Client.PatchPost(post.Id, patch)
-	CheckNoError(t, resp)
+	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.PatchPost(post.Id, patch)
 	CheckNoError(t, resp)
