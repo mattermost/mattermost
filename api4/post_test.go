@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -1503,35 +1504,43 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 	Client := th.Client
 
 	message := "sgtitlereview\n with return"
-	_ = th.CreateMessagePost(message)
+	createDate := time.Date(2018, 8, 1, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
 
 	message = "other message with no return"
-	_ = th.CreateMessagePost(message)
+	createDate = time.Date(2018, 8, 2, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
 
 	message = "other message with no return"
-	_ = th.CreateMessagePost(message)
+	createDate = time.Date(2018, 8, 3, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "return", false); len(posts.Order) != 3 {
+	posts, _ := Client.SearchPosts(th.BasicTeam.Id, "return", false)
+	if len(posts.Order) != 3 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "on:", false); len(posts.Order) != 0 {
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "on:", false)
+	if len(posts.Order) != 0 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "after:", false); len(posts.Order) != 0 {
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "after:", false)
+	if len(posts.Order) != 0 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "before:", false); len(posts.Order) != 0 {
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:", false)
+	if len(posts.Order) != 0 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "on:2018-08-01", false); len(posts.Order) != 0 {
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "on:2018-08-01", false)
+	if len(posts.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	posts, _ := Client.SearchPosts(th.BasicTeam.Id, "after:2018-08-01", false)
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "after:2018-08-01", false)
 	resultCount := 0
 	for _, post := range posts.Posts {
 		if post.UserId == th.BasicUser.Id {
@@ -1542,7 +1551,13 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-01", false); len(posts.Order) != 0 {
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-02", false)
+	if len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-02", false)
+	if len(posts.Order) != 2 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 }
