@@ -172,7 +172,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 	}
 
 	if len(o.Description) > 500 {
-		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.description.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.description.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.ContentType) > 128 {
