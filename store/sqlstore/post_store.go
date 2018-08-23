@@ -893,29 +893,29 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 		// handle after: before: on: filters
 		if len(params.AfterDate) > 1 || len(params.BeforeDate) > 1 || len(params.OnDate) > 1 {
 			if len(params.OnDate) > 1 {
-				onDate := model.ParseDateFilterToTime(params.OnDate)
-				queryParams["OnDateStart"] = strconv.FormatInt(model.GetStartOfDayMillis(onDate), 10)
-				queryParams["OnDateEnd"] = strconv.FormatInt(model.GetEndOfDayMillis(onDate), 10)
+				onDateStart, onDateEnd := params.GetOnDateMillis()
+				queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
+				queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
 
 				// between `on date` start of day and end of day
 				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
 			} else if len(params.AfterDate) > 1 && len(params.BeforeDate) > 1 {
-				afterDate := model.ParseDateFilterToTime(params.AfterDate)
-				beforeDate := model.ParseDateFilterToTime(params.BeforeDate)
-				queryParams["OnDateStart"] = strconv.FormatInt(model.GetStartOfDayMillis(afterDate), 10)
-				queryParams["OnDateEnd"] = strconv.FormatInt(model.GetEndOfDayMillis(beforeDate), 10)
+				afterDate := params.GetAfterDateMillis()
+				beforeDate := params.GetBeforeDateMillis()
+				queryParams["OnDateStart"] = strconv.FormatInt(afterDate, 10)
+				queryParams["OnDateEnd"] = strconv.FormatInt(beforeDate, 10)
 
 				// between clause
 				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd ", 1)
 			} else if len(params.AfterDate) > 1 {
-				afterDate := model.ParseDateFilterToTime(params.AfterDate)
-				queryParams["AfterDate"] = strconv.FormatInt(model.GetStartOfDayMillis(afterDate), 10)
+				afterDate := params.GetAfterDateMillis()
+				queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
 
 				// greater than `after date`
 				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt >= :AfterDate ", 1)
 			} else if len(params.BeforeDate) > 1 {
-				beforeDate := model.ParseDateFilterToTime(params.BeforeDate)
-				queryParams["BeforeDate"] = strconv.FormatInt(model.GetEndOfDayMillis(beforeDate), 10)
+				beforeDate := params.GetBeforeDateMillis()
+				queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
 
 				// less than `before date`
 				searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "AND CreateAt <= :BeforeDate ", 1)

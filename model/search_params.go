@@ -23,6 +23,24 @@ type SearchParams struct {
 	IncludeDeletedChannels bool
 }
 
+// Returns the epoch timestamp of the start of the day specified by SearchParams.AfterDate
+func (p *SearchParams) GetAfterDateMillis() int64 {
+	date := ParseDateFilterToTime(p.AfterDate)
+	return GetStartOfDayMillis(date)
+}
+
+// Returns the epoch timestamp of the end of the day specified by SearchParams.BeforeDate
+func (p *SearchParams) GetBeforeDateMillis() int64 {
+	date := ParseDateFilterToTime(p.BeforeDate)
+	return GetEndOfDayMillis(date)
+}
+
+// Returns the epoch timestamps of the start and end of the day specified by SearchParams.OnDate
+func (p *SearchParams) GetOnDateMillis() (int64, int64) {
+	date := ParseDateFilterToTime(p.OnDate)
+	return GetStartOfDayMillis(date), GetEndOfDayMillis(date)
+}
+
 var searchFlags = [...]string{"from", "channel", "in", "before", "after", "on"}
 
 func splitWords(text string) []string {
