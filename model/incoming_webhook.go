@@ -94,7 +94,7 @@ func (o *IncomingWebhook) IsValid() *AppError {
 	}
 
 	if len(o.Description) > 500 {
-		o.Description = o.Description[0 : 500-1]
+		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.description.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.Username) > 64 {
