@@ -913,3 +913,14 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		}
 	})
 }
+
+func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		count, err := s.GetReplica().SelectInt("SELECT count(*) FROM Teams WHERE SchemeId = :SchemeId AND DeleteAt = 0", map[string]interface{}{"SchemeId": schemeId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.AnalyticsGetTeamCountForScheme", "store.sql_team.analytics_get_team_count_for_scheme.app_error", nil, "schemeId="+schemeId+" "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result.Data = count
+	})
+}

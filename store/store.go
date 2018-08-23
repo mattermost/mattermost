@@ -110,6 +110,7 @@ type TeamStore interface {
 	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
 	ResetAllTeamSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
+	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 }
 
 type ChannelStore interface {
