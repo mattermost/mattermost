@@ -1921,3 +1921,11 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		}
 	})
 }
+
+func (s SqlChannelStore) ResetLastPostAt() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = (SELECT UpdateAt FROM Posts WHERE ChannelId = Channels.Id ORDER BY UpdateAt DESC LIMIT 1);"); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.ResetLastPostAt", "store.sql_channel.reset_last_post_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	})
+}
