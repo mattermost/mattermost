@@ -31,6 +31,7 @@ type Pipeline struct {
 	closed bool
 }
 
+// Process queues the cmd for later execution.
 func (c *Pipeline) Process(cmd Cmder) error {
 	c.mu.Lock()
 	c.cmds = append(c.cmds, cmd)

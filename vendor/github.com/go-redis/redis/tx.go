@@ -29,6 +29,10 @@ func (c *Client) newTx() *Tx {
 	return &tx
 }
 
+// Watch prepares a transcaction and marks the keys to be watched
+// for conditional execution if there are any keys.
+//
+// The transaction is automatically closed when the fn exits.
 func (c *Client) Watch(fn func(*Tx) error, keys ...string) error {
 	tx := c.newTx()
 	if len(keys) > 0 {
@@ -74,6 +78,7 @@ func (c *Tx) Unwatch(keys ...string) *StatusCmd {
 	return cmd
 }
 
+// Pipeline creates a new pipeline. It is more convenient to use Pipelined.
 func (c *Tx) Pipeline() Pipeliner {
 	pipe := Pipeline{
 		exec: c.processTxPipeline,
@@ -82,23 +87,24 @@ func (c *Tx) Pipeline() Pipeliner {
 	return &pipe
 }
 
-// Pipelined executes commands queued in the fn in a transaction
-// and restores the connection state to normal.
+// Pipelined executes commands queued in the fn in a transaction.
 //
 // When using WATCH, EXEC will execute commands only if the watched keys
 // were not modified, allowing for a check-and-set mechanism.
 //
 // Exec always returns list of commands. If transaction fails
-// TxFailedErr is returned. Otherwise Exec returns error of the first
+// TxFailedErr is returned. Otherwise Exec returns an error of the first
 // failed command or nil.
 func (c *Tx) Pipelined(fn func(Pipeliner) error) ([]Cmder, error) {
 	return c.Pipeline().Pipelined(fn)
 }
 
+// TxPipelined is an alias for Pipelined.
 func (c *Tx) TxPipelined(fn func(Pipeliner) error) ([]Cmder, error) {
 	return c.Pipelined(fn)
 }
 
+// TxPipeline is an alias for Pipeline.
 func (c *Tx) TxPipeline() Pipeliner {
 	return c.Pipeline()
 }
