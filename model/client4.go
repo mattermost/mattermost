@@ -397,6 +397,10 @@ func (c *Client4) GetTotalUsersStatsRoute() string {
 	return fmt.Sprintf(c.GetUsersRoute() + "/stats")
 }
 
+func (c *Client4) GetRedirectLocationRoute() string {
+	return fmt.Sprintf("/redirect_location")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -3769,5 +3773,16 @@ func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetRedirectLocation retrieves the value of the 'Location' header of an HTTP response for a given URL.
+func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response) {
+	url := fmt.Sprintf("%s?url=%s", c.GetRedirectLocationRoute(), url.QueryEscape(urlParam))
+	if r, err := c.DoApiGet(url, etag); err != nil {
+		return "", BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body)["location"], BuildResponse(r)
 	}
 }

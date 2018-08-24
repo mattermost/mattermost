@@ -1274,6 +1274,16 @@ func TestGetPostThread(t *testing.T) {
 func TestSearchPosts(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+		})
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+
 	th.LoginBasic()
 	Client := th.Client
 
@@ -1314,6 +1324,16 @@ func TestSearchPosts(t *testing.T) {
 	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 2 {
+		t.Fatal("wrong search")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+	})
+	
+	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 1 {
 		t.Fatal("wrong search")
 	}
 

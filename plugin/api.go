@@ -143,6 +143,15 @@ type API interface {
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
 
+	// AddReaction add a reaction to a post.
+	AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+
+	// RemoveReaction remove a reaction from a post.
+	RemoveReaction(reaction *model.Reaction) *model.AppError
+
+	// GetReaction get the reactions of a post.
+	GetReactions(postId string) ([]*model.Reaction, *model.AppError)
+
 	// SendEphemeralPost creates an ephemeral post.
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 
@@ -155,12 +164,19 @@ type API interface {
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
-	// CopyFileInfos creates a copy of FileInfo objects provided in the list of FileIds
-	// these new FileInfo objects will not be linked to any post and will
-	// be ready to provide to a new CreatePost call
-	// this should be used when you want to create a copy of a post including
-	// file attachments without duplicating the file uploads
+	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
+	// recording the given user id as the new creator and returning the new set of file ids.
+	//
+	// The duplicate FileInfo objects are not initially linked to a post, but may now be passed
+	// to CreatePost. Use this API to duplicate a post and its file attachments without
+	// actually duplicating the uploaded files.
 	CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError)
+
+	// GetFileInfo gets a File Info for a specific fileId
+	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+
+	// ReadFileAtPath reads the file from the backend for a specific path
+	ReadFile(path string) ([]byte, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
@@ -176,6 +192,15 @@ type API interface {
 	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
 	// broadcast determines to which users to send the event
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+
+	// HasPermissionTo check if the user has the permission at system scope.
+	HasPermissionTo(userId string, permission *model.Permission) bool
+
+	// HasPermissionToTeam check if the user has the permission at team scope.
+	HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool
+
+	// HasPermissionToChannel check if the user has the permission at channel scope.
+	HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool
 
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins

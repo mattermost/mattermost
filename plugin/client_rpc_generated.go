@@ -1705,6 +1705,92 @@ func (s *apiRPCServer) CreatePost(args *Z_CreatePostArgs, returns *Z_CreatePostR
 	return nil
 }
 
+type Z_AddReactionArgs struct {
+	A *model.Reaction
+}
+
+type Z_AddReactionReturns struct {
+	A *model.Reaction
+	B *model.AppError
+}
+
+func (g *apiRPCClient) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	_args := &Z_AddReactionArgs{reaction}
+	_returns := &Z_AddReactionReturns{}
+	if err := g.client.Call("Plugin.AddReaction", _args, _returns); err != nil {
+		log.Printf("RPC call to AddReaction API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) AddReaction(args *Z_AddReactionArgs, returns *Z_AddReactionReturns) error {
+	if hook, ok := s.impl.(interface {
+		AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.AddReaction(args.A)
+	} else {
+		return fmt.Errorf("API AddReaction called but not implemented.")
+	}
+	return nil
+}
+
+type Z_RemoveReactionArgs struct {
+	A *model.Reaction
+}
+
+type Z_RemoveReactionReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RemoveReaction(reaction *model.Reaction) *model.AppError {
+	_args := &Z_RemoveReactionArgs{reaction}
+	_returns := &Z_RemoveReactionReturns{}
+	if err := g.client.Call("Plugin.RemoveReaction", _args, _returns); err != nil {
+		log.Printf("RPC call to RemoveReaction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RemoveReaction(args *Z_RemoveReactionArgs, returns *Z_RemoveReactionReturns) error {
+	if hook, ok := s.impl.(interface {
+		RemoveReaction(reaction *model.Reaction) *model.AppError
+	}); ok {
+		returns.A = hook.RemoveReaction(args.A)
+	} else {
+		return fmt.Errorf("API RemoveReaction called but not implemented.")
+	}
+	return nil
+}
+
+type Z_GetReactionsArgs struct {
+	A string
+}
+
+type Z_GetReactionsReturns struct {
+	A []*model.Reaction
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+	_args := &Z_GetReactionsArgs{postId}
+	_returns := &Z_GetReactionsReturns{}
+	if err := g.client.Call("Plugin.GetReactions", _args, _returns); err != nil {
+		log.Printf("RPC call to GetReactions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetReactions(args *Z_GetReactionsArgs, returns *Z_GetReactionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetReactions(postId string) ([]*model.Reaction, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetReactions(args.A)
+	} else {
+		return fmt.Errorf("API GetReactions called but not implemented.")
+	}
+	return nil
+}
+
 type Z_SendEphemeralPostArgs struct {
 	A string
 	B *model.Post
@@ -1850,6 +1936,64 @@ func (s *apiRPCServer) CopyFileInfos(args *Z_CopyFileInfosArgs, returns *Z_CopyF
 	return nil
 }
 
+type Z_GetFileInfoArgs struct {
+	A string
+}
+
+type Z_GetFileInfoReturns struct {
+	A *model.FileInfo
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	_args := &Z_GetFileInfoArgs{fileId}
+	_returns := &Z_GetFileInfoReturns{}
+	if err := g.client.Call("Plugin.GetFileInfo", _args, _returns); err != nil {
+		log.Printf("RPC call to GetFileInfo API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileInfoReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetFileInfo(args.A)
+	} else {
+		return fmt.Errorf("API GetFileInfo called but not implemented.")
+	}
+	return nil
+}
+
+type Z_ReadFileArgs struct {
+	A string
+}
+
+type Z_ReadFileReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) ReadFile(path string) ([]byte, *model.AppError) {
+	_args := &Z_ReadFileArgs{path}
+	_returns := &Z_ReadFileReturns{}
+	if err := g.client.Call("Plugin.ReadFile", _args, _returns); err != nil {
+		log.Printf("RPC call to ReadFile API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ReadFile(args *Z_ReadFileArgs, returns *Z_ReadFileReturns) error {
+	if hook, ok := s.impl.(interface {
+		ReadFile(path string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.ReadFile(args.A)
+	} else {
+		return fmt.Errorf("API ReadFile called but not implemented.")
+	}
+	return nil
+}
+
 type Z_KVSetArgs struct {
 	A string
 	B []byte
@@ -1961,6 +2105,95 @@ func (s *apiRPCServer) PublishWebSocketEvent(args *Z_PublishWebSocketEventArgs, 
 		hook.PublishWebSocketEvent(args.A, args.B, args.C)
 	} else {
 		return fmt.Errorf("API PublishWebSocketEvent called but not implemented.")
+	}
+	return nil
+}
+
+type Z_HasPermissionToArgs struct {
+	A string
+	B *model.Permission
+}
+
+type Z_HasPermissionToReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionTo(userId string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToArgs{userId, permission}
+	_returns := &Z_HasPermissionToReturns{}
+	if err := g.client.Call("Plugin.HasPermissionTo", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionTo API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionTo(args *Z_HasPermissionToArgs, returns *Z_HasPermissionToReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionTo(userId string, permission *model.Permission) bool
+	}); ok {
+		returns.A = hook.HasPermissionTo(args.A, args.B)
+	} else {
+		return fmt.Errorf("API HasPermissionTo called but not implemented.")
+	}
+	return nil
+}
+
+type Z_HasPermissionToTeamArgs struct {
+	A string
+	B string
+	C *model.Permission
+}
+
+type Z_HasPermissionToTeamReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToTeamArgs{userId, teamId, permission}
+	_returns := &Z_HasPermissionToTeamReturns{}
+	if err := g.client.Call("Plugin.HasPermissionToTeam", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionToTeam API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionToTeam(args *Z_HasPermissionToTeamArgs, returns *Z_HasPermissionToTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool
+	}); ok {
+		returns.A = hook.HasPermissionToTeam(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API HasPermissionToTeam called but not implemented.")
+	}
+	return nil
+}
+
+type Z_HasPermissionToChannelArgs struct {
+	A string
+	B string
+	C *model.Permission
+}
+
+type Z_HasPermissionToChannelReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool {
+	_args := &Z_HasPermissionToChannelArgs{userId, channelId, permission}
+	_returns := &Z_HasPermissionToChannelReturns{}
+	if err := g.client.Call("Plugin.HasPermissionToChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionToChannel API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionToChannel(args *Z_HasPermissionToChannelArgs, returns *Z_HasPermissionToChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool
+	}); ok {
+		returns.A = hook.HasPermissionToChannel(args.A, args.B, args.C)
+	} else {
+		return fmt.Errorf("API HasPermissionToChannel called but not implemented.")
 	}
 	return nil
 }

@@ -92,10 +92,6 @@
     "translation": "Impossibile aggiungere gli utenti al canale perché sono stati rimossi dal gruppo."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Il canale è stato archiviato o eliminato"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Impossibile aggiungere l'utente a questo tipo di canale"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Impossibile eliminare i canali diretti o di gruppo"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Il canale è già stato eliminato"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -3119,6 +3111,10 @@
     "translation": "Questa API non è accessibile poiché le migrazioni richieste non sono ancora state completate."
   },
   {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Failed to parse installation date"
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Questo gruppo ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
   },
@@ -5961,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Errore riscontrato durante la ricercare dei profili utente"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
