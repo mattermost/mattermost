@@ -284,7 +284,7 @@ func (a *App) trackConfig() {
 		"max_users_per_team":                        *cfg.TeamSettings.MaxUsersPerTeam,
 		"max_channels_per_team":                     *cfg.TeamSettings.MaxChannelsPerTeam,
 		"teammate_name_display":                     *cfg.TeamSettings.TeammateNameDisplay,
-		"view_archived_channels":                    *cfg.TeamSettings.ViewArchivedChannels,
+		"experimental_view_archived_channels":       *cfg.TeamSettings.ExperimentalViewArchivedChannels,
 		"isdefault_site_name":                       isDefault(cfg.TeamSettings.SiteName, "Mattermost"),
 		"isdefault_custom_brand_text":               isDefault(*cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
 		"isdefault_custom_description_text":         isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
