@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -2255,7 +2256,7 @@ func TestSetProfileImage(t *testing.T) {
 	Client := th.Client
 	user := th.BasicUser
 
-	data, err := readTestFile("test.png")
+	data, err := testutils.ReadTestFile("test.png")
 	if err != nil {
 		t.Fatal(err)
 	}

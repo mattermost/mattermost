@@ -6,6 +6,8 @@ package api4
 import (
 	"net/http"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/utils/testutils"
 )
 
 func TestGetBrandImage(t *testing.T) {
@@ -29,7 +31,7 @@ func TestUploadBrandImage(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	data, err := readTestFile("test.png")
+	data, err := testutils.ReadTestFile("test.png")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils/testutils"
 )
 
 func TestUploadFileAsMultipart(t *testing.T) {
@@ -25,7 +26,7 @@ func TestUploadFileAsMultipart(t *testing.T) {
 	var uploadInfo *model.FileInfo
 	var data []byte
 	var err error
-	if data, err = readTestFile("test.png"); err != nil {
+	if data, err = testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else if fileResp, resp := Client.UploadFile(data, channel.Id, "test.png"); resp.Error != nil {
 		t.Fatal(resp.Error)
@@ -138,7 +139,7 @@ func TestUploadFileAsRequestBody(t *testing.T) {
 	var uploadInfo *model.FileInfo
 	var data []byte
 	var err error
-	if data, err = readTestFile("test.png"); err != nil {
+	if data, err = testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else if fileResp, resp := Client.UploadFileAsRequestBody(data, channel.Id, "test.png"); resp.Error != nil {
 		t.Fatal(resp.Error)
@@ -263,7 +264,7 @@ func TestGetFile(t *testing.T) {
 	fileId := ""
 	var sent []byte
 	var err error
-	if sent, err = readTestFile("test.png"); err != nil {
+	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
 		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
@@ -378,7 +379,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	fileId := ""
 	var sent []byte
 	var err error
-	if sent, err = readTestFile("test.png"); err != nil {
+	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
 		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
@@ -437,7 +438,7 @@ func TestGetFileLink(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
 
 	fileId := ""
-	if data, err := readTestFile("test.png"); err != nil {
+	if data, err := testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
 		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
@@ -505,7 +506,7 @@ func TestGetFilePreview(t *testing.T) {
 	fileId := ""
 	var sent []byte
 	var err error
-	if sent, err = readTestFile("test.png"); err != nil {
+	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
 		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
@@ -558,7 +559,7 @@ func TestGetFileInfo(t *testing.T) {
 	fileId := ""
 	var sent []byte
 	var err error
-	if sent, err = readTestFile("test.png"); err != nil {
+	if sent, err = testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
 		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
@@ -631,7 +632,7 @@ func TestGetPublicFile(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = GenerateTestId() })
 
 	fileId := ""
-	if data, err := readTestFile("test.png"); err != nil {
+	if data, err := testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
 		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")

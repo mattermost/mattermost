@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/testutils"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -1767,7 +1768,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	Client := th.Client
 
 	fileIds := make([]string, 3)
-	if data, err := readTestFile("test.png"); err != nil {
+	if data, err := testutils.ReadTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
 		for i := 0; i < 3; i++ {

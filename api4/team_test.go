@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -1815,7 +1816,7 @@ func TestImportTeam(t *testing.T) {
 	t.Run("ImportTeam", func(t *testing.T) {
 		var data []byte
 		var err error
-		data, err = readTestFile("Fake_Team_Import.zip")
+		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
 		if err != nil && len(data) == 0 {
 			t.Fatal("Error while reading the test file.")
 		}
@@ -1876,7 +1877,7 @@ func TestImportTeam(t *testing.T) {
 	t.Run("WrongPermission", func(t *testing.T) {
 		var data []byte
 		var err error
-		data, err = readTestFile("Fake_Team_Import.zip")
+		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
 		if err != nil && len(data) == 0 {
 			t.Fatal("Error while reading the test file.")
 		}
@@ -2031,7 +2032,7 @@ func TestSetTeamIcon(t *testing.T) {
 	Client := th.Client
 	team := th.BasicTeam
 
-	data, err := readTestFile("test.png")
+	data, err := testutils.ReadTestFile("test.png")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2111,7 +2112,7 @@ func TestRemoveTeamIcon(t *testing.T) {
 	team := th.BasicTeam
 
 	th.LoginTeamAdmin()
-	data, _ := readTestFile("test.png")
+	data, _ := testutils.ReadTestFile("test.png")
 	Client.SetTeamIcon(team.Id, data)
 
 	_, resp := Client.RemoveTeamIcon(team.Id)
