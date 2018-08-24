@@ -43,6 +43,11 @@ type ChannelMember struct {
 
 type ChannelMembers []ChannelMember
 
+type ChannelMemberForExport struct {
+	ChannelMember
+	ChannelName string
+}
+
 func (o *ChannelMembers) ToJson() string {
 	if b, err := json.Marshal(o); err != nil {
 		return "[]"
