@@ -4,7 +4,7 @@
 package app
 
 import (
-	"fmt"
+	"io"
 	"net/url"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -13,23 +13,31 @@ import (
 )
 
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
-	og := opengraph.NewOpenGraph()
-
 	res, err := a.HTTPClient(false).Get(requestURL)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error()))
-		return og
+		mlog.Error("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Any("err", err))
+		return nil
 	}
 	defer consumeAndClose(res)
 
-	contentType := res.Header.Get("Content-Type")
-	body := forceHTMLEncodingToUTF8(res.Body, contentType)
+	return a.ParseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+}
+
+func (a *App) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
+	og := opengraph.NewOpenGraph()
+
+	body = forceHTMLEncodingToUTF8(body, contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
-		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error()))
+		mlog.Error("ParseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Any("err", err))
 	}
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
+
+	// If image proxy enabled modify open graph data to feed though proxy
+	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
+		og = OpenGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
+	}
 
 	// The URL should be the link the user provided in their message, not a redirected one.
 	if og.URL != "" {
@@ -42,7 +50,7 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
 	r, err := charset.NewReader(body, contentType)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("forceHTMLEncodingToUTF8 failed to convert for contentType=%v with err=%v", contentType, err.Error()))
+		mlog.Error("forceHTMLEncodingToUTF8 failed to convert", mlog.String("contentType", contentType), mlog.Any("err", err))
 		return body
 	}
 	return r
@@ -51,7 +59,7 @@ func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
 func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
 	parsedRequestURL, err := url.Parse(requestURL)
 	if err != nil {
-		mlog.Warn(fmt.Sprintf("makeOpenGraphURLsAbsolute failed to parse url=%v", requestURL))
+		mlog.Warn("makeOpenGraphURLsAbsolute failed to parse url", mlog.String("requestURL", requestURL), mlog.Any("err", err))
 		return
 	}
 
@@ -62,7 +70,7 @@ func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
 
 		parsedResultURL, err := url.Parse(resultURL)
 		if err != nil {
-			mlog.Warn(fmt.Sprintf("makeOpenGraphURLsAbsolute failed to parse result url=%v", resultURL))
+			mlog.Warn("makeOpenGraphURLsAbsolute failed to parse result", mlog.String("requestURL", requestURL), mlog.Any("err", err))
 			return resultURL
 		}
 
@@ -89,4 +97,20 @@ func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
 		video.URL = makeURLAbsolute(video.URL)
 		video.SecureURL = makeURLAbsolute(video.SecureURL)
 	}
+}
+
+func OpenGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxyURL func(string) string) *opengraph.OpenGraph {
+	for _, image := range ogdata.Images {
+		var url string
+		if image.SecureURL != "" {
+			url = image.SecureURL
+		} else {
+			url = image.URL
+		}
+
+		image.URL = ""
+		image.SecureURL = toProxyURL(url)
+	}
+
+	return ogdata
 }
