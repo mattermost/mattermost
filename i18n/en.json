@@ -807,6 +807,18 @@
     "translation": "open"
   },
   {
+    "id": "api.command_remind.desc",
+    "translation": ""
+  },
+  {
+    "id": "api.command_remind.hint",
+    "translation": "[@someone or ~channel] [what] [when]"
+  },
+  {
+    "id": "api.command_remind.name",
+    "translation": "Remind Command"
+  },
+  {
     "id": "api.command_remove.desc",
     "translation": "Remove a member from the channel"
   },
