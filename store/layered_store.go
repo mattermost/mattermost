@@ -133,6 +133,10 @@ func (s *LayeredStore) Token() TokenStore {
 	return s.DatabaseLayer.Token()
 }
 
+func (s *LayeredStore) Remind() RemindStore {
+	return s.DatabaseLayer.Remind()
+}
+
 func (s *LayeredStore) Emoji() EmojiStore {
 	return s.DatabaseLayer.Emoji()
 }

@@ -819,6 +819,14 @@
     "translation": "Remind Command"
   },
   {
+    "id": "api.command_remind.exception",
+    "translation": "Sorry, I didn’t quite get that. I’m easily confused. Perhaps try the words in a different order? This usually works: `/remind [@someone or ~channel] [what] [when]`.\n"
+  },
+  {
+    "id": "api.command_remind.help",
+    "translation": ":wave: Need some help with `/remind`?\nUse `/remind` to set a reminder for yourself, someone else, or for a channel. Some examples include:\n* `/remind me to drink water at 3pm every day`\n* `/remind me on June 1st to wish Linda happy birthday`\n* `/remind ~team-alpha to update the project status every Monday at 9am`\n* `/remind @jessica about the interview in 3 hours`\n* `/remind @peter tomorrow \"Please review the office seating plan\"`\nOr, use `/remind list` to see the list of all your reminders.\n"
+  },
+  {
     "id": "api.command_remove.desc",
     "translation": "Remove a member from the channel"
   },
@@ -3059,6 +3067,178 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.reminder.message",
+    "translation": "{{.FinalTarget}} asked me to remind you \"{{.Message}}\"."
+  },
+  {
+    "id": "app.reminder.list.element",
+    "translation": "* \"{{.Message}}\" {{.Occurrence}}"
+  },
+  {
+    "id": "app.reminder.list.element",
+    "translation": "* \"{{.Message}}\" {{.Occurrence}}"
+  }
+  {
+    "id": "app.reminder.me",
+    "translation": "me"
+  },
+  {
+    "id": "app.reminder.you",
+    "translation": "You"
+  },
+  {
+    "id": "app.reminder.help",
+    "translation": "help"
+  },
+  {
+    "id": "app.reminder.clear",
+    "translation": "clear"
+  },
+  {
+    "id": "app.reminder.list",
+    "translation": "list"
+  },
+  {
+    "id": "app.reminder.list_upcoming",
+    "translation": "*Upcoming*:"
+  },
+  {
+    "id": "app.reminder.list_recurring",
+    "translation": "*Recurring*:"
+  },
+  {
+    "id": "app.reminder.list_past_and_incomplete",
+    "translation": "*Past and incomplete*:"
+  },
+  {
+    "id": "app.reminder.list_footer",
+    "translation": "\n*Note*:  To interact with these reminders use `/remind list` in a direct message with remindbot"
+  },
+  {
+    "id": "app.reminder.ok_deleted",
+    "translation": "Ok. Deleted"
+  },
+  {
+    "id": "app.reminder.response",
+    "translation": ":thumbsup: I will remind {{.Target}}{{.UseTo}} \"{{.Message}}\" {{.When}}"
+  },
+  {
+    "id": "app.reminder.to",
+    "translation": "to"
+  },
+  {
+    "id": "app.reminder.to",
+    "translation": "to"
+  },
+  {
+    "id": "app.reminder.chrono.in",
+    "translation": "in"
+  },
+  {
+    "id": "app.reminder.chrono.s",
+    "translation": "s"
+  },
+  {
+    "id": "app.reminder.chrono.sec",
+    "translation": "sec"
+  },
+  {
+    "id": "app.reminder.chrono.secs",
+    "translation": "secs"
+  },
+  {
+    "id": "app.reminder.chrono.second",
+    "translation": "second"
+  },
+  {
+    "id": "app.reminder.chrono.minutes",
+    "translation": "minutes"
+  },
+  {
+    "id": "app.reminder.chrono.minute",
+    "translation": "minute"
+  },
+  {
+    "id": "app.reminder.chrono.min",
+    "translation": "min"
+  },
+  {
+    "id": "app.reminder.chrono.hours",
+    "translation": "hours"
+  },
+  {
+    "id": "app.reminder.chrono.hours",
+    "translation": "hours"
+  },
+  {
+    "id": "app.reminder.chrono.hrs",
+    "translation": "hrs"
+  },
+  {
+    "id": "app.reminder.chrono.hr",
+    "translation": "hr"
+  },
+  {
+    "id": "app.reminder.chrono.days",
+    "translation": "days"
+  },
+  {
+    "id": "app.reminder.chrono.day",
+    "translation": "day"
+  },
+  {
+    "id": "app.reminder.chrono.d",
+    "translation": "d"
+  },
+  {
+    "id": "app.reminder.chrono.weeks",
+    "translation": "weeks"
+  },
+  {
+    "id": "app.reminder.chrono.week",
+    "translation": "week"
+  },
+  {
+    "id": "app.reminder.chrono.wks",
+    "translation": "wks"
+  },
+  {
+    "id": "app.reminder.chrono.wk",
+    "translation": "wk"
+  },
+  {
+    "id": "app.reminder.chrono.months",
+    "translation": "months"
+  },
+  {
+    "id": "app.reminder.chrono.month",
+    "translation": "month"
+  },
+  {
+    "id": "app.reminder.chrono.m",
+    "translation": "m"
+  },
+  {
+    "id": "app.reminder.chrono.years",
+    "translation": "years"
+  },
+  {
+    "id": "app.reminder.chrono.year",
+    "translation": "year"
+  },
+  {
+    "id": "app.reminder.chrono.yr",
+    "translation": "yr"
+  },
+  {
+    "id": "app.reminder.chrono.y",
+    "translation": "y"
+  },
+  {
+    "id": "app.reminder.chrono.at",
+    "translation": "at"
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -5147,6 +5327,30 @@
     "translation": "We encountered an error saving the compliance report"
   },
   {
+    "id": "store.sql_remind.save_reminder.saving.app_error",
+    "translation": "We encountered an error saving the reminder"
+  },
+  {
+    "id": "store.sql_remind.save_occurrence.saving.app_error",
+    "translation": "We encountered an error saving the occurrence"
+  },
+  {
+    "id": "store.sql_remind.get_by_user.app_error",
+    "translation": "No reminders found for user"
+  },
+  {
+    "id": "store.sql_remind.get_by_reminder.app_error",
+    "translation": "No reminder found"
+  },
+  {
+    "id": "store.sql_remind.delete_by_reminder.app_error",
+    "translation": "Reminder not able to be deleted"
+  },
+  {
+    "id": "store.sql_remind.delete_for_user.app_error",
+    "translation": "Reminders not able to be deleted"
+  },
+  {
     "id": "store.sql_emoji.delete.app_error",
     "translation": "We couldn't delete the emoji"
   },
@@ -5585,6 +5789,10 @@
   {
     "id": "store.sql_recover.save.app_error",
     "translation": "Unable to save the token"
+  },
+  {
+    "id": "store.sql_remind.delete_all.app_error",
+    "translation": "Failed to delete all reminders."
   },
   {
     "id": "store.sql_role.delete.update.app_error",

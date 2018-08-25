@@ -288,6 +288,22 @@ func (_m *Store) Reaction() store.ReactionStore {
 	return r0
 }
 
+// Remind provides a mock function with given fields:
+func (_m *Store) Remind() store.RemindStore {
+	ret := _m.Called()
+
+	var r0 store.RemindStore
+	if rf, ok := ret.Get(0).(func() store.RemindStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RemindStore)
+		}
+	}
+
+	return r0
+}
+
 // Role provides a mock function with given fields:
 func (_m *Store) Role() store.RoleStore {
 	ret := _m.Called()
