@@ -161,6 +161,9 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	a.Go(func() {
 		runCommandWebhookCleanupJob(a)
 	})
+	a.Go(func() {
+		a.InitReminders()
+	})
 
 	if complianceI := a.Compliance; complianceI != nil {
 		complianceI.StartComplianceDailyJob()

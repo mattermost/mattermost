@@ -55,6 +55,7 @@ type Store interface {
 	Preference() PreferenceStore
 	License() LicenseStore
 	Token() TokenStore
+	Remind() RemindStore
 	Emoji() EmojiStore
 	Status() StatusStore
 	FileInfo() FileInfoStore
@@ -407,6 +408,17 @@ type TokenStore interface {
 	Delete(token string) StoreChannel
 	GetByToken(token string) StoreChannel
 	Cleanup()
+}
+
+type RemindStore interface {
+	SaveReminder(reminder *model.Reminder) StoreChannel
+	SaveOccurrence(occurrence *model.Occurrence) StoreChannel
+	GetByUser(userId string) StoreChannel
+	GetByTime(time int64) StoreChannel
+	GetReminder(reminderId string) StoreChannel
+	GetByReminder(reminderId string) StoreChannel
+	DeleteForUser(userId string) StoreChannel
+	DeleteByReminder(reminderId string) StoreChannel
 }
 
 type EmojiStore interface {

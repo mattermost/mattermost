@@ -266,6 +266,8 @@ func (a *App) Shutdown() {
 	a.StopServer()
 	a.HubStop()
 
+	a.StopReminders()
+
 	a.ShutDownPlugins()
 	a.WaitForGoroutines()
 
