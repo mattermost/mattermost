@@ -206,6 +206,7 @@ type ServiceSettings struct {
 	EnableMultifactorAuthentication                   *bool
 	EnforceMultifactorAuthentication                  *bool
 	EnableUserAccessTokens                            *bool
+	AllowUserAccessTokensForAllUsers                  *bool
 	AllowCorsFrom                                     *string
 	CorsExposedHeaders                                *string
 	CorsAllowCredentials                              *bool
@@ -306,6 +307,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnableUserAccessTokens == nil {
 		s.EnableUserAccessTokens = NewBool(false)
+	}
+
+	if s.AllowUserAccessTokensForAllUsers == nil {
+		s.AllowUserAccessTokensForAllUsers = NewBool(false)
 	}
 
 	if s.GoroutineHealthThreshold == nil {
