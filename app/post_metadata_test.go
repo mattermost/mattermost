@@ -4,11 +4,16 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -167,8 +172,55 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3}, clientPost.Emojis, "should've populated post.Emojis")
 	})
 
+	t.Run("markdown image dimensions", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This is ![our logo](https://github.com/hmhealey/test-files/raw/master/logoVertical.png) and ![our icon](https://github.com/hmhealey/test-files/raw/master/icon.png)",
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		assert.Len(t, clientPost.ImageDimensions, 2)
+		assert.Equal(t, &model.PostImageDimensions{
+			URL:    "https://github.com/hmhealey/test-files/raw/master/logoVertical.png",
+			Width:  1068,
+			Height: 552,
+		}, clientPost.ImageDimensions[0])
+		assert.Equal(t, &model.PostImageDimensions{
+			URL:    "https://github.com/hmhealey/test-files/raw/master/icon.png",
+			Width:  501,
+			Height: 501,
+		}, clientPost.ImageDimensions[1])
+	})
+
 	t.Run("linked image dimensions", func(t *testing.T) {
-		// TODO
+		th := setup()
+		defer th.TearDown()
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message: `This is our logo: https://github.com/hmhealey/test-files/raw/master/logoVertical.png
+	And this is our icon: https://github.com/hmhealey/test-files/raw/master/icon.png`,
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		// Reminder that only the first link gets dimensions
+		assert.Len(t, clientPost.ImageDimensions, 1)
+		assert.Equal(t, &model.PostImageDimensions{
+			URL:    "https://github.com/hmhealey/test-files/raw/master/logoVertical.png",
+			Width:  1068,
+			Height: 552,
+		}, clientPost.ImageDimensions[0])
 	})
 
 	t.Run("proxy linked images", func(t *testing.T) {
@@ -179,7 +231,32 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("opengraph", func(t *testing.T) {
-		// TODO
+		th := setup()
+		defer th.TearDown()
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   `This is our web page: https://github.com/hmhealey/test-files`,
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		assert.Len(t, clientPost.OpenGraphData, 1)
+		assert.Equal(t, &opengraph.OpenGraph{
+			Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
+			SiteName:    "GitHub",
+			Title:       "hmhealey/test-files",
+			Type:        "object",
+			URL:         "https://github.com/hmhealey/test-files",
+			Images: []*opengraph.Image{
+				{
+					URL: "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4",
+				},
+			},
+		}, clientPost.OpenGraphData[0])
 	})
 
 	t.Run("opengraph image dimensions", func(t *testing.T) {
@@ -187,7 +264,10 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("proxy opengraph images", func(t *testing.T) {
-		// TODO
+		th := setup()
+		defer th.TearDown()
+
+		testProxyOpenGraphImage(t, th, false)
 	})
 }
 
@@ -213,7 +293,10 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 	})
 
 	t.Run("proxy opengraph images", func(t *testing.T) {
-		// TODO
+		th := setup()
+		defer th.TearDown()
+
+		testProxyOpenGraphImage(t, th, true)
 	})
 }
 
@@ -233,7 +316,9 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	require.Nil(t, err)
 
 	clientPost, err := th.App.PreparePostForClient(post)
-	require.Nil(t, err)
+	if err != nil && err.Id != "app.post.metadata.link.app_error" {
+		t.Fatal(err)
+	}
 
 	if shouldProxy {
 		assert.Equal(t, post.Message, fmt.Sprintf(postTemplate, imageURL), "should not have mutated original post")
@@ -241,6 +326,35 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	} else {
 		assert.Equal(t, clientPost.Message, fmt.Sprintf(postTemplate, imageURL), "shouldn't have replaced linked image URLs")
 	}
+}
+
+func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
+	post, err := th.App.CreatePost(&model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   `This is our web page: https://github.com/hmhealey/test-files`,
+	}, th.BasicChannel, false)
+	require.Nil(t, err)
+
+	clientPost, err := th.App.PreparePostForClient(post)
+	require.Nil(t, err)
+
+	image := &opengraph.Image{}
+	if shouldProxy {
+		image.SecureURL = "https://127.0.0.1/b2ef6ef4890a0107aa80ba33b3011fd51f668303/68747470733a2f2f61766174617273312e67697468756275736572636f6e74656e742e636f6d2f752f333237373331303f733d34303026763d34"
+	} else {
+		image.URL = "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4"
+	}
+
+	assert.Len(t, clientPost.OpenGraphData, 1)
+	assert.Equal(t, &opengraph.OpenGraph{
+		Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
+		SiteName:    "GitHub",
+		Title:       "hmhealey/test-files",
+		Type:        "object",
+		URL:         "https://github.com/hmhealey/test-files",
+		Images:      []*opengraph.Image{image},
+	}, clientPost.OpenGraphData[0])
 }
 
 func TestGetCustomEmojisForPost_Message(t *testing.T) {
@@ -353,4 +467,188 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 	emojis, err := th.App.getCustomEmojisForPost(":"+emoji2.Name+":", reactions)
 	assert.Nil(t, err, "failed to get emojis for post")
 	assert.ElementsMatch(t, emojis, []*model.Emoji{emoji1, emoji2}, "received incorrect emojis")
+}
+
+func TestGetFirstLinkAndImages(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		Input             string
+		ExpectedFirstLink string
+		ExpectedImages    []string
+	}{
+		"no links or images": {
+			Input:             "this is a string",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"http link": {
+			Input:             "this is a http://example.com",
+			ExpectedFirstLink: "http://example.com",
+			ExpectedImages:    []string{},
+		},
+		"www link": {
+			Input:             "this is a www.example.com",
+			ExpectedFirstLink: "http://www.example.com",
+			ExpectedImages:    []string{},
+		},
+		"image": {
+			Input:             "this is a ![our logo](http://example.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example.com/logo"},
+		},
+		"multiple images": {
+			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo](http://example.com/logo3)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example.com/logo", "http://example.com/logo2", "http://example.com/logo3"},
+		},
+		"multiple images with duplicate": {
+			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo which is their logo](http://example.com/logo2)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example.com/logo", "http://example.com/logo2"},
+		},
+		"reference image": {
+			Input: `this is a ![our logo][logo]
+
+[logo]: http://example.com/logo`,
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example.com/logo"},
+		},
+		"image and link": {
+			Input:             "this is a https://example.com and ![our logo](https://example.com/logo)",
+			ExpectedFirstLink: "https://example.com",
+			ExpectedImages:    []string{"https://example.com/logo"},
+		},
+		"markdown links (not returned)": {
+			Input: `this is a [our page](http://example.com) and [another page][]
+
+[another page]: http://www.exaple.com/another_page`,
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			firstLink, images := getFirstLinkAndImages(testCase.Input)
+
+			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
+			assert.Equal(t, images, testCase.ExpectedImages)
+		})
+	}
+}
+
+func TestParseLinkMetadata(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	imageURL := "http://example.com/test.png"
+	file, err := testutils.ReadTestFile("test.png")
+	require.Nil(t, err)
+
+	ogURL := "https://example.com/hello"
+	html := `
+		<html>
+			<head>
+				<meta property="og:title" content="Hello, World!">
+				<meta property="og:type" content="object">
+				<meta property="og:url" content="` + ogURL + `">
+			</head>
+		</html>`
+
+	makeImageReader := func() io.Reader {
+		return bytes.NewReader(file)
+	}
+
+	makeOpenGraphReader := func() io.Reader {
+		return strings.NewReader(html)
+	}
+
+	t.Run("image", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "image/png")
+		assert.Nil(t, err)
+
+		assert.Nil(t, og)
+		assert.Equal(t, &model.PostImageDimensions{
+			URL:    imageURL,
+			Width:  408,
+			Height: 336,
+		}, dimensions)
+	})
+
+	t.Run("malformed image", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeOpenGraphReader(), "image/png")
+		assert.NotNil(t, err)
+
+		assert.Nil(t, og)
+		assert.Nil(t, dimensions)
+	})
+
+	t.Run("opengraph", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
+		assert.Nil(t, err)
+
+		assert.NotNil(t, og)
+		assert.Equal(t, og.Title, "Hello, World!")
+		assert.Equal(t, og.Type, "object")
+		assert.Equal(t, og.URL, ogURL)
+		assert.Nil(t, dimensions)
+	})
+
+	t.Run("malformed opengraph", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeImageReader(), "text/html; charset=utf-8")
+		assert.Nil(t, err)
+
+		assert.Nil(t, og)
+		assert.Nil(t, dimensions)
+	})
+
+	t.Run("neither", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
+		assert.Nil(t, err)
+
+		assert.Nil(t, og)
+		assert.Nil(t, dimensions)
+	})
+}
+
+func TestParseImageDimensions(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		FileName       string
+		URL            string
+		ExpectedWidth  int
+		ExpectedHeight int
+		ExpectError    bool
+	}{
+		"png": {
+			FileName:       "test.png",
+			URL:            "https://example.com/test.png",
+			ExpectedWidth:  408,
+			ExpectedHeight: 336,
+		},
+		"animated gif": {
+			FileName:       "testgif.gif",
+			URL:            "http://example.com/test.gif?foo=bar",
+			ExpectedWidth:  118,
+			ExpectedHeight: 118,
+		},
+		"not an image": {
+			FileName:    "README.md",
+			URL:         "https://example.com/test.png",
+			ExpectError: true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			file, err := testutils.ReadTestFile(testCase.FileName)
+			require.Nil(t, err)
+
+			dimensions, err := parseImageDimensions(testCase.URL, bytes.NewReader(file))
+			if testCase.ExpectError {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+
+				require.NotNil(t, dimensions)
+				require.Equal(t, testCase.URL, dimensions.URL)
+				require.Equal(t, testCase.ExpectedWidth, dimensions.Width)
+				require.Equal(t, testCase.ExpectedHeight, dimensions.Height)
+			}
+		})
+	}
 }

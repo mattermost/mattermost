@@ -93,8 +93,8 @@ type Post struct {
 
 type PostImageDimensions struct {
 	URL    string `json:"url"`
-	Width  int64  `json:"width"`
-	Height int64  `json:"height"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
 }
 
 type PostEphemeral struct {

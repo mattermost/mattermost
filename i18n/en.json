@@ -3119,6 +3119,10 @@
     "translation": "Plugins and/or plugin uploads have been disabled."
   },
   {
+    "id": "app.post.metadata.link.app_error",
+    "translation": "Failed to get metadata for a link in a post."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
