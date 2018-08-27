@@ -1303,7 +1303,21 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
-	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "search", false)
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	posts, resp := Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 {
+		t.Fatal("wrong search")
+	}
+
+	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "search", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 3 {
 		t.Fatal("wrong search")
@@ -1330,7 +1344,7 @@ func TestSearchPosts(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
 	})
-	
+
 	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 1 {
