@@ -4,12 +4,14 @@
 package model
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"io"
 	"math"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -174,6 +176,31 @@ const (
 	CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH = "secondary"
 )
 
+var ServerTLSSupportedCiphers = map[string]uint16{
+	"TLS_RSA_WITH_RC4_128_SHA":                tls.TLS_RSA_WITH_RC4_128_SHA,
+	"TLS_RSA_WITH_3DES_EDE_CBC_SHA":           tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+	"TLS_RSA_WITH_AES_128_CBC_SHA":            tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+	"TLS_RSA_WITH_AES_256_CBC_SHA":            tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+	"TLS_RSA_WITH_AES_128_CBC_SHA256":         tls.TLS_RSA_WITH_AES_128_CBC_SHA256,
+	"TLS_RSA_WITH_AES_128_GCM_SHA256":         tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+	"TLS_RSA_WITH_AES_256_GCM_SHA384":         tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+	"TLS_ECDHE_ECDSA_WITH_RC4_128_SHA":        tls.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+	"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA":    tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+	"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA":    tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+	"TLS_ECDHE_RSA_WITH_RC4_128_SHA":          tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+	"TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA":     tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+	"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA":      tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+	"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA":      tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+	"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256": tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+	"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256":   tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+	"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256":   tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256": tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+	"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384":   tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+	"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384": tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+	"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305":    tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+	"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305":  tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+}
+
 type ServiceSettings struct {
 	SiteURL                                           *string
 	WebsocketURL                                      *string
@@ -182,6 +209,10 @@ type ServiceSettings struct {
 	ConnectionSecurity                                *string
 	TLSCertFile                                       *string
 	TLSKeyFile                                        *string
+	TLSMinVer                                         *string
+	TLSStrictTransport                                *bool
+	TLSStrictTransportMaxAge                          *int64
+	TLSOverwriteCiphers                               []string
 	UseLetsEncrypt                                    *bool
 	LetsEncryptCertificateCacheFile                   *string
 	Forward80To443                                    *bool
@@ -322,6 +353,22 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.TLSCertFile == nil {
 		s.TLSCertFile = NewString(SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE)
+	}
+
+	if s.TLSMinVer == nil {
+		s.TLSMinVer = NewString("1.2")
+	}
+
+	if s.TLSStrictTransport == nil {
+		s.TLSStrictTransport = NewBool(false)
+	}
+
+	if s.TLSStrictTransportMaxAge == nil {
+		s.TLSStrictTransportMaxAge = NewInt64(63072000)
+	}
+
+	if s.TLSOverwriteCiphers == nil {
+		s.TLSOverwriteCiphers = []string{}
 	}
 
 	if s.UseLetsEncrypt == nil {
@@ -2350,6 +2397,32 @@ func (ws *WebrtcSettings) isValid() *AppError {
 func (ss *ServiceSettings) isValid() *AppError {
 	if !(*ss.ConnectionSecurity == CONN_SECURITY_NONE || *ss.ConnectionSecurity == CONN_SECURITY_TLS) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && *ss.UseLetsEncrypt == false {
+		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
+
+		if *ss.TLSCertFile == "" {
+			return appErr
+		} else if _, err := os.Stat(*ss.TLSCertFile); os.IsNotExist(err) {
+			return appErr
+		}
+
+		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file.app_error", nil, "", http.StatusBadRequest)
+
+		if *ss.TLSKeyFile == "" {
+			return appErr
+		} else if _, err := os.Stat(*ss.TLSKeyFile); os.IsNotExist(err) {
+			return appErr
+		}
+	}
+
+	if len(ss.TLSOverwriteCiphers) > 0 {
+		for _, cipher := range ss.TLSOverwriteCiphers {
+			if _, ok := ServerTLSSupportedCiphers[cipher]; !ok {
+				return NewAppError("Config.IsValid", "model.config.is_valid.tls_overwrite_cipher.app_error", map[string]interface{}{"name": cipher}, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	if *ss.ReadTimeout <= 0 {
