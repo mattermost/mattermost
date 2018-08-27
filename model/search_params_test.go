@@ -241,63 +241,63 @@ func TestParseSearchFlags(t *testing.T) {
 }
 
 func TestParseSearchParams(t *testing.T) {
-	if sp := ParseSearchParams(""); len(sp) != 0 {
+	if sp := ParseSearchParams("", 0); len(sp) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("     "); len(sp) != 0 {
+	if sp := ParseSearchParams("     ", 0); len(sp) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("words words"); len(sp) != 1 || sp[0].Terms != "words words" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("words words", 0); len(sp) != 1 || sp[0].Terms != "words words" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("\"my stuff\""); len(sp) != 1 || sp[0].Terms != "\"my stuff\"" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("\"my stuff\"", 0); len(sp) != 1 || sp[0].Terms != "\"my stuff\"" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("#words #words"); len(sp) != 1 || sp[0].Terms != "#words #words" || !sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("#words #words", 0); len(sp) != 1 || sp[0].Terms != "#words #words" || !sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("#words words"); len(sp) != 2 || sp[1].Terms != "#words" || !sp[1].IsHashtag || len(sp[1].InChannels) != 0 || len(sp[1].FromUsers) != 0 || sp[0].Terms != "words" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 {
+	if sp := ParseSearchParams("#words words", 0); len(sp) != 2 || sp[1].Terms != "#words" || !sp[1].IsHashtag || len(sp[1].InChannels) != 0 || len(sp[1].FromUsers) != 0 || sp[0].Terms != "words" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("in:channel"); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("in:channel", 0); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("testing in:channel"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("testing in:channel", 0); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("in:channel testing"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("in:channel testing", 0); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("in:channel in:otherchannel"); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].InChannels) != 2 || sp[0].InChannels[0] != "channel" || sp[0].InChannels[1] != "otherchannel" || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("in:channel in:otherchannel", 0); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].InChannels) != 2 || sp[0].InChannels[0] != "channel" || sp[0].InChannels[1] != "otherchannel" || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("testing in:channel from:someone"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 1 || sp[0].FromUsers[0] != "someone" {
+	if sp := ParseSearchParams("testing in:channel from:someone", 0); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 1 || sp[0].FromUsers[0] != "someone" {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
 	}
 
-	if sp := ParseSearchParams("##hashtag +#plus+"); len(sp) != 1 || sp[0].Terms != "#hashtag #plus" || !sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("##hashtag +#plus+", 0); len(sp) != 1 || sp[0].Terms != "#hashtag #plus" || !sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
 	}
 
-	if sp := ParseSearchParams("wildcar*"); len(sp) != 1 || sp[0].Terms != "wildcar*" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("wildcar*", 0); len(sp) != 1 || sp[0].Terms != "wildcar*" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
 	}
 
-	if sp := ParseSearchParams("after:2018-8-1 testing"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
+	if sp := ParseSearchParams("after:2018-8-1 testing", 0); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("after:2018-8-1"); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
+	if sp := ParseSearchParams("after:2018-8-1", 0); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 }
