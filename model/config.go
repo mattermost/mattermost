@@ -1457,8 +1457,9 @@ func (s *LocalizationSettings) SetDefaults() {
 
 type SamlSettings struct {
 	// Basic
-	Enable             *bool
-	EnableSyncWithLdap *bool
+	Enable                        *bool
+	EnableSyncWithLdap            *bool
+	EnableSyncWithLdapIncludeAuth *bool
 
 	Verify  *bool
 	Encrypt *bool
@@ -1498,6 +1499,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.EnableSyncWithLdap == nil {
 		s.EnableSyncWithLdap = NewBool(false)
+	}
+
+	if s.EnableSyncWithLdapIncludeAuth == nil {
+		s.EnableSyncWithLdapIncludeAuth = NewBool(false)
 	}
 
 	if s.Verify == nil {
