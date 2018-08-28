@@ -120,6 +120,7 @@ const (
 	LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
 	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME     = ""
 
+	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
 	SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE      = ""
@@ -1474,6 +1475,7 @@ type SamlSettings struct {
 	PrivateKeyFile        *string
 
 	// User Mapping
+	IdAttribute        *string
 	FirstNameAttribute *string
 	LastNameAttribute  *string
 	EmailAttribute     *string
@@ -1540,6 +1542,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.LoginButtonText == nil || *s.LoginButtonText == "" {
 		s.LoginButtonText = NewString(USER_AUTH_SERVICE_SAML_TEXT)
+	}
+
+	if s.IdAttribute == nil {
+		s.IdAttribute = NewString(SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE)
 	}
 
 	if s.FirstNameAttribute == nil {
