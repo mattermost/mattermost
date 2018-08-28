@@ -128,7 +128,7 @@ func (dr *domainRenewal) do(ctx context.Context) (time.Duration, error) {
 }
 
 func (dr *domainRenewal) next(expiry time.Time) time.Duration {
-	d := expiry.Sub(timeNow()) - dr.m.renewBefore()
+	d := expiry.Sub(dr.m.now()) - dr.m.renewBefore()
 	// add a bit of randomness to renew deadline
 	n := pseudoRand.int63n(int64(renewJitter))
 	d -= time.Duration(n)
