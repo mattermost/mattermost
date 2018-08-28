@@ -44,7 +44,7 @@ var createCertRetryAfter = time.Minute
 var pseudoRand *lockedMathRand
 
 func init() {
-	src := mathrand.NewSource(timeNow().UnixNano())
+	src := mathrand.NewSource(time.Now().UnixNano())
 	pseudoRand = &lockedMathRand{rnd: mathrand.New(src)}
 }
 
@@ -81,9 +81,9 @@ func defaultHostPolicy(context.Context, string) error {
 }
 
 // Manager is a stateful certificate manager built on top of acme.Client.
-// It obtains and refreshes certificates automatically using "tls-sni-01",
-// "tls-sni-02" and "http-01" challenge types, as well as providing them
-// to a TLS server via tls.Config.
+// It obtains and refreshes certificates automatically using "tls-alpn-01",
+// "tls-sni-01", "tls-sni-02" and "http-01" challenge types,
+// as well as providing them to a TLS server via tls.Config.
 //
 // You must specify a cache implementation, such as DirCache,
 // to reuse obtained certificates across program restarts.
@@ -177,18 +177,22 @@ type Manager struct {
 	// to be provisioned.
 	// The entries are stored for the duration of the authorization flow.
 	httpTokens map[string][]byte
-	// certTokens contains temporary certificates for tls-sni challenges
+	// certTokens contains temporary certificates for tls-sni and tls-alpn challenges
 	// and is keyed by token domain name, which matches server name of ClientHello.
-	// Keys always have ".acme.invalid" suffix.
+	// Keys always have ".acme.invalid" suffix for tls-sni. Otherwise, they are domain names
+	// for tls-alpn.
 	// The entries are stored for the duration of the authorization flow.
 	certTokens map[string]*tls.Certificate
+	// nowFunc, if not nil, returns the current time. This may be set for
+	// testing purposes.
+	nowFunc func() time.Time
 }
 
 // certKey is the key by which certificates are tracked in state, renewal and cache.
 type certKey struct {
 	domain  string // without trailing dot
 	isRSA   bool   // RSA cert for legacy clients (as opposed to default ECDSA)
-	isToken bool   // tls-sni challenge token cert; key type is undefined regardless of isRSA
+	isToken bool   // tls-based challenge token cert; key type is undefined regardless of isRSA
 }
 
 func (c certKey) String() string {
@@ -201,14 +205,32 @@ func (c certKey) String() string {
 	return c.domain
 }
 
+// TLSConfig creates a new TLS config suitable for net/http.Server servers,
+// supporting HTTP/2 and the tls-alpn-01 ACME challenge type.
+func (m *Manager) TLSConfig() *tls.Config {
+	return &tls.Config{
+		GetCertificate: m.GetCertificate,
+		NextProtos: []string{
+			"h2", "http/1.1", // enable HTTP/2
+			acme.ALPNProto, // enable tls-alpn ACME challenges
+		},
+	}
+}
+
 // GetCertificate implements the tls.Config.GetCertificate hook.
 // It provides a TLS certificate for hello.ServerName host, including answering
-// *.acme.invalid (TLS-SNI) challenges. All other fields of hello are ignored.
+// tls-alpn-01 and *.acme.invalid (tls-sni-01 and tls-sni-02) challenges.
+// All other fields of hello are ignored.
 //
 // If m.HostPolicy is non-nil, GetCertificate calls the policy before requesting
 // a new cert. A non-nil error returned from m.HostPolicy halts TLS negotiation.
 // The error is propagated back to the caller of GetCertificate and is user-visible.
 // This does not affect cached certs. See HostPolicy field description for more details.
+//
+// If GetCertificate is used directly, instead of via Manager.TLSConfig, package users will
+// also have to add acme.ALPNProto to NextProtos for tls-alpn-01, or use HTTPHandler
+// for http-01. (The tls-sni-* challenges have been deprecated by popular ACME providers
+// due to security issues in the ecosystem.)
 func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 	if m.Prompt == nil {
 		return nil, errors.New("acme/autocert: Manager.Prompt not set")
@@ -230,10 +252,13 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// check whether this is a token cert requested for TLS-SNI challenge
-	if strings.HasSuffix(name, ".acme.invalid") {
+	// Check whether this is a token cert requested for TLS-SNI or TLS-ALPN challenge.
+	if wantsTokenCert(hello) {
 		m.tokensMu.RLock()
 		defer m.tokensMu.RUnlock()
+		// It's ok to use the same token cert key for both tls-sni and tls-alpn
+		// because there's always at most 1 token cert per on-going domain authorization.
+		// See m.verify for details.
 		if cert := m.certTokens[name]; cert != nil {
 			return cert, nil
 		}
@@ -267,6 +292,17 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 	}
 	m.cachePut(ctx, ck, cert)
 	return cert, nil
+}
+
+// wantsTokenCert reports whether a TLS request with SNI is made by a CA server
+// for a challenge verification.
+func wantsTokenCert(hello *tls.ClientHelloInfo) bool {
+	// tls-alpn-01
+	if len(hello.SupportedProtos) == 1 && hello.SupportedProtos[0] == acme.ALPNProto {
+		return true
+	}
+	// tls-sni-xx
+	return strings.HasSuffix(hello.ServerName, ".acme.invalid")
 }
 
 func supportsECDSA(hello *tls.ClientHelloInfo) bool {
@@ -328,8 +364,8 @@ func supportsECDSA(hello *tls.ClientHelloInfo) bool {
 // Because the fallback handler is run with unencrypted port 80 requests,
 // the fallback should not serve TLS-only requests.
 //
-// If HTTPHandler is never called, the Manager will only use TLS SNI
-// challenges for domain verification.
+// If HTTPHandler is never called, the Manager will only use the "tls-alpn-01"
+// challenge for domain verification.
 func (m *Manager) HTTPHandler(fallback http.Handler) http.Handler {
 	m.tokensMu.Lock()
 	defer m.tokensMu.Unlock()
@@ -447,7 +483,7 @@ func (m *Manager) cacheGet(ctx context.Context, ck certKey) (*tls.Certificate, e
 	}
 
 	// verify and create TLS cert
-	leaf, err := validCert(ck, pubDER, privKey)
+	leaf, err := validCert(ck, pubDER, privKey, m.now())
 	if err != nil {
 		return nil, ErrCacheMiss
 	}
@@ -542,7 +578,7 @@ func (m *Manager) createCert(ctx context.Context, ck certKey) (*tls.Certificate,
 			if !ok {
 				return
 			}
-			if _, err := validCert(ck, s.cert, s.key); err == nil {
+			if _, err := validCert(ck, s.cert, s.key, m.now()); err == nil {
 				return
 			}
 			delete(m.state, ck)
@@ -611,7 +647,7 @@ func (m *Manager) authorizedCert(ctx context.Context, key crypto.Signer, ck cert
 	if err != nil {
 		return nil, nil, err
 	}
-	leaf, err = validCert(ck, der, key)
+	leaf, err = validCert(ck, der, key, m.now())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -635,7 +671,7 @@ func (m *Manager) revokePendingAuthz(ctx context.Context, uri []string) {
 func (m *Manager) verify(ctx context.Context, client *acme.Client, domain string) error {
 	// The list of challenge types we'll try to fulfill
 	// in this specific order.
-	challengeTypes := []string{"tls-sni-02", "tls-sni-01"}
+	challengeTypes := []string{"tls-alpn-01", "tls-sni-02", "tls-sni-01"}
 	m.tokensMu.RLock()
 	if m.tryHTTP01 {
 		challengeTypes = append(challengeTypes, "http-01")
@@ -691,7 +727,7 @@ func (m *Manager) verify(ctx context.Context, client *acme.Client, domain string
 			}
 			return errors.New(errorMsg)
 		}
-		cleanup, err := m.fulfill(ctx, client, chal)
+		cleanup, err := m.fulfill(ctx, client, chal, domain)
 		if err != nil {
 			errs[chal] = err
 			continue
@@ -714,8 +750,15 @@ func (m *Manager) verify(ctx context.Context, client *acme.Client, domain string
 
 // fulfill provisions a response to the challenge chal.
 // The cleanup is non-nil only if provisioning succeeded.
-func (m *Manager) fulfill(ctx context.Context, client *acme.Client, chal *acme.Challenge) (cleanup func(), err error) {
+func (m *Manager) fulfill(ctx context.Context, client *acme.Client, chal *acme.Challenge, domain string) (cleanup func(), err error) {
 	switch chal.Type {
+	case "tls-alpn-01":
+		cert, err := client.TLSALPN01ChallengeCert(chal.Token, domain)
+		if err != nil {
+			return nil, err
+		}
+		m.putCertToken(ctx, domain, &cert)
+		return func() { go m.deleteCertToken(domain) }, nil
 	case "tls-sni-01":
 		cert, name, err := client.TLSSNI01ChallengeCert(chal.Token)
 		if err != nil {
@@ -948,6 +991,13 @@ func (m *Manager) renewBefore() time.Duration {
 	return 720 * time.Hour // 30 days
 }
 
+func (m *Manager) now() time.Time {
+	if m.nowFunc != nil {
+		return m.nowFunc()
+	}
+	return time.Now()
+}
+
 // certState is ready when its mutex is unlocked for reading.
 type certState struct {
 	sync.RWMutex
@@ -1014,7 +1064,7 @@ func parsePrivateKey(der []byte) (crypto.Signer, error) {
 // are valid. It doesn't do any revocation checking.
 //
 // The returned value is the verified leaf cert.
-func validCert(ck certKey, der [][]byte, key crypto.Signer) (leaf *x509.Certificate, err error) {
+func validCert(ck certKey, der [][]byte, key crypto.Signer, now time.Time) (leaf *x509.Certificate, err error) {
 	// parse public part(s)
 	var n int
 	for _, b := range der {
@@ -1031,7 +1081,6 @@ func validCert(ck certKey, der [][]byte, key crypto.Signer) (leaf *x509.Certific
 	}
 	// verify the leaf is not expired and matches the domain name
 	leaf = x509Cert[0]
-	now := timeNow()
 	if now.Before(leaf.NotBefore) {
 		return nil, errors.New("acme/autocert: certificate is not valid yet")
 	}
@@ -1085,8 +1134,6 @@ func (r *lockedMathRand) int63n(max int64) int64 {
 
 // For easier testing.
 var (
-	timeNow = time.Now
-
 	// Called when a state is removed.
 	testDidRemoveState = func(certKey) {}
 )

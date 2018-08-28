@@ -1,9 +1,43 @@
 package imaging
 
 import (
+	"bytes"
 	"image"
+	"image/color"
 	"math"
 )
+
+// New creates a new image with the specified width and height, and fills it with the specified color.
+func New(width, height int, fillColor color.Color) *image.NRGBA {
+	if width <= 0 || height <= 0 {
+		return &image.NRGBA{}
+	}
+
+	c := color.NRGBAModel.Convert(fillColor).(color.NRGBA)
+	if (c == color.NRGBA{0, 0, 0, 0}) {
+		return image.NewNRGBA(image.Rect(0, 0, width, height))
+	}
+
+	return &image.NRGBA{
+		Pix:    bytes.Repeat([]byte{c.R, c.G, c.B, c.A}, width*height),
+		Stride: 4 * width,
+		Rect:   image.Rect(0, 0, width, height),
+	}
+}
+
+// Clone returns a copy of the given image.
+func Clone(img image.Image) *image.NRGBA {
+	src := newScanner(img)
+	dst := image.NewNRGBA(image.Rect(0, 0, src.w, src.h))
+	size := src.w * 4
+	parallel(0, src.h, func(ys <-chan int) {
+		for y := range ys {
+			i := y * dst.Stride
+			src.scan(0, y, src.w, y+1, dst.Pix[i:i+size])
+		}
+	})
+	return dst
+}
 
 // Anchor is the anchor point for image alignment.
 type Anchor int

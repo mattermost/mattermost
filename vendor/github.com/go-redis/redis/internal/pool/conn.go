@@ -13,19 +13,21 @@ var noDeadline = time.Time{}
 type Conn struct {
 	netConn net.Conn
 
-	Rd *proto.Reader
-	Wb *proto.WriteBuffer
+	rd       *proto.Reader
+	rdLocked bool
+	wr       *proto.Writer
 
-	Inited bool
-	usedAt atomic.Value
+	InitedAt time.Time
+	pooled   bool
+	usedAt   atomic.Value
 }
 
 func NewConn(netConn net.Conn) *Conn {
 	cn := &Conn{
 		netConn: netConn,
-		Wb:      proto.NewWriteBuffer(),
 	}
-	cn.Rd = proto.NewReader(cn.netConn)
+	cn.rd = proto.NewReader(netConn)
+	cn.wr = proto.NewWriter(netConn)
 	cn.SetUsedAt(time.Now())
 	return cn
 }
@@ -40,14 +42,11 @@ func (cn *Conn) SetUsedAt(tm time.Time) {
 
 func (cn *Conn) SetNetConn(netConn net.Conn) {
 	cn.netConn = netConn
-	cn.Rd.Reset(netConn)
+	cn.rd.Reset(netConn)
+	cn.wr.Reset(netConn)
 }
 
-func (cn *Conn) IsStale(timeout time.Duration) bool {
-	return timeout > 0 && time.Since(cn.UsedAt()) > timeout
-}
-
-func (cn *Conn) SetReadTimeout(timeout time.Duration) error {
+func (cn *Conn) setReadTimeout(timeout time.Duration) error {
 	now := time.Now()
 	cn.SetUsedAt(now)
 	if timeout > 0 {
@@ -56,7 +55,7 @@ func (cn *Conn) SetReadTimeout(timeout time.Duration) error {
 	return cn.netConn.SetReadDeadline(noDeadline)
 }
 
-func (cn *Conn) SetWriteTimeout(timeout time.Duration) error {
+func (cn *Conn) setWriteTimeout(timeout time.Duration) error {
 	now := time.Now()
 	cn.SetUsedAt(now)
 	if timeout > 0 {
@@ -71,6 +70,22 @@ func (cn *Conn) Write(b []byte) (int, error) {
 
 func (cn *Conn) RemoteAddr() net.Addr {
 	return cn.netConn.RemoteAddr()
+}
+
+func (cn *Conn) WithReader(timeout time.Duration, fn func(rd *proto.Reader) error) error {
+	_ = cn.setReadTimeout(timeout)
+	return fn(cn.rd)
+}
+
+func (cn *Conn) WithWriter(timeout time.Duration, fn func(wr *proto.Writer) error) error {
+	_ = cn.setWriteTimeout(timeout)
+
+	firstErr := fn(cn.wr)
+	err := cn.wr.Flush()
+	if err != nil && firstErr == nil {
+		firstErr = err
+	}
+	return firstErr
 }
 
 func (cn *Conn) Close() error {

@@ -15,6 +15,7 @@ Supports:
 - [Timeouts](https://godoc.org/github.com/go-redis/redis#Options).
 - [Redis Sentinel](https://godoc.org/github.com/go-redis/redis#NewFailoverClient).
 - [Redis Cluster](https://godoc.org/github.com/go-redis/redis#NewClusterClient).
+- [Cluster of Redis Servers](https://godoc.org/github.com/go-redis/redis#example-NewClusterClient--ManualSetup) without using cluster mode and Redis Sentinel.
 - [Ring](https://godoc.org/github.com/go-redis/redis#NewRing).
 - [Instrumentation](https://godoc.org/github.com/go-redis/redis#ex-package--Instrumentation).
 - [Cache friendly](https://github.com/go-redis/cache).
@@ -86,25 +87,27 @@ Please go through [examples](https://godoc.org/github.com/go-redis/redis#pkg-exa
 
 Some corner cases:
 
-    SET key value EX 10 NX
-    set, err := client.SetNX("key", "value", 10*time.Second).Result()
+```go
+// SET key value EX 10 NX
+set, err := client.SetNX("key", "value", 10*time.Second).Result()
 
-    SORT list LIMIT 0 2 ASC
-    vals, err := client.Sort("list", redis.Sort{Offset: 0, Count: 2, Order: "ASC"}).Result()
+// SORT list LIMIT 0 2 ASC
+vals, err := client.Sort("list", redis.Sort{Offset: 0, Count: 2, Order: "ASC"}).Result()
 
-    ZRANGEBYSCORE zset -inf +inf WITHSCORES LIMIT 0 2
-    vals, err := client.ZRangeByScoreWithScores("zset", redis.ZRangeBy{
-        Min: "-inf",
-        Max: "+inf",
-        Offset: 0,
-        Count: 2,
-    }).Result()
+// ZRANGEBYSCORE zset -inf +inf WITHSCORES LIMIT 0 2
+vals, err := client.ZRangeByScoreWithScores("zset", redis.ZRangeBy{
+	Min: "-inf",
+	Max: "+inf",
+	Offset: 0,
+	Count: 2,
+}).Result()
 
-    ZINTERSTORE out 2 zset1 zset2 WEIGHTS 2 3 AGGREGATE SUM
-    vals, err := client.ZInterStore("out", redis.ZStore{Weights: []int64{2, 3}}, "zset1", "zset2").Result()
+// ZINTERSTORE out 2 zset1 zset2 WEIGHTS 2 3 AGGREGATE SUM
+vals, err := client.ZInterStore("out", redis.ZStore{Weights: []int64{2, 3}}, "zset1", "zset2").Result()
 
-    EVAL "return {KEYS[1],ARGV[1]}" 1 "key" "hello"
-    vals, err := client.Eval("return {KEYS[1],ARGV[1]}", []string{"key"}, "hello").Result()
+// EVAL "return {KEYS[1],ARGV[1]}" 1 "key" "hello"
+vals, err := client.Eval("return {KEYS[1],ARGV[1]}", []string{"key"}, "hello").Result()
+```
 
 ## Benchmark
 
