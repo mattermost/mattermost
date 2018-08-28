@@ -561,7 +561,12 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId); err != nil {
+	actionRequest := model.DoPostActionRequestFromJson(r.Body)
+	if actionRequest == nil {
+		actionRequest = &model.DoPostActionRequest{}
+	}
+
+	if err := c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId, actionRequest.SelectedOption); err != nil {
 		c.Err = err
 		return
 	}

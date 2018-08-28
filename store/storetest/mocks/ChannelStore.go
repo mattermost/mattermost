@@ -711,6 +711,22 @@ func (_m *ChannelStore) ResetAllChannelSchemes() store.StoreChannel {
 	return r0
 }
 
+// ResetLastPostAt provides a mock function with given fields:
+func (_m *ChannelStore) ResetLastPostAt() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Restore provides a mock function with given fields: channelId, time
 func (_m *ChannelStore) Restore(channelId string, time int64) store.StoreChannel {
 	ret := _m.Called(channelId, time)

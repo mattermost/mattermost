@@ -3,6 +3,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -699,4 +700,37 @@ func TestSupportedTimezones(t *testing.T) {
 
 	CheckNoError(t, resp)
 	assert.Equal(t, supportedTimezonesFromConfig, supportedTimezones)
+}
+
+func TestRedirectLocation(t *testing.T) {
+	expected := "https://mattermost.com/wp-content/themes/mattermostv2/img/logo-light.svg"
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", expected)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer.Close() }()
+
+	mockBitlyLink := testServer.URL
+
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	_, resp := th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetRedirectLocation("", "")
+	CheckBadRequestStatus(t, resp)
+
+	actual, resp := th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	CheckNoError(t, resp)
+	if actual != expected {
+		t.Errorf("Expected %v but got %v.", expected, actual)
+	}
+
+	Client.Logout()
+	_, resp = Client.GetRedirectLocation("", "")
+	CheckUnauthorizedStatus(t, resp)
 }

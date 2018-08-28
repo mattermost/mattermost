@@ -44,6 +44,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("MigrateTeamMembers", func(t *testing.T) { testTeamStoreMigrateTeamMembers(t, ss) })
 	t.Run("ResetAllTeamSchemes", func(t *testing.T) { testResetAllTeamSchemes(t, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testTeamStoreClearAllCustomRoleAssignments(t, ss) })
+	t.Run("AnalyticsGetTeamCountForScheme", func(t *testing.T) { testTeamStoreAnalyticsGetTeamCountForScheme(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1264,4 +1265,65 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	r4 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
 	require.Nil(t, r4.Err)
 	assert.Equal(t, "", r4.Data.(*model.TeamMember).Roles)
+}
+
+func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
+	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+
+	count1 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(0), count1)
+
+	t1 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+	t1 = (<-ss.Team().Save(t1)).Data.(*model.Team)
+
+	count2 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(1), count2)
+
+	t2 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+	t2 = (<-ss.Team().Save(t2)).Data.(*model.Team)
+
+	count3 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(2), count3)
+
+	t3 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	}
+	t3 = (<-ss.Team().Save(t3)).Data.(*model.Team)
+
+	count4 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(2), count4)
+
+	t4 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+		DeleteAt:    model.GetMillis(),
+	}
+	t4 = (<-ss.Team().Save(t4)).Data.(*model.Team)
+
+	count5 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(2), count5)
 }

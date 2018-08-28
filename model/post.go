@@ -50,6 +50,8 @@ const (
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
 	POST_PROPS_ADDED_USER_ID    = "addedUserId"
 	POST_PROPS_DELETE_BY        = "deleteBy"
+	POST_ACTION_TYPE_BUTTON     = "button"
+	POST_ACTION_TYPE_SELECT     = "select"
 )
 
 type Post struct {
@@ -108,10 +110,22 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
+type DoPostActionRequest struct {
+	SelectedOption string `json:"selected_option"`
+}
+
 type PostAction struct {
 	Id          string                 `json:"id"`
 	Name        string                 `json:"name"`
+	Type        string                 `json:"type"`
+	DataSource  string                 `json:"data_source"`
+	Options     []*PostActionOptions   `json:"options"`
 	Integration *PostActionIntegration `json:"integration,omitempty"`
+}
+
+type PostActionOptions struct {
+	Text  string `json:"text"`
+	Value string `json:"value"`
 }
 
 type PostActionIntegration struct {
@@ -120,9 +134,11 @@ type PostActionIntegration struct {
 }
 
 type PostActionIntegrationRequest struct {
-	UserId  string          `json:"user_id"`
-	PostId  string          `json:"post_id"`
-	Context StringInterface `json:"context,omitempty"`
+	UserId     string          `json:"user_id"`
+	PostId     string          `json:"post_id"`
+	Type       string          `json:"type"`
+	DataSource string          `json:"data_source"`
+	Context    StringInterface `json:"context,omitempty"`
 }
 
 type PostActionIntegrationResponse struct {
@@ -453,6 +469,12 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 func (o *PostEphemeral) ToUnsanitizedJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func DoPostActionRequestFromJson(data io.Reader) *DoPostActionRequest {
+	var o *DoPostActionRequest
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced
