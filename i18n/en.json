@@ -1655,6 +1655,10 @@
     "translation": "%v joined the team."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your team or system administrator for details."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
   },
@@ -1729,6 +1733,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Specified user is not a member of specified team."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
