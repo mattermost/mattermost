@@ -477,13 +477,11 @@ func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *mod
 	var originalRootId string
 	originalRootId = oldPost.RootId
 	newPost := &model.Post{}
-	oldPost.CreateAt = model.GetMillis()
 	*newPost = *oldPost
 
 	if post.RootId != "" && post.RootId != newPost.Id {
-		if _, ok := thread.Posts[post.Id]; ok && len(thread.Posts) == 1 {
-			newPost.RootId = post.RootId
-		} else if newPost.RootId != "" {
+		if _, ok := thread.Posts[post.Id]; ok && len(thread.Posts) == 1 || newPost.RootId != ""{
+			newPost.CreateAt = model.GetMillis()
 			newPost.RootId = post.RootId
 		}
 	}

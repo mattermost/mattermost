@@ -246,6 +246,7 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
 	ExperimentalLimitClientConfig                     *bool
+	ExperimentalRethreading                           bool
 	EnableEmailInvitations                            *bool
 }
 
