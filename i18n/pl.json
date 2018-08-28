@@ -232,12 +232,12 @@
     "translation": "Nie można usunąć użytkownika z domyślnego kanału {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v został usunięty z kanału."
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Cannot remove user from a channel."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "Kanał został zarchiwizowany lub usunięty"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v został usunięty z kanału."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1031,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "Dodawanie załączników na tym serwerze jest zablokowane."
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2507,6 +2515,10 @@
     "translation": "Dane wejściowe mają typ \"direct_post\" ale obiekt direct_post jest null."
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "Dane wejściowe mają typ \"post\" ale obiekt post jest null."
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "Dane wejściowe mają typ \"post\" ale obiekt post jest null."
   },
@@ -3019,10 +3031,6 @@
     "translation": "Nowa wiadomość grupowa od {{ .SenderDisplayName}} {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -3087,16 +3095,8 @@
     "translation": "Plugin is not installed"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "Cannot install prepackaged plugin"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "Nie udało się skasować reakcji"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "Unable to set plugin status state."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3217,6 +3217,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "Unable to open the temporary export file."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Unable to re-read the Global Relay temporary export file."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3399,8 +3403,20 @@
     "translation": "Nieprawidłowy filtr AD/LDAP"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Unable to add attachment to the Global Relay export."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Unable to close properly the zip file."
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "Unable to create the eml file."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Unable to generate eml file data."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4675,8 +4691,8 @@
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Error invoking plugin RPC"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Unable to set the user status. Unknown user status."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4889,6 +4905,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "We could not reset the channel schemes"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5119,6 +5143,10 @@
     "translation": "Nie można zapisać emoji"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "We couldn't delete attachments of the user"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "Nie można załączyć informacji o pliku do wpisu"
   },
@@ -5136,6 +5164,10 @@
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "Nie mogliśmy uzyskać informacji o pliku dla wiadomości"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
     "translation": "Nie mogliśmy uzyskać informacji o pliku dla wiadomości"
   },
   {
@@ -5717,6 +5749,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "Napotkaliśmy błąd aktualizując właściwość systemową"
+  },
+  {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "We couldn't get the channel count for the scheme."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

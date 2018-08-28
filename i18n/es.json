@@ -232,12 +232,12 @@
     "translation": "No se puede remover el usuario del canal predeterminado {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v removido del canal."
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "No se puede remover el usuario del canal."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "El canal ha sido archivado o eliminado"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v removido del canal."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1031,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "Los archivos adjuntos se han deshabilitado en este servidor."
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "No se puede determinar si el archivo existe. Ocurrió un error al intentar verificar la existencia del archivo."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "No se puede determinar si el archivo existe. Ocurrió un error al intentar verificar la existencia del archivo."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2507,6 +2515,10 @@
     "translation": "La linea a importar tiene un tipo de \"direct_post\" pero el objeto del direct_post es null."
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "La linea a importar tiene un tipo de \"emoticon\" pero el objeto del emoticon es null."
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "La linea a importar tiene un tipo de \"mensaje\" pero el objeto del mensaje es null."
   },
@@ -3019,10 +3031,6 @@
     "translation": "[{{ .SiteName }}] Notificación en {{ .TeamName}} el {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "No se puede activar el complemento extraído."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "La configuración de plugin en tu archivo config.json debe ser actualizado manualmente cuando se utiliza ReadOnlyConfig con el agrupamiento de servidores habilitado."
   },
@@ -3087,16 +3095,8 @@
     "translation": "El Plugin no está instalado"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "No se puede instalar el complemento pre-empaquetado"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "No se puede eliminar el plugin"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "No se pudo configurar el complemento de estado."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3217,6 +3217,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "No se puede abrir el archivo temporal para exportación."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "No se puede re-leer del archivo de exportación temporal de Global Relay."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3399,8 +3403,20 @@
     "translation": "Filtro de AD/LDAP inválido"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "No se pudo añadir el adjunto al fichero de exportación de Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "No se cerró correctamente el archivo zip."
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "No se puede crear el archivo eml."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "No se pudo generar la data del archivo eml."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4675,8 +4691,8 @@
     "translation": "Los Términos de Servicio de GitLab se han actualizado. Por favor, vaya a gitlab.com a aceptar y, a continuación, intente iniciar sesión en Mattermost de nuevo."
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Error al invocar el plugin de RPC"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "No se pudo establecer el estado del usuario. Estado de usuario desconocido."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4889,6 +4905,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "No hemos podido restablecer los esquemas de los canales"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "No se puede modificar un canal archivado"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5119,6 +5143,10 @@
     "translation": "No pudimos guardar el emoticon"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "No se pudo eliminar los archivos adjuntos del usuario"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "No pudimos adjuntar la información del archivo al mensaje"
   },
@@ -5137,6 +5165,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "No pudimos obtener la información del archivo para el mensaje"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "No pudimos obtener la información del archivo para el usuario"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5717,6 +5749,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "Encontramos un error actualizando las propiedades del sistema"
+  },
+  {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "No se pudo obtener el número de canales para el esquema."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

@@ -232,12 +232,12 @@
     "translation": "デフォルトのチャンネル{{.Channel}}から脱退することはできません"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v はチャンネルから削除されました。"
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "チャンネルからユーザーを削除できません。"
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "チャンネルはアーカイブされているか削除されています"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v はチャンネルから削除されました。"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1031,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "このサーバーではファイル添付が無効になっています。"
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "ファイルの存在を確認できませんでした。ファイルの存在確認中にエラーが発生しました。"
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "ファイルの存在を確認できませんでした。ファイルの存在確認中にエラーが発生しました。"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2507,6 +2515,10 @@
     "translation": "インポートデータに \"direct_post\" という型がありましたが、そのダイレクト投稿のオブジェクトがnullでした。"
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "インポートデータに \"emoji\" という型がありましたが、その絵文字のオブジェクトがnullでした。"
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "インポートデータに \"post\" という型がありましたが、その投稿のオブジェクトがnullでした。"
   },
@@ -3019,10 +3031,6 @@
     "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.TeamName}}の通知"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "抽出されたプラグインを有効化できませんでした。"
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "クラスター化を有効にするとともにReadOnlyConfigを使用する際は、config.jsonファイルのプラグイン設定は手動で更新する必要があります。"
   },
@@ -3087,16 +3095,8 @@
     "translation": "プラグインはインストールされていません"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "パッケージング済みプラグインはインストールできません"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "プラグインを削除できませんでした"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "プラグインステータスの状態を設定できませんでした。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3217,6 +3217,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "一時的なエクスポートファイルを作成できません。"
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Global Relay一時エクスポートファイルを再読み込みできませんでした。"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3399,8 +3403,20 @@
     "translation": "不正なAD/LDAPフィルターです"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "添付ファイルをGlobal Relayエクスポートに追加できません。"
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "zipファイルを正しくクローズできませんでした。"
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "emlファイルを作成できません。"
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "emlファイルデータを生成できませんでした。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4675,8 +4691,8 @@
     "translation": "GitLabの使用条件が更新されました。gitlab.comで新しい使用条件に同意してから、もう一度Mattermostへログインしてみてください。"
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "プラグインRPC呼出エラー"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "ユーザーステータスを設定できませんでした。不明なユーザーステータスです。"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4889,6 +4905,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "チャンネルスキームをリセットできませんでした"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "チャンネルの最新の投稿日付をリセットできませんでした。"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "アーカイブチャンネルは変更できません"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5119,6 +5143,10 @@
     "translation": "絵文字を保存できませんでした"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "ユーザーの添付ファイルを削除できませんでした"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "投稿にファイル情報を添付できませんでした"
   },
@@ -5137,6 +5165,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "投稿のファイル情報を取得できませんでした"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "ユーザーのファイル情報を取得できませんでした"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5717,6 +5749,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "システム設定値を更新する際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "スキームに対するチャンネル数を取得できませんでした。"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
