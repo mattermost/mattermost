@@ -637,16 +637,17 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 	//at midnight
 	//at noon
 	//handle patterns
-	whenSplit := strings.Split(when, " ")
-	value := whenSplit[1]
-	units := whenSplit[len(whenSplit)-1]
-
-	_, location, translateFunc, _ := a.shared(user.Id)
-	cfg := a.Config()
-
-	switch units {
-
-	}
+	//whenSplit := strings.Split(when, " ")
+	//value := whenSplit[1]
+	//units := whenSplit[len(whenSplit)-1]
+	//
+	//_, location, translateFunc, _ := a.shared(user.Id)
+	//cfg := a.Config()
+	//
+	//switch units {
+	//
+	//}
+	return []time.Time{}, nil
 }
 
 func (a *App) shared(userId string) (*model.User, *time.Location, i18n.TranslateFunc, error) {

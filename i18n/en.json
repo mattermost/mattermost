@@ -3071,10 +3071,6 @@
     "translation": "* \"{{.Message}}\" {{.Occurrence}}"
   },
   {
-    "id": "app.reminder.list.element",
-    "translation": "* \"{{.Message}}\" {{.Occurrence}}"
-  }
-  {
     "id": "app.reminder.me",
     "translation": "me"
   },
@@ -3117,10 +3113,6 @@
   {
     "id": "app.reminder.response",
     "translation": ":thumbsup: I will remind {{.Target}}{{.UseTo}} \"{{.Message}}\" {{.When}}"
-  },
-  {
-    "id": "app.reminder.to",
-    "translation": "to"
   },
   {
     "id": "app.reminder.to",
