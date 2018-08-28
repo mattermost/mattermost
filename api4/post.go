@@ -333,17 +333,23 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeletedChannels := r.URL.Query().Get("include_deleted_channels") == "true"
 
 	props := model.StringInterfaceFromJson(r.Body)
+
 	terms, ok := props["terms"].(string)
 	if !ok || len(terms) == 0 {
 		c.SetInvalidParam("terms")
 		return
 	}
 
+	timeZoneOffset, ok := props["time_zone_offset"].(float64)
+	if !ok {
+		timeZoneOffset = 0
+	}
+
 	isOrSearch, _ := props["is_or_search"].(bool)
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels)
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset))
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
