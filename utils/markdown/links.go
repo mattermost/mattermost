@@ -128,3 +128,57 @@ func parseLinkLabel(markdown string, position int) (raw Range, next int, ok bool
 
 	return
 }
+
+// As a non-standard feature, we allow image links to specify dimensions of the image by adding "=WIDTHxHEIGHT"
+// after the image destination but before the image title like ![alt](http://example.com/image.png =100x200 "title").
+// Both width and height are optional, but at least one of them must be specified.
+func parseImageDimensions(markdown string, position int) (raw Range, next int, ok bool) {
+	if position >= len(markdown) {
+		return
+	}
+
+	originalPosition := position
+
+	// Read =
+	position += 1
+	if position >= len(markdown) {
+		return
+	}
+
+	// Read width
+	hasWidth := false
+	for isNumericByte(markdown[position]) {
+		hasWidth = true
+		position += 1
+	}
+
+	// Look for early end of dimensions
+	if isWhitespaceByte(markdown[position]) || markdown[position] == ')' {
+		return Range{originalPosition, position - 1}, position, true
+	}
+
+	// Read the x
+	if markdown[position] != 'x' && markdown[position] != 'X' {
+		return
+	}
+	position += 1
+
+	// Read height
+	hasHeight := false
+	for isNumericByte(markdown[position]) {
+		hasHeight = true
+		position += 1
+	}
+
+	// Make sure the there's no trailing characters
+	if !isWhitespaceByte(markdown[position]) && markdown[position] != ')' {
+		return
+	}
+
+	if !hasWidth && !hasHeight {
+		// At least one of width or height is required
+		return
+	}
+
+	return Range{originalPosition, position - 1}, position, true
+}

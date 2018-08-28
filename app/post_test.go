@@ -134,6 +134,12 @@ func TestPostAction(t *testing.T) {
 		err := json.NewDecoder(r.Body).Decode(&request)
 		assert.NoError(t, err)
 		assert.Equal(t, request.UserId, th.BasicUser.Id)
+		if request.Type == model.POST_ACTION_TYPE_SELECT {
+			assert.Equal(t, request.DataSource, "some_source")
+			assert.Equal(t, request.Context["selected_option"], "selected")
+		} else {
+			assert.Equal(t, request.DataSource, "")
+		}
 		assert.Equal(t, "foo", request.Context["s"])
 		assert.EqualValues(t, 3, request.Context["n"])
 		fmt.Fprintf(w, `{"update": {"message": "updated"}, "ephemeral_text": "foo"}`)
@@ -158,7 +164,9 @@ func TestPostAction(t *testing.T) {
 								},
 								URL: ts.URL,
 							},
-							Name: "action",
+							Name:       "action",
+							Type:       "some_type",
+							DataSource: "some_source",
 						},
 					},
 				},
@@ -175,11 +183,51 @@ func TestPostAction(t *testing.T) {
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-	err = th.App.DoPostAction(post.Id, "notavalidid", th.BasicUser.Id)
+	menuPost := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			"attachments": []*model.SlackAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Integration: &model.PostActionIntegration{
+								Context: model.StringInterface{
+									"s": "foo",
+									"n": 3,
+								},
+								URL: ts.URL,
+							},
+							Name:       "action",
+							Type:       model.POST_ACTION_TYPE_SELECT,
+							DataSource: "some_source",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	post2, err := th.App.CreatePostAsUser(&menuPost)
+	require.Nil(t, err)
+
+	attachments2, ok := post2.Props["attachments"].([]*model.SlackAttachment)
+	require.True(t, ok)
+
+	require.NotEmpty(t, attachments2[0].Actions)
+	require.NotEmpty(t, attachments2[0].Actions[0].Id)
+
+	err = th.App.DoPostAction(post.Id, "notavalidid", th.BasicUser.Id, "")
 	require.NotNil(t, err)
 	assert.Equal(t, http.StatusNotFound, err.StatusCode)
 
-	err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id)
+	err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+	require.Nil(t, err)
+
+	err = th.App.DoPostAction(post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected")
 	require.Nil(t, err)
 }
 
@@ -295,6 +343,14 @@ func TestImageProxy(t *testing.T) {
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			post.Message = "![foo](" + tc.ProxiedImageURL + ")"
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+
+			if tc.ImageURL != "" {
+				post.Message = "![foo](" + tc.ImageURL + " =500x200)"
+				assert.Equal(t, "![foo]("+tc.ProxiedImageURL+" =500x200)", th.App.PostWithProxyAddedToImageURLs(post).Message)
+				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+				post.Message = "![foo](" + tc.ProxiedImageURL + " =500x200)"
+				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+			}
 		})
 	}
 }

@@ -22,6 +22,11 @@ const (
 )
 
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
+	// Do not send notifications in archived channels
+	if channel.DeleteAt > 0 {
+		return []string{}, nil
+	}
+
 	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	cmnchan := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	var fchan store.StoreChannel
@@ -312,7 +317,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					sender,
 					senderName,
 					mentionedUserIds[id],
-					(channelNotification || allNotification),
+					(channelNotification || hereNotification || allNotification),
 					replyToThreadType,
 				)
 			}

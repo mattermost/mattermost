@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"net/http"
@@ -687,4 +688,121 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	log.WriteString(utils.T("api.slackimport.slack_import.note3"))
 
 	return nil, log
+}
+
+//
+// -- Old SlackImport Functions --
+// Import functions are sutible for entering posts and users into the database without
+// some of the usual checks. (IsValid is still run)
+//
+
+func (a *App) OldImportPost(post *model.Post) {
+	// Workaround for empty messages, which may be the case if they are webhook posts.
+	firstIteration := true
+	maxPostSize := a.MaxPostSize()
+	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0 || firstIteration; messageRuneCount = utf8.RuneCountInString(post.Message) {
+		firstIteration = false
+		var remainder string
+		if messageRuneCount > maxPostSize {
+			remainder = string(([]rune(post.Message))[maxPostSize:])
+			post.Message = truncateRunes(post.Message, maxPostSize)
+		} else {
+			remainder = ""
+		}
+
+		post.Hashtags, _ = model.ParseHashtags(post.Message)
+
+		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
+			mlog.Debug(fmt.Sprintf("Error saving post. user=%v, message=%v", post.UserId, post.Message))
+		}
+
+		for _, fileId := range post.FileIds {
+			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
+				mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, result.Err), mlog.String("post_id", post.Id))
+			}
+		}
+
+		post.Id = ""
+		post.CreateAt++
+		post.Message = remainder
+	}
+}
+
+func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
+	user.MakeNonNil()
+
+	user.Roles = model.SYSTEM_USER_ROLE_ID
+
+	if result := <-a.Srv.Store.User().Save(user); result.Err != nil {
+		mlog.Error(fmt.Sprintf("Error saving user. err=%v", result.Err))
+		return nil
+	} else {
+		ruser := result.Data.(*model.User)
+
+		if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
+			mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
+		}
+
+		if err := a.JoinUserToTeam(team, user, ""); err != nil {
+			mlog.Error(fmt.Sprintf("Failed to join team when importing err=%v", err))
+		}
+
+		return ruser
+	}
+}
+
+func (a *App) OldImportChannel(channel *model.Channel) *model.Channel {
+	if result := <-a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam); result.Err != nil {
+		return nil
+	} else {
+		sc := result.Data.(*model.Channel)
+
+		return sc
+	}
+}
+
+func (a *App) OldImportFile(timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
+	buf := bytes.NewBuffer(nil)
+	io.Copy(buf, file)
+	data := buf.Bytes()
+
+	fileInfo, err := a.DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
+	if err != nil {
+		return nil, err
+	}
+
+	if fileInfo.IsImage() && fileInfo.MimeType != "image/svg+xml" {
+		img, width, height := prepareImage(data)
+		if img != nil {
+			a.generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
+			a.generatePreviewImage(*img, fileInfo.PreviewPath, width)
+		}
+	}
+
+	return fileInfo, nil
+}
+
+func (a *App) OldImportIncomingWebhookPost(post *model.Post, props model.StringInterface) {
+	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
+	post.Message = linkWithTextRegex.ReplaceAllString(post.Message, "[${2}](${1})")
+
+	post.AddProp("from_webhook", "true")
+
+	if _, ok := props["override_username"]; !ok {
+		post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
+	}
+
+	if len(props) > 0 {
+		for key, val := range props {
+			if key == "attachments" {
+				if attachments, success := val.([]*model.SlackAttachment); success {
+					parseSlackAttachment(post, attachments)
+				}
+			} else if key != "from_webhook" {
+				post.AddProp(key, val)
+			}
+		}
+	}
+
+	a.OldImportPost(post)
 }

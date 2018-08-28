@@ -19,13 +19,15 @@ func (api *API) InitBrand() {
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
-	if img, err := c.App.GetBrandImage(); err != nil {
+	img, err := c.App.GetBrandImage()
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(nil)
-	} else {
-		w.Header().Set("Content-Type", "image/png")
-		w.Write(img)
+		return
 	}
+
+	w.Header().Set("Content-Type", "image/png")
+	w.Write(img)
 }
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {

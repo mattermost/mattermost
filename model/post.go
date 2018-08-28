@@ -50,6 +50,8 @@ const (
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
 	POST_PROPS_ADDED_USER_ID    = "addedUserId"
 	POST_PROPS_DELETE_BY        = "deleteBy"
+	POST_ACTION_TYPE_BUTTON     = "button"
+	POST_ACTION_TYPE_SELECT     = "select"
 )
 
 type Post struct {
@@ -94,6 +96,12 @@ type PostPatch struct {
 	HasReactions *bool            `json:"has_reactions"`
 }
 
+type SearchParameter struct {
+	Terms          *string `json:"terms"`
+	IsOrSearch     *bool   `json:"is_or_search"`
+	TimeZoneOffset *int    `json:"time_zone_offset"`
+}
+
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	copy := *o
 	if copy.Message != nil {
@@ -108,10 +116,22 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
+type DoPostActionRequest struct {
+	SelectedOption string `json:"selected_option"`
+}
+
 type PostAction struct {
 	Id          string                 `json:"id"`
 	Name        string                 `json:"name"`
+	Type        string                 `json:"type"`
+	DataSource  string                 `json:"data_source"`
+	Options     []*PostActionOptions   `json:"options"`
 	Integration *PostActionIntegration `json:"integration,omitempty"`
+}
+
+type PostActionOptions struct {
+	Text  string `json:"text"`
+	Value string `json:"value"`
 }
 
 type PostActionIntegration struct {
@@ -120,8 +140,11 @@ type PostActionIntegration struct {
 }
 
 type PostActionIntegrationRequest struct {
-	UserId  string          `json:"user_id"`
-	Context StringInterface `json:"context,omitempty"`
+	UserId     string          `json:"user_id"`
+	PostId     string          `json:"post_id"`
+	Type       string          `json:"type"`
+	DataSource string          `json:"data_source"`
+	Context    StringInterface `json:"context,omitempty"`
 }
 
 type PostActionIntegrationResponse struct {
@@ -342,6 +365,26 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	return &post
 }
 
+func (o *SearchParameter) SearchParameterToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
+}
+
+func SearchParameterFromJson(data io.Reader) *SearchParameter {
+	decoder := json.NewDecoder(data)
+	var searchParam SearchParameter
+	err := decoder.Decode(&searchParam)
+	if err != nil {
+		return nil
+	}
+
+	return &searchParam
+}
+
 func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
@@ -349,6 +392,29 @@ func (o *Post) ChannelMentions() []string {
 func (r *PostActionIntegrationRequest) ToJson() string {
 	b, _ := json.Marshal(r)
 	return string(b)
+}
+
+func PostActionIntegrationRequesteFromJson(data io.Reader) *PostActionIntegrationRequest {
+	var o *PostActionIntegrationRequest
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
+func (r *PostActionIntegrationResponse) ToJson() string {
+	b, _ := json.Marshal(r)
+	return string(b)
+}
+
+func PostActionIntegrationResponseFromJson(data io.Reader) *PostActionIntegrationResponse {
+	var o *PostActionIntegrationResponse
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
@@ -429,6 +495,12 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 func (o *PostEphemeral) ToUnsanitizedJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func DoPostActionRequestFromJson(data io.Reader) *DoPostActionRequest {
+	var o *DoPostActionRequest
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced

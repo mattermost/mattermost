@@ -40,6 +40,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.ApiRoot.Handle("/analytics/old", api.ApiSessionRequired(getAnalytics)).Methods("GET")
+
+	api.BaseRoutes.ApiRoot.Handle("/redirect_location", api.ApiSessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -341,20 +343,21 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	if license, err := c.App.SaveLicense(buf.Bytes()); err != nil {
-		if err.Id == model.EXPIRED_LICENSE_ERROR {
+	license, appErr := c.App.SaveLicense(buf.Bytes())
+	if appErr != nil {
+		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
 			c.LogAudit("failed - expired or non-started license")
-		} else if err.Id == model.INVALID_LICENSE_ERROR {
+		} else if appErr.Id == model.INVALID_LICENSE_ERROR {
 			c.LogAudit("failed - invalid license")
 		} else {
 			c.LogAudit("failed - unable to save license")
 		}
-		c.Err = err
+		c.Err = appErr
 		return
-	} else {
-		c.LogAudit("success")
-		w.Write([]byte(license.ToJson()))
 	}
+
+	c.LogAudit("success")
+	w.Write([]byte(license.ToJson()))
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -445,4 +448,34 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Query().Get("url")
+	if len(url) == 0 {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	m := make(map[string]string)
+	m["location"] = ""
+
+	res, err := client.Head(url)
+	if err != nil {
+		// Always return a success status and a JSON string to limit the amount of information returned to a
+		// hacker attempting to use Mattermost to probe a private network.
+		w.Write([]byte(model.MapToJson(m)))
+		return
+	}
+
+	m["location"] = res.Header.Get("Location")
+
+	w.Write([]byte(model.MapToJson(m)))
+	return
 }

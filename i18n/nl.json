@@ -1,6 +1,6 @@
 [
   {
-    "id": "actiance.xml.output.formatter.marshalToXml.appError",
+    "id": "actiance.export.marshalToXml.appError",
     "translation": "Unable to convert export to XML."
   },
   {
@@ -92,10 +92,6 @@
     "translation": "Fout bij toevoegen van gebruiker aan kanaal omdat de gebruiker verwijderd is van het team."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "Het kanaal is gearchiveerd of verwijderd"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -381,7 +373,7 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel header."
+    "translation": "You don't have the appropriate permissions to edit the channel header."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
@@ -413,7 +405,7 @@
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel purpose."
+    "translation": "You don't have the appropriate permissions to edit the channel purpose."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
@@ -445,7 +437,7 @@
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "You do not have the appropriate permissions to rename the channel."
+    "translation": "You don't have the appropriate permissions to rename the channel."
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
@@ -840,7 +832,7 @@
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "You do not have the appropriate permissions to remove the member."
+    "translation": "You don't have the appropriate permissions to remove the member."
   },
   {
     "id": "api.command_remove.user_not_in_channel",
@@ -1736,11 +1728,15 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "You deactivated your account on {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
     "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -1748,7 +1744,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Uw e-mailadres voor {{.TeamDisplayName}} is veranderd naar {{.NewEmail}}.<br>Als u deze wijziging niet zelf gemaakt hebt, neem kontakt op met de systeembeheerder."
+    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1779,12 +1775,24 @@
     "translation": "Om je notificatie instellingen te wijzigen moet je inloggen op je team site en ga naar Account Instellingen > Notificaties."
   },
   {
-    "id": "api.templates.email_info",
-    "translation": "Alle vragen kan je altijd mailen naar: <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Groeten,<br>Het {{.SiteName}} team<br>"
+    "id": "api.templates.email_info1",
+    "translation": "Any questions at all, mail us any time: "
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "Best wishes,"
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "The {{.SiteName}} Team"
   },
   {
     "id": "api.templates.email_organization",
     "translation": "Verzonden door "
+  },
+  {
+    "id": "api.templates.email_warning",
+    "translation": "If you did not make this change, please contact the system administrator."
   },
   {
     "id": "api.templates.invite_body.button",
@@ -1796,7 +1804,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "Het team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, heeft u uitgenodigt om lid te worden van <strong>{{.TeamDisplayName}}</strong>."
+    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1808,7 +1816,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1820,7 +1828,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1828,7 +1836,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Uw wachtwoord is bijgewerkt voor {{.TeamDisplayName}} op {{.teamURL}} via {{.Method}}.<br>Als deze aanpassing niet door U uitgevoerd was, neem contact op met uw systeembeheerder."
+    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1847,8 +1855,12 @@
     "translation": "Wachtwoord opnieuw instellen"
   },
   {
-    "id": "api.templates.reset_body.info",
-    "translation": "Om uw wachtwoord aan te passen, klik hieronder op \"Reset Wachtwoord\".<br>Als het niet de bedoeling was om het wachtwoord aan te passen, negeer deze mail en het wachtwoord blijft onveranderd. De link verloopt automatisch na 24 uur."
+    "id": "api.templates.reset_body.info1",
+    "translation": "To change your password, click \"Reset Password\" below."
+  },
+  {
+    "id": "api.templates.reset_body.info2",
+    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1860,7 +1872,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Uw inlog methode is bijgewerkt voor {{.SiteName}} naar {{.Method}}.<br>Als deze aanpassing niet door U gedaan is, neem dan contact op met uw systeembeheerder."
+    "translation": "U heeft uw inlog methode op {{ .SiteName }} bijgewerkt"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1876,7 +1888,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -1888,7 +1900,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Uw e-mailadres voor {{.TeamDisplayName}} is veranderd naar {{.NewEmail}}.<br>Als u deze wijziging niet zelf gemaakt hebt, neem kontakt op met de systeembeheerder."
+    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2159,6 +2171,22 @@
     "translation": "Kan het wachtwoord niet resetten voor SSO accounts"
   },
   {
+    "id": "api.user.saml.app_error",
+    "translation": "Unable to process SAML login request."
+  },
+  {
+    "id": "api.user.saml.extension_id.app_error",
+    "translation": "Ongeldig client id "
+  },
+  {
+    "id": "api.user.saml.extension_unsupported",
+    "translation": "Extensions are not supported."
+  },
+  {
+    "id": "api.user.saml.invalid_extension",
+    "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+  },
+  {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML wordt niet ondersteund, of is niet geconfigureerd op deze server."
   },
@@ -2393,6 +2421,14 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
+  },
+  {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "Error reading the file at: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "Error uploading the file: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2944,7 +2980,11 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "KANAAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "Channel: {{.ChannelName}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.full2",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -2952,7 +2992,11 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "KANAAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "Channel: {{.ChannelName}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.full2",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3011,12 +3055,20 @@
     "translation": "Unable to get active plugins"
   },
   {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "Unable to get plugin statuses"
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3057,6 +3109,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Failed to parse installation date"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3159,6 +3215,10 @@
     "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
   },
   {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "Unable to open the temporary export file."
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
   },
@@ -3255,12 +3315,20 @@
     "translation": "Failed to decode search results"
   },
   {
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "Elasticsearch is already started"
+  },
+  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Failed to create Elasticsearch bulk processor"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "Failed to start Elasticsearch bulk processor"
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch is already stopped"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3329,6 +3397,46 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Ongeldig AD/LDAP filter"
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Unable to create the eml file."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "Unable to deliver the email to Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "Unable to set the email From address."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "Unable to set the email message."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "Unable to write the email message."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "Unable to read the email information."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "Unable to set the email To address."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "Unable to get the information of the export temporary file"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "Unable to get the an email from the temporary file"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "Unable to open the export temporary file"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3464,7 +3572,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Reached AD/LDAP sychronization job timeout."
+    "translation": "Reached AD/LDAP synchronization job timeout."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -4299,6 +4407,10 @@
     "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
   },
   {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Ongeldige omgeving"
+  },
+  {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
     "translation": "Ongeldige 'callback' urls"
   },
@@ -4353,6 +4465,10 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Ongeldige trigger-woorden"
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "Ongeldige gebruikersnaam"
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -5841,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

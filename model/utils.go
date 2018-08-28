@@ -148,6 +148,46 @@ func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+// GetMillisForTime is a convience method to get milliseconds since epoch for provided Time.
+func GetMillisForTime(thisTime time.Time) int64 {
+	return thisTime.UnixNano() / int64(time.Millisecond)
+}
+
+// ParseDateFilterToTime is a convience method to get Time from string
+func ParseDateFilterToTime(filterString string) time.Time {
+	resultTime, err := time.Parse("2006-01-02", PadDateStringZeros(filterString))
+	if err != nil {
+		return time.Now()
+	}
+	return resultTime
+}
+
+// PadDateStringZeros is a convience method to pad 2 digit date parts with zeros to meet ISO 8601 format
+func PadDateStringZeros(dateString string) string {
+	parts := strings.Split(dateString, "-")
+	for index, part := range parts {
+		if len(part) == 1 {
+			parts[index] = "0" + part
+		}
+	}
+	dateString = strings.Join(parts[:], "-")
+	return dateString
+}
+
+// GetStartOfDayMillis is a convience method to get milliseconds since epoch for provided date's start of day
+func GetStartOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
+	localSearchTimeZone := time.FixedZone("Local Search Time Zone", timeZoneOffset)
+	resultTime := time.Date(thisTime.Year(), thisTime.Month(), thisTime.Day(), 0, 0, 0, 0, localSearchTimeZone)
+	return GetMillisForTime(resultTime)
+}
+
+// GetEndOfDayMillis is a convience method to get milliseconds since epoch for provided date's end of day
+func GetEndOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
+	localSearchTimeZone := time.FixedZone("Local Search Time Zone", timeZoneOffset)
+	resultTime := time.Date(thisTime.Year(), thisTime.Month(), thisTime.Day(), 23, 59, 59, 999999999, localSearchTimeZone)
+	return GetMillisForTime(resultTime)
+}
+
 func CopyStringMap(originalMap map[string]string) map[string]string {
 	copyMap := make(map[string]string)
 	for k, v := range originalMap {
@@ -263,7 +303,7 @@ func GetServerIpAddress() string {
 	} else {
 		for _, addr := range addrs {
 
-			if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+			if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() && !ip.IP.IsLinkLocalUnicast() && !ip.IP.IsLinkLocalMulticast() {
 				if ip.IP.To4() != nil {
 					return ip.IP.String()
 				}
@@ -279,16 +319,18 @@ func IsLower(s string) bool {
 }
 
 func IsValidEmail(email string) bool {
-
 	if !IsLower(email) {
 		return false
 	}
 
-	if _, err := mail.ParseAddress(email); err == nil {
-		return true
+	if addr, err := mail.ParseAddress(email); err != nil {
+		return false
+	} else if addr.Name != "" {
+		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" which we don't allow
+		return false
 	}
 
-	return false
+	return true
 }
 
 var reservedName = []string{

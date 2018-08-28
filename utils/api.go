@@ -19,6 +19,10 @@ import (
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+
 	if allowedOrigins == "*" {
 		return true
 	}

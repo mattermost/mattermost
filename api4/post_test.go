@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -1273,6 +1274,16 @@ func TestGetPostThread(t *testing.T) {
 func TestSearchPosts(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+		})
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+
 	th.LoginBasic()
 	Client := th.Client
 
@@ -1292,7 +1303,21 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
-	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "search", false)
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	posts, resp := Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 {
+		t.Fatal("wrong search")
+	}
+
+	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "search", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 3 {
 		t.Fatal("wrong search")
@@ -1313,6 +1338,16 @@ func TestSearchPosts(t *testing.T) {
 	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 2 {
+		t.Fatal("wrong search")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+	})
+
+	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 1 {
 		t.Fatal("wrong search")
 	}
 
@@ -1492,6 +1527,71 @@ func TestSearchPostsFromUser(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(Client, th.BasicChannel2, message)
 
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+}
+
+func TestSearchPostsWithDateFlags(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.LoginBasic()
+	Client := th.Client
+
+	message := "sgtitlereview\n with return"
+	createDate := time.Date(2018, 8, 1, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
+
+	message = "other message with no return"
+	createDate = time.Date(2018, 8, 2, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
+
+	message = "other message with no return"
+	createDate = time.Date(2018, 8, 3, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
+
+	posts, _ := Client.SearchPosts(th.BasicTeam.Id, "return", false)
+	if len(posts.Order) != 3 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "on:", false)
+	if len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "after:", false)
+	if len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:", false)
+	if len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "on:2018-08-01", false)
+	if len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "after:2018-08-01", false)
+	resultCount := 0
+	for _, post := range posts.Posts {
+		if post.UserId == th.BasicUser.Id {
+			resultCount = resultCount + 1
+		}
+	}
+	if resultCount != 3 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-02", false)
+	if len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-02", false)
+	if len(posts.Order) != 2 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 }

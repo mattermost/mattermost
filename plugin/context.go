@@ -7,4 +7,5 @@ package plugin
 //
 // It is currently a placeholder while the implementation details are sorted out.
 type Context struct {
+	SessionId string
 }

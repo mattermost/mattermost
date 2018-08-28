@@ -846,8 +846,6 @@ func TestDeleteChannel(t *testing.T) {
 
 	if ch, err := th.App.GetChannel(publicChannel1.Id); err == nil && ch.DeleteAt == 0 {
 		t.Fatal("should have failed to get deleted channel")
-	} else if err := th.App.JoinChannel(ch, user2.Id); err == nil {
-		t.Fatal("should have failed to join deleted channel")
 	}
 
 	post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
@@ -1974,6 +1972,18 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
+	// Leave deleted channel
+	th.LoginBasic()
+	deletedChannel := th.CreatePublicChannel()
+	th.App.AddUserToChannel(th.BasicUser, deletedChannel)
+	th.App.AddUserToChannel(th.BasicUser2, deletedChannel)
+
+	deletedChannel.DeleteAt = 1
+	th.App.UpdateChannel(deletedChannel)
+
+	_, resp = Client.RemoveUserFromChannel(deletedChannel.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
 	th.LoginBasic()
 	private := th.CreatePrivateChannel()
 	th.App.AddUserToChannel(th.BasicUser2, private)
@@ -2028,6 +2038,30 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
+
+	// Test on preventing removal of user from a direct channel
+	directChannel, resp := Client.CreateDirectChannel(user1.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(directChannel.Id, user1.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(directChannel.Id, user2.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(directChannel.Id, user1.Id)
+	CheckBadRequestStatus(t, resp)
+
+	// Test on preventing removal of user from a group channel
+	user3 := th.CreateUser()
+	groupChannel, resp := Client.CreateGroupChannel([]string{user1.Id, user2.Id, user3.Id})
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(groupChannel.Id, user1.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(groupChannel.Id, user1.Id)
+	CheckBadRequestStatus(t, resp)
 }
 
 func TestAutocompleteChannels(t *testing.T) {

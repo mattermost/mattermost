@@ -234,10 +234,10 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
-		w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(post).ToJson()))
 	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
+	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(post).ToJson()))
 }
 
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -313,10 +313,10 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {
 		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
-		w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
 	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
+	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -333,17 +333,23 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeletedChannels := r.URL.Query().Get("include_deleted_channels") == "true"
 
 	props := model.StringInterfaceFromJson(r.Body)
+
 	terms, ok := props["terms"].(string)
 	if !ok || len(terms) == 0 {
 		c.SetInvalidParam("terms")
 		return
 	}
 
+	timeZoneOffset, ok := props["time_zone_offset"].(float64)
+	if !ok {
+		timeZoneOffset = 0
+	}
+
 	isOrSearch, _ := props["is_or_search"].(bool)
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels)
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset))
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
@@ -487,16 +493,19 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if infos, err := c.App.GetFileInfosForPost(c.Params.PostId, false); err != nil {
+	infos, err := c.App.GetFileInfosForPost(c.Params.PostId, false)
+	if err != nil {
 		c.Err = err
 		return
-	} else if c.HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
-		return
-	} else {
-		w.Header().Set("Cache-Control", "max-age=2592000, public")
-		w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
-		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
+
+	if c.HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
+		return
+	}
+
+	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
+	w.Write([]byte(model.FileInfosToJson(infos)))
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -510,7 +519,12 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId); err != nil {
+	actionRequest := model.DoPostActionRequestFromJson(r.Body)
+	if actionRequest == nil {
+		actionRequest = &model.DoPostActionRequest{}
+	}
+
+	if err := c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId, actionRequest.SelectedOption); err != nil {
 		c.Err = err
 		return
 	}

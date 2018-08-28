@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	MAX_ADD_MEMBERS_BATCH = 20
+	MAX_ADD_MEMBERS_BATCH    = 20
+	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
 )
 
 func (api *API) InitTeam() {
@@ -87,20 +88,19 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := c.App.GetTeam(c.Params.TeamId); err != nil {
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && !c.App.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-			return
-		}
+	}
 
-		c.App.SanitizeTeam(c.Session, team)
-
-		w.Write([]byte(team.ToJson()))
+	if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && !c.App.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
+
+	c.App.SanitizeTeam(c.Session, team)
+	w.Write([]byte(team.ToJson()))
 }
 
 func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -109,20 +109,19 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := c.App.GetTeamByName(c.Params.TeamName); err != nil {
+	team, err := c.App.GetTeamByName(c.Params.TeamName)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && !c.App.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-			return
-		}
+	}
 
-		c.App.SanitizeTeam(c.Session, team)
-
-		w.Write([]byte(team.ToJson()))
+	if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && !c.App.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
+
+	c.App.SanitizeTeam(c.Session, team)
+	w.Write([]byte(team.ToJson()))
 }
 
 func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -146,14 +145,12 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedTeam, err := c.App.UpdateTeam(team)
-
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	c.App.SanitizeTeam(c.Session, updatedTeam)
-
 	w.Write([]byte(updatedTeam.ToJson()))
 }
 
@@ -225,14 +222,14 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if teams, err := c.App.GetTeamsForUser(c.Params.UserId); err != nil {
+	teams, err := c.App.GetTeamsForUser(c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		c.App.SanitizeTeams(c.Session, teams)
-
-		w.Write([]byte(model.TeamListToJson(teams)))
 	}
+
+	c.App.SanitizeTeams(c.Session, teams)
+	w.Write([]byte(model.TeamListToJson(teams)))
 }
 
 func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -269,13 +266,13 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := c.App.GetTeamMember(c.Params.TeamId, c.Params.UserId); err != nil {
+	team, err := c.App.GetTeamMember(c.Params.TeamId, c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(team.ToJson()))
-		return
 	}
+
+	w.Write([]byte(team.ToJson()))
 }
 
 func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -289,13 +286,13 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage); err != nil {
+	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.TeamMembersToJson(members)))
-		return
 	}
+
+	w.Write([]byte(model.TeamMembersToJson(members)))
 }
 
 func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -505,13 +502,13 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if stats, err := c.App.GetTeamStats(c.Params.TeamId); err != nil {
+	stats, err := c.App.GetTeamStats(c.Params.TeamId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(stats.ToJson()))
-		return
 	}
+
+	w.Write([]byte(stats.ToJson()))
 }
 
 func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -645,7 +642,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(10000000); err != nil {
+	if err := r.ParseMultipartForm(MAXIMUM_BULK_IMPORT_SIZE); err != nil {
 		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -745,22 +742,23 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := c.App.GetTeamByInviteId(c.Params.InviteId); err != nil {
+	team, err := c.App.GetTeamByInviteId(c.Params.InviteId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		if !(team.Type == model.TEAM_OPEN) {
-			c.Err = model.NewAppError("getInviteInfo", "api.team.get_invite_info.not_open_team", nil, "id="+c.Params.InviteId, http.StatusForbidden)
-			return
-		}
-
-		result := map[string]string{}
-		result["display_name"] = team.DisplayName
-		result["description"] = team.Description
-		result["name"] = team.Name
-		result["id"] = team.Id
-		w.Write([]byte(model.MapToJson(result)))
 	}
+
+	if !(team.Type == model.TEAM_OPEN) {
+		c.Err = model.NewAppError("getInviteInfo", "api.team.get_invite_info.not_open_team", nil, "id="+c.Params.InviteId, http.StatusForbidden)
+		return
+	}
+
+	result := map[string]string{}
+	result["display_name"] = team.DisplayName
+	result["description"] = team.Description
+	result["name"] = team.Name
+	result["id"] = team.Id
+	w.Write([]byte(model.MapToJson(result)))
 }
 
 func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -769,32 +767,35 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := c.App.GetTeam(c.Params.TeamId); err != nil {
+	team, err := c.App.GetTeam(c.Params.TeamId)
+
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) &&
-			(team.Type != model.TEAM_OPEN || team.AllowOpenInvite) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-			return
-		}
-
-		etag := strconv.FormatInt(team.LastTeamIconUpdate, 10)
-
-		if c.HandleEtag(etag, "Get Team Icon", w, r) {
-			return
-		}
-
-		if img, err := c.App.GetTeamIcon(team); err != nil {
-			c.Err = err
-			return
-		} else {
-			w.Header().Set("Content-Type", "image/png")
-			w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
-			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-			w.Write(img)
-		}
 	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) &&
+		(team.Type != model.TEAM_OPEN || team.AllowOpenInvite) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	etag := strconv.FormatInt(team.LastTeamIconUpdate, 10)
+
+	if c.HandleEtag(etag, "Get Team Icon", w, r) {
+		return
+	}
+
+	img, err := c.App.GetTeamIcon(team)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	w.Write(img)
 }
 
 func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {

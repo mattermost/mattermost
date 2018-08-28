@@ -11,14 +11,46 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostJson(t *testing.T) {
+func TestPostToJson(t *testing.T) {
 	o := Post{Id: NewId(), Message: NewId()}
-	json := o.ToJson()
-	ro := PostFromJson(strings.NewReader(json))
+	j := o.ToJson()
+	ro := PostFromJson(strings.NewReader(j))
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	assert.NotNil(t, ro)
+	assert.Equal(t, o, *ro)
+}
+
+func TestPostFromJsonError(t *testing.T) {
+	ro := PostFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
+}
+
+func TestPostActionIntegrationRequestToJson(t *testing.T) {
+	o := PostActionIntegrationRequest{UserId: NewId(), Context: StringInterface{"a": "abc"}}
+	j := o.ToJson()
+	ro := PostActionIntegrationRequesteFromJson(strings.NewReader(j))
+
+	assert.NotNil(t, ro)
+	assert.Equal(t, o, *ro)
+}
+
+func TestPostActionIntegrationRequestFromJsonError(t *testing.T) {
+	ro := PostActionIntegrationRequesteFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
+}
+
+func TestPostActionIntegrationResponseToJson(t *testing.T) {
+	o := PostActionIntegrationResponse{Update: &Post{Id: NewId(), Message: NewId()}, EphemeralText: NewId()}
+	j := o.ToJson()
+	ro := PostActionIntegrationResponseFromJson(strings.NewReader(j))
+
+	assert.NotNil(t, ro)
+	assert.Equal(t, o, *ro)
+}
+
+func TestPostActionIntegrationResponseFromJsonError(t *testing.T) {
+	ro := PostActionIntegrationResponseFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
 }
 
 func TestPostIsValid(t *testing.T) {

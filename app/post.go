@@ -162,14 +162,22 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	if a.PluginsReady() {
-		var rejectionReason string
+		var rejectionError *model.AppError
 		pluginContext := &plugin.Context{}
 		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			post, rejectionReason = hooks.MessageWillBePosted(pluginContext, post)
-			return post != nil
+			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			if replacementPost != nil {
+				post = replacementPost
+			}
+
+			return true
 		}, plugin.MessageWillBePostedId)
-		if post == nil {
-			return nil, model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		if rejectionError != nil {
+			return nil, rejectionError
 		}
 	}
 
@@ -638,9 +646,9 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool) (*model.PostSearchResults, *model.AppError) {
-	paramsList := model.ParseSearchParams(terms)
-	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ViewArchivedChannels
+func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int) (*model.PostSearchResults, *model.AppError) {
+	paramsList := model.ParseSearchParams(terms, timeZoneOffset)
+	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	esInterface := a.Elasticsearch
 	if license := a.License(); esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {
@@ -844,7 +852,7 @@ func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
 	}
 }
 
-func (a *App) DoPostAction(postId string, actionId string, userId string) *model.AppError {
+func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *model.AppError {
 	pchan := a.Srv.Store.Post().GetSingle(postId)
 
 	var post *model.Post
@@ -861,7 +869,14 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 
 	request := &model.PostActionIntegrationRequest{
 		UserId:  userId,
+		PostId:  postId,
+		Type:    action.Type,
 		Context: action.Integration.Context,
+	}
+
+	if action.Type == model.POST_ACTION_TYPE_SELECT {
+		request.DataSource = action.DataSource
+		request.Context["selected_option"] = selectedOption
 	}
 
 	req, _ := http.NewRequest("POST", action.Integration.URL, strings.NewReader(request.ToJson()))

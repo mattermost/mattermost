@@ -45,34 +45,11 @@ func TestCreateTeamWithUser(t *testing.T) {
 	}
 
 	if _, err := th.App.CreateTeamWithUser(team, th.BasicUser.Id); err != nil {
-		t.Log(err)
-		t.Fatal("Should create a new team with existing user")
+		t.Fatal("Should create a new team with existing user", err)
 	}
 
 	if _, err := th.App.CreateTeamWithUser(team, model.NewId()); err == nil {
 		t.Fatal("Should not create a new team - user does not exist")
-	}
-
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-	ruser, _ := th.App.CreateUser(&user)
-
-	id = model.NewId()
-	team2 := &model.Team{
-		DisplayName: "dn_" + id,
-		Name:        "name" + id,
-		Email:       "success2+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
-	}
-
-	//Fail to create a team with user when user has set email without domain
-	if _, err := th.App.CreateTeamWithUser(team2, ruser.Id); err == nil {
-		t.Log(err.Message)
-		t.Fatal("Should not create a team with user when user has set email without domain")
-	} else {
-		if err.Id != "model.team.is_valid.email.app_error" {
-			t.Log(err)
-			t.Fatal("Invalid error message")
-		}
 	}
 }
 
@@ -96,13 +73,99 @@ func TestAddUserToTeam(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-	ruser, _ := th.App.CreateUser(&user)
+	t.Run("add user", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
 
-	if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err != nil {
-		t.Log(err)
-		t.Fatal("Should add user to the team")
-	}
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+	})
+
+	t.Run("allow user by domain", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err != nil {
+			t.Log(err)
+			t.Fatal("Should have allowed whitelisted user")
+		}
+	})
+
+	t.Run("block user by domain", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+	})
+
+	t.Run("block user with subdomain", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+	})
+
+	t.Run("allow users by multiple domains", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "foo.com, bar.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@foo.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser1, _ := th.App.CreateUser(&user1)
+		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@bar.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser2, _ := th.App.CreateUser(&user2)
+		user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser3, _ := th.App.CreateUser(&user3)
+		defer th.App.PermanentDeleteUser(&user1)
+		defer th.App.PermanentDeleteUser(&user2)
+		defer th.App.PermanentDeleteUser(&user3)
+
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser1.Id, ""); err != nil {
+			t.Log(err)
+			t.Fatal("Should have allowed whitelisted user1")
+		}
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser2.Id, ""); err != nil {
+			t.Log(err)
+			t.Fatal("Should have allowed whitelisted user2")
+		}
+		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser3.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not have allowed restricted user3")
+		}
+
+	})
 }
 
 func TestAddUserToTeamByToken(t *testing.T) {
@@ -181,19 +244,62 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			t.Fatal("The token must be deleted after be used")
 		}
 	})
+
+	t.Run("block user", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+	})
 }
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-	ruser, _ := th.App.CreateUser(&user)
+	t.Run("add user", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
 
-	if err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err != nil {
-		t.Log(err)
-		t.Fatal("Should add user to the team")
-	}
+		if err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+	})
+
+	t.Run("block user", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "example.com"
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+		defer th.App.PermanentDeleteUser(&user)
+
+		if err := th.App.AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+	})
+
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
@@ -287,7 +393,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
+		if sanitized.Email != "" {
 			t.Fatal("should've sanitized team")
 		}
 	})
@@ -306,7 +412,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
+		if sanitized.Email != "" {
 			t.Fatal("should've sanitized team")
 		}
 	})
@@ -325,7 +431,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
+		if sanitized.Email == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
 	})
@@ -344,7 +450,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
+		if sanitized.Email != "" {
 			t.Fatal("should've sanitized team")
 		}
 	})
@@ -363,7 +469,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
+		if sanitized.Email == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
 	})
@@ -382,7 +488,7 @@ func TestSanitizeTeam(t *testing.T) {
 		}
 
 		sanitized := th.App.SanitizeTeam(session, copyTeam())
-		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
+		if sanitized.Email == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
 	})
@@ -425,11 +531,11 @@ func TestSanitizeTeams(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeams(session, teams)
 
-		if sanitized[0].Email != "" && sanitized[0].AllowedDomains != "" {
+		if sanitized[0].Email != "" {
 			t.Fatal("should've sanitized first team")
 		}
 
-		if sanitized[1].Email == "" && sanitized[1].AllowedDomains == "" {
+		if sanitized[1].Email == "" {
 			t.Fatal("shouldn't have sanitized second team")
 		}
 	})
@@ -462,11 +568,11 @@ func TestSanitizeTeams(t *testing.T) {
 
 		sanitized := th.App.SanitizeTeams(session, teams)
 
-		if sanitized[0].Email == "" && sanitized[0].AllowedDomains == "" {
+		if sanitized[0].Email == "" {
 			t.Fatal("shouldn't have sanitized first team")
 		}
 
-		if sanitized[1].Email == "" && sanitized[1].AllowedDomains == "" {
+		if sanitized[1].Email == "" {
 			t.Fatal("shouldn't have sanitized second team")
 		}
 	})

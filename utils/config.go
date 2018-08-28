@@ -247,12 +247,6 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map
 
 	var config model.Config
 	unmarshalErr := v.Unmarshal(&config)
-	if unmarshalErr == nil {
-		// https://github.com/spf13/viper/issues/324
-		// https://github.com/spf13/viper/issues/348
-		config.PluginSettings = model.PluginSettings{}
-		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
-	}
 
 	envConfig := v.EnvSettings()
 
@@ -512,7 +506,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
-	props["ViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ViewArchivedChannels)
+	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey

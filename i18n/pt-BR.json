@@ -1,6 +1,6 @@
 [
   {
-    "id": "actiance.xml.output.formatter.marshalToXml.appError",
+    "id": "actiance.export.marshalToXml.appError",
     "translation": "Não foi possível converter a exportação para XML."
   },
   {
@@ -41,7 +41,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>Parece que o seu email do Mattermost está configurado corretamente!"
+    "translation": "Parece que o seu email do Mattermost está configurado corretamente!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -92,16 +92,12 @@
     "translation": "Falha ao adicionar o usuário ao canal porque ele foi removido desta equipe."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "O canal foi deletado ou arquivado"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Não foi possível adicionar usuário para este tipo de canal"
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Este canal foi convertido para um Canal Público e membros de qualquer equipe podem se juntar."
+    "translation": "Este canal foi convertido em um Canal Público e pode ser acompanhado por qualquer membro da equipe."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
@@ -164,16 +160,12 @@
     "translation": "Não é possível deletar os canais de mensagens diretas ou em grupo"
   },
   {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "O canal já foi apagado"
-  },
-  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "Você não tem a permissão apropriada"
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v juntou-se ao canal."
+    "translation": "%v entrou no canal."
   },
   {
     "id": "api.channel.leave.default.app_error",
@@ -612,7 +604,7 @@
   },
   {
     "id": "api.command_invite.fail.app_error",
-    "translation": "Ocorreu um erro enquanto conectava ao canal."
+    "translation": "Ocorreu um erro ao entrar no canal."
   },
   {
     "id": "api.command_invite.hint",
@@ -652,11 +644,11 @@
   },
   {
     "id": "api.command_join.desc",
-    "translation": "Junte-se ao canal aberto"
+    "translation": "Entrar no canal aberto"
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Ocorreu um erro enquanto conectava ao canal."
+    "translation": "Ocorreu um erro ao entrar no canal."
   },
   {
     "id": "api.command_join.hint",
@@ -672,7 +664,7 @@
   },
   {
     "id": "api.command_join.name",
-    "translation": "juntar"
+    "translation": "entrar"
   },
   {
     "id": "api.command_kick.name",
@@ -1444,7 +1436,7 @@
   },
   {
     "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
+    "translation": "Não é possível reagir a publicações em canais somente leitura."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1736,11 +1728,15 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "Você desativou a sua conta em {{ .SiteURL }}.<br>Se esta mudança não foi iniciada por você ou deseja reativar a conta, entre em contato com o administrador."
+    "translation": "Você desativou sua conta em {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
     "translation": "Sua conta foi desativada em {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "Se esta mudança não foi iniciada por você ou você quer reativar sua conta, entre em contato com o administrador do sistema."
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -1748,7 +1744,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Seu endereço de email para {{.TeamDisplayName}} foi alterado para {{.NewEmail}}.<br>Se você não fez está mudança, por favor contate o administrador do sistema."
+    "translation": "Seu endereço de email para {{.TeamDisplayName}} foi alterado para {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1779,24 +1775,36 @@
     "translation": "Para alterar suas preferencias de notificação, faça login no site da sua equipe e vá para Configurações de Conta > Notificações."
   },
   {
-    "id": "api.templates.email_info",
-    "translation": "Se tiver qualquer dúvida, envie-nos um e-mail a qualquer momento: <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Nossos melhores cumprimentos,<br>Equipe {{.SiteName}}<br>"
+    "id": "api.templates.email_info1",
+    "translation": "Qualquer dúvida, envie-nos a qualquer momento: "
+  },
+  {
+    "id": "api.templates.email_info2",
+    "translation": "Melhores cumprimentos,"
+  },
+  {
+    "id": "api.templates.email_info3",
+    "translation": "A Equipe {{.SiteName}}"
   },
   {
     "id": "api.templates.email_organization",
     "translation": "Enviado por "
   },
   {
+    "id": "api.templates.email_warning",
+    "translation": "Se você não fez essa alteração, entre em contato com o administrador do sistema."
+  },
+  {
     "id": "api.templates.invite_body.button",
-    "translation": "Participar da Equipe"
+    "translation": "Entrar na Equipe"
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost permite compartilhar mensagens e arquivos do seu PC ou telefone, com pesquisa instantânea e arquivamento. Depois que você estiver participando a <strong>{{.TeamDisplayName}}</strong>, você pode fazer login na sua nova equipe e ter acesso a esses recursos a qualquer momento a partir do endereço web:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost permite compartilhar mensagens e arquivos do seu PC ou telefone, com pesquisa instantânea e arquivamento. Depois que você estiver participando de [[{{.TeamDisplayName}}]], você pode fazer login na sua nova equipe e ter acesso a esses recursos a qualquer momento a partir do endereço web:"
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "O {{.SenderStatus}} de equipe <strong>{{.SenderName}}</strong>, convidou você para participar <strong>{{.TeamDisplayName}}</strong>."
+    "translation": "O {{.SenderStatus}} da equipe [[{{.SenderName}}]], convidou você para participar de [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1804,11 +1812,11 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para se juntar a equipe {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para entrar na equipe {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Autenticação multi-fator foi adicionada a sua conta em {{ .SiteURL }}.<br>Se está mudança não foi iniciada por você, por favor entre em contato com o administrador do sistema."
+    "translation": "Autenticação multi-fator foi adicionada a sua conta em {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1820,7 +1828,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Autenticação multi-fator foi removida da sua conta em {{ .SiteURL }}.<br>Se está mudança não foi iniciada por você, por favor entre em contato com o administrador do sistema."
+    "translation": "Autenticação multi-fator foi removida da sua conta em {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1828,7 +1836,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Sua senha foi atualizada para {{.TeamDisplayName}} no {{ .TeamURL }} pelo {{.Method}}.<br>Se está mudança não foi iniciada por você, por favor entre em contato com o seu administrado do sistema."
+    "translation": "Sua senha foi atualizada por {{.TeamDisplayName}} em {{ .TeamURL }} para {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1847,8 +1855,12 @@
     "translation": "Redefinir senha"
   },
   {
-    "id": "api.templates.reset_body.info",
-    "translation": "Para alterar a sua senha, clique abaixo \"Redefinir Senha\".<br>Se você não pretende redefinir sua senha, por favor ignore este email e sua senha irá permanecer a mesma. O link de redefinição de senha expira em 24 horas."
+    "id": "api.templates.reset_body.info1",
+    "translation": "Para alterar sua senha, clique \"Redefinir Senha\" abaixo."
+  },
+  {
+    "id": "api.templates.reset_body.info2",
+    "translation": "Se você não quiser redefinir sua senha, ignore este email e sua senha permanecerá a mesma. O link de redefinição de senha expira em 24 horas."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1860,7 +1872,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Você atualizou seu método de login para {{.Method}} em {{ .SiteName }}.<br>Se esta mudança não foi iniciada por você, por favor entre em contato com o administrador do sistema."
+    "translation": "Você atualizou seu método de login em {{ .SiteName }} para {{.Method}}."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1876,7 +1888,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Um token de acesso de usuário foi adicionado à sua conta em {{ .SiteURL }}. Eles podem ser usados ​​para acessar {{ .SiteName }} com sua conta.<br>Se essa mudança não foi iniciada por você, entre em contato com o administrador do sistema."
+    "translation": "Um token de acesso pessoal foi adicionado a sua conta em {{ .SiteURL }}. Ele pode ser usado para acessar {{.SiteName}} com sua conta."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -1888,7 +1900,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Seu nome de usuário para {{.TeamDisplayName}} foi alterado para {{.NewEmail}}.<br>Se você não fez está mudança, por favor contate o administrador do sistema."
+    "translation": "Seu usuário para {{.TeamDisplayName}} foi alterado para {{.NewUsername}}."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -1908,7 +1920,7 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Você entrou para {{ .ServerURL }}"
+    "translation": "Você entrou em {{ .ServerURL }}"
   },
   {
     "id": "api.templates.verify_subject",
@@ -1936,11 +1948,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Você entrou para {{ .ServerURL }}"
+    "translation": "Você entrou em {{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{ .SiteName }}] Você se juntou {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] Você entrou em {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2157,6 +2169,22 @@
   {
     "id": "api.user.reset_password.sso.app_error",
     "translation": "Não foi possível redefinir a senha para conta SSO"
+  },
+  {
+    "id": "api.user.saml.app_error",
+    "translation": "Não foi possível processar o pedido de login SAML."
+  },
+  {
+    "id": "api.user.saml.extension_id.app_error",
+    "translation": "Id da extensão inválida"
+  },
+  {
+    "id": "api.user.saml.extension_unsupported",
+    "translation": "Extensões não são suportadas."
+  },
+  {
+    "id": "api.user.saml.invalid_extension",
+    "translation": "Extensão com extension_id={{.ExtensionId}} não é suportada."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2395,6 +2423,14 @@
     "translation": "Endpoint Cluster API não encontrado."
   },
   {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "Erro ao ler o arquivo em: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "Erro ao atualizar o arquivo: \"{{.FilePath}}\""
+  },
+  {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Erro ao ler arquivo de importação."
   },
@@ -2452,11 +2488,11 @@
   },
   {
     "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Erro ao importar a postagem direta. Falha ao salvar as preferências."
+    "translation": "Erro ao importar mensagem direta. Falha ao salvar as preferências."
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Usuário do post não existe"
+    "translation": "Usuário da publicação não existe"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -2492,19 +2528,19 @@
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "Erro ao importar post. O canal com o nome \"{{.ChannelName}}\" não foi encontrado."
+    "translation": "Erro ao importar publicação. O canal com o nome \"{{.ChannelName}}\" não foi encontrado."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": "Erro ao importar a postagem. Falha ao salvar as preferências."
+    "translation": "Erro ao importar publicação. Falha ao salvar as preferências."
   },
   {
     "id": "app.import.import_post.team_not_found.error",
-    "translation": "Erro ao importar post. A equipe com o nome \"{{.TeamName}}\" não foi encontrada."
+    "translation": "Erro ao importar publicação. A equipe com o nome \"{{.TeamName}}\" não foi encontrada."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "Erro ao importar post. O usuário com o nome \"{{.Username}}\" não foi encontrado."
+    "translation": "Erro ao importar publicação. O usuário com o nome \"{{.Username}}\" não foi encontrado."
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
@@ -2596,7 +2632,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Propriedade obrigatória do post direto não foi informada: channel_members"
+    "translation": "Propriedade obrigatória da mensagem direta não foi informada: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
@@ -2624,7 +2660,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Postagem só pode ser marcada por membros que estão no canal. \"{{.Username}}\" não é membro."
+    "translation": "Mensagens diretas só pode ser marcada por membros que estão no canal. \"{{.Username}}\" não é membro."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -2944,7 +2980,11 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "Canal: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+    "translation": "Canal: {{.ChannelName}}"
+  },
+  {
+    "id": "app.notification.body.text.group_message.full2",
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -2952,7 +2992,11 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "Canal: {{.ChannelName}}<br>@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+    "translation": "Canal: {{.ChannelName}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.full2",
+    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3011,12 +3055,20 @@
     "translation": "Não é possível obter os plugins ativos"
   },
   {
+    "id": "app.plugin.get_statuses.app_error",
+    "translation": "Não foi possível obter os status dos plugins."
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Não foi possível instalar o plugin."
   },
   {
     "id": "app.plugin.install_id.app_error",
     "translation": "Não foi possível instalar o plugin. Um plugin como o mesmo ID já está instalado."
+  },
+  {
+    "id": "app.plugin.install_id_failed_remove.app_error",
+    "translation": "Não foi possível instalar o plugin. Um plugin com o mesmo ID já foi instalado e falhou ao ser removido."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3057,6 +3109,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "Este endpoint da API não está acessível, pois as migrações exigidas ainda não foram concluídas."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Falha ao analisar a data de instalação"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3159,6 +3215,10 @@
     "translation": "O arquivo enviado foi removido da exportação do Global Relay porque era muito grande para ser enviado."
   },
   {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "Não é possível abrir o arquivo temporário de exportação."
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funcionalidade Conformidade desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
   },
@@ -3220,7 +3280,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "A postagem mais antiga não pode ser obtida do banco de dados."
+    "translation": "A publicação mais antiga não pode ser obtida do banco de dados."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3255,12 +3315,20 @@
     "translation": "Falha ao decodificar os resultados da pesquisa"
   },
   {
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "Elasticsearch já está iniciado"
+  },
+  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Erro ao criar o bulk processor do Elastisearch"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "Erro ao iniciar o bulk processor do Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch já está parado"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3329,6 +3397,46 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Filtro AD/LDAP Inválido"
+  },
+  {
+    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
+    "translation": "Não é possível criar o arquivo eml."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
+    "translation": "Não foi possível entregar o email para Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
+    "translation": "Não foi possível definir o Remetente do email."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
+    "translation": "Não foi possível definir a mensagem do email."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
+    "translation": "Não foi possível escrever a mensagem de email."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
+    "translation": "Não foi possível ler a informação do email."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
+    "translation": "Não foi possível definir o Destinatário do email."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
+    "translation": "Não foi possível obter a informação do arquivo temporário de exportação."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
+    "translation": "Não foi possível obter um remetente de email do arquivo temporário"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
+    "translation": "Não foi possível abrir o arquivo temporário de exportação"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3464,7 +3572,7 @@
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Sincronização do AD/LDAP alcançou o limite de tempo."
+    "translation": "Tarefa de sincronização do AD/LDAP alcançou o limite de tempo."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -4208,7 +4316,7 @@
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
-    "translation": "Ícone de postagem inválido"
+    "translation": "Ícone de publicação inválido"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4299,6 +4407,10 @@
     "translation": "Update deve ser um tempo válido"
   },
   {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Ícone inválido"
+  },
+  {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
     "translation": "URLs de retorno de chamada inválidas"
   },
@@ -4353,6 +4465,10 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Palavras gatilho inválida"
+  },
+  {
+    "id": "model.outgoing_hook.username.app_error",
+    "translation": "Usuário inválido"
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -4456,7 +4572,7 @@
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
-    "translation": "Id da postagem inválida"
+    "translation": "Id da publicação inválida"
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",
@@ -4880,7 +4996,7 @@
   },
   {
     "id": "store.sql_channel_member_history.log_leave_event.update_error",
-    "translation": "Falha ao gravar o histórico de membros do canal. Falha ao atualizar o registro de junção existente"
+    "translation": "Falha ao gravar o histórico de membros do canal. Falha ao atualizar o registro de entrada existente"
   },
   {
     "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
@@ -5280,7 +5396,7 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "Não foi possível determinar o tamanho máximo de postagem suportado"
+    "translation": "Não foi possível determinar o tamanho máximo de publicação suportado"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -5380,7 +5496,7 @@
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Não é possível obter as reações para a postagem"
+    "translation": "Não é possível obter as reações para a publicação"
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
@@ -5841,6 +5957,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "Encontramos um erro enquanto procurava os perfis de usuários"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Não é possível inferir a data do sistema com base na data de criação do primeiro usuário."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

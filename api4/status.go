@@ -23,17 +23,18 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	if statusMap, err := c.App.GetUserStatusesByIds([]string{c.Params.UserId}); err != nil {
+	statusMap, err := c.App.GetUserStatusesByIds([]string{c.Params.UserId})
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		if len(statusMap) == 0 {
-			c.Err = model.NewAppError("UserStatus", "api.status.user_not_found.app_error", nil, "", http.StatusNotFound)
-			return
-		} else {
-			w.Write([]byte(statusMap[0].ToJson()))
-		}
 	}
+
+	if len(statusMap) == 0 {
+		c.Err = model.NewAppError("UserStatus", "api.status.user_not_found.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	w.Write([]byte(statusMap[0].ToJson()))
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -46,12 +47,13 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	if statusMap, err := c.App.GetUserStatusesByIds(userIds); err != nil {
+	statusMap, err := c.App.GetUserStatusesByIds(userIds)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.StatusListToJson(statusMap)))
 	}
+
+	w.Write([]byte(model.StatusListToJson(statusMap)))
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {

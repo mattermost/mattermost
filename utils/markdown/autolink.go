@@ -16,27 +16,27 @@ var (
 	DefaultUrlSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
 )
 
-// Given a string with a w at the given position, tries to parse and return a link starting with "www."
+// Given a string with a w at the given position, tries to parse and return a range containing a www link.
 // if one exists. If the text at the given position isn't a link, returns an empty string. Equivalent to
 // www_match from the reference code.
-func parseWWWAutolink(data string, position int) string {
+func parseWWWAutolink(data string, position int) (Range, bool) {
 	// Check that this isn't part of another word
 	if position > 1 {
 		prevChar := data[position-1]
 
 		if !isWhitespaceByte(prevChar) && !isAllowedBeforeWWWLink(prevChar) {
-			return ""
+			return Range{}, false
 		}
 	}
 
 	// Check that this starts with www
 	if len(data)-position < 4 || !regexp.MustCompile(`^www\d{0,3}\.`).MatchString(data[position:]) {
-		return ""
+		return Range{}, false
 	}
 
 	end := checkDomain(data[position:], false)
 	if end == 0 {
-		return ""
+		return Range{}, false
 	}
 
 	end += position
@@ -47,12 +47,12 @@ func parseWWWAutolink(data string, position int) string {
 	}
 
 	// Trim trailing punctuation
-	link := trimTrailingCharactersFromLink(data[position:end])
-	if link == "" {
-		return ""
+	end = trimTrailingCharactersFromLink(data, position, end)
+	if position == end {
+		return Range{}, false
 	}
 
-	return link
+	return Range{position, end}, true
 }
 
 func isAllowedBeforeWWWLink(c byte) bool {
@@ -64,13 +64,13 @@ func isAllowedBeforeWWWLink(c byte) bool {
 	}
 }
 
-// Given a string with a : at the given position, tried to parse and return a link starting with a URL scheme
+// Given a string with a : at the given position, tried to parse and return a range containing a URL scheme
 // if one exists. If the text around the given position isn't a link, returns an empty string. Equivalent to
 // url_match from the reference code.
-func parseURLAutolink(data string, position int) string {
+func parseURLAutolink(data string, position int) (Range, bool) {
 	// Check that a :// exists. This doesn't match the clients that treat the slashes as optional.
 	if len(data)-position < 4 || data[position+1] != '/' || data[position+2] != '/' {
-		return ""
+		return Range{}, false
 	}
 
 	start := position - 1
@@ -81,12 +81,12 @@ func parseURLAutolink(data string, position int) string {
 	// Ensure that the URL scheme is allowed and that at least one character after the scheme is valid.
 	scheme := data[start:position]
 	if !isSchemeAllowed(scheme) || !isValidHostCharacter(data[position+3:]) {
-		return ""
+		return Range{}, false
 	}
 
 	end := checkDomain(data[position+3:], true)
 	if end == 0 {
-		return ""
+		return Range{}, false
 	}
 
 	end += position
@@ -97,12 +97,12 @@ func parseURLAutolink(data string, position int) string {
 	}
 
 	// Trim trailing punctuation
-	link := trimTrailingCharactersFromLink(data[start:end])
-	if link == "" {
-		return ""
+	end = trimTrailingCharactersFromLink(data, start, end)
+	if start == end {
+		return Range{}, false
 	}
 
-	return link
+	return Range{start, end}, true
 }
 
 func isSchemeAllowed(scheme string) bool {
@@ -166,9 +166,9 @@ func isValidHostCharacter(link string) bool {
 }
 
 // Removes any trailing characters such as punctuation or stray brackets that shouldn't be part of the link.
-// Equivalent to autolink_delim from the reference code.
-func trimTrailingCharactersFromLink(link string) string {
-	runes := []rune(link)
+// Returns a new end position for the link. Equivalent to autolink_delim from the reference code.
+func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
+	runes := []rune(markdown[start:end])
 	linkEnd := len(runes)
 
 	// Cut off the link before an open angle bracket if it contains one
@@ -240,7 +240,7 @@ func trimTrailingCharactersFromLink(link string) string {
 		}
 	}
 
-	return string(runes[:linkEnd])
+	return start + len(string(runes[:linkEnd]))
 }
 
 func canEndAutolink(c rune) bool {

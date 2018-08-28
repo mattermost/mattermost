@@ -4,9 +4,11 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,22 +32,51 @@ func TestRandomString(t *testing.T) {
 	}
 }
 
+func TestGetMillisForTime(t *testing.T) {
+	thisTimeMillis := int64(1471219200000)
+	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := GetMillisForTime(thisTime)
+
+	if thisTimeMillis != result {
+		t.Fatalf(fmt.Sprintf("millis are not the same: %d and %d", thisTimeMillis, result))
+	}
+}
+
+func TestParseDateFilterToTimeISO8601(t *testing.T) {
+	testString := "2016-08-01"
+	compareTime := time.Date(2016, time.August, 1, 0, 0, 0, 0, time.UTC)
+
+	result := ParseDateFilterToTime(testString)
+
+	if result != compareTime {
+		t.Fatalf(fmt.Sprintf("parsed date doesn't match the expected result: parsed result %v and expected time %v", result, compareTime))
+	}
+}
+
+func TestParseDateFilterToTimeNeedZeroPadding(t *testing.T) {
+	testString := "2016-8-1"
+	compareTime := time.Date(2016, time.August, 1, 0, 0, 0, 0, time.UTC)
+
+	result := ParseDateFilterToTime(testString)
+
+	if result != compareTime {
+		t.Fatalf(fmt.Sprintf("parsed date doesn't match the expected result: parsed result %v and expected time %v", result, compareTime))
+	}
+}
+
 func TestAppError(t *testing.T) {
 	err := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
 	json := err.ToJson()
 	rerr := AppErrorFromJson(strings.NewReader(json))
-	if err.Message != rerr.Message {
-		t.Fatal()
-	}
+	require.Equal(t, err.Message, rerr.Message)
 
 	t.Log(err.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {
 	rerr := AppErrorFromJson(strings.NewReader("<html><body>This is a broken test</body></html>"))
-	if "body: <html><body>This is a broken test</body></html>" != rerr.DetailedError {
-		t.Fatal()
-	}
+	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
 }
 
 func TestCopyStringMap(t *testing.T) {
@@ -77,13 +108,87 @@ func TestMapJson(t *testing.T) {
 	}
 }
 
-func TestValidEmail(t *testing.T) {
-	if !IsValidEmail("corey+test@hulen.com") {
-		t.Error("email should be valid")
-	}
-
-	if IsValidEmail("@corey+test@hulen.com") {
-		t.Error("should be invalid")
+func TestIsValidEmail(t *testing.T) {
+	for _, testCase := range []struct {
+		Input    string
+		Expected bool
+	}{
+		{
+			Input:    "corey",
+			Expected: false,
+		},
+		{
+			Input:    "corey@example.com",
+			Expected: true,
+		},
+		{
+			Input:    "corey+test@example.com",
+			Expected: true,
+		},
+		{
+			Input:    "@corey+test@example.com",
+			Expected: false,
+		},
+		{
+			Input:    "firstname.lastname@example.com",
+			Expected: true,
+		},
+		{
+			Input:    "firstname.lastname@subdomain.example.com",
+			Expected: true,
+		},
+		{
+			Input:    "123454567@domain.com",
+			Expected: true,
+		},
+		{
+			Input:    "email@domain-one.com",
+			Expected: true,
+		},
+		{
+			Input:    "email@domain.co.jp",
+			Expected: true,
+		},
+		{
+			Input:    "firstname-lastname@domain.com",
+			Expected: true,
+		},
+		{
+			Input:    "@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "Billy Bob <billy@example.com>",
+			Expected: false,
+		},
+		{
+			Input:    "email.domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "email.@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "email@domain@domain.com",
+			Expected: false,
+		},
+		{
+			Input:    "(email@domain.com)",
+			Expected: false,
+		},
+		{
+			Input:    "email@汤.中国",
+			Expected: true,
+		},
+		{
+			Input:    "email1@domain.com, email2@domain.com",
+			Expected: false,
+		},
+	} {
+		t.Run(testCase.Input, func(t *testing.T) {
+			assert.Equal(t, testCase.Expected, IsValidEmail(testCase.Input))
+		})
 	}
 }
 
@@ -99,9 +204,7 @@ func TestValidLower(t *testing.T) {
 
 func TestEtag(t *testing.T) {
 	etag := Etag("hello", 24)
-	if len(etag) <= 0 {
-		t.Fatal()
-	}
+	require.NotEqual(t, "", etag)
 }
 
 var hashtags = map[string]string{

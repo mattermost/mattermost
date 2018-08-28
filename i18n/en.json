@@ -92,10 +92,6 @@
     "translation": "Failed to add user to channel because they have been removed from the team."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "The channel has been archived or deleted"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Can not add user to this channel type"
   },
@@ -160,20 +156,12 @@
     "translation": "The channel has been archived or deleted"
   },
   {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "We couldn't get the channel count for the scheme."
+  },
+  {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
-  },
-  {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is already started"
-  },
-  {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -248,12 +236,12 @@
     "translation": "Cannot remove user from the default channel {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v removed from the channel."
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Cannot remove user from a channel."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "The channel has been archived or deleted"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v removed from the channel."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1049,6 +1037,14 @@
     "translation": "File attachments have been disabled on this server."
   },
   {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid"
   },
@@ -1659,6 +1655,10 @@
     "translation": "%v joined the team."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your team or system administrator for details."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
   },
@@ -1735,6 +1735,10 @@
     "translation": "Specified user is not a member of specified team."
   },
   {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+  },
+  {
     "id": "api.team.update_team_scheme.license.error",
     "translation": "Your license does not support updating a team's scheme"
   },
@@ -1747,12 +1751,12 @@
     "translation": "You deactivated your account on {{ .SiteURL }}."
   },
   {
-    "id": "api.templates.deactivate_body.warning",
-    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
-  },
-  {
     "id": "api.templates.deactivate_body.title",
     "translation": "Your account has been deactivated at {{ .ServerURL }}"
+  },
+  {
+    "id": "api.templates.deactivate_body.warning",
+    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -2187,28 +2191,28 @@
     "translation": "Cannot reset password for SSO accounts"
   },
   {
-    "id": "api.user.saml.not_available.app_error",
-    "translation": "SAML 2.0 is not configured or supported on this server."
-  },
-  {
-    "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Failed to send the deactivate account email successfully"
-  },
-  {
     "id": "api.user.saml.app_error",
     "translation": "Unable to process SAML login request."
-  },
-  {
-    "id": "api.user.saml.extension_unsupported",
-    "translation": "Extensions are not supported."
   },
   {
     "id": "api.user.saml.extension_id.app_error",
     "translation": "Invalid extension id"
   },
   {
+    "id": "api.user.saml.extension_unsupported",
+    "translation": "Extensions are not supported."
+  },
+  {
     "id": "api.user.saml.invalid_extension",
     "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+  },
+  {
+    "id": "api.user.saml.not_available.app_error",
+    "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "api.user.send_deactivate_email_and_forget.failed.error",
+    "translation": "Failed to send the deactivate account email successfully"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2439,6 +2443,14 @@
     "translation": "Cluster API endpoint not found."
   },
   {
+    "id": "app.import.attachment.bad_file.error",
+    "translation": "Error reading the file at: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.file_upload.error",
+    "translation": "Error uploading the file: \"{{.FilePath}}\""
+  },
+  {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Error reading import data file."
   },
@@ -2513,6 +2525,10 @@
   {
     "id": "app.import.import_line.null_direct_post.error",
     "translation": "Import data line has type \"direct_post\" but the direct_post object is null."
+  },
+  {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "Import data line has type \"emoji\" but the emoji object is null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -2955,14 +2971,6 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
-    "id": "app.import.attachment.bad_file.error",
-    "translation": "Error reading the file at: \"{{.FilePath}}\""
-  },
-  {
-    "id": "app.import.attachment.file_upload.error",
-    "translation": "Error uploading the file: \"{{.FilePath}}\""
-  },
-  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -3035,10 +3043,6 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -3103,16 +3107,8 @@
     "translation": "Plugin is not installed"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "Cannot install prepackaged plugin"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "Unable to delete plugin"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "Unable to set plugin status state."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3125,6 +3121,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Failed to parse installation date"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3227,6 +3227,14 @@
     "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
   },
   {
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "translation": "Unable to open the temporary export file."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Unable to re-read the Global Relay temporary export file."
+  },
+  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
@@ -3323,12 +3331,20 @@
     "translation": "Failed to decode search results"
   },
   {
+    "id": "ent.elasticsearch.start.already_started.app_error",
+    "translation": "Elasticsearch is already started"
+  },
+  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Failed to create Elasticsearch bulk processor"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "Failed to start Elasticsearch bulk processor"
+  },
+  {
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "translation": "Elasticsearch is already stopped"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3399,12 +3415,20 @@
     "translation": "Invalid AD/LDAP Filter"
   },
   {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Unable to open the temporary export file."
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Unable to add attachment to the Global Relay export."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Unable to close properly the zip file."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "Unable to create the eml file."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Unable to generate eml file data."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4411,6 +4435,10 @@
     "translation": "Update at must be a valid time"
   },
   {
+    "id": "model.outgoing_hook.icon_url.app_error",
+    "translation": "Invalid icon"
+  },
+  {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
     "translation": "Invalid callback URLs"
   },
@@ -4469,9 +4497,6 @@
   {
     "id": "model.outgoing_hook.username.app_error",
     "translation": "Invalid username"
-  },{
-    "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "Invalid icon"
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -4678,8 +4703,8 @@
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Error invoking plugin RPC"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Unable to set the user status. Unknown user status."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4892,6 +4917,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "We could not reset the channel schemes"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5122,6 +5155,10 @@
     "translation": "We couldn't save the emoji"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "We couldn't delete attachments of the user"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "We couldn't attach the file info to the post"
   },
@@ -5140,6 +5177,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "We couldn't get the file info for the post"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "We couldn't get the file info for the user"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5960,6 +6001,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

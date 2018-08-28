@@ -38,9 +38,13 @@ func blurHorizontal(img image.Image, kernel []float64) *image.NRGBA {
 
 	parallel(0, src.h, func(ys <-chan int) {
 		scanLine := make([]uint8, src.w*4)
+		scanLineF := make([]float64, len(scanLine))
 		for y := range ys {
 			src.scan(0, y, src.w, y+1, scanLine)
-			for x := 0; x < src.w; x++ {
+			for i, v := range scanLine {
+				scanLineF[i] = float64(v)
+			}
+			for x, idx := 0, 0; x < src.w; x, idx = x+1, idx+4 {
 				min := x - radius
 				if min < 0 {
 					min = 0
@@ -55,10 +59,10 @@ func blurHorizontal(img image.Image, kernel []float64) *image.NRGBA {
 					i := ix * 4
 					weight := kernel[absint(x-ix)]
 					wsum += weight
-					wa := float64(scanLine[i+3]) * weight
-					r += float64(scanLine[i+0]) * wa
-					g += float64(scanLine[i+1]) * wa
-					b += float64(scanLine[i+2]) * wa
+					wa := scanLineF[i+3] * weight
+					r += scanLineF[i+0] * wa
+					g += scanLineF[i+1] * wa
+					b += scanLineF[i+2] * wa
 					a += wa
 				}
 				if a != 0 {
@@ -67,12 +71,12 @@ func blurHorizontal(img image.Image, kernel []float64) *image.NRGBA {
 					b /= a
 				}
 
-				j := y*dst.Stride + x*4
-				dst.Pix[j+0] = clamp(r)
-				dst.Pix[j+1] = clamp(g)
-				dst.Pix[j+2] = clamp(b)
-				dst.Pix[j+3] = clamp(a / wsum)
+				scanLine[idx+0] = clamp(r)
+				scanLine[idx+1] = clamp(g)
+				scanLine[idx+2] = clamp(b)
+				scanLine[idx+3] = clamp(a / wsum)
 			}
+			copy(dst.Pix[y*dst.Stride:], scanLine)
 		}
 	})
 
@@ -86,8 +90,12 @@ func blurVertical(img image.Image, kernel []float64) *image.NRGBA {
 
 	parallel(0, src.w, func(xs <-chan int) {
 		scanLine := make([]uint8, src.h*4)
+		scanLineF := make([]float64, len(scanLine))
 		for x := range xs {
 			src.scan(x, 0, x+1, src.h, scanLine)
+			for i, v := range scanLine {
+				scanLineF[i] = float64(v)
+			}
 			for y := 0; y < src.h; y++ {
 				min := y - radius
 				if min < 0 {
@@ -103,10 +111,10 @@ func blurVertical(img image.Image, kernel []float64) *image.NRGBA {
 					i := iy * 4
 					weight := kernel[absint(y-iy)]
 					wsum += weight
-					wa := float64(scanLine[i+3]) * weight
-					r += float64(scanLine[i+0]) * wa
-					g += float64(scanLine[i+1]) * wa
-					b += float64(scanLine[i+2]) * wa
+					wa := scanLineF[i+3] * weight
+					r += scanLineF[i+0] * wa
+					g += scanLineF[i+1] * wa
+					b += scanLineF[i+2] * wa
 					a += wa
 				}
 				if a != 0 {
