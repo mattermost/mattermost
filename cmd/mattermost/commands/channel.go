@@ -80,12 +80,12 @@ Archived channels are appended with ' (archived)'.`,
 }
 
 var MoveChannelsCmd = &cobra.Command{
-	Use:   "move [team] [channels] [flags]",
+	Use:   "move [team] [channels] --username [user]",
 	Short: "Moves channels to the specified team",
 	Long: `Moves the provided channels to the specified team.
 Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel move newteam oldteam:mychannel --username user-1",
+	Example: "  channel move newteam oldteam:mychannel --username myusername",
 	RunE:    moveChannelsCmdF,
 }
 
@@ -99,11 +99,11 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 }
 
 var ModifyChannelCmd = &cobra.Command{
-	Use:   "modify [channel] [flags]",
+	Use:   "modify [channel] [flags] --username [user]",
 	Short: "Modify a channel's public/private type",
 	Long: `Change the public/private type of a channel.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel modify myteam:mychannel --private --username user-1",
+	Example: "  channel modify myteam:mychannel --private --username myusername",
 	RunE:    modifyChannelCmdF,
 }
 
@@ -343,7 +343,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
-		return errors.New("Username is required. Usage --username user-1.")
+		return errors.New("Username is required.")
 	}
 	user := getUserFromUserArg(a, username)
 
@@ -473,7 +473,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
-		return errors.New("Username is required. Usage --username user-1.")
+		return errors.New("Username is required.")
 	}
 
 	public, _ := command.Flags().GetBool("public")
