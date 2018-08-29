@@ -1038,11 +1038,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existence."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existence."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -3420,7 +3420,7 @@
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close properly the zip file."
+    "translation": "Unable to properly close the zip file."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
