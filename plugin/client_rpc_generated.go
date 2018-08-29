@@ -903,6 +903,36 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	return nil
 }
 
+type Z_GetLDAPUserAttributesArgs struct {
+	A string
+	B []string
+}
+
+type Z_GetLDAPUserAttributesReturns struct {
+	A map[string]string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+	_args := &Z_GetLDAPUserAttributesArgs{userId, attributes}
+	_returns := &Z_GetLDAPUserAttributesReturns{}
+	if err := g.client.Call("Plugin.GetLDAPUserAttributes", _args, _returns); err != nil {
+		log.Printf("RPC call to GetLDAPUserAttributes API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetLDAPUserAttributes(args *Z_GetLDAPUserAttributesArgs, returns *Z_GetLDAPUserAttributesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetLDAPUserAttributes(args.A, args.B)
+	} else {
+		return fmt.Errorf("API GetLDAPUserAttributes called but not implemented.")
+	}
+	return nil
+}
+
 type Z_CreateTeamArgs struct {
 	A *model.Team
 }
