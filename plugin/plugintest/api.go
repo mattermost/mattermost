@@ -524,6 +524,31 @@ func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppErro
 	return r0, r1
 }
 
+// GetLDAPUserAttributes provides a mock function with given fields: userId, attributes
+func (_m *API) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+	ret := _m.Called(userId, attributes)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, []string) map[string]string); ok {
+		r0 = rf(userId, attributes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(userId, attributes)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPost provides a mock function with given fields: postId
 func (_m *API) GetPost(postId string) (*model.Post, *model.AppError) {
 	ret := _m.Called(postId)
