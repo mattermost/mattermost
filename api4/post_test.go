@@ -1581,19 +1581,24 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 			resultCount = resultCount + 1
 		}
 	}
-	if resultCount != 3 {
+	if resultCount != 2 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-02", false)
-	if len(posts.Order) != 2 {
+	if len(posts.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-02", false)
-	if len(posts.Order) != 2 {
+	if len(posts.Order) != 0 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-01", false)
+	if len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}	
 }
 
 func TestGetFileInfosForPost(t *testing.T) {
