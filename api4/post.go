@@ -412,7 +412,7 @@ func rethreadPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().ServiceSettings.ExperimentalRethreading {
+	if !*c.App.Config().ServiceSettings.ExperimentalRethreading {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}

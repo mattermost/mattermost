@@ -247,7 +247,7 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
 	ExperimentalLimitClientConfig                     *bool
-	ExperimentalRethreading                           bool
+	ExperimentalRethreading                           *bool
 	EnableEmailInvitations                            *bool
 }
 
@@ -526,6 +526,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalLimitClientConfig == nil {
 		s.ExperimentalLimitClientConfig = NewBool(false)
+	}
+
+	if s.ExperimentalRethreading == nil {
+		s.ExperimentalRethreading = NewBool(false)
 	}
 }
 
