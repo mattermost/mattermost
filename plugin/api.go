@@ -62,6 +62,12 @@ type API interface {
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
+	// GetLDAPUserAttributes will return LDAP attributes for a user.
+	// The attributes parameter should be a list of attributes to pull.
+	// Returns a map with attribute names as keys and the user's attributes as values.
+	// Requires an enterprise license, LDAP to be configured and for the user to use LDAP as an authentication method.
+	GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError)
+
 	// CreateTeam creates a team.
 	CreateTeam(team *model.Team) (*model.Team, *model.AppError)
 
