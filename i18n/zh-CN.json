@@ -232,12 +232,12 @@
     "translation": "不能从默认频道 {{.Channel}} 移出用户"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v 已从频道移出。"
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Cannot remove user from a channel."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "该频道已归档或者被删除"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v 已从频道移出。"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1031,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "文件附件已在此服务器禁用。"
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2507,6 +2515,10 @@
     "translation": "导入数据行有类型 \"direct_post\" 但 direct_post 对象为 null。"
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "导入数据行有类型 \"post\" 但消息对象是无。"
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "导入数据行有类型 \"post\" 但消息对象是无。"
   },
@@ -3019,10 +3031,6 @@
     "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 的通知于 {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "无法激活解压的插件。"
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "当机群开启并使用 ReadOnlyConfig 时，config.json 文件中的插件设置必须手动上传。"
   },
@@ -3087,16 +3095,8 @@
     "translation": "插件未安装"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "无法安装预包装插件"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "无法删除插件"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "无法设置插件状态。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3217,6 +3217,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "无法打开导出临时文件。"
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Unable to re-read the Global Relay temporary export file."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3399,8 +3403,20 @@
     "translation": "无效的 AD/LDAP 筛选器"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "无法添加附件到 CSV 导出。"
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Unable to close properly the zip file."
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "无法创建 eml 文件。"
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Unable to generate eml file data."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4675,8 +4691,8 @@
     "translation": "GitLab 的使用条款已更新。请到 gitlab.com 接受新的使用条款后再尝试登入 Mattermost。"
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "调用插件 RPC 错误"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Unable to set the user status. Unknown user status."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4889,6 +4905,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "我们无法重置频道方案"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5119,6 +5143,10 @@
     "translation": "我们无法保存此表情符"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "We couldn't delete attachments of the user"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "我们没法附文件信息到信息"
   },
@@ -5136,6 +5164,10 @@
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "我们没法从信息获取文件信息"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
     "translation": "我们没法从信息获取文件信息"
   },
   {
@@ -5717,6 +5749,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "我们更新系统属性时遇到了一个错误"
+  },
+  {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "We couldn't get the channel count for the scheme."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

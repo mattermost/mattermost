@@ -174,7 +174,7 @@ func AllowAll() *Cors {
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"},
 		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
+		AllowCredentials: false,
 	})
 }
 
@@ -269,7 +269,7 @@ func (c *Cors) handlePreflight(w http.ResponseWriter, r *http.Request) {
 		c.logf("  Preflight aborted: headers '%v' not allowed", reqHeaders)
 		return
 	}
-	if c.allowedOriginsAll && !c.allowCredentials {
+	if c.allowedOriginsAll {
 		headers.Set("Access-Control-Allow-Origin", "*")
 	} else {
 		headers.Set("Access-Control-Allow-Origin", origin)
@@ -321,7 +321,7 @@ func (c *Cors) handleActualRequest(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	if c.allowedOriginsAll && !c.allowCredentials {
+	if c.allowedOriginsAll {
 		headers.Set("Access-Control-Allow-Origin", "*")
 	} else {
 		headers.Set("Access-Control-Allow-Origin", origin)

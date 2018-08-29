@@ -13,6 +13,22 @@ type TeamStore struct {
 	mock.Mock
 }
 
+// AnalyticsGetTeamCountForScheme provides a mock function with given fields: schemeId
+func (_m *TeamStore) AnalyticsGetTeamCountForScheme(schemeId string) store.StoreChannel {
+	ret := _m.Called(schemeId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(schemeId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // AnalyticsTeamCount provides a mock function with given fields:
 func (_m *TeamStore) AnalyticsTeamCount() store.StoreChannel {
 	ret := _m.Called()

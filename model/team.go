@@ -47,6 +47,7 @@ type TeamPatch struct {
 	DisplayName     *string `json:"display_name"`
 	Description     *string `json:"description"`
 	CompanyName     *string `json:"company_name"`
+	AllowedDomains  *string `json:"allowed_domains"`
 	InviteId        *string `json:"invite_id"`
 	AllowOpenInvite *bool   `json:"allow_open_invite"`
 }
@@ -241,7 +242,6 @@ func CleanTeamName(s string) string {
 
 func (o *Team) Sanitize() {
 	o.Email = ""
-	o.AllowedDomains = ""
 }
 
 func (t *Team) Patch(patch *TeamPatch) {
@@ -255,6 +255,10 @@ func (t *Team) Patch(patch *TeamPatch) {
 
 	if patch.CompanyName != nil {
 		t.CompanyName = *patch.CompanyName
+	}
+
+	if patch.AllowedDomains != nil {
+		t.AllowedDomains = *patch.AllowedDomains
 	}
 
 	if patch.InviteId != nil {

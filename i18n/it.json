@@ -232,12 +232,12 @@
     "translation": "Impossibile eliminare l'utente dal canale predefinito {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v è stato rimosso dal canale."
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Impossibile rimuovere l'utente dal canale."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "Il canale è stato archiviato o eliminato"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v è stato rimosso dal canale."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1031,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "Gli allegati sono stati disabilitati su questo server."
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "Impossibile verificare se il file esiste. Si è verificato un errore controllando l'esistenza del file."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "Impossibile verificare se il file esiste. Si è verificato un errore controllando l'esistenza del file."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2507,6 +2515,10 @@
     "translation": "La riga di dati da importare è di tipo \"pubblicazione_diretta\" ma l'oggetto pubblicazione_diretta è nullo."
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "La riga di dati da importare è di tipo \"emoji\" ma l'oggetto post è nullo."
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "La riga di dati da importare è di tipo \"post\" ma l'oggetto post è nullo."
   },
@@ -3019,10 +3031,6 @@
     "translation": "[{{ .SiteName }}] Notifca in {{ .TeamName}} del {{.Day}}/{{.Month}}/{{.Year}}"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "Impossibile attivate il plugin estratto."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "La configurazione del plugin nel file config.json deve essere aggiornata manualmente se si utilizza ReadOnlyConfig con il clustering abilitato."
   },
@@ -3087,16 +3095,8 @@
     "translation": "Il plugin non è installato"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "Impossibile installare il plugin preconfigurato"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "Impossibile eliminare il plugin"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "Impossibile impostare lo stato del plugin."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3112,7 +3112,7 @@
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
-    "translation": "Failed to parse installation date"
+    "translation": "Impossibile inizializzare la data d'installazione"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3217,6 +3217,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "Impossibile aprire il file di esportazione temporaneo."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Impossibile rileggere il file di esportazione temporaneo Global Relay."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3399,8 +3403,20 @@
     "translation": "Filtro AD/LDAP non valido"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Impossibile aggiungere l'allegato all'esportazione Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Impossibile chiudere correttamente il file zip."
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "Impossibile creare il file eml."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Impossibile generare i dati del file eml."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4675,8 +4691,8 @@
     "translation": "I Termini del Servizio di GitLab sono stati aggiornati. Per favore visita gitlab.com per accettarli e poi eseguire il login su Mattermost."
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Errore nella chiamata al plugin RPC"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Impossibile impostare lo stato utente. Stato utente sconosciuto."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4889,6 +4905,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "Impossibile resettare gli schemi del canale"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "Impossibile reimpostare l'ultimo post del canale alla data"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "Non puoi modificare un canale archiviato"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5119,6 +5143,10 @@
     "translation": "Non è stato possibile salvare l'emoji"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "Impossibile eliminare gli allegati di un utente"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "Non è stato possibile allegare le informazioni sul file alla pubblicazione"
   },
@@ -5137,6 +5165,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "Non è stato possibile recuperare le informazioni sul file per la pubblicazione"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "Non è stato possibile recuperare le informazioni sul file per l'utente"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5719,6 +5751,10 @@
     "translation": "Riscontrato un errore nel aggiornamento della proprietà di sistema"
   },
   {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "Impossibile recuperare il conteggio dei canali per lo schema."
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "Non è stato possibile effettuare il conteggio dei gruppi"
   },
@@ -5960,7 +5996,7 @@
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
+    "translation": "Impossibile ottenere la data del sistema basandosi sulla data di creazione del primo utente."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
