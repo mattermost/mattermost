@@ -1,7 +1,7 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package utils
+package mailservice
 
 import (
 	"bytes"
@@ -13,12 +13,14 @@ import (
 	"net/smtp"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	cfg, _, _, err := LoadConfig("config.json")
+	cfg, _, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServer(cfg); err != nil {
@@ -41,7 +43,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg, _, _, err := LoadConfig("config.json")
+	cfg, _, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServerAdvanced(
@@ -58,7 +60,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	} else {
 		if _, err1 := NewSMTPClientAdvanced(
 			conn,
-			GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
+			utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 			&SmtpConnectionInfo{
 				ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
 				SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -91,26 +93,26 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, _, err := LoadConfig("config.json")
+	cfg, _, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
-	T = GetUserTranslations("en")
+	utils.T = utils.GetUserTranslations("en")
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
 	var emailBody = "This is a test from autobot"
 
 	//Delete all the messages before check the sample email
-	DeleteMailBox(emailTo)
+	utils.DeleteMailBox(emailTo)
 
 	if err := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
 		//Check if the email was send to the right email address
-		var resultsMailbox JSONMessageHeaderInbucket
-		err := RetryInbucket(5, func() error {
+		var resultsMailbox utils.JSONMessageHeaderInbucket
+		err := utils.RetryInbucket(5, func() error {
 			var err error
-			resultsMailbox, err = GetMailBox(emailTo)
+			resultsMailbox, err = utils.GetMailBox(emailTo)
 			return err
 		})
 		if err != nil {
@@ -121,7 +123,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 			if !strings.ContainsAny(resultsMailbox[0].To[0], emailTo) {
 				t.Fatal("Wrong To recipient")
 			} else {
-				if resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID); err == nil {
+				if resultsEmail, err := utils.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID); err == nil {
 					if !strings.Contains(resultsEmail.Body.Text, emailBody) {
 						t.Log(resultsEmail.Body.Text)
 						t.Fatal("Received message")
@@ -133,9 +135,9 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, _, err := LoadConfig("config.json")
+	cfg, _, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
-	T = GetUserTranslations("en")
+	utils.T = utils.GetUserTranslations("en")
 
 	var mimeTo = "test@example.com"
 	var smtpTo = "test2@example.com"
@@ -144,9 +146,9 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	var emailBody = "This is a test from autobot"
 
 	//Delete all the messages before check the sample email
-	DeleteMailBox(smtpTo)
+	utils.DeleteMailBox(smtpTo)
 
-	fileBackend, err := NewFileBackend(&cfg.FileSettings, true)
+	fileBackend, err := filesstore.NewFileBackend(&cfg.FileSettings, true)
 	assert.Nil(t, err)
 
 	// create two files with the same name that will both be attached to the email
@@ -180,10 +182,10 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 		t.Fatal("Should connect to the STMP Server")
 	} else {
 		//Check if the email was send to the right email address
-		var resultsMailbox JSONMessageHeaderInbucket
-		err := RetryInbucket(5, func() error {
+		var resultsMailbox utils.JSONMessageHeaderInbucket
+		err := utils.RetryInbucket(5, func() error {
 			var err error
-			resultsMailbox, err = GetMailBox(smtpTo)
+			resultsMailbox, err = utils.GetMailBox(smtpTo)
 			return err
 		})
 		if err != nil {
@@ -194,7 +196,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 			if !strings.ContainsAny(resultsMailbox[0].To[0], smtpTo) {
 				t.Fatal("Wrong To recipient")
 			} else {
-				if resultsEmail, err := GetMessageFromMailbox(smtpTo, resultsMailbox[0].ID); err == nil {
+				if resultsEmail, err := utils.GetMessageFromMailbox(smtpTo, resultsMailbox[0].ID); err == nil {
 					if !strings.Contains(resultsEmail.Body.Text, emailBody) {
 						t.Log(resultsEmail.Body.Text)
 						t.Fatal("Received message")

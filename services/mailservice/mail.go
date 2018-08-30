@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package utils
+package mailservice
 
 import (
 	"crypto/tls"
@@ -21,6 +21,8 @@ import (
 	"github.com/jaytaylor/html2text"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func encodeRFC2047Word(s string) string {
@@ -160,7 +162,7 @@ func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpC
 func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
 	return NewSMTPClientAdvanced(
 		conn,
-		GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL),
+		utils.GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL),
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
@@ -181,14 +183,14 @@ func TestConnection(config *model.Config) {
 
 	conn, err1 := ConnectToSMTPServer(config)
 	if err1 != nil {
-		mlog.Error(fmt.Sprintf("SMTP server settings do not appear to be configured properly err=%v details=%v", T(err1.Message), err1.DetailedError))
+		mlog.Error(fmt.Sprintf("SMTP server settings do not appear to be configured properly err=%v details=%v", utils.T(err1.Message), err1.DetailedError))
 		return
 	}
 	defer conn.Close()
 
 	c, err2 := NewSMTPClient(conn, config)
 	if err2 != nil {
-		mlog.Error(fmt.Sprintf("SMTP server settings do not appear to be configured properly err=%v details=%v", T(err2.Message), err2.DetailedError))
+		mlog.Error(fmt.Sprintf("SMTP server settings do not appear to be configured properly err=%v details=%v", utils.T(err2.Message), err2.DetailedError))
 		return
 	}
 	defer c.Quit()
@@ -220,7 +222,7 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subje
 	defer c.Quit()
 	defer c.Close()
 
-	fileBackend, err := NewFileBackend(&config.FileSettings, enableComplianceFeatures)
+	fileBackend, err := filesstore.NewFileBackend(&config.FileSettings, enableComplianceFeatures)
 	if err != nil {
 		return err
 	}
@@ -228,7 +230,7 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subje
 	return SendMail(c, mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
 }
 
-func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend FileBackend, date time.Time) *model.AppError {
+func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
 	mlog.Debug(fmt.Sprintf("sending mail to %v with subject of '%v'", smtpTo, subject))
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
