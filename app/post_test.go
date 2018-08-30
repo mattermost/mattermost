@@ -229,6 +229,50 @@ func TestPostAction(t *testing.T) {
 
 	err = th.App.DoPostAction(post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected")
 	require.Nil(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
+	})
+
+	err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+	require.NotNil(t, err)
+
+	interactivePostPlugin := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			"attachments": []*model.SlackAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Integration: &model.PostActionIntegration{
+								Context: model.StringInterface{
+									"s": "foo",
+									"n": 3,
+								},
+								URL: ts.URL + "/plugins/myplugin/myaction",
+							},
+							Name:       "action",
+							Type:       "some_type",
+							DataSource: "some_source",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin)
+	require.Nil(t, err)
+
+	attachmentsPlugin, ok := postplugin.Props["attachments"].([]*model.SlackAttachment)
+	require.True(t, ok)
+
+	err = th.App.DoPostAction(postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
+	require.Nil(t, err)
 }
 
 func TestPostChannelMentions(t *testing.T) {

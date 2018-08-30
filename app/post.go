@@ -882,7 +882,17 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 	req, _ := http.NewRequest("POST", action.Integration.URL, strings.NewReader(request.ToJson()))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	resp, err := a.HTTPClient(false).Do(req)
+
+	// Allow access to plugin routes for action buttons
+	var httpClient *http.Client
+	url, _ := url.Parse(action.Integration.URL)
+	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1") && strings.HasPrefix(url.Path, "/plugins") {
+		httpClient = a.HTTPClient(true)
+	} else {
+		httpClient = a.HTTPClient(false)
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
