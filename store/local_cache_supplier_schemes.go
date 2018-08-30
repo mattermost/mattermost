@@ -53,6 +53,7 @@ func (s *LocalCacheSupplier) SchemeGetAllPage(ctx context.Context, scope string,
 
 func (s *LocalCacheSupplier) SchemePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	defer s.doClearCacheCluster(s.schemeCache)
+	defer s.doClearCacheCluster(s.roleCache)
 
 	return s.Next().SchemePermanentDeleteAll(ctx, hints...)
 }
