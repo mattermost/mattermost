@@ -381,6 +381,20 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		},
 		"SupportSettings": {
 			"TermsOfServiceLink": "https://about.mattermost.com/default-terms/"
+		},
+		"PluginSettings": {
+			"Enable": true,
+			"Plugins": {
+				"jira": {
+					"enabled": "true",
+					"secret": "config-secret"
+				}
+			},
+			"PluginStates": {
+				"jira": {
+					"Enable": true
+				}
+			}
 		}
 	}`
 
@@ -542,6 +556,70 @@ func TestConfigFromEnviroVars(t *testing.T) {
 			}
 			if clientDirectory, ok := pluginSettingsAsMap["ClientDirectory"].(bool); !ok || !clientDirectory {
 				t.Fatal("ClientDirectory should be in envConfig")
+			}
+		}
+	})
+
+	t.Run("plugin settings", func(t *testing.T) {
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED", "false")
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET", "env-secret")
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE", "false")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE")
+
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		if pluginsJira, ok := cfg.PluginSettings.Plugins["jira"]; !ok {
+			t.Fatal("PluginSettings.Plugins.jira is missing from config")
+		} else {
+			if enabled, ok := pluginsJira["enabled"]; !ok {
+				t.Fatal("PluginSettings.Plugins.jira.enabled is missing from config")
+			} else {
+				require.Equal(t, "false", enabled)
+			}
+
+			if secret, ok := pluginsJira["secret"]; !ok {
+				t.Fatal("PluginSettings.Plugins.jira.secret is missing from config")
+			} else {
+				require.Equal(t, "env-secret", secret)
+			}
+		}
+
+		if pluginStatesJira, ok := cfg.PluginSettings.PluginStates["jira"]; !ok {
+			t.Fatal("PluginSettings.PluginStates.jira is missing from config")
+		} else {
+			require.False(t, pluginStatesJira.Enable)
+		}
+
+		if pluginSettings, ok := envCfg["PluginSettings"]; !ok {
+			t.Fatal("PluginSettings is missing from envConfig")
+		} else if pluginSettingsAsMap, ok := pluginSettings.(map[string]interface{}); !ok {
+			t.Fatal("PluginSettings is not a map in envConfig")
+		} else {
+			if plugins, ok := pluginSettingsAsMap["Plugins"].(map[string]interface{}); !ok {
+				t.Fatal("PluginSettings.Plugins is not a map in envConfig")
+			} else if pluginsJira, ok := plugins["jira"].(map[string]interface{}); !ok {
+				t.Fatal("PluginSettings.Plugins.jira is not a map in envConfig")
+			} else {
+				if enabled, ok := pluginsJira["enabled"].(bool); !ok || !enabled {
+					t.Fatal("PluginSettings.Plugins.jira.enabled is missing from envConfig")
+				}
+
+				if secret, ok := pluginsJira["secret"].(bool); !ok || !secret {
+					t.Fatal("PluginSettings.Plugins.jira.secret is missing from envConfig")
+				}
+			}
+
+			if pluginStates, ok := pluginSettingsAsMap["PluginStates"].(map[string]interface{}); !ok {
+				t.Fatal("PluginSettings.PluginStates is missing from envConfig")
+			} else if pluginStatesJira, ok := pluginStates["jira"].(map[string]interface{}); !ok {
+				t.Fatal("PluginSettings.PluginStates.jira is not a map in envConfig")
+			} else {
+				if enable, ok := pluginStatesJira["enable"].(bool); !ok || !enable {
+					t.Fatal("PluginSettings.PluginStates.jira.enable is missing from envConfig")
+				}
 			}
 		}
 	})

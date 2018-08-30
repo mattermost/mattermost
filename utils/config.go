@@ -274,7 +274,13 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 	defaults := getDefaultsFromStruct(model.Config{})
 
 	for key, value := range defaults {
-		v.SetDefault(key, value)
+		switch key {
+		// Avoid setting defaults for keys not explicitly defined in model.Config.
+		case "PluginSettings.Plugins":
+		case "PluginSettings.PluginStates":
+		default:
+			v.SetDefault(key, value)
+		}
 	}
 
 	return v
@@ -368,32 +374,37 @@ func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, 
 		}
 	}()
 
-	var fixCase func(map[string]interface{}, reflect.Type) map[string]interface{}
-	fixCase = func(in map[string]interface{}, t reflect.Type) map[string]interface{} {
-		if t.Kind() != reflect.Struct {
-			// Should never hit this, but this will prevent a panic if that does happen somehow
-			return nil
-		}
+	var fixCase func(string, map[string]interface{}, reflect.Type) map[string]interface{}
+	fixCase = func(key string, in map[string]interface{}, t reflect.Type) map[string]interface{} {
+		switch t.Kind() {
+		case reflect.Struct:
+			out := make(map[string]interface{}, len(in))
 
-		out := make(map[string]interface{}, len(in))
+			for i := 0; i < t.NumField(); i++ {
+				field := t.Field(i)
 
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-
-			key := field.Name
-			if value, ok := in[strings.ToLower(key)]; ok {
-				if valueAsMap, ok := value.(map[string]interface{}); ok {
-					out[key] = fixCase(valueAsMap, field.Type)
-				} else {
-					out[key] = value
+				key := field.Name
+				if value, ok := in[strings.ToLower(key)]; ok {
+					if valueAsMap, ok := value.(map[string]interface{}); ok {
+						out[key] = fixCase(key, valueAsMap, field.Type)
+					} else {
+						out[key] = value
+					}
 				}
 			}
+
+			return out
+
+		// While the config mostly contains structs, plugin settings also define maps.
+		case reflect.Map:
+			return in
 		}
 
-		return out
+		mlog.Warn("failed to handle config key", mlog.String("key", key), mlog.String("kind", t.Kind().String()))
+		return nil
 	}
 
-	out = fixCase(in, reflect.TypeOf(model.Config{}))
+	out = fixCase("root", in, reflect.TypeOf(model.Config{}))
 
 	return
 }
