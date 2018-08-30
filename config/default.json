@@ -73,7 +73,8 @@
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
         "ExperimentalLimitClientConfig": false,
-        "EnableEmailInvitations": false
+        "EnableEmailInvitations": false,
+        "ExperimentalRethreadMessages": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
