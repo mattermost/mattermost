@@ -698,8 +698,8 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool) (*model.PostSearchResults, *model.AppError) {
-	paramsList := model.ParseSearchParams(terms)
+func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int) (*model.PostSearchResults, *model.AppError) {
+	paramsList := model.ParseSearchParams(terms, timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	esInterface := a.Elasticsearch

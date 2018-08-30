@@ -148,9 +148,10 @@ type DirectPostImportData struct {
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
 
-	FlaggedBy *[]string             `json:"flagged_by"`
-	Reactions *[]ReactionImportData `json:"reactions"`
-	Replies   *[]ReplyImportData    `json:"replies"`
+	FlaggedBy   *[]string               `json:"flagged_by"`
+	Reactions   *[]ReactionImportData   `json:"reactions"`
+	Replies     *[]ReplyImportData      `json:"replies"`
+	Attachments *[]AttachmentImportData `json:"attachments"`
 }
 
 type SchemeImportData struct {

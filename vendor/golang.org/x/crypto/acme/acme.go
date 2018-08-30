@@ -39,8 +39,18 @@ import (
 	"time"
 )
 
-// LetsEncryptURL is the Directory endpoint of Let's Encrypt CA.
-const LetsEncryptURL = "https://acme-v01.api.letsencrypt.org/directory"
+const (
+	// LetsEncryptURL is the Directory endpoint of Let's Encrypt CA.
+	LetsEncryptURL = "https://acme-v01.api.letsencrypt.org/directory"
+
+	// ALPNProto is the ALPN protocol name used by a CA server when validating
+	// tls-alpn-01 challenges.
+	//
+	// Package users must ensure their servers can negotiate the ACME ALPN in
+	// order for tls-alpn-01 challenge verifications to succeed.
+	// See the crypto/tls package's Config.NextProtos field.
+	ALPNProto = "acme-tls/1"
+)
 
 // idPeACMEIdentifierV1 is the OID for the ACME extension for the TLS-ALPN challenge.
 var idPeACMEIdentifierV1 = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 30, 1}
@@ -645,8 +655,9 @@ func (c *Client) doReg(ctx context.Context, url string, typ string, acct *Accoun
 		req.Agreement = acct.AgreedTerms
 	}
 	res, err := c.post(ctx, c.Key, url, req, wantStatus(
-		http.StatusOK,      // updates and deletes
-		http.StatusCreated, // new account creation
+		http.StatusOK,       // updates and deletes
+		http.StatusCreated,  // new account creation
+		http.StatusAccepted, // Let's Encrypt divergent implementation
 	))
 	if err != nil {
 		return nil, err

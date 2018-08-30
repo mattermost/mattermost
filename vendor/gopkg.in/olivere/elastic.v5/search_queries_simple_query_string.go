@@ -19,6 +19,7 @@ import (
 type SimpleQueryStringQuery struct {
 	queryText              string
 	analyzer               string
+	quoteFieldSuffix       string
 	operator               string
 	fields                 []string
 	fieldBoosts            map[string]*float64
@@ -70,6 +71,13 @@ func (q *SimpleQueryStringQuery) QueryName(queryName string) *SimpleQueryStringQ
 // Analyzer specifies the analyzer to use for the query.
 func (q *SimpleQueryStringQuery) Analyzer(analyzer string) *SimpleQueryStringQuery {
 	q.analyzer = analyzer
+	return q
+}
+
+// QuoteFieldSuffix is an optional field name suffix to automatically
+// try and add to the field searched when using quoted text.
+func (q *SimpleQueryStringQuery) QuoteFieldSuffix(quoteFieldSuffix string) *SimpleQueryStringQuery {
+	q.quoteFieldSuffix = quoteFieldSuffix
 	return q
 }
 
@@ -176,6 +184,9 @@ func (q *SimpleQueryStringQuery) Source() (interface{}, error) {
 	}
 	if q.minimumShouldMatch != "" {
 		query["minimum_should_match"] = q.minimumShouldMatch
+	}
+	if q.quoteFieldSuffix != "" {
+		query["quote_field_suffix"] = q.quoteFieldSuffix
 	}
 	if q.boost != nil {
 		query["boost"] = *q.boost

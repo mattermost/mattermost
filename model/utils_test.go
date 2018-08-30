@@ -4,9 +4,12 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,6 +30,39 @@ func TestRandomString(t *testing.T) {
 		if len(r) != 32 {
 			t.Fatal("should be 32 chars")
 		}
+	}
+}
+
+func TestGetMillisForTime(t *testing.T) {
+	thisTimeMillis := int64(1471219200000)
+	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
+
+	result := GetMillisForTime(thisTime)
+
+	if thisTimeMillis != result {
+		t.Fatalf(fmt.Sprintf("millis are not the same: %d and %d", thisTimeMillis, result))
+	}
+}
+
+func TestParseDateFilterToTimeISO8601(t *testing.T) {
+	testString := "2016-08-01"
+	compareTime := time.Date(2016, time.August, 1, 0, 0, 0, 0, time.UTC)
+
+	result := ParseDateFilterToTime(testString)
+
+	if result != compareTime {
+		t.Fatalf(fmt.Sprintf("parsed date doesn't match the expected result: parsed result %v and expected time %v", result, compareTime))
+	}
+}
+
+func TestParseDateFilterToTimeNeedZeroPadding(t *testing.T) {
+	testString := "2016-8-1"
+	compareTime := time.Date(2016, time.August, 1, 0, 0, 0, 0, time.UTC)
+
+	result := ParseDateFilterToTime(testString)
+
+	if result != compareTime {
+		t.Fatalf(fmt.Sprintf("parsed date doesn't match the expected result: parsed result %v and expected time %v", result, compareTime))
 	}
 }
 
@@ -628,5 +664,62 @@ func TestNowhereNil(t *testing.T) {
 			t.Parallel()
 			require.Equal(t, testCase.Expected, checkNowhereNil(t, "value", testCase.Value))
 		})
+	}
+}
+
+// checkNowhereNil checks that the given interface value is not nil, and if a struct, that all of
+// its public fields are also nowhere nil
+func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
+	if value == nil {
+		return false
+	}
+
+	v := reflect.ValueOf(value)
+	switch v.Type().Kind() {
+	case reflect.Ptr:
+		if v.IsNil() {
+			t.Logf("%s was nil", name)
+			return false
+		}
+
+		return checkNowhereNil(t, fmt.Sprintf("(*%s)", name), v.Elem().Interface())
+
+	case reflect.Map:
+		if v.IsNil() {
+			t.Logf("%s was nil", name)
+			return false
+		}
+
+		// Don't check map values
+		return true
+
+	case reflect.Struct:
+		nowhereNil := true
+		for i := 0; i < v.NumField(); i++ {
+			f := v.Field(i)
+			// Ignore unexported fields
+			if v.Type().Field(i).PkgPath != "" {
+				continue
+			}
+
+			nowhereNil = nowhereNil && checkNowhereNil(t, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), f.Interface())
+		}
+
+		return nowhereNil
+
+	case reflect.Array:
+		fallthrough
+	case reflect.Chan:
+		fallthrough
+	case reflect.Func:
+		fallthrough
+	case reflect.Interface:
+		fallthrough
+	case reflect.UnsafePointer:
+		t.Logf("unhandled field %s, type: %s", name, v.Type().Kind())
+		return false
+
+	default:
+		return true
 	}
 }

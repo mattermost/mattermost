@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	MAX_ADD_MEMBERS_BATCH = 20
+	MAX_ADD_MEMBERS_BATCH    = 20
+	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
 )
 
 func (api *API) InitTeam() {
@@ -641,7 +642,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(10000000); err != nil {
+	if err := r.ParseMultipartForm(MAXIMUM_BULK_IMPORT_SIZE); err != nil {
 		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}

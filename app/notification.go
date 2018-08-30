@@ -163,7 +163,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if post.IsSystemMessage() {
 		senderName = utils.T("system.message.name")
 	} else {
-		if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
+		if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" && channel.Type != model.CHANNEL_DIRECT {
 			senderName = value.(string)
 			senderUsername = value.(string)
 		} else {

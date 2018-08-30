@@ -232,12 +232,12 @@
     "translation": "Nu se poate elimina utilizatorul din canalul implicit {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v eliminat din canal."
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Nu se poate elimina utilizatorul dintr-un canal."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "Canalul a fost arhivat sau șters"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v eliminat din canal."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1031,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "Fișierele atașate au fost dezactivate pe acest server."
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "Nu se poate afla dacă fișierul există. A apărut o eroare la încercarea de a verifica existența fișierului."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "Nu se poate afla dacă fișierul există. A apărut o eroare la încercarea de a verifica existența fișierului."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2507,6 +2515,10 @@
     "translation": "Linie de date import a tip \"direct_post\", dar obiectul direct_post este nul."
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "Linia de date de import are tipul \"emoji\", dar obiectul emoji este nul."
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "Linia de date de import are tipul \"post\", dar obiectul post este nul."
   },
@@ -3019,10 +3031,6 @@
     "translation": "[{{ .SiteName }}] Notificare în {{ .TeamName}} pe {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "Imposibil de configurat modulul extras."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "Plugin-ul de configurare din fişierul config.json trebuie să fie actualizate manual atunci când se utilizează ReadOnlyConfig cu gruparea activat."
   },
@@ -3087,16 +3095,8 @@
     "translation": "Modulul% 1 nu este instalat"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "Nu pot instala plugin-ul predefinit"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "Imposibil de șters plugin"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "Imposibil de setat plugin statutul de stat."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3217,6 +3217,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "Imposibil de deschis fişierul de export temporar."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Imposibil de re-citit fișierul de export temporar Global Relay."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3399,8 +3403,20 @@
     "translation": "AD/LDAP invalidă filtru"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Imposibil de adăugat atașamentul la exportul Global Relay."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Imposibil de închis corect fișierul zip."
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "Nu am putut crea fișierul% 1."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Imposibil de generat date despre fișierul eml."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4675,8 +4691,8 @@
     "translation": "Termenii și condițiile GitLab au fost actualizați. Te rog du-te la gitlab.com pentru a le accepta și apoi încercați să vă conectați din nou la Mattermost."
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Eroare la invocarea pluginului RPC"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Nu s-a putut seta statutul utilizatorilor. Stare utilizator necunoscut."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4889,6 +4905,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "Noi nu a putut reseta scheme de canal"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "Nu am putut reseta ultimul post al canalului la data respectivă"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "Nu puteți modifica un canal arhivat"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5119,6 +5143,10 @@
     "translation": "Nu am putut salva emoji"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "Nu am putut șterge atașamentele utilizatorului"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "Nu am putut atașa informațiile despre fișier la post"
   },
@@ -5137,6 +5165,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "Nu am putut obține informațiile despre fișier pentru post"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "Nu am putut obține fișierul informativ pentru utilizator"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5717,6 +5749,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "Am întâlnit o eroare la actualizarea sistemului de proprietate"
+  },
+  {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "Nu am putut obține numărul canalelor pentru schemă."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

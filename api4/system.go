@@ -40,6 +40,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.ApiRoot.Handle("/analytics/old", api.ApiSessionRequired(getAnalytics)).Methods("GET")
+
+	api.BaseRoutes.ApiRoot.Handle("/redirect_location", api.ApiSessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -446,4 +448,34 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Query().Get("url")
+	if len(url) == 0 {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	m := make(map[string]string)
+	m["location"] = ""
+
+	res, err := client.Head(url)
+	if err != nil {
+		// Always return a success status and a JSON string to limit the amount of information returned to a
+		// hacker attempting to use Mattermost to probe a private network.
+		w.Write([]byte(model.MapToJson(m)))
+		return
+	}
+
+	m["location"] = res.Header.Get("Location")
+
+	w.Write([]byte(model.MapToJson(m)))
+	return
 }

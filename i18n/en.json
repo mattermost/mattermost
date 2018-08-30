@@ -156,10 +156,6 @@
     "translation": "The channel has been archived or deleted"
   },
   {
-    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "We couldn't get the channel count for the scheme."
-  },
-  {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Cannot delete direct or group message channels"
   },
@@ -1439,6 +1435,14 @@
     "translation": "Unable to set user preferences."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "You cannot remove a reaction in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "You cannot react in an archived channel."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "Reaction is not valid."
   },
@@ -1655,6 +1659,10 @@
     "translation": "%v joined the team."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your team or system administrator for details."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
   },
@@ -1729,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Specified user is not a member of specified team."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -4696,7 +4708,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user statys. Unknown user status."
+    "translation": "Unable to set the user status. Unknown user status."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5753,6 +5765,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "We encountered an error updating the system property"
+  },
+  {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "We couldn't get the channel count for the scheme."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

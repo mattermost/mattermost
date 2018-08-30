@@ -15,9 +15,11 @@ func (s *RedisSupplier) RoleSave(ctx context.Context, role *model.Role, hints ..
 	key := buildRedisKeyForRoleName(role.Name)
 	result := s.Next().RoleSave(ctx, role, hints...)
 
-	if err := s.client.Del(key).Err(); err != nil {
-		mlog.Error("Redis failed to remove key " + key + " Error: " + err.Error())
-	}
+	defer func() {
+		if err := s.client.Del(key).Err(); err != nil {
+			mlog.Error("Redis failed to remove key " + key + " Error: " + err.Error())
+		}
+	}()
 
 	return result
 }
@@ -89,15 +91,17 @@ func (s *RedisSupplier) RoleDelete(ctx context.Context, roleId string, hints ...
 	result := s.Next().RoleGet(ctx, roleId, hints...)
 
 	if result.Err == nil {
-		role := result.Data.(*model.Role)
-		key := buildRedisKeyForRoleName(role.Name)
+		defer func() {
+			role := result.Data.(*model.Role)
+			key := buildRedisKeyForRoleName(role.Name)
 
-		if err := s.client.Del(key).Err(); err != nil {
-			mlog.Error("Redis failed to remove key " + key + " Error: " + err.Error())
-		}
+			if err := s.client.Del(key).Err(); err != nil {
+				mlog.Error("Redis failed to remove key " + key + " Error: " + err.Error())
+			}
+		}()
 	}
 
-	return result
+	return s.Next().RoleDelete(ctx, roleId, hints...)
 }
 
 func (s *RedisSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
