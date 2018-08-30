@@ -3227,6 +3227,14 @@
     "translation": "at"
   },
   {
+    "id": "app.reminder.chrono.pm",
+    "translation": "pm"
+  },
+  {
+    "id": "app.reminder.chrono.am",
+    "translation": "am"
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },

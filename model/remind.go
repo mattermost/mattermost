@@ -23,7 +23,8 @@ type Occurrence struct {
 	UserId     string `json:"user_id"`
 	ReminderId string `json:"reminder_id"`
 	Repeat     string `json:"repeat"`
-	Occurrence int64  `json:"occurrence"`
+	//Occurrence int64  `json:"occurrence"`
+	Occurrence string `json:"occurrence"`
 	Snoozed    int64  `json:"snoozed"`
 }
 
