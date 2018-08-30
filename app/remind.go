@@ -484,6 +484,39 @@ func (a *App) createOccurrences(request *model.ReminderRequest) (error) {
 
 	}
 
+	if strings.HasPrefix(request.Reminder.When, translateFunc("app.reminder.chrono.at")) {
+
+		occurrences, inErr := a.at(request.Reminder.When, user)
+		if inErr != nil {
+			mlog.Error(inErr.Error())
+			return inErr
+		}
+
+		for _, o := range occurrences {
+
+			occurrence := &model.Occurrence{
+				model.NewId(),
+				request.UserId,
+				request.Reminder.Id,
+				"",
+				o.Format(time.UnixDate),  //.UnixNano(),
+				emptyTime.UnixNano(),
+			}
+
+			schan := a.Srv.Store.Remind().SaveOccurrence(occurrence)
+			if result := <-schan; result.Err != nil {
+				mlog.Error("error: " + result.Err.Message)
+				return result.Err
+			}
+
+			request.Occurrences = append(request.Occurrences, *occurrence)
+
+		}
+
+		return nil
+
+	}
+
 	// TODO handle the other when prefix's
 
 	return errors.New("unable to create occurrences")
@@ -633,21 +666,124 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
-	//  *  at [(noon|midnight|one..twelve|00:00am/pm|0000)] (every) [day|date]
-	//at midnight
-	//at noon
-	//handle patterns
-	//whenSplit := strings.Split(when, " ")
-	//value := whenSplit[1]
-	//units := whenSplit[len(whenSplit)-1]
-	//
-	//_, location, translateFunc, _ := a.shared(user.Id)
+	_, _, translateFunc, _ := a.shared(user.Id)
 	//cfg := a.Config()
-	//
-	//switch units {
-	//
-	//}
+
+	whenTrim := strings.Trim(when, translateFunc("app.reminder.chrono.at")+" ")
+	whenSplit := strings.Split(whenTrim, " ")
+	normalizedWhen := strings.ToLower(whenSplit[0])
+
+	if strings.Contains(when, "every") {
+		// TODO <time> every <day/date>
+	} else if len(whenSplit) >= 2 && (strings.EqualFold(whenSplit[1], translateFunc("app.reminder.chrono.pm")) ||
+			strings.EqualFold(whenSplit[1], translateFunc("app.reminder.chrono.am"))) {
+
+		t, pErr := time.Parse(time.Kitchen, normalizedWhen+strings.ToUpper(whenSplit[1]))
+		if pErr != nil {
+			mlog.Error(fmt.Sprintf("%v", pErr))
+		}
+
+		// TODO use time location optionally
+		// TODO round to seconds
+		// TODO ensure correct time is being set
+
+		now := time.Now()
+
+		mlog.Debug("before: "+fmt.Sprintf("%v", t))
+		t = t.AddDate(now.Year(), int(now.Month()), now.Day()-1)
+		mlog.Debug("after: "+fmt.Sprintf("%v", t))
+		mlog.Debug("after2: "+fmt.Sprintf("%v", a.chooseClosest(user, &t, false)))
+		return append(times, a.chooseClosest(user, &t, false)), nil
+
+	} else if strings.HasSuffix(normalizedWhen, "pm") || strings.HasSuffix(normalizedWhen, "am") {
+		// TODO
+	}
+
+	switch normalizedWhen {
+
+	case "noon":
+
+		now := time.Now()
+
+		noon, pErr :=  time.Parse(time.Kitchen, "12:00PM")
+		if pErr != nil {
+			return []time.Time{}, pErr
+		}
+
+		noon = noon.AddDate(now.Year(), int(now.Month())-1, now.Day()-1)
+		mlog.Debug("before: "+fmt.Sprintf("%v", noon))
+		mlog.Debug("after: "+fmt.Sprintf("%v", a.chooseClosest(user, &noon, true)))
+
+		return []time.Time{a.chooseClosest(user, &noon, true)}, nil
+
+	case "midnight":
+
+		midnight, pErr :=  time.Parse(time.Kitchen, "12:00AM")
+		if pErr != nil {
+			return []time.Time{}, pErr
+		}
+
+		return []time.Time{a.chooseClosest(user, &midnight, true)}, nil
+
+	case "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve":
+		//TODO
+	default:
+		//00:00, 0000
+	}
+
 	return []time.Time{}, nil
+}
+
+func (a *App) chooseClosest(user *model.User, chosen *time.Time, interval bool) (time.Time) {
+
+	_, location, _, _ := a.shared(user.Id)
+	cfg := a.Config()
+
+	if interval {
+		mlog.Debug("interval")
+		if chosen.Before(time.Now()) {
+			mlog.Debug("chosen before now")
+			if *cfg.DisplaySettings.ExperimentalTimezone {
+				mlog.Debug("timezone")
+				return chosen.In(location).Round(time.Second).Add(time.Hour*24*time.Duration(1))
+			} else {
+				mlog.Debug("no timezone")
+				return chosen.Round(time.Second).Add(time.Hour*24*time.Duration(1))
+			}
+		} else {
+			mlog.Debug("chosen after now")
+			mlog.Debug(time.Now().String())
+			mlog.Debug(chosen.String())
+			return *chosen
+		}
+	} else {
+		mlog.Debug("non interval")
+		if chosen.Before(time.Now()) {
+			mlog.Debug("chosen before now")
+			if chosen.Add(time.Hour*12*time.Duration(1)).Before(time.Now()) {
+				mlog.Debug("chosen + 12 hours before now")
+				if *cfg.DisplaySettings.ExperimentalTimezone {
+					mlog.Debug("timezone")
+					return chosen.In(location).Round(time.Second).Add(time.Hour*24*time.Duration(1))
+				} else {
+					mlog.Debug("no timezone")
+					return chosen.Round(time.Second).Add(time.Hour*24*time.Duration(1))
+				}
+			} else {
+				mlog.Debug("chosen + 12 hours after now")
+				if *cfg.DisplaySettings.ExperimentalTimezone {
+					mlog.Debug("timezone")
+					return chosen.In(location).Round(time.Second).Add(time.Hour*12*time.Duration(1))
+				} else {
+					mlog.Debug("no timezone")
+					return chosen.Round(time.Second).Add(time.Hour*12*time.Duration(1))
+				}
+			}
+		} else {
+			mlog.Debug("chosen after now")
+			return *chosen
+		}
+	}
 }
 
 func (a *App) shared(userId string) (*model.User, *time.Location, i18n.TranslateFunc, error) {
