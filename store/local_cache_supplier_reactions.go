@@ -18,7 +18,7 @@ func (s *LocalCacheSupplier) handleClusterInvalidateReaction(msg *model.ClusterM
 }
 
 func (s *LocalCacheSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	s.doInvalidateCacheCluster(s.reactionCache, reaction.PostId)
+	defer s.doInvalidateCacheCluster(s.reactionCache, reaction.PostId)
 	return s.Next().ReactionSave(ctx, reaction, hints...)
 }
 
