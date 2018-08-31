@@ -1077,11 +1077,27 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 		}
 	}
 
-	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post3.Id, 1, 1, "")
+	if posts.NextPostId != post3.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PreviousPostId != "" {
+		t.Fatal("should match empty PreviousPostId")
+	}
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post4.Id, 1, 1, "")
 	CheckNoError(t, resp)
 
 	if len(posts.Posts) != 1 {
 		t.Fatal("too many posts returned")
+	}
+	if posts.Order[0] != post2.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post4.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PreviousPostId != post1.Id {
+		t.Fatal("should match PreviousPostId")
 	}
 
 	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "")
@@ -1089,6 +1105,9 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 
 	if len(posts.Posts) != 0 {
 		t.Fatal("should have no posts")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should match empty NextPostId")
 	}
 
 	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 0, 100, "")
@@ -1113,11 +1132,27 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 		}
 	}
 
-	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 1, 1, "")
+	if posts.NextPostId != "" {
+		t.Fatal("should match empty NextPostId")
+	}
+	if posts.PreviousPostId != post3.Id {
+		t.Fatal("should match PreviousPostId")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post2.Id, 1, 1, "")
 	CheckNoError(t, resp)
 
 	if len(posts.Posts) != 1 {
 		t.Fatal("too many posts returned")
+	}
+	if posts.Order[0] != post4.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post5.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PreviousPostId != post2.Id {
+		t.Fatal("should match PreviousPostId")
 	}
 
 	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, "junk", 1, 1, "")
@@ -1125,6 +1160,9 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 
 	if len(posts.Posts) != 0 {
 		t.Fatal("should have no posts")
+	}
+	if posts.PreviousPostId != "" {
+		t.Fatal("should match empty PreviousPostId")
 	}
 }
 

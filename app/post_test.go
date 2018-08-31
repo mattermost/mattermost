@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
+	"strings"
 	"testing"
 	"time"
 

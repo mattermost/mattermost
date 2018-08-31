@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -709,6 +710,51 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, numPosts 
 
 			result.Data = list
 		}
+	})
+}
+
+func (s *SqlPostStore) GetPostBefore(channelId, postId string) store.StoreChannel {
+	return s.getPostAround(channelId, postId, true)
+}
+
+func (s *SqlPostStore) GetPostAfter(channelId, postId string) store.StoreChannel {
+	return s.getPostAround(channelId, postId, false)
+}
+
+func (s *SqlPostStore) getPostAround(channelId string, postId string, before bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var direction string
+		var sort string
+		if before {
+			direction = "<"
+			sort = "DESC"
+		} else {
+			direction = ">"
+			sort = "ASC"
+		}
+
+		var post *model.Post
+		err := s.GetReplica().SelectOne(
+			&post,
+			`(SELECT
+			    *
+			FROM
+			    Posts
+			WHERE
+				(CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+			        AND ChannelId = :ChannelId
+					AND DeleteAt = 0)
+				ORDER BY CreateAt `+sort+`
+				LIMIT 1
+				OFFSET 0)`,
+			map[string]interface{}{"ChannelId": channelId, "PostId": postId})
+		if err != nil {
+			if err != sql.ErrNoRows {
+				result.Err = model.NewAppError("SqlPostStore.getPostAround", "store.sql_post.get_post_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+			}
+		}
+
+		result.Data = post
 	})
 }
 

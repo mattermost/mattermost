@@ -194,6 +194,38 @@ func (_m *PostStore) GetOldest() store.StoreChannel {
 	return r0
 }
 
+// GetPostAfter provides a mock function with given fields: channelId, postId
+func (_m *PostStore) GetPostAfter(channelId string, postId string) store.StoreChannel {
+	ret := _m.Called(channelId, postId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(channelId, postId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetPostBefore provides a mock function with given fields: channelId, postId
+func (_m *PostStore) GetPostBefore(channelId string, postId string) store.StoreChannel {
+	ret := _m.Called(channelId, postId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(channelId, postId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetPosts provides a mock function with given fields: channelId, offset, limit, allowFromCache
 func (_m *PostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(channelId, offset, limit, allowFromCache)
