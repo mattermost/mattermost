@@ -414,7 +414,7 @@ type RemindStore interface {
 	SaveReminder(reminder *model.Reminder) StoreChannel
 	SaveOccurrence(occurrence *model.Occurrence) StoreChannel
 	GetByUser(userId string) StoreChannel
-	GetByTime(time int64) StoreChannel
+	GetByTime(time string) StoreChannel
 	GetReminder(reminderId string) StoreChannel
 	GetByReminder(reminderId string) StoreChannel
 	DeleteForUser(userId string) StoreChannel

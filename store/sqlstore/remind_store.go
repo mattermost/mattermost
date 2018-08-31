@@ -28,14 +28,14 @@ func NewSqlRemindStore(sqlStore SqlStore) store.RemindStore {
 		table.ColMap("Target").SetMaxSize(64)
 		table.ColMap("Message").SetMaxSize(4096)
 		table.ColMap("When").SetMaxSize(128)
-		table.ColMap("Completed").SetMaxSize(26)
+		table.ColMap("Completed").SetMaxSize(40)
 
 		table2 := db.AddTableWithName(model.Occurrence{}, "Occurrences").SetKeys(false, "Id")
 		table2.ColMap("Id").SetMaxSize(26)
 		table2.ColMap("UserId").SetMaxSize(26)
 		table2.ColMap("ReminderId").SetMaxSize(26)
-		table2.ColMap("Occurrence").SetMaxSize(26)
-		table2.ColMap("Snoozed").SetMaxSize(26)
+		table2.ColMap("Occurrence").SetMaxSize(40)
+		table2.ColMap("Snoozed").SetMaxSize(40)
 		table2.ColMap("Repeat").SetMaxSize(128)
 	}
 	return s
@@ -45,6 +45,7 @@ func (s SqlRemindStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_reminder_user_id", "Reminders", "UserId")
 	s.CreateIndexIfNotExists("idx_occurrence_user_id", "Occurrences", "UserId")
 	s.CreateIndexIfNotExists("idx_occurrence_occurrence", "Occurrences", "Occurrence")
+	s.CreateIndexIfNotExists("idx_occurrence_snoozed", "Occurrences", "Snoozed")
 }
 
 func (s SqlRemindStore) SaveReminder(reminder *model.Reminder) store.StoreChannel {
@@ -86,7 +87,8 @@ func (s SqlRemindStore) GetByUser(userId string) store.StoreChannel {
 	})
 }
 
-func (s SqlRemindStore) GetByTime(time int64) store.StoreChannel {
+//func (s SqlRemindStore) GetByTime(time int64) store.StoreChannel {
+func (s SqlRemindStore) GetByTime(time string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 
 		query := "SELECT * FROM Occurrences WHERE Occurrence = :Occurrence"

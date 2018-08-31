@@ -19,6 +19,11 @@ import (
 var running bool
 var remindUser *model.User
 var emptyTime time.Time
+var numbers map[string]int
+var onumbers map[string]int
+var tnumbers map[string]int
+
+
 
 func (a *App) InitReminders() {
 
@@ -39,6 +44,80 @@ func (a *App) InitReminders() {
 
 	remindUser = user
 	emptyTime = time.Time{}.AddDate(1, 1, 1)
+
+	_, _, translationFunc, _ := a.shared(user.Id)
+
+	numbers = make(map[string]int)
+	onumbers = make(map[string]int)
+	tnumbers = make(map[string]int)
+
+	numbers[translationFunc("app.reminder.chrono.zero")] = 0
+	numbers[translationFunc("app.reminder.chrono.one")] = 1
+	numbers[translationFunc("app.reminder.chrono.two")] = 2
+	numbers[translationFunc("app.reminder.chrono.three")] = 3
+	numbers[translationFunc("app.reminder.chrono.four")] = 4
+	numbers[translationFunc("app.reminder.chrono.five")] = 5
+	numbers[translationFunc("app.reminder.chrono.six")] = 6
+	numbers[translationFunc("app.reminder.chrono.seven")] = 7
+	numbers[translationFunc("app.reminder.chrono.eight")] = 8
+	numbers[translationFunc("app.reminder.chrono.nine")] = 9
+	numbers[translationFunc("app.reminder.chrono.ten")] = 10
+	numbers[translationFunc("app.reminder.chrono.eleven")] = 11
+	numbers[translationFunc("app.reminder.chrono.twelve")] = 12
+	numbers[translationFunc("app.reminder.chrono.thirteen")] = 13
+	numbers[translationFunc("app.reminder.chrono.fourteen")] = 14
+	numbers[translationFunc("app.reminder.chrono.fifteen")] = 15
+	numbers[translationFunc("app.reminder.chrono.sixteen")] = 16
+	numbers[translationFunc("app.reminder.chrono.seventeen")] = 17
+	numbers[translationFunc("app.reminder.chrono.eighteen")] = 18
+	numbers[translationFunc("app.reminder.chrono.nineteen")] = 19
+
+	//tnumbers["twenty"] = 20
+	//tnumbers["thirty"] = 30
+	//tnumbers["fourty"] = 40
+	//tnumbers["fifty"] = 50
+	//tnumbers["sixty"] = 60
+	//tnumbers["seventy"] = 70
+	//tnumbers["eighty"] = 80
+	//tnumbers["ninety"] = 90
+	//
+	//onumbers["hundred"] = 100
+	//onumbers["thousand"] = 100
+	//onumbers["million"] = 100
+	//onumbers["billion"] = 100
+	//
+	//numbers["first"] = 1
+	//numbers["second"] = 2
+	//numbers["third"] = 3
+	//numbers["fourth"] = 4
+	//numbers["fifth"] = 5
+	//numbers["sixth"] = 6
+	//numbers["seventh"] = 7
+	//numbers["eighth"] = 8
+	//numbers["nineth"] = 9
+	//numbers["tenth"] = 10
+	//numbers["eleventh"] = 11
+	//numbers["twelveth"] = 12
+	//numbers["thirteenth"] = 13
+	//numbers["fourteenth"] = 14
+	//numbers["fifteenth"] = 15
+	//numbers["sixteenth"] = 16
+	//numbers["seventeenth"] = 17
+	//numbers["eighteenth"] = 18
+	//numbers["nineteenth"] = 19
+	//
+	//tnumbers["twenteth"] = 20
+	//tnumbers["twentyfirst"] = 21
+	//tnumbers["twentysecond"] = 22
+	//tnumbers["twentythird"] = 23
+	//tnumbers["twentyfourth"] = 24
+	//tnumbers["twentyfifth"] = 25
+	//tnumbers["twentysixth"] = 26
+	//tnumbers["twentyseventh"] = 27
+	//tnumbers["twentyeight"] = 28
+	//tnumbers["twentynineth"] = 29
+	//tnumbers["thirteth"] = 30
+	//tnumbers["thirtyfirst"] = 31
 
 	if !running {
 		running = true
@@ -65,7 +144,7 @@ func (a *App) runner() {
 
 func (a *App) triggerReminders() {
 
-	t := time.Now().UTC().Round(time.Second).UnixNano()
+	t := time.Now().Round(time.Second).Format(time.UnixDate)
 	schan := a.Srv.Store.Remind().GetByTime(t)
 
 	if result := <-schan; result.Err != nil {
@@ -235,21 +314,26 @@ func (a *App) ListReminders(userId string) (string) {
 
 			for _, occurrence := range occurrences {
 
-				if reminder.Completed == emptyTime.UnixNano() &&
-					(occurrence.Repeat == "" &&
-						time.Unix(0, occurrence.Occurrence).After(time.Now())) ||
-					(occurrence.Snoozed != emptyTime.UnixNano() && time.Unix(0, occurrence.Snoozed).After(time.Now())) {
+				t, pErr := time.Parse(time.UnixDate, occurrence.Occurrence)
+				s, pErr2 := time.Parse(time.UnixDate, occurrence.Snoozed)
+				if pErr != nil || pErr2 != nil {
+					continue
+				}
+
+				if reminder.Completed == emptyTime.Format(time.UnixDate) &&
+					(occurrence.Repeat == "" && t.After(time.Now())) ||
+					(s != emptyTime && s.After(time.Now())) {
 					upcomingOccurrences = append(upcomingOccurrences, occurrence)
 				}
 
 				if occurrence.Repeat != "" &&
-					time.Unix(0, occurrence.Occurrence).After(time.Now()) {
+					t.After(time.Now()) {
 					recurringOccurrences = append(recurringOccurrences, occurrence)
 				}
 
-				if reminder.Completed == emptyTime.UnixNano() &&
-					time.Unix(0, occurrence.Occurrence).Before(time.Now()) &&
-					occurrence.Snoozed == emptyTime.UnixNano() {
+				if reminder.Completed == emptyTime.Format(time.UnixDate)  &&
+					t.Before(time.Now()) &&
+					s == emptyTime {
 					pastOccurrences = append(pastOccurrences, occurrence)
 				}
 
@@ -301,7 +385,10 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 
 		reminder := a.findReminder(occurrence.ReminderId, reminders)
 
-		t := time.Unix(0, occurrence.Occurrence)
+		t, tErr := time.Parse(time.UnixDate, occurrence.Occurrence)
+		if tErr != nil {
+			continue
+		}
 
 		var formattedOccurrence string
 		if *cfg.DisplaySettings.ExperimentalTimezone {
@@ -357,7 +444,7 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 
 	if pErr := a.parseRequest(request); pErr != nil {
 		mlog.Error(pErr.Error())
-		return model.REMIND_EXCEPTION_TEXT, nil
+		return translateFunc(model.REMIND_EXCEPTION_TEXT), nil
 	}
 
 	useTo := strings.HasPrefix(request.Reminder.Message, translateFunc("app.reminder.chrono.to"))
@@ -371,17 +458,17 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 	request.Reminder.Id = model.NewId()
 	request.Reminder.TeamId = request.TeamId
 	request.Reminder.UserId = request.UserId
-	request.Reminder.Completed = emptyTime.UnixNano()
+	request.Reminder.Completed = emptyTime.Format(time.UnixDate)
 
 	if cErr := a.createOccurrences(request); cErr != nil {
 		mlog.Error(cErr.Error())
-		return model.REMIND_EXCEPTION_TEXT, nil
+		return translateFunc(model.REMIND_EXCEPTION_TEXT), nil
 	}
 
 	schan := a.Srv.Store.Remind().SaveReminder(&request.Reminder)
 	if result := <-schan; result.Err != nil {
 		mlog.Error(result.Err.Message)
-		return model.REMIND_EXCEPTION_TEXT, nil
+		return translateFunc(model.REMIND_EXCEPTION_TEXT), nil
 	}
 
 	if request.Reminder.Target == translateFunc("app.reminder.me") {
@@ -466,8 +553,8 @@ func (a *App) createOccurrences(request *model.ReminderRequest) (error) {
 				request.UserId,
 				request.Reminder.Id,
 				"",
-				o.UnixNano(),
-				emptyTime.UnixNano(),
+				o.Format(time.UnixDate),
+				emptyTime.Format(time.UnixDate),
 			}
 
 			schan := a.Srv.Store.Remind().SaveOccurrence(occurrence)
@@ -488,7 +575,6 @@ func (a *App) createOccurrences(request *model.ReminderRequest) (error) {
 
 		occurrences, inErr := a.at(request.Reminder.When, user)
 		if inErr != nil {
-			mlog.Error(inErr.Error())
 			return inErr
 		}
 
@@ -499,8 +585,8 @@ func (a *App) createOccurrences(request *model.ReminderRequest) (error) {
 				request.UserId,
 				request.Reminder.Id,
 				"",
-				o.Format(time.UnixDate),  //.UnixNano(),
-				emptyTime.UnixNano(),
+				o.Format(time.UnixDate),
+				emptyTime.Format(time.UnixDate),
 			}
 
 			schan := a.Srv.Store.Remind().SaveOccurrence(occurrence)
@@ -664,123 +750,204 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 }
 
 
+// TODO ensure on all parts of this function
+// TODO use time location optionally
+// TODO round to seconds
+// TODO ensure correct time is being set
 func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
 	_, _, translateFunc, _ := a.shared(user.Id)
-	//cfg := a.Config()
 
-	whenTrim := strings.Trim(when, translateFunc("app.reminder.chrono.at")+" ")
+	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
-	normalizedWhen := strings.ToLower(whenSplit[0])
+	normalizedWhen := strings.ToLower(whenSplit[1])
 
 	if strings.Contains(when, "every") {
-		// TODO <time> every <day/date>
-	} else if len(whenSplit) >= 2 && (strings.EqualFold(whenSplit[1], translateFunc("app.reminder.chrono.pm")) ||
-			strings.EqualFold(whenSplit[1], translateFunc("app.reminder.chrono.am"))) {
+		// TODO <time> every <day/date> //will leverage the every(...) function
+	} else if len(whenSplit) >= 3 &&
+			(strings.EqualFold(whenSplit[2], translateFunc("app.reminder.chrono.pm")) ||
+			strings.EqualFold(whenSplit[2], translateFunc("app.reminder.chrono.am"))) {
 
-		t, pErr := time.Parse(time.Kitchen, normalizedWhen+strings.ToUpper(whenSplit[1]))
+		if !strings.Contains(normalizedWhen, ":") {
+			normalizedWhen = normalizedWhen + ":00"
+		}
+
+		t, pErr := time.Parse(time.Kitchen, normalizedWhen+strings.ToUpper(whenSplit[2]))
 		if pErr != nil {
 			mlog.Error(fmt.Sprintf("%v", pErr))
 		}
 
-		// TODO use time location optionally
-		// TODO round to seconds
-		// TODO ensure correct time is being set
+		now := time.Now().Round(time.Hour * time.Duration(24))
+		occurrence := t.AddDate(now.Year(), int(now.Month())-1, now.Day()-1)
+		return []time.Time{a.chooseClosest(user, &occurrence, true)}, nil
 
-		now := time.Now()
+	} else if strings.HasSuffix(normalizedWhen, translateFunc("app.reminder.chrono.pm")) ||
+			strings.HasSuffix(normalizedWhen, translateFunc("app.reminder.chrono.am")) {
 
-		mlog.Debug("before: "+fmt.Sprintf("%v", t))
-		t = t.AddDate(now.Year(), int(now.Month()), now.Day()-1)
-		mlog.Debug("after: "+fmt.Sprintf("%v", t))
-		mlog.Debug("after2: "+fmt.Sprintf("%v", a.chooseClosest(user, &t, false)))
-		return append(times, a.chooseClosest(user, &t, false)), nil
+		if !strings.Contains(normalizedWhen, ":") {
+			s := normalizedWhen[:len(normalizedWhen)-2]
+			normalizedWhen = s + ":00" + normalizedWhen[len(normalizedWhen)-2:]
+		}
 
-	} else if strings.HasSuffix(normalizedWhen, "pm") || strings.HasSuffix(normalizedWhen, "am") {
-		// TODO
+		t, pErr := time.Parse(time.Kitchen, strings.ToUpper(normalizedWhen))
+		if pErr != nil {
+			mlog.Error(fmt.Sprintf("%v", pErr))
+		}
+
+		now := time.Now().Round(time.Hour * time.Duration(24))
+		occurrence := t.AddDate(now.Year(), int(now.Month())-1, now.Day()-1)
+		return []time.Time{a.chooseClosest(user, &occurrence, true)}, nil
+
 	}
 
 	switch normalizedWhen {
 
-	case "noon":
+	case translateFunc("app.reminder.chrono.noon"):
 
 		now := time.Now()
 
 		noon, pErr :=  time.Parse(time.Kitchen, "12:00PM")
 		if pErr != nil {
+			mlog.Error(fmt.Sprintf("%v", pErr))
 			return []time.Time{}, pErr
 		}
 
 		noon = noon.AddDate(now.Year(), int(now.Month())-1, now.Day()-1)
-		mlog.Debug("before: "+fmt.Sprintf("%v", noon))
-		mlog.Debug("after: "+fmt.Sprintf("%v", a.chooseClosest(user, &noon, true)))
-
 		return []time.Time{a.chooseClosest(user, &noon, true)}, nil
 
-	case "midnight":
+	case translateFunc("app.reminder.chrono.midnight"):
+
+		now := time.Now()
 
 		midnight, pErr :=  time.Parse(time.Kitchen, "12:00AM")
+		if pErr != nil {
+			mlog.Error(fmt.Sprintf("%v", pErr))
+			return []time.Time{}, pErr
+		}
+
+		midnight = midnight.AddDate(now.Year(), int(now.Month())-1, now.Day()-1)
+		return []time.Time{a.chooseClosest(user, &midnight, true)}, nil
+
+	case translateFunc("app.reminder.chrono.one"),
+		translateFunc("app.reminder.chrono.two"),
+		translateFunc("app.reminder.chrono.three"),
+		translateFunc("app.reminder.chrono.four"),
+		translateFunc("app.reminder.chrono.five"),
+		translateFunc("app.reminder.chrono.six"),
+		translateFunc("app.reminder.chrono.seven"),
+		translateFunc("app.reminder.chrono.eight"),
+		translateFunc("app.reminder.chrono.nine"),
+		translateFunc("app.reminder.chrono.ten"),
+		translateFunc("app.reminder.chrono.eleven"),
+		translateFunc("app.reminder.chrono.twelve"):
+
+		now := time.Now()
+
+		num, wErr := a.wordToNumber(normalizedWhen)
+		if wErr != nil {
+			mlog.Error(fmt.Sprintf("%v", wErr))
+			return []time.Time{}, wErr
+		}
+
+		wordTime := now.Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		return []time.Time{a.chooseClosest(user, &wordTime, false)}, nil
+
+	case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12":
+
+		now := time.Now()
+
+		num, wErr := strconv.Atoi(normalizedWhen)
+		if wErr != nil {
+			mlog.Error(fmt.Sprintf("%v", wErr))
+			return []time.Time{}, wErr
+		}
+
+		wordTime := now.Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		return []time.Time{a.chooseClosest(user, &wordTime, false)}, nil
+
+	default:
+
+		if !strings.Contains(normalizedWhen, ":") && len(normalizedWhen) >= 3 {
+			s := normalizedWhen[:len(normalizedWhen)-2]
+			normalizedWhen = s + ":" + normalizedWhen[len(normalizedWhen)-2:]
+		}
+
+		t, pErr := time.Parse(time.Kitchen, strings.ToUpper(normalizedWhen+translateFunc("app.reminder.chrono.am")))
 		if pErr != nil {
 			return []time.Time{}, pErr
 		}
 
-		return []time.Time{a.chooseClosest(user, &midnight, true)}, nil
+		now := time.Now().Round(time.Hour * time.Duration(24))
+		occurrence := t.AddDate(now.Year(), int(now.Month())-1, now.Day()-1)
+		return []time.Time{a.chooseClosest(user, &occurrence, false)}, nil
 
-	case "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve":
-		//TODO
-	default:
-		//00:00, 0000
 	}
 
 	return []time.Time{}, nil
 }
 
-func (a *App) chooseClosest(user *model.User, chosen *time.Time, interval bool) (time.Time) {
+func (a *App) wordToNumber(word string) (int, error) {
+	var sum int
+	var temp int
+	var previous int
+	splitted := strings.Split(strings.ToLower(word), " ")
+
+	for _, split := range splitted {
+		if numbers[split] != 0 {
+			temp = numbers[split]
+			sum = sum + temp
+			previous = previous + temp
+		} else if onumbers[split] != 0 {
+			if sum != 0 {
+				sum = sum - previous
+			}
+			sum = sum + previous * onumbers[split]
+			temp = 0
+			previous = 0
+		} else if tnumbers[split] != 0 {
+			temp = tnumbers[split]
+			sum = sum + temp
+		}
+	}
+
+	if sum == 0 {
+		return 0, errors.New("couldn't format number")
+	}
+
+	return sum, nil
+}
+
+func (a *App) chooseClosest(user *model.User, chosen *time.Time, dayInterval bool) (time.Time) {
 
 	_, location, _, _ := a.shared(user.Id)
 	cfg := a.Config()
 
-	if interval {
-		mlog.Debug("interval")
+	if dayInterval {
 		if chosen.Before(time.Now()) {
-			mlog.Debug("chosen before now")
 			if *cfg.DisplaySettings.ExperimentalTimezone {
-				mlog.Debug("timezone")
 				return chosen.In(location).Round(time.Second).Add(time.Hour*24*time.Duration(1))
 			} else {
-				mlog.Debug("no timezone")
 				return chosen.Round(time.Second).Add(time.Hour*24*time.Duration(1))
 			}
 		} else {
-			mlog.Debug("chosen after now")
-			mlog.Debug(time.Now().String())
-			mlog.Debug(chosen.String())
 			return *chosen
 		}
 	} else {
-		mlog.Debug("non interval")
 		if chosen.Before(time.Now()) {
-			mlog.Debug("chosen before now")
 			if chosen.Add(time.Hour*12*time.Duration(1)).Before(time.Now()) {
-				mlog.Debug("chosen + 12 hours before now")
 				if *cfg.DisplaySettings.ExperimentalTimezone {
-					mlog.Debug("timezone")
 					return chosen.In(location).Round(time.Second).Add(time.Hour*24*time.Duration(1))
 				} else {
-					mlog.Debug("no timezone")
 					return chosen.Round(time.Second).Add(time.Hour*24*time.Duration(1))
 				}
 			} else {
-				mlog.Debug("chosen + 12 hours after now")
 				if *cfg.DisplaySettings.ExperimentalTimezone {
-					mlog.Debug("timezone")
 					return chosen.In(location).Round(time.Second).Add(time.Hour*12*time.Duration(1))
 				} else {
-					mlog.Debug("no timezone")
 					return chosen.Round(time.Second).Add(time.Hour*12*time.Duration(1))
 				}
 			}
 		} else {
-			mlog.Debug("chosen after now")
 			return *chosen
 		}
 	}

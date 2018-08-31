@@ -62,11 +62,11 @@ func (_m *RemindStore) GetByReminder(reminderId string) store.StoreChannel {
 }
 
 // GetByTime provides a mock function with given fields: time
-func (_m *RemindStore) GetByTime(time int64) store.StoreChannel {
+func (_m *RemindStore) GetByTime(time string) store.StoreChannel {
 	ret := _m.Called(time)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int64) store.StoreChannel); ok {
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
 		r0 = rf(time)
 	} else {
 		if ret.Get(0) != nil {

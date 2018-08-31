@@ -3143,6 +3143,10 @@
     "translation": "second"
   },
   {
+    "id": "app.reminder.chrono.seconds",
+    "translation": "seconds"
+  },
+  {
     "id": "app.reminder.chrono.minutes",
     "translation": "minutes"
   },
@@ -3237,6 +3241,94 @@
   {
     "id": "app.reminder.chrono.am",
     "translation": "am"
+  },
+  {
+    "id": "app.reminder.chrono.noon",
+    "translation": "noon"
+  },
+  {
+    "id": "app.reminder.chrono.midnight",
+    "translation": "midnight"
+  },
+  {
+    "id": "app.reminder.chrono.zero",
+    "translation": "zero"
+  },
+  {
+    "id": "app.reminder.chrono.one",
+    "translation": "one"
+  },
+  {
+    "id": "app.reminder.chrono.two",
+    "translation": "two"
+  },
+  {
+    "id": "app.reminder.chrono.three",
+    "translation": "three"
+  },
+  {
+    "id": "app.reminder.chrono.four",
+    "translation": "four"
+  },
+  {
+    "id": "app.reminder.chrono.five",
+    "translation": "five"
+  },
+  {
+    "id": "app.reminder.chrono.six",
+    "translation": "six"
+  },
+  {
+    "id": "app.reminder.chrono.seven",
+    "translation": "seven"
+  },
+  {
+    "id": "app.reminder.chrono.eight",
+    "translation": "eight"
+  },
+  {
+    "id": "app.reminder.chrono.nine",
+    "translation": "nine"
+  },
+  {
+    "id": "app.reminder.chrono.ten",
+    "translation": "ten"
+  },
+  {
+    "id": "app.reminder.chrono.eleven",
+    "translation": "eleven"
+  },
+  {
+    "id": "app.reminder.chrono.twelve",
+    "translation": "twelve"
+  },
+  {
+    "id": "app.reminder.chrono.thirteen",
+    "translation": "thirteen"
+  },
+  {
+    "id": "app.reminder.chrono.fourteen",
+    "translation": "fourteen"
+  },
+  {
+    "id": "app.reminder.chrono.fifteen",
+    "translation": "fifteen"
+  },
+  {
+    "id": "app.reminder.chrono.sixteen",
+    "translation": "sixteen"
+  },
+  {
+    "id": "app.reminder.chrono.seventeen",
+    "translation": "seventeen"
+  },
+  {
+    "id": "app.reminder.chrono.eighteen",
+    "translation": "eighteen"
+  },
+  {
+    "id": "app.reminder.chrono.nineteen",
+    "translation": "nineteen"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
