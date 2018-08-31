@@ -514,7 +514,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     "use_military_time",
+			Name:     model.PREFERENCE_NAME_USE_MILITARY_TIME,
 			Value:    *data.UseMilitaryTime,
 		})
 	}
@@ -523,7 +523,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     "collapse_previews",
+			Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
 			Value:    *data.CollapsePreviews,
 		})
 	}
@@ -532,7 +532,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     "message_display",
+			Name:     model.PREFERENCE_NAME_MESSAGE_DISPLAY,
 			Value:    *data.MessageDisplay,
 		})
 	}

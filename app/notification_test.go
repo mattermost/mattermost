@@ -817,3 +817,200 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 	assert.EqualValues(t, 4, len(mentionEnabledFields))
 	assert.EqualValues(t, expectedFields, mentionEnabledFields)
 }
+
+func TestPostNotificationGetChannelName(t *testing.T) {
+	sender := &model.User{Id: model.NewId(), Username: "sender", FirstName: "Sender", LastName: "Sender", Nickname: "Sender"}
+	recipient := &model.User{Id: model.NewId(), Username: "recipient", FirstName: "Recipient", LastName: "Recipient", Nickname: "Recipient"}
+	otherUser := &model.User{Id: model.NewId(), Username: "other", FirstName: "Other", LastName: "Other", Nickname: "Other"}
+	profileMap := map[string]*model.User{
+		sender.Id:    sender,
+		recipient.Id: recipient,
+		otherUser.Id: otherUser,
+	}
+
+	t.Run("regular channel", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_OPEN, Name: "channel", DisplayName: "My Channel"},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "My Channel", notification.GetChannelName("", recipient.Id))
+	})
+
+	t.Run("direct channel, unspecified", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "@sender", notification.GetChannelName("", recipient.Id))
+	})
+
+	t.Run("direct channel, username", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "@sender", notification.GetChannelName(model.SHOW_USERNAME, recipient.Id))
+	})
+
+	t.Run("direct channel, full name", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "@Sender Sender", notification.GetChannelName(model.SHOW_FULLNAME, recipient.Id))
+	})
+
+	t.Run("direct channel, nickname", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "@Sender", notification.GetChannelName(model.SHOW_NICKNAME_FULLNAME, recipient.Id))
+	})
+
+	t.Run("group channel, unspecified", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "other, sender", notification.GetChannelName("", recipient.Id))
+	})
+
+	t.Run("group channel, username", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "other, sender", notification.GetChannelName(model.SHOW_USERNAME, recipient.Id))
+	})
+
+	t.Run("group channel, full name", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "Other Other, Sender Sender", notification.GetChannelName(model.SHOW_FULLNAME, recipient.Id))
+	})
+
+	t.Run("group channel, nickname", func(t *testing.T) {
+		notification := &postNotification{
+			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
+			sender:     sender,
+			profileMap: profileMap,
+		}
+
+		assert.Equal(t, "Other, Sender", notification.GetChannelName(model.SHOW_NICKNAME_FULLNAME, recipient.Id))
+	})
+}
+
+func TestPostNotificationGetSenderName(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	channel := &model.Channel{Type: model.CHANNEL_OPEN}
+	post := &model.Post{Props: model.StringInterface{}}
+	sender := &model.User{Id: model.NewId(), Username: "sender", FirstName: "Sender", LastName: "Sender", Nickname: "Sender"}
+
+	overriddenPost := &model.Post{
+		Props: model.StringInterface{
+			"override_username": "Overridden",
+			"from_webhook":      "true",
+		},
+	}
+
+	t.Run("name format unspecified", func(t *testing.T) {
+		notification := &postNotification{
+			channel: channel,
+			post:    post,
+			sender:  sender,
+		}
+
+		assert.Equal(t, sender.Username, notification.GetSenderName("", true))
+	})
+
+	t.Run("name format username", func(t *testing.T) {
+		notification := &postNotification{
+			channel: channel,
+			post:    post,
+			sender:  sender,
+		}
+
+		assert.Equal(t, sender.Username, notification.GetSenderName(model.SHOW_USERNAME, true))
+	})
+
+	t.Run("name format full name", func(t *testing.T) {
+		notification := &postNotification{
+			channel: channel,
+			post:    post,
+			sender:  sender,
+		}
+
+		assert.Equal(t, sender.FirstName+" "+sender.LastName, notification.GetSenderName(model.SHOW_FULLNAME, true))
+	})
+
+	t.Run("name format nickname", func(t *testing.T) {
+		notification := &postNotification{
+			channel: channel,
+			post:    post,
+			sender:  sender,
+		}
+
+		assert.Equal(t, sender.Nickname, notification.GetSenderName(model.SHOW_NICKNAME_FULLNAME, true))
+	})
+
+	t.Run("system message", func(t *testing.T) {
+		notification := &postNotification{
+			channel: channel,
+			post:    &model.Post{Type: model.POST_SYSTEM_MESSAGE_PREFIX + "custom"},
+			sender:  sender,
+		}
+
+		assert.Equal(t, utils.T("system.message.name"), notification.GetSenderName("", true))
+	})
+
+	t.Run("overridden username", func(t *testing.T) {
+		notification := &postNotification{
+			channel: channel,
+			post:    overriddenPost,
+			sender:  sender,
+		}
+
+		assert.Equal(t, overriddenPost.Props["override_username"], notification.GetSenderName("", true))
+	})
+
+	t.Run("overridden username, in direct channel", func(t *testing.T) {
+		notification := &postNotification{
+			channel: &model.Channel{Type: model.CHANNEL_DIRECT},
+			post:    overriddenPost,
+			sender:  sender,
+		}
+
+		assert.Equal(t, sender.Username, notification.GetSenderName("", true))
+	})
+
+	t.Run("overridden username, overrides disabled", func(t *testing.T) {
+		notification := &postNotification{
+			channel: channel,
+			post:    overriddenPost,
+			sender:  sender,
+		}
+
+		assert.Equal(t, sender.Username, notification.GetSenderName("", false))
+	})
+}
