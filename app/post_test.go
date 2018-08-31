@@ -316,6 +316,47 @@ func TestPostAction(t *testing.T) {
 	err = th.App.DoPostAction(postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "")
 	require.NotNil(t, err)
 	require.False(t, strings.Contains(err.Error(), "address forbidden"))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = ts.URL + "/subpath"
+	})
+
+	interactivePostSubpath := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			"attachments": []*model.SlackAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Integration: &model.PostActionIntegration{
+								Context: model.StringInterface{
+									"s": "foo",
+									"n": 3,
+								},
+								URL: ts.URL + "/subpath/plugins/myplugin/myaction",
+							},
+							Name:       "action",
+							Type:       "some_type",
+							DataSource: "some_source",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath)
+	require.Nil(t, err)
+
+	attachmentsSubpath, ok := postSubpath.Props["attachments"].([]*model.SlackAttachment)
+	require.True(t, ok)
+
+	err = th.App.DoPostAction(postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "")
+	require.Nil(t, err)
 }
 
 func TestPostChannelMentions(t *testing.T) {

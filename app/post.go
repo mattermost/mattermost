@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"regexp"
 	"strings"
 
@@ -887,7 +888,8 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 	var httpClient *http.Client
 	url, _ := url.Parse(action.Integration.URL)
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
-	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, "/plugins") {
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
 		httpClient = a.HTTPClient(true)
 	} else {
 		httpClient = a.HTTPClient(false)
