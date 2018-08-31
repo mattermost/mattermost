@@ -886,7 +886,8 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
 	url, _ := url.Parse(action.Integration.URL)
-	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1") && strings.HasPrefix(url.Path, "/plugins") {
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, "/plugins") {
 		httpClient = a.HTTPClient(true)
 	} else {
 		httpClient = a.HTTPClient(false)

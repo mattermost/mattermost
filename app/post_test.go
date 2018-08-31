@@ -142,7 +142,7 @@ func TestPostAction(t *testing.T) {
 		}
 		assert.Equal(t, "foo", request.Context["s"])
 		assert.EqualValues(t, 3, request.Context["n"])
-		fmt.Fprintf(w, `{"update": {"message": "updated"}, "ephemeral_text": "foo"}`)
+		fmt.Fprintf(w, `{"post": {"message": "updated"}, "ephemeral_text": "foo"}`)
 	}))
 	defer ts.Close()
 
@@ -236,6 +236,7 @@ func TestPostAction(t *testing.T) {
 
 	err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), "address forbidden"))
 
 	interactivePostPlugin := model.Post{
 		Message:       "Interactive post",
@@ -273,6 +274,48 @@ func TestPostAction(t *testing.T) {
 
 	err = th.App.DoPostAction(postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://127.1.1.1"
+	})
+
+	interactivePostSiteURL := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			"attachments": []*model.SlackAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Integration: &model.PostActionIntegration{
+								Context: model.StringInterface{
+									"s": "foo",
+									"n": 3,
+								},
+								URL: "http://127.1.1.1/plugins/myplugin/myaction",
+							},
+							Name:       "action",
+							Type:       "some_type",
+							DataSource: "some_source",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL)
+	require.Nil(t, err)
+
+	attachmentsSiteURL, ok := postSiteURL.Props["attachments"].([]*model.SlackAttachment)
+	require.True(t, ok)
+
+	err = th.App.DoPostAction(postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "")
+	require.NotNil(t, err)
+	require.False(t, strings.Contains(err.Error(), "address forbidden"))
 }
 
 func TestPostChannelMentions(t *testing.T) {
