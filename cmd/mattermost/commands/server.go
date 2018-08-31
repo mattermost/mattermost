@@ -243,7 +243,7 @@ func runSessionCleanupJob(a *app.App) {
 
 func resetStatuses(a *app.App) {
 	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
-		mlog.Error(fmt.Sprint("mattermost.reset_status.error FIXME: NOT FOUND IN TRANSLATIONS FILE", result.Err.Error()))
+		mlog.Error(fmt.Sprint("Error to reset the status", result.Err.Error()))
 	}
 }
 
