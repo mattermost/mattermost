@@ -265,7 +265,7 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		for key, val := range props {
 			if key == "attachments" {
 				if attachments, success := val.([]*model.SlackAttachment); success {
-					parseSlackAttachment(post, attachments)
+					model.ParseSlackAttachment(post, attachments)
 				}
 			} else if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
 				post.AddProp(key, val)
