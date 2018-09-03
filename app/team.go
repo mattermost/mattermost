@@ -468,7 +468,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	if a.PluginsReady() {
 		var actor *model.User
 		if userRequestorId != "" {
-			actor, err = a.GetUser(userRequestorId)
+			actor, _ = a.GetUser(userRequestorId)
 		}
 
 		a.Go(func() {
@@ -798,7 +798,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	if a.PluginsReady() {
 		var actor *model.User
 		if requestorId != "" {
-			actor, err = a.GetUser(requestorId)
+			actor, _ = a.GetUser(requestorId)
 		}
 
 		a.Go(func() {

@@ -18,7 +18,6 @@ import (
 )
 
 type apiImplCreatorFunc func(*model.Manifest) API
-type supervisorCreatorFunc func(*model.BundleInfo, *mlog.Logger, API) (*supervisor, error)
 
 // multiPluginHookRunnerFunc is a callback function to invoke as part of RunMultiPluginHook.
 //

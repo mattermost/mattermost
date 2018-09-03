@@ -150,8 +150,8 @@ func TestUpdateChannel(t *testing.T) {
 	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	private := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
 
-	channel, resp := Client.CreateChannel(channel)
-	private, resp = Client.CreateChannel(private)
+	channel, _ = Client.CreateChannel(channel)
+	private, _ = Client.CreateChannel(private)
 
 	//Update a open channel
 	channel.DisplayName = "My new display name"
@@ -434,7 +434,7 @@ func TestCreateGroupChannel(t *testing.T) {
 		t.Fatal("should be equal")
 	}
 
-	rgc, resp = Client.CreateGroupChannel([]string{user2.Id})
+	_, resp = Client.CreateGroupChannel([]string{user2.Id})
 	CheckBadRequestStatus(t, resp)
 
 	user4 := th.CreateUser()
@@ -541,12 +541,12 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	Client := th.Client
 	team := th.BasicTeam
 
-	channels, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	_, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginTeamAdmin()
 
-	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	channels, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
 	numInitialChannelsForTeam := len(channels)
 
@@ -860,6 +860,7 @@ func TestDeleteChannel(t *testing.T) {
 
 	// successful delete of channel with multiple members
 	publicChannel3 := th.CreatePublicChannel()
+	th.App.AddUserToChannel(user, publicChannel3)
 	th.App.AddUserToChannel(user2, publicChannel3)
 	_, resp = Client.DeleteChannel(publicChannel3.Id)
 	CheckNoError(t, resp)
@@ -901,7 +902,7 @@ func TestDeleteChannel(t *testing.T) {
 	publicChannel5 := th.CreatePublicChannel()
 	Client.Logout()
 
-	Client.Login(user2.Id, user2.Password)
+	Client.Login(user.Id, user.Password)
 	_, resp = Client.DeleteChannel(publicChannel5.Id)
 	CheckUnauthorizedStatus(t, resp)
 
@@ -927,16 +928,14 @@ func TestDeleteChannel(t *testing.T) {
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
 
 	Client = th.Client
-	team = th.BasicTeam
 	user = th.BasicUser
-	user2 = th.BasicUser2
 
 	// channels created by SystemAdmin
 	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	th.App.AddUserToChannel(user, publicChannel6)
 	th.App.AddUserToChannel(user, privateChannel7)
-	th.App.AddUserToChannel(user2, privateChannel7)
+	th.App.AddUserToChannel(user, privateChannel7)
 
 	// successful delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -956,7 +955,7 @@ func TestDeleteChannel(t *testing.T) {
 	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	th.App.AddUserToChannel(user, publicChannel6)
 	th.App.AddUserToChannel(user, privateChannel7)
-	th.App.AddUserToChannel(user2, privateChannel7)
+	th.App.AddUserToChannel(user, privateChannel7)
 
 	// cannot delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -1629,7 +1628,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// System Admin promotes User 1
-	pass, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN)
+	_, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN)
 	CheckNoError(t, resp)
 
 	th.LoginBasic()

@@ -76,8 +76,6 @@ func TestHumanizeJsonError(t *testing.T) {
 func TestNewHumanizedJsonError(t *testing.T) {
 	t.Parallel()
 
-	type testType struct{}
-
 	testCases := []struct {
 		Description string
 		Data        []byte

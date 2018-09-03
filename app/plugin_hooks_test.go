@@ -89,7 +89,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(post, th.BasicChannel, false)
+		_, err := th.App.CreatePost(post, th.BasicChannel, false)
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
 		}
@@ -129,7 +129,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(post, th.BasicChannel, false)
+		_, err := th.App.CreatePost(post, th.BasicChannel, false)
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
 		}
@@ -327,7 +327,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		Message:   "message",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	post, err := th.App.CreatePost(post, th.BasicChannel, false)
+	_, err := th.App.CreatePost(post, th.BasicChannel, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -424,7 +424,7 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 	}
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited"
-	post, err = th.App.UpdatePost(post, true)
+	_, err = th.App.UpdatePost(post, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -785,7 +785,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	user, err = th.App.GetUser(th.BasicUser.Id)
+	user, _ = th.App.GetUser(th.BasicUser.Id)
 
 	if user.FirstName != "plugin-callback-success" {
 		t.Errorf("Expected firstname overwrite, got default")

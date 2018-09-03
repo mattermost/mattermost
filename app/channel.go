@@ -52,7 +52,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 	} else {
 		seenChannels := map[string]bool{}
 		for _, channelName := range a.Config().TeamSettings.ExperimentalDefaultChannels {
-			if seenChannels[channelName] != true {
+			if !seenChannels[channelName] {
 				defaultChannelList = append(defaultChannelList, channelName)
 				seenChannels[channelName] = true
 			}
@@ -1398,7 +1398,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 
 		var actorUser *model.User
 		if removerUserId != "" {
-			actorUser, err = a.GetUser(removerUserId)
+			actorUser, _ = a.GetUser(removerUserId)
 		}
 
 		a.Go(func() {

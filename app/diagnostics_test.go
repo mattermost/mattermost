@@ -103,19 +103,13 @@ func TestDiagnostics(t *testing.T) {
 
 		info := ""
 		// Collect the info sent.
+		Loop:
 		for {
-			done := false
 			select {
 			case result := <-data:
 				info += result
 			case <-time.After(time.Second * 1):
-				// Done recieving
-				done = true
-				break
-			}
-
-			if done {
-				break
+				break Loop
 			}
 		}
 

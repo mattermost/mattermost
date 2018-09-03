@@ -20,6 +20,7 @@ func TestSchemeStore(t *testing.T, ss store.Store) {
 	t.Run("GetAllPage", func(t *testing.T) { testSchemeStoreGetAllPage(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testSchemeStoreDelete(t, ss) })
 	t.Run("PermanentDeleteAll", func(t *testing.T) { testSchemeStorePermanentDeleteAll(t, ss) })
+	t.Run("GetByName", func(t *testing.T) { testSchemeStoreGetByName(t, ss) })
 }
 
 func createDefaultRoles(t *testing.T, ss store.Store) {

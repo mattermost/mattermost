@@ -27,10 +27,10 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	}
 
 	file, err := imageData.Open()
-	defer file.Close()
 	if err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
+	defer file.Close()
 
 	// Decode image config first to check dimensions before loading the whole thing into memory later on
 	config, _, err := image.DecodeConfig(file)

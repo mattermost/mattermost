@@ -1088,9 +1088,9 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	t1 = (<-ss.Team().Save(t1)).Data.(*model.Team)
-	t2 = (<-ss.Team().Save(t2)).Data.(*model.Team)
-	t3 = (<-ss.Team().Save(t3)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t1)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t2)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t3)).Data.(*model.Team)
 
 	// Get the teams by a valid Scheme ID.
 	res1 := <-ss.Team().GetTeamsByScheme(s1.Id, 0, 100)
@@ -1286,7 +1286,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s1.Id,
 	}
-	t1 = (<-ss.Team().Save(t1)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t1)).Data.(*model.Team)
 
 	count2 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(1), count2)
@@ -1298,7 +1298,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s1.Id,
 	}
-	t2 = (<-ss.Team().Save(t2)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t2)).Data.(*model.Team)
 
 	count3 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(2), count3)
@@ -1309,7 +1309,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
 	}
-	t3 = (<-ss.Team().Save(t3)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t3)).Data.(*model.Team)
 
 	count4 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(2), count4)
@@ -1322,7 +1322,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		SchemeId:    &s1.Id,
 		DeleteAt:    model.GetMillis(),
 	}
-	t4 = (<-ss.Team().Save(t4)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t4)).Data.(*model.Team)
 
 	count5 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(2), count5)
