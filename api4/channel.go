@@ -1073,7 +1073,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cm, err := c.App.AddChannelMember(member.UserId, channel, c.Session.UserId, postRootId)
+	cm, err := c.App.AddChannelMember(member.UserId, channel, c.Session.UserId, postRootId, !c.Session.IsMobileApp())
 	if err != nil {
 		c.Err = err
 		return

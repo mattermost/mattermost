@@ -24,7 +24,7 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	var channel *model.Channel
 	if result := <-a.Srv.Store.Channel().Get(post.ChannelId, true); result.Err != nil {
@@ -78,14 +78,8 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 	} else {
 		// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 		if _, ok := post.Props["from_webhook"]; !ok {
-			if result := <-a.Srv.Store.Channel().UpdateLastViewedAt([]string{post.ChannelId}, post.UserId); result.Err != nil {
-				mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, result.Err))
-			}
-
-			if *a.Config().ServiceSettings.EnableChannelViewedMessages {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
-				message.Add("channel_id", post.ChannelId)
-				a.Publish(message)
+			if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, clearPushNotifications); err != nil {
+				mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, err))
 			}
 		}
 

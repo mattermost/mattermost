@@ -115,7 +115,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost); err != nil {
+	if _, err := th.App.CreatePostAsUser(&replyPost, false); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -175,7 +175,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost)
+	post, err := th.App.CreatePostAsUser(&interactivePost, false)
 	require.Nil(t, err)
 
 	attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
@@ -212,7 +212,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	post2, err := th.App.CreatePostAsUser(&menuPost)
+	post2, err := th.App.CreatePostAsUser(&menuPost, false)
 	require.Nil(t, err)
 
 	attachments2, ok := post2.Props["attachments"].([]*model.SlackAttachment)
@@ -389,7 +389,7 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	result, err := th.App.CreatePostAsUser(post)
+	result, err := th.App.CreatePostAsUser(post, false)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{

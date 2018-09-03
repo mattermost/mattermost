@@ -817,7 +817,7 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 	return newMember, nil
 }
 
-func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string, clearPushNotifications bool) (*model.ChannelMember, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().GetMember(channel.Id, userId); result.Err != nil {
 		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return nil, result.Err
@@ -864,7 +864,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 	}
 
 	if userRequestor != nil {
-		a.UpdateChannelLastViewedAt([]string{channel.Id}, userRequestor.Id)
+		a.MarkChannelsAsViewed([]string{channel.Id}, userRequestor.Id, clearPushNotifications)
 	}
 
 	return cm, nil
@@ -1559,6 +1559,55 @@ func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string)
 	return result.Data.(*model.ChannelList), nil
 }
 
+func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPushNotifications bool) (map[string]int64, *model.AppError) {
+	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
+	channelsToClearPushNotifications := []string{}
+	if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications {
+		for _, channelId := range channelIds {
+			if model.IsValidId(channelId) {
+				member := (<-a.Srv.Store.Channel().GetMember(channelId, userId)).Data.(*model.ChannelMember)
+				notify := member.NotifyProps[model.PUSH_NOTIFY_PROP]
+				if notify == model.CHANNEL_NOTIFY_DEFAULT {
+					user, _ := a.GetUser(userId)
+					notify = user.NotifyProps[model.PUSH_NOTIFY_PROP]
+				}
+				if notify == model.USER_NOTIFY_ALL {
+					if result := <-a.Srv.Store.User().GetAnyUnreadPostCountForChannel(userId, channelId); result.Err == nil {
+						if result.Data.(int64) > 0 {
+							channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
+						}
+					}
+				} else if notify == model.USER_NOTIFY_MENTION {
+					if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err == nil {
+						if result.Data.(int64) > 0 {
+							channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
+						}
+					}
+				}
+			}
+		}
+	}
+	result := <-a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	times := result.Data.(map[string]int64)
+	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
+		for _, channelId := range channelIds {
+			if model.IsValidId(channelId) {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
+				message.Add("channel_id", channelId)
+				a.Publish(message)
+			}
+		}
+	}
+	for _, channelId := range channelsToClearPushNotifications {
+		a.ClearPushNotification(userId, channelId)
+	}
+	return times, nil
+}
+
 func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotifications bool) (map[string]int64, *model.AppError) {
 	if err := a.SetActiveChannel(userId, view.ChannelId); err != nil {
 		return nil, err
@@ -1570,45 +1619,15 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 		channelIds = append(channelIds, view.ChannelId)
 	}
 
-	var pchan store.StoreChannel
 	if len(view.PrevChannelId) > 0 {
 		channelIds = append(channelIds, view.PrevChannelId)
-
-		if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications && len(view.ChannelId) > 0 {
-			pchan = a.Srv.Store.User().GetUnreadCountForChannel(userId, view.ChannelId)
-		}
 	}
 
 	if len(channelIds) == 0 {
 		return map[string]int64{}, nil
 	}
 
-	uchan := a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
-
-	if pchan != nil {
-		result := <-pchan
-		if result.Err != nil {
-			return nil, result.Err
-		}
-		if result.Data.(int64) > 0 {
-			a.ClearPushNotification(userId, view.ChannelId)
-		}
-	}
-
-	var times map[string]int64
-	result := <-uchan
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	times = result.Data.(map[string]int64)
-
-	if *a.Config().ServiceSettings.EnableChannelViewedMessages && model.IsValidId(view.ChannelId) {
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
-		message.Add("channel_id", view.ChannelId)
-		a.Publish(message)
-	}
-
-	return times, nil
+	return a.MarkChannelsAsViewed(channelIds, userId, clearPushNotifications)
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {

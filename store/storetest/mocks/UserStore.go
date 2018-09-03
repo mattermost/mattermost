@@ -194,6 +194,22 @@ func (_m *UserStore) GetAllUsingAuthService(authService string) store.StoreChann
 	return r0
 }
 
+// GetAnyUnreadPostCountForChannel provides a mock function with given fields: userId, channelId
+func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) store.StoreChannel {
+	ret := _m.Called(userId, channelId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(userId, channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetByAuth provides a mock function with given fields: authData, authService
 func (_m *UserStore) GetByAuth(authData *string, authService string) store.StoreChannel {
 	ret := _m.Called(authData, authService)
