@@ -173,6 +173,7 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	ResetLastPostAt() StoreChannel
+	MigratePublicChannels() error
 }
 
 type ChannelMemberHistoryStore interface {

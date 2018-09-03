@@ -7,9 +7,11 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/gorp"
 
@@ -49,6 +51,17 @@ type channelMember struct {
 	LastUpdateAt int64
 	SchemeUser   sql.NullBool
 	SchemeAdmin  sql.NullBool
+}
+
+// publicChannel is a subset of the metadata corresponding to public channels only.
+type publicChannel struct {
+	Id          string `json:"id"`
+	DeleteAt    int64  `json:"delete_at"`
+	TeamId      string `json:"team_id"`
+	DisplayName string `json:"display_name"`
+	Name        string `json:"name"`
+	Header      string `json:"header"`
+	Purpose     string `json:"purpose"`
 }
 
 func NewChannelMemberFromModel(cm *model.ChannelMember) *channelMember {
@@ -278,6 +291,15 @@ func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablem.ColMap("UserId").SetMaxSize(26)
 		tablem.ColMap("Roles").SetMaxSize(64)
 		tablem.ColMap("NotifyProps").SetMaxSize(2000)
+
+		tablePublicChannels := db.AddTableWithName(publicChannel{}, "PublicChannels").SetKeys(false, "Id")
+		tablePublicChannels.ColMap("Id").SetMaxSize(26)
+		tablePublicChannels.ColMap("TeamId").SetMaxSize(26)
+		tablePublicChannels.ColMap("DisplayName").SetMaxSize(64)
+		tablePublicChannels.ColMap("Name").SetMaxSize(64)
+		tablePublicChannels.SetUniqueTogether("Name", "TeamId")
+		tablePublicChannels.ColMap("Header").SetMaxSize(1024)
+		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
 	}
 
 	return s
@@ -299,6 +321,307 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
 
 	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
+
+	s.CreateIndexIfNotExists("idx_publicchannels_team_id", "PublicChannels", "TeamId")
+	s.CreateIndexIfNotExists("idx_publicchannels_name", "PublicChannels", "Name")
+	s.CreateIndexIfNotExists("idx_publicchannels_delete_at", "PublicChannels", "DeleteAt")
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		s.CreateIndexIfNotExists("idx_publicchannels_name_lower", "PublicChannels", "lower(Name)")
+		s.CreateIndexIfNotExists("idx_publicchannels_displayname_lower", "PublicChannels", "lower(DisplayName)")
+	}
+	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
+}
+
+func (s SqlChannelStore) CreateTriggersIfNotExists() {
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if !s.DoesTriggerExist("trigger_channels") {
+			transaction, err := s.GetMaster().Begin()
+			if err != nil {
+				mlog.Critical("Failed to create trigger function", mlog.Err(err))
+				time.Sleep(time.Second)
+				os.Exit(EXIT_GENERIC_FAILURE)
+			}
+
+			if _, err := transaction.ExecNoTimeout(`
+				CREATE OR REPLACE FUNCTION channels_copy_to_public_channels() RETURNS TRIGGER
+				    SECURITY DEFINER
+				    LANGUAGE plpgsql
+				AS $$
+				    DECLARE
+				    	counter int := 0;
+				    BEGIN
+				    	IF (TG_OP = 'DELETE' AND OLD.Type = 'O') OR (TG_OP = 'UPDATE' AND NEW.Type != 'O') THEN
+					    DELETE FROM
+				    		PublicChannels
+				    	    WHERE
+				    		Id = OLD.Id;
+				    	ELSEIF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') AND NEW.Type = 'O' THEN
+				    	    UPDATE
+				    		PublicChannels
+					    SET
+				    	        DeleteAt = NEW.DeleteAt,
+				    		TeamId = NEW.TeamId,
+				    		DisplayName = NEW.DisplayName,
+				    		Name = NEW.Name,
+				    		Header = NEW.Header,
+				    		Purpose = NEW.Purpose
+				    	    WHERE
+				    	        Id = NEW.Id;
+
+				    	    -- There's a race condition here where the INSERT might fail, though this should only occur
+					    -- if PublicChannels had been modified outside of the triggers. We could improve this with 
+					    -- the UPSERT functionality in Postgres 9.5+ once we support same.
+				    	    IF NOT FOUND THEN
+				    	        INSERT INTO
+				    		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+				    		VALUES
+				    		    (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose);
+				    	    END IF;
+				    	END IF;
+
+				    	RETURN NULL;
+				    END
+				$$;
+			`); err != nil {
+				mlog.Critical("Failed to create trigger function", mlog.Err(err))
+				time.Sleep(time.Second)
+				os.Exit(EXIT_GENERIC_FAILURE)
+			}
+
+			if _, err := transaction.ExecNoTimeout(`
+				CREATE TRIGGER
+				    trigger_channels
+				AFTER INSERT OR UPDATE OR DELETE ON
+				    Channels
+				FOR EACH ROW EXECUTE PROCEDURE
+				    channels_copy_to_public_channels();
+			`); err != nil {
+				mlog.Critical("Failed to create trigger", mlog.Err(err))
+				time.Sleep(time.Second)
+				os.Exit(EXIT_GENERIC_FAILURE)
+			}
+
+			if err := transaction.Commit(); err != nil {
+				mlog.Critical("Failed to create trigger function", mlog.Err(err))
+				time.Sleep(time.Second)
+				os.Exit(EXIT_GENERIC_FAILURE)
+			}
+		}
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// Note that DDL statements in MySQL (CREATE TABLE, CREATE TRIGGER, etc.) cannot
+		// be rolled back inside a transaction (unlike PostgreSQL), so there's no point in
+		// wrapping what follows inside a transaction.
+
+		if !s.DoesTriggerExist("trigger_channels_insert") {
+			if _, err := s.GetMaster().ExecNoTimeout(`
+				CREATE TRIGGER
+				    trigger_channels_insert
+				AFTER INSERT ON
+				    Channels
+				FOR EACH ROW
+				BEGIN
+				    IF NEW.Type = 'O' THEN
+				        INSERT INTO
+					    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+					VALUES
+					    (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose)
+					ON DUPLICATE KEY UPDATE
+					    DeleteAt = NEW.DeleteAt,
+					    TeamId = NEW.TeamId,
+					    DisplayName = NEW.DisplayName,
+					    Name = NEW.Name,
+					    Header = NEW.Header,
+					    Purpose = NEW.Purpose;
+				    END IF;
+				END;
+			`); err != nil {
+				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_insert"), mlog.Err(err))
+				time.Sleep(time.Second)
+				os.Exit(EXIT_GENERIC_FAILURE)
+			}
+		}
+
+		if !s.DoesTriggerExist("trigger_channels_update") {
+			if _, err := s.GetMaster().ExecNoTimeout(`
+				CREATE TRIGGER
+			  	    trigger_channels_update
+				AFTER UPDATE ON
+				    Channels
+				FOR EACH ROW
+				BEGIN
+				    IF OLD.Type = 'O' AND NEW.Type != 'O' THEN
+				        DELETE FROM
+					    PublicChannels
+					WHERE
+					    Id = NEW.Id;
+				    ELSEIF NEW.Type = 'O' THEN
+					INSERT INTO
+					    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+					VALUES
+					    (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose)
+					ON DUPLICATE KEY UPDATE
+					    DeleteAt = NEW.DeleteAt,
+					    TeamId = NEW.TeamId,
+					    DisplayName = NEW.DisplayName,
+					    Name = NEW.Name,
+					    Header = NEW.Header,
+					    Purpose = NEW.Purpose;
+				    END IF;
+				END;
+			`); err != nil {
+				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update"), mlog.Err(err))
+				time.Sleep(time.Second)
+				os.Exit(EXIT_GENERIC_FAILURE)
+			}
+		}
+
+		if !s.DoesTriggerExist("trigger_channels_delete") {
+			if _, err := s.GetMaster().ExecNoTimeout(`
+				CREATE TRIGGER
+				    trigger_channels_delete
+				AFTER DELETE ON
+				    Channels
+				FOR EACH ROW
+				BEGIN
+				    IF OLD.Type = 'O' THEN
+				        DELETE FROM
+					    PublicChannels
+					WHERE
+					    Id = OLD.Id;
+				    END IF;
+				END;
+			`); err != nil {
+				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_delete"), mlog.Err(err))
+				time.Sleep(time.Second)
+				os.Exit(EXIT_GENERIC_FAILURE)
+			}
+		}
+	} else if s.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		if _, err := s.GetMaster().ExecNoTimeout(`
+			CREATE TRIGGER IF NOT EXISTS
+			    trigger_channels_insert
+			AFTER INSERT ON
+			    Channels
+			FOR EACH ROW
+			WHEN NEW.Type = 'O'
+			BEGIN
+			    -- Ideally, we'd leverage ON CONFLICT DO UPDATE below and make this INSERT resilient to pre-existing
+			    -- data. However, the version of Sqlite we're compiling against doesn't support this. This isn't
+		    	    -- critical, though, since we don't support Sqlite in production.
+			    INSERT INTO
+			        PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+			    VALUES
+			        (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose);
+			END;
+		`); err != nil {
+			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_insert"), mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		if _, err := s.GetMaster().ExecNoTimeout(`
+			CREATE TRIGGER IF NOT EXISTS
+			    trigger_channels_update_delete
+			AFTER UPDATE ON
+			    Channels
+			FOR EACH ROW
+			WHEN
+			    OLD.Type = 'O'
+			AND NEW.Type != 'O'
+			BEGIN
+			    DELETE FROM
+			        PublicChannels
+			    WHERE
+			        Id = NEW.Id;
+			END;
+		`); err != nil {
+			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update_delete"), mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		if _, err := s.GetMaster().ExecNoTimeout(`
+			CREATE TRIGGER IF NOT EXISTS
+			    trigger_channels_update
+			AFTER UPDATE ON
+			    Channels
+			FOR EACH ROW
+			WHEN
+			    OLD.Type != 'O'
+			AND NEW.Type = 'O'
+			BEGIN
+			    -- See comments re: ON CONFLICT DO UPDATE above that would apply here as well.
+			    UPDATE
+			        PublicChannels
+			    SET
+			        DeleteAt = NEW.DeleteAt,
+			        TeamId = NEW.TeamId,
+			        DisplayName = NEW.DisplayName,
+			        Name = NEW.Name,
+			        Header = NEW.Header,
+			        Purpose = NEW.Purpose
+			    WHERE
+			        Id = NEW.Id;
+			END;
+		`); err != nil {
+			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update"), mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		if _, err := s.GetMaster().ExecNoTimeout(`
+			CREATE TRIGGER IF NOT EXISTS
+			    trigger_channels_delete
+			AFTER UPDATE ON
+			    Channels
+			FOR EACH ROW
+			WHEN
+			    OLD.Type = 'O'
+			BEGIN
+			    DELETE FROM
+			        PublicChannels
+			    WHERE
+				Id = OLD.Id;
+			END;
+		`); err != nil {
+			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_delete"), mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+	} else {
+		mlog.Critical("Failed to create trigger because of missing driver")
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+	}
+}
+
+func (s SqlChannelStore) MigratePublicChannels() error {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return err
+	}
+
+	if _, err := transaction.Exec(`
+		INSERT INTO PublicChannels
+		    (Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+		SELECT
+		    c.Id, c.DeleteAt, c.TeamId, c.DisplayName, c.Name, c.Header, c.Purpose
+		FROM
+		    Channels c
+		LEFT JOIN
+		    PublicChannels pc ON (pc.Id = c.Id)
+		WHERE
+		    c.Type = 'O'
+		AND pc.Id IS NULL
+	`); err != nil {
+		return err
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
@@ -670,29 +993,38 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data,
-			`SELECT
-			    *
+		_, err := s.GetReplica().Select(data, `
+			SELECT
+			    Channels.*
 			FROM
 			    Channels
+			JOIN
+			    PublicChannels c ON (c.Id = Channels.Id)
 			WHERE
-			    TeamId = :TeamId1
-					AND Type IN ('O')
-					AND DeleteAt = 0
-			        AND Id NOT IN (SELECT
-			            Channels.Id
-			        FROM
-			            Channels,
-			            ChannelMembers
-			        WHERE
-			            Id = ChannelId
-			                AND TeamId = :TeamId2
-			                AND UserId = :UserId
-			                AND DeleteAt = 0)
-			ORDER BY DisplayName
+			    c.TeamId = :TeamId
+			AND c.DeleteAt = 0
+			AND c.Id NOT IN (
+			    SELECT
+			        c.Id
+			    FROM
+			        PublicChannels c
+			    JOIN
+			        ChannelMembers cm ON (cm.ChannelId = c.Id)
+			    WHERE
+			        c.TeamId = :TeamId
+			    AND cm.UserId = :UserId
+			    AND c.DeleteAt = 0
+			)
+			ORDER BY
+				c.DisplayName
 			LIMIT :Limit
-			OFFSET :Offset`,
-			map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId, "Limit": limit, "Offset": offset})
+			OFFSET :Offset
+		`, map[string]interface{}{
+			"TeamId": teamId,
+			"UserId": userId,
+			"Limit":  limit,
+			"Offset": offset,
+		})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
@@ -706,19 +1038,24 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data,
-			`SELECT
-			    *
+		_, err := s.GetReplica().Select(data, `
+			SELECT
+			    Channels.*
 			FROM
 			    Channels
+			JOIN
+			    PublicChannels pc ON (pc.Id = Channels.Id)
 			WHERE
-			    TeamId = :TeamId
-					AND Type = 'O'
-					AND DeleteAt = 0
-			ORDER BY DisplayName
+			    pc.TeamId = :TeamId
+			AND pc.DeleteAt = 0
+			ORDER BY pc.DisplayName
 			LIMIT :Limit
-			OFFSET :Offset`,
-			map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset})
+			OFFSET :Offset
+		`, map[string]interface{}{
+			"TeamId": teamId,
+			"Limit":  limit,
+			"Offset": offset,
+		})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetPublicChannelsForTeam", "store.sql_channel.get_public_channels.get.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
@@ -746,18 +1083,19 @@ func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds
 		}
 
 		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data,
-			`SELECT
-			    *
+		_, err := s.GetReplica().Select(data, `
+			SELECT
+			    Channels.*
 			FROM
 			    Channels
+			JOIN
+			    PublicChannels pc ON (pc.Id = Channels.Id)
 			WHERE
-			    TeamId = :teamId
-					AND Type = 'O'
-					AND DeleteAt = 0
-					AND Id IN (`+idQuery+`)
-			ORDER BY DisplayName`,
-			props)
+			    pc.TeamId = :teamId
+			AND pc.DeleteAt = 0
+			AND pc.Id IN (`+idQuery+`)
+			ORDER BY pc.DisplayName
+		`, props)
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetPublicChannelsByIdsForTeam", "store.sql_channel.get_channels_by_ids.get.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -804,12 +1142,12 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) store.StoreChannel {
 		_, err := s.GetReplica().Select(data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
 
 		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		if len(*data) == 0 {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
+			result.Err = model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
 			return
 		}
 
@@ -962,16 +1300,16 @@ var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 		TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
 		ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
 		ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-	FROM 
+	FROM
 		ChannelMembers
-	INNER JOIN 
+	INNER JOIN
 		Channels ON ChannelMembers.ChannelId = Channels.Id
 	LEFT JOIN
 		Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
 	LEFT JOIN
 		Teams ON Channels.TeamId = Teams.Id
 	LEFT JOIN
-		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id 
+		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 `
 
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) store.StoreChannel {
@@ -1546,22 +1884,24 @@ func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.S
 
 func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		deleteFilter := "AND DeleteAt = 0"
+		deleteFilter := "AND c.DeleteAt = 0"
 		if includeDeleted {
 			deleteFilter = ""
 		}
 
 		queryFormat := `
 			SELECT
-				*
+			    Channels.*
 			FROM
-				Channels
+			    Channels
+			JOIN
+			    PublicChannels c ON (c.Id = Channels.Id)
 			WHERE
-				TeamId = :TeamId
-				AND Type = 'O'
-				` + deleteFilter + `
-				%v
-			LIMIT 50`
+			    c.TeamId = :TeamId
+			    ` + deleteFilter + `
+			    %v
+			LIMIT 50
+		`
 
 		var channels model.ChannelList
 
@@ -1591,59 +1931,67 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 
 func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		deleteFilter := "AND DeleteAt = 0"
+		deleteFilter := "AND c.DeleteAt = 0"
 		if includeDeleted {
 			deleteFilter = ""
 		}
-		searchQuery := `
-			SELECT
-				*
-			FROM
-				Channels
-			WHERE
-				TeamId = :TeamId
-				AND Type = 'O'
-				` + deleteFilter + `
-				SEARCH_CLAUSE
-			ORDER BY DisplayName
-			LIMIT 100`
 
-		*result = s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId})
+		*result = s.performSearch(`
+			SELECT
+			    Channels.*
+			FROM
+			    Channels
+			JOIN
+			    PublicChannels c ON (c.Id = Channels.Id)
+			WHERE
+			    c.TeamId = :TeamId
+			    `+deleteFilter+`
+			    SEARCH_CLAUSE
+			ORDER BY c.DisplayName
+			LIMIT 100
+		`, term, map[string]interface{}{
+			"TeamId": teamId,
+		})
 	})
 }
 
 func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		searchQuery := `
+		*result = s.performSearch(`
 			SELECT
-			    *
+			    Channels.*
 			FROM
 			    Channels
+			JOIN
+			    PublicChannels c ON (c.Id = Channels.Id)
 			WHERE
-			    TeamId = :TeamId
-				AND Type = 'O'
-				AND DeleteAt = 0
-			    AND Id NOT IN (SELECT
-			        Channels.Id
+			    c.TeamId = :TeamId
+			AND c.DeleteAt = 0
+			AND c.Id NOT IN (
+			    SELECT
+			        c.Id
 			    FROM
-			        Channels,
-			        ChannelMembers
+			        PublicChannels c
+			    JOIN
+			        ChannelMembers cm ON (cm.ChannelId = c.Id)
 			    WHERE
-			        Id = ChannelId
-			        AND TeamId = :TeamId
-			        AND UserId = :UserId
-			        AND DeleteAt = 0)
-			    SEARCH_CLAUSE
-			ORDER BY DisplayName
-			LIMIT 100`
-
-		*result = s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId, "UserId": userId})
+			        c.TeamId = :TeamId
+			    AND cm.UserId = :UserId
+			    AND c.DeleteAt = 0
+		        )
+			SEARCH_CLAUSE
+			ORDER BY c.DisplayName
+			LIMIT 100
+		`, term, map[string]interface{}{
+			"TeamId": teamId,
+			"UserId": userId,
+		})
 	})
 }
 
 func (s SqlChannelStore) buildLIKEClause(term string) (likeClause, likeTerm string) {
 	likeTerm = term
-	searchColumns := "Name, DisplayName, Purpose"
+	searchColumns := "c.Name, c.DisplayName, c.Purpose"
 
 	// These chars must be removed from the like query.
 	for _, c := range ignoreLikeSearchChar {
@@ -1678,7 +2026,7 @@ func (s SqlChannelStore) buildFulltextClause(term string) (fulltextClause, fullt
 	// Copy the terms as we will need to prepare them differently for each search type.
 	fulltextTerm = term
 
-	searchColumns := "Name, DisplayName, Purpose"
+	searchColumns := "c.Name, c.DisplayName, c.Purpose"
 
 	// These chars must be treated as spaces in the fulltext query.
 	for _, c := range spaceFulltextSearchChar {
