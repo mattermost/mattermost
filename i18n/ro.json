@@ -1435,6 +1435,14 @@
     "translation": "Imposibil de setat preferintele utilizatorului."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Nu puteți sterge o replica intrun canal arhivat."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "Nu poți reacționa într-un canal arhivat."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "Reacția nu este validă."
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v s-a alăturat echipei."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "E-mailul trebuie să fie de la un domeniu specific (de ex. @examplu.com). Întreabă-ți echipa sau administratorul de sistem pentru detalii."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v părăsit echipa."
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Utilizator specificat nu este un membru al echipei specificate."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Limitarea echipei la {{ .Domain }} nu este permisă de configurarea sistemul. Vă rugăm să contactați administratorul de sistem."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -4692,7 +4708,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Nu s-a putut seta statutul utilizatorilor. Stare utilizator necunoscut."
+    "translation": "Nu s-a putut seta starea utilizatorului. Stare utilizator necunoscut."
   },
   {
     "id": "store.sql.convert_string_array",

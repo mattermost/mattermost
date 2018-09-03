@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Cannot remove user from a channel."
+    "translation": "Impossible de retirer l'utilisateur du canal."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -269,7 +269,7 @@
   },
   {
     "id": "api.command.disabled.app_error",
-    "translation": "Les commandes ont été désactivées par l'administrateur."
+    "translation": "Les commandes ont été désactivées par l'administrateur système."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
@@ -990,7 +990,7 @@
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Les émoticônes ont été désactivées par l'administrateur."
+    "translation": "Les émoticônes ont été désactivées par l'administrateur système."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
@@ -1034,11 +1034,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Impossible de savoir si le fichier existe. Une erreur s'est produite lors de la vérification de l'existence du fichier."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Impossible de savoir si le fichier existe. Une erreur s'est produite lors de la vérification de l'existence du fichier."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1435,6 +1435,14 @@
     "translation": "Impossible de définir les préférences de l'utilisateur."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Vous ne pouvez pas retirer de réaction dans un canal archivé."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "Vous ne pouvez pas ajouter de réaction dans un canal archivé."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "La réaction n'est pas valide."
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v a rejoint l'équipe."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "L'adresse e-mail doit être liée à un domaine spécifique (ex. @exemple.com). Veuillez demander à votre équipe ou votre administrateur système pour plus d'informations."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v a quitté l'équipe."
   },
@@ -1727,6 +1739,10 @@
     "translation": "L'utilisateur spécifié n'est pas un membre de l'équipe spécifiée."
   },
   {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restreindre une équipe à {{ .Domain }} n'est pas autorisé par la configuration système. Veuillez contacter votre administrateur système."
+  },
+  {
     "id": "api.team.update_team_scheme.license.error",
     "translation": "Votre licence actuelle ne supporte pas la modification de schémas de permissions d'équipe."
   },
@@ -1780,7 +1796,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Pour modifier vos préférences de notifications, connectez-vous à votre équipe et allez dans Paramètres du compte > Notifications."
+    "translation": "Pour modifier vos préférences de notification, connectez-vous à votre équipe et allez dans Paramètres du compte > Notifications."
   },
   {
     "id": "api.templates.email_info1",
@@ -2516,7 +2532,7 @@
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": "La ligne de données importée dispose d'un type « post », mais l'objet post est null."
+    "translation": "La ligne de données importée dispose d'un type « emoji », mais l'objet d'émoticône est null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3220,7 +3236,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
+    "translation": "Impossible de relire le fichier d'export temporaire Global Relay."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3404,11 +3420,11 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Impossible d'ajouter le fichier joint dans l'export CSV."
+    "translation": "Impossible d'ajouter le fichier joint à l'export Global Relay."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close properly the zip file."
+    "translation": "Impossible de fermer proprement le fichier zip."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -3416,7 +3432,7 @@
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
+    "translation": "Impossible de générer les données du fichier eml."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4692,7 +4708,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user status. Unknown user status."
+    "translation": "Impossible de définir le statut de l'utilisateur. Statut d'utilisateur inconnu."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4908,11 +4924,11 @@
   },
   {
     "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "We could not reset the channel last post at date"
+    "translation": "Impossible de réinitialiser la date de la dernière publication du canal."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "Impossible de modifier un canal archivé."
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5144,7 +5160,7 @@
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "We couldn't delete attachments of the user"
+    "translation": "Impossible de supprimer les fichiers joints de l'utilisateur."
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -5168,7 +5184,7 @@
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Impossible de récupérer l'information du fichier du message"
+    "translation": "Impossible de récupérer l'information du fichier de l'utilisateur."
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5752,7 +5768,7 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "We couldn't get the channel count for the scheme."
+    "translation": "Impossible de récupérer le nombre de canaux pour le schéma."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

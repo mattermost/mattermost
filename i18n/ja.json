@@ -1435,6 +1435,14 @@
     "translation": "ユーザー設定を設定できませんでした。"
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "アーカイブチャンネルのリアクションは削除できません。"
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "アーカイブチャンネルにはリアクションできません。"
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "リアクションが正しくありません。"
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v がチームに参加しました。"
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "電子メールは特定のドメイン(例えば、@example.com)から送信される必要があります。詳細はチーム管理者かシステム管理者に問い合わせてください。"
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v はチームから脱退しました。"
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "指定されたユーザーは指定されたチームに所属していません。"
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "チームを{{.Domain}}に制限することはシステム設定により許可されていません。詳細はシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.team.update_team_scheme.license.error",

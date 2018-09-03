@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Cannot remove user from a channel."
+    "translation": "無法將使用者從頻道移除。"
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -1034,11 +1034,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "無法確定檔案是否存在。檢查檔案是否存在時發生錯誤。"
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "無法確定檔案是否存在。檢查檔案是否存在時發生錯誤。"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1435,6 +1435,14 @@
     "translation": "無法設定使用者偏好設定。"
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "在已封存的頻道中無法移除互動。"
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "無法在已封存的頻道互動。"
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "無效的互動。"
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v 已加入團隊。"
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "電子郵件地址必須來自一個指定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v 已離開團隊。 "
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "指定的使用者不是指定團隊的成員。"
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "系統設定不允許限制團隊為 {{ .Domain }}。請聯絡系統管理員。"
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2516,7 +2532,7 @@
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": "匯入資料行資料型別為\"訊息\"但訊息物件為 null"
+    "translation": "匯入資料行資料型別為\"繪文字\"但繪文字物件為 null"
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3220,7 +3236,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
+    "translation": "無法重新讀取 Global Relay 匯出暫存檔。"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3404,11 +3420,11 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "無法增加附加檔案至 CSV 匯出格式。"
+    "translation": "無法增加附加檔案至 Global Relay 匯出格式。"
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close properly the zip file."
+    "translation": "無法正常的關閉 zip 檔案。"
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -3416,7 +3432,7 @@
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
+    "translation": "無法產生 eml 檔案資料。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4692,7 +4708,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user status. Unknown user status."
+    "translation": "無法設定使用者狀態。未知的使用者狀態。"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4908,11 +4924,11 @@
   },
   {
     "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "We could not reset the channel last post at date"
+    "translation": "無法重設頻道最新發文的時間"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "不能修改已封存的頻道"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5144,7 +5160,7 @@
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "We couldn't delete attachments of the user"
+    "translation": "無法刪除使用者的附件檔案"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -5168,7 +5184,7 @@
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "無法取得發文的檔案訊息"
+    "translation": "無法取得使用者的檔案訊息"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5752,7 +5768,7 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "We couldn't get the channel count for the scheme."
+    "translation": "無法取得配置的頻道數量。"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
