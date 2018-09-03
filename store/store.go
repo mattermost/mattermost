@@ -160,6 +160,7 @@ type ChannelStore interface {
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
 	ClearCaches()
+	MigratePublicChannels() error
 }
 
 type ChannelMemberHistoryStore interface {

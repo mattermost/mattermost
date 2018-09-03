@@ -44,10 +44,11 @@ const (
 )
 
 const (
-	EXIT_VERSION_SAVE_MISSING = 1001
-	EXIT_TOO_OLD              = 1002
-	EXIT_VERSION_SAVE         = 1003
-	EXIT_THEME_MIGRATION      = 1004
+	EXIT_VERSION_SAVE_MISSING      = 1001
+	EXIT_TOO_OLD                   = 1002
+	EXIT_VERSION_SAVE              = 1003
+	EXIT_THEME_MIGRATION           = 1004
+	EXIT_PUBLIC_CHANNELS_MIGRATION = 1005
 )
 
 func UpgradeDatabase(sqlStore SqlStore) {
