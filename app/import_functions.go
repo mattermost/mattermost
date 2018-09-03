@@ -123,9 +123,9 @@ func (a *App) ImportRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 	}
 
 	if len(role.Id) == 0 {
-		role, err = a.CreateRole(role)
+		_, err = a.CreateRole(role)
 	} else {
-		role, err = a.UpdateRole(role)
+		_, err = a.UpdateRole(role)
 	}
 
 	return err

@@ -124,9 +124,5 @@ func importPermissionsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer file.Close()
 
-	if err := a.ImportPermissions(file); err != nil {
-		return err
-	}
-
-	return nil
+	return a.ImportPermissions(file)
 }

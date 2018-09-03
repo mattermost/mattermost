@@ -1859,7 +1859,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		lastUserId := strings.Repeat("0", 26)
 		lastChannelId := strings.Repeat("0", 26)
 
-		for true {
+		for {
 			var transaction *gorp.Transaction
 			var err error
 
