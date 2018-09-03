@@ -265,7 +265,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		go func() {
 			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
 			if err != nil {
-				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connecion", mlog.Err(err))
+				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connection", mlog.Err(err))
 				http.Error(w, "500 internal server error", http.StatusInternalServerError)
 				return
 			}
