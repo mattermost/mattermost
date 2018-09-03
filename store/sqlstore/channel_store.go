@@ -2058,6 +2058,7 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
                 Channels ON ChannelMembers.ChannelId = Channels.Id
             WHERE
                 ChannelMembers.UserId = :UserId
+				AND Channels.TeamId = :TeamId
 				AND Channels.DeleteAt = 0`,
 			map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
