@@ -52,7 +52,7 @@ func init() {
 
 type DialContextFunction func(ctx context.Context, network, addr string) (net.Conn, error)
 
-var AddressForbidden error = errors.New("address forbidden")
+var AddressForbidden error = errors.New("address forbidden, you may need to set AllowedUntrustedInternalConnections to allow an integration access to your internal network")
 
 func dialContextFilter(dial DialContextFunction, allowHost func(host string) bool, allowIP func(ip net.IP) bool) DialContextFunction {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
