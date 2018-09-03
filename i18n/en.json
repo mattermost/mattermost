@@ -3420,7 +3420,7 @@ e[
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to properly close the zip file."
+    "translation": "Unable to close the zip file."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
