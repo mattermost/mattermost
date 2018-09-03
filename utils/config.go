@@ -247,6 +247,16 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map
 
 	var config model.Config
 	unmarshalErr := v.Unmarshal(&config)
+	// https://github.com/spf13/viper/issues/324
+	// https://github.com/spf13/viper/issues/348
+	if unmarshalErr == nil {
+		config.PluginSettings.Plugins = make(map[string]map[string]interface{})
+		unmarshalErr = v.UnmarshalKey("pluginsettings.plugins", &config.PluginSettings.Plugins)
+	}
+	if unmarshalErr == nil {
+		config.PluginSettings.PluginStates = make(map[string]*model.PluginState)
+		unmarshalErr = v.UnmarshalKey("pluginsettings.pluginstates", &config.PluginSettings.PluginStates)
+	}
 
 	envConfig := v.EnvSettings()
 
@@ -274,6 +284,10 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 	defaults := getDefaultsFromStruct(model.Config{})
 
 	for key, value := range defaults {
+		if key == "PluginSettings.Plugins" || key == "PluginSettings.PluginStates" {
+			continue
+		}
+
 		v.SetDefault(key, value)
 	}
 
