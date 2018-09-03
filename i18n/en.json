@@ -1,4 +1,4 @@
-[
+e[
   {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "Unable to convert export to XML."
@@ -1038,7 +1038,7 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existence."
+    "translation": "Unable to check if the file exists."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
