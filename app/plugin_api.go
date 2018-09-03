@@ -184,6 +184,22 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 
 	return api.app.GetStatus(userId)
 }
+func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+	if api.app.Ldap == nil {
+		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	user, err := api.app.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.AuthService != model.USER_AUTH_SERVICE_LDAP || user.AuthData == nil {
+		return map[string]string{}, nil
+	}
+
+	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+}
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	return api.app.CreateChannel(channel, false)

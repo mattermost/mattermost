@@ -2281,9 +2281,9 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 
-	c1 = (<-ss.Channel().Save(c1, 100)).Data.(*model.Channel)
-	c2 = (<-ss.Channel().Save(c2, 100)).Data.(*model.Channel)
-	c3 = (<-ss.Channel().Save(c3, 100)).Data.(*model.Channel)
+	_ = (<-ss.Channel().Save(c1, 100)).Data.(*model.Channel)
+	_ = (<-ss.Channel().Save(c2, 100)).Data.(*model.Channel)
+	_ = (<-ss.Channel().Save(c3, 100)).Data.(*model.Channel)
 
 	// Get the channels by a valid Scheme ID.
 	res1 := <-ss.Channel().GetChannelsByScheme(s1.Id, 0, 100)

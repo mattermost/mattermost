@@ -123,9 +123,9 @@ func (a *App) ImportRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 	}
 
 	if len(role.Id) == 0 {
-		role, err = a.CreateRole(role)
+		_, err = a.CreateRole(role)
 	} else {
-		role, err = a.UpdateRole(role)
+		_, err = a.UpdateRole(role)
 	}
 
 	return err
@@ -1118,6 +1118,14 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+	if data.Attachments != nil {
+		fileIds, err := a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
+		if err != nil {
+			return err
+		}
+		post.FileIds = append(post.FileIds, fileIds...)
+	}
+
 	if post.Id == "" {
 		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 			return result.Err
@@ -1171,6 +1179,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 		}
 	}
 
+	a.UpdateFileInfoWithPostId(post)
 	return nil
 }
 

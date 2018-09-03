@@ -232,12 +232,12 @@
     "translation": "無法將使用者從預設的頻道移除 {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v 已從頻道中移除。"
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Cannot remove user from a channel."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "頻道已被封存或刪除"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v 已從頻道中移除。"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1031,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "此伺服器已停用檔案附件功能。"
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2507,6 +2515,10 @@
     "translation": "匯入資料行資料型別為\"直接訊息\"但直接訊息物件為 null"
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "匯入資料行資料型別為\"訊息\"但訊息物件為 null"
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "匯入資料行資料型別為\"訊息\"但訊息物件為 null"
   },
@@ -3019,10 +3031,6 @@
     "translation": "[{{.SiteName}}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "無法啟用已解開的模組。"
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "當在啟用叢集且使用 ReadOnlyConfig  時，必須手動更新 config.json 檔案當中的模組設定"
   },
@@ -3087,16 +3095,8 @@
     "translation": "模組尚未安裝"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "無法安裝預先包裝好的模組"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "無法刪除模組"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "無法設定模組狀態。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3217,6 +3217,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "無法開啟暫存的匯出檔案。"
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Unable to re-read the Global Relay temporary export file."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3399,8 +3403,20 @@
     "translation": "無效的 AD/LDAP Filter"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "無法增加附加檔案至 CSV 匯出格式。"
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Unable to close properly the zip file."
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "無法建立 eml 檔案。"
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Unable to generate eml file data."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4675,8 +4691,8 @@
     "translation": "GitLab 的服務使用條款有更新。請前往 gitlab.com 接受新條款後重新嘗試登入 Mattermost。"
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "呼叫模組 RPC 時錯誤"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Unable to set the user status. Unknown user status."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4889,6 +4905,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "無法重置頻道配置"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5119,6 +5143,10 @@
     "translation": "無法儲存繪文字"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "We couldn't delete attachments of the user"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "無法添加檔案訊息到發文上"
   },
@@ -5136,6 +5164,10 @@
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
+    "translation": "無法取得發文的檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
     "translation": "無法取得發文的檔案訊息"
   },
   {
@@ -5717,6 +5749,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "更新系統參數時遇到錯誤"
+  },
+  {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "We couldn't get the channel count for the scheme."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

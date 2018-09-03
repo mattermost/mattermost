@@ -130,7 +130,7 @@ func TestGetRolesByNames(t *testing.T) {
 	assert.Contains(t, received, role3)
 
 	// Check a list of non-existent roles.
-	received, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId()})
+	_, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId()})
 	CheckNoError(t, resp)
 
 	// Empty list should error.
@@ -138,11 +138,11 @@ func TestGetRolesByNames(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Invalid role name should error.
-	received, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId(), "!!!!!!"})
+	_, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId(), "!!!!!!"})
 	CheckBadRequestStatus(t, resp)
 
 	// Empty/whitespace rolenames should be ignored.
-	received, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId(), "", "    "})
+	_, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId(), "", "    "})
 	CheckNoError(t, resp)
 }
 
@@ -178,16 +178,16 @@ func TestPatchRole(t *testing.T) {
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 	// Check a no-op patch succeeds.
-	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
+	_, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
 	CheckNoError(t, resp)
 
-	received, resp = th.SystemAdminClient.PatchRole("junk", patch)
+	_, resp = th.SystemAdminClient.PatchRole("junk", patch)
 	CheckBadRequestStatus(t, resp)
 
-	received, resp = th.Client.PatchRole(model.NewId(), patch)
+	_, resp = th.Client.PatchRole(model.NewId(), patch)
 	CheckNotFoundStatus(t, resp)
 
-	received, resp = th.Client.PatchRole(role.Id, patch)
+	_, resp = th.Client.PatchRole(role.Id, patch)
 	CheckForbiddenStatus(t, resp)
 
 	// Check a change that the license would not allow.
@@ -195,7 +195,7 @@ func TestPatchRole(t *testing.T) {
 		Permissions: &[]string{"manage_system", "manage_webhooks"},
 	}
 
-	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
+	_, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
 	CheckNotImplementedStatus(t, resp)
 
 	// Add a license.

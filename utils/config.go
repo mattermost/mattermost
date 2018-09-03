@@ -51,9 +51,7 @@ func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bo
 	}
 
 	searchPaths := []string{}
-	for _, baseSearchPath := range baseSearchPaths {
-		searchPaths = append(searchPaths, baseSearchPath)
-	}
+	searchPaths = append(searchPaths, baseSearchPaths...)
 
 	// Additionally attempt to search relative to the location of the running binary.
 	var binaryDir string

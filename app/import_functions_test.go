@@ -2553,3 +2553,54 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	AssertFileIdsInPost(attachments, th, t)
 
 }
+
+func TestImportDirectPostWithAttachments(t *testing.T) {
+
+	th := Setup()
+	defer th.TearDown()
+
+	testsDir, _ := utils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+
+	// Create a user.
+	username := model.NewId()
+	th.App.ImportUser(&UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user1, err := th.App.GetUserByUsername(username)
+	if err != nil {
+		t.Fatalf("Failed to get user1 from database.")
+	}
+
+	username2 := model.NewId()
+	th.App.ImportUser(&UserImportData{
+		Username: &username2,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+
+	user2, err := th.App.GetUserByUsername(username2)
+	if err != nil {
+		t.Fatalf("Failed to get user2 from database.")
+	}
+
+	directImportData := &DirectPostImportData{
+		ChannelMembers: &[]string{
+			user1.Username,
+			user2.Username,
+		},
+		User:        &user1.Username,
+		Message:     ptrStr("Direct message"),
+		CreateAt:    ptrInt64(model.GetMillis()),
+		Attachments: &[]AttachmentImportData{{Path: &testImage}},
+	}
+
+	if err := th.App.ImportDirectPost(directImportData, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+
+	attachments := GetAttachments(user1.Id, th, t)
+	assert.Equal(t, len(attachments), 1)
+	assert.Contains(t, attachments[0].Path, "noteam")
+	AssertFileIdsInPost(attachments, th, t)
+}

@@ -232,12 +232,12 @@
     "translation": "Kullanıcıyı {{.Channel}} varsayılan kanalından çıkaramazsınız"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v kanaldan çıkarıldı."
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Kullanıcı kanaldan çıkarılamadı."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "Kanal arşivlenmiş ya da silinmiş"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v kanaldan çıkarıldı."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1031,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "Bu sunucuda ek dosyalarının kullanımı devre dışı bırakılmış."
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "Dosyanın var olup olmadığı anlaşılamadı. Dosya denetlenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "Dosyanın var olup olmadığı anlaşılamadı. Dosya denetlenirken bir sorun çıktı."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2507,6 +2515,10 @@
     "translation": "İçe aktarılan veri satırı \"post\" türünde ancak ileti nesnesi null."
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "İçe aktarılan veri satırı \"emoji\" türünde ancak emoji nesnesi null."
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "İçe aktarılan veri satırı \"post\" türünde ancak ileti nesnesi null."
   },
@@ -3019,10 +3031,6 @@
     "translation": "[{{ .SiteName }}] {{ .TeamName}} takımında {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bildirim"
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "Ayıklanan uygulama eki etkinleştirilemedi."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "Küme özelliği kullanılırken ve SaltOkunurYapılandırma seçeneği etkinken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir"
   },
@@ -3087,16 +3095,8 @@
     "translation": "Uygulama eki kurulmamış"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "Önceden paketlenmiş uygulama eki kurulamadı"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "Uygulama eki silinemedi"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "Uygulama eki durumu ayarlanamadı."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3217,6 +3217,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "Geçici dışa aktarma dosyası açılamadı."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Genel Aktarıcı geçici dışa aktarma dosyası yeniden okunamadı."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3399,8 +3403,20 @@
     "translation": "AD/LDAP süzgeci geçersiz"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Ek dosya Genel Aktarıcı dışa aktarma dosyasına eklenemedi."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Zip dosyası doğru şekilde kapatılamadı."
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "eml dosyası oluşturulamadı."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Eml dosya verisi üretilemedi."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4675,8 +4691,8 @@
     "translation": "GitLab Hizmet Koşulları güncellendi. Lütfen gitlab.com adresine giderek yeni hizmet koşullarını onayladıktan sonra yeniden Mattermost oturumu açmayı deneyin."
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Uygulama eki RPC eklenirken sorun çıktı"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Kullanıcı durumu ayarlanamadı. Kullanıcı durumu bilinmiyor."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4889,6 +4905,14 @@
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "Kanal şemaları sıfırlanamadı"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "Kanala son ileti gönderme tarihi sıfırlanamadı"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "Arşivlenmiş bir kanalı değiştiremezsiniz"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5119,6 +5143,10 @@
     "translation": "Emoji kaydedilemedi"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "Kullanıcının ek dosyaları silinemedi"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "Ek dosya bilgileri iletiye eklenemedi"
   },
@@ -5137,6 +5165,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "İletinin dosya bilgileri alınamadı"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "Kullanıcının dosya bilgileri alınamadı"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5717,6 +5749,10 @@
   {
     "id": "store.sql_system.update.app_error",
     "translation": "Sistem özelliği güncellenirken bir sorun çıktı"
+  },
+  {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "Şema için kanal sayısı alınamadı."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",

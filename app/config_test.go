@@ -122,12 +122,10 @@ func TestEnsureInstallationDate(t *testing.T) {
 			sqlStore := th.App.Srv.Store.User().(*sqlstore.SqlUserStore)
 			sqlStore.GetMaster().Exec("DELETE FROM Users")
 
-			var users []*model.User
 			for _, createAt := range tc.UsersCreationDates {
 				user := th.CreateUser()
 				user.CreateAt = createAt
 				sqlStore.GetMaster().Exec("UPDATE Users SET CreateAt = :CreateAt WHERE Id = :UserId", map[string]interface{}{"CreateAt": createAt, "UserId": user.Id})
-				users = append(users, user)
 			}
 
 			if tc.PrevInstallationDate == nil {

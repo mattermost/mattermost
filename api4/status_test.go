@@ -150,11 +150,11 @@ func TestUpdateUserStatus(t *testing.T) {
 	}
 
 	toUpdateUserStatus.Status = "online"
-	updateUserStatus, resp = Client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+	_, resp = Client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
 	CheckForbiddenStatus(t, resp)
 
 	toUpdateUserStatus.Status = "online"
-	updateUserStatus, resp = th.SystemAdminClient.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+	updateUserStatus, _ = th.SystemAdminClient.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
 	if updateUserStatus.Status != "online" {
 		t.Fatal("Should return online status")
 	}

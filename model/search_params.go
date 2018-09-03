@@ -6,6 +6,7 @@ package model
 import (
 	"regexp"
 	"strings"
+	"time"
 )
 
 var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"]+`)
@@ -27,13 +28,19 @@ type SearchParams struct {
 // Returns the epoch timestamp of the start of the day specified by SearchParams.AfterDate
 func (p *SearchParams) GetAfterDateMillis() int64 {
 	date := ParseDateFilterToTime(p.AfterDate)
-	return GetStartOfDayMillis(date, p.TimeZoneOffset)
+	// travel forward 1 day
+	oneDay := time.Hour * 24
+	afterDate := date.Add(oneDay)
+	return GetStartOfDayMillis(afterDate, p.TimeZoneOffset)
 }
 
 // Returns the epoch timestamp of the end of the day specified by SearchParams.BeforeDate
 func (p *SearchParams) GetBeforeDateMillis() int64 {
 	date := ParseDateFilterToTime(p.BeforeDate)
-	return GetEndOfDayMillis(date, p.TimeZoneOffset)
+	// travel back 1 day
+	oneDay := time.Hour * -24
+	beforeDate := date.Add(oneDay)
+	return GetEndOfDayMillis(beforeDate, p.TimeZoneOffset)
 }
 
 // Returns the epoch timestamps of the start and end of the day specified by SearchParams.OnDate
