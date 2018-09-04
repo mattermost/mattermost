@@ -495,7 +495,8 @@ func UpgradeDatabaseToVersion53(sqlStore SqlStore) {
 func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.4.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_3_0, VERSION_5_4_0) {
-
+	sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "varchar(500)", "varchar(500)")
+	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "varchar(500)", "varchar(500)")
 	// 	saveSchemaVersion(sqlStore, VERSION_5_4_0)
 	// }
 }
