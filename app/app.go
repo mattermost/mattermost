@@ -125,6 +125,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 		clientConfig:     make(map[string]string),
 		licenseListeners: map[string]func(){},
 	}
+
+	app.HTTPService = MakeHTTPService(app)
+
 	defer func() {
 		if outErr != nil {
 			app.Shutdown()
@@ -250,8 +253,6 @@ func New(options ...Option) (outApp *App, outErr error) {
 		app:      app,
 		handlers: make(map[string]webSocketHandler),
 	}
-
-	app.HTTPService = MakeHTTPService(app)
 
 	return app, nil
 }
