@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -726,22 +725,6 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
 		t.Fatal("wrong status code")
-	}
-}
-
-func readTestFile(name string) ([]byte, error) {
-	path, _ := utils.FindDir("tests")
-	file, err := os.Open(filepath.Join(path, name))
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	data := &bytes.Buffer{}
-	if _, err := io.Copy(data, file); err != nil {
-		return nil, err
-	} else {
-		return data.Bytes(), nil
 	}
 }
 

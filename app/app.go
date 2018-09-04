@@ -254,6 +254,8 @@ func New(options ...Option) (outApp *App, outErr error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
+	app.InitPostMetadata()
+
 	return app, nil
 }
 
