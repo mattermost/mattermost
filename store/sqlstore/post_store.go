@@ -1309,7 +1309,7 @@ func (s *SqlPostStore) GetMaxPostSize() store.StoreChannel {
 	})
 }
 
-func (s *SqlPostStore) GetParentsAfterForExport(limit int, afterId string) store.StoreChannel {
+func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.PostForExport
 		_, err1 := s.GetSearchReplica().Select(&posts, `

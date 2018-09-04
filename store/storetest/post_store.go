@@ -44,7 +44,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, ss) })
 	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, ss) })
 	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, ss) })
-	t.Run("GetParentsAfterForExport", func(t *testing.T) { testPostStoreGetParentsAfterForExport(t, ss) })
+	t.Run("GetParentsForExportAfter", func(t *testing.T) { testPostStoreGetParentsForExportAfter(t, ss) })
 	t.Run("GetRepliesForExport", func(t *testing.T) { testPostStoreGetRepliesForExport(t, ss) })
 }
 
@@ -1817,7 +1817,7 @@ func testGetMaxPostSize(t *testing.T, ss store.Store) {
 	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
 }
 
-func testPostStoreGetParentsAfterForExport(t *testing.T, ss store.Store) {
+func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
@@ -1845,7 +1845,7 @@ func testPostStoreGetParentsAfterForExport(t *testing.T, ss store.Store) {
 	p1.CreateAt = 1000
 	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetParentsAfterForExport(10000, strings.Repeat("0", 26))
+	r1 := <-ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)
 	d1 := r1.Data.([]*model.PostForExport)
 

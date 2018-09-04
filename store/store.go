@@ -221,7 +221,7 @@ type PostStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
 	GetMaxPostSize() StoreChannel
-	GetParentsAfterForExport(limit int, afterId string) StoreChannel
+	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
 }
 

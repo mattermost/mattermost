@@ -194,8 +194,8 @@ func (_m *PostStore) GetOldest() store.StoreChannel {
 	return r0
 }
 
-// GetParentsAfterForExport provides a mock function with given fields: limit, afterId
-func (_m *PostStore) GetParentsAfterForExport(limit int, afterId string) store.StoreChannel {
+// GetParentsForExportAfter provides a mock function with given fields: limit, afterId
+func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {
 	ret := _m.Called(limit, afterId)
 
 	var r0 store.StoreChannel

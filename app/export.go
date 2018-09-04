@@ -12,54 +12,54 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) BulkExport(fileWriter io.Writer) *model.AppError {
-	if err := a.ExportVersion(fileWriter); err != nil {
+func (a *App) BulkExport(writer io.Writer) *model.AppError {
+	if err := a.ExportVersion(writer); err != nil {
 		return err
 	}
 
-	if err := a.ExportAllTeams(fileWriter); err != nil {
+	if err := a.ExportAllTeams(writer); err != nil {
 		return err
 	}
 
-	if err := a.ExportAllChannels(fileWriter); err != nil {
+	if err := a.ExportAllChannels(writer); err != nil {
 		return err
 	}
 
-	if err := a.ExportAllUsers(fileWriter); err != nil {
+	if err := a.ExportAllUsers(writer); err != nil {
 		return err
 	}
 
-	if err := a.ExportAllPosts(fileWriter); err != nil {
+	if err := a.ExportAllPosts(writer); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *App) ExportWriteLine(fileWriter io.Writer, line *LineImportData) *model.AppError {
+func (a *App) ExportWriteLine(writer io.Writer, line *LineImportData) *model.AppError {
 	b, err := json.Marshal(line)
 	if err != nil {
 		return model.NewAppError("BulkExport", "app.export.export_write_line.json_marshall.error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 
-	if _, err := fileWriter.Write(append(b, '\n')); err != nil {
+	if _, err := writer.Write(append(b, '\n')); err != nil {
 		return model.NewAppError("BulkExport", "app.export.export_write_line.io_writer.error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 
 	return nil
 }
 
-func (a *App) ExportVersion(fileWriter io.Writer) *model.AppError {
+func (a *App) ExportVersion(writer io.Writer) *model.AppError {
 	version := 1
 	versionLine := &LineImportData{
 		Type:    "version",
 		Version: &version,
 	}
 
-	return a.ExportWriteLine(fileWriter, versionLine)
+	return a.ExportWriteLine(writer, versionLine)
 }
 
-func (a *App) ExportAllTeams(fileWriter io.Writer) *model.AppError {
+func (a *App) ExportAllTeams(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		result := <-a.Srv.Store.Team().GetAllForExportAfter(1000, afterId)
@@ -83,7 +83,7 @@ func (a *App) ExportAllTeams(fileWriter io.Writer) *model.AppError {
 			}
 
 			teamLine := ImportLineFromTeam(team)
-			if err := a.ExportWriteLine(fileWriter, teamLine); err != nil {
+			if err := a.ExportWriteLine(writer, teamLine); err != nil {
 				return err
 			}
 		}
@@ -92,7 +92,7 @@ func (a *App) ExportAllTeams(fileWriter io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) ExportAllChannels(fileWriter io.Writer) *model.AppError {
+func (a *App) ExportAllChannels(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		result := <-a.Srv.Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
@@ -116,7 +116,7 @@ func (a *App) ExportAllChannels(fileWriter io.Writer) *model.AppError {
 			}
 
 			channelLine := ImportLineFromChannel(channel)
-			if err := a.ExportWriteLine(fileWriter, channelLine); err != nil {
+			if err := a.ExportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
 		}
@@ -125,7 +125,7 @@ func (a *App) ExportAllChannels(fileWriter io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) ExportAllUsers(fileWriter io.Writer) *model.AppError {
+func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		result := <-a.Srv.Store.User().GetAllAfter(1000, afterId)
@@ -151,14 +151,14 @@ func (a *App) ExportAllUsers(fileWriter io.Writer) *model.AppError {
 			userLine := ImportLineFromUser(user)
 
 			// Do the Team Memberships.
-			members, err := a.buildUserTeamMemberships(user.Id)
+			members, err := a.buildUserTeamAndChannelMemberships(user.Id)
 			if err != nil {
 				return err
 			}
 
 			userLine.User.Teams = members
 
-			if err := a.ExportWriteLine(fileWriter, userLine); err != nil {
+			if err := a.ExportWriteLine(writer, userLine); err != nil {
 				return err
 			}
 		}
@@ -167,7 +167,7 @@ func (a *App) ExportAllUsers(fileWriter io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) buildUserTeamMemberships(userId string) (*[]UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImportData, *model.AppError) {
 	var memberships []UserTeamImportData
 
 	result := <-a.Srv.Store.Team().GetTeamMembersForExport(userId)
@@ -218,10 +218,10 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 	return &memberships, nil
 }
 
-func (a *App) ExportAllPosts(fileWriter io.Writer) *model.AppError {
+func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Post().GetParentsAfterForExport(1000, afterId)
+		result := <-a.Srv.Store.Post().GetParentsForExportAfter(1000, afterId)
 
 		if result.Err != nil {
 			return result.Err
@@ -251,7 +251,7 @@ func (a *App) ExportAllPosts(fileWriter io.Writer) *model.AppError {
 
 			postLine.Post.Replies = replies
 
-			if err := a.ExportWriteLine(fileWriter, postLine); err != nil {
+			if err := a.ExportWriteLine(writer, postLine); err != nil {
 				return err
 			}
 		}
