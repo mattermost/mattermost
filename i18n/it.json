@@ -1435,6 +1435,14 @@
     "translation": "Impossibile impostare le preferenze dell'utente."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Non puoi eliminare una reazione in un canale archiviato."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "Non puoi reagire in un canale archiviato."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "Reazione non valida."
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v si è unito al gruppo."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "La email deve essere da uno specifico dominio (e.s. @esempio.com). Per favore chiedi al tuo amministratore di sistema maggiori informazioni."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v ha lasciato il gruppo."
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "L'utente indicato non è membro del gruppo specificato."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Limitare i gruppi d {{ .Domain }} non è permesso dalle impostazioni di sistema. Contattare l'Amministratore di Sistema."
   },
   {
     "id": "api.team.update_team_scheme.license.error",

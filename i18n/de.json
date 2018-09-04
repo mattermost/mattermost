@@ -1435,6 +1435,14 @@
     "translation": "Konnte Benutzereinstellungen nicht setzen."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "You cannot remove a reaction in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "You cannot react in an archived channel."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "Reaktion ist nicht gültig."
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v ist dem Team beigetreten."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "Die E-Mail-Adresse muss von einer bestimmten Domain stammen (z.B. @example.com). Bitte wenden Sie sich an Ihren Systemadministrator."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v hat das Team verlassen."
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Der angegebene Benutzer ist kein Mitglied des angegebenen Teams."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2516,7 +2532,7 @@
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": "Importdatenzeile hat den Typ \"post\", aber das Nachrichtenobjekt ist null."
+    "translation": "Importdatenzeile hat den Typ \"emoji\", aber das Emoji-Objekt ist null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3220,7 +3236,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
+    "translation": "Konnte die temporäre Global-Relay-Exportdatei nicht erneut lesen."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3404,7 +3420,7 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Konnte den Anhang nicht dem CSV-Export hinzufügen."
+    "translation": "Konnte den Anhang nicht dem Global-Relay-Export hinzufügen."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
@@ -5996,7 +6012,7 @@
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
+    "translation": "Fehler beim Ableiten des Systemdatums auf Basis des Erstellungszeitpunkt des ersten Benutzers."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

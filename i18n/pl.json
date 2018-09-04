@@ -1435,6 +1435,14 @@
     "translation": "Unable to set user preferences."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "You cannot remove a reaction in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "You cannot react in an archived channel."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "Niepoprawna wartość reakcji."
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v dołączył do kanału."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "E-mail musi być z określonej domeny (np. @example.com). Proszę, skontaktuj się z administratorem systemu, aby poznać szczegóły."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v opuścił zespół."
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Wskazany użytkownik nie jest członkiem określonego zespołu."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
