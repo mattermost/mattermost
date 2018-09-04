@@ -7,12 +7,10 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"html/template"
-	"net"
 	"net/http"
 	"path"
 	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -100,6 +98,8 @@ type App struct {
 	diagnosticId        string
 
 	phase2PermissionsMigrationComplete bool
+
+	HTTPService HTTPService
 }
 
 var appCount = 0
@@ -251,6 +251,8 @@ func New(options ...Option) (outApp *App, outErr error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
+	app.HTTPService = MakeHTTPService(app)
+
 	return app, nil
 }
 
@@ -285,6 +287,8 @@ func (a *App) Shutdown() {
 	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()
+
+	a.HTTPService.Close()
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -503,43 +507,6 @@ func (a *App) HTMLTemplates() *template.Template {
 	}
 
 	return nil
-}
-
-func (a *App) HTTPClient(trustURLs bool) *http.Client {
-	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-
-	if trustURLs {
-		return utils.NewHTTPClient(insecure, nil, nil)
-	}
-
-	allowHost := func(host string) bool {
-		if a.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
-			return false
-		}
-		for _, allowed := range strings.Fields(*a.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
-			if host == allowed {
-				return true
-			}
-		}
-		return false
-	}
-
-	allowIP := func(ip net.IP) bool {
-		if !utils.IsReservedIP(ip) {
-			return true
-		}
-		if a.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
-			return false
-		}
-		for _, allowed := range strings.Fields(*a.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
-			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
-				return true
-			}
-		}
-		return false
-	}
-
-	return utils.NewHTTPClient(insecure, allowHost, allowIP)
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
