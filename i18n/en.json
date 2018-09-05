@@ -5295,6 +5295,10 @@
     "translation": "We couldn't update the channel"
   },
   {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
+  },
+  {
     "id": "store.sql_channel.update.exists.app_error",
     "translation": "A channel with that handle already exists"
   },

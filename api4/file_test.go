@@ -446,7 +446,7 @@ func TestGetFileLink(t *testing.T) {
 		fileId = fileResp.FileInfos[0].Id
 	}
 
-	link, resp := Client.GetFileLink(fileId)
+	_, resp := Client.GetFileLink(fileId)
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
@@ -460,8 +460,9 @@ func TestGetFileLink(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
-	link, resp = Client.GetFileLink(fileId)
+	link, resp := Client.GetFileLink(fileId)
 	CheckNoError(t, resp)
+
 	if link == "" {
 		t.Fatal("should've received public link")
 	}

@@ -2370,7 +2370,7 @@ func (ss *ServiceSettings) isValid() *AppError {
 		}
 	}
 
-	host, port, err := net.SplitHostPort(*ss.ListenAddress)
+	host, port, _ := net.SplitHostPort(*ss.ListenAddress)
 	var isValidHost bool
 	if host == "" {
 		isValidHost = true

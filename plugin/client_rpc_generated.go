@@ -209,7 +209,7 @@ func (g *hooksRPCClient) MessageHasBeenPosted(c *Context, post *model.Post) {
 			g.log.Error("RPC call MessageHasBeenPosted to plugin failed.", mlog.Err(err))
 		}
 	}
-	return
+
 }
 
 func (s *hooksRPCServer) MessageHasBeenPosted(args *Z_MessageHasBeenPostedArgs, returns *Z_MessageHasBeenPostedReturns) error {
@@ -244,7 +244,7 @@ func (g *hooksRPCClient) MessageHasBeenUpdated(c *Context, newPost, oldPost *mod
 			g.log.Error("RPC call MessageHasBeenUpdated to plugin failed.", mlog.Err(err))
 		}
 	}
-	return
+
 }
 
 func (s *hooksRPCServer) MessageHasBeenUpdated(args *Z_MessageHasBeenUpdatedArgs, returns *Z_MessageHasBeenUpdatedReturns) error {
@@ -278,7 +278,7 @@ func (g *hooksRPCClient) ChannelHasBeenCreated(c *Context, channel *model.Channe
 			g.log.Error("RPC call ChannelHasBeenCreated to plugin failed.", mlog.Err(err))
 		}
 	}
-	return
+
 }
 
 func (s *hooksRPCServer) ChannelHasBeenCreated(args *Z_ChannelHasBeenCreatedArgs, returns *Z_ChannelHasBeenCreatedReturns) error {
@@ -313,7 +313,7 @@ func (g *hooksRPCClient) UserHasJoinedChannel(c *Context, channelMember *model.C
 			g.log.Error("RPC call UserHasJoinedChannel to plugin failed.", mlog.Err(err))
 		}
 	}
-	return
+
 }
 
 func (s *hooksRPCServer) UserHasJoinedChannel(args *Z_UserHasJoinedChannelArgs, returns *Z_UserHasJoinedChannelReturns) error {
@@ -348,7 +348,7 @@ func (g *hooksRPCClient) UserHasLeftChannel(c *Context, channelMember *model.Cha
 			g.log.Error("RPC call UserHasLeftChannel to plugin failed.", mlog.Err(err))
 		}
 	}
-	return
+
 }
 
 func (s *hooksRPCServer) UserHasLeftChannel(args *Z_UserHasLeftChannelArgs, returns *Z_UserHasLeftChannelReturns) error {
@@ -383,7 +383,7 @@ func (g *hooksRPCClient) UserHasJoinedTeam(c *Context, teamMember *model.TeamMem
 			g.log.Error("RPC call UserHasJoinedTeam to plugin failed.", mlog.Err(err))
 		}
 	}
-	return
+
 }
 
 func (s *hooksRPCServer) UserHasJoinedTeam(args *Z_UserHasJoinedTeamArgs, returns *Z_UserHasJoinedTeamReturns) error {
@@ -418,7 +418,7 @@ func (g *hooksRPCClient) UserHasLeftTeam(c *Context, teamMember *model.TeamMembe
 			g.log.Error("RPC call UserHasLeftTeam to plugin failed.", mlog.Err(err))
 		}
 	}
-	return
+
 }
 
 func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z_UserHasLeftTeamReturns) error {
@@ -487,7 +487,7 @@ func (g *hooksRPCClient) UserHasLoggedIn(c *Context, user *model.User) {
 			g.log.Error("RPC call UserHasLoggedIn to plugin failed.", mlog.Err(err))
 		}
 	}
-	return
+
 }
 
 func (s *hooksRPCServer) UserHasLoggedIn(args *Z_UserHasLoggedInArgs, returns *Z_UserHasLoggedInReturns) error {
@@ -2125,7 +2125,7 @@ func (g *apiRPCClient) PublishWebSocketEvent(event string, payload map[string]in
 	if err := g.client.Call("Plugin.PublishWebSocketEvent", _args, _returns); err != nil {
 		log.Printf("RPC call to PublishWebSocketEvent API failed: %s", err.Error())
 	}
-	return
+
 }
 
 func (s *apiRPCServer) PublishWebSocketEvent(args *Z_PublishWebSocketEventArgs, returns *Z_PublishWebSocketEventReturns) error {
@@ -2242,7 +2242,7 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
 		log.Printf("RPC call to LogDebug API failed: %s", err.Error())
 	}
-	return
+
 }
 
 func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns) error {
@@ -2270,7 +2270,7 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
 		log.Printf("RPC call to LogInfo API failed: %s", err.Error())
 	}
-	return
+
 }
 
 func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) error {
@@ -2298,7 +2298,7 @@ func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
 	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {
 		log.Printf("RPC call to LogError API failed: %s", err.Error())
 	}
-	return
+
 }
 
 func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns) error {
@@ -2326,7 +2326,7 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
 		log.Printf("RPC call to LogWarn API failed: %s", err.Error())
 	}
-	return
+
 }
 
 func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) error {

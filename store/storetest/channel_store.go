@@ -220,6 +220,12 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
+	o1.DeleteAt = 100
+	if err := (<-ss.Channel().Update(&o1)).Err; err == nil {
+		t.Fatal("Update should have failed because channel is archived")
+	}
+
+	o1.DeleteAt = 0
 	o1.Id = "missing"
 	if err := (<-ss.Channel().Update(&o1)).Err; err == nil {
 		t.Fatal("Update should have failed because of missing key")
@@ -2281,9 +2287,9 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 
-	c1 = (<-ss.Channel().Save(c1, 100)).Data.(*model.Channel)
-	c2 = (<-ss.Channel().Save(c2, 100)).Data.(*model.Channel)
-	c3 = (<-ss.Channel().Save(c3, 100)).Data.(*model.Channel)
+	_ = (<-ss.Channel().Save(c1, 100)).Data.(*model.Channel)
+	_ = (<-ss.Channel().Save(c2, 100)).Data.(*model.Channel)
+	_ = (<-ss.Channel().Save(c3, 100)).Data.(*model.Channel)
 
 	// Get the channels by a valid Scheme ID.
 	res1 := <-ss.Channel().GetChannelsByScheme(s1.Id, 0, 100)

@@ -138,11 +138,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 	schemeExport = append(schemeExport, []byte("\n")...)
 
 	_, err = w.Write(schemeExport)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (a *App) ImportPermissions(jsonl io.Reader) error {
