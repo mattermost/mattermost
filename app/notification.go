@@ -157,13 +157,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		updateMentionChans = append(updateMentionChans, a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
-	var senderUsername string
-	if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" && channel.Type != model.CHANNEL_DIRECT {
-		senderUsername = value.(string)
-	} else {
-		senderUsername = sender.Username
-	}
-
 	notification := &postNotification{
 		post:       post,
 		channel:    channel,
@@ -335,7 +328,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", notification.GetChannelName(model.SHOW_USERNAME, ""))
 	message.Add("channel_name", channel.Name)
-	message.Add("sender_name", senderUsername)
+	message.Add("sender_name", notification.GetSenderName(model.SHOW_USERNAME, a.Config().ServiceSettings.EnablePostUsernameOverride))
 	message.Add("team_id", team.Id)
 
 	if len(post.FileIds) != 0 && fchan != nil {
@@ -619,9 +612,10 @@ type postNotification struct {
 // preceeded by an at sign. For group messages, this is a comma-separated list of the members of the
 // channel, with an option to exclude the recipient of the message from that list.
 func (n *postNotification) GetChannelName(userNameFormat string, excludeId string) string {
-	if n.channel.Type == model.CHANNEL_DIRECT {
+	switch n.channel.Type {
+	case model.CHANNEL_DIRECT:
 		return fmt.Sprintf("@%s", n.sender.GetDisplayName(userNameFormat))
-	} else if n.channel.Type == model.CHANNEL_GROUP {
+	case model.CHANNEL_GROUP:
 		names := []string{}
 		for _, user := range n.profileMap {
 			if user.Id != excludeId {
@@ -632,9 +626,9 @@ func (n *postNotification) GetChannelName(userNameFormat string, excludeId strin
 		sort.Strings(names)
 
 		return strings.Join(names, ", ")
+	default:
+		return n.channel.DisplayName
 	}
-
-	return n.channel.DisplayName
 }
 
 // Returns the name of the sender of this notification, accounting for things like system messages
