@@ -3235,6 +3235,10 @@
     "translation": "at"
   },
   {
+    "id": "app.reminder.chrono.on",
+    "translation": "on"
+  },
+  {
     "id": "app.reminder.chrono.pm",
     "translation": "pm"
   },

@@ -13,6 +13,7 @@ const (
 	REMIND_BOTNAME        = "remindbot"
 	REMIND_EXCEPTION_TEXT = "api.command_remind.exception"
 	REMIND_HELP_TEXT      = "api.command_remind.help"
+	DEFAULT_TIME          = "9:00AM"
 )
 
 type Reminders []Reminder
