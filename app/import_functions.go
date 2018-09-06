@@ -491,10 +491,10 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	if data.ProfileImage != nil {
 		file, err := os.Open(*data.ProfileImage)
 		if err != nil {
-			mlog.Error(fmt.Sprint("Error to open the profile image.", err))
+			mlog.Error("Unable to open the profile image.", mlog.Any("err", err))
 		}
 		if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
-			mlog.Error(fmt.Sprint("Error to set the profile image from a file.", err))
+			mlog.Error("Unable to set the profile image from a file.", mlog.Any("err", err))
 		}
 	}
 
