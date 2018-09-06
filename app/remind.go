@@ -970,11 +970,45 @@ func (a *App) normalizeDate(text string) (string, error) {
 		case 1:
 			break
 		case 2:
-			// TODO
+			if len(parts[1]) > 2 {
+				for _, suffix := range daySuffixes {
+					if suffix == parts[1] {
+						parts[1] = parts[1][:len(parts[1])-2]
+						break
+					}
+				}
+			}
+			if _, err := strconv.Atoi(parts[1]); err != nil {
+				if wn, wErr := a.wordToNumber(date); wErr == nil {
+					parts[1] = strconv.Itoa(wn)
+				}
+			}
+
+			parts = append(parts, fmt.Sprintf("%v",time.Now().Year()))
+
+			break
 		case 3:
-			// TODO
+			if len(parts[1]) > 2 {
+				for _, suffix := range daySuffixes {
+					if suffix == parts[1] {
+						parts[1] = parts[1][:len(parts[1])-2]
+						break
+					}
+				}
+			}
+
+			if _, err := strconv.Atoi(parts[1]); err != nil {
+				if wn, wErr := a.wordToNumber(date); wErr == nil {
+					parts[1] = strconv.Itoa(wn)
+				}
+
+				if _, pErr := strconv.Atoi(parts[2]); pErr != nil {
+					return "", pErr
+				}
+			}
+			break
 		default:
-			// TODO
+			return "", errors.New("unrecognized date format")
 		}
 
 		switch parts[0] {
