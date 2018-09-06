@@ -59,6 +59,9 @@ type ChannelPatch struct {
 
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
+	if copy.SchemeId != nil {
+		copy.SchemeId = NewString(*o.SchemeId)
+	}
 	return &copy
 }
 
