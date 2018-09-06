@@ -644,16 +644,17 @@ type SSOSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName                  *string
-	DataSource                  *string
-	DataSourceReplicas          []string
-	DataSourceSearchReplicas    []string
-	MaxIdleConns                *int
-	ConnMaxLifetimeMilliseconds *int
-	MaxOpenConns                *int
-	Trace                       bool
-	AtRestEncryptKey            string
-	QueryTimeout                *int
+	DriverName                                *string
+	DataSource                                *string
+	DataSourceReplicas                        []string
+	DataSourceSearchReplicas                  []string
+	MaxIdleConns                              *int
+	ConnMaxLifetimeMilliseconds               *int
+	MaxOpenConns                              *int
+	Trace                                     bool
+	AtRestEncryptKey                          string
+	QueryTimeout                              *int
+	ExperimentalPublicChannelsMaterialization *bool
 }
 
 func (s *SqlSettings) SetDefaults() {
@@ -683,6 +684,10 @@ func (s *SqlSettings) SetDefaults() {
 
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewInt(30)
+	}
+
+	if s.ExperimentalPublicChannelsMaterialization == nil {
+		s.ExperimentalPublicChannelsMaterialization = NewBool(true)
 	}
 }
 

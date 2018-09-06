@@ -49,11 +49,10 @@ const (
 )
 
 const (
-	EXIT_VERSION_SAVE_MISSING      = 1001
-	EXIT_TOO_OLD                   = 1002
-	EXIT_VERSION_SAVE              = 1003
-	EXIT_THEME_MIGRATION           = 1004
-	EXIT_PUBLIC_CHANNELS_MIGRATION = 1005
+	EXIT_VERSION_SAVE_MISSING = 1001
+	EXIT_TOO_OLD              = 1002
+	EXIT_VERSION_SAVE         = 1003
+	EXIT_THEME_MIGRATION      = 1004
 )
 
 func UpgradeDatabase(sqlStore SqlStore) {
@@ -501,7 +500,7 @@ func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
 	if err := sqlStore.Channel().MigratePublicChannels(); err != nil {
 		mlog.Critical("Failed to migrate PublicChannels table", mlog.Err(err))
 		time.Sleep(time.Second)
-		os.Exit(EXIT_PUBLIC_CHANNELS_MIGRATION)
+		os.Exit(EXIT_GENERIC_FAILURE)
 	}
 	// 	saveSchemaVersion(sqlStore, VERSION_5_4_0)
 }

@@ -117,8 +117,13 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
+	enableExperimentalPublicChannelsMaterialization := true
+	if settings.ExperimentalPublicChannelsMaterialization != nil && !*settings.ExperimentalPublicChannelsMaterialization {
+		enableExperimentalPublicChannelsMaterialization = false
+	}
+
 	supplier.oldStores.team = NewSqlTeamStore(supplier)
-	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
+	supplier.oldStores.channel = NewSqlChannelStoreExperimental(supplier, metrics, enableExperimentalPublicChannelsMaterialization)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
 	supplier.oldStores.audit = NewSqlAuditStore(supplier)
@@ -155,12 +160,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	// This store's triggers should exist before the migration is run to ensure the
 	// corresponding tables stay in sync. Whether or not a trigger should be created before
 	// or after a migration is likely to be decided on a case-by-case basis.
-	supplier.oldStores.channel.(*SqlChannelStore).CreateTriggersIfNotExists()
+	supplier.oldStores.channel.(*SqlChannelStoreExperimental).CreateTriggersIfNotExists()
 
 	UpgradeDatabase(supplier)
 
 	supplier.oldStores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
-	supplier.oldStores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
+	supplier.oldStores.channel.(*SqlChannelStoreExperimental).CreateIndexesIfNotExists()
 	supplier.oldStores.post.(*SqlPostStore).CreateIndexesIfNotExists()
 	supplier.oldStores.user.(*SqlUserStore).CreateIndexesIfNotExists()
 	supplier.oldStores.audit.(*SqlAuditStore).CreateIndexesIfNotExists()

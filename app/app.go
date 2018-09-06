@@ -256,6 +256,12 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 func (a *App) configOrLicenseListener() {
 	a.regenerateClientConfig()
+
+	if a.Config().SqlSettings.ExperimentalPublicChannelsMaterialization != nil && !*a.Config().SqlSettings.ExperimentalPublicChannelsMaterialization {
+		a.Srv.Store.Channel().DisableExperimentalPublicChannelsMaterialization()
+	} else {
+		a.Srv.Store.Channel().EnableExperimentalPublicChannelsMaterialization()
+	}
 }
 
 func (a *App) Shutdown() {
