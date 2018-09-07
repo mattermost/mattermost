@@ -905,7 +905,7 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		chronoTime = dateTimeSplit[1]
 	}
 
-	dateUnit, ndErr := a.normalizeDate(dateTimeSplit[0])
+	dateUnit, ndErr := a.normalizeDate(user, dateTimeSplit[0])
 	if ndErr != nil {
 		return []time.Time{}, ndErr
 	}
@@ -944,7 +944,7 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		break
 	}
 
-	// TODO fix this!!!!!   Fri Sep  7 15:57:05 PDT 2018 is format
+	// TODO fix this!!!!! format should be "Fri Sep  7 15:57:05 PDT 2018"
 	t, tErr := time.Parse(time.UnixDate, dateUnit + " " + timeUnit)
 	if tErr != nil {
 		return []time.Time{}, tErr
@@ -956,24 +956,25 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
 func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
+	_, _, translateFunc, _ := a.shared(user.Id)
+
 	switch text {
-	case "noon":
+	case translateFunc("app.reminder.chrono.noon"):
 		return "12:00PM", nil
-	case "midnight":
+	case translateFunc("app.reminder.chrono.midnight"):
 		return "00:00AM", nil
-	case "one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve":
-	//case translateFunc("app.reminder.chrono.one"),
-	//	translateFunc("app.reminder.chrono.two"),
-	//	translateFunc("app.reminder.chrono.three"),
-	//	translateFunc("app.reminder.chrono.four"),
-	//	translateFunc("app.reminder.chrono.five"),
-	//	translateFunc("app.reminder.chrono.six"),
-	//	translateFunc("app.reminder.chrono.seven"),
-	//	translateFunc("app.reminder.chrono.eight"),
-	//	translateFunc("app.reminder.chrono.nine"),
-	//	translateFunc("app.reminder.chrono.ten"),
-	//	translateFunc("app.reminder.chrono.eleven"),
-	//	translateFunc("app.reminder.chrono.twelve"):
+	case translateFunc("app.reminder.chrono.one"),
+		translateFunc("app.reminder.chrono.two"),
+		translateFunc("app.reminder.chrono.three"),
+		translateFunc("app.reminder.chrono.four"),
+		translateFunc("app.reminder.chrono.five"),
+		translateFunc("app.reminder.chrono.six"),
+		translateFunc("app.reminder.chrono.seven"),
+		translateFunc("app.reminder.chrono.eight"),
+		translateFunc("app.reminder.chrono.nine"),
+		translateFunc("app.reminder.chrono.ten"),
+		translateFunc("app.reminder.chrono.eleven"),
+		translateFunc("app.reminder.chrono.twelve"):
 
 		now := time.Now()
 
@@ -983,8 +984,17 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 			return "", wErr
 		}
 
+
 		wordTime := now.Round(time.Hour).Add(time.Hour * time.Duration(num+2))
 		t := a.chooseClosest(user, &wordTime, false).Format(time.UnixDate)
+
+		matched, err := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9]:[0-5][0-9]", t)
+		if err != nil {
+			return "", err
+		}
+		if matched {
+
+		}
 
 		//return []time.Time{a.chooseClosest(user, &wordTime, false)}, nil
 		//
@@ -1012,7 +1022,7 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
 // TODO covert this to use local time or timezone
 // TODO date matching needs to match up with the local date setup
-func (a *App) normalizeDate(text string) (string, error) {
+func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 	date := strings.ToLower(text)
 	if strings.EqualFold("day", date) {
 		return date, nil
