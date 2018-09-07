@@ -887,7 +887,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 // TODO under construction
 func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
-	_, _, translateFunc, _ := a.shared(user.Id)
+	user, _, translateFunc, _ := a.shared(user.Id)
 
 	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
@@ -909,26 +909,106 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 	if ndErr != nil {
 		return []time.Time{}, ndErr
 	}
-	timeUnit, ntErr := a.normalizeTime(chronoTime)
+	timeUnit, ntErr := a.normalizeTime(user, chronoTime)
 	if ntErr != nil {
 		return []time.Time{}, ntErr
 	}
 
 	switch dateUnit {
-	case "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday":
-		//return Arrays.asList(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.valueOf(dateUnit))).atTime(LocalTime.parse(timeUnit)));
+	case "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday":
+
+		todayWeekDayNum := int(time.Now().Weekday())   //5
+		weekDayNum := a.weekDayNumber(dateUnit)  //1
+		day := 0
+
+		if weekDayNum < todayWeekDayNum {
+			day = 7 - (todayWeekDayNum-weekDayNum)
+		} else if weekDayNum >= todayWeekDayNum {
+			day = 7 + (weekDayNum-todayWeekDayNum)
+		}
+
+		wallClock, pErr := time.Parse(time.Kitchen, timeUnit)
+		if pErr != nil {
+			return []time.Time{}, pErr
+		}
+
+		nextDay := time.Now().AddDate(0,0,day).Round(time.Hour * time.Duration(24))
+		occurrence := wallClock.AddDate(nextDay.Year(), int(nextDay.Month())-1, nextDay.Day()-1)
+
+		return []time.Time{a.chooseClosest(user, &occurrence, false)}, nil
+
 		break
 	case "mondays", "tuesdays", "wednesdays", "thursdays", "fridays", "saturdays", "sundays":
+		//TODO handle "every" when
 		//return every("every " + dateUnit.substring(0, dateUnit.length() - 1) + " at " + timeUnit);
 		break
 	}
 
-	//return Arrays.asList(LocalDateTime.parse(dateUnit + " " + timeUnit, new DateTimeFormatterBuilder()
-	//        .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter()));
+	// TODO fix this!!!!!   Fri Sep  7 15:57:05 PDT 2018 is format
+	t, tErr := time.Parse(time.UnixDate, dateUnit + " " + timeUnit)
+	if tErr != nil {
+		return []time.Time{}, tErr
+	}
 
-	return []time.Time{}, errors.New("could not format 'on'")
+	return []time.Time{t}, errors.New("could not format 'on'")
 }
 
+
+func (a *App) normalizeTime(user *model.User, text string) (string, error) {
+
+	switch text {
+	case "noon":
+		return "12:00PM", nil
+	case "midnight":
+		return "00:00AM", nil
+	case "one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve":
+	//case translateFunc("app.reminder.chrono.one"),
+	//	translateFunc("app.reminder.chrono.two"),
+	//	translateFunc("app.reminder.chrono.three"),
+	//	translateFunc("app.reminder.chrono.four"),
+	//	translateFunc("app.reminder.chrono.five"),
+	//	translateFunc("app.reminder.chrono.six"),
+	//	translateFunc("app.reminder.chrono.seven"),
+	//	translateFunc("app.reminder.chrono.eight"),
+	//	translateFunc("app.reminder.chrono.nine"),
+	//	translateFunc("app.reminder.chrono.ten"),
+	//	translateFunc("app.reminder.chrono.eleven"),
+	//	translateFunc("app.reminder.chrono.twelve"):
+
+		now := time.Now()
+
+		num, wErr := a.wordToNumber(text)
+		if wErr != nil {
+			mlog.Error(fmt.Sprintf("%v", wErr))
+			return "", wErr
+		}
+
+		wordTime := now.Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		t := a.chooseClosest(user, &wordTime, false).Format(time.UnixDate)
+
+		//return []time.Time{a.chooseClosest(user, &wordTime, false)}, nil
+		//
+		//
+		//
+		//return a.wordToNumber(text)
+	case "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23":
+	default:
+		break
+	}
+
+	t := ""
+	if match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9](\\s)?(?i)(am|pm)", t); match {  // 12:30PM, 12:30 pm
+		//TODO handle this case
+	} else if  match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9]", t); match {  // 12:30
+		//TODO handle this case
+	} else if  match, _ := regexp.MatchString("(1[012]|[1-9])(\\s)?(?i)(am|pm)", t); match {   // 5PM, 7 am
+		//TODO handle this case
+	} else if  match, _ := regexp.MatchString("(1[012]|[1-9])[0-5][0-9]", t); match {     // 1200
+		//TODO handle this case
+	}
+
+	return "", errors.New("unable to normalize time")
+}
 
 // TODO covert this to use local time or timezone
 // TODO date matching needs to match up with the local date setup
@@ -1137,6 +1217,27 @@ func (a *App) normalizeDate(text string) (string, error) {
 
 }
 
+func (a *App) weekDayNumber(day string) (int) {
+	switch day {
+	case "sunday":
+		return 0
+	case "monday":
+		return 1
+	case "tuesday":
+		return 2
+	case "wednesday":
+		return 3
+	case "thursday":
+		return 4
+	case "friday":
+		return 5
+	case "saturday":
+		return 6
+	default:
+		return -1
+	}
+}
+
 func (a *App) regSplit(text string, delimeter string) []string {
 	reg := regexp.MustCompile(delimeter)
 	indexes := reg.FindAllStringIndex(text, -1)
@@ -1148,10 +1249,6 @@ func (a *App) regSplit(text string, delimeter string) []string {
 	}
 	result[len(indexes)] = text[laststart:]
 	return result
-}
-
-func (a *App) normalizeTime(word string) (string, error) {
-	return "", nil
 }
 
 func (a *App) wordToNumber(word string) (int, error) {
