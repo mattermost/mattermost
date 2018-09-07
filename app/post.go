@@ -777,7 +777,7 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := a.HTTPClient(false).Get(requestURL)
+	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
 	if err != nil {
 		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error()))
 		return og
@@ -890,9 +890,9 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
-		httpClient = a.HTTPClient(true)
+		httpClient = a.HTTPService.MakeClient(true)
 	} else {
-		httpClient = a.HTTPClient(false)
+		httpClient = a.HTTPService.MakeClient(false)
 	}
 
 	resp, err := httpClient.Do(req)
