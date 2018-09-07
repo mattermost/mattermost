@@ -35,11 +35,12 @@ var ChannelRenameCmd = &cobra.Command{
 }
 
 var RemoveChannelUsersCmd = &cobra.Command{
-	Use:     "remove [channel] [users]",
-	Short:   "Remove users from channel",
-	Long:    "Remove some users from channel",
-	Example: "  channel remove myteam:mychannel user@example.com username",
-	RunE:    removeChannelUsersCmdF,
+	Use:   "remove [channel] [users]",
+	Short: "Remove users from channel",
+	Long:  "Remove some users from channel",
+	Example: `  channel remove myteam:mychannel user@example.com username
+  channel remove myteam:mychannel --all-users`,
+	RunE: removeChannelUsersCmdF,
 }
 
 var AddChannelUsersCmd = &cobra.Command{
@@ -125,6 +126,8 @@ func init() {
 
 	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
 
+	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
+
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
 		RemoveChannelUsersCmd,
@@ -198,8 +201,14 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
+	allUsers, _ := command.Flags().GetBool("all-users")
+
+	if allUsers && len(args) != 1 {
+		return errors.New("individual users must not be specified in conjunction with the --all-users flag")
+	}
+
+	if !allUsers && len(args) < 2 {
+		return errors.New("you must specify some users to remove from the channel, or use the --all-users flag to remove them all")
 	}
 
 	channel := getChannelFromChannelArg(a, args[0])
@@ -207,9 +216,13 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	users := getUsersFromUserArgs(a, args[1:])
-	for i, user := range users {
-		removeUserFromChannel(a, channel, user, args[i+1])
+	if allUsers {
+		removeAllUsersFromChannel(a, channel)
+	} else {
+		users := getUsersFromUserArgs(a, args[1:])
+		for i, user := range users {
+			removeUserFromChannel(a, channel, user, args[i+1])
+		}
 	}
 
 	return nil
@@ -222,6 +235,12 @@ func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User,
 	}
 	if err := a.RemoveUserFromChannel(user.Id, "", channel); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
+	}
+}
+
+func removeAllUsersFromChannel(a *app.App, channel *model.Channel) {
+	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
+		CommandPrintErrorln("Unable to remove all users from " + channel.Name + ". Error: " + result.Err.Error())
 	}
 }
 
