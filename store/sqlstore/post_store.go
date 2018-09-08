@@ -1352,7 +1352,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			AND	column_name = 'message'
 			LIMIT 1
 		`); err != nil {
-			l4g.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
+			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else {
 		mlog.Warn("No implementation found to determine the maximum supported post size")

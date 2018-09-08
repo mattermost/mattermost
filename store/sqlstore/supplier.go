@@ -540,7 +540,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD COLUMN IF NOT EXISTS " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
@@ -572,6 +572,16 @@ func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, column
 		return true
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
+		}
+
+		return true
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
 		if err != nil {
 			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
@@ -763,7 +773,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE table_catalog = current_database() and table_name = $1 AND index_name = $2", tableName, indexName)
 		if err != nil {
-			l4g.Critical(utils.T("store.sql.check_index.critical"), err)
+			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_MYSQL)
 		}
@@ -776,7 +786,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + " INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
-			l4g.Critical("Failed to create index %v", err)
+			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}

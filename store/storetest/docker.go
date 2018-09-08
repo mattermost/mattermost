@@ -85,7 +85,7 @@ func NewCockroachDBContainer() (*RunningContainer, *model.SqlSettings, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	l4g.Info("Waiting for cockroachdb connectivity")
+	mlog.Info("Waiting for cockroachdb connectivity")
 	port := container.NetworkSettings.Ports["26257/tcp"][0].HostPort
 	if err := waitForPort(port); err != nil {
 		container.Stop()
