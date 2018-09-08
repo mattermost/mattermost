@@ -204,9 +204,7 @@ func (a *App) ClearPushNotificationSync(userId string, channelId string) {
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		a.Go(func() {
-			a.sendToPushProxy(tmpMessage, session)
-		})
+		a.sendToPushProxy(tmpMessage, session)
 	}
 }
 
