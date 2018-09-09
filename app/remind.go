@@ -4,17 +4,18 @@
 package app
 
 import (
-	"time"
-	"strings"
-	"fmt"
 	"errors"
+	"fmt"
 	"strconv"
+	"strings"
+	"time"
+
+	"regexp"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"regexp"
 )
 
 var running bool
@@ -124,7 +125,7 @@ func (a *App) InitReminders() {
 	daySuffixes = []string{"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th",
 		"10th", "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th",
 		"20th", "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th",
-		"30th", "31st"};
+		"30th", "31st"}
 
 	if !running {
 		running = true
@@ -151,7 +152,9 @@ func (a *App) runner() {
 
 func (a *App) triggerReminders() {
 
-	t := time.Now().Round(time.Second).Format(time.UnixDate)
+	//TODO should this be UTC or local or... as is?
+	//        RFC3339     = "2006-01-02T15:04:05Z07:00"
+	t := time.Now().Round(time.Second).Format(time.RFC3339)  //.Format(time.UnixDate)
 	schan := a.Srv.Store.Remind().GetByTime(t)
 
 	if result := <-schan; result.Err != nil {
@@ -290,7 +293,7 @@ func (a *App) triggerReminders() {
 	}
 }
 
-func (a *App) ListReminders(userId string) (string) {
+func (a *App) ListReminders(userId string) string {
 
 	_, _, translateFunc, sErr := a.shared(userId)
 
@@ -304,8 +307,8 @@ func (a *App) ListReminders(userId string) (string) {
 	var recurringOccurrences []model.Occurrence
 	var pastOccurrences []model.Occurrence
 
-	var output string
-	output = ""
+	output := ""
+
 	for _, reminder := range reminders {
 
 		schan := a.Srv.Store.Remind().GetByReminder(reminder.Id)
@@ -314,20 +317,19 @@ func (a *App) ListReminders(userId string) (string) {
 			continue
 		}
 
-		var occurrences model.Occurrences
-		occurrences = result.Data.(model.Occurrences)
+		occurrences := result.Data.(model.Occurrences)
 
 		if len(occurrences) > 0 {
 
 			for _, occurrence := range occurrences {
-
-				t, pErr := time.Parse(time.UnixDate, occurrence.Occurrence)
-				s, pErr2 := time.Parse(time.UnixDate, occurrence.Snoozed)
+				//        RFC3339     = "2006-01-02T15:04:05Z07:00"
+				t, pErr := time.Parse(time.RFC3339, occurrence.Occurrence)
+				s, pErr2 := time.Parse(time.RFC3339, occurrence.Snoozed)
 				if pErr != nil || pErr2 != nil {
 					continue
 				}
 
-				if reminder.Completed == emptyTime.Format(time.UnixDate) &&
+				if reminder.Completed == emptyTime.Format(time.RFC3339) &&
 					(occurrence.Repeat == "" && t.After(time.Now())) ||
 					(s != emptyTime && s.After(time.Now())) {
 					upcomingOccurrences = append(upcomingOccurrences, occurrence)
@@ -338,7 +340,7 @@ func (a *App) ListReminders(userId string) (string) {
 					recurringOccurrences = append(recurringOccurrences, occurrence)
 				}
 
-				if reminder.Completed == emptyTime.Format(time.UnixDate) &&
+				if reminder.Completed == emptyTime.Format(time.RFC3339) &&
 					t.Before(time.Now()) &&
 					s == emptyTime {
 					pastOccurrences = append(pastOccurrences, occurrence)
@@ -380,7 +382,7 @@ func (a *App) ListReminders(userId string) (string) {
 	return output + translateFunc("app.reminder.list_footer")
 }
 
-func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, reminders *[]model.Reminder) (string) {
+func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, reminders *[]model.Reminder) string {
 
 	_, location, translateFunc, _ := a.shared(userId)
 	cfg := a.Config()
@@ -391,17 +393,17 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 	for _, occurrence := range *occurrences {
 
 		reminder := a.findReminder(occurrence.ReminderId, reminders)
-
-		t, tErr := time.Parse(time.UnixDate, occurrence.Occurrence)
+		//        RFC3339     = "2006-01-02T15:04:05Z07:00"
+		t, tErr := time.Parse(time.RFC3339, occurrence.Occurrence)
 		if tErr != nil {
 			continue
 		}
 
 		var formattedOccurrence string
 		if *cfg.DisplaySettings.ExperimentalTimezone {
-			formattedOccurrence = t.In(location).Format(time.UnixDate)
+			formattedOccurrence = t.In(location).Format(time.RFC3339)
 		} else {
-			formattedOccurrence = t.Format(time.UnixDate)
+			formattedOccurrence = t.Format(time.RFC3339)
 		}
 
 		var messageParameters = map[string]interface{}{
@@ -415,7 +417,7 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 	return output
 }
 
-func (a *App) findReminder(reminderId string, reminders *[]model.Reminder) (*model.Reminder) {
+func (a *App) findReminder(reminderId string, reminders *[]model.Reminder) *model.Reminder {
 	for _, reminder := range *reminders {
 		if reminder.Id == reminderId {
 			return &reminder
@@ -424,7 +426,7 @@ func (a *App) findReminder(reminderId string, reminders *[]model.Reminder) (*mod
 	return &model.Reminder{}
 }
 
-func (a *App) DeleteReminders(userId string) (string) {
+func (a *App) DeleteReminders(userId string) string {
 
 	_, _, translateFunc, _ := a.shared(userId)
 
@@ -435,7 +437,7 @@ func (a *App) DeleteReminders(userId string) (string) {
 	return translateFunc("app.reminder.ok_deleted")
 }
 
-func (a *App) getReminders(userId string) ([]model.Reminder) {
+func (a *App) getReminders(userId string) []model.Reminder {
 
 	schan := a.Srv.Store.Remind().GetByUser(userId)
 	if result := <-schan; result.Err != nil {
@@ -462,10 +464,11 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 		useToString = ""
 	}
 
+	//RFC3339
 	request.Reminder.Id = model.NewId()
 	request.Reminder.TeamId = request.TeamId
 	request.Reminder.UserId = request.UserId
-	request.Reminder.Completed = emptyTime.Format(time.UnixDate)
+	request.Reminder.Completed = emptyTime.Format(time.RFC3339)
 
 	if cErr := a.createOccurrences(request); cErr != nil {
 		mlog.Error(cErr.Error())
@@ -493,7 +496,7 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 	return response, nil
 }
 
-func (a *App) parseRequest(request *model.ReminderRequest) (error) {
+func (a *App) parseRequest(request *model.ReminderRequest) error {
 
 	_, _, translateFunc, _ := a.shared(request.UserId)
 
@@ -540,7 +543,7 @@ func (a *App) parseRequest(request *model.ReminderRequest) (error) {
 	return errors.New("unrecognized target")
 }
 
-func (a *App) createOccurrences(request *model.ReminderRequest) (error) {
+func (a *App) createOccurrences(request *model.ReminderRequest) error {
 
 	user, _, translateFunc, _ := a.shared(request.UserId)
 
@@ -573,17 +576,18 @@ func (a *App) createOccurrences(request *model.ReminderRequest) (error) {
 	return errors.New("unable to create occurrences")
 }
 
-func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.Time) (error) {
+func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.Time) error {
 
 	for _, o := range occurrences {
 
+		//RFC3339
 		occurrence := &model.Occurrence{
 			model.NewId(),
 			request.UserId,
 			request.Reminder.Id,
 			"",
-			o.Format(time.UnixDate),
-			emptyTime.Format(time.UnixDate),
+			o.Format(time.RFC3339),
+			emptyTime.Format(time.RFC3339),
 		}
 
 		schan := a.Srv.Store.Remind().SaveOccurrence(occurrence)
@@ -599,7 +603,7 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 	return nil
 }
 
-func (a *App) findWhen(request *model.ReminderRequest) (error) {
+func (a *App) findWhen(request *model.ReminderRequest) error {
 
 	_, _, translateFunc, _ := a.shared(request.UserId)
 
@@ -897,13 +901,15 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 	}
 
 	chronoUnit := strings.ToLower(strings.Join(whenSplit[1:], " "))
-	dateTimeSplit := strings.Split(chronoUnit," " +translateFunc("app.reminder.chrono.at") + " ")
+	dateTimeSplit := strings.Split(chronoUnit, " "+translateFunc("app.reminder.chrono.at")+" ")
 	var chronoTime string
 	if len(dateTimeSplit) == 1 {
 		chronoTime = model.DEFAULT_TIME
 	} else {
 		chronoTime = dateTimeSplit[1]
 	}
+
+	// TODO rethink how this works
 
 	dateUnit, ndErr := a.normalizeDate(user, dateTimeSplit[0])
 	if ndErr != nil {
@@ -917,14 +923,14 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 	switch dateUnit {
 	case "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday":
 
-		todayWeekDayNum := int(time.Now().Weekday())   //5
-		weekDayNum := a.weekDayNumber(dateUnit)  //1
+		todayWeekDayNum := int(time.Now().Weekday()) //5
+		weekDayNum := a.weekDayNumber(dateUnit)      //1
 		day := 0
 
 		if weekDayNum < todayWeekDayNum {
-			day = 7 - (todayWeekDayNum-weekDayNum)
+			day = 7 - (todayWeekDayNum - weekDayNum)
 		} else if weekDayNum >= todayWeekDayNum {
-			day = 7 + (weekDayNum-todayWeekDayNum)
+			day = 7 + (weekDayNum - todayWeekDayNum)
 		}
 
 		wallClock, pErr := time.Parse(time.Kitchen, timeUnit)
@@ -932,7 +938,7 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 			return []time.Time{}, pErr
 		}
 
-		nextDay := time.Now().AddDate(0,0,day).Round(time.Hour * time.Duration(24))
+		nextDay := time.Now().AddDate(0, 0, day).Round(time.Hour * time.Duration(24))
 		occurrence := wallClock.AddDate(nextDay.Year(), int(nextDay.Month())-1, nextDay.Day()-1)
 
 		return []time.Time{a.chooseClosest(user, &occurrence, false)}, nil
@@ -944,8 +950,8 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		break
 	}
 
-	// TODO fix this!!!!! format should be "Fri Sep  7 15:57:05 PDT 2018"
-	t, tErr := time.Parse(time.UnixDate, dateUnit + " " + timeUnit)
+	// TODO fix this!!!!! format should be "Fri Sep  7 15:57:05 PDT 2018" or... ??
+	t, tErr := time.Parse(time.UnixDate, dateUnit+" "+timeUnit)
 	if tErr != nil {
 		return []time.Time{}, tErr
 	}
@@ -953,6 +959,12 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 	return []time.Time{t}, errors.New("could not format 'on'")
 }
 
+//func (a *App) normalizeDateTime(user *model.User, date string, time string) (string, string, time.Time, error) {
+//	t,tErr := a.normalizeTime(user,time)
+//	d,dErr := a.normalizeDate(user,date)   ///this may not be the best approach....
+//
+//
+//}
 
 func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
@@ -960,9 +972,9 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
 	switch text {
 	case translateFunc("app.reminder.chrono.noon"):
-		return "12:00PM", nil
+		return "12:00:00", nil
 	case translateFunc("app.reminder.chrono.midnight"):
-		return "00:00AM", nil
+		return "00:00:00", nil
 	case translateFunc("app.reminder.chrono.one"),
 		translateFunc("app.reminder.chrono.two"),
 		translateFunc("app.reminder.chrono.three"),
@@ -976,44 +988,45 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 		translateFunc("app.reminder.chrono.eleven"),
 		translateFunc("app.reminder.chrono.twelve"):
 
-		now := time.Now()
-
 		num, wErr := a.wordToNumber(text)
 		if wErr != nil {
 			mlog.Error(fmt.Sprintf("%v", wErr))
 			return "", wErr
 		}
 
+		// TODO fix this is severly flawed.
+		wordTime :=  time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
 
-		wordTime := now.Round(time.Hour).Add(time.Hour * time.Duration(num+2))
-		t := a.chooseClosest(user, &wordTime, false).Format(time.UnixDate)
-
-		matched, err := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9]:[0-5][0-9]", t)
-		if err != nil {
-			return "", err
-		}
-		if matched {
-
+		dateTimeSplit := a.regSplit( a.chooseClosest(user, &wordTime, false).Format(time.RFC3339), "-|/")
+		if len(dateTimeSplit) != 3 {
+			return "", errors.New("unrecognized dateTime format")
 		}
 
-		//return []time.Time{a.chooseClosest(user, &wordTime, false)}, nil
-		//
-		//
-		//
-		//return a.wordToNumber(text)
-	case "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23":
+		return dateTimeSplit[1], nil
+
+	case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23":
+
+		num, nErr := strconv.Atoi(text)
+		if nErr != nil {
+			return "", nErr
+		}
+
+		// TODO fix this is severly flawed.   (see RFC3339)
+		numTime :=  time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		return a.chooseClosest(user, &numTime, false).Format(time.Kitchen), nil
+
 	default:
 		break
 	}
 
 	t := ""
-	if match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9](\\s)?(?i)(am|pm)", t); match {  // 12:30PM, 12:30 pm
+	if match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9](\\s)?(?i)(am|pm)", t); match { // 12:30PM, 12:30 pm
 		//TODO handle this case
-	} else if  match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9]", t); match {  // 12:30
+	} else if match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9]", t); match { // 12:30
 		//TODO handle this case
-	} else if  match, _ := regexp.MatchString("(1[012]|[1-9])(\\s)?(?i)(am|pm)", t); match {   // 5PM, 7 am
+	} else if match, _ := regexp.MatchString("(1[012]|[1-9])(\\s)?(?i)(am|pm)", t); match { // 5PM, 7 am
 		//TODO handle this case
-	} else if  match, _ := regexp.MatchString("(1[012]|[1-9])[0-5][0-9]", t); match {     // 1200
+	} else if match, _ := regexp.MatchString("(1[012]|[1-9])[0-5][0-9]", t); match { // 1200
 		//TODO handle this case
 	}
 
@@ -1053,7 +1066,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		}
 	} else if match, _ := regexp.MatchString("^(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june|july|aug(ust)?|sept(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)", date); match {
 
-		date = strings.Replace(date,",", "",-1)
+		date = strings.Replace(date, ",", "", -1)
 		parts := strings.Split(date, " ")
 
 		switch len(parts) {
@@ -1074,7 +1087,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 				}
 			}
 
-			parts = append(parts, fmt.Sprintf("%v",time.Now().Year()))
+			parts = append(parts, fmt.Sprintf("%v", time.Now().Year()))
 
 			break
 		case 3:
@@ -1142,12 +1155,12 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 			return "", errors.New("month not found")
 		}
 
-		return strings.Join(parts," "), nil
+		return strings.Join(parts, " "), nil
 
 	} else if match, _ := regexp.MatchString("^(([0-9]{2}|[0-9]{1})(-|/)([0-9]{2}|[0-9]{1})((-|/)([0-9]{4}|[0-9]{2}))?)", date); match {
-		mlog.Debug("match "+date)
+		mlog.Debug("match " + date)
 
-		date := a.regSplit(date,"-|/")
+		date := a.regSplit(date, "-|/")
 
 		switch len(date) {
 		case 2:
@@ -1164,7 +1177,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 			// TODO this needs to be locale/location setup
 			t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local)
 
-			return t.Format(time.UnixDate), nil
+			return t.Format(time.RFC3339), nil
 
 		case 3:
 			year, yErr := strconv.Atoi(date[2])
@@ -1183,7 +1196,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 			// TODO this needs to be locale/location setup
 			t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local)
 
-			return t.Format(time.UnixDate), nil
+			return t.Format(time.RFC3339), nil
 
 		default:
 			return "", errors.New("unrecognized date")
@@ -1218,16 +1231,16 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		// TODO covert this to use local time or timezone
 		t := time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
 		if t.Before(time.Now()) {
-			t = t.AddDate(0,1,0)
+			t = t.AddDate(0, 1, 0)
 		}
 
-		return t.Format(time.UnixDate), nil
+		return t.Format(time.RFC3339), nil
 
 	}
 
 }
 
-func (a *App) weekDayNumber(day string) (int) {
+func (a *App) weekDayNumber(day string) int {
 	switch day {
 	case "sunday":
 		return 0
@@ -1252,7 +1265,7 @@ func (a *App) regSplit(text string, delimeter string) []string {
 	reg := regexp.MustCompile(delimeter)
 	indexes := reg.FindAllStringIndex(text, -1)
 	laststart := 0
-	result := make([]string, len(indexes) + 1)
+	result := make([]string, len(indexes)+1)
 	for i, element := range indexes {
 		result[i] = text[laststart:element[0]]
 		laststart = element[1]
@@ -1292,7 +1305,7 @@ func (a *App) wordToNumber(word string) (int, error) {
 	return sum, nil
 }
 
-func (a *App) chooseClosest(user *model.User, chosen *time.Time, dayInterval bool) (time.Time) {
+func (a *App) chooseClosest(user *model.User, chosen *time.Time, dayInterval bool) time.Time {
 
 	_, location, _, _ := a.shared(user.Id)
 	cfg := a.Config()
