@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -182,7 +183,12 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppE
 	}
 
 	options := s3PutOptions(b.encrypt, contentType)
-	written, err := s3Clnt.PutObject(b.bucket, path, fr, -1, options)
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(fr)
+	if err != nil {
+		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	written, err := s3Clnt.PutObject(b.bucket, path, &buf, int64(buf.Len()), options)
 	if err != nil {
 		return written, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
