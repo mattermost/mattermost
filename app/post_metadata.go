@@ -225,7 +225,7 @@ func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.Open
 
 	request.Header.Add("Accept", "text/html, image/*")
 
-	res, err := a.HTTPClient(false).Do(request) // TODO figure out a way to mock out the client for testing
+	res, err := a.HTTPService.MakeClient(false).Do(request)
 	if err != nil {
 		return nil, nil, err
 	}
