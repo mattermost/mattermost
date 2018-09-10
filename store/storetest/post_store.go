@@ -1674,8 +1674,8 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Post().Delete(ro1.Id, model.GetMillis(), ""))
 
-	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 2 {
-		t.Fatalf("Expected 2 posts in results. Got %v", len(ro5))
+	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
 	}
 }
 

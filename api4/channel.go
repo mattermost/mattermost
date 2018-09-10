@@ -97,10 +97,11 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var oldChannel *model.Channel
-	var err *model.AppError
-	if oldChannel, err = c.App.GetChannel(channel.Id); err != nil {
+	if originalOldChannel, err := c.App.GetChannel(channel.Id); err != nil {
 		c.Err = err
 		return
+	} else {
+		oldChannel = originalOldChannel.DeepCopy()
 	}
 
 	switch oldChannel.Type {
@@ -229,10 +230,12 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oldChannel, err := c.App.GetChannel(c.Params.ChannelId)
-	if err != nil {
+	var oldChannel *model.Channel
+	if originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId); err != nil {
 		c.Err = err
 		return
+	} else {
+		oldChannel = originalOldChannel.DeepCopy()
 	}
 
 	switch oldChannel.Type {
