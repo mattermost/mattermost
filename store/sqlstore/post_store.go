@@ -1156,7 +1156,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 			params[key] = postId
 		}
 
-		query := `SELECT * FROM Posts WHERE Id in (` + keys.String() + `) and DeleteAt = 0 ORDER BY CreateAt DESC`
+		query := `SELECT * FROM Posts WHERE Id in (` + keys.String() + `) ORDER BY CreateAt DESC`
 
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts, query, params)
