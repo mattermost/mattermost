@@ -267,7 +267,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin)
+	postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, false)
 	require.Nil(t, err)
 
 	attachmentsPlugin, ok := postplugin.Props["attachments"].([]*model.SlackAttachment)
@@ -308,7 +308,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL)
+	postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, false)
 	require.Nil(t, err)
 
 	attachmentsSiteURL, ok := postSiteURL.Props["attachments"].([]*model.SlackAttachment)
@@ -350,7 +350,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath)
+	postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, false)
 	require.Nil(t, err)
 
 	attachmentsSubpath, ok := postSubpath.Props["attachments"].([]*model.SlackAttachment)
