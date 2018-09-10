@@ -122,7 +122,7 @@ start-docker: ## Starts the docker containers for local development.
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-cockroachdb) -eq 0 ]; then \
 		echo starting mattermost-cockroachdb; \
-		docker run --name mattermost-cockroachdb --hostname=mattermost-cockroachdb -p 26257:26257 -p 8080:8080 -d cockroachdb/cockroach:v2.0.0 start --insecure; \
+		docker run --name mattermost-cockroachdb --hostname=mattermost-cockroachdb -p 26257:26257 -p 8080:8080 -d cockroachdb/cockroach:v2.0.5 start --insecure; \
 		docker exec -it mattermost-cockroachdb ./cockroach sql --insecure -e 'CREATE DATABASE mattermost_test'; \
 		docker exec -it mattermost-cockroachdb ./cockroach sql --insecure -e 'CREATE USER mmuser'; \
 		docker exec -it mattermost-cockroachdb ./cockroach sql --insecure -e 'GRANT ALL ON DATABASE mattermost_test TO mmuser'; \
