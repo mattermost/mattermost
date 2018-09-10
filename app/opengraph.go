@@ -13,7 +13,7 @@ import (
 )
 
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
-	res, err := a.HTTPClient(false).Get(requestURL)
+	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
 	if err != nil {
 		mlog.Error("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Any("err", err))
 		return nil
