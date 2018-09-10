@@ -705,8 +705,10 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 				return nil, presult.Err
 			} else {
 				for _, p := range presult.Data.([]*model.Post) {
-					postList.AddPost(p)
-					postList.AddOrder(p.Id)
+					if p.DeleteAt == 0 {
+						postList.AddPost(p)
+						postList.AddOrder(p.Id)
+					}
 				}
 			}
 		}
