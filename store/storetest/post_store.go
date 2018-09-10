@@ -31,6 +31,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, ss) })
 	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, ss) })
+	t.Run("GetPostBeforeAfter", func(t *testing.T) { testPostStoreGetPostBeforeAfter(t, ss) })
 	t.Run("Search", func(t *testing.T) { testPostStoreSearch(t, ss) })
 	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, ss) })
 	t.Run("PostCountsByDay", func(t *testing.T) { testPostCountsByDay(t, ss) })
@@ -813,6 +814,96 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 
 	if len(r2.Order) != 0 {
 		t.Fatal("wrong size ", len(r2.Posts))
+	}
+}
+
+func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
+	channelId := model.NewId()
+
+	o0 := &model.Post{}
+	o0.ChannelId = channelId
+	o0.UserId = model.NewId()
+	o0.Message = "zz" + model.NewId() + "b"
+	o0 = (<-ss.Post().Save(o0)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o1 := &model.Post{}
+	o1.ChannelId = channelId
+	o1.Type = model.POST_JOIN_CHANNEL
+	o1.UserId = model.NewId()
+	o1.Message = "system_join_channel message"
+	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o0a := &model.Post{}
+	o0a.ChannelId = channelId
+	o0a.UserId = model.NewId()
+	o0a.Message = "zz" + model.NewId() + "b"
+	o0a.ParentId = o1.Id
+	o0a.RootId = o1.Id
+	o0a = (<-ss.Post().Save(o0a)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o0b := &model.Post{}
+	o0b.ChannelId = channelId
+	o0b.UserId = model.NewId()
+	o0b.Message = "deleted message"
+	o0b.ParentId = o1.Id
+	o0b.RootId = o1.Id
+	o0b.DeleteAt = 1
+	o0b = (<-ss.Post().Save(o0b)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	otherChannlPost := &model.Post{}
+	otherChannlPost.ChannelId = model.NewId()
+	otherChannlPost.UserId = model.NewId()
+	otherChannlPost.Message = "zz" + model.NewId() + "b"
+	otherChannlPost = (<-ss.Post().Save(otherChannlPost)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o2 := &model.Post{}
+	o2.ChannelId = channelId
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "b"
+	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o2a := &model.Post{}
+	o2a.ChannelId = channelId
+	o2a.UserId = model.NewId()
+	o2a.Message = "zz" + model.NewId() + "b"
+	o2a.ParentId = o2.Id
+	o2a.RootId = o2.Id
+	o2a = (<-ss.Post().Save(o2a)).Data.(*model.Post)
+
+	r1 := (<-ss.Post().GetPostBefore(channelId, o0a.Id))
+	if r1.Data.(*model.Post).Id != o1.Id || r1.Err != nil {
+		t.Fatal("should return before post o1")
+	}
+
+	r1 = (<-ss.Post().GetPostAfter(channelId, o0b.Id))
+	if r1.Data.(*model.Post).Id != o2.Id || r1.Err != nil {
+		t.Fatal("should return before post o2")
+	}
+
+	r2 := (<-ss.Post().GetPostBefore(channelId, o0.Id))
+	if r2.Data.(*model.Post) != nil || r2.Err != nil {
+		t.Fatal("should return no post")
+	}
+
+	r2 = (<-ss.Post().GetPostAfter(channelId, o0.Id))
+	if r2.Data.(*model.Post).Id != o1.Id || r2.Err != nil {
+		t.Fatal("should return before post o1")
+	}
+
+	r3 := (<-ss.Post().GetPostBefore(channelId, o2a.Id))
+	if r3.Data.(*model.Post).Id != o2.Id || r2.Err != nil {
+		t.Fatal("should return before post o2")
+	}
+
+	r3 = (<-ss.Post().GetPostAfter(channelId, o2a.Id))
+	if r3.Data.(*model.Post) != nil || r3.Err != nil {
+		t.Fatal("should return no post")
 	}
 }
 
