@@ -52,7 +52,7 @@ func TestUserDeepCopy(t *testing.T) {
 	user = &User{Id: id}
 	copyUser = user.DeepCopy()
 
-	assert.Equal(t, id, user.Id)
+	assert.Equal(t, id, copyUser.Id)
 }
 
 func TestUserJson(t *testing.T) {

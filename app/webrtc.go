@@ -59,7 +59,7 @@ func (a *App) GetWebrtcToken(sessionId string) (string, *model.AppError) {
 	rq, _ := http.NewRequest("POST", *a.Config().WebrtcSettings.GatewayAdminUrl, strings.NewReader(model.MapToJson(data)))
 	rq.Header.Set("Content-Type", "application/json")
 
-	if rp, err := a.HTTPClient(true).Do(rq); err != nil {
+	if rp, err := a.HTTPService.MakeClient(true).Do(rq); err != nil {
 		return "", model.NewAppError("WebRTC.Token", "model.client.connecting.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else if rp.StatusCode >= 300 {
 		defer consumeAndClose(rp)
@@ -93,5 +93,5 @@ func (a *App) RevokeWebrtcToken(sessionId string) {
 	rq.Header.Set("Content-Type", "application/json")
 
 	// we do not care about the response
-	a.HTTPClient(true).Do(rq)
+	a.HTTPService.MakeClient(true).Do(rq)
 }

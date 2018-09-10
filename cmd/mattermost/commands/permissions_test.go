@@ -30,7 +30,7 @@ func permissionsLicenseRequiredTest(t *testing.T, subcommand string) {
 		t.Fail()
 	}
 	args := []string{"-test.run", "ExecCommand", "--", "--disableconfigwatch", "permissions", subcommand}
-	output, err := exec.Command(path, args...).CombinedOutput()
+	output, _ := exec.Command(path, args...).CombinedOutput()
 
 	actual := string(output)
 	expected := utils.T("cli.license.critical")

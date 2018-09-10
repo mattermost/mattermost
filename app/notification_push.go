@@ -182,7 +182,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 
 	request, _ := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
-	if resp, err := a.HTTPClient(true).Do(request); err != nil {
+	if resp, err := a.HTTPService.MakeClient(true).Do(request); err != nil {
 		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
 	} else {
 		pushResponse := model.PushResponseFromJson(resp.Body)

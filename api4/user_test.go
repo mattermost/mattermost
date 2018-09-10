@@ -406,7 +406,7 @@ func TestGetUser(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUser(user.Id, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUser(user.Id, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -474,7 +474,7 @@ func TestGetUserByUsername(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -539,7 +539,7 @@ func TestGetUserByEmail(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUserByEmail(user.Email, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUserByEmail(user.Email, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -2208,14 +2208,14 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
-	ruser, resp := Client.CreateUser(&user)
+	ruser, _ := Client.CreateUser(&user)
 
 	token, err := th.App.CreateVerifyEmailToken(ruser.Id)
 	if err != nil {
 		t.Fatal("Unable to create email verify token")
 	}
 
-	_, resp = Client.VerifyUserEmail(token.Token)
+	_, resp := Client.VerifyUserEmail(token.Token)
 	CheckNoError(t, resp)
 
 	_, resp = Client.VerifyUserEmail(GenerateTestId())
@@ -2329,7 +2329,7 @@ func TestCBALogin(t *testing.T) {
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, "")
+	user, _ = Client.Login(th.BasicUser.Email, "")
 	if !(user != nil && user.Email == th.BasicUser.Email) {
 		t.Fatal("Should have been able to login")
 	}
@@ -2340,13 +2340,13 @@ func TestCBALogin(t *testing.T) {
 	})
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, "")
+	user, _ = Client.Login(th.BasicUser.Email, "")
 	if resp.Error.StatusCode != 400 && user == nil {
 		t.Fatal("Should have failed because password is required")
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	user, _ = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	if !(user != nil && user.Email == th.BasicUser.Email) {
 		t.Fatal("Should have been able to login")
 	}
@@ -2597,7 +2597,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	_, resp = AdminClient.GetUserAccessToken(token.Id)
 	CheckNoError(t, resp)
 
-	token, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
 	rtokens, resp := Client.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)

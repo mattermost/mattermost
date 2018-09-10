@@ -275,6 +275,14 @@ gofmt: ## Runs gofmt against all packages.
 	done
 	@echo "gofmt success"; \
 
+megacheck: ## Run megacheck on codebasis
+	go get honnef.co/go/tools/cmd/megacheck
+	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	$(GOPATH)/bin/megacheck $(EE_PACKAGES) || exit 1
+endif
+
 store-mocks: ## Creates mock files.
 	go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'

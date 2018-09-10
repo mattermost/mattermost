@@ -7,12 +7,10 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"html/template"
-	"net"
 	"net/http"
 	"path"
 	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -100,6 +98,8 @@ type App struct {
 	diagnosticId        string
 
 	phase2PermissionsMigrationComplete bool
+
+	HTTPService HTTPService
 }
 
 var appCount = 0
@@ -125,6 +125,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 		clientConfig:     make(map[string]string),
 		licenseListeners: map[string]func(){},
 	}
+
+	app.HTTPService = MakeHTTPService(app)
+
 	defer func() {
 		if outErr != nil {
 			app.Shutdown()
@@ -285,6 +288,8 @@ func (a *App) Shutdown() {
 	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()
+
+	a.HTTPService.Close()
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -505,43 +510,6 @@ func (a *App) HTMLTemplates() *template.Template {
 	return nil
 }
 
-func (a *App) HTTPClient(trustURLs bool) *http.Client {
-	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-
-	if trustURLs {
-		return utils.NewHTTPClient(insecure, nil, nil)
-	}
-
-	allowHost := func(host string) bool {
-		if a.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
-			return false
-		}
-		for _, allowed := range strings.Fields(*a.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
-			if host == allowed {
-				return true
-			}
-		}
-		return false
-	}
-
-	allowIP := func(ip net.IP) bool {
-		if !utils.IsReservedIP(ip) {
-			return true
-		}
-		if a.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
-			return false
-		}
-		for _, allowed := range strings.Fields(*a.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
-			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
-				return true
-			}
-		}
-		return false
-	}
-
-	return utils.NewHTTPClient(insecure, allowHost, allowIP)
-}
-
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 
@@ -642,7 +610,6 @@ func (a *App) DoEmojisPermissionsMigration() {
 			mlog.Critical(err.Error())
 			return
 		}
-		break
 	case model.RESTRICT_EMOJI_CREATION_ADMIN:
 		role, err = a.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
 		if err != nil {
@@ -650,10 +617,8 @@ func (a *App) DoEmojisPermissionsMigration() {
 			mlog.Critical(err.Error())
 			return
 		}
-		break
 	case model.RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN:
 		role = nil
-		break
 	default:
 		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
 		mlog.Critical("Invalid restrict emoji creation setting")
@@ -703,13 +668,13 @@ func (a *App) StartElasticsearch() {
 	})
 
 	a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if *oldConfig.ElasticsearchSettings.EnableIndexing == false && *newConfig.ElasticsearchSettings.EnableIndexing == true {
+		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
 			a.Go(func() {
 				if err := a.Elasticsearch.Start(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
-		} else if *oldConfig.ElasticsearchSettings.EnableIndexing == true && *newConfig.ElasticsearchSettings.EnableIndexing == false {
+		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
 			a.Go(func() {
 				if err := a.Elasticsearch.Stop(); err != nil {
 					mlog.Error(err.Error())
@@ -717,7 +682,7 @@ func (a *App) StartElasticsearch() {
 			})
 		} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
 			a.Go(func() {
-				if *oldConfig.ElasticsearchSettings.EnableIndexing == true {
+				if *oldConfig.ElasticsearchSettings.EnableIndexing {
 					if err := a.Elasticsearch.Stop(); err != nil {
 						mlog.Error(err.Error())
 					}

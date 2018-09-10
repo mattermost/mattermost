@@ -1176,11 +1176,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 		return false, err
 	}
 
-	if _, err := a.SendPasswordResetEmail(user.Email, token, user.Locale, siteURL); err != nil {
-		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
-	}
-
-	return true, nil
+	return a.SendPasswordResetEmail(user.Email, token, user.Locale, siteURL)
 }
 
 func (a *App) CreatePasswordRecoveryToken(userId string) (*model.Token, *model.AppError) {

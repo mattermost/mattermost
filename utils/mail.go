@@ -257,20 +257,18 @@ func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject,
 	m.SetBody("text/plain", txtBody)
 	m.AddAlternative("text/html", htmlMessage)
 
-	if attachments != nil {
-		for _, fileInfo := range attachments {
-			bytes, err := fileBackend.ReadFile(fileInfo.Path)
-			if err != nil {
-				return err
-			}
-
-			m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-				if _, err := writer.Write(bytes); err != nil {
-					return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, err.Error(), http.StatusInternalServerError)
-				}
-				return nil
-			}))
+	for _, fileInfo := range attachments {
+		bytes, err := fileBackend.ReadFile(fileInfo.Path)
+		if err != nil {
+			return err
 		}
+
+		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
+			if _, err := writer.Write(bytes); err != nil {
+				return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
+		}))
 	}
 
 	if err := c.Mail(from.Address); err != nil {

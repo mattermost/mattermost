@@ -229,7 +229,7 @@ func (g *hooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 			g.log.Error("RPC call {{.Name}} to plugin failed.", mlog.Err(err))
 		}
 	}
-	return {{destruct "_returns." .Return}}
+	{{ if .Return }} return {{destruct "_returns." .Return}} {{ end }}
 }
 
 func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name | obscure}}Returns) error {
@@ -260,7 +260,7 @@ func (g *apiRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	if err := g.client.Call("Plugin.{{.Name}}", _args, _returns); err != nil {
 		log.Printf("RPC call to {{.Name}} API failed: %s", err.Error())
 	}
-	return {{destruct "_returns." .Return}}
+	{{ if .Return }} return {{destruct "_returns." .Return}} {{ end }}
 }
 
 func (s *apiRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name | obscure}}Returns) error {

@@ -1009,6 +1009,10 @@
     "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
   },
   {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
+  },
+  {
     "id": "api.emoji.upload.large_image.decode_error",
     "translation": "Unable to create emoji. An error occurred when trying to decode the image."
   },
@@ -5005,6 +5009,10 @@
   {
     "id": "store.sql_channel.update.app_error",
     "translation": "We couldn't update the channel"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",

@@ -463,6 +463,11 @@ func (s SqlChannelStore) Update(channel *model.Channel) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		channel.PreUpdate()
 
+		if channel.DeleteAt != 0 {
+			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		if result.Err = channel.IsValid(); result.Err != nil {
 			return
 		}
@@ -1859,7 +1864,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		lastUserId := strings.Repeat("0", 26)
 		lastChannelId := strings.Repeat("0", 26)
 
-		for true {
+		for {
 			var transaction *gorp.Transaction
 			var err error
 

@@ -858,10 +858,10 @@ func TestSearchAllTeams(t *testing.T) {
 
 	Client.Logout()
 
-	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	_, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
 	CheckUnauthorizedStatus(t, resp)
 
-	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	_, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -1148,10 +1148,10 @@ func TestGetTeamMembers(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
-	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
+	_, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	rmembers, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, "")
+	_, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
 }
 
@@ -1220,10 +1220,10 @@ func TestGetTeamMembersByIds(t *testing.T) {
 		t.Fatal("1 user should be returned")
 	}
 
-	tm1, resp = Client.GetTeamMembersByIds("junk", []string{th.BasicUser.Id})
+	_, resp = Client.GetTeamMembersByIds("junk", []string{th.BasicUser.Id})
 	CheckBadRequestStatus(t, resp)
 
-	tm1, resp = Client.GetTeamMembersByIds(model.NewId(), []string{th.BasicUser.Id})
+	_, resp = Client.GetTeamMembersByIds(model.NewId(), []string{th.BasicUser.Id})
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
@@ -1244,7 +1244,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
-	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id)
+	_, resp := Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 	if resp.Error == nil {
 		t.Fatalf("Error is nil")
@@ -1253,7 +1253,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Regular user can add a member to a team they belong to.
 	th.LoginBasic()
-	tm, resp = Client.AddTeamMember(team.Id, otherUser.Id)
+	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
@@ -1370,7 +1370,7 @@ func TestAddTeamMember(t *testing.T) {
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	<-th.App.Srv.Store.Token().Save(token)
 
-	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
+	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
 	th.App.DeleteToken(token)
 
@@ -1382,7 +1382,7 @@ func TestAddTeamMember(t *testing.T) {
 	)
 	<-th.App.Srv.Store.Token().Save(token)
 
-	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
+	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
 	th.App.DeleteToken(token)
 
@@ -1428,13 +1428,13 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
-	tm, resp := Client.AddTeamMembers(team.Id, userList)
+	_, resp := Client.AddTeamMembers(team.Id, userList)
 	CheckForbiddenStatus(t, resp)
 	Client.Logout()
 
 	// Regular user can add a member to a team they belong to.
 	th.LoginBasic()
-	tm, resp = Client.AddTeamMembers(team.Id, userList)
+	tm, resp := Client.AddTeamMembers(team.Id, userList)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
@@ -2018,7 +2018,7 @@ func TestGetTeamInviteInfo(t *testing.T) {
 	team, resp = th.SystemAdminClient.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	team, resp = Client.GetTeamInviteInfo(team.InviteId)
+	_, resp = Client.GetTeamInviteInfo(team.InviteId)
 	CheckNoError(t, resp)
 
 	_, resp = Client.GetTeamInviteInfo("junk")
