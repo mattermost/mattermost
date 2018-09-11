@@ -89,7 +89,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-    "translation": "Error al agregar el usuario al canal porque ha sido removido del equipo."
+    "translation": "Error al agregar el usuario al canal porque ha sido eliminado del equipo."
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
@@ -177,7 +177,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Eres el último miembro que queda, intenta remover el Canal Privado en vez de salirte."
+    "translation": "Eres el último miembro que queda, intenta eliminar el Canal Privado en vez de salirte."
   },
   {
     "id": "api.channel.leave.left",
@@ -229,15 +229,15 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "No se puede remover el usuario del canal predeterminado {{.Channel}}"
+    "translation": "No se puede eliminar el usuario del canal predeterminado {{.Channel}}"
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "No se puede remover el usuario del canal."
+    "translation": "No se puede eliminar el usuario del canal."
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v removido del canal."
+    "translation": "%v quitado del canal."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -600,7 +600,7 @@
   },
   {
     "id": "api.command_invite.directchannel.app_error",
-    "translation": "No se puede remover a alguien de un canal de mensajes directos."
+    "translation": "No se puede eliminar a alguien de un canal de mensajes directos."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_remove.direct_group.app_error",
-    "translation": "No se puede remover a alguien de un canal de mensajes directos."
+    "translation": "No se puede eliminar a alguien de un canal de mensajes directos."
   },
   {
     "id": "api.command_remove.hint",
@@ -828,11 +828,11 @@
   },
   {
     "id": "api.command_remove.name",
-    "translation": "remover"
+    "translation": "eliminar"
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "No tienes los permisos adecuados para remover al miembro."
+    "translation": "No tienes los permisos adecuados para eliminar al miembro."
   },
   {
     "id": "api.command_remove.user_not_in_channel",
@@ -1435,6 +1435,14 @@
     "translation": "No se puede establecer las preferencias del usuario."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "No se puede eliminar una reacción de un canal archivado."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "No se puede reaccionar en un canal archivado."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "Reacción no válida."
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v se unió al equipo."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "El correo electrónico debe ser de un dominio específico (e.j. @ejemplo.com). Por favor solicita más detalles a tu administrador de sistemas."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v abandonó el equipo."
   },
@@ -1672,7 +1684,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v removido del equipo."
+    "translation": "%v quitado del equipo."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Usuario especificado no es un miembro de equipo especificado."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "La restricción del equipo a {{.Domain}} no está permitido por la configuración del sistema. Por favor contacta a un administrador del sistema."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2020,7 +2036,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "No se pudo obtener la data de autorización del objeto de {{.Service}}"
+    "translation": "No se pudo obtener los datos de autorización del objeto de {{.Service}}"
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
@@ -2144,7 +2160,7 @@
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": "No se pudo obtener la data de autorización del objeto de {{.Service}}"
+    "translation": "No se pudo obtener los datos de autorización del objeto de {{.Service}}"
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -3076,7 +3092,7 @@
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "No se puede instalar el complemento. Un complemento con el mismo ID ya está instalado y no pudo ser removido."
+    "translation": "No se puede instalar el complemento. Un complemento con el mismo ID ya está instalado y no pudo ser eliminado."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3416,7 +3432,7 @@
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "No se pudo generar la data del archivo eml."
+    "translation": "No se pudo generar los datos del archivo eml."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4892,7 +4908,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "No pudimos remover al miembro del canal"
+    "translation": "No pudimos eliminar al miembro del canal"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
@@ -4900,7 +4916,7 @@
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "No pudimos remover al miembro del canal"
+    "translation": "No pudimos eliminar al miembro del canal"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -4908,7 +4924,7 @@
   },
   {
     "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "We could not reset the channel last post at date"
+    "translation": "No se pudo reiniciar el canal a la última fecha del mensaje publicado"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4989,6 +5005,10 @@
   {
     "id": "store.sql_channel.update.app_error",
     "translation": "No pudimos actualizar el canal"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "No se puede modificar un canal archivado"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -5276,15 +5296,15 @@
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "No pudimos remover el código de autorización"
+    "translation": "No pudimos eliminar el código de autorización"
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "No pudimos remover el token de acceso"
+    "translation": "No pudimos eliminar el token de acceso"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
-    "translation": "No pudimos remover el código de autorización"
+    "translation": "No pudimos eliminar el código de autorización"
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
@@ -5660,15 +5680,15 @@
   },
   {
     "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-    "translation": "No pudimos remover todas las sesiones del usuario"
+    "translation": "No pudimos eliminar todas las sesiones del usuario"
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "No pudimos remover la sesión"
+    "translation": "No pudimos eliminar la sesión"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "No pudimos remover todas las sesiones"
+    "translation": "No pudimos eliminar todas las sesiones"
   },
   {
     "id": "store.sql_session.save.app_error",
@@ -5860,7 +5880,7 @@
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "No pudimos remover el miembro del equipo"
+    "translation": "No pudimos eliminar el miembro del equipo"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
@@ -6348,7 +6368,7 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "No se puede analizar la data entrante"
+    "translation": "No se puede analizar los datos entrantes"
   },
   {
     "id": "web.error.unsupported_browser.message",
@@ -6380,7 +6400,7 @@
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": "No se puede analizar la data entrante"
+    "translation": "No se puede analizar los datos entrantes"
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
