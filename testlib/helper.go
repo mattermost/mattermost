@@ -21,8 +21,7 @@ type MainHelper struct {
 	SqlSupplier      *sqlstore.SqlSupplier
 	ClusterInterface *FakeClusterInterface
 
-	container *storetest.RunningContainer
-	status    int
+	status int
 }
 
 func NewMainHelper() *MainHelper {
@@ -38,10 +37,7 @@ func NewMainHelper() *MainHelper {
 
 	utils.TranslationsPreInit()
 
-	container, settings, err := storetest.NewMySQLContainer()
-	if err != nil {
-		panic("failed to start mysql container: " + err.Error())
-	}
+	settings := storetest.MySQLSettings()
 
 	testClusterInterface := &FakeClusterInterface{}
 	testStoreSqlSupplier := sqlstore.NewSqlSupplier(*settings, nil)
@@ -52,7 +48,6 @@ func NewMainHelper() *MainHelper {
 		Store:            testStore,
 		SqlSupplier:      testStoreSqlSupplier,
 		ClusterInterface: testClusterInterface,
-		container:        container,
 	}
 }
 
@@ -61,9 +56,6 @@ func (h *MainHelper) Main(m *testing.M) {
 }
 
 func (h *MainHelper) Close() error {
-	h.container.Stop()
-	h.container = nil
-
 	os.Exit(h.status)
 
 	return nil
