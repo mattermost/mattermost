@@ -9,6 +9,7 @@ import (
 	_ "image/gif"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
@@ -100,16 +101,26 @@ func TestCreateEmoji(t *testing.T) {
 		t.Fatal("create with wrong name")
 	}
 
+	// try to create an emoji that's too wide
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, app.MaxEmojiOriginalWidth+1), "image.gif")
+	if resp.Error == nil {
+		t.Fatal("should fail - emoji is too wide")
+	}
+
 	// try to create an emoji that's too tall
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 1000), "image.gif")
-	CheckNoError(t, resp)
-	if newEmoji.Name != emoji.Name {
-		t.Fatal("create with wrong name")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, app.MaxEmojiOriginalHeight+1, 10), "image.gif")
+	if resp.Error == nil {
+		t.Fatal("should fail - emoji is too tall")
 	}
 
 	// try to create an emoji that's too large
