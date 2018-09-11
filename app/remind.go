@@ -902,16 +902,13 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
 	chronoUnit := strings.ToLower(strings.Join(whenSplit[1:], " "))
 	dateTimeSplit := strings.Split(chronoUnit, " "+translateFunc("app.reminder.chrono.at")+" ")
-	var chronoTime string
-	if len(dateTimeSplit) == 1 {
-		chronoTime = model.DEFAULT_TIME
-	} else {
+	chronoDate := dateTimeSplit[0]
+	chronoTime := model.DEFAULT_TIME
+	if len(dateTimeSplit) > 1 {
 		chronoTime = dateTimeSplit[1]
 	}
 
-	// TODO rethink how this works
-
-	dateUnit, ndErr := a.normalizeDate(user, dateTimeSplit[0])
+	dateUnit, ndErr := a.normalizeDate(user, chronoDate)
 	if ndErr != nil {
 		return []time.Time{}, ndErr
 	}
@@ -919,7 +916,8 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 	if ntErr != nil {
 		return []time.Time{}, ntErr
 	}
-
+	mlog.Info(dateUnit)
+	mlog.Info(timeUnit)
 	switch dateUnit {
 	case "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday":
 
@@ -950,7 +948,9 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		break
 	}
 
-	// TODO fix this!!!!! format should be "Fri Sep  7 15:57:05 PDT 2018" or... ??
+	// TODO fix this!!!!! format should be RFC3339 2006-01-02T15:04:05Z07:00
+	//mlog.Info(dateUnit)
+	//mlog.Info(timeUnit)
 	t, tErr := time.Parse(time.UnixDate, dateUnit+" "+timeUnit)
 	if tErr != nil {
 		return []time.Time{}, tErr
@@ -958,13 +958,6 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
 	return []time.Time{t}, errors.New("could not format 'on'")
 }
-
-//func (a *App) normalizeDateTime(user *model.User, date string, time string) (string, string, time.Time, error) {
-//	t,tErr := a.normalizeTime(user,time)
-//	d,dErr := a.normalizeDate(user,date)   ///this may not be the best approach....
-//
-//
-//}
 
 func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
@@ -994,10 +987,9 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 			return "", wErr
 		}
 
-		// TODO fix this is severly flawed.
 		wordTime :=  time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
 
-		dateTimeSplit := a.regSplit( a.chooseClosest(user, &wordTime, false).Format(time.RFC3339), "-|/")
+		dateTimeSplit := a.regSplit( a.chooseClosest(user, &wordTime, false).Format(time.RFC3339), "T|Z")
 		if len(dateTimeSplit) != 3 {
 			return "", errors.New("unrecognized dateTime format")
 		}
@@ -1011,23 +1003,72 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 			return "", nErr
 		}
 
-		// TODO fix this is severly flawed.   (see RFC3339)
 		numTime :=  time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
-		return a.chooseClosest(user, &numTime, false).Format(time.Kitchen), nil
+		dateTimeSplit := a.regSplit( a.chooseClosest(user, &numTime, false).Format(time.RFC3339), "T|Z")
+		if len(dateTimeSplit) != 3 {
+			return "", errors.New("unrecognized dateTime format")
+		}
+
+		return dateTimeSplit[1], nil
 
 	default:
 		break
 	}
 
-	t := ""
+	t := text
 	if match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9](\\s)?(?i)(am|pm)", t); match { // 12:30PM, 12:30 pm
-		//TODO handle this case
+
+		t = strings.Replace(t, " ", "",-1)
+		test, tErr := time.Parse(time.Kitchen, t)
+		if tErr != nil {
+			return "", tErr
+		}
+
+		dateTimeSplit := a.regSplit(test.Format(time.RFC3339), "T|Z")
+		if len(dateTimeSplit) != 3 {
+			return "", errors.New("unrecognized dateTime format")
+		}
+
+		return dateTimeSplit[1], nil
 	} else if match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9]", t); match { // 12:30
-		//TODO handle this case
+
+		nowkit := time.Now().Format(time.Kitchen)
+		ampm := string(nowkit[len(nowkit)-2:])
+		test, tErr := time.Parse(time.Kitchen, t + ampm)
+		if tErr != nil {
+			return "", tErr
+		}
+
+		dateTimeSplit := a.regSplit( a.chooseClosest(user, &test, false).Format(time.RFC3339), "T|Z")
+		if len(dateTimeSplit) != 3 {
+			return "", errors.New("unrecognized dateTime format")
+		}
+
+		return dateTimeSplit[1], nil
+
 	} else if match, _ := regexp.MatchString("(1[012]|[1-9])(\\s)?(?i)(am|pm)", t); match { // 5PM, 7 am
-		//TODO handle this case
+
+
+		nowkit := time.Now().Format(time.Kitchen)
+		ampm := string(nowkit[len(nowkit)-2:])
+
+		timeSplit := a.regSplit(t,"(?i)(am|pm)")
+
+		test, tErr := time.Parse(time.Kitchen,timeSplit[0]+":00"+ampm)
+		if tErr != nil {
+			return "", tErr
+		}
+
+		dateTimeSplit := a.regSplit( a.chooseClosest(user, &test, false).Format(time.RFC3339), "T|Z")
+		if len(dateTimeSplit) != 3 {
+			return "", errors.New("unrecognized dateTime format")
+		}
+
+		return dateTimeSplit[1], nil
 	} else if match, _ := regexp.MatchString("(1[012]|[1-9])[0-5][0-9]", t); match { // 1200
-		//TODO handle this case
+
+		return t[:len(t)-2] + ":" + t[len(t)-2:] + ":00", nil
+
 	}
 
 	return "", errors.New("unable to normalize time")
