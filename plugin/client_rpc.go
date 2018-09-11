@@ -62,12 +62,38 @@ type apiRPCServer struct {
 	impl API
 }
 
+// ErrorString is a fallback for sending unregistered implementations of the error interface across
+// rpc. For example, the errorString type from the github.com/pkg/errors package cannot be
+// registered since it is not exported, but this precludes common error handling paradigms.
+// ErrorString merely preserves the string description of the error, while satisfying the error
+// interface itself to allow other registered types (such as model.AppError) to be sent unmodified.
+type ErrorString struct {
+	Err string
+}
+
+func (e ErrorString) Error() string {
+	return e.Err
+}
+
+func encodableError(err error) error {
+	if err == nil {
+		return nil
+	} else if _, ok := err.(*model.AppError); ok {
+		return err
+	} else {
+		return &ErrorString{
+			Err: err.Error(),
+		}
+	}
+}
+
 // Registering some types used by MM for encoding/gob used by rpc
 func init() {
 	gob.Register([]*model.SlackAttachment{})
 	gob.Register([]interface{}{})
 	gob.Register(map[string]interface{}{})
 	gob.Register(&model.AppError{})
+	gob.Register(&ErrorString{})
 }
 
 // These enforce compile time checks to make sure types implement the interface
@@ -128,7 +154,7 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 		methods = append(methods, method.Name)
 	}
 	*reply = methods
-	return nil
+	return encodableError(nil)
 }
 
 type Z_OnActivateArgs struct {
@@ -182,7 +208,7 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	if hook, ok := s.impl.(interface {
 		OnActivate() error
 	}); ok {
-		returns.A = hook.OnActivate()
+		returns.A = encodableError(hook.OnActivate())
 	}
 	return nil
 }
