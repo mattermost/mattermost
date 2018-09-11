@@ -948,15 +948,23 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		break
 	}
 
-	// TODO fix this!!!!! format should be RFC3339 2006-01-02T15:04:05Z07:00
-	//mlog.Info(dateUnit)
-	//mlog.Info(timeUnit)
-	t, tErr := time.Parse(time.UnixDate, dateUnit+" "+timeUnit)
-	if tErr != nil {
-		return []time.Time{}, tErr
+	dateSplit := a.regSplit(dateUnit, "T|Z")
+
+	if len(dateSplit) < 3 {
+		timeSplit := strings.Split(dateSplit[1],"-")
+		t, tErr := time.Parse(time.RFC3339, dateSplit[0]+"T"+timeUnit+"-"+timeSplit[1])
+		if tErr != nil {
+			return []time.Time{}, tErr
+		}
+		return []time.Time{t}, nil
+	} else {
+		t, tErr := time.Parse(time.RFC3339, dateSplit[0]+"T"+timeUnit+"Z"+dateSplit[2])
+		if tErr != nil {
+			return []time.Time{}, tErr
+		}
+		return []time.Time{t}, nil
 	}
 
-	return []time.Time{t}, errors.New("could not format 'on'")
 }
 
 func (a *App) normalizeTime(user *model.User, text string) (string, error) {
@@ -1077,6 +1085,9 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 // TODO covert this to use local time or timezone
 // TODO date matching needs to match up with the local date setup
 func (a *App) normalizeDate(user *model.User, text string) (string, error) {
+	_, location, _, _ := a.shared(user.Id)
+	cfg := a.Config()
+
 	date := strings.ToLower(text)
 	if strings.EqualFold("day", date) {
 		return date, nil
@@ -1217,7 +1228,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 
 			// TODO this needs to be locale/location setup
 			t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local)
-
+mlog.Info(t.Format(time.RFC3339))
 			return t.Format(time.RFC3339), nil
 
 		case 3:
@@ -1269,8 +1280,16 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		month := time.Now().Month()
 		year := time.Now().Year()
 
+
+		var t time.Time
+		if *cfg.DisplaySettings.ExperimentalTimezone {
+			t = time.Date(year, month, dayInt, 0, 0, 0, 0, location)
+		} else {
+			t = time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
+		}
+
 		// TODO covert this to use local time or timezone
-		t := time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
+		//t := time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
 		if t.Before(time.Now()) {
 			t = t.AddDate(0, 1, 0)
 		}
