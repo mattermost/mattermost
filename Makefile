@@ -69,6 +69,23 @@ TESTS=.
 TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
+TEST_DATABASE_MYSQL_HOSTNAME ?= dockerhost
+TEST_DATABASE_MYSQL_PORT ?= 3307
+TEST_DATABASE_POSTGRES_HOSTNAME ?= dockerhost
+TEST_DATABASE_POSTGRES_PORT ?= 5433
+TEST_DATABASE_USERNAME ?= mmuser
+TEST_DATABASE_PASSWORD ?= mostest
+TEST_DATABASE_NAME ?= mattermost_unittest
+
+# Export to ensure the go tests pick up on the configuration.
+export TEST_DATABASE_MYSQL_HOSTNAME
+export TEST_DATABASE_MYSQL_PORT
+export TEST_DATABASE_POSTGRES_HOSTNAME
+export TEST_DATABASE_POSTGRES_PORT
+export TEST_DATABASE_USERNAME
+export TEST_DATABASE_PASSWORD
+export TEST_DATABASE_NAME
+
 # Packages lists
 TE_PACKAGES=$(shell go list ./...)
 TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
@@ -102,22 +119,56 @@ include build/*.mk
 start-docker: ## Starts the docker containers for local development.
 	@echo Starting docker containers
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-mysql; \
-		docker run --name mattermost-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mostest \
-		-e MYSQL_USER=mmuser -e MYSQL_PASSWORD=mostest -e MYSQL_DATABASE=mattermost_test -d mysql:5.7 > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-mysql) -eq 0 ]; then \
+		docker run --name mattermost-mysql -p 3306:3306 \
+			-e MYSQL_ROOT_PASSWORD=mostest \
+			-e MYSQL_USER=mmuser \
+			-e MYSQL_PASSWORD=mostest \
+			-e MYSQL_DATABASE=mattermost_test \
+			-d mysql:5.7 > /dev/null; \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-mysql; \
 		docker start mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql-unittest$$ | wc -l) -eq 0 ]; then \
+		echo starting mattermost-mysql-unittest; \
+		docker run --name mattermost-mysql-unittest -p $(TEST_DATABASE_MYSQL_PORT):3306 \
+			-e MYSQL_ROOT_PASSWORD=$(TEST_DATABASE_PASSWORD) \
+			-e MYSQL_USER=$(TEST_DATABASE_USERNAME) \
+			-e MYSQL_PASSWORD=$(TEST_DATABASE_PASSWORD) \
+			-e MYSQL_DATABASE=$(TEST_DATABASE_NAME) \
+			--tmpfs /var/lib/mysql \
+			-d mysql:5.7 > /dev/null; \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-mysql-unittest$$ | wc -l) -eq 0 ]; then \
+		echo restarting mattermost-mysql-unittest; \
+		docker start mattermost-mysql-unittest > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-postgres; \
-		docker run --name mattermost-postgres -p 5432:5432 -e POSTGRES_USER=mmuser -e POSTGRES_PASSWORD=mostest -e POSTGRES_DB=mattermost_test \
-		-d postgres:9.4 > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-postgres) -eq 0 ]; then \
+		docker run --name mattermost-postgres -p 5432:5432 \
+			-e POSTGRES_USER=mmuser \
+			-e POSTGRES_PASSWORD=mostest \
+			-e POSTGRES_DB=mattermost_test \
+			-d postgres:9.4 > /dev/null; \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-postgres; \
 		docker start mattermost-postgres > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres-unittest$$ | wc -l) -eq 0 ]; then \
+		echo starting mattermost-postgres-unittest; \
+		docker run --name mattermost-postgres-unittest -p $(TEST_DATABASE_POSTGRES_PORT):5432 \
+			-e POSTGRES_USER=$(TEST_DATABASE_USERNAME) \
+			-e POSTGRES_PASSWORD=$(TEST_DATABASE_PASSWORD) \
+			-e POSTGRES_DB=$(TEST_DATABASE_NAME) \
+			--tmpfs /var/lib/postgresql/data \
+			-d postgres:9.4 > /dev/null; \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
+		echo restarting mattermost-postgres-unittest; \
+		docker start mattermost-postgres-unittest > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 0 ]; then \
@@ -181,14 +232,24 @@ endif
 stop-docker: ## Stops the docker containers for local development.
 	@echo Stopping docker containers
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 1 ]; then \
 		echo stopping mattermost-mysql; \
 		docker stop mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql-unittest$$ | wc -l) -eq 1 ]; then \
+		echo stopping mattermost-mysql-unittest; \
+		docker stop mattermost-mysql-unittest > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 1 ]; then \
 		echo stopping mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres-unittest$$ | wc -l) -eq 1 ]; then \
+		echo stopping mattermost-postgres-unittest; \
+		docker stop mattermost-postgres-unittest > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \
@@ -214,16 +275,28 @@ stop-docker: ## Stops the docker containers for local development.
 clean-docker: ## Deletes the docker containers for local development.
 	@echo Removing docker containers
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 1 ]; then \
 		echo removing mattermost-mysql; \
 		docker stop mattermost-mysql > /dev/null; \
 		docker rm -v mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql-unittest$$ | wc -l) -eq 1 ]; then \
+		echo removing mattermost-mysql-unittest; \
+		docker stop mattermost-mysql-unittest > /dev/null; \
+		docker rm -v mattermost-mysql-unittest > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 1 ]; then \
 		echo removing mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
 		docker rm -v mattermost-postgres > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres-unittest$$ | wc -l) -eq 1 ]; then \
+		echo removing mattermost-postgres-unittest; \
+		docker stop mattermost-postgres-unittest > /dev/null; \
+		docker rm -v mattermost-postgres-unittest > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \

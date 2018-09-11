@@ -22,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
@@ -58,21 +57,15 @@ type persistentTestStore struct {
 
 func (*persistentTestStore) Close() {}
 
-var testStoreContainer *storetest.RunningContainer
 var testStore *persistentTestStore
 
-// UseTestStore sets the container and corresponding settings to use for tests. Once the tests are
+// UseTestStore sets the database settings to use for tests. Once the tests are
 // complete (e.g. at the end of your TestMain implementation), you should call StopTestStore.
-func UseTestStore(container *storetest.RunningContainer, settings *model.SqlSettings) {
-	testStoreContainer = container
+func UseTestStore(settings *model.SqlSettings) {
 	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
 }
 
 func StopTestStore() {
-	if testStoreContainer != nil {
-		testStoreContainer.Stop()
-		testStoreContainer = nil
-	}
 }
 
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {

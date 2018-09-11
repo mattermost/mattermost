@@ -39,12 +39,7 @@ func TestMain(m *testing.M) {
 
 	status := 0
 
-	container, settings, err := storetest.NewMySQLContainer()
-	if err != nil {
-		panic(err)
-	}
-
-	UseTestStore(container, settings)
+	UseTestStore(storetest.MySQLSettings())
 
 	defer func() {
 		StopTestStore()

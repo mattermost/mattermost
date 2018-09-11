@@ -26,14 +26,9 @@ type persistentTestStore struct {
 
 func (*persistentTestStore) Close() {}
 
-var testStoreContainer *storetest.RunningContainer
 var testStore *persistentTestStore
 
 func StopTestStore() {
-	if testStoreContainer != nil {
-		testStoreContainer.Stop()
-		testStoreContainer = nil
-	}
 }
 
 type TestHelper struct {
@@ -139,13 +134,7 @@ func TestMain(m *testing.M) {
 
 	status := 0
 
-	container, settings, err := storetest.NewPostgreSQLContainer()
-	if err != nil {
-		panic(err)
-	}
-
-	testStoreContainer = container
-	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
+	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*storetest.PostgreSQLSettings(), nil), nil, nil)}
 
 	defer func() {
 		StopTestStore()
