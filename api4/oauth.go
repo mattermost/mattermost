@@ -91,6 +91,12 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The app being updated in the payload must be the same one as indicated in the URL.
+	if oauthApp.Id != c.Params.AppId {
+		c.SetInvalidParam("app_id")
+		return
+	}
+
 	c.LogAudit("attempt")
 
 	oldOauthApp, err := c.App.GetOAuthApp(c.Params.AppId)

@@ -137,7 +137,11 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team.Id = c.Params.TeamId
+	// The team being updated in the payload must be the same one as indicated in the URL.
+	if team.Id != c.Params.TeamId {
+		c.SetInvalidParam("team_id")
+		return
+	}
 
 	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
