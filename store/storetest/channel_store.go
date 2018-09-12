@@ -48,6 +48,7 @@ func TestChannelStore(t *testing.T, ss store.Store) {
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
+	t.Run("AutocompleteInTeamForSearch", func(t *testing.T) { testChannelStoreAutocompleteInTeamForSearch(t, ss) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
 	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
 	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
@@ -2050,6 +2051,92 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 					t.Fatal("wrong channel returned")
 				}
 			}
+		})
+	}
+}
+
+func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store) {
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "ChannelA"
+	o1.Name = "zz" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o1, -1))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = model.NewId()
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m1))
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Channel2"
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o2, -1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o2.Id
+	m2.UserId = m1.UserId
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m2))
+
+	o3 := model.Channel{}
+	o3.TeamId = o1.TeamId
+	o3.DisplayName = "ChannelA"
+	o3.Name = "zz" + model.NewId() + "b"
+	o3.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o3, -1))
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = o3.Id
+	m3.UserId = m1.UserId
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m3))
+
+	store.Must(ss.Channel().SetDeleteAt(o3.Id, 100, 100))
+
+	o4 := model.Channel{}
+	o4.TeamId = o1.TeamId
+	o4.DisplayName = "ChannelA"
+	o4.Name = "zz" + model.NewId() + "b"
+	o4.Type = model.CHANNEL_PRIVATE
+	store.Must(ss.Channel().Save(&o4, -1))
+
+	m4 := model.ChannelMember{}
+	m4.ChannelId = o4.Id
+	m4.UserId = m1.UserId
+	m4.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m4))
+
+	o5 := model.Channel{}
+	o5.TeamId = o1.TeamId
+	o5.DisplayName = "ChannelC"
+	o5.Name = "zz" + model.NewId() + "b"
+	o5.Type = model.CHANNEL_PRIVATE
+	store.Must(ss.Channel().Save(&o5, -1))
+
+	tt := []struct {
+		name            string
+		term            string
+		includeDeleted  bool
+		expectedMatches int
+	}{
+		{"Empty search (list all)", "", false, 3},
+		{"Narrow search", "ChannelA", false, 2},
+		{"Wide search", "Cha", false, 3},
+		{"Wide search with archived channels", "Cha", true, 4},
+		{"Narrow with archived channels", "ChannelA", true, 3},
+		{"Search without results", "blarg", true, 0},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := <-ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
+			require.Nil(t, result.Err)
+			channels := result.Data.(*model.ChannelList)
+			require.Len(t, *channels, 2)
 		})
 	}
 }

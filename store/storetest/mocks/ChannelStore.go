@@ -61,6 +61,22 @@ func (_m *ChannelStore) AutocompleteInTeam(teamId string, term string, includeDe
 	return r0
 }
 
+// AutocompleteInTeamForSearch provides a mock function with given fields: teamId, userId, term, includeDeleted
+func (_m *ChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) store.StoreChannel {
+	ret := _m.Called(teamId, userId, term, includeDeleted)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) store.StoreChannel); ok {
+		r0 = rf(teamId, userId, term, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // ClearAllCustomRoleAssignments provides a mock function with given fields:
 func (_m *ChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 	ret := _m.Called()
