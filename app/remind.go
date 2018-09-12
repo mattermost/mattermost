@@ -83,7 +83,7 @@ func (a *App) InitReminders() {
 	//tnumbers["seventy"] = 70
 	//tnumbers["eighty"] = 80
 	//tnumbers["ninety"] = 90
-	//
+
 	//onumbers["hundred"] = 100
 	//onumbers["thousand"] = 100
 	//onumbers["million"] = 100
@@ -646,7 +646,16 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		translateFunc("app.reminder.chrono.sec"),
 		translateFunc("app.reminder.chrono.s"):
 
-		i, _ := strconv.Atoi(value)
+		i, e := strconv.Atoi(value)
+
+		if e != nil  {
+			num, wErr := a.wordToNumber(value)
+			if wErr != nil {
+				mlog.Error(fmt.Sprintf("%v", wErr))
+				return []time.Time{}, wErr
+			}
+			i = num
+		}
 
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			times = append(times, time.Now().In(location).Round(time.Second).Add(time.Second*time.Duration(i)))
@@ -660,7 +669,16 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		translateFunc("app.reminder.chrono.minute"),
 		translateFunc("app.reminder.chrono.min"):
 
-		i, _ := strconv.Atoi(value)
+		i, e := strconv.Atoi(value)
+
+		if e != nil  {
+			num, wErr := a.wordToNumber(value)
+			if wErr != nil {
+				mlog.Error(fmt.Sprintf("%v", wErr))
+				return []time.Time{}, wErr
+			}
+			i = num
+		}
 
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			times = append(times, time.Now().In(location).Round(time.Second).Add(time.Minute*time.Duration(i)))
@@ -675,7 +693,16 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		translateFunc("app.reminder.chrono.hrs"),
 		translateFunc("app.reminder.chrono.hr"):
 
-		i, _ := strconv.Atoi(value)
+		i, e := strconv.Atoi(value)
+
+		if e != nil  {
+			num, wErr := a.wordToNumber(value)
+			if wErr != nil {
+				mlog.Error(fmt.Sprintf("%v", wErr))
+				return []time.Time{}, wErr
+			}
+			i = num
+		}
 
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			times = append(times, time.Now().In(location).Round(time.Second).Add(time.Hour*time.Duration(i)))
@@ -689,7 +716,16 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		translateFunc("app.reminder.chrono.day"),
 		translateFunc("app.reminder.chrono.d"):
 
-		i, _ := strconv.Atoi(value)
+		i, e := strconv.Atoi(value)
+
+		if e != nil  {
+			num, wErr := a.wordToNumber(value)
+			if wErr != nil {
+				mlog.Error(fmt.Sprintf("%v", wErr))
+				return []time.Time{}, wErr
+			}
+			i = num
+		}
 
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			times = append(times, time.Now().In(location).Round(time.Second).Add(time.Hour*24*time.Duration(i)))
@@ -704,7 +740,16 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		translateFunc("app.reminder.chrono.wks"),
 		translateFunc("app.reminder.chrono.wk"):
 
-		i, _ := strconv.Atoi(value)
+		i, e := strconv.Atoi(value)
+
+		if e != nil  {
+			num, wErr := a.wordToNumber(value)
+			if wErr != nil {
+				mlog.Error(fmt.Sprintf("%v", wErr))
+				return []time.Time{}, wErr
+			}
+			i = num
+		}
 
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			times = append(times, time.Now().In(location).Round(time.Second).Add(time.Hour*24*7*time.Duration(i)))
@@ -718,7 +763,16 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		translateFunc("app.reminder.chrono.month"),
 		translateFunc("app.reminder.chrono.m"):
 
-		i, _ := strconv.Atoi(value)
+		i, e := strconv.Atoi(value)
+
+		if e != nil  {
+			num, wErr := a.wordToNumber(value)
+			if wErr != nil {
+				mlog.Error(fmt.Sprintf("%v", wErr))
+				return []time.Time{}, wErr
+			}
+			i = num
+		}
 
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			times = append(times, time.Now().In(location).Round(time.Second).Add(time.Hour*24*30*time.Duration(i)))
@@ -733,7 +787,16 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		translateFunc("app.reminder.chrono.yr"),
 		translateFunc("app.reminder.chrono.y"):
 
-		i, _ := strconv.Atoi(value)
+		i, e := strconv.Atoi(value)
+
+		if e != nil  {
+			num, wErr := a.wordToNumber(value)
+			if wErr != nil {
+				mlog.Error(fmt.Sprintf("%v", wErr))
+				return []time.Time{}, wErr
+			}
+			i = num
+		}
 
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			times = append(times, time.Now().In(location).Round(time.Second).Add(time.Hour*24*30*time.Duration(i)))
@@ -888,7 +951,6 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 	return []time.Time{}, errors.New("could not format 'at'")
 }
 
-// TODO under construction
 func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
 	user, _, translateFunc, _ := a.shared(user.Id)
@@ -916,8 +978,7 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 	if ntErr != nil {
 		return []time.Time{}, ntErr
 	}
-	mlog.Info(dateUnit)
-	mlog.Info(timeUnit)
+
 	switch dateUnit {
 	case "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday":
 
@@ -1228,7 +1289,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 
 			// TODO this needs to be locale/location setup
 			t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local)
-mlog.Info(t.Format(time.RFC3339))
+
 			return t.Format(time.RFC3339), nil
 
 		case 3:
@@ -1281,15 +1342,15 @@ mlog.Info(t.Format(time.RFC3339))
 		year := time.Now().Year()
 
 
+		// TODO covert this to use local time or timezone
+		//t := time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
 		var t time.Time
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			t = time.Date(year, month, dayInt, 0, 0, 0, 0, location)
 		} else {
 			t = time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
 		}
-
-		// TODO covert this to use local time or timezone
-		//t := time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
+		
 		if t.Before(time.Now()) {
 			t = t.AddDate(0, 1, 0)
 		}

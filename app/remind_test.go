@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
+	"time"
 )
 
 const (
@@ -229,44 +230,75 @@ func TestScheduleReminders_Outlier(t *testing.T) {
 func TestIn(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
-	/*
 
-        when = "in one second";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        assertEquals(checkDate.plusSeconds(1).toString(), testDate.toString());
+	th.App.InitReminders()
+	user, uErr := th.App.GetUserByUsername("remindbot")
+	if uErr != nil { t.Fatal("remindbot doesn't exist") }
 
-        when = "in 712 minutes";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        assertEquals(checkDate.plusMinutes(712).toString(), testDate.toString());
 
-        when = "in three hours";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        assertEquals(checkDate.plusHours(3).toString(), testDate.toString());
+	when := "in one second"
+	times, iErr := th.App.in(when, user)
+	if iErr != nil { t.Fatal("in one second doesn't parse")}
+	var duration time.Duration
+	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
+	if duration != time.Second {
+		t.Fatal("in one second isn't correct")
+	}
 
-        when = "in 2 days";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        assertEquals(checkDate.plusDays(2).toString(), testDate.toString());
 
-        when = "in ninety weeks";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        assertEquals(checkDate.plusWeeks(90).toString(), testDate.toString());
+	when = "in 712 minutes"
+	times, iErr = th.App.in(when, user)
+	if iErr != nil { t.Fatal("in 712 minutes doesn't parse")}
+	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
+	if duration != time.Minute * time.Duration(712) {
+		t.Fatal("in 712 minutes isn't correct")
+	}
 
-        when = "in 4 months";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        assertEquals(checkDate.plusMonths(4).toString(), testDate.toString());
 
-        when = "in one year";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        assertEquals(checkDate.plusYears(1).toString(), testDate.toString());
+	when = "in three hours"
+	times, iErr = th.App.in(when, user)
+	if iErr != nil { t.Fatal("in three hours doesn't parse")}
+	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
+	if duration != time.Hour * time.Duration(3) {
+		t.Fatal("in three hours isn't correct")
+	}
 
-	 */
+
+	when = "in 2 days"
+	times, iErr = th.App.in(when, user)
+	if iErr != nil { t.Fatal("in 2 days doesn't parse")}
+	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
+	if duration != time.Hour * time.Duration(24) * time.Duration(2) {
+		t.Fatal("in 2 days isn't correct")
+	}
+
+
+	when = "in 90 weeks"
+	times, iErr = th.App.in(when, user)
+	if iErr != nil { t.Fatal("in 90 weeks doesn't parse")}
+	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
+	if duration != time.Hour * time.Duration(24) * time.Duration(7) * time.Duration(90) {
+		t.Fatal("in 90 weeks isn't correct")
+	}
+
+
+	when = "in 4 months"
+	times, iErr = th.App.in(when, user)
+	if iErr != nil { t.Fatal("in 4 months doesn't parse")}
+	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
+	if duration != time.Hour * time.Duration(24) * time.Duration(30) * time.Duration(4) {
+		t.Fatal("in 4 months isn't correct")
+	}
+
+
+	when = "in one year"
+	times, iErr = th.App.in(when, user)
+	if iErr != nil { t.Fatal("in one year doesn't parse")}
+	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
+	if duration != time.Hour * time.Duration(24) * time.Duration(365)  {
+		t.Fatal("in one year isn't correct")
+	}
+	
 }
 
 func TestAt(t *testing.T) {
