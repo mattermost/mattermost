@@ -169,7 +169,7 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "{{.Channel}} varsayılan kanalından ayrılamazsınız "
+    "translation": "{{.Channel}} varsayılan kanalından ayrılamazsınız"
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -365,7 +365,7 @@
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "/header komutunun yanında metin de yazılmalıdır"
+    "translation": "/header komutunun yanında metin de yazılmalıdır."
   },
   {
     "id": "api.command_channel_header.name",
@@ -441,11 +441,11 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Kanal adında en fazla {{.Length}} karakter bulunmalıdır."
+    "translation": "Kanal adında en fazla {{.Length}} karakter bulunmalıdır"
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Kanal adında en az {{.Length}} karakter bulunmalıdır."
+    "translation": "Kanal adında en az {{.Length}} karakter bulunmalıdır"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -1062,7 +1062,7 @@
   },
   {
     "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Dosya S3 üzerine kopyalanamadı"
+    "translation": "Dosya S3 üzerine kopyalanamadı."
   },
   {
     "id": "api.file.move_file.delete_from_s3.app_error",
@@ -1086,7 +1086,7 @@
   },
   {
     "id": "api.file.reader.reading_local.app_error",
-    "translation": "Yerel sunucu depolaması üzerinden bir okuyucu açılırken bir sorun çıktı."
+    "translation": "Yerel sunucu depolaması üzerinden bir okuyucu açılırken bir sorun çıktı"
   },
   {
     "id": "api.file.reader.s3.app_error",
@@ -1412,7 +1412,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "İleti eklendikten sonra {{.timeLimit}} saniye içinde düzenlenebilir. Lütfen bilgi almak için sistem yöneticinizle görüşün."
+    "translation": "İleti eklendikten sonra {{.timeLimit}} saniye içinde düzenlenebilir. Lütfen bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1433,6 +1433,14 @@
   {
     "id": "api.preference.update_preferences.set.app_error",
     "translation": "Kullanıcı ayarları yapılamadı."
+  },
+  {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Arşivlenmiş bir kanaldaki tepkiyi silemezsiniz."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "Arşivlenmiş bir kanala tepki veremezsiniz."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1588,7 +1596,7 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Dosya ayarlarındaki sürücü adı geçersiz. 'local' ya da 'amazons3' olmalı"
+    "translation": "Dosya ayarlarındaki sürücü adı geçersiz.  'local' ya da 'amazons3' olmalı"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -1640,15 +1648,19 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Takım ekleme devre dışı bırakılmış. Lütfen bilgi almak için sistem yöneticinizle görüşün."
+    "translation": "Takım ekleme devre dışı bırakılmış. Lütfen bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "E-posta belirli bir etki alanından (@ornek.com gibi) gelmelidir. Lütfen ayrıntılı bilgi almak için sistem yöneticinizle görüşün."
+    "translation": "E-posta belirli bir etki alanından (@ornek.com gibi) gelmelidir. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.team.join_team.post_and_forget",
     "translation": "%v takıma katıldı."
+  },
+  {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "E-posta belirli bir etki alanından (@ornek.com gibi) gelmelidir. Lütfen ayrıntılı bilgi almak için sistem yöneticini ile görüşün."
   },
   {
     "id": "api.team.leave.left",
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Belirtilen kullanıcı belirtilen takımın üyesi değil."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Sistem yapılandırması takımın {{ .Domain }} ile sınırlanmasına izin vermiyor. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2584,7 +2600,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: Görüntülenecek ad"
+    "translation": "Zorunlu kanal özelliği eksik: goruntulenecek_ad"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -2600,7 +2616,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.name_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: Ad"
+    "translation": "Zorunlu kanal özelliği eksik: ad"
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
@@ -2612,7 +2628,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: Takım"
+    "translation": "Zorunlu kanal özelliği eksik: takım"
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
@@ -2620,7 +2636,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: Tür."
+    "translation": "Zorunlu kanal özelliği eksik: tür."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
@@ -2628,7 +2644,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "Zorunlu doğrudan kanal özelliği eksik: Üyeler"
+    "translation": "Zorunlu doğrudan kanal özelliği eksik: uyeler"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
@@ -2692,11 +2708,11 @@
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: Kanal."
+    "translation": "Zorunlu kanal özelliği eksik: kanal."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: Oluşturulma Zamanı."
+    "translation": "Zorunlu kanal özelliği eksik: olusturulma_zamani."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
@@ -2708,15 +2724,15 @@
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
-    "translation": "Zorunlu ileti özelliği eksik: İleti."
+    "translation": "Zorunlu ileti özelliği eksik: ileti."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
-    "translation": "Zorunlu ileti özelliği eksik: Takım."
+    "translation": "Zorunlu ileti özelliği eksik: takim."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
-    "translation": "Zorunlu ileti özelliği eksik: Kullanıcı."
+    "translation": "Zorunlu ileti özelliği eksik: kullanici."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
@@ -2724,7 +2740,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "Zorunlu tepki özelliği eksik: Oluşturulma Zamanı."
+    "translation": "Zorunlu tepki özelliği eksik: olusturulma_zamani."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
@@ -2736,11 +2752,11 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "Zorunlu tepki özelliği eksik: EmojiAdı."
+    "translation": "Zorunlu tepki özelliği eksik: EmojiAdi."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "Zorunlu tepki özelliği eksik: Kullanıcı."
+    "translation": "Zorunlu tepki özelliği eksik: kullanici."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
@@ -2748,7 +2764,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "Zorunlu yanıt özelliği eksik: Oluşturulma Zamanı."
+    "translation": "Zorunlu yanıt özelliği eksik: olusturulma_zamani."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
@@ -2760,11 +2776,11 @@
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "Zorunlu yanıt özelliği eksik: İleti."
+    "translation": "Zorunlu yanıt özelliği eksik: ileti."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "Zorunlu yanıt özelliği eksik: Kullanıcı."
+    "translation": "Zorunlu yanıt özelliği eksik: kullanici."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
@@ -2804,7 +2820,7 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": " Bu kapsamda bir şema için belirtilen roller yanlış."
+    "translation": "Bu kapsamda bir şema için belirtilen roller yanlış."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -2816,7 +2832,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "Zorunlu takım özelliği eksik: Görüntülenecek ad"
+    "translation": "Zorunlu takım özelliği eksik: goruntulenecek_ad."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
@@ -2828,7 +2844,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
-    "translation": "Zorunlu takım özelliği eksik: Ad"
+    "translation": "Zorunlu takım özelliği eksik: ad."
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
@@ -2844,7 +2860,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Zorunlu takım özelliği eksik: Tür"
+    "translation": "Zorunlu takım özelliği eksik: tur."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -2884,7 +2900,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
-    "translation": "Zorunlu kullanıcı özelliği eksik: E-posta."
+    "translation": "Zorunlu kullanıcı özelliği eksik: e-posta."
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
@@ -2948,7 +2964,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Zorunlu kullanıcı özelliği eksik: Kullanıcı Adı."
+    "translation": "Zorunlu kullanıcı özelliği eksik: kullaniciadi."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
@@ -3032,7 +3048,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "Küme özelliği kullanılırken ve SaltOkunurYapılandırma seçeneği etkinken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir"
+    "translation": "Küme özelliği kullanılırken ve SaltOkunurYapılandırma seçeneği etkinken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3100,7 +3116,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Uygulama ekleri ya da uygulama eki yüklemeleri devre dışı bırakılmış. "
+    "translation": "Uygulama ekleri ya da uygulama eki yüklemeleri devre dışı bırakılmış."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3116,7 +3132,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticinizle görüşün."
+    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3496,7 +3512,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Kullanıcı AD/LDAP sunucusu üzerinde bulunamadı:"
+    "translation": "Kullanıcı AD/LDAP sunucusu üzerinde bulunamadı: "
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
@@ -4064,7 +4080,7 @@
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
-    "translation": "Varsayılan İstemci Dili kullanılabilecek diller arasında bulunmalıdır."
+    "translation": "Varsayılan İstemci Dili kullanılabilecek diller arasında bulunmalıdır"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -4220,7 +4236,7 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Takım arkadaşı görünümü geçersiz. 'tam_ad', 'takma_ad_tam_ad' ya da 'kullanıcı_adı' olmalıdır"
+    "translation": "Takım arkadaşı görünümü geçersiz. 'tam_ad', 'takma_ad_tam_ad' ya da 'kullaniciadi' olmalıdır"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4989,6 +5005,10 @@
   {
     "id": "store.sql_channel.update.app_error",
     "translation": "Kanal güncellenemedi"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "Arşivlenmiş bir kanalı değiştiremezsiniz"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -6040,7 +6060,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticinizle görüşün."
+    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -6292,7 +6312,7 @@
   },
   {
     "id": "utils.file.remove_file.local.app_error",
-    "translation": "Dosya yerel sunucu depolaması üzerinden silinirken bir sorun çıktı"
+    "translation": "Dosya yerel sunucu depolaması üzerinden silinirken bir sorun çıktı."
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
