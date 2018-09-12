@@ -6,12 +6,12 @@ package sqlstore
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"sync/atomic"
-	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -157,9 +157,7 @@ func (s SqlChannelStoreExperimental) DropPublicChannels() error {
 			return err
 		}
 	} else {
-		mlog.Critical("Failed to create trigger because of missing driver")
-		time.Sleep(time.Second)
-		os.Exit(EXIT_GENERIC_FAILURE)
+		return errors.New("failed to create trigger because of missing driver")
 	}
 
 	if _, err := transaction.Exec(`
@@ -192,20 +190,18 @@ func (s SqlChannelStoreExperimental) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
 }
 
-func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
+func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() error {
 	s.SqlChannelStore.CreateTriggersIfNotExists()
 
 	if !s.IsExperimentalPublicChannelsMaterializationEnabled() {
-		return
+		return nil
 	}
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		if !s.DoesTriggerExist("trigger_channels") {
 			transaction, err := s.GetMaster().Begin()
 			if err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
+				return errors.Wrap(err, "failed to create trigger function")
 			}
 
 			if _, err := transaction.ExecNoTimeout(`
@@ -249,9 +245,7 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 				    END
 				$$;
 			`); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
+				return errors.Wrap(err, "failed to create trigger function")
 			}
 
 			if _, err := transaction.ExecNoTimeout(`
@@ -262,15 +256,11 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 				FOR EACH ROW EXECUTE PROCEDURE
 				    channels_copy_to_public_channels();
 			`); err != nil {
-				mlog.Critical("Failed to create trigger", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
+				return errors.Wrap(err, "failed to create trigger")
 			}
 
 			if err := transaction.Commit(); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
+				return errors.Wrap(err, "failed to create trigger function")
 			}
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
@@ -301,9 +291,7 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 				    END IF;
 				END;
 			`); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_insert"), mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
+				return errors.Wrap(err, "failed to create trigger_channels_insert trigger")
 			}
 		}
 
@@ -335,9 +323,7 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 				    END IF;
 				END;
 			`); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update"), mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
+				return errors.Wrap(err, "failed to create trigger_channels_update trigger")
 			}
 		}
 
@@ -357,9 +343,7 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 				    END IF;
 				END;
 			`); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_delete"), mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
+				return errors.Wrap(err, "failed to create trigger_channels_delete trigger")
 			}
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_SQLITE {
@@ -380,9 +364,7 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 			        (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose);
 			END;
 		`); err != nil {
-			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_insert"), mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
+			return errors.Wrap(err, "failed to create trigger_channels_insert trigger")
 		}
 
 		if _, err := s.GetMaster().ExecNoTimeout(`
@@ -401,9 +383,7 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 			        Id = NEW.Id;
 			END;
 		`); err != nil {
-			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update_delete"), mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
+			return errors.Wrap(err, "failed to create trigger_channels_update_delete trigger")
 		}
 
 		if _, err := s.GetMaster().ExecNoTimeout(`
@@ -430,9 +410,7 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 			        Id = NEW.Id;
 			END;
 		`); err != nil {
-			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update"), mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
+			return errors.Wrap(err, "failed to create trigger_channels_update trigger")
 		}
 
 		if _, err := s.GetMaster().ExecNoTimeout(`
@@ -450,15 +428,13 @@ func (s SqlChannelStoreExperimental) CreateTriggersIfNotExists() {
 				Id = OLD.Id;
 			END;
 		`); err != nil {
-			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_delete"), mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
+			return errors.Wrap(err, "failed to create trigger_channels_delete trigger")
 		}
 	} else {
-		mlog.Critical("Failed to create trigger because of missing driver")
-		time.Sleep(time.Second)
-		os.Exit(EXIT_GENERIC_FAILURE)
+		return errors.New("failed to create trigger because of missing driver")
 	}
+
+	return nil
 }
 
 func (s SqlChannelStoreExperimental) GetMoreChannels(teamId string, userId string, offset int, limit int) store.StoreChannel {

@@ -160,7 +160,11 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	// This store's triggers should exist before the migration is run to ensure the
 	// corresponding tables stay in sync. Whether or not a trigger should be created before
 	// or after a migration is likely to be decided on a case-by-case basis.
-	supplier.oldStores.channel.(*SqlChannelStoreExperimental).CreateTriggersIfNotExists()
+	if err := supplier.oldStores.channel.(*SqlChannelStoreExperimental).CreateTriggersIfNotExists(); err != nil {
+		mlog.Critical("Error creating triggers", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+	}
 
 	UpgradeDatabase(supplier)
 

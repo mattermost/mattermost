@@ -301,8 +301,9 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
 }
 
-func (s SqlChannelStore) CreateTriggersIfNotExists() {
+func (s SqlChannelStore) CreateTriggersIfNotExists() error {
 	// See SqlChannelStoreExperimental
+	return nil
 }
 
 func (s SqlChannelStore) MigratePublicChannels() error {
