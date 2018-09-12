@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Cannot remove user from a channel."
+    "translation": "Der Benutzer kann nicht aus dem Kanal entfernt werden."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Kann Befehle nicht über Teams hinweg aktualisieren."
+    "translation": "Befehle können nicht über Teams hinweg aktualisiert werden."
   },
   {
     "id": "api.command_away.desc",
@@ -1034,11 +1034,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Kann nicht überprüfen, ob die Datei existiert."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Kann nicht überprüfen, ob die Datei existiert."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1435,6 +1435,14 @@
     "translation": "Konnte Benutzereinstellungen nicht setzen."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "Sie können in einem archivierten Kanal keine Reaktionen entfernen."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "Sie können in einem archivierten Kanal nicht reagieren."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "Reaktion ist nicht gültig."
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v ist dem Team beigetreten."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "Die E-Mail-Adresse muss von einer bestimmten Domain stammen (z.B. @example.com). Bitte wenden Sie sich an ihren Systemadministrator."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v hat das Team verlassen."
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Der angegebene Benutzer ist kein Mitglied des angegebenen Teams."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Beschränkung des Teams auf {{ .Domain }} ist durch die Systemkonfiguration nicht erlaubt. Bitte wenden Sie sich an ihren Systemadministrator."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2516,7 +2532,7 @@
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": "Importdatenzeile hat den Typ \"post\", aber das Nachrichtenobjekt ist null."
+    "translation": "Importdatenzeile hat den Typ \"emoji\", aber das Emoji-Objekt ist null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3220,7 +3236,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
+    "translation": "Konnte die temporäre Global-Relay-Exportdatei nicht erneut lesen."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3404,11 +3420,11 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Konnte den Anhang nicht dem CSV-Export hinzufügen."
+    "translation": "Konnte den Anhang nicht dem Global-Relay-Export hinzufügen."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close properly the zip file."
+    "translation": "Konnte ZIP-Datei nicht schließen."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -3416,7 +3432,7 @@
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
+    "translation": "Konnte EML-Datei nicht generieren."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4692,7 +4708,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user status. Unknown user status."
+    "translation": "Konnte Benutzerstatus nicht setzen. Unbekannter Benutzerstatus."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4908,11 +4924,11 @@
   },
   {
     "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "We could not reset the channel last post at date"
+    "translation": "Das des Datum der letzen Nachricht im Kanal konnte nicht zurücksetzt werden."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "Sie können einen archivierten Kanal nicht modifizieren."
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -4989,6 +5005,10 @@
   {
     "id": "store.sql_channel.update.app_error",
     "translation": "Der Kanal konnte nicht aktualisiert werden"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "Sie können einen archivierten Kanal nicht modifizieren."
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -5144,7 +5164,7 @@
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "We couldn't delete attachments of the user"
+    "translation": "Die Anhänge des Benutzers konnten nicht gelöscht werden."
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -5168,7 +5188,7 @@
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Die Dateiinformationen konnten nicht für den Beitrag abgerufen werden"
+    "translation": "Die Dateiinformationen konnten nicht für den Benutzer abgerufen werden."
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5752,7 +5772,7 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "We couldn't get the channel count for the scheme."
+    "translation": "Die Kanalanzahl konnte nicht für das Schema abgerufen werden"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -5996,7 +6016,7 @@
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
+    "translation": "Fehler beim Ableiten des Systemdatums auf Basis des Erstellungszeitpunkt des ersten Benutzers."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

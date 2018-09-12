@@ -107,7 +107,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				req, _ := http.NewRequest("POST", url, body)
 				req.Header.Set("Content-Type", contentType)
 				req.Header.Set("Accept", "application/json")
-				if resp, err := a.HTTPClient(false).Do(req); err != nil {
+				if resp, err := a.HTTPService.MakeClient(false).Do(req); err != nil {
 					mlog.Error(fmt.Sprintf("Event POST failed, err=%s", err.Error()))
 				} else {
 					defer consumeAndClose(resp)
