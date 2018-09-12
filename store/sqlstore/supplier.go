@@ -118,7 +118,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.initConnection()
 
 	enableExperimentalPublicChannelsMaterialization := true
-	if settings.ExperimentalPublicChannelsMaterialization != nil && !*settings.ExperimentalPublicChannelsMaterialization {
+	if settings.EnablePublicChannelsMaterialization != nil && !*settings.EnablePublicChannelsMaterialization {
 		enableExperimentalPublicChannelsMaterialization = false
 	}
 

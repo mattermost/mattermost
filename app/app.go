@@ -260,7 +260,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 func (a *App) configOrLicenseListener() {
 	a.regenerateClientConfig()
 
-	if a.Config().SqlSettings.ExperimentalPublicChannelsMaterialization != nil && !*a.Config().SqlSettings.ExperimentalPublicChannelsMaterialization {
+	if a.Config().SqlSettings.EnablePublicChannelsMaterialization != nil && !*a.Config().SqlSettings.EnablePublicChannelsMaterialization {
 		a.Srv.Store.Channel().DisableExperimentalPublicChannelsMaterialization()
 	} else {
 		a.Srv.Store.Channel().EnableExperimentalPublicChannelsMaterialization()
