@@ -49,6 +49,7 @@ type Params struct {
 	RoleName       string
 	SchemeId       string
 	Scope          string
+	GroupId        string
 	Page           int
 	PerPage        int
 	LogsPerPage    int
@@ -171,6 +172,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["scheme_id"]; ok {
 		params.SchemeId = val
+	}
+
+	if val, ok := props["group_id"]; ok {
+		params.GroupId = val
 	}
 
 	params.Scope = query.Get("scope")

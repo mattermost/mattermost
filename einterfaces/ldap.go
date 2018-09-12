@@ -19,4 +19,7 @@ type LdapInterface interface {
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error
+	GetChildGroups(parentDN string) ([]*model.SCIMGroup, *model.AppError)
+	GetAllGroups() ([]*model.SCIMGroup, *model.AppError)
+	GetUserIDsInGroupRecursive(groupDN string) ([]string, *model.AppError)
 }

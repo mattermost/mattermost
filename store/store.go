@@ -66,6 +66,8 @@ type Store interface {
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
 	TermsOfService() TermsOfServiceStore
+	Group() GroupStore
+
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -530,4 +532,21 @@ type TermsOfServiceStore interface {
 	Save(termsOfService *model.TermsOfService) StoreChannel
 	GetLatest(allowFromCache bool) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
+}
+
+type GroupStore interface {
+	Create(group *model.Group) StoreChannel
+	Get(groupID string) StoreChannel
+	GetAllPage(offset int, limit int) StoreChannel
+	Update(group *model.Group) StoreChannel
+	Delete(groupID string) StoreChannel
+
+	CreateMember(groupID string, userID string) StoreChannel
+	DeleteMember(groupID string, userID string) StoreChannel
+
+	CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+	GetAllGroupSyncablesByGroupPage(groupID string, syncableType model.GroupSyncableType, offset int, limit int) StoreChannel
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
 }

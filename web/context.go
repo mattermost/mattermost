@@ -535,3 +535,14 @@ func (c *Context) ToPluginContext() *plugin.Context {
 		//userIp: c.IpAddress,
 	}
 }
+
+func (c *Context) RequireGroupId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.GroupId) != 26 {
+		c.SetInvalidUrlParam("group_id")
+	}
+	return c
+}

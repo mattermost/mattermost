@@ -67,10 +67,6 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.Err != nil {
-		return
-	}
-
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return

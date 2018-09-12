@@ -2202,7 +2202,6 @@ func TestUpdateTeamScheme(t *testing.T) {
 
 	// Test an invalid scheme scope.
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
-	fmt.Printf("resp: %+v\n", resp)
 	CheckBadRequestStatus(t, resp)
 
 	// Test that an unauthenticated user gets rejected.

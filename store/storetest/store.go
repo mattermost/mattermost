@@ -46,6 +46,7 @@ type Store struct {
 	RoleStore                 mocks.RoleStore
 	SchemeStore               mocks.SchemeStore
 	TermsOfServiceStore       mocks.TermsOfServiceStore
+	GroupStore                mocks.GroupStore
 }
 
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
@@ -77,6 +78,7 @@ func (s *Store) TermsOfService() store.TermsOfServiceStore     { return &s.Terms
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
+func (s *Store) Group() store.GroupStore       { return &s.GroupStore }
 func (s *Store) MarkSystemRanUnitTests()       { /* do nothing */ }
 func (s *Store) Close()                        { /* do nothing */ }
 func (s *Store) LockToMaster()                 { /* do nothing */ }
