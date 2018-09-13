@@ -51,6 +51,7 @@ type SqlStore interface {
 	MarkSystemRanUnitTests()
 	DoesTableExist(tablename string) bool
 	DoesColumnExist(tableName string, columName string) bool
+	DoesTriggerExist(triggerName string) bool
 	CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool
 	CreateColumnIfNotExistsNoDefault(tableName string, columnName string, mySqlColType string, postgresColType string) bool
 	RemoveColumnIfExists(tableName string, columnName string) bool

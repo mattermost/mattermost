@@ -130,6 +130,30 @@ func (_m *ChannelStore) Delete(channelId string, time int64) store.StoreChannel 
 	return r0
 }
 
+// DisableExperimentalPublicChannelsMaterialization provides a mock function with given fields:
+func (_m *ChannelStore) DisableExperimentalPublicChannelsMaterialization() {
+	_m.Called()
+}
+
+// DropPublicChannels provides a mock function with given fields:
+func (_m *ChannelStore) DropPublicChannels() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// EnableExperimentalPublicChannelsMaterialization provides a mock function with given fields:
+func (_m *ChannelStore) EnableExperimentalPublicChannelsMaterialization() {
+	_m.Called()
+}
+
 // Get provides a mock function with given fields: id, allowFromCache
 func (_m *ChannelStore) Get(id string, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(id, allowFromCache)
@@ -601,6 +625,20 @@ func (_m *ChannelStore) InvalidateMemberCount(channelId string) {
 	_m.Called(channelId)
 }
 
+// IsExperimentalPublicChannelsMaterializationEnabled provides a mock function with given fields:
+func (_m *ChannelStore) IsExperimentalPublicChannelsMaterializationEnabled() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // IsUserInChannelUseCache provides a mock function with given fields: userId, channelId
 func (_m *ChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
 	ret := _m.Called(userId, channelId)
@@ -626,6 +664,20 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId s
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
 		}
+	}
+
+	return r0
+}
+
+// MigratePublicChannels provides a mock function with given fields:
+func (_m *ChannelStore) MigratePublicChannels() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
 	}
 
 	return r0
