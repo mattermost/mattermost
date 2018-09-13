@@ -65,6 +65,7 @@ type Store interface {
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
+	ServiceTerms() ServiceTermsStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -504,4 +505,8 @@ type SchemeStore interface {
 	GetAllPage(scope string, offset int, limit int) StoreChannel
 	Delete(schemeId string) StoreChannel
 	PermanentDeleteAll() StoreChannel
+}
+
+type ServiceTermsStore interface {
+
 }

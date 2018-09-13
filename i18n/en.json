@@ -4707,6 +4707,26 @@
     "translation": "Unable to connect to the WebSocket server."
   },
   {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Invalid term id"
+  },
+  {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Missing required term property: create_at"
+  },
+  {
+    "id": "model.service_terms.is_valid.update_at.app_error",
+    "translation": "Missing required term property: update_at"
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Missing required term property: user_id"
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Invali term text."
+  },
+  {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
