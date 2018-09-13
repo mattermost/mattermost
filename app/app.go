@@ -212,6 +212,14 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	app.Srv.Store = app.newStore()
+	app.AddConfigListener(func(_, current *model.Config) {
+		if current.SqlSettings.EnablePublicChannelsMaterialization != nil && !*current.SqlSettings.EnablePublicChannelsMaterialization {
+			app.Srv.Store.Channel().DisableExperimentalPublicChannelsMaterialization()
+		} else {
+			app.Srv.Store.Channel().EnableExperimentalPublicChannelsMaterialization()
+		}
+	})
+
 	if err := app.ensureAsymmetricSigningKey(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
@@ -259,12 +267,6 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 func (a *App) configOrLicenseListener() {
 	a.regenerateClientConfig()
-
-	if a.Config().SqlSettings.EnablePublicChannelsMaterialization != nil && !*a.Config().SqlSettings.EnablePublicChannelsMaterialization {
-		a.Srv.Store.Channel().DisableExperimentalPublicChannelsMaterialization()
-	} else {
-		a.Srv.Store.Channel().EnableExperimentalPublicChannelsMaterialization()
-	}
 }
 
 func (a *App) Shutdown() {
