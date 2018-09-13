@@ -33,6 +33,7 @@ const (
 )
 
 const (
+	EXIT_GENERIC_FAILURE             = 1
 	EXIT_CREATE_TABLE                = 100
 	EXIT_DB_OPEN                     = 101
 	EXIT_PING                        = 102
@@ -116,8 +117,13 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
+	enableExperimentalPublicChannelsMaterialization := true
+	if settings.EnablePublicChannelsMaterialization != nil && !*settings.EnablePublicChannelsMaterialization {
+		enableExperimentalPublicChannelsMaterialization = false
+	}
+
 	supplier.oldStores.team = NewSqlTeamStore(supplier)
-	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
+	supplier.oldStores.channel = NewSqlChannelStoreExperimental(supplier, metrics, enableExperimentalPublicChannelsMaterialization)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
 	supplier.oldStores.audit = NewSqlAuditStore(supplier)
@@ -151,10 +157,19 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
+	// This store's triggers should exist before the migration is run to ensure the
+	// corresponding tables stay in sync. Whether or not a trigger should be created before
+	// or after a migration is likely to be decided on a case-by-case basis.
+	if err := supplier.oldStores.channel.(*SqlChannelStoreExperimental).CreateTriggersIfNotExists(); err != nil {
+		mlog.Critical("Error creating triggers", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+	}
+
 	UpgradeDatabase(supplier)
 
 	supplier.oldStores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
-	supplier.oldStores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
+	supplier.oldStores.channel.(*SqlChannelStoreExperimental).CreateIndexesIfNotExists()
 	supplier.oldStores.post.(*SqlPostStore).CreateIndexesIfNotExists()
 	supplier.oldStores.user.(*SqlUserStore).CreateIndexesIfNotExists()
 	supplier.oldStores.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
@@ -457,6 +472,52 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		mlog.Critical("Failed to check if column exists because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DOES_COLUMN_EXISTS_MISSING)
+		return false
+	}
+}
+
+func (ss *SqlSupplier) DoesTriggerExist(triggerName string) bool {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		count, err := ss.GetMaster().SelectInt(`
+			SELECT
+				COUNT(0)
+			FROM
+				pg_trigger
+			WHERE
+				tgname = $1
+		`, triggerName)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if trigger exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		return count > 0
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		count, err := ss.GetMaster().SelectInt(`
+			SELECT
+				COUNT(0)
+			FROM
+				information_schema.triggers
+			WHERE
+				trigger_schema = DATABASE()
+			AND	trigger_name = ?
+		`, triggerName)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if trigger exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		return count > 0
+
+	} else {
+		mlog.Critical("Failed to check if column exists because of missing driver")
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
 		return false
 	}
 }
