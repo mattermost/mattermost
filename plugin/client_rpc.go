@@ -78,12 +78,13 @@ func (e ErrorString) Error() string {
 func encodableError(err error) error {
 	if err == nil {
 		return nil
-	} else if _, ok := err.(*model.AppError); ok {
+	}
+	if _, ok := err.(*model.AppError); ok {
 		return err
-	} else {
-		return &ErrorString{
-			Err: err.Error(),
-		}
+	}
+
+	return &ErrorString{
+		Err: err.Error(),
 	}
 }
 
