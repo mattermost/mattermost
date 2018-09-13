@@ -152,9 +152,7 @@ func (a *App) runner() {
 
 func (a *App) triggerReminders() {
 
-	//TODO should this be UTC or local or... as is?
-	//        RFC3339     = "2006-01-02T15:04:05Z07:00"
-	t := time.Now().Round(time.Second).Format(time.RFC3339)  //.Format(time.UnixDate)
+	t := time.Now().Round(time.Second).Format(time.RFC3339)
 	schan := a.Srv.Store.Remind().GetByTime(t)
 
 	if result := <-schan; result.Err != nil {
@@ -322,7 +320,6 @@ func (a *App) ListReminders(userId string) string {
 		if len(occurrences) > 0 {
 
 			for _, occurrence := range occurrences {
-				//        RFC3339     = "2006-01-02T15:04:05Z07:00"
 				t, pErr := time.Parse(time.RFC3339, occurrence.Occurrence)
 				s, pErr2 := time.Parse(time.RFC3339, occurrence.Snoozed)
 				if pErr != nil || pErr2 != nil {
@@ -849,10 +846,23 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 		strings.HasSuffix(normalizedWhen, translateFunc("app.reminder.chrono.am")) {
 
 		if !strings.Contains(normalizedWhen, ":") {
-			s := normalizedWhen[:len(normalizedWhen)-2]
-			normalizedWhen = s + ":00" + normalizedWhen[len(normalizedWhen)-2:]
-		}
+			var s string
+			var s2 string
+			if len(normalizedWhen) == 3 {
+				s = normalizedWhen[:len(normalizedWhen)-2]
+				s2 = normalizedWhen[len(normalizedWhen)-2:]
+			} else if len(normalizedWhen) >= 4 {
+				s = normalizedWhen[:len(normalizedWhen)-4]
+				s2 = normalizedWhen[len(normalizedWhen)-4:]
+			}
 
+			if len(s2) > 2 {
+				normalizedWhen = s + ":" + s2
+			} else {
+				normalizedWhen = s + ":00" + s2
+			}
+
+		}
 		t, pErr := time.Parse(time.Kitchen, strings.ToUpper(normalizedWhen))
 		if pErr != nil {
 			mlog.Error(fmt.Sprintf("%v", pErr))
@@ -905,29 +915,40 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 		translateFunc("app.reminder.chrono.eleven"),
 		translateFunc("app.reminder.chrono.twelve"):
 
-		now := time.Now()
+		nowkit := time.Now().Format(time.Kitchen)
+		ampm := string(nowkit[len(nowkit)-2:])
 
 		num, wErr := a.wordToNumber(normalizedWhen)
 		if wErr != nil {
-			mlog.Error(fmt.Sprintf("%v", wErr))
 			return []time.Time{}, wErr
 		}
 
-		wordTime := now.Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		wordTime, _ := time.Parse(time.Kitchen, strconv.Itoa(num)+":00"+ampm)
 		return []time.Time{a.chooseClosest(user, &wordTime, false)}, nil
 
-	//TODO add translation to digits
-	case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12":
+	case translateFunc("app.reminder.chrono.0"),
+		translateFunc("app.reminder.chrono.1"),
+		translateFunc("app.reminder.chrono.2"),
+		translateFunc("app.reminder.chrono.3"),
+		translateFunc("app.reminder.chrono.4"),
+		translateFunc("app.reminder.chrono.5"),
+		translateFunc("app.reminder.chrono.6"),
+		translateFunc("app.reminder.chrono.7"),
+		translateFunc("app.reminder.chrono.8"),
+		translateFunc("app.reminder.chrono.9"),
+		translateFunc("app.reminder.chrono.10"),
+		translateFunc("app.reminder.chrono.11"),
+		translateFunc("app.reminder.chrono.12"):
 
-		now := time.Now()
+		nowkit := time.Now().Format(time.Kitchen)
+		ampm := string(nowkit[len(nowkit)-2:])
 
 		num, wErr := strconv.Atoi(normalizedWhen)
 		if wErr != nil {
-			mlog.Error(fmt.Sprintf("%v", wErr))
 			return []time.Time{}, wErr
 		}
 
-		wordTime := now.Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		wordTime, _ := time.Parse(time.Kitchen, strconv.Itoa(num)+":00"+ampm)
 		return []time.Time{a.chooseClosest(user, &wordTime, false)}, nil
 
 	default:
@@ -937,7 +958,20 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 			normalizedWhen = s + ":" + normalizedWhen[len(normalizedWhen)-2:]
 		}
 
-		t, pErr := time.Parse(time.Kitchen, strings.ToUpper(normalizedWhen+translateFunc("app.reminder.chrono.am")))
+		timeSplit := strings.Split(normalizedWhen,":")
+		hr,_ := strconv.Atoi(timeSplit[0])
+		ampm := translateFunc("app.reminder.chrono.am")
+
+		if hr > 11 {
+			ampm = translateFunc("app.reminder.chrono.pm")
+		}
+		if hr > 12 {
+			hr -= 12
+			timeSplit[0] = strconv.Itoa(hr)
+			normalizedWhen = strings.Join(timeSplit,":")
+		}
+
+		t, pErr := time.Parse(time.Kitchen, strings.ToUpper(normalizedWhen+ampm))
 		if pErr != nil {
 			return []time.Time{}, pErr
 		}

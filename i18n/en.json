@@ -3339,6 +3339,58 @@
     "translation": "nineteen"
   },
   {
+    "id": "app.reminder.chrono.0",
+    "translation": "0"
+  },
+  {
+    "id": "app.reminder.chrono.1",
+    "translation": "1"
+  },
+  {
+    "id": "app.reminder.chrono.2",
+    "translation": "2"
+  },
+  {
+    "id": "app.reminder.chrono.3",
+    "translation": "3"
+  },
+  {
+    "id": "app.reminder.chrono.4",
+    "translation": "4"
+  },
+  {
+    "id": "app.reminder.chrono.5",
+    "translation": "5"
+  },
+  {
+    "id": "app.reminder.chrono.6",
+    "translation": "6"
+  },
+  {
+    "id": "app.reminder.chrono.7",
+    "translation": "7"
+  },
+  {
+    "id": "app.reminder.chrono.8",
+    "translation": "8"
+  },
+  {
+    "id": "app.reminder.chrono.9",
+    "translation": "9"
+  },
+  {
+    "id": "app.reminder.chrono.10",
+    "translation": "10"
+  },
+  {
+    "id": "app.reminder.chrono.11",
+    "translation": "11"
+  },
+  {
+    "id": "app.reminder.chrono.12",
+    "translation": "12"
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },

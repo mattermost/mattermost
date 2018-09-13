@@ -47,16 +47,16 @@ func TestDeleteReminders(t *testing.T) {
 	th.App.DeleteReminders("user_id")
 }
 
-func TestScheduleReminders_Target(t *testing.T) {
+func TestScheduleReminders(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
 	user, uErr := th.App.GetUserByUsername("remindbot")
 	if uErr != nil { t.Fatal("remindbot doesn't exist") }
 	translateFunc := utils.GetUserTranslations(user.Locale)
-
 	request := &model.ReminderRequest{}
 	request.UserId = user.Id
+
 
 	request.Payload = "me foo in 2 seconds"
 	response, err := th.App.ScheduleReminder(request)
@@ -102,130 +102,71 @@ func TestScheduleReminders_Target(t *testing.T) {
 		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
 	}
 
-}
-
-
-func TestScheduleReminders_Quotes(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
-	translateFunc := utils.GetUserTranslations(user.Locale)
-
-	request := &model.ReminderRequest{}
-	request.UserId = user.Id
 
 	request.Payload = "me \"foo foo foo\" in 2 seconds"
-	response, err := th.App.ScheduleReminder(request)
+	response, err = th.App.ScheduleReminder(request)
 	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
-	var responseParameters = map[string]interface{}{
+	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo foo foo",
 		"When":    "in 2 seconds",
 	}
-	expectedResponse := translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
 	}
 
-}
-
-
-// TODO maybe just test in function here instead of schedule reminders
-func TestScheduleReminders_In(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
-	translateFunc := utils.GetUserTranslations(user.Locale)
-
-	request := &model.ReminderRequest{}
-	request.UserId = user.Id
 
 	request.Payload = "me foo in 5 seconds"
-	response, err := th.App.ScheduleReminder(request)
+	response, err = th.App.ScheduleReminder(request)
 	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
-	var responseParameters = map[string]interface{}{
+	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
 		"When":    "in 5 seconds",
 	}
-	expectedResponse := translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
 	}
 
-}
-
-
-func TestScheduleReminders_At(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
-	translateFunc := utils.GetUserTranslations(user.Locale)
-
-	request := &model.ReminderRequest{}
-	request.UserId = user.Id
 
 	request.Payload = "me foo at 2:04 pm"
-	response, err := th.App.ScheduleReminder(request)
+	response, err = th.App.ScheduleReminder(request)
 	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
-	responseParameters := map[string]interface{}{
+	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
 		"When":    "at 2:04PM",
 	}
-	expectedResponse := translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
 	}
 
-}
-
-func TestScheduleReminders_On(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-
-
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
-	translateFunc := utils.GetUserTranslations(user.Locale)
-
-	request := &model.ReminderRequest{}
-	request.UserId = user.Id
 
 	request.Payload = "me foo on monday at 12:30PM"
-	response, err := th.App.ScheduleReminder(request)
+	response, err = th.App.ScheduleReminder(request)
 	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
-	responseParameters := map[string]interface{}{
+	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
 		"When":    "on monday at 12:30PM",
 	}
-	expectedResponse := translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
 	}
 
+	//TODO TEST Every
+
+	//TODO TEST Outlier
 }
 
-func TestScheduleReminders_Every(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-}
-
-func TestScheduleReminders_Outlier(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-}
 
 func TestIn(t *testing.T) {
 	th := Setup()
@@ -298,105 +239,142 @@ func TestIn(t *testing.T) {
 	if duration != time.Hour * time.Duration(24) * time.Duration(365)  {
 		t.Fatal("in one year isn't correct")
 	}
-	
+
 }
 
 func TestAt(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
+	th.App.InitReminders()
+	user, uErr := th.App.GetUserByUsername("remindbot")
+	if uErr != nil { t.Fatal("remindbot doesn't exist") }
+
+
+	when := "at noon"
+	times, iErr := th.App.at(when, user)
+	if iErr != nil { t.Fatal("at noon doesn't parse")}
+	if times[0].Hour() != 12 {
+		t.Fatal("at noon isn't correct")
+	}
+
+
+	when = "at midnight"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at midnight doesn't parse")}
+	if times[0].Hour() != 0 {
+		t.Fatal("at midnight isn't correct")
+	}
+
+
+	when = "at two"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at two doesn't parse")}
+	if times[0].Hour() != 2 && times[0].Hour() != 14 {
+		t.Fatal("at two isn't correct")
+	}
+
+
+	when = "at 7"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 7 doesn't parse")}
+	if times[0].Hour() != 7 && times[0].Hour() != 19 {
+		t.Fatal("at 7 isn't correct")
+	}
+
+
+	when = "at 12:30pm"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 12:30pm doesn't parse")}
+	if times[0].Hour() != 12 && times[0].Minute() != 30 {
+		t.Fatal("at 12:30pm isn't correct")
+	}
+
+
+	when = "at 7:12 pm"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 7:12 pm doesn't parse")}
+	if times[0].Hour() != 19 && times[0].Minute() != 12 {
+		t.Fatal("at 7:12 pm isn't correct")
+	}
+
+
+	when = "at 8:05 PM"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 8:05 PM doesn't parse")}
+	if times[0].Hour() != 10 && times[0].Minute() != 5 {
+		t.Fatal("at 8:05 PM isn't correct")
+	}
+
+
+	when = "at 9:52 am"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 9:52 am doesn't parse")}
+	if times[0].Hour() != 9 && times[0].Minute() != 52 {
+		t.Fatal("at 9:52 am isn't correct")
+	}
+
+
+	when = "at 9:12"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 9:12 doesn't parse")}
+	if times[0].Hour() != 9 && times[0].Hour() != 21 && times[0].Minute() != 12 {
+		t.Fatal("at 9:12 isn't correct")
+	}
+
+
+	when = "at 17:15"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 17:15 doesn't parse") }
+	if times[0].Hour() != 17 && times[0].Minute() != 15 {
+		t.Fatal("at 17:15 isn't correct")
+	}
+
+
+	when = "at 930am"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 930am doesn't parse") }
+	if times[0].Hour() != 9 && times[0].Minute() != 30 {
+		t.Fatal("at 930am isn't correct")
+	}
+
+
+	when = "at 1230 am"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 1230 am doesn't parse") }
+	if times[0].Hour() != 0 && times[0].Minute() != 30 {
+		t.Fatal("at 1230 am isn't correct")
+	}
+
+
+	when = "at 5PM"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 5PM doesn't parse") }
+	if times[0].Hour() != 17 && times[0].Minute() != 0 {
+		t.Fatal("at 5PM isn't correct")
+	}
+
+
+	when = "at 4 am"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 4 am doesn't parse") }
+	if times[0].Hour() != 4 && times[0].Minute() != 0 {
+		t.Fatal("at 4 am isn't correct")
+	}
+
+
+	when = "at 1400"
+	times, iErr = th.App.at(when, user)
+	if iErr != nil { t.Fatal("at 1400 doesn't parse") }
+	if times[0].Hour() != 14 && times[0].Minute() != 0 {
+		t.Fatal("at 1400 isn't correct")
+	}
+
+	//TODO
 	/*
-	        when = "at noon";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(12, 0).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
+	when = "at 11:00 every Thursday";
 
-        when = "at midnight";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(0, 0).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at two";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(2, 0).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusHours(12).equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 7";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(7, 0).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusHours(12).equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 12:30pm";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(12, 30).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 7:12 pm";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(19, 12).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 8:05 PM";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(20, 5).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 9:52 am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(9, 52).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 9:12";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(9, 12).truncatedTo(ChronoUnit.SECONDS);
-        checkDate2 = LocalDate.now().atTime(21, 12).truncatedTo(ChronoUnit.SECONDS);
-        System.out.println("=====================D");
-        System.out.println(testDate);
-        System.out.println(checkDate);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusHours(12).equals(testDate) ||
-                checkDate2.equals(testDate) || checkDate2.plusHours(12).equals(testDate));
-
-        when = "at 17:15";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(17, 15).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 930am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(9, 30).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 1230 am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(0, 30).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 5PM";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(17, 0).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-
-        when = "at 4 am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(4, 0).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 1400";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().atTime(14, 00).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 11:00 every Thursday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY)).atTime(11, 00).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
-        when = "at 3pm every day";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().plusDays(1).atTime(15, 00).truncatedTo(ChronoUnit.SECONDS);
-        assertTrue(checkDate.equals(testDate) || checkDate.plusDays(1).equals(testDate));
-
+	when = "at 3pm every day";
 	 */
 }
 
