@@ -502,6 +502,5 @@ func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
 	sqlStore.CreateColumnIfNotExists("Users", "AcceptedServiceTermsId", "varchar(64)", "varchar(64)", "")
-	sqlStore.CreateColumnIfNotExists("Users", "LatestServiceTermsAccepted", "tinyint(1)", "boolean", "0")
 	// 	saveSchemaVersion(sqlStore, VERSION_5_4_0)
 }

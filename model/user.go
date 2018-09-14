@@ -75,7 +75,7 @@ type User struct {
 	MfaSecret                  string    `json:"mfa_secret,omitempty"`
 	LastActivityAt             int64     `db:"-" json:"last_activity_at,omitempty"`
 	AcceptedServiceTermsId     string    `json:"accepted_service_terms_id"`
-	LatestServiceTermsAccepted bool      `json:"service_terms_accepted"`
+	LatestServiceTermsAccepted bool      `db:"-" json:"latest_service_terms_accepted"`
 }
 
 type UserPatch struct {
