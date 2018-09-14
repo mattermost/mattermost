@@ -103,7 +103,7 @@ func TestDiagnostics(t *testing.T) {
 
 		info := ""
 		// Collect the info sent.
-		Loop:
+	Loop:
 		for {
 			select {
 			case result := <-data:

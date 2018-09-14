@@ -44,13 +44,12 @@ func TestServiceTermsIsValid(t *testing.T) {
 	}
 }
 
-
 func TestServiceTermsJson(t *testing.T) {
 	o := ServiceTerms{
-		Id: NewId(),
-		Text: NewId(),
+		Id:       NewId(),
+		Text:     NewId(),
 		CreateAt: GetMillis(),
-		UserId: NewId(),
+		UserId:   NewId(),
 	}
 	j := o.ToJson()
 	ro := ServiceTermsFromJson(strings.NewReader(j))

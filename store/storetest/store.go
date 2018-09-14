@@ -73,7 +73,7 @@ func (s *Store) UserAccessToken() store.UserAccessTokenStore   { return &s.UserA
 func (s *Store) Plugin() store.PluginStore                     { return &s.PluginStore }
 func (s *Store) Role() store.RoleStore                         { return &s.RoleStore }
 func (s *Store) Scheme() store.SchemeStore                     { return &s.SchemeStore }
-func (s *Store) ServiceTerms() store.ServiceTermsStore 		   {return &s.ServiceTermsStore}
+func (s *Store) ServiceTerms() store.ServiceTermsStore         { return &s.ServiceTermsStore }
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }

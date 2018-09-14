@@ -513,5 +513,4 @@ type SchemeStore interface {
 }
 
 type ServiceTermsStore interface {
-
 }

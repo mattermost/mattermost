@@ -1599,7 +1599,7 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-01", false)
 	if len(posts.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
-	}	
+	}
 }
 
 func TestGetFileInfosForPost(t *testing.T) {

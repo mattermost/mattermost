@@ -92,7 +92,7 @@ type SqlSupplierOldStores struct {
 	channelMemberHistory store.ChannelMemberHistoryStore
 	role                 store.RoleStore
 	scheme               store.SchemeStore
-	serviceTerms		 store.ServiceTermsStore
+	serviceTerms         store.ServiceTermsStore
 }
 
 type SqlSupplier struct {
