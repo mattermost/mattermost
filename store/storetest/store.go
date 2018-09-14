@@ -45,7 +45,7 @@ type Store struct {
 	ChannelMemberHistoryStore mocks.ChannelMemberHistoryStore
 	RoleStore                 mocks.RoleStore
 	SchemeStore               mocks.SchemeStore
-	ServiceTermsStore		  mocks.ServiceTermsStore
+	ServiceTermsStore         mocks.ServiceTermsStore
 }
 
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
