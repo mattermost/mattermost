@@ -45,7 +45,9 @@ func (a *App) InitReminders() {
 	remindUser = user
 	emptyTime = time.Time{}.AddDate(1, 1, 1)
 
+
 	// TODO fix this flaw in translation.  should be per user, not the remind bot
+
 	_, _, translationFunc, _ := a.shared(user.Id)
 
 	numbers = make(map[string]int)
@@ -73,53 +75,52 @@ func (a *App) InitReminders() {
 	numbers[translationFunc("app.reminder.chrono.eighteen")] = 18
 	numbers[translationFunc("app.reminder.chrono.nineteen")] = 19
 
-	// TODO what is really needed from below?
-	//tnumbers["twenty"] = 20
-	//tnumbers["thirty"] = 30
-	//tnumbers["fourty"] = 40
-	//tnumbers["fifty"] = 50
-	//tnumbers["sixty"] = 60
-	//tnumbers["seventy"] = 70
-	//tnumbers["eighty"] = 80
-	//tnumbers["ninety"] = 90
+	tnumbers["twenty"] = 20
+	tnumbers["thirty"] = 30
+	tnumbers["fourty"] = 40
+	tnumbers["fifty"] = 50
+	tnumbers["sixty"] = 60
+	tnumbers["seventy"] = 70
+	tnumbers["eighty"] = 80
+	tnumbers["ninety"] = 90
 
-	//onumbers["hundred"] = 100
-	//onumbers["thousand"] = 100
-	//onumbers["million"] = 100
-	//onumbers["billion"] = 100
-	//
-	//numbers["first"] = 1
-	//numbers["second"] = 2
-	//numbers["third"] = 3
-	//numbers["fourth"] = 4
-	//numbers["fifth"] = 5
-	//numbers["sixth"] = 6
-	//numbers["seventh"] = 7
-	//numbers["eighth"] = 8
-	//numbers["nineth"] = 9
-	//numbers["tenth"] = 10
-	//numbers["eleventh"] = 11
-	//numbers["twelveth"] = 12
-	//numbers["thirteenth"] = 13
-	//numbers["fourteenth"] = 14
-	//numbers["fifteenth"] = 15
-	//numbers["sixteenth"] = 16
-	//numbers["seventeenth"] = 17
-	//numbers["eighteenth"] = 18
-	//numbers["nineteenth"] = 19
-	//
-	//tnumbers["twenteth"] = 20
-	//tnumbers["twentyfirst"] = 21
-	//tnumbers["twentysecond"] = 22
-	//tnumbers["twentythird"] = 23
-	//tnumbers["twentyfourth"] = 24
-	//tnumbers["twentyfifth"] = 25
-	//tnumbers["twentysixth"] = 26
-	//tnumbers["twentyseventh"] = 27
-	//tnumbers["twentyeight"] = 28
-	//tnumbers["twentynineth"] = 29
-	//tnumbers["thirteth"] = 30
-	//tnumbers["thirtyfirst"] = 31
+	onumbers["hundred"] = 100
+	onumbers["thousand"] = 100
+	onumbers["million"] = 100
+	onumbers["billion"] = 100
+
+	numbers["first"] = 1
+	numbers["second"] = 2
+	numbers["third"] = 3
+	numbers["fourth"] = 4
+	numbers["fifth"] = 5
+	numbers["sixth"] = 6
+	numbers["seventh"] = 7
+	numbers["eighth"] = 8
+	numbers["nineth"] = 9
+	numbers["tenth"] = 10
+	numbers["eleventh"] = 11
+	numbers["twelveth"] = 12
+	numbers["thirteenth"] = 13
+	numbers["fourteenth"] = 14
+	numbers["fifteenth"] = 15
+	numbers["sixteenth"] = 16
+	numbers["seventeenth"] = 17
+	numbers["eighteenth"] = 18
+	numbers["nineteenth"] = 19
+
+	tnumbers["twenteth"] = 20
+	tnumbers["twentyfirst"] = 21
+	tnumbers["twentysecond"] = 22
+	tnumbers["twentythird"] = 23
+	tnumbers["twentyfourth"] = 24
+	tnumbers["twentyfifth"] = 25
+	tnumbers["twentysixth"] = 26
+	tnumbers["twentyseventh"] = 27
+	tnumbers["twentyeight"] = 28
+	tnumbers["twentynineth"] = 29
+	tnumbers["thirteth"] = 30
+	tnumbers["thirtyfirst"] = 31
 
 	daySuffixes = []string{"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th",
 		"10th", "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th",
@@ -1189,8 +1190,6 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 	return "", errors.New("unable to normalize time")
 }
 
-// TODO covert this to use local time or timezone
-// TODO date matching needs to match up with the local date setup
 func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 	_, location, _, _ := a.shared(user.Id)
 	cfg := a.Config()
@@ -1241,7 +1240,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 				}
 			}
 			if _, err := strconv.Atoi(parts[1]); err != nil {
-				if wn, wErr := a.wordToNumber(date); wErr == nil {
+				if wn, wErr := a.wordToNumber(parts[1]); wErr == nil {
 					parts[1] = strconv.Itoa(wn)
 				}
 			}
@@ -1260,14 +1259,17 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 			}
 
 			if _, err := strconv.Atoi(parts[1]); err != nil {
-				if wn, wErr := a.wordToNumber(date); wErr == nil {
+				if wn, wErr := a.wordToNumber(parts[1]); wErr == nil {
 					parts[1] = strconv.Itoa(wn)
+				} else {
+					mlog.Error(wErr.Error())
 				}
 
 				if _, pErr := strconv.Atoi(parts[2]); pErr != nil {
 					return "", pErr
 				}
 			}
+
 			break
 		default:
 			return "", errors.New("unrecognized date format")
@@ -1275,87 +1277,94 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 
 		switch parts[0] {
 		case "jan", "january":
-			parts[0] = "january"
+			parts[0] = "01"
 			break
 		case "feb", "february":
-			parts[0] = "february"
+			parts[0] = "02"
 			break
 		case "mar", "march":
-			parts[0] = "march"
+			parts[0] = "03"
 			break
 		case "apr", "april":
-			parts[0] = "april"
+			parts[0] = "04"
 			break
 		case "may":
-			parts[0] = "may"
+			parts[0] = "05"
 			break
 		case "june":
-			parts[0] = "june"
+			parts[0] = "06"
 			break
 		case "july":
-			parts[0] = "july"
+			parts[0] = "07"
 			break
 		case "aug", "august":
-			parts[0] = "august"
+			parts[0] = "08"
 			break
 		case "sept", "september":
-			parts[0] = "september"
+			parts[0] = "09"
 			break
 		case "oct", "october":
-			parts[0] = "october"
+			parts[0] = "10"
 			break
 		case "nov", "november":
-			parts[0] = "november"
+			parts[0] = "11"
 			break
 		case "dec", "december":
-			parts[0] = "december"
+			parts[0] = "12"
 			break
 		default:
 			return "", errors.New("month not found")
 		}
 
-		return strings.Join(parts, " "), nil
+		if len(parts[1]) < 2 {
+			parts[1] = "0"+parts[1]
+		}
+		return parts[2]+"-"+parts[0]+"-"+parts[1]+"T00:00:00Z", nil
 
 	} else if match, _ := regexp.MatchString("^(([0-9]{2}|[0-9]{1})(-|/)([0-9]{2}|[0-9]{1})((-|/)([0-9]{4}|[0-9]{2}))?)", date); match {
-		mlog.Debug("match " + date)
 
 		date := a.regSplit(date, "-|/")
 
 		switch len(date) {
 		case 2:
 			year := time.Now().Year()
-			month, mErr := strconv.Atoi(date[1])
+			month, mErr := strconv.Atoi(date[0])
 			if mErr != nil {
 				return "", mErr
 			}
-			day, dErr := strconv.Atoi(date[0])
+			day, dErr := strconv.Atoi(date[1])
 			if dErr != nil {
 				return "", dErr
 			}
 
-			// TODO this needs to be locale/location setup
-			t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local)
+			if *cfg.DisplaySettings.ExperimentalTimezone {
+				return time.Date(year, time.Month(month), day, 0, 0, 0, 0, location).Format(time.RFC3339), nil
+			}
 
-			return t.Format(time.RFC3339), nil
+			return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local).Format(time.RFC3339), nil
 
 		case 3:
+			if len(date[2]) == 2 {
+				date[2] = "20"+date[2]
+			}
 			year, yErr := strconv.Atoi(date[2])
 			if yErr != nil {
 				return "", yErr
 			}
-			month, mErr := strconv.Atoi(date[1])
+			month, mErr := strconv.Atoi(date[0])
 			if mErr != nil {
 				return "", mErr
 			}
-			day, dErr := strconv.Atoi(date[0])
+			day, dErr := strconv.Atoi(date[1])
 			if dErr != nil {
 				return "", dErr
 			}
 
-			// TODO this needs to be locale/location setup
-			t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local)
+			if *cfg.DisplaySettings.ExperimentalTimezone {
+				return time.Date(year, time.Month(month), day, 0, 0, 0, 0, location).Format(time.RFC3339), nil
+			}
 
-			return t.Format(time.RFC3339), nil
+			return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local).Format(time.RFC3339), nil
 
 		default:
 			return "", errors.New("unrecognized date")
@@ -1370,6 +1379,9 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 				day = date[:len(date)-2]
 				break
 			}
+		}
+		if day == "" {
+			day = date
 		}
 
 		if d, nErr := strconv.Atoi(day); nErr != nil {
@@ -1401,6 +1413,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 
 	}
 
+	return "", errors.New("Non recognized time")
 }
 
 func (a *App) weekDayNumber(day string) int {

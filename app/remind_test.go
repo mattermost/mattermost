@@ -11,6 +11,7 @@ import (
 
 	"time"
 	"github.com/mattermost/mattermost-server/mlog"
+	"fmt"
 )
 
 const (
@@ -141,7 +142,7 @@ func TestScheduleReminders(t *testing.T) {
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "at 2:04PM",
+		"When":    "at 2:04 pm",
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
@@ -149,19 +150,19 @@ func TestScheduleReminders(t *testing.T) {
 	}
 
 
-	request.Payload = "me foo on monday at 12:30PM"
-	response, err = th.App.ScheduleReminder(request)
-	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
-	responseParameters = map[string]interface{}{
-		"Target":  "You",
-		"UseTo":   "",
-		"Message": "foo",
-		"When":    "on monday at 12:30PM",
-	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
-	if response != expectedResponse {
-		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
-	}
+	//request.Payload = "me foo on monday at 12:30PM"
+	//response, err = th.App.ScheduleReminder(request)
+	//if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
+	//responseParameters = map[string]interface{}{
+	//	"Target":  "You",
+	//	"UseTo":   "",
+	//	"Message": "foo",
+	//	"When":    "on monday at 12:30PM",
+	//}
+	//expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	//if response != expectedResponse {
+	//	t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
+	//}
 
 	//TODO TEST Every
 
@@ -441,27 +442,19 @@ func TestOn(t *testing.T) {
 	if times[0].Weekday().String() != "Friday" {
 		t.Fatal("on Friday isn't correct")
 	}
+
+
 	/*
         when = "on Mondays";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
+
         when = "on Tuesdays at 11:15";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY)).atTime(11, 15);
-        assertEquals(testDate, checkDate);
+
         when = "on Wednesdays";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
+
         when = "on Thursdays";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
+
         when = "on Fridays";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
+
 	*/
 
 
@@ -509,139 +502,215 @@ func TestOn(t *testing.T) {
 	}
 
 
-	// app/remind.go line 1227
-	//when = "on December 15"
-	//times, iErr = th.App.on(when, user)
-	//if iErr != nil {
-	//	mlog.Error(iErr.Error())
-	//	t.Fatal("on December 15 doesn't parse")
-	//}
-	//if times[0].Month().String() != "December" && times[0].Day() != 15 {
-	//	t.Fatal("on December 15 isn't correct")
-	//}
-
-	/*
-        when = "on December 15";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("December 15 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on jan 12";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("January 12 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on July 12th";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("July 12 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on March 22";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("March 22 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on March 17 at 5:41pm";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("March 17 " + LocalDateTime.now().getYear() + " 17:41", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
+	when = "on December 15"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on December 15 doesn't parse")
+	}
+	if times[0].Month().String() != "December" && times[0].Day() != 15 {
+		t.Fatal("on December 15 isn't correct")
+	}
 
 
-        when = "on September 7th 2019";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("September 7 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on April 17 2019";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("April 17 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on April 9 2019 at 11am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("April 9 " + LocalDateTime.now().getYear() + " 11:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
+	when = "on jan 12"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on jan 12 doesn't parse")
+	}
+	if times[0].Month().String() != "January" && times[0].Day() != 12 {
+		t.Fatal("on jan 12 isn't correct")
+	}
 
 
-        when = "on auguSt tenth 2019";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("August 10 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on 7";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse(LocalDate.now().getMonth().name() + " 7 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusMonths(1).equals(testDate));
-
-        when = "on 7th";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse(LocalDate.now().getMonth().name() + " 7 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusMonths(1).equals(testDate));
-
-        when = "on seven";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse(LocalDate.now().getMonth().name() + " 7 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusMonths(1).equals(testDate));
-
-        when = "on 1/17/18";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("1 17 2018 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("M d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on 12/17/2018";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("12 17 2018 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("M d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on 12/1";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("12 1 2018 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("M d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on 5-17-18";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("5 17 2018 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("M d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on 12-5-2018";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("12 5 2018 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("M d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on 12-12";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("12 12 2018 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("M d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
-
-        when = "on 1-1 at midnight";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("1 1 2018 00:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("M d yyyy HH:mm").toFormatter());
-        assertTrue(checkDate.equals(testDate) || checkDate.plusYears(1).equals(testDate));
+	when = "on July 12th"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on July 12th doesn't parse")
+	}
+	if times[0].Month().String() != "July" && times[0].Day() != 12 {
+		t.Fatal("on July 12th isn't correct")
+	}
 
 
-	 */
+	when = "on March 22"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on March 22 doesn't parse")
+	}
+	if times[0].Month().String() != "March" && times[0].Day() != 22 {
+		t.Fatal("on March 22 isn't correct")
+	}
 
 
+	when = "on March 17 at 5:41pm"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on March 17 at 5:41pm doesn't parse")
+	}
+	if times[0].Month().String() != "March" && times[0].Day() != 17 && times[0].Hour() != 17 && times[0].Minute() != 41 {
+		t.Fatal("on March 17 at 5:41pm isn't correct")
+	}
 
+
+	when = "on September 7th 2020"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on September 7th 2019 doesn't parse")
+	}
+	if times[0].Month().String() != "September" && times[0].Day() != 7  {
+		t.Fatal("on September 7th 2019 isn't correct")
+	}
+
+
+	when = "on April 17 2020"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on April 17 2020 doesn't parse")
+	}
+	if times[0].Month().String() != "April" && times[0].Day() != 17  {
+		t.Fatal("on April 17 2020 isn't correct")
+	}
+
+
+	when = "on April 9 2020 at 11am"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on April 9 2020 at 11am doesn't parse")
+	}
+	if times[0].Month().String() != "April" && times[0].Day() != 20 && times[0].Hour() != 11  {
+		t.Fatal("on April 9 2020 at 11am isn't correct")
+	}
+
+
+	when = "on auguSt tenth 2019"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on auguSt tenth 2019 doesn't parse")
+	}
+	if times[0].Month().String() != "August" && times[0].Day() != 10 {
+		t.Fatal("on auguSt tenth 2019 isn't correct")
+	}
+
+
+	when = "on 7"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 7 doesn't parse")
+	}
+	if times[0].Day() != 7 {
+		t.Fatal("on 7 isn't correct")
+	}
+
+
+	when = "on 7th"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 7th doesn't parse")
+	}
+	if times[0].Day() != 7 {
+		t.Fatal("on 7th isn't correct")
+	}
+
+
+	when = "on seven"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on seven doesn't parse")
+	}
+	if times[0].Day() != 7 {
+		t.Fatal("on seven isn't correct")
+	}
+
+
+	when = "on 1/17/20"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 1/17/20 doesn't parse")
+	}
+	if times[0].Year() != 2020 && times[0].Month() != 1 && times[0].Day() != 17 {
+		t.Fatal("on 1/17/20 isn't correct")
+	}
+
+
+	when = "on 12/17/2020"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 12/17/2020 doesn't parse")
+	}
+	if times[0].Year() != 2020 && times[0].Month() != 12 && times[0].Day() != 17 {
+		t.Fatal("on 12/17/2020 isn't correct")
+	}
+
+
+	when = "on 12/1"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 12/1 doesn't parse")
+	}
+	if times[0].Month() != 12 && times[0].Day() != 1 {
+		t.Fatal("on 12/1 isn't correct")
+	}
+
+
+	when = "on 5-17-20"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 5-17-20 doesn't parse")
+	}
+	if times[0].Month() != 5 && times[0].Day() != 17 {
+		t.Fatal("on 5-17-20 isn't correct")
+	}
+
+
+	when = "on 12-5-2020"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 12-5-2020 doesn't parse")
+	}
+	if times[0].Month() != 12 && times[0].Day() != 5 {
+		t.Fatal("on 12-5-2020 isn't correct")
+	}
+
+
+	when = "on 12-12"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 12-12 doesn't parse")
+	}
+	if times[0].Month() != 12 && times[0].Day() != 12 {
+		t.Fatal("on 12-12 isn't correct")
+	}
+
+
+	when = "on 1-1 at midnight"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on 1-1 at midnight doesn't parse")
+	}
+	mlog.Info(fmt.Sprintf("%v",times[0]))
+	if times[0].Month() != 1 && times[0].Day() != 1 && times[0].Hour() != 0 {
+		t.Fatal("on 1-1 at midnight isn't correct")
+	}
+	
 }
 
 func TestEvery(t *testing.T) {
