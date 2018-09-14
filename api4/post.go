@@ -382,6 +382,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The post being updated in the payload must be the same one as indicated in the URL.
+	if post.Id != c.Params.PostId {
+		c.SetInvalidParam("post_id")
+		return
+	}
+
 	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
