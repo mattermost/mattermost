@@ -23,11 +23,6 @@ func TestServiceTermsIsValid(t *testing.T) {
 		t.Fatal("should be invalid")
 	}
 
-	s.UpdateAt = GetMillis()
-	if err := s.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
-
 	s.UserId = NewId()
 	if err := s.IsValid(); err != nil {
 		t.Fatal("should be invalid")
@@ -55,7 +50,6 @@ func TestServiceTermsJson(t *testing.T) {
 		Id: NewId(),
 		Text: NewId(),
 		CreateAt: GetMillis(),
-		UpdateAt: GetMillis(),
 		UserId: NewId(),
 	}
 	j := o.ToJson()
