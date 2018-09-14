@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 
 	"time"
+	"github.com/mattermost/mattermost-server/mlog"
 )
 
 const (
@@ -382,34 +383,65 @@ func TestOn(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
+	th.App.InitReminders()
 	user, uErr := th.App.GetUserByUsername("remindbot")
 	if uErr != nil { t.Fatal("remindbot doesn't exist") }
 
-	_, err := th.App.on("on 12/18 at 1200", user)
-	if err != nil { t.Fatal("on monday doesn't pass")}
 
+	when := "on Monday"
+	times, iErr := th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on Monday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Monday" {
+		t.Fatal("on Monday isn't correct")
+	}
+
+
+	when = "on Tuesday"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on Tuesday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Tuesday" {
+		t.Fatal("on Tuesday isn't correct")
+	}
+
+
+	when = "on Wednesday"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on Wednesday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Wednesday" {
+		t.Fatal("on Wednesday isn't correct")
+	}
+
+
+	when = "on Thursday"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on Thursday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Thursday" {
+		t.Fatal("on Thursday isn't correct")
+	}
+
+
+	when = "on Friday"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on Friday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Friday" {
+		t.Fatal("on Friday isn't correct")
+	}
 	/*
-	        when = "on Monday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-        when = "on Tuesday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-        when = "on Wednesday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-        when = "on Thursday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-        when = "on Friday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-
         when = "on Mondays";
         testDate = occurrence.calculate(when).get(0);
         checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(9, 0);
@@ -430,28 +462,65 @@ func TestOn(t *testing.T) {
         testDate = occurrence.calculate(when).get(0);
         checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY)).atTime(9, 0);
         assertEquals(testDate, checkDate);
+	*/
 
 
-        when = "on mon";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
+	when = "on mon"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on mon doesn't parse")
+	}
+	if times[0].Weekday().String() != "Monday" {
+		t.Fatal("on mon isn't correct")
+	}
 
-        when = "on WEDNEs";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
 
-        when = "on tuesday at noon";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY)).atTime(12, 0);
-        assertEquals(testDate, checkDate);
+	when = "on wED"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on wED doesn't parse")
+	}
+	if times[0].Weekday().String() != "Wednesday" {
+		t.Fatal("on wED isn't correct")
+	}
 
-        when = "on sunday at 3:42am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).atTime(3, 42);
-        assertEquals(testDate, checkDate);
 
+	when = "on tuesday at noon"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on tuesday at noon doesn't parse")
+	}
+	if times[0].Weekday().String() != "Tuesday" && times[0].Hour() != 12 {
+		t.Fatal("on tuesday at noon isn't correct")
+	}
+
+
+	when = "on sunday at 3:42am"
+	times, iErr = th.App.on(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("on sunday at 3:42am doesn't parse")
+	}
+	if times[0].Weekday().String() != "Sunday" && times[0].Hour() != 3 && times[0].Minute() != 42 {
+		t.Fatal("on sunday at 3:42am isn't correct")
+	}
+
+
+	// app/remind.go line 1227
+	//when = "on December 15"
+	//times, iErr = th.App.on(when, user)
+	//if iErr != nil {
+	//	mlog.Error(iErr.Error())
+	//	t.Fatal("on December 15 doesn't parse")
+	//}
+	//if times[0].Month().String() != "December" && times[0].Day() != 15 {
+	//	t.Fatal("on December 15 isn't correct")
+	//}
+
+	/*
         when = "on December 15";
         testDate = occurrence.calculate(when).get(0);
         checkDate = LocalDateTime.parse("December 15 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()

@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"regexp"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -1026,12 +1025,25 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 			day = 7 + (weekDayNum - todayWeekDayNum)
 		}
 
+		timeUnitSplit := strings.Split(timeUnit,":")
+		hr,_ := strconv.Atoi(timeUnitSplit[0])
+		ampm := strings.ToUpper(translateFunc("app.reminder.chrono.am"))
+
+		if hr > 11 {
+			ampm = strings.ToUpper(translateFunc("app.reminder.chrono.pm"))
+		}
+		if hr > 12 {
+			hr -= 12
+			timeUnitSplit[0] = strconv.Itoa(hr)
+		}
+
+		timeUnit = timeUnitSplit[0] + ":" + timeUnitSplit[1] + ampm
 		wallClock, pErr := time.Parse(time.Kitchen, timeUnit)
 		if pErr != nil {
 			return []time.Time{}, pErr
 		}
 
-		nextDay := time.Now().AddDate(0, 0, day).Round(time.Hour * time.Duration(24))
+		nextDay := time.Now().AddDate(0, 0, day)
 		occurrence := wallClock.AddDate(nextDay.Year(), int(nextDay.Month())-1, nextDay.Day()-1)
 
 		return []time.Time{a.chooseClosest(user, &occurrence, false)}, nil
@@ -1121,7 +1133,7 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 	t := text
 	if match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9](\\s)?(?i)(am|pm)", t); match { // 12:30PM, 12:30 pm
 
-		t = strings.Replace(t, " ", "",-1)
+		t = strings.ToUpper(strings.Replace(t, " ", "",-1))
 		test, tErr := time.Parse(time.Kitchen, t)
 		if tErr != nil {
 			return "", tErr
@@ -1350,7 +1362,6 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		}
 
 	} else { //single number day
-		mlog.Debug("single number")
 
 		var day string
 		var dayInt int
@@ -1375,9 +1386,6 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		month := time.Now().Month()
 		year := time.Now().Year()
 
-
-		// TODO covert this to use local time or timezone
-		//t := time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
 		var t time.Time
 		if *cfg.DisplaySettings.ExperimentalTimezone {
 			t = time.Date(year, month, dayInt, 0, 0, 0, 0, location)
