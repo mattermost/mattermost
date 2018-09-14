@@ -45,6 +45,7 @@ func NewLocalCacheSupplier(metrics einterfaces.MetricsInterface, cluster einterf
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, supplier.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, supplier.handleClusterInvalidateRole)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES, supplier.handleClusterInvalidateScheme)
 	}
 
 	return supplier
