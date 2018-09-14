@@ -11,7 +11,6 @@ import (
 type ServiceTerms struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
-	UpdateAt int64  `json:"update_at"`
 	EditAt   int64  `json:"edit_at"`
 	DeleteAt int64  `json:"delete_at"`
 	UserId   string `json:"user_id"`
@@ -25,10 +24,6 @@ func (t *ServiceTerms) IsValid() *AppError {
 
 	if t.CreateAt == 0 {
 		return InvalidServiceTermsError("create_at", t.Id)
-	}
-
-	if t.UpdateAt == 0 {
-		return InvalidServiceTermsError("update_at", t.Id)
 	}
 
 	if len(t.UserId) != 26 {

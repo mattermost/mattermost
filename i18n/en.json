@@ -4715,10 +4715,6 @@
     "translation": "Missing required term property: create_at"
   },
   {
-    "id": "model.service_terms.is_valid.update_at.app_error",
-    "translation": "Missing required term property: update_at"
-  },
-  {
     "id": "model.service_terms.is_valid.user_id.app_error",
     "translation": "Missing required term property: user_id"
   },
