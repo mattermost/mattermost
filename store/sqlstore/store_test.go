@@ -16,10 +16,11 @@ import (
 )
 
 var storeTypes = []*struct {
-	Name      string
-	Func      func() (*storetest.RunningContainer, *model.SqlSettings, error)
-	Container *storetest.RunningContainer
-	Store     store.Store
+	Name        string
+	Func        func() (*storetest.RunningContainer, *model.SqlSettings, error)
+	Container   *storetest.RunningContainer
+	SqlSupplier *SqlSupplier
+	Store       store.Store
 }{
 	{
 		Name: "MySQL",
@@ -44,6 +45,19 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}
 }
 
+func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, storetest.SqlSupplier)) {
+	defer func() {
+		if err := recover(); err != nil {
+			tearDownStores()
+			panic(err)
+		}
+	}()
+	for _, st := range storeTypes {
+		st := st
+		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, st.SqlSupplier) })
+	}
+}
+
 func initStores() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -64,7 +78,8 @@ func initStores() {
 				return
 			}
 			st.Container = container
-			st.Store = store.NewLayeredStore(NewSqlSupplier(*settings, nil), nil, nil)
+			st.SqlSupplier = NewSqlSupplier(*settings, nil)
+			st.Store = store.NewLayeredStore(st.SqlSupplier, nil, nil)
 			st.Store.MarkSystemRanUnitTests()
 		}()
 	}

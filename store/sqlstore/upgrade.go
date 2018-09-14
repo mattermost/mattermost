@@ -489,7 +489,6 @@ func UpgradeDatabaseToVersion53(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_2_0, VERSION_5_3_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_3_0)
 	}
-
 }
 
 func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
@@ -497,8 +496,12 @@ func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_3_0, VERSION_5_4_0) {
 	sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "varchar(500)", "varchar(500)")
 	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "varchar(500)", "varchar(500)")
+	if err := sqlStore.Channel().MigratePublicChannels(); err != nil {
+		mlog.Critical("Failed to migrate PublicChannels table", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+	}
 	sqlStore.CreateColumnIfNotExists("Users", "AcceptedServiceTermsId", "varchar(64)", "varchar(64)", "")
 	sqlStore.CreateColumnIfNotExists("Users", "LatestServiceTermsAccepted", "tinyint(1)", "boolean", "0")
 	// 	saveSchemaVersion(sqlStore, VERSION_5_4_0)
-	// }
 }
