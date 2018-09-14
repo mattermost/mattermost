@@ -19,14 +19,15 @@ const (
 func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppError) {
 	skipIntensiveQueries := false
 	var systemUserCount int64
-	if r := <-a.Srv.Store.User().AnalyticsUniqueUserCount(""); r.Err != nil {
+	r := <-a.Srv.Store.User().AnalyticsUniqueUserCount("")
+	if r.Err != nil {
 		return nil, r.Err
-	} else {
-		systemUserCount = r.Data.(int64)
-		if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
-			mlog.Debug(fmt.Sprintf("More than %v users on the system, intensive queries skipped", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
-			skipIntensiveQueries = true
-		}
+	}
+
+	systemUserCount = r.Data.(int64)
+	if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
+		mlog.Debug(fmt.Sprintf("More than %v users on the system, intensive queries skipped", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
+		skipIntensiveQueries = true
 	}
 
 	if name == "standard" {
@@ -63,53 +64,53 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
 		monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
 
-		if r := <-openChan; r.Err != nil {
+		r := <-openChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[0].Value = float64(r.Data.(int64))
 		}
+		rows[0].Value = float64(r.Data.(int64))
 
-		if r := <-privateChan; r.Err != nil {
+		r = <-privateChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[1].Value = float64(r.Data.(int64))
 		}
+		rows[1].Value = float64(r.Data.(int64))
 
 		if postChan == nil {
 			rows[2].Value = -1
 		} else {
-			if r := <-postChan; r.Err != nil {
+			r := <-postChan
+			if r.Err != nil {
 				return nil, r.Err
-			} else {
-				rows[2].Value = float64(r.Data.(int64))
 			}
+			rows[2].Value = float64(r.Data.(int64))
 		}
 
 		if userChan == nil {
 			rows[3].Value = float64(systemUserCount)
 		} else {
-			if r := <-userChan; r.Err != nil {
+			r := <-userChan
+			if r.Err != nil {
 				return nil, r.Err
-			} else {
-				rows[3].Value = float64(r.Data.(int64))
 			}
+			rows[3].Value = float64(r.Data.(int64))
 		}
 
 		if userInactiveChan == nil {
 			rows[10].Value = -1
 		} else {
-			if r := <-userInactiveChan; r.Err != nil {
+			r := <-userInactiveChan
+			if r.Err != nil {
 				return nil, r.Err
-			} else {
-				rows[10].Value = float64(r.Data.(int64))
 			}
+			rows[10].Value = float64(r.Data.(int64))
 		}
 
-		if r := <-teamChan; r.Err != nil {
+		r = <-teamChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[4].Value = float64(r.Data.(int64))
 		}
+		rows[4].Value = float64(r.Data.(int64))
 
 		// If in HA mode then aggregrate all the stats
 		if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
@@ -138,17 +139,17 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[7].Value = float64(a.Srv.Store.TotalReadDbConnections())
 		}
 
-		if r := <-dailyActiveChan; r.Err != nil {
+		r = <-dailyActiveChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[8].Value = float64(r.Data.(int64))
 		}
+		rows[8].Value = float64(r.Data.(int64))
 
-		if r := <-monthlyActiveChan; r.Err != nil {
+		r = <-monthlyActiveChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[9].Value = float64(r.Data.(int64))
 		}
+		rows[9].Value = float64(r.Data.(int64))
 
 		return rows, nil
 	} else if name == "post_counts_day" {
@@ -157,22 +158,22 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 
-		if r := <-a.Srv.Store.Post().AnalyticsPostCountsByDay(teamId); r.Err != nil {
+		r := <-a.Srv.Store.Post().AnalyticsPostCountsByDay(teamId)
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			return r.Data.(model.AnalyticsRows), nil
 		}
+		return r.Data.(model.AnalyticsRows), nil
 	} else if name == "user_counts_with_posts_day" {
 		if skipIntensiveQueries {
 			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 			return rows, nil
 		}
 
-		if r := <-a.Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId); r.Err != nil {
+		r := <-a.Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId)
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			return r.Data.(model.AnalyticsRows), nil
 		}
+		return r.Data.(model.AnalyticsRows), nil
 	} else if name == "extra_counts" {
 		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
 		rows[0] = &model.AnalyticsRow{Name: "file_post_count", Value: 0}
@@ -197,46 +198,46 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if fileChan == nil {
 			rows[0].Value = -1
 		} else {
-			if r := <-fileChan; r.Err != nil {
+			r := <-fileChan
+			if r.Err != nil {
 				return nil, r.Err
-			} else {
-				rows[0].Value = float64(r.Data.(int64))
 			}
+			rows[0].Value = float64(r.Data.(int64))
 		}
 
 		if hashtagChan == nil {
 			rows[1].Value = -1
 		} else {
-			if r := <-hashtagChan; r.Err != nil {
+			r := <-hashtagChan
+			if r.Err != nil {
 				return nil, r.Err
-			} else {
-				rows[1].Value = float64(r.Data.(int64))
 			}
+			rows[1].Value = float64(r.Data.(int64))
 		}
 
-		if r := <-iHookChan; r.Err != nil {
+		r := <-iHookChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[2].Value = float64(r.Data.(int64))
 		}
+		rows[2].Value = float64(r.Data.(int64))
 
-		if r := <-oHookChan; r.Err != nil {
+		r = <-oHookChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[3].Value = float64(r.Data.(int64))
 		}
+		rows[3].Value = float64(r.Data.(int64))
 
-		if r := <-commandChan; r.Err != nil {
+		r = <-commandChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[4].Value = float64(r.Data.(int64))
 		}
+		rows[4].Value = float64(r.Data.(int64))
 
-		if r := <-sessionChan; r.Err != nil {
+		r = <-sessionChan
+		if r.Err != nil {
 			return nil, r.Err
-		} else {
-			rows[5].Value = float64(r.Data.(int64))
 		}
+		rows[5].Value = float64(r.Data.(int64))
 
 		return rows, nil
 	}
@@ -245,38 +246,39 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 }
 
 func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
-	if result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100); result.Err != nil {
+	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		users := result.Data.([]*model.User)
-		userMap := make(map[string]*model.User)
-
-		for _, user := range users {
-			userMap[user.Id] = user
-		}
-
-		return userMap, nil
 	}
+
+	users := result.Data.([]*model.User)
+	userMap := make(map[string]*model.User)
+
+	for _, user := range users {
+		userMap[user.Id] = user
+	}
+
+	return userMap, nil
 }
 
 func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
 	var users []*model.User
-	if result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage); result.Err != nil {
+	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		users = result.Data.([]*model.User)
 	}
+	users = result.Data.([]*model.User)
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
 	var users []*model.User
-	if result := <-a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage); result.Err != nil {
+	result := <-a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		users = result.Data.([]*model.User)
 	}
+	users = result.Data.([]*model.User)
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
