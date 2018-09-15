@@ -568,7 +568,15 @@ func (a *App) createOccurrences(request *model.ReminderRequest) error {
 		}
 	}
 
-	// TODO handle the other when prefix's
+	if strings.HasPrefix(request.Reminder.When, translateFunc("app.reminder.chrono.every")) {
+		if occurrences, inErr := a.every(request.Reminder.When, user); inErr != nil {
+			return inErr
+		} else {
+			return a.addOccurrences(request, occurrences)
+		}
+	}
+
+	// TODO handle the other freeform when patterns
 
 	return errors.New("unable to create occurrences")
 }
@@ -622,7 +630,13 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 		return nil
 	}
 
-	//TODO the additional when patterns
+	inSplit = strings.Split(request.Payload, " "+translateFunc("app.reminder.chrono.every")+" ")
+	if len(inSplit) == 2 {
+		request.Reminder.When = translateFunc("app.reminder.chrono.every") + " " + inSplit[len(inSplit)-1]
+		return nil
+	}
+
+	//TODO the additional freeform when patterns
 
 	return errors.New("unable to find when")
 }
@@ -810,11 +824,6 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 	return nil, errors.New("could not format 'in'")
 }
 
-// TODO ensure on all parts of this function
-// TODO use time location optionally
-// TODO round to seconds
-// TODO ensure correct time is being set
-// TODO ensure all translation functions are working
 func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
 	_, _, translateFunc, _ := a.shared(user.Id)
@@ -823,14 +832,24 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 	whenSplit := strings.Split(whenTrim, " ")
 	normalizedWhen := strings.ToLower(whenSplit[1])
 
-	if strings.Contains(when, "every") {
-		// TODO <time> every <day/date> //will leverage the every(...) function
+	if strings.Contains(when, translateFunc("app.reminder.chrono.every")) {
+
+		dateTimeSplit := strings.Split(when," "+translateFunc("app.reminder.chrono.every")+" ")
+		mlog.Info(translateFunc("app.reminder.chrono.every")+" "+dateTimeSplit[1]+" "+dateTimeSplit[0])
+		return a.every(translateFunc("app.reminder.chrono.every")+" "+dateTimeSplit[1]+" "+dateTimeSplit[0], user)
+
 	} else if len(whenSplit) >= 3 &&
 		(strings.EqualFold(whenSplit[2], translateFunc("app.reminder.chrono.pm")) ||
 			strings.EqualFold(whenSplit[2], translateFunc("app.reminder.chrono.am"))) {
 
 		if !strings.Contains(normalizedWhen, ":") {
-			normalizedWhen = normalizedWhen + ":00"
+			if len(normalizedWhen) >= 3 {
+				hrs := string(normalizedWhen[:len(normalizedWhen)-2])
+				mins := string(normalizedWhen[len(normalizedWhen)-2:])
+				normalizedWhen = hrs + ":" +mins
+			} else {
+				normalizedWhen = normalizedWhen + ":00"
+			}
 		}
 
 		t, pErr := time.Parse(time.Kitchen, normalizedWhen+strings.ToUpper(whenSplit[2]))
@@ -1051,8 +1070,14 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
 		break
 	case "mondays", "tuesdays", "wednesdays", "thursdays", "fridays", "saturdays", "sundays":
-		//TODO handle "every" when
-		//return every("every " + dateUnit.substring(0, dateUnit.length() - 1) + " at " + timeUnit);
+
+		return a.every(
+			translateFunc("app.reminder.chrono.every")+" "+
+				dateUnit[:len(dateUnit)-1]+" "+
+				translateFunc("app.reminder.chrono.at")+" "+
+				timeUnit[:len(timeUnit)-3],
+				user)
+
 		break
 	}
 
@@ -1072,6 +1097,134 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		}
 		return []time.Time{t}, nil
 	}
+
+}
+
+func (a *App) every(when string, user *model.User) (times []time.Time, err error) {
+
+	user, _, translateFunc, _ := a.shared(user.Id)
+
+	whenTrim := strings.Trim(when, " ")
+	whenSplit := strings.Split(whenTrim, " ")
+
+	if len(whenSplit) < 2 {
+		return []time.Time{}, errors.New("not enough arguments")
+	}
+
+	var everyOther bool
+	chronoUnit := strings.ToLower(strings.Join(whenSplit[1:], " "))
+	otherSplit := strings.Split(chronoUnit,translateFunc("app.reminder.chrono.other"))
+	if len(otherSplit) == 2 {
+		chronoUnit = otherSplit[1]
+		everyOther = true
+	}
+	dateTimeSplit := strings.Split(chronoUnit, " "+translateFunc("app.reminder.chrono.at")+" ")
+	chronoDate := dateTimeSplit[0]
+	chronoTime := model.DEFAULT_TIME
+	if len(dateTimeSplit) > 1 {
+		chronoTime = dateTimeSplit[1]
+	}
+
+	days := a.regSplit(chronoDate,"(and)|(,)")
+
+	for _, chrono := range days {
+
+		dateUnit, ndErr := a.normalizeDate(user, chrono)
+		if ndErr != nil {
+			return []time.Time{}, ndErr
+		}
+		timeUnit, ntErr := a.normalizeTime(user, chronoTime)
+		if ntErr != nil {
+			return []time.Time{}, ntErr
+		}
+
+		switch dateUnit {
+		case "day":
+			d := 1
+			if everyOther {
+				d = 2
+			}
+
+			timeUnitSplit := strings.Split(timeUnit,":")
+			hr,_ := strconv.Atoi(timeUnitSplit[0])
+			ampm := strings.ToUpper(translateFunc("app.reminder.chrono.am"))
+
+			if hr > 11 {
+				ampm = strings.ToUpper(translateFunc("app.reminder.chrono.pm"))
+			}
+			if hr > 12 {
+				hr -= 12
+				timeUnitSplit[0] = strconv.Itoa(hr)
+			}
+
+			timeUnit = timeUnitSplit[0] + ":" + timeUnitSplit[1] + ampm
+			wallClock, pErr := time.Parse(time.Kitchen, timeUnit)
+			if pErr != nil {
+				return []time.Time{}, pErr
+			}
+
+			nextDay := time.Now().AddDate(0, 0, d)
+			occurrence := wallClock.AddDate(nextDay.Year(), int(nextDay.Month())-1, nextDay.Day()-1)
+			times = append(times, a.chooseClosest(user, &occurrence, false))
+
+			break
+		case "monday","tuesday","wednesday","thursday","friday","saturday","sunday":
+			todayWeekDayNum := int(time.Now().Weekday()) //5
+			weekDayNum := a.weekDayNumber(dateUnit)      //1
+			day := 0
+
+			if weekDayNum < todayWeekDayNum {
+				day = 7 - (todayWeekDayNum - weekDayNum)
+			} else if weekDayNum >= todayWeekDayNum {
+				day = 7 + (weekDayNum - todayWeekDayNum)
+			}
+
+			timeUnitSplit := strings.Split(timeUnit,":")
+			hr,_ := strconv.Atoi(timeUnitSplit[0])
+			ampm := strings.ToUpper(translateFunc("app.reminder.chrono.am"))
+
+			if hr > 11 {
+				ampm = strings.ToUpper(translateFunc("app.reminder.chrono.pm"))
+			}
+			if hr > 12 {
+				hr -= 12
+				timeUnitSplit[0] = strconv.Itoa(hr)
+			}
+
+			timeUnit = timeUnitSplit[0] + ":" + timeUnitSplit[1] + ampm
+			wallClock, pErr := time.Parse(time.Kitchen, timeUnit)
+			if pErr != nil {
+				return []time.Time{}, pErr
+			}
+
+			nextDay := time.Now().AddDate(0, 0, day)
+			occurrence := wallClock.AddDate(nextDay.Year(), int(nextDay.Month())-1, nextDay.Day()-1)
+			times = append(times, a.chooseClosest(user, &occurrence, false))
+			break
+		default:
+
+			dateSplit := a.regSplit(dateUnit, "T|Z")
+
+			if len(dateSplit) < 3 {
+				timeSplit := strings.Split(dateSplit[1],"-")
+				t, tErr := time.Parse(time.RFC3339, dateSplit[0]+"T"+timeUnit+"-"+timeSplit[1])
+				if tErr != nil {
+					return []time.Time{}, tErr
+				}
+				times = append(times, t)
+			} else {
+				t, tErr := time.Parse(time.RFC3339, dateSplit[0]+"T"+timeUnit+"Z"+dateSplit[2])
+				if tErr != nil {
+					return []time.Time{}, tErr
+				}
+				times = append(times, t)
+			}
+
+		}
+
+	}
+
+	return times, nil
 
 }
 
@@ -1150,7 +1303,20 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
 		nowkit := time.Now().Format(time.Kitchen)
 		ampm := string(nowkit[len(nowkit)-2:])
-		test, tErr := time.Parse(time.Kitchen, t + ampm)
+		timeUnitSplit := strings.Split(t,":")
+		hr,_ := strconv.Atoi(timeUnitSplit[0])
+
+		if hr > 11 {
+			ampm = strings.ToUpper(translateFunc("app.reminder.chrono.pm"))
+		}
+		if hr > 12 {
+			hr -= 12
+			timeUnitSplit[0] = strconv.Itoa(hr)
+		}
+
+		t = timeUnitSplit[0] + ":" + timeUnitSplit[1] + ampm
+
+		test, tErr := time.Parse(time.Kitchen, t)
 		if tErr != nil {
 			return "", tErr
 		}
@@ -1207,18 +1373,32 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		switch date {
 		case "mon", "monday":
 			return "monday", nil
+		case "mondays":
+			return "mondays", nil
 		case "tues", "tuesday":
 			return "tuesday", nil
+		case "tuesdays":
+			return "tuesdays", nil
 		case "wed", "wednesday":
 			return "wednesday", nil
+		case "wednesdays":
+			return "wednesdays", nil
 		case "thur", "thursday":
 			return "thursday", nil
+		case "thursdays":
+			return "thursdays", nil
 		case "fri", "friday":
 			return "friday", nil
+		case "fridays":
+			return "fridays", nil
 		case "sat", "saturday":
 			return "saturday", nil
+		case "saturdays":
+			return "saturdays", nil
 		case "sun", "sunday":
 			return "sunday", nil
+		case "sundays":
+			return "sundays", nil
 		default:
 			return "", errors.New("no day of week found")
 		}

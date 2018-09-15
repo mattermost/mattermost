@@ -3243,6 +3243,14 @@
     "translation": "on"
   },
   {
+    "id": "app.reminder.chrono.every",
+    "translation": "every"
+  },
+  {
+    "id": "app.reminder.chrono.other",
+    "translation": "other"
+  },
+  {
     "id": "app.reminder.chrono.pm",
     "translation": "pm"
   },
