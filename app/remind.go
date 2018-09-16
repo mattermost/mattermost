@@ -1102,7 +1102,7 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
 func (a *App) every(when string, user *model.User) (times []time.Time, err error) {
 
-	user, _, translateFunc, _ := a.shared(user.Id)
+	_, _, translateFunc, _ := a.shared(user.Id)
 
 	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
@@ -1115,21 +1115,21 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 	chronoUnit := strings.ToLower(strings.Join(whenSplit[1:], " "))
 	otherSplit := strings.Split(chronoUnit,translateFunc("app.reminder.chrono.other"))
 	if len(otherSplit) == 2 {
-		chronoUnit = otherSplit[1]
+		chronoUnit = strings.Trim(otherSplit[1]," ")
 		everyOther = true
 	}
 	dateTimeSplit := strings.Split(chronoUnit, " "+translateFunc("app.reminder.chrono.at")+" ")
 	chronoDate := dateTimeSplit[0]
 	chronoTime := model.DEFAULT_TIME
 	if len(dateTimeSplit) > 1 {
-		chronoTime = dateTimeSplit[1]
+		chronoTime = strings.Trim(dateTimeSplit[1], " ")
 	}
 
 	days := a.regSplit(chronoDate,"(and)|(,)")
 
 	for _, chrono := range days {
 
-		dateUnit, ndErr := a.normalizeDate(user, chrono)
+		dateUnit, ndErr := a.normalizeDate(user, strings.Trim(chrono," "))
 		if ndErr != nil {
 			return []time.Time{}, ndErr
 		}
@@ -1259,9 +1259,18 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 		wordTime :=  time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
 
 		dateTimeSplit := a.regSplit( a.chooseClosest(user, &wordTime, false).Format(time.RFC3339), "T|Z")
-		if len(dateTimeSplit) != 3 {
+
+		switch len(dateTimeSplit) {
+		case 2:
+			tzSplit := strings.Split(dateTimeSplit[1],"-")
+			return tzSplit[0], nil
+			break
+		case 3:
+			break
+		default:
 			return "", errors.New("unrecognized dateTime format")
 		}
+
 
 		return dateTimeSplit[1], nil
 
@@ -1274,7 +1283,15 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
 		numTime :=  time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
 		dateTimeSplit := a.regSplit( a.chooseClosest(user, &numTime, false).Format(time.RFC3339), "T|Z")
-		if len(dateTimeSplit) != 3 {
+
+		switch len(dateTimeSplit) {
+		case 2:
+			tzSplit := strings.Split(dateTimeSplit[1],"-")
+			return tzSplit[0], nil
+			break
+		case 3:
+			break
+		default:
 			return "", errors.New("unrecognized dateTime format")
 		}
 

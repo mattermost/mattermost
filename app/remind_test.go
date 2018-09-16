@@ -774,130 +774,184 @@ func TestEvery(t *testing.T) {
 
 
 	when := "every Thursday"
-	times, iErr := th.App.on(when, user)
+	times, iErr := th.App.every(when, user)
 	if iErr != nil {
 		mlog.Error(iErr.Error())
 		t.Fatal("every Thursday doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v",times[0]))
 	if times[0].Weekday().String() != "Thursday" {
 		t.Fatal("every Thursday isn't correct")
 	}
-	/*
-
-        when = "every day";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().plusDays(1).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-
-        when = "every 12/18";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("December 18 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertEquals(testDate, checkDate);
-
-        when = "every January 25";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("January 25 " + LocalDateTime.now().getYear() + " 09:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertEquals(testDate, checkDate);
-
-        when = "every other Wednesday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)).plusWeeks(1).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-
-        when = "every day at 11:32am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().plusDays(1).atTime(11, 32);
-        assertEquals(testDate, checkDate);
-
-        when = "every 5/5 at 7";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("May 5 " + LocalDateTime.now().getYear() + " 07:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        checkDate2 = LocalDateTime.parse("May 5 " + LocalDateTime.now().plusYears(1).getYear() + " 07:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(testDate.equals(checkDate) || testDate.equals(checkDate2));
-
-        when = "every 7/20 at 1100";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("July 20 " + LocalDateTime.now().getYear() + " 11:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        checkDate2 = LocalDateTime.parse("July 20 " + LocalDateTime.now().plusYears(1).getYear() + " 11:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(testDate.equals(checkDate) || testDate.equals(checkDate2));
-
-        when = "every Monday at 7:32am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(7, 32);
-        assertEquals(testDate, checkDate);
-
-        when = "every monday and wednesday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-        testDate = occurrence.calculate(when).get(1);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-
-        when = "every wednesday, thursday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-        testDate = occurrence.calculate(when).get(1);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.THURSDAY)).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-
-        when = "every other friday and saturday";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.FRIDAY)).plusWeeks(1).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-        testDate = occurrence.calculate(when).get(1);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SATURDAY)).plusWeeks(1).atTime(9, 0);
-        assertEquals(testDate, checkDate);
-
-        when = "every monday and wednesday at 1:39am";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(1, 39);
-        assertEquals(testDate, checkDate);
-        testDate = occurrence.calculate(when).get(1);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY)).atTime(1, 39);
-        assertEquals(testDate, checkDate);
-
-        when = "every monday, tuesday and sunday at 11:00";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(11, 0);
-        assertEquals(testDate, checkDate);
-        testDate = occurrence.calculate(when).get(1);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY)).atTime(11, 0);
-        assertEquals(testDate, checkDate);
-        testDate = occurrence.calculate(when).get(2);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).atTime(11, 0);
-        assertEquals(testDate, checkDate);
 
 
-        when = "every monday, tuesday at 2pm";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atTime(14, 0);
-        assertEquals(testDate, checkDate);
-        testDate = occurrence.calculate(when).get(1);
-        checkDate = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.TUESDAY)).atTime(14, 0);
-        assertEquals(testDate, checkDate);
+	when = "every day"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every day doesn't parse")
+	}
+	if times[0].Weekday().String() != time.Now().AddDate(0,0,1).Weekday().String() {
+		t.Fatal("every day isn't correct")
+	}
 
-        when = "every 1/30 and 9/30 at noon";
-        testDate = occurrence.calculate(when).get(0);
-        checkDate = LocalDateTime.parse("January 30 " + LocalDateTime.now().getYear() + " 12:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        checkDate2 = LocalDateTime.parse("January 30 " + LocalDateTime.now().plusYears(1).getYear() + " 12:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(testDate.equals(checkDate) || testDate.equals(checkDate2));
-        testDate = occurrence.calculate(when).get(1);
-        checkDate = LocalDateTime.parse("September 30 " + LocalDateTime.now().getYear() + " 12:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        checkDate2 = LocalDateTime.parse("September 30 " + LocalDateTime.now().plusYears(1).getYear() + " 12:00", new DateTimeFormatterBuilder()
-                .parseCaseInsensitive().appendPattern("MMMM d yyyy HH:mm").toFormatter());
-        assertTrue(testDate.equals(checkDate) || testDate.equals(checkDate2));
 
-	 */
+	when = "every 12/18"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every 12/18 doesn't parse")
+	}
+	if times[0].Month() != 12 && times[0].Year() != 2018 {
+		t.Fatal("every 12/18 isn't correct")
+	}
+
+
+	when = "every January 25"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every January 25 doesn't parse")
+	}
+	if times[0].Month() != 1 && times[0].Day() != 25 {
+		t.Fatal("every January 25 isn't correct")
+	}
+
+
+	when = "every other Wednesday"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every other Wednesday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Wednesday" {
+		t.Fatal("every other Wednesday isn't correct")
+	}
+
+
+	when = "every day at 11:32am"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every day at 11:32am doesn't parse")
+	}
+	if times[0].Hour() != 11 && times[0].Minute() != 32  {
+		t.Fatal("every day at 11:32am isn't correct")
+	}
+
+
+	when = "every 5/5 at 7"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every 5/5 at 7 doesn't parse")
+	}
+	if times[0].Month() != 5 && times[0].Day() != 5 && times[0].Hour() != 7  {
+		t.Fatal("every 5/5 at 7 isn't correct")
+	}
+
+
+	when = "every 7/20 at 1100"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every 7/20 at 1100 doesn't parse")
+	}
+	if times[0].Month() != 7 && times[0].Day() != 20 && (times[0].Hour() != 11 || times[0].Hour() != 23)  {
+		t.Fatal("every 7/20 at 1100 isn't correct")
+	}
+
+
+	when = "every Monday at 7:32am"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every Monday at 7:32am doesn't parse")
+	}
+	if times[0].Weekday().String() != "Monday" && (times[0].Hour() != 7 || times[0].Hour() != 32)  {
+		t.Fatal("every Monday at 7:32am isn't correct")
+	}
+
+
+	when = "every monday and wednesday"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every monday and wednesday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Wednesday" {
+		t.Fatal("every monday and wednesday isn't correct")
+	}
+
+
+	when = "every wednesday, thursday"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every  wednesday, thursday doesn't parse")
+	}
+	mlog.Info(fmt.Sprintf("%v",times[0]))
+	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Thursday" {
+		t.Fatal("every wednesday, thursday isn't correct")
+	}
+
+
+	when = "every other friday and saturday"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every  wednesday, thursday doesn't parse")
+	}
+	mlog.Info(fmt.Sprintf("%v",times[0]))
+	if times[0].Weekday().String() != "Friday"  && times[1].Weekday().String() != "Saturday" {
+		t.Fatal("every wednesday, thursday isn't correct")
+	}
+
+
+	when = "every monday and wednesday at 1:39am"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every monday and wednesday at 1:39am doesn't parse")
+	}
+	mlog.Info(fmt.Sprintf("%v",times[0]))
+	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Wednesday" && times[0].Hour() != 13 && times[0].Minute() != 39 {
+		t.Fatal("every monday and wednesday at 1:39am isn't correct")
+	}
+
+
+	when = "every monday, tuesday and sunday at 11:00"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every monday, tuesday and sunday at 11:00 doesn't parse")
+	}
+	mlog.Info(fmt.Sprintf("%v",times[0]))
+	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Tuesday" && times[2].Weekday().String() != "Sunday" && times[0].Hour() != 11  {
+		t.Fatal("every monday, tuesday and sunday at 11:00 isn't correct")
+	}
+
+
+	when = "every monday, tuesday at 2pm"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every monday, tuesday at 2pm doesn't parse")
+	}
+	mlog.Info(fmt.Sprintf("%v",times[0]))
+	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Tuesday" && times[0].Hour() != 14  {
+		t.Fatal("every monday, tuesday at 2pm isn't correct")
+	}
+
+
+	when = "every 1/30 and 9/30 at noon"
+	times, iErr = th.App.every(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("every 1/30 and 9/30 at noon doesn't parse")
+	}
+	mlog.Info(fmt.Sprintf("%v",times[0]))
+	if times[0].Month() != 1 && times[0].Day() != 30 && times[1].Month() != 9 && times[1].Day() != 30 && times[0].Hour() != 12  {
+		t.Fatal("every 1/30 and 9/30 at noon isn't correct")
+	}
+
 }
