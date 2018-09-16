@@ -175,6 +175,11 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	ResetLastPostAt() StoreChannel
+	MigratePublicChannels() error
+	DropPublicChannels() error
+	EnableExperimentalPublicChannelsMaterialization()
+	DisableExperimentalPublicChannelsMaterialization()
+	IsExperimentalPublicChannelsMaterializationEnabled() bool
 }
 
 type ChannelMemberHistoryStore interface {

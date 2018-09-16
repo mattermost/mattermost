@@ -91,6 +91,12 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The app being updated in the payload must be the same one as indicated in the URL.
+	if oauthApp.Id != c.Params.AppId {
+		c.SetInvalidParam("app_id")
+		return
+	}
+
 	c.LogAudit("attempt")
 
 	oldOauthApp, err := c.App.GetOAuthApp(c.Params.AppId)
@@ -451,6 +457,15 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	service := c.Params.Service
+
+	oauthError := r.URL.Query().Get("error")
+	if oauthError == "access_denied" {
+		utils.RenderWebError(c.App.Config(), w, r, http.StatusTemporaryRedirect, url.Values{
+			"type":    []string{"oauth_access_denied"},
+			"service": []string{strings.Title(service)},
+		}, c.App.AsymmetricSigningKey())
+		return
+	}
 
 	code := r.URL.Query().Get("code")
 	if len(code) == 0 {
