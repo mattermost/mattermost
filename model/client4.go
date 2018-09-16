@@ -397,6 +397,10 @@ func (c *Client4) GetTotalUsersStatsRoute() string {
 	return fmt.Sprintf(c.GetUsersRoute() + "/stats")
 }
 
+func (c *Client4) GetRedirectLocationRoute() string {
+	return fmt.Sprintf("/redirect_location")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -1957,6 +1961,17 @@ func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList
 	}
 }
 
+// AutocompleteChannelsForTeamForSearch will return an ordered list of your channels autocomplete suggestions
+func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (*ChannelList, *Response) {
+	query := fmt.Sprintf("?name=%v", name)
+	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/search_autocomplete"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
@@ -2136,8 +2151,16 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 
 // SearchPosts returns any posts with matching terms string.
 func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
-	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
-	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", StringInterfaceToJson(requestBody)); err != nil {
+	params := SearchParameter{
+		Terms:      &terms,
+		IsOrSearch: &isOrSearch,
+	}
+	return c.SearchPostsWithParams(teamId, &params)
+}
+
+// SearchPosts returns any posts with matching terms string.
+func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) (*PostList, *Response) {
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", params.SearchParameterToJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -3769,5 +3792,16 @@ func (c *Client4) UpdateTeamScheme(teamId, schemeId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetRedirectLocation retrieves the value of the 'Location' header of an HTTP response for a given URL.
+func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response) {
+	url := fmt.Sprintf("%s?url=%s", c.GetRedirectLocationRoute(), url.QueryEscape(urlParam))
+	if r, err := c.DoApiGet(url, etag); err != nil {
+		return "", BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body)["location"], BuildResponse(r)
 	}
 }

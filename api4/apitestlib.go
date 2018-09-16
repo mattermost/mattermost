@@ -444,6 +444,17 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 	return rpost
 }
 
+func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
+	post := store.Must(me.App.Srv.Store.Post().Save(&model.Post{
+		UserId:    me.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   message,
+		CreateAt:  createAtTime,
+	})).(*model.Post)
+
+	return post
+}
+
 func (me *TestHelper) LoginBasic() {
 	me.LoginBasicWithClient(me.Client)
 }

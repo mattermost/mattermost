@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"regexp"
 	"strings"
 
@@ -646,9 +647,9 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool) (*model.PostSearchResults, *model.AppError) {
-	paramsList := model.ParseSearchParams(terms)
-	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ViewArchivedChannels
+func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int) (*model.PostSearchResults, *model.AppError) {
+	paramsList := model.ParseSearchParams(terms, timeZoneOffset)
+	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	esInterface := a.Elasticsearch
 	if license := a.License(); esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {
@@ -704,8 +705,10 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 				return nil, presult.Err
 			} else {
 				for _, p := range presult.Data.([]*model.Post) {
-					postList.AddPost(p)
-					postList.AddOrder(p.Id)
+					if p.DeleteAt == 0 {
+						postList.AddPost(p)
+						postList.AddOrder(p.Id)
+					}
 				}
 			}
 		}
@@ -776,7 +779,7 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := a.HTTPClient(false).Get(requestURL)
+	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
 	if err != nil {
 		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error()))
 		return og
@@ -852,7 +855,7 @@ func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
 	}
 }
 
-func (a *App) DoPostAction(postId string, actionId string, userId string) *model.AppError {
+func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *model.AppError {
 	pchan := a.Srv.Store.Post().GetSingle(postId)
 
 	var post *model.Post
@@ -869,13 +872,32 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 
 	request := &model.PostActionIntegrationRequest{
 		UserId:  userId,
+		PostId:  postId,
+		Type:    action.Type,
 		Context: action.Integration.Context,
+	}
+
+	if action.Type == model.POST_ACTION_TYPE_SELECT {
+		request.DataSource = action.DataSource
+		request.Context["selected_option"] = selectedOption
 	}
 
 	req, _ := http.NewRequest("POST", action.Integration.URL, strings.NewReader(request.ToJson()))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	resp, err := a.HTTPClient(false).Do(req)
+
+	// Allow access to plugin routes for action buttons
+	var httpClient *http.Client
+	url, _ := url.Parse(action.Integration.URL)
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
+		httpClient = a.HTTPService.MakeClient(true)
+	} else {
+		httpClient = a.HTTPService.MakeClient(false)
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}

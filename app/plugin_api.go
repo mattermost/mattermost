@@ -184,6 +184,22 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 
 	return api.app.GetStatus(userId)
 }
+func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+	if api.app.Ldap == nil {
+		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	user, err := api.app.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.AuthService != model.USER_AUTH_SERVICE_LDAP || user.AuthData == nil {
+		return map[string]string{}, nil
+	}
+
+	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+}
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	return api.app.CreateChannel(channel, false)
@@ -258,6 +274,18 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	return api.app.CreatePostMissingChannel(post, true)
 }
 
+func (api *PluginAPI) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	return api.app.SaveReactionForPost(reaction)
+}
+
+func (api *PluginAPI) RemoveReaction(reaction *model.Reaction) *model.AppError {
+	return api.app.DeleteReactionForPost(reaction)
+}
+
+func (api *PluginAPI) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
+	return api.app.GetReactionsForPost(postId)
+}
+
 func (api *PluginAPI) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return api.app.SendEphemeralPost(userId, post)
 }
@@ -279,6 +307,14 @@ func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, 
 	return api.app.CopyFileInfos(userId, fileIds)
 }
 
+func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	return api.app.GetFileInfo(fileId)
+}
+
+func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
+	return api.app.ReadFile(path)
+}
+
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }
@@ -297,6 +333,18 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]int
 		Data:      payload,
 		Broadcast: broadcast,
 	})
+}
+
+func (api *PluginAPI) HasPermissionTo(userId string, permission *model.Permission) bool {
+	return api.app.HasPermissionTo(userId, permission)
+}
+
+func (api *PluginAPI) HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool {
+	return api.app.HasPermissionToTeam(userId, teamId, permission)
+}
+
+func (api *PluginAPI) HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool {
+	return api.app.HasPermissionToChannel(userId, channelId, permission)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...interface{}) {

@@ -3,6 +3,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetPing(t *testing.T) {
@@ -47,9 +49,7 @@ func TestGetConfig(t *testing.T) {
 	cfg, resp := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	}
+	require.NotEqual(t, "", cfg.TeamSettings.SiteName)
 
 	if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
 		t.Fatal("did not sanitize properly")
@@ -121,28 +121,14 @@ func TestUpdateConfig(t *testing.T) {
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	} else {
-		if cfg.TeamSettings.SiteName != "MyFancyName" {
-			t.Log("It should update the SiteName")
-			t.Fatal()
-		}
-	}
+	require.Equal(t, "MyFancyName", cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 	//Revert the change
 	cfg.TeamSettings.SiteName = SiteName
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	} else {
-		if cfg.TeamSettings.SiteName != SiteName {
-			t.Log("It should update the SiteName")
-			t.Fatal()
-		}
-	}
+	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
 		oldEnableUploads := *th.App.GetConfig().PluginSettings.EnableUploads
@@ -714,4 +700,37 @@ func TestSupportedTimezones(t *testing.T) {
 
 	CheckNoError(t, resp)
 	assert.Equal(t, supportedTimezonesFromConfig, supportedTimezones)
+}
+
+func TestRedirectLocation(t *testing.T) {
+	expected := "https://mattermost.com/wp-content/themes/mattermostv2/img/logo-light.svg"
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", expected)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer.Close() }()
+
+	mockBitlyLink := testServer.URL
+
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	_, resp := th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetRedirectLocation("", "")
+	CheckBadRequestStatus(t, resp)
+
+	actual, resp := th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	CheckNoError(t, resp)
+	if actual != expected {
+		t.Errorf("Expected %v but got %v.", expected, actual)
+	}
+
+	Client.Logout()
+	_, resp = Client.GetRedirectLocation("", "")
+	CheckUnauthorizedStatus(t, resp)
 }

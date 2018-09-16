@@ -44,6 +44,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("MigrateTeamMembers", func(t *testing.T) { testTeamStoreMigrateTeamMembers(t, ss) })
 	t.Run("ResetAllTeamSchemes", func(t *testing.T) { testResetAllTeamSchemes(t, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testTeamStoreClearAllCustomRoleAssignments(t, ss) })
+	t.Run("AnalyticsGetTeamCountForScheme", func(t *testing.T) { testTeamStoreAnalyticsGetTeamCountForScheme(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -590,10 +591,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
-
-		if len(ms) != 2 {
-			t.Fatal()
-		}
+		require.Len(t, ms, 2)
 	}
 
 	if r1 := <-ss.Team().GetMembers(teamId2, 0, 100); r1.Err != nil {
@@ -601,14 +599,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 1 {
-			t.Fatal()
-		}
-
-		if ms[0].UserId != m3.UserId {
-			t.Fatal()
-
-		}
+		require.Len(t, ms, 1)
+		require.Equal(t, m3.UserId, ms[0].UserId)
 	}
 
 	if r1 := <-ss.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
@@ -616,14 +608,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 1 {
-			t.Fatal()
-		}
-
-		if ms[0].TeamId != m1.TeamId {
-			t.Fatal()
-
-		}
+		require.Len(t, ms, 1)
+		require.Equal(t, m1.TeamId, ms[0].TeamId)
 	}
 
 	if r1 := <-ss.Team().RemoveMember(teamId1, m1.UserId); r1.Err != nil {
@@ -635,14 +621,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 1 {
-			t.Fatal()
-		}
-
-		if ms[0].UserId != m2.UserId {
-			t.Fatal()
-
-		}
+		require.Len(t, ms, 1)
+		require.Equal(t, m2.UserId, ms[0].UserId)
 	}
 
 	store.Must(ss.Team().SaveMember(m1, -1))
@@ -656,9 +636,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 0 {
-			t.Fatal()
-		}
+		require.Len(t, ms, 0)
 	}
 
 	uid := model.NewId()
@@ -672,9 +650,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 2 {
-			t.Fatal()
-		}
+		require.Len(t, ms, 2)
 	}
 
 	if r1 := <-ss.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
@@ -686,9 +662,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	} else {
 		ms := r1.Data.([]*model.TeamMember)
 
-		if len(ms) != 0 {
-			t.Fatal()
-		}
+		require.Len(t, ms, 0)
 	}
 }
 
@@ -1114,9 +1088,9 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	t1 = (<-ss.Team().Save(t1)).Data.(*model.Team)
-	t2 = (<-ss.Team().Save(t2)).Data.(*model.Team)
-	t3 = (<-ss.Team().Save(t3)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t1)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t2)).Data.(*model.Team)
+	_ = (<-ss.Team().Save(t3)).Data.(*model.Team)
 
 	// Get the teams by a valid Scheme ID.
 	res1 := <-ss.Team().GetTeamsByScheme(s1.Id, 0, 100)
@@ -1291,4 +1265,65 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	r4 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
 	require.Nil(t, r4.Err)
 	assert.Equal(t, "", r4.Data.(*model.TeamMember).Roles)
+}
+
+func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
+	s1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
+
+	count1 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(0), count1)
+
+	t1 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+	_ = (<-ss.Team().Save(t1)).Data.(*model.Team)
+
+	count2 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(1), count2)
+
+	t2 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+	}
+	_ = (<-ss.Team().Save(t2)).Data.(*model.Team)
+
+	count3 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(2), count3)
+
+	t3 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	}
+	_ = (<-ss.Team().Save(t3)).Data.(*model.Team)
+
+	count4 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(2), count4)
+
+	t4 := &model.Team{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &s1.Id,
+		DeleteAt:    model.GetMillis(),
+	}
+	_ = (<-ss.Team().Save(t4)).Data.(*model.Team)
+
+	count5 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
+	assert.Equal(t, int64(2), count5)
 }

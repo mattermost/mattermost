@@ -100,6 +100,10 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
 	}
 
+	if err := a.finalizeImport(dryRun); err != nil {
+		return err, 0
+	}
+
 	return nil, 0
 }
 
@@ -164,4 +168,15 @@ func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "", http.StatusBadRequest)
 	}
+}
+
+func (a *App) finalizeImport(dryRun bool) *model.AppError {
+	if dryRun {
+		return nil
+	}
+	result := <-a.Srv.Store.Channel().ResetLastPostAt()
+	if result.Err != nil {
+		return result.Err
+	}
+	return nil
 }

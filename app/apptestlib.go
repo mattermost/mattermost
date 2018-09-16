@@ -6,6 +6,8 @@ package app
 import (
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"time"
@@ -33,6 +35,8 @@ type TestHelper struct {
 
 	tempConfigPath string
 	tempWorkspace  string
+
+	MockedHTTPService *MockedHTTPService
 }
 
 type persistentTestStore struct {
@@ -159,6 +163,13 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.SystemAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
 	me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+
+	return me
+}
+
+func (me *TestHelper) MockHTTPService(handler http.Handler) *TestHelper {
+	me.MockedHTTPService = MakeMockedHTTPService(handler)
+	me.App.HTTPService = me.MockedHTTPService
 
 	return me
 }
@@ -502,4 +513,23 @@ func (me *FakeClusterInterface) sendClearRoleCacheMessage() {
 	me.clusterMessageHandler(&model.ClusterMessage{
 		Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
 	})
+}
+
+type MockedHTTPService struct {
+	Server *httptest.Server
+}
+
+func MakeMockedHTTPService(handler http.Handler) *MockedHTTPService {
+	return &MockedHTTPService{
+		Server: httptest.NewServer(handler),
+	}
+}
+
+func (h *MockedHTTPService) MakeClient(trustURLs bool) *http.Client {
+	return h.Server.Client()
+}
+
+func (h *MockedHTTPService) Close() {
+	h.Server.CloseClientConnections()
+	h.Server.Close()
 }

@@ -101,11 +101,12 @@
         "MaxNotificationsPerChannel": 1000,
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
-        "ViewArchivedChannels": true,
+        "ExperimentalViewArchivedChannels": false,
         "ExperimentalEnableAutomaticReplies": false,
         "ExperimentalHideTownSquareinLHS": false,
         "ExperimentalTownSquareIsReadOnly": false,
-        "ExperimentalPrimaryTeam": ""
+        "ExperimentalPrimaryTeam": "",
+        "ExperimentalDefaultChannels": ""
     },
     "DisplaySettings": {
         "CustomUrlSchemes": [],
@@ -129,7 +130,8 @@
         "MaxOpenConns": 300,
         "Trace": false,
         "AtRestEncryptKey": "",
-        "QueryTimeout": 30
+        "QueryTimeout": 30,
+        "EnablePublicChannelsMaterialization": true
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -307,6 +309,7 @@
     "SamlSettings": {
         "Enable": false,
         "EnableSyncWithLdap": false,
+        "EnableSyncWithLdapIncludeAuth": false,
         "Verify": true,
         "Encrypt": true,
         "IdpUrl": "",
@@ -317,6 +320,7 @@
         "IdpCertificateFile": "",
         "PublicCertificateFile": "",
         "PrivateKeyFile": "",
+        "IdAttribute": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",

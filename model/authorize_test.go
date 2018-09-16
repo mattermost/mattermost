@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestAuthJson(t *testing.T) {
@@ -46,9 +48,7 @@ func TestAuthIsValid(t *testing.T) {
 
 	ad := AuthData{}
 
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.ClientId = NewRandomString(28)
 	if err := ad.IsValid(); err == nil {
@@ -56,9 +56,7 @@ func TestAuthIsValid(t *testing.T) {
 	}
 
 	ad.ClientId = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.UserId = NewRandomString(28)
 	if err := ad.IsValid(); err == nil {
@@ -66,9 +64,7 @@ func TestAuthIsValid(t *testing.T) {
 	}
 
 	ad.UserId = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.Code = NewRandomString(129)
 	if err := ad.IsValid(); err == nil {
@@ -81,9 +77,7 @@ func TestAuthIsValid(t *testing.T) {
 	}
 
 	ad.Code = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.ExpiresIn = 0
 	if err := ad.IsValid(); err == nil {
@@ -91,9 +85,7 @@ func TestAuthIsValid(t *testing.T) {
 	}
 
 	ad.ExpiresIn = 1
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.CreateAt = 0
 	if err := ad.IsValid(); err == nil {
@@ -101,9 +93,7 @@ func TestAuthIsValid(t *testing.T) {
 	}
 
 	ad.CreateAt = 1
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.State = NewRandomString(129)
 	if err := ad.IsValid(); err == nil {
@@ -121,9 +111,7 @@ func TestAuthIsValid(t *testing.T) {
 	}
 
 	ad.Scope = NewRandomString(128)
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.RedirectUri = ""
 	if err := ad.IsValid(); err == nil {

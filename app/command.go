@@ -233,7 +233,11 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 				var req *http.Request
 				if cmd.Method == model.COMMAND_METHOD_GET {
 					req, _ = http.NewRequest(http.MethodGet, cmd.URL, nil)
-					req.URL.RawQuery = p.Encode()
+
+					if req.URL.RawQuery != "" {
+						req.URL.RawQuery += "&"
+					}
+					req.URL.RawQuery += p.Encode()
 				} else {
 					req, _ = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 				}
@@ -244,7 +248,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 					req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 				}
 
-				if resp, err := a.HTTPClient(false).Do(req); err != nil {
+				if resp, err := a.HTTPService.MakeClient(false).Do(req); err != nil {
 					return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
 				} else {
 					if resp.StatusCode == http.StatusOK {

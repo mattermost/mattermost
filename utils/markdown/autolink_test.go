@@ -134,7 +134,15 @@ func TestParseURLAutolink(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			assert.Equal(t, testCase.Expected, parseURLAutolink(testCase.Input, testCase.Position))
+			rawRange, ok := parseURLAutolink(testCase.Input, testCase.Position)
+
+			if testCase.Expected == "" {
+				assert.False(t, ok)
+				assert.Equal(t, Range{0, 0}, rawRange)
+			} else {
+				assert.True(t, ok)
+				assert.Equal(t, testCase.Expected, testCase.Input[rawRange.Position:rawRange.End])
+			}
 		})
 	}
 }
@@ -264,89 +272,153 @@ func TestParseWWWAutolink(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			assert.Equal(t, testCase.Expected, parseWWWAutolink(testCase.Input, testCase.Position))
+			rawRange, ok := parseWWWAutolink(testCase.Input, testCase.Position)
+
+			if testCase.Expected == "" {
+				assert.False(t, ok)
+				assert.Equal(t, Range{0, 0}, rawRange)
+			} else {
+				assert.True(t, ok)
+				assert.Equal(t, testCase.Expected, testCase.Input[rawRange.Position:rawRange.End])
+			}
 		})
 	}
 }
 
 func TestTrimTrailingCharactersFromLink(t *testing.T) {
 	testCases := []struct {
-		Input    string
-		Expected string
+		Input       string
+		Start       int
+		End         int
+		ExpectedEnd int
 	}{
 		{
-			Input:    "http://www.example.com",
-			Expected: "http://www.example.com",
+			Input:       "http://www.example.com",
+			ExpectedEnd: 22,
 		},
 		{
-			Input:    "http://www.example.com/abcd",
-			Expected: "http://www.example.com/abcd",
+			Input:       "http://www.example.com/abcd",
+			ExpectedEnd: 27,
 		},
 		{
-			Input:    "http://www.example.com/abcd/",
-			Expected: "http://www.example.com/abcd/",
+			Input:       "http://www.example.com/abcd/",
+			ExpectedEnd: 28,
 		},
 		{
-			Input:    "http://www.example.com/1234",
-			Expected: "http://www.example.com/1234",
+			Input:       "http://www.example.com/1234",
+			ExpectedEnd: 27,
 		},
 		{
-			Input:    "http://www.example.com/abcd?foo=bar",
-			Expected: "http://www.example.com/abcd?foo=bar",
+			Input:       "http://www.example.com/abcd?foo=bar",
+			ExpectedEnd: 35,
 		},
 		{
-			Input:    "http://www.example.com/abcd#heading",
-			Expected: "http://www.example.com/abcd#heading",
+			Input:       "http://www.example.com/abcd#heading",
+			ExpectedEnd: 35,
 		},
 		{
-			Input:    "http://www.example.com.",
-			Expected: "http://www.example.com",
+			Input:       "http://www.example.com.",
+			ExpectedEnd: 22,
 		},
 		{
-			Input:    "http://www.example.com,",
-			Expected: "http://www.example.com",
+			Input:       "http://www.example.com,",
+			ExpectedEnd: 22,
 		},
 		{
-			Input:    "http://www.example.com?",
-			Expected: "http://www.example.com",
+			Input:       "http://www.example.com?",
+			ExpectedEnd: 22,
 		},
 		{
-			Input:    "http://www.example.com)",
-			Expected: "http://www.example.com",
+			Input:       "http://www.example.com)",
+			ExpectedEnd: 22,
 		},
 		{
-			Input:    "http://www.example.com",
-			Expected: "http://www.example.com",
+			Input:       "http://www.example.com",
+			ExpectedEnd: 22,
 		},
 		{
-			Input:    "https://en.wikipedia.org/wiki/Dolphin_(disambiguation)",
-			Expected: "https://en.wikipedia.org/wiki/Dolphin_(disambiguation)",
+			Input:       "https://en.wikipedia.org/wiki/Dolphin_(disambiguation)",
+			ExpectedEnd: 54,
 		},
 		{
-			Input:    "https://en.wikipedia.org/wiki/Dolphin_(disambiguation",
-			Expected: "https://en.wikipedia.org/wiki/Dolphin_(disambiguation",
+			Input:       "https://en.wikipedia.org/wiki/Dolphin_(disambiguation",
+			ExpectedEnd: 53,
 		},
 		{
-			Input:    "https://en.wikipedia.org/wiki/Dolphin_(disambiguation))",
-			Expected: "https://en.wikipedia.org/wiki/Dolphin_(disambiguation)",
+			Input:       "https://en.wikipedia.org/wiki/Dolphin_(disambiguation))",
+			ExpectedEnd: 54,
 		},
 		{
-			Input:    "https://en.wikipedia.org/wiki/Dolphin_(disambiguation)_(disambiguation)",
-			Expected: "https://en.wikipedia.org/wiki/Dolphin_(disambiguation)_(disambiguation)",
+			Input:       "https://en.wikipedia.org/wiki/Dolphin_(disambiguation)_(disambiguation)",
+			ExpectedEnd: 71,
 		},
 		{
-			Input:    "https://en.wikipedia.org/wiki/Dolphin_(disambiguation_(disambiguation))",
-			Expected: "https://en.wikipedia.org/wiki/Dolphin_(disambiguation_(disambiguation))",
+			Input:       "https://en.wikipedia.org/wiki/Dolphin_(disambiguation_(disambiguation))",
+			ExpectedEnd: 71,
 		},
 		{
-			Input:    "http://www.example.com&quot;",
-			Expected: "http://www.example.com",
+			Input:       "http://www.example.com&quot;",
+			ExpectedEnd: 22,
+		},
+		{
+			Input:       "this is a sentence containing http://www.example.com in it",
+			Start:       30,
+			End:         52,
+			ExpectedEnd: 52,
+		},
+		{
+			Input:       "this is a sentence containing http://www.example.com???",
+			Start:       30,
+			End:         55,
+			ExpectedEnd: 52,
+		},
+		{
+			Input:       "http://google.com/å",
+			ExpectedEnd: len("http://google.com/å"),
+		},
+		{
+			Input:       "http://google.com/å...",
+			ExpectedEnd: len("http://google.com/å"),
+		},
+		{
+			Input:       "This is http://google.com/å, a link, and http://google.com/å",
+			Start:       8,
+			End:         len("This is http://google.com/å,"),
+			ExpectedEnd: len("This is http://google.com/å"),
+		},
+		{
+			Input:       "This is http://google.com/å, a link, and http://google.com/å",
+			Start:       41,
+			End:         len("This is http://google.com/å, a link, and http://google.com/å"),
+			ExpectedEnd: len("This is http://google.com/å, a link, and http://google.com/å"),
+		},
+		{
+			Input:       "This is http://google.com/å, a link, and http://google.com/å.",
+			Start:       41,
+			End:         len("This is http://google.com/å, a link, and http://google.com/å."),
+			ExpectedEnd: len("This is http://google.com/å, a link, and http://google.com/å"),
+		},
+		{
+			Input:       "http://🍄.ga/ http://x🍄.ga/",
+			Start:       0,
+			End:         len("http://🍄.ga/"),
+			ExpectedEnd: len("http://🍄.ga/"),
+		},
+		{
+			Input:       "http://🍄.ga/ http://x🍄.ga/",
+			Start:       len("http://🍄.ga/ "),
+			End:         len("http://🍄.ga/ http://x🍄.ga/"),
+			ExpectedEnd: len("http://🍄.ga/ http://x🍄.ga/"),
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Input, func(t *testing.T) {
-			assert.Equal(t, testCase.Expected, trimTrailingCharactersFromLink(testCase.Input))
+			if testCase.End == 0 {
+				testCase.End = len(testCase.Input) - testCase.Start
+			}
+
+			assert.Equal(t, testCase.ExpectedEnd, trimTrailingCharactersFromLink(testCase.Input, testCase.Start, testCase.End))
 		})
 	}
 }

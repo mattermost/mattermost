@@ -613,19 +613,18 @@ func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 }
 
 func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
-	newFileIds := []string{}
+	var newFileIds []string
 
 	now := model.GetMillis()
 
 	for _, fileId := range fileIds {
-		fileInfo := &model.FileInfo{}
+		result := <-a.Srv.Store.FileInfo().Get(fileId)
 
-		if result := <-a.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+		if result.Err != nil {
 			return nil, result.Err
-		} else {
-			fileInfo = result.Data.(*model.FileInfo)
 		}
 
+		fileInfo := result.Data.(*model.FileInfo)
 		fileInfo.Id = model.NewId()
 		fileInfo.CreatorId = userId
 		fileInfo.CreateAt = now

@@ -123,9 +123,9 @@ func (a *App) ImportRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 	}
 
 	if len(role.Id) == 0 {
-		role, err = a.CreateRole(role)
+		_, err = a.CreateRole(role)
 	} else {
-		role, err = a.UpdateRole(role)
+		_, err = a.UpdateRole(role)
 	}
 
 	return err
@@ -763,7 +763,7 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 
 	var reply *model.Post
 	for _, r := range replies {
-		if r.Message == *data.Message {
+		if r.Message == *data.Message && r.RootId == post.Id {
 			reply = r
 			break
 		}
@@ -784,7 +784,7 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 		if err != nil {
 			return err
 		}
-		reply.FileIds = fileIds
+		reply.FileIds = append(reply.FileIds, fileIds...)
 	}
 
 	if reply.Id == "" {
@@ -819,6 +819,8 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 			fmt.Print(err)
 			return nil, fileUploadError
 		}
+
+		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
 
 		mlog.Info(fmt.Sprintf("uploading file with name %s", file.Name()))
 		return fileInfo, nil
@@ -889,7 +891,7 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		if err != nil {
 			return err
 		}
-		post.FileIds = fileIds
+		post.FileIds = append(post.FileIds, fileIds...)
 	}
 
 	if post.Id == "" {
@@ -1116,6 +1118,14 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+	if data.Attachments != nil {
+		fileIds, err := a.uploadAttachments(data.Attachments, post, "noteam", dryRun)
+		if err != nil {
+			return err
+		}
+		post.FileIds = append(post.FileIds, fileIds...)
+	}
+
 	if post.Id == "" {
 		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 			return result.Err
@@ -1169,6 +1179,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 		}
 	}
 
+	a.UpdateFileInfoWithPostId(post)
 	return nil
 }
 

@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -64,7 +65,7 @@ func TestCreatePost(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	post2 := &model.Post{ChannelId: th.BasicChannel2.Id, Message: "zz" + model.NewId() + "a", CreateAt: 123}
-	rpost2, resp := Client.CreatePost(post2)
+	rpost2, _ := Client.CreatePost(post2)
 
 	if rpost2.CreateAt == post2.CreateAt {
 		t.Fatal("create at should not match")
@@ -153,7 +154,7 @@ func TestCreatePostEphemeral(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	Client = th.Client
-	rpost, resp = Client.CreatePostEphemeral(ephemeralPost)
+	_, resp = Client.CreatePostEphemeral(ephemeralPost)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -1022,22 +1023,22 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	Client.Logout()
 
-	rpl, resp = Client.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
+	_, resp = Client.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
 	CheckUnauthorizedStatus(t, resp)
 
-	rpl, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
+	_, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
 	CheckUnauthorizedStatus(t, resp)
 
-	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
+	_, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
 	CheckUnauthorizedStatus(t, resp)
 
-	rpl, resp = th.SystemAdminClient.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
+	_, resp = th.SystemAdminClient.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
 	CheckNoError(t, resp)
 
-	rpl, resp = th.SystemAdminClient.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
+	_, resp = th.SystemAdminClient.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
 	CheckNoError(t, resp)
 
-	rpl, resp = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
+	_, resp = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
 	CheckNoError(t, resp)
 }
 
@@ -1152,25 +1153,25 @@ func TestGetPost(t *testing.T) {
 	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 
 	// Channel is public, should be able to read post
-	post, resp = Client.GetPost(th.BasicPost.Id, "")
+	_, resp = Client.GetPost(th.BasicPost.Id, "")
 	CheckNoError(t, resp)
 
 	privatePost := th.CreatePostWithClient(Client, th.BasicPrivateChannel)
 
-	post, resp = Client.GetPost(privatePost.Id, "")
+	_, resp = Client.GetPost(privatePost.Id, "")
 	CheckNoError(t, resp)
 
 	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 
 	// Channel is private, should not be able to read post
-	post, resp = Client.GetPost(privatePost.Id, "")
+	_, resp = Client.GetPost(privatePost.Id, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.GetPost(model.NewId(), "")
 	CheckUnauthorizedStatus(t, resp)
 
-	post, resp = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
+	_, resp = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
 	CheckNoError(t, resp)
 }
 
@@ -1266,13 +1267,23 @@ func TestGetPostThread(t *testing.T) {
 	_, resp = Client.GetPostThread(model.NewId(), "")
 	CheckUnauthorizedStatus(t, resp)
 
-	list, resp = th.SystemAdminClient.GetPostThread(th.BasicPost.Id, "")
+	_, resp = th.SystemAdminClient.GetPostThread(th.BasicPost.Id, "")
 	CheckNoError(t, resp)
 }
 
 func TestSearchPosts(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+		})
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+
 	th.LoginBasic()
 	Client := th.Client
 
@@ -1292,7 +1303,21 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
-	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "search", false)
+	terms := "search"
+	isOrSearch := false
+	timezoneOffset := 5
+	searchParams := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+	}
+	posts, resp := Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 {
+		t.Fatal("wrong search")
+	}
+
+	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "search", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 3 {
 		t.Fatal("wrong search")
@@ -1316,12 +1341,23 @@ func TestSearchPosts(t *testing.T) {
 		t.Fatal("wrong search")
 	}
 
-	if posts, resp = Client.SearchPosts(th.BasicTeam.Id, "*", false); len(posts.Order) != 0 {
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+	})
+
+	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 1 {
+		t.Fatal("wrong search")
+	}
+
+	if posts, _ = Client.SearchPosts(th.BasicTeam.Id, "*", false); len(posts.Order) != 0 {
 		t.Fatal("searching for just * shouldn't return any results")
 	}
 
 	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "post1 post2", true)
 	CheckNoError(t, resp)
+
 	if len(posts.Order) != 2 {
 		t.Fatal("wrong search results")
 	}
@@ -1494,6 +1530,76 @@ func TestSearchPostsFromUser(t *testing.T) {
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false); len(posts.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
+}
+
+func TestSearchPostsWithDateFlags(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.LoginBasic()
+	Client := th.Client
+
+	message := "sgtitlereview\n with return"
+	createDate := time.Date(2018, 8, 1, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
+
+	message = "other message with no return"
+	createDate = time.Date(2018, 8, 2, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
+
+	message = "other message with no return"
+	createDate = time.Date(2018, 8, 3, 5, 0, 0, 0, time.UTC)
+	_ = th.CreateMessagePostNoClient(th.BasicChannel, message, utils.MillisFromTime(createDate))
+
+	posts, _ := Client.SearchPosts(th.BasicTeam.Id, "return", false)
+	if len(posts.Order) != 3 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "on:", false)
+	if len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "after:", false)
+	if len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:", false)
+	if len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "on:2018-08-01", false)
+	if len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "after:2018-08-01", false)
+	resultCount := 0
+	for _, post := range posts.Posts {
+		if post.UserId == th.BasicUser.Id {
+			resultCount = resultCount + 1
+		}
+	}
+	if resultCount != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-02", false)
+	if len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-02", false)
+	if len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-01", false)
+	if len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}	
 }
 
 func TestGetFileInfosForPost(t *testing.T) {

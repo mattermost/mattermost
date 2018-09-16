@@ -16,6 +16,7 @@ const (
 	SYSTEM_ACTIVE_LICENSE_ID      = "ActiveLicenseId"
 	SYSTEM_LAST_COMPLIANCE_TIME   = "LastComplianceTime"
 	SYSTEM_ASYMMETRIC_SIGNING_KEY = "AsymmetricSigningKey"
+	SYSTEM_INSTALLATION_DATE_KEY  = "InstallationDate"
 )
 
 type System struct {

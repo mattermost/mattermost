@@ -301,6 +301,21 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
 }
 
+func (s SqlChannelStore) CreateTriggersIfNotExists() error {
+	// See SqlChannelStoreExperimental
+	return nil
+}
+
+func (s SqlChannelStore) MigratePublicChannels() error {
+	// See SqlChannelStoreExperimental
+	return nil
+}
+
+func (s SqlChannelStore) DropPublicChannels() error {
+	// See SqlChannelStoreExperimental
+	return nil
+}
+
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if channel.DeleteAt != 0 {
@@ -462,6 +477,11 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 func (s SqlChannelStore) Update(channel *model.Channel) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		channel.PreUpdate()
+
+		if channel.DeleteAt != 0 {
+			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 
 		if result.Err = channel.IsValid(); result.Err != nil {
 			return
@@ -799,12 +819,12 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) store.StoreChannel {
 		_, err := s.GetReplica().Select(data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
 
 		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		if len(*data) == 0 {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
+			result.Err = model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
 			return
 		}
 
@@ -957,16 +977,16 @@ var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 		TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
 		ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
 		ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-	FROM 
+	FROM
 		ChannelMembers
-	INNER JOIN 
+	INNER JOIN
 		Channels ON ChannelMembers.ChannelId = Channels.Id
 	LEFT JOIN
 		Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
 	LEFT JOIN
 		Teams ON Channels.TeamId = Teams.Id
 	LEFT JOIN
-		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id 
+		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 `
 
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) store.StoreChannel {
@@ -1093,6 +1113,7 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) store.StoreC
 
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	allChannelMembersForUserCache.Remove(userId)
+	allChannelMembersForUserCache.Remove(userId + "_deleted")
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Remove by UserId")
 	}
@@ -1163,8 +1184,12 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.St
 
 func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		cache_key := userId
+		if includeDeleted {
+			cache_key += "_deleted"
+		}
 		if allowFromCache {
-			if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
+			if cacheItem, ok := allChannelMembersForUserCache.Get(cache_key); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 				}
@@ -1213,7 +1238,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		result.Data = ids
 
 		if allowFromCache {
-			allChannelMembersForUserCache.AddWithExpiresInSecs(userId, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
+			allChannelMembersForUserCache.AddWithExpiresInSecs(cache_key, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
 		}
 	})
 }
@@ -1579,6 +1604,53 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 	})
 }
 
+func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		deleteFilter := "AND DeleteAt = 0"
+		if includeDeleted {
+			deleteFilter = ""
+		}
+
+		queryFormat := `
+			SELECT
+				C.*
+			FROM
+				Channels AS C
+			JOIN
+				ChannelMembers AS CM ON CM.ChannelId = C.Id
+			WHERE
+			    C.TeamId = :TeamId
+				AND CM.UserId = :UserId
+				` + deleteFilter + `
+				%v
+			LIMIT 50`
+
+		var channels model.ChannelList
+
+		if likeClause, likeTerm := s.buildLIKEClause(term); likeClause == "" {
+			if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId, "UserId": userId}); err != nil {
+				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+			}
+		} else {
+			// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
+			// query you would get using an OR of the LIKE and full-text clauses.
+			fulltextClause, fulltextTerm := s.buildFulltextClause(term)
+			likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
+			fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
+			query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
+
+			if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
+				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+			}
+		}
+
+		sort.Slice(channels, func(a, b int) bool {
+			return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
+		})
+		result.Data = &channels
+	})
+}
+
 func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		deleteFilter := "AND DeleteAt = 0"
@@ -1854,7 +1926,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		lastUserId := strings.Repeat("0", 26)
 		lastChannelId := strings.Repeat("0", 26)
 
-		for true {
+		for {
 			var transaction *gorp.Transaction
 			var err error
 
@@ -1915,4 +1987,32 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 		}
 	})
+}
+
+func (s SqlChannelStore) ResetLastPostAt() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var query string
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = "UPDATE Channels SET LastPostAt = COALESCE((SELECT UpdateAt FROM Posts WHERE ChannelId = Channels.Id ORDER BY UpdateAt DESC LIMIT 1), Channels.CreateAt);"
+		} else {
+			query = "UPDATE Channels SET LastPostAt = IFNULL((SELECT UpdateAt FROM Posts WHERE ChannelId = Channels.Id ORDER BY UpdateAt DESC LIMIT 1), Channels.CreateAt);"
+		}
+
+		if _, err := s.GetMaster().Exec(query); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.ResetLastPostAt", "store.sql_channel.reset_last_post_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	})
+}
+
+func (s SqlChannelStore) EnableExperimentalPublicChannelsMaterialization() {
+	// See SqlChannelStoreExperimental
+}
+
+func (s SqlChannelStore) DisableExperimentalPublicChannelsMaterialization() {
+	// See SqlChannelStoreExperimental
+}
+
+func (s SqlChannelStore) IsExperimentalPublicChannelsMaterializationEnabled() bool {
+	// See SqlChannelStoreExperimental
+	return false
 }

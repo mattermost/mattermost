@@ -31,7 +31,7 @@ func TestSessionDeepCopy(t *testing.T) {
 	session = &Session{Id: sessionId}
 	copySession = session.DeepCopy()
 
-	assert.Equal(t, sessionId, session.Id)
+	assert.Equal(t, sessionId, copySession.Id)
 
 	session = &Session{TeamMembers: []*TeamMember{}}
 	copySession = session.DeepCopy()

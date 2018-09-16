@@ -69,6 +69,43 @@ func FieldListToNames(fieldList *ast.FieldList, fileset *token.FileSet) string {
 	return strings.Join(result, ", ")
 }
 
+func FieldListToEncodedErrors(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
+	result := []string{}
+	if fieldList == nil {
+		return ""
+	}
+
+	nextLetter := 'A'
+	for _, field := range fieldList.List {
+		typeNameBuffer := &bytes.Buffer{}
+		err := printer.Fprint(typeNameBuffer, fileset, field.Type)
+		if err != nil {
+			panic(err)
+		}
+
+		if typeNameBuffer.String() != "error" {
+			nextLetter += 1
+			continue
+		}
+
+		name := ""
+		if len(field.Names) == 0 {
+			name = string(nextLetter)
+			nextLetter += 1
+		} else {
+			for range field.Names {
+				name += string(nextLetter)
+				nextLetter += 1
+			}
+		}
+
+		result = append(result, structPrefix+name+" = encodableError("+structPrefix+name+")")
+
+	}
+
+	return strings.Join(result, "\n")
+}
+
 func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
 	result := []string{}
 	if fieldList == nil || len(fieldList.List) == 0 {
@@ -229,7 +266,7 @@ func (g *hooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 			g.log.Error("RPC call {{.Name}} to plugin failed.", mlog.Err(err))
 		}
 	}
-	return {{destruct "_returns." .Return}}
+	{{ if .Return }} return {{destruct "_returns." .Return}} {{ end }}
 }
 
 func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name | obscure}}Returns) error {
@@ -237,8 +274,9 @@ func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Na
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
+		{{if .Return}}{{encodeErrors "returns." .Return}}{{end}}
 	} else {
-		return fmt.Errorf("Hook {{.Name}} called but not implemented.")
+		return encodableError(fmt.Errorf("Hook {{.Name}} called but not implemented."))
 	}
 	return nil
 }
@@ -260,7 +298,7 @@ func (g *apiRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	if err := g.client.Call("Plugin.{{.Name}}", _args, _returns); err != nil {
 		log.Printf("RPC call to {{.Name}} API failed: %s", err.Error())
 	}
-	return {{destruct "_returns." .Return}}
+	{{ if .Return }} return {{destruct "_returns." .Return}} {{ end }}
 }
 
 func (s *apiRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name | obscure}}Returns) error {
@@ -269,7 +307,7 @@ func (s *apiRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
 	} else {
-		return fmt.Errorf("API {{.Name}} called but not implemented.")
+		return encodableError(fmt.Errorf("API {{.Name}} called but not implemented."))
 	}
 	return nil
 }
@@ -292,6 +330,9 @@ func generateGlue(info *PluginInterfaceInfo) {
 		"funcStyle":   func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
 		"structStyle": func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
 		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet) },
+		"encodeErrors": func(structPrefix string, fields *ast.FieldList) string {
+			return FieldListToEncodedErrors(structPrefix, fields, info.FileSet)
+		},
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
 		},

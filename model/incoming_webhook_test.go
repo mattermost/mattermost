@@ -80,12 +80,12 @@ func TestIncomingWebhookIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	o.Description = strings.Repeat("1", 129)
+	o.Description = strings.Repeat("1", 501)
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.Description = strings.Repeat("1", 128)
+	o.Description = strings.Repeat("1", 500)
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}

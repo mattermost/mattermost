@@ -62,12 +62,39 @@ type apiRPCServer struct {
 	impl API
 }
 
+// ErrorString is a fallback for sending unregistered implementations of the error interface across
+// rpc. For example, the errorString type from the github.com/pkg/errors package cannot be
+// registered since it is not exported, but this precludes common error handling paradigms.
+// ErrorString merely preserves the string description of the error, while satisfying the error
+// interface itself to allow other registered types (such as model.AppError) to be sent unmodified.
+type ErrorString struct {
+	Err string
+}
+
+func (e ErrorString) Error() string {
+	return e.Err
+}
+
+func encodableError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if _, ok := err.(*model.AppError); ok {
+		return err
+	}
+
+	return &ErrorString{
+		Err: err.Error(),
+	}
+}
+
 // Registering some types used by MM for encoding/gob used by rpc
 func init() {
 	gob.Register([]*model.SlackAttachment{})
 	gob.Register([]interface{}{})
 	gob.Register(map[string]interface{}{})
 	gob.Register(&model.AppError{})
+	gob.Register(&ErrorString{})
 }
 
 // These enforce compile time checks to make sure types implement the interface
@@ -128,7 +155,7 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 		methods = append(methods, method.Name)
 	}
 	*reply = methods
-	return nil
+	return encodableError(nil)
 }
 
 type Z_OnActivateArgs struct {
@@ -182,7 +209,7 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	if hook, ok := s.impl.(interface {
 		OnActivate() error
 	}); ok {
-		returns.A = hook.OnActivate()
+		returns.A = encodableError(hook.OnActivate())
 	}
 	return nil
 }
@@ -265,7 +292,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		go func() {
 			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
 			if err != nil {
-				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connecion", mlog.Err(err))
+				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connection", mlog.Err(err))
 				http.Error(w, "500 internal server error", http.StatusInternalServerError)
 				return
 			}
@@ -295,7 +322,6 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		g.log.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
 	}
-	return
 }
 
 func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) error {

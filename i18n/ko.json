@@ -92,10 +92,6 @@
     "translation": "사용자가 팀에서 제거되어 채널에 추가할 수 없습니다."
   },
   {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "채널이 보존 처리 혹은 삭제되었습니다"
-  },
-  {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "이 유형의 채널엔 사용자를 추가할 수 없습니다"
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "개인 혹은 단체 메시지 채널을 삭제할 수 없습니다."
-  },
-  {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "채널이 이미 삭제되었습니다"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -240,12 +232,12 @@
     "translation": "기본 채널로부터는 사용자를 강퇴할 수 없음 {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v 가 채널에서 제거되었습니다."
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "Cannot remove user from a channel."
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "채널이 보존 처리 혹은 삭제되었습니다"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v 가 채널에서 제거되었습니다."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -381,7 +373,7 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "당신은 채널 머릿말을 수정할 권한을 가지고 있지 않습니다."
+    "translation": "채널 헤더를 수정할 권한을 가지고 있지 않습니다."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
@@ -413,7 +405,7 @@
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "당신은 채널 설명을 수정할 권한을 가지고 있지 않습니다."
+    "translation": "채널 설명 수정 권한을 가지고 있지 않습니다."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
@@ -445,7 +437,7 @@
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "당신은 채널 이름을 수정할 권한을 가지고 있지 않습니다."
+    "translation": "채널 이름 수정 권한을 가지고 있지 않습니다."
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
@@ -840,7 +832,7 @@
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "멤버 삭제를 위한 적합한 권한을 가지고 있지 않습니다."
+    "translation": "멤버 삭제 권한을 가지고 있지 않습니다."
   },
   {
     "id": "api.command_remove.user_not_in_channel",
@@ -1039,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "이 서버는 파일 첨부가 비활성화 되어 있습니다."
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1435,6 +1435,14 @@
     "translation": "사용자 설정을 적용할 수 없습니다."
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "You cannot remove a reaction in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "You cannot react in an archived channel."
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "리액션이 유효하지 않습니다."
   },
@@ -1651,6 +1659,10 @@
     "translation": "%v가 팀에 가입했습니다."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "허용된 도메인의 이메일만 사용하세요. (예시: @example.com). 또는 시스템 관리자에게 문의해보세요."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v가 팀을 떠났습니다."
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "지정된 사용자는 지정된 팀의 멤버가 아닙니다."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2515,6 +2531,10 @@
     "translation": "Import data line has type \"direct_post\" but the direct_post object is null."
   },
   {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "Import data line has type \"emoji\" but the emoji object is null."
+  },
+  {
     "id": "app.import.import_line.null_post.error",
     "translation": "Import data line has type \"post\" but the post object is null."
   },
@@ -3027,10 +3047,6 @@
     "translation": "[{{.SiteName}}] {{.TeamName}} (으)로부터 {{.Month}} {{.Day}}, {{.Year}} 에 알림이 왔습니다."
   },
   {
-    "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -3095,16 +3111,8 @@
     "translation": "Plugin is not installed"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "Cannot install prepackaged plugin"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "Unable to delete plugin"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "Unable to set plugin status state."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3117,6 +3125,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "Failed to parse installation date"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3221,6 +3233,10 @@
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "Unable to open the temporary export file."
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "Unable to re-read the Global Relay temporary export file."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3403,8 +3419,20 @@
     "translation": "잘못된 AD/LDAP 필터"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "Unable to add attachment to the Global Relay export."
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "Unable to close properly the zip file."
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
     "translation": "Unable to create the eml file."
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "Unable to generate eml file data."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4679,8 +4707,8 @@
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Error invoking plugin RPC"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Unable to set the user status. Unknown user status."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4895,6 +4923,14 @@
     "translation": "We could not reset the channel schemes"
   },
   {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
+  },
+  {
     "id": "store.sql_channel.save.commit_transaction.app_error",
     "translation": "Unable to commit transaction"
   },
@@ -4969,6 +5005,10 @@
   {
     "id": "store.sql_channel.update.app_error",
     "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -5123,6 +5163,10 @@
     "translation": "채널을 찾을 수 없습니다"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "We couldn't delete attachments of the user"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "We couldn't attach the file info to the post"
   },
@@ -5141,6 +5185,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "We couldn't get the file info for the post"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "We couldn't get the file info for the user"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5723,6 +5771,10 @@
     "translation": "We encountered an error updating the system property"
   },
   {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "We couldn't get the channel count for the scheme."
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
@@ -5961,6 +6013,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "Unable to infer the system date based on the first user creation date."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

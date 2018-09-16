@@ -37,6 +37,81 @@ func TestReadConfig(t *testing.T) {
 	require.EqualError(t, err, "parsing error at line 3, character 5: invalid character 'm' looking for beginning of object key string")
 }
 
+func TestReadConfig_PluginSettings(t *testing.T) {
+	TranslationsPreInit()
+
+	config, _, err := ReadConfig(bytes.NewReader([]byte(`{
+		"PluginSettings": {
+			"Directory": "/temp/mattermost-plugins",
+			"Plugins": {
+				"com.example.plugin": {
+					"number": 1,
+					"string": "abc",
+					"boolean": false,
+					"abc.def.ghi": {
+						"abc": 123,
+						"def": "456"
+					}
+				},
+				"jira": {
+					"number": 2,
+					"string": "123",
+					"boolean": true,
+					"abc.def.ghi": {
+						"abc": 456,
+						"def": "123"
+					}
+ 				}
+			},
+			"PluginStates": {
+				"com.example.plugin": {
+					"enable": true
+				},
+				"jira": {
+					"enable": false
+ 				}
+			}
+		}
+	}`)), false)
+	require.Nil(t, err)
+
+	assert.Equal(t, "/temp/mattermost-plugins", *config.PluginSettings.Directory)
+
+	if assert.Contains(t, config.PluginSettings.Plugins, "com.example.plugin") {
+		assert.Equal(t, map[string]interface{}{
+			"number":  float64(1),
+			"string":  "abc",
+			"boolean": false,
+			"abc.def.ghi": map[string]interface{}{
+				"abc": float64(123),
+				"def": "456",
+			},
+		}, config.PluginSettings.Plugins["com.example.plugin"])
+	}
+	if assert.Contains(t, config.PluginSettings.PluginStates, "com.example.plugin") {
+		assert.Equal(t, model.PluginState{
+			Enable: true,
+		}, *config.PluginSettings.PluginStates["com.example.plugin"])
+	}
+
+	if assert.Contains(t, config.PluginSettings.Plugins, "jira") {
+		assert.Equal(t, map[string]interface{}{
+			"number":  float64(2),
+			"string":  "123",
+			"boolean": true,
+			"abc.def.ghi": map[string]interface{}{
+				"abc": float64(456),
+				"def": "123",
+			},
+		}, config.PluginSettings.Plugins["jira"])
+	}
+	if assert.Contains(t, config.PluginSettings.PluginStates, "jira") {
+		assert.Equal(t, model.PluginState{
+			Enable: false,
+		}, *config.PluginSettings.PluginStates["jira"])
+	}
+}
+
 func TestTimezoneConfig(t *testing.T) {
 	TranslationsPreInit()
 	supportedTimezones := LoadTimezones("timezones.json")
@@ -338,6 +413,20 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		},
 		"SupportSettings": {
 			"TermsOfServiceLink": "https://about.mattermost.com/default-terms/"
+		},
+		"PluginSettings": {
+			"Enable": true,
+			"Plugins": {
+				"jira": {
+					"enabled": "true",
+					"secret": "config-secret"
+				}
+			},
+			"PluginStates": {
+				"jira": {
+					"Enable": true
+				}
+			}
 		}
 	}`
 
@@ -469,6 +558,87 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		} else {
 			if termsOfServiceLinkInEnv, ok := supportSettingsAsMap["TermsOfServiceLink"].(bool); !ok || !termsOfServiceLinkInEnv {
 				t.Fatal("TermsOfServiceLink should be in envConfig")
+			}
+		}
+	})
+
+	t.Run("plugin directory settings", func(t *testing.T) {
+		os.Setenv("MM_PLUGINSETTINGS_ENABLE", "false")
+		os.Setenv("MM_PLUGINSETTINGS_DIRECTORY", "/temp/plugins")
+		os.Setenv("MM_PLUGINSETTINGS_CLIENTDIRECTORY", "/temp/clientplugins")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLE")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_DIRECTORY")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_CLIENTDIRECTORY")
+
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		assert.Equal(t, false, *cfg.PluginSettings.Enable)
+		assert.Equal(t, "/temp/plugins", *cfg.PluginSettings.Directory)
+		assert.Equal(t, "/temp/clientplugins", *cfg.PluginSettings.ClientDirectory)
+
+		if pluginSettings, ok := envCfg["PluginSettings"]; !ok {
+			t.Fatal("PluginSettings is missing from envConfig")
+		} else if pluginSettingsAsMap, ok := pluginSettings.(map[string]interface{}); !ok {
+			t.Fatal("PluginSettings is not a map in envConfig")
+		} else {
+			if directory, ok := pluginSettingsAsMap["Directory"].(bool); !ok || !directory {
+				t.Fatal("Directory should be in envConfig")
+			}
+			if clientDirectory, ok := pluginSettingsAsMap["ClientDirectory"].(bool); !ok || !clientDirectory {
+				t.Fatal("ClientDirectory should be in envConfig")
+			}
+		}
+	})
+
+	t.Run("plugin specific settings cannot be overridden via environment", func(t *testing.T) {
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED", "false")
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET", "env-secret")
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE", "false")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET")
+		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE")
+
+		cfg, envCfg, err := ReadConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+
+		if pluginsJira, ok := cfg.PluginSettings.Plugins["jira"]; !ok {
+			t.Fatal("PluginSettings.Plugins.jira is missing from config")
+		} else {
+			if enabled, ok := pluginsJira["enabled"]; !ok {
+				t.Fatal("PluginSettings.Plugins.jira.enabled is missing from config")
+			} else {
+				assert.Equal(t, "true", enabled)
+			}
+
+			if secret, ok := pluginsJira["secret"]; !ok {
+				t.Fatal("PluginSettings.Plugins.jira.secret is missing from config")
+			} else {
+				assert.Equal(t, "config-secret", secret)
+			}
+		}
+
+		if pluginStatesJira, ok := cfg.PluginSettings.PluginStates["jira"]; !ok {
+			t.Fatal("PluginSettings.PluginStates.jira is missing from config")
+		} else {
+			require.Equal(t, true, pluginStatesJira.Enable)
+		}
+
+		if pluginSettings, ok := envCfg["PluginSettings"]; !ok {
+			t.Fatal("PluginSettings is missing from envConfig")
+		} else if pluginSettingsAsMap, ok := pluginSettings.(map[string]interface{}); !ok {
+			t.Fatal("PluginSettings is not a map in envConfig")
+		} else {
+			if plugins, ok := pluginSettingsAsMap["Plugins"].(map[string]interface{}); !ok {
+				t.Fatal("PluginSettings.Plugins is not a map in envConfig")
+			} else if _, ok := plugins["jira"].(map[string]interface{}); ok {
+				t.Fatal("PluginSettings.Plugins.jira should not be a map in envConfig")
+			}
+
+			if pluginStates, ok := pluginSettingsAsMap["PluginStates"].(map[string]interface{}); !ok {
+				t.Fatal("PluginSettings.PluginStates is missing from envConfig")
+			} else if _, ok := pluginStates["jira"].(map[string]interface{}); ok {
+				t.Fatal("PluginSettings.PluginStates.jira should not be a map in envConfig")
 			}
 		}
 	})

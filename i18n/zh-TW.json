@@ -41,7 +41,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>看起來您的 Mattermost 電子郵件設定正確！"
+    "translation": "看起來您的 Mattermost 電子郵件設定正確！"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -90,10 +90,6 @@
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
     "translation": "無法將使用者新增到頻道。使用者已從團隊中移除。"
-  },
-  {
-    "id": "api.channel.add_user_to_channel.deleted.app_error",
-    "translation": "頻道已被封存或刪除"
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
@@ -164,10 +160,6 @@
     "translation": "無法刪除直接或群組訊息頻道"
   },
   {
-    "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "頻道已被刪除"
-  },
-  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "您沒有適當的權限"
   },
@@ -193,7 +185,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "更新頻道成員時失敗"
+    "translation": "更新頻道時失敗"
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -240,12 +232,12 @@
     "translation": "無法將使用者從預設的頻道移除 {{.Channel}}"
   },
   {
-    "id": "api.channel.remove_member.removed",
-    "translation": "%v 已從頻道中移除。"
+    "id": "api.channel.remove_channel_member.type.app_error",
+    "translation": "無法將使用者從頻道移除。"
   },
   {
-    "id": "api.channel.remove_user_from_channel.deleted.app_error",
-    "translation": "頻道已被封存或刪除"
+    "id": "api.channel.remove_member.removed",
+    "translation": "%v 已從頻道中移除。"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -313,7 +305,7 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "Email invitations are disabled, no invite(s) sent"
+    "translation": "電子郵件邀請已被停用，沒有送出任何邀請"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -584,7 +576,7 @@
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to create a new group message."
+    "translation": "沒有適當的權限以建立群組訊。"
   },
   {
     "id": "api.command_help.desc",
@@ -648,7 +640,7 @@
   },
   {
     "id": "api.command_invite_people.permission.app_error",
-    "translation": "You don't have permission to invite new users to this server."
+    "translation": "沒有權限以邀請新使用者加入此伺服器。"
   },
   {
     "id": "api.command_join.desc",
@@ -744,7 +736,7 @@
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "權限不足以移除成員。"
+    "translation": "權限不足以直接傳訊給此使用者。"
   },
   {
     "id": "api.command_mute.desc",
@@ -1039,6 +1031,14 @@
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "此伺服器已停用檔案附件功能。"
+  },
+  {
+    "id": "api.file.file_exists.exists_local.app_error",
+    "translation": "無法確定檔案是否存在。檢查檔案是否存在時發生錯誤。"
+  },
+  {
+    "id": "api.file.file_exists.s3.app_error",
+    "translation": "無法確定檔案是否存在。檢查檔案是否存在時發生錯誤。"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1435,6 +1435,14 @@
     "translation": "無法設定使用者偏好設定。"
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "在已封存的頻道中無法移除互動。"
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "無法在已封存的頻道互動。"
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "無效的互動。"
   },
@@ -1444,7 +1452,7 @@
   },
   {
     "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
+    "translation": "唯讀頻道無法跟訊息互動。"
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1624,7 +1632,7 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Email invitations are disabled."
+    "translation": "電子郵件邀請已被停用。"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -1649,6 +1657,10 @@
   {
     "id": "api.team.join_team.post_and_forget",
     "translation": "%v 已加入團隊。"
+  },
+  {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "電子郵件地址必須來自一個指定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.team.leave.left",
@@ -1727,6 +1739,10 @@
     "translation": "指定的使用者不是指定團隊的成員。"
   },
   {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "系統設定不允許限制團隊為 {{ .Domain }}。請聯絡系統管理員。"
+  },
+  {
     "id": "api.team.update_team_scheme.license.error",
     "translation": "授權不支援更新團隊的配置"
   },
@@ -1736,7 +1752,7 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}."
+    "translation": "您已停用在 {{ .SiteURL }} 的帳號。"
   },
   {
     "id": "api.templates.deactivate_body.title",
@@ -1744,7 +1760,7 @@
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "如果這不是您做出的更動或是想要重新啟用帳號，請聯絡系統管理員。"
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -1752,7 +1768,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
+    "translation": "在 {{.TeamDisplayName}} 的電子郵件地址已改為 {{.NewEmail}} 。"
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1784,15 +1800,15 @@
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Any questions at all, mail us any time: "
+    "translation": "如果有任何問題，隨時寄信給我們："
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Best wishes,"
+    "translation": "祝心想事成"
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "The {{.SiteName}} Team"
+    "translation": "{{.SiteName}} 團隊"
   },
   {
     "id": "api.templates.email_organization",
@@ -1800,7 +1816,7 @@
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "If you did not make this change, please contact the system administrator."
+    "translation": "如果您沒有做此更動，請聯絡系統管理員。"
   },
   {
     "id": "api.templates.invite_body.button",
@@ -1808,11 +1824,11 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。當加入 <strong>{{.TeamDisplayName}}</strong> 後，您能夠透過下列網址隨時登入到新團隊來使用這些功能：<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost 能讓您透過個人電腦與手機分享訊息與檔案，包括快速搜尋以及封存功能。當加入 [[{{.TeamDisplayName}}]] 後，您能夠透過下列網址隨時登入到新團隊來使用這些功能："
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "團隊 {{.SenderStatus}} [[{{.SenderName}}]] 邀請您加入 [[{{.TeamDisplayName}}]]。"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1824,7 +1840,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
+    "translation": "您在 {{.SiteURL}} 上的帳號已增加多重要素驗證。"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1836,7 +1852,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
+    "translation": "您在 {{.SiteURL}} 上面帳號的多重要素驗證已被移除。"
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1844,7 +1860,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
+    "translation": "{{ .TeamURL }} 上 {{.TeamDisplayName}} 的密碼已被 {{.Method}} 更新。"
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1864,11 +1880,11 @@
   },
   {
     "id": "api.templates.reset_body.info1",
-    "translation": "To change your password, click \"Reset Password\" below."
+    "translation": "要變更密碼，請按下面的\"重設密碼\"。"
   },
   {
     "id": "api.templates.reset_body.info2",
-    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
+    "translation": "如果不需要重置密碼，請忽略本電子郵件，密碼將保持不變。密碼重置連結將在 24 小時後失效。"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1880,7 +1896,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "您已經變更了 {{ .SiteName }} 上 {{.TeamDisplayName}} 的登入方式"
+    "translation": "您已經將 {{ .SiteName }} 上的登入方式變更為 {{.Method}}"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1896,7 +1912,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
+    "translation": "在 {{.SiteURL}} 上的帳號已增加個人存取 Token。它們可用來以您的帳號名義存取 {{.SiteName}}。"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -1908,7 +1924,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}."
+    "translation": "在 {{.TeamDisplayName}} 的使用者名稱已變更為 {{.NewUsername}}。"
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2180,19 +2196,19 @@
   },
   {
     "id": "api.user.saml.app_error",
-    "translation": "Unable to process SAML login request."
+    "translation": "無法處理 SAML 登入請求。"
   },
   {
     "id": "api.user.saml.extension_id.app_error",
-    "translation": "無效的操作 ID"
+    "translation": "無效的擴充 ID"
   },
   {
     "id": "api.user.saml.extension_unsupported",
-    "translation": "Extensions are not supported."
+    "translation": "不支援擴充。"
   },
   {
     "id": "api.user.saml.invalid_extension",
-    "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+    "translation": "不支援 extension_id 為 {{.ExtensionId}} 的擴充。"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2432,11 +2448,11 @@
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": "Error reading the file at: \"{{.FilePath}}\""
+    "translation": "讀取檔案時錯誤：\"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": "Error uploading the file: \"{{.FilePath}}\""
+    "translation": "上傳檔案時錯誤：\"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2452,7 +2468,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+    "translation": "匯入繪文字圖像時讀取檔案錯誤。繪文字名稱：\"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2513,6 +2529,10 @@
   {
     "id": "app.import.import_line.null_direct_post.error",
     "translation": "匯入資料行資料型別為\"直接訊息\"但直接訊息物件為 null"
+  },
+  {
+    "id": "app.import.import_line.null_emoji.error",
+    "translation": "匯入資料行資料型別為\"繪文字\"但繪文字物件為 null"
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -2676,15 +2696,15 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Import emoji data empty."
+    "translation": "匯入繪文字資料為空。"
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Import emoji image field missing or blank."
+    "translation": "匯入繪文字缺少圖像欄位或該欄位為空。"
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Import emoji name field missing or blank."
+    "translation": "匯入繪文字缺少名稱欄位或該欄位為空。"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -2988,7 +3008,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "頻道：{{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.group_message.full2",
@@ -3000,7 +3020,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "頻道：{{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.notification.full2",
@@ -3025,10 +3045,6 @@
   {
     "id": "app.notification.subject.notification.full",
     "translation": "[{{.SiteName}}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "app.plugin.activate.app_error",
-    "translation": "無法啟用已解開的模組。"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3064,7 +3080,7 @@
   },
   {
     "id": "app.plugin.get_statuses.app_error",
-    "translation": "無法設定模組狀態。"
+    "translation": "無法取得模組狀態。"
   },
   {
     "id": "app.plugin.install.app_error",
@@ -3076,7 +3092,7 @@
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
+    "translation": "無法安裝模組。已安裝相同 ID 的模組且無法移除。"
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3095,16 +3111,8 @@
     "translation": "模組尚未安裝"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "無法安裝預先包裝好的模組"
-  },
-  {
     "id": "app.plugin.remove.app_error",
     "translation": "無法刪除模組"
-  },
-  {
-    "id": "app.plugin.set_plugin_status_state.app_error",
-    "translation": "無法設定模組狀態。"
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3117,6 +3125,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "必須執行的資料移轉尚未完成，無法存取此 API 端點。"
+  },
+  {
+    "id": "app.system_install_date.parse_int.app_error",
+    "translation": "解析安裝日期失敗"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3220,7 +3232,11 @@
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "無法建立暫存的 CSV 匯出檔案。"
+    "translation": "無法開啟暫存的匯出檔案。"
+  },
+  {
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "translation": "無法重新讀取 Global Relay 匯出暫存檔。"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3320,7 +3336,7 @@
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch 沒有啟動"
+    "translation": "Elasticsearch 已啟動"
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
@@ -3332,7 +3348,7 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch 沒有啟動"
+    "translation": "Elasticsearch 已停止"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3403,44 +3419,56 @@
     "translation": "無效的 AD/LDAP Filter"
   },
   {
+    "id": "ent.message_export.global_relay.attach_file.app_error",
+    "translation": "無法增加附加檔案至 Global Relay 匯出格式。"
+  },
+  {
+    "id": "ent.message_export.global_relay.close_zip_file.app_error",
+    "translation": "無法正常的關閉 zip 檔案。"
+  },
+  {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "無法建立 zip 匯出檔案。"
+    "translation": "無法建立 eml 檔案。"
+  },
+  {
+    "id": "ent.message_export.global_relay.generate_email.app_error",
+    "translation": "無法產生 eml 檔案資料。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
+    "translation": "無法發送郵件至 Global Relay。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
+    "translation": "無法設定電子郵件寄件人地址。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
+    "translation": "無法設定電子郵件訊息。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
+    "translation": "無法寫入電子郵件訊息。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
+    "translation": "無法讀取電子郵件資訊。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
+    "translation": "無法設定電子郵件收件人地址。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file"
+    "translation": "無法取得匯出暫存檔的資訊"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file"
+    "translation": "無法從暫存檔取得電子郵件"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file"
+    "translation": "無法開啟匯出暫存檔"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3940,7 +3968,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "自訂網址配置 {{.Scheme}} 無效。自訂網址配置必須以字母起始且只帶有字母、數字、\"+\"、\".\"跟\"-\"。"
+    "translation": "自訂網址配置 {{.Scheme}} 無效。自訂網址配置必須以字母起始且只帶有字母、數字跟\"-\"。"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4412,7 +4440,7 @@
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "無效的範圍"
+    "translation": "無效的圖示"
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
@@ -4679,8 +4707,8 @@
     "translation": "GitLab 的服務使用條款有更新。請前往 gitlab.com 接受新條款後重新嘗試登入 Mattermost。"
   },
   {
-    "id": "plugin.rpcplugin.invocation.error",
-    "translation": "呼叫模組 RPC 時錯誤"
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "無法設定使用者狀態。未知的使用者狀態。"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4895,6 +4923,14 @@
     "translation": "無法重置頻道配置"
   },
   {
+    "id": "store.sql_channel.reset_last_post_at.app_error",
+    "translation": "無法重設頻道最新發文的時間"
+  },
+  {
+    "id": "store.sql_channel.save.archived_channel.app_error",
+    "translation": "不能修改已封存的頻道"
+  },
+  {
     "id": "store.sql_channel.save.commit_transaction.app_error",
     "translation": "無法提交交易"
   },
@@ -4969,6 +5005,10 @@
   {
     "id": "store.sql_channel.update.app_error",
     "translation": "無法更新頻道"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "不能修改已封存的頻道"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -5123,6 +5163,10 @@
     "translation": "無法儲存繪文字"
   },
   {
+    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
+    "translation": "無法刪除使用者的附件檔案"
+  },
+  {
     "id": "store.sql_file_info.attach_to_post.app_error",
     "translation": "無法添加檔案訊息到發文上"
   },
@@ -5141,6 +5185,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "無法取得發文的檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.get_for_user_id.app_error",
+    "translation": "無法取得使用者的檔案訊息"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5723,6 +5771,10 @@
     "translation": "更新系統參數時遇到錯誤"
   },
   {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "無法取得配置的頻道數量。"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "無法計算團隊數"
   },
@@ -5961,6 +6013,10 @@
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "尋找使用者資訊時遇到錯誤"
+  },
+  {
+    "id": "store.sql_user.get_system_install_date.app_error",
+    "translation": "無法根據第一個使用者建立的日期推斷系統日期。"
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

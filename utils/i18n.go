@@ -27,12 +27,7 @@ func TranslationsPreInit() error {
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = TfuncWithFallback("en")
 	TDefault = TfuncWithFallback("en")
-
-	if err := InitTranslationsWithDir("i18n"); err != nil {
-		return err
-	}
-
-	return nil
+	return InitTranslationsWithDir("i18n")
 }
 
 func InitTranslations(localizationSettings model.LocalizationSettings) error {

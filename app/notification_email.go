@@ -306,7 +306,7 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 		Year:     fmt.Sprintf("%d", localTime.Year()),
 		Month:    translateFunc(localTime.Month().String()),
 		Day:      fmt.Sprintf("%d", localTime.Day()),
-		Hour:     fmt.Sprintf("%s", hour),
+		Hour:     hour,
 		Minute:   fmt.Sprintf("%02d"+period, localTime.Minute()),
 		TimeZone: zone,
 	}

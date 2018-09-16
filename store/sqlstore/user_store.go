@@ -1255,7 +1255,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		builtInRoles := model.MakeDefaultRoles()
 		lastUserId := strings.Repeat("0", 26)
 
-		for true {
+		for {
 			var transaction *gorp.Transaction
 			var err error
 
@@ -1314,5 +1314,16 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				return
 			}
 		}
+	})
+}
+
+func (us SqlUserStore) InferSystemInstallDate() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		createAt, err := us.GetReplica().SelectInt("SELECT CreateAt FROM Users WHERE CreateAt IS NOT NULL ORDER BY CreateAt ASC LIMIT 1")
+		if err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetSystemInstallDate", "store.sql_user.get_system_install_date.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result.Data = createAt
 	})
 }

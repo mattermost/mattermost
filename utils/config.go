@@ -51,9 +51,7 @@ func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bo
 	}
 
 	searchPaths := []string{}
-	for _, baseSearchPath := range baseSearchPaths {
-		searchPaths = append(searchPaths, baseSearchPath)
-	}
+	searchPaths = append(searchPaths, baseSearchPaths...)
 
 	// Additionally attempt to search relative to the location of the running binary.
 	var binaryDir string
@@ -247,11 +245,15 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map
 
 	var config model.Config
 	unmarshalErr := v.Unmarshal(&config)
+	// https://github.com/spf13/viper/issues/324
+	// https://github.com/spf13/viper/issues/348
 	if unmarshalErr == nil {
-		// https://github.com/spf13/viper/issues/324
-		// https://github.com/spf13/viper/issues/348
-		config.PluginSettings = model.PluginSettings{}
-		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
+		config.PluginSettings.Plugins = make(map[string]map[string]interface{})
+		unmarshalErr = v.UnmarshalKey("pluginsettings.plugins", &config.PluginSettings.Plugins)
+	}
+	if unmarshalErr == nil {
+		config.PluginSettings.PluginStates = make(map[string]*model.PluginState)
+		unmarshalErr = v.UnmarshalKey("pluginsettings.pluginstates", &config.PluginSettings.PluginStates)
 	}
 
 	envConfig := v.EnvSettings()
@@ -280,6 +282,10 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 	defaults := getDefaultsFromStruct(model.Config{})
 
 	for key, value := range defaults {
+		if key == "PluginSettings.Plugins" || key == "PluginSettings.PluginStates" {
+			continue
+		}
+
 		v.SetDefault(key, value)
 	}
 
@@ -512,7 +518,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
-	props["ViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ViewArchivedChannels)
+	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey

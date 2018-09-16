@@ -333,17 +333,23 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeletedChannels := r.URL.Query().Get("include_deleted_channels") == "true"
 
 	props := model.StringInterfaceFromJson(r.Body)
+
 	terms, ok := props["terms"].(string)
 	if !ok || len(terms) == 0 {
 		c.SetInvalidParam("terms")
 		return
 	}
 
+	timeZoneOffset, ok := props["time_zone_offset"].(float64)
+	if !ok {
+		timeZoneOffset = 0
+	}
+
 	isOrSearch, _ := props["is_or_search"].(bool)
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels)
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset))
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
@@ -373,6 +379,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post == nil {
 		c.SetInvalidParam("post")
+		return
+	}
+
+	// The post being updated in the payload must be the same one as indicated in the URL.
+	if post.Id != c.Params.PostId {
+		c.SetInvalidParam("post_id")
 		return
 	}
 
@@ -513,7 +525,12 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId); err != nil {
+	actionRequest := model.DoPostActionRequestFromJson(r.Body)
+	if actionRequest == nil {
+		actionRequest = &model.DoPostActionRequest{}
+	}
+
+	if err := c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId, actionRequest.SelectedOption); err != nil {
 		c.Err = err
 		return
 	}

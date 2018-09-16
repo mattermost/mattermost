@@ -52,7 +52,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 	} else {
 		seenChannels := map[string]bool{}
 		for _, channelName := range a.Config().TeamSettings.ExperimentalDefaultChannels {
-			if seenChannels[channelName] != true {
+			if !seenChannels[channelName] {
 				defaultChannelList = append(defaultChannelList, channelName)
 				seenChannels[channelName] = true
 			}
@@ -1398,7 +1398,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 
 		var actorUser *model.User
 		if removerUserId != "" {
-			actorUser, err = a.GetUser(removerUserId)
+			actorUser, _ = a.GetUser(removerUserId)
 		}
 
 		a.Go(func() {
@@ -1498,7 +1498,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 }
 
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ViewArchivedChannels
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if result := <-a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted); result.Err != nil {
 		return nil, result.Err
@@ -1507,8 +1507,18 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 	}
 }
 
+func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+
+	if result := <-a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ViewArchivedChannels
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted); result.Err != nil {
 		return nil, result.Err

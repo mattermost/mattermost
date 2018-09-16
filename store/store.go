@@ -110,6 +110,7 @@ type TeamStore interface {
 	MigrateTeamMembers(fromTeamId string, fromUserId string) StoreChannel
 	ResetAllTeamSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
+	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 }
 
 type ChannelStore interface {
@@ -161,6 +162,7 @@ type ChannelStore interface {
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
+	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
 	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
@@ -171,6 +173,12 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
+	ResetLastPostAt() StoreChannel
+	MigratePublicChannels() error
+	DropPublicChannels() error
+	EnableExperimentalPublicChannelsMaterialization()
+	DisableExperimentalPublicChannelsMaterialization()
+	IsExperimentalPublicChannelsMaterializationEnabled() bool
 }
 
 type ChannelMemberHistoryStore interface {
@@ -263,6 +271,7 @@ type UserStore interface {
 	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
+	InferSystemInstallDate() StoreChannel
 }
 
 type SessionStore interface {

@@ -16,4 +16,4 @@ deps:
 	go get -d -v ./...
 	echo $(DEPS) | xargs -n1 go get -d
 
-.PNONY: test cov integ
+.PHONY: test cov integ
