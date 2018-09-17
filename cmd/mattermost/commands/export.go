@@ -5,6 +5,7 @@ package commands
 
 import (
 	"errors"
+	"os"
 
 	"context"
 
@@ -14,10 +15,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var MessageExportCmd = &cobra.Command{
+var ExportCmd = &cobra.Command{
 	Use:   "export",
 	Short: "Export data from Mattermost",
-	Long:  "Export data from Mattermost in a format suitable for import into a third-party application",
+	Long:  "Export data from Mattermost in a format suitable for import into a third-party application or another Mattermost instance",
 }
 
 var ScheduleExportCmd = &cobra.Command{
@@ -44,16 +45,31 @@ var ActianceExportCmd = &cobra.Command{
 	RunE:    buildExportCmdF("actiance"),
 }
 
+var BulkExportCmd = &cobra.Command{
+	Use:     "bulk [file]",
+	Short:   "Export bulk data.",
+	Long:    "Export data to a file compatible with the Mattermost Bulk Import format.",
+	Example: "  export bulk bulk_data.json",
+	RunE:    bulkExportCmdF,
+}
+
 func init() {
 	ScheduleExportCmd.Flags().String("format", "actiance", "The format to export data")
 	ScheduleExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
 	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
+
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
-	MessageExportCmd.AddCommand(ScheduleExportCmd)
-	MessageExportCmd.AddCommand(CsvExportCmd)
-	MessageExportCmd.AddCommand(ActianceExportCmd)
-	RootCmd.AddCommand(MessageExportCmd)
+
+	BulkExportCmd.Flags().Bool("all-teams", false, "Export all teams from the server.")
+
+	ExportCmd.AddCommand(ScheduleExportCmd)
+	ExportCmd.AddCommand(CsvExportCmd)
+	ExportCmd.AddCommand(ActianceExportCmd)
+	ExportCmd.AddCommand(BulkExportCmd)
+
+	RootCmd.AddCommand(ExportCmd)
 }
 
 func scheduleExportCmdF(command *cobra.Command, args []string) error {
@@ -139,4 +155,34 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 
 		return nil
 	}
+}
+
+func bulkExportCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	allTeams, err := command.Flags().GetBool("all-teams")
+	if err != nil {
+		return errors.New("Apply flag error")
+	}
+
+	if !allTeams {
+		return errors.New("Nothing to export. Please specify the --all-teams flag to export all teams.")
+	}
+
+	fileWriter, err := os.Create(args[0])
+	if err != nil {
+		return err
+	}
+	defer fileWriter.Close()
+
+	if err := a.BulkExport(fileWriter); err != nil {
+		CommandPrettyPrintln(err.Error())
+		return err
+	}
+
+	return nil
 }

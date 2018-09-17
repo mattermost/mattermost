@@ -218,6 +218,22 @@ func (_m *ChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId stri
 	return r0
 }
 
+// GetAllChannelsForExportAfter provides a mock function with given fields: limit, afterId
+func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
+	ret := _m.Called(limit, afterId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+		r0 = rf(limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetByName provides a mock function with given fields: team_id, name, allowFromCache
 func (_m *ChannelStore) GetByName(team_id string, name string, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(team_id, name, allowFromCache)
@@ -273,6 +289,22 @@ func (_m *ChannelStore) GetChannelCounts(teamId string, userId string) store.Sto
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
 		r0 = rf(teamId, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetChannelMembersForExport provides a mock function with given fields: userId, teamId
+func (_m *ChannelStore) GetChannelMembersForExport(userId string, teamId string) store.StoreChannel {
+	ret := _m.Called(userId, teamId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(userId, teamId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
