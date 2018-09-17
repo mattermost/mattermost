@@ -7,11 +7,11 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -136,269 +136,6 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName")
 }
 
-func (s SqlChannelStore) CreateTriggersIfNotExists() {
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		if !s.DoesTriggerExist("trigger_channels") {
-			transaction, err := s.GetMaster().Begin()
-			if err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
-			}
-
-			if _, err := transaction.ExecNoTimeout(`
-				CREATE OR REPLACE FUNCTION channels_copy_to_public_channels() RETURNS TRIGGER
-				    SECURITY DEFINER
-				    LANGUAGE plpgsql
-				AS $$
-				    DECLARE
-				    	counter int := 0;
-				    BEGIN
-				    	IF (TG_OP = 'DELETE' AND OLD.Type = 'O') OR (TG_OP = 'UPDATE' AND NEW.Type != 'O') THEN
-					    DELETE FROM
-				    		PublicChannels
-				    	    WHERE
-				    		Id = OLD.Id;
-				    	ELSEIF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') AND NEW.Type = 'O' THEN
-				    	    UPDATE
-				    		PublicChannels
-					    SET
-				    	        DeleteAt = NEW.DeleteAt,
-				    		TeamId = NEW.TeamId,
-				    		DisplayName = NEW.DisplayName,
-				    		Name = NEW.Name,
-				    		Header = NEW.Header,
-				    		Purpose = NEW.Purpose
-				    	    WHERE
-				    	        Id = NEW.Id;
-
-				    	    -- There's a race condition here where the INSERT might fail, though this should only occur
-					    -- if PublicChannels had been modified outside of the triggers. We could improve this with 
-					    -- the UPSERT functionality in Postgres 9.5+ once we support same.
-				    	    IF NOT FOUND THEN
-				    	        INSERT INTO
-				    		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-				    		VALUES
-				    		    (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose);
-				    	    END IF;
-				    	END IF;
-
-				    	RETURN NULL;
-				    END
-				$$;
-			`); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
-			}
-
-			if _, err := transaction.ExecNoTimeout(`
-				CREATE TRIGGER
-				    trigger_channels
-				AFTER INSERT OR UPDATE OR DELETE ON
-				    Channels
-				FOR EACH ROW EXECUTE PROCEDURE
-				    channels_copy_to_public_channels();
-			`); err != nil {
-				mlog.Critical("Failed to create trigger", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
-			}
-
-			if err := transaction.Commit(); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
-			}
-		}
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		// Note that DDL statements in MySQL (CREATE TABLE, CREATE TRIGGER, etc.) cannot
-		// be rolled back inside a transaction (unlike PostgreSQL), so there's no point in
-		// wrapping what follows inside a transaction.
-
-		if !s.DoesTriggerExist("trigger_channels_insert") {
-			if _, err := s.GetMaster().ExecNoTimeout(`
-				CREATE TRIGGER
-				    trigger_channels_insert
-				AFTER INSERT ON
-				    Channels
-				FOR EACH ROW
-				BEGIN
-				    IF NEW.Type = 'O' THEN
-				        INSERT INTO
-					    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-					VALUES
-					    (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose)
-					ON DUPLICATE KEY UPDATE
-					    DeleteAt = NEW.DeleteAt,
-					    TeamId = NEW.TeamId,
-					    DisplayName = NEW.DisplayName,
-					    Name = NEW.Name,
-					    Header = NEW.Header,
-					    Purpose = NEW.Purpose;
-				    END IF;
-				END;
-			`); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_insert"), mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
-			}
-		}
-
-		if !s.DoesTriggerExist("trigger_channels_update") {
-			if _, err := s.GetMaster().ExecNoTimeout(`
-				CREATE TRIGGER
-			  	    trigger_channels_update
-				AFTER UPDATE ON
-				    Channels
-				FOR EACH ROW
-				BEGIN
-				    IF OLD.Type = 'O' AND NEW.Type != 'O' THEN
-				        DELETE FROM
-					    PublicChannels
-					WHERE
-					    Id = NEW.Id;
-				    ELSEIF NEW.Type = 'O' THEN
-					INSERT INTO
-					    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-					VALUES
-					    (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose)
-					ON DUPLICATE KEY UPDATE
-					    DeleteAt = NEW.DeleteAt,
-					    TeamId = NEW.TeamId,
-					    DisplayName = NEW.DisplayName,
-					    Name = NEW.Name,
-					    Header = NEW.Header,
-					    Purpose = NEW.Purpose;
-				    END IF;
-				END;
-			`); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update"), mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
-			}
-		}
-
-		if !s.DoesTriggerExist("trigger_channels_delete") {
-			if _, err := s.GetMaster().ExecNoTimeout(`
-				CREATE TRIGGER
-				    trigger_channels_delete
-				AFTER DELETE ON
-				    Channels
-				FOR EACH ROW
-				BEGIN
-				    IF OLD.Type = 'O' THEN
-				        DELETE FROM
-					    PublicChannels
-					WHERE
-					    Id = OLD.Id;
-				    END IF;
-				END;
-			`); err != nil {
-				mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_delete"), mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_GENERIC_FAILURE)
-			}
-		}
-	} else if s.DriverName() == model.DATABASE_DRIVER_SQLITE {
-		if _, err := s.GetMaster().ExecNoTimeout(`
-			CREATE TRIGGER IF NOT EXISTS
-			    trigger_channels_insert
-			AFTER INSERT ON
-			    Channels
-			FOR EACH ROW
-			WHEN NEW.Type = 'O'
-			BEGIN
-			    -- Ideally, we'd leverage ON CONFLICT DO UPDATE below and make this INSERT resilient to pre-existing
-			    -- data. However, the version of Sqlite we're compiling against doesn't support this. This isn't
-		    	    -- critical, though, since we don't support Sqlite in production.
-			    INSERT INTO
-			        PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-			    VALUES
-			        (NEW.Id, NEW.DeleteAt, NEW.TeamId, NEW.DisplayName, NEW.Name, NEW.Header, NEW.Purpose);
-			END;
-		`); err != nil {
-			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_insert"), mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
-		}
-
-		if _, err := s.GetMaster().ExecNoTimeout(`
-			CREATE TRIGGER IF NOT EXISTS
-			    trigger_channels_update_delete
-			AFTER UPDATE ON
-			    Channels
-			FOR EACH ROW
-			WHEN
-			    OLD.Type = 'O'
-			AND NEW.Type != 'O'
-			BEGIN
-			    DELETE FROM
-			        PublicChannels
-			    WHERE
-			        Id = NEW.Id;
-			END;
-		`); err != nil {
-			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update_delete"), mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
-		}
-
-		if _, err := s.GetMaster().ExecNoTimeout(`
-			CREATE TRIGGER IF NOT EXISTS
-			    trigger_channels_update
-			AFTER UPDATE ON
-			    Channels
-			FOR EACH ROW
-			WHEN
-			    OLD.Type != 'O'
-			AND NEW.Type = 'O'
-			BEGIN
-			    -- See comments re: ON CONFLICT DO UPDATE above that would apply here as well.
-			    UPDATE
-			        PublicChannels
-			    SET
-			        DeleteAt = NEW.DeleteAt,
-			        TeamId = NEW.TeamId,
-			        DisplayName = NEW.DisplayName,
-			        Name = NEW.Name,
-			        Header = NEW.Header,
-			        Purpose = NEW.Purpose
-			    WHERE
-			        Id = NEW.Id;
-			END;
-		`); err != nil {
-			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_update"), mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
-		}
-
-		if _, err := s.GetMaster().ExecNoTimeout(`
-			CREATE TRIGGER IF NOT EXISTS
-			    trigger_channels_delete
-			AFTER UPDATE ON
-			    Channels
-			FOR EACH ROW
-			WHEN
-			    OLD.Type = 'O'
-			BEGIN
-			    DELETE FROM
-			        PublicChannels
-			    WHERE
-				Id = OLD.Id;
-			END;
-		`); err != nil {
-			mlog.Critical("Failed to create trigger function", mlog.String("trigger", "trigger_channels_delete"), mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
-		}
-	} else {
-		mlog.Critical("Failed to create trigger because of missing driver")
-		time.Sleep(time.Second)
-		os.Exit(EXIT_GENERIC_FAILURE)
-	}
-}
-
 func (s SqlChannelStore) MigratePublicChannels() error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -428,23 +165,99 @@ func (s SqlChannelStore) MigratePublicChannels() error {
 	return nil
 }
 
+func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, channel *model.Channel) error {
+	publicChannel := &publicChannel{
+		Id:          channel.Id,
+		DeleteAt:    channel.DeleteAt,
+		TeamId:      channel.TeamId,
+		DisplayName: channel.DisplayName,
+		Name:        channel.Name,
+		Header:      channel.Header,
+		Purpose:     channel.Purpose,
+	}
+
+	if channel.Type != model.CHANNEL_OPEN {
+		if _, err := transaction.Delete(publicChannel); err != nil {
+			return errors.Wrap(err, "failed to delete public channel")
+		}
+
+		return nil
+	}
+
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// Leverage native upsert for MySQL, since RowsAffected returns 0 if the row exists
+		// but no changes were made, breaking the update-then-insert paradigm below when
+		// the row already exists. (Postgres 9.4 doesn't support native upsert.)
+		if _, err := transaction.Exec(`
+			INSERT INTO
+			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+			VALUES
+			    (:Id, :DeleteAt, :TeamId, :DisplayName, :Name, :Header, :Purpose)
+			ON DUPLICATE KEY UPDATE
+			    DeleteAt = :DeleteAt,
+			    TeamId = :TeamId,
+			    DisplayName = :DisplayName,
+			    Name = :Name,
+			    Header = :Header,
+			    Purpose = :Purpose;
+		`, map[string]interface{}{
+			"Id":          publicChannel.Id,
+			"DeleteAt":    publicChannel.DeleteAt,
+			"TeamId":      publicChannel.TeamId,
+			"DisplayName": publicChannel.DisplayName,
+			"Name":        publicChannel.Name,
+			"Header":      publicChannel.Header,
+			"Purpose":     publicChannel.Purpose,
+		}); err != nil {
+			return errors.Wrap(err, "failed to insert public channel")
+		}
+	} else {
+		count, err := transaction.Update(publicChannel)
+		if err != nil {
+			return errors.Wrap(err, "failed to update public channel")
+		}
+		if count > 0 {
+			return nil
+		}
+
+		if err := transaction.Insert(publicChannel); err != nil {
+			return errors.Wrap(err, "failed to insert public channel")
+		}
+	}
+
+	return nil
+}
+
+// Save writes the (non-direct) channel channel to the database.
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if channel.Type == model.CHANNEL_DIRECT {
 			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
-		} else {
-			if transaction, err := s.GetMaster().Begin(); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			} else {
-				*result = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-				if result.Err != nil {
-					transaction.Rollback()
-				} else {
-					if err := transaction.Commit(); err != nil {
-						result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-					}
-				}
-			}
+			return
+		}
+
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		*result = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+		if result.Err != nil {
+			transaction.Rollback()
+			return
+		}
+
+		// Additionally propagate the write to the PublicChannels table.
+		if err := s.upsertPublicChannelT(transaction, result.Data.(*model.Channel)); err != nil {
+			transaction.Rollback()
+			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := transaction.Commit(); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	})
 }
@@ -565,32 +378,63 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 	return result
 }
 
+// Update writes the updated channel to the database.
 func (s SqlChannelStore) Update(channel *model.Channel) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		channel.PreUpdate()
-
-		if result.Err = channel.IsValid(); result.Err != nil {
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if count, err := s.GetMaster().Update(channel); err != nil {
-			if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
-				dupChannel := model.Channel{}
-				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
-				if dupChannel.DeleteAt > 0 {
-					result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
-				} else {
-					result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.exists.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
-				}
-			} else {
-				result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.updating.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
-			}
-		} else if count != 1 {
-			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.app_error", nil, "id="+channel.Id, http.StatusInternalServerError)
-		} else {
-			result.Data = channel
+		*result = s.updateChannelT(transaction, channel)
+		if result.Err != nil {
+			transaction.Rollback()
+			return
+		}
+
+		// Additionally propagate the write to the PublicChannels table.
+		if err := s.upsertPublicChannelT(transaction, result.Data.(*model.Channel)); err != nil {
+			transaction.Rollback()
+			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := transaction.Commit(); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	})
+}
+
+func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *model.Channel) store.StoreResult {
+	result := store.StoreResult{}
+
+	channel.PreUpdate()
+
+	if result.Err = channel.IsValid(); result.Err != nil {
+		return result
+	}
+
+	if count, err := s.GetMaster().Update(channel); err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
+			dupChannel := model.Channel{}
+			s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
+			if dupChannel.DeleteAt > 0 {
+				result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
+			} else {
+				result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.exists.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
+			}
+		} else {
+			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.updating.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
+		}
+	} else if count != 1 {
+		result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.app_error", nil, "id="+channel.Id, http.StatusInternalServerError)
+	} else {
+		result.Data = channel
+	}
+
+	return result
 }
 
 func (s SqlChannelStore) extraUpdated(channel *model.Channel) store.StoreChannel {
@@ -716,37 +560,159 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) store.
 	})
 }
 
+// Delete records the given deleted timestamp to the channel in question.
 func (s SqlChannelStore) Delete(channelId string, time int64) store.StoreChannel {
 	return s.SetDeleteAt(channelId, time, time)
 }
 
+// Restore reverts a previous deleted timestamp from the channel in question.
 func (s SqlChannelStore) Restore(channelId string, time int64) store.StoreChannel {
 	return s.SetDeleteAt(channelId, 0, time)
 }
 
-func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) store.StoreChannel {
+// SetDeleteAt records the given deleted and updated timestamp to the channel in question.
+func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("Update Channels SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :ChannelId", map[string]interface{}{"DeleteAt": deleteAt, "UpdateAt": updateAt, "ChannelId": channelId})
+		transaction, err := s.GetMaster().Begin()
 		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Delete", "store.sql_channel.delete.channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		*result = s.setDeleteAtT(transaction, channelId, deleteAt, updateAt)
+		if result.Err != nil {
+			transaction.Rollback()
+			return
+		}
+
+		// Additionally propagate the write to the PublicChannels table.
+		if _, err := transaction.Exec(`
+			UPDATE
+			    PublicChannels 
+			SET 
+			    DeleteAt = :DeleteAt
+			WHERE 
+			    Id = :ChannelId
+		`, map[string]interface{}{
+			"DeleteAt":  deleteAt,
+			"ChannelId": channelId,
+		}); err != nil {
+			transaction.Rollback()
+			result.Err = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.update_public_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := transaction.Commit(); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	})
 }
 
+func (s SqlChannelStore) setDeleteAtT(transaction *gorp.Transaction, channelId string, deleteAt, updateAt int64) store.StoreResult {
+	result := store.StoreResult{}
+
+	_, err := transaction.Exec("Update Channels SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :ChannelId", map[string]interface{}{"DeleteAt": deleteAt, "UpdateAt": updateAt, "ChannelId": channelId})
+	if err != nil {
+		result.Err = model.NewAppError("SqlChannelStore.Delete", "store.sql_channel.delete.channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	return result
+}
+
+// PermanentDeleteByTeam removes all channels for the given team from the database.
 func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("DELETE FROM Channels WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		*result = s.permanentDeleteByTeamtT(transaction, teamId)
+		if result.Err != nil {
+			transaction.Rollback()
+			return
+		}
+
+		// Additionally propagate the deletions to the PublicChannels table.
+		if _, err := transaction.Exec(`
+			DELETE FROM
+			    PublicChannels 
+			WHERE
+			    TeamId = :TeamId
+		`, map[string]interface{}{
+			"TeamId": teamId,
+		}); err != nil {
+			transaction.Rollback()
+			result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeamt", "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := transaction.Commit(); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	})
 }
 
+func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *gorp.Transaction, teamId string) store.StoreResult {
+	result := store.StoreResult{}
+
+	if _, err := transaction.Exec("DELETE FROM Channels WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+		result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	return result
+}
+
+// PermanentDelete removes the given channel from the database.
 func (s SqlChannelStore) PermanentDelete(channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("DELETE FROM Channels WHERE Id = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		*result = s.permanentDeleteT(transaction, channelId)
+		if result.Err != nil {
+			transaction.Rollback()
+			return
+		}
+
+		// Additionally propagate the deletion to the PublicChannels table.
+		if _, err := transaction.Exec(`
+			DELETE FROM
+			    PublicChannels 
+			WHERE
+			    Id = :ChannelId
+		`, map[string]interface{}{
+			"ChannelId": channelId,
+		}); err != nil {
+			transaction.Rollback()
+			result.Err = model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.delete_public_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := transaction.Commit(); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	})
+}
+
+func (s SqlChannelStore) permanentDeleteT(transaction *gorp.Transaction, channelId string) store.StoreResult {
+	result := store.StoreResult{}
+
+	if _, err := transaction.Exec("DELETE FROM Channels WHERE Id = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
+		result.Err = model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	return result
 }
 
 func (s SqlChannelStore) PermanentDeleteMembersByChannel(channelId string) store.StoreChannel {
