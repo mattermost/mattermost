@@ -110,6 +110,7 @@ const (
 	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
 	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
 	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
+	SUPPORT_SETTINGS_DEFAULT_SERVICE_TERMS_TEXT    = ""
 
 	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
@@ -996,12 +997,14 @@ type PrivacySettings struct {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink *string
-	PrivacyPolicyLink  *string
-	AboutLink          *string
-	HelpLink           *string
-	ReportAProblemLink *string
-	SupportEmail       *string
+	TermsOfServiceLink        *string
+	PrivacyPolicyLink         *string
+	AboutLink                 *string
+	HelpLink                  *string
+	ReportAProblemLink        *string
+	SupportEmail              *string
+	CustomServiceTermsEnabled *bool
+	CustomServiceTermsText    *string
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1047,6 +1050,14 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.SupportEmail == nil {
 		s.SupportEmail = NewString(SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL)
+	}
+
+	if s.CustomServiceTermsEnabled == nil {
+		s.CustomServiceTermsEnabled = NewBool(false)
+	}
+
+	if s.CustomServiceTermsText == nil {
+		s.CustomServiceTermsText = NewString(SUPPORT_SETTINGS_DEFAULT_SERVICE_TERMS_TEXT)
 	}
 }
 

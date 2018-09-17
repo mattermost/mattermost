@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"net/http"
 )
 
 type SqlServiceTermsStore struct {
@@ -27,4 +28,20 @@ func NewSqlTermStore(sqlStore SqlStore) store.ServiceTermsStore {
 
 func (s SqlServiceTermsStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_service_terms_id", "ServiceTerms", "Id")
+}
+
+func (s SqlServiceTermsStore) Save(serviceTerms *model.ServiceTerms) store.StoreChannel {
+	return store.Do(func (result *store.StoreResult) {
+		if len(serviceTerms.Id) > 0 {
+			result.Err = model.NewAppError(
+				"SqlServiceTermsStore.Save",
+				"store.sql_service_terms_store.save.existing.app_error",
+				nil,
+				"id="+serviceTerms.Id, http.StatusBadRequest,
+			)
+			return
+
+
+		}
+	})
 }

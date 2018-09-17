@@ -57,3 +57,11 @@ func InvalidServiceTermsError(fieldName string, serviceTermsId string) *AppError
 	}
 	return NewAppError("ServiceTerms.IsValid", id, nil, details, http.StatusBadRequest)
 }
+
+func (t *ServiceTerms) PreSave() {
+	if t.Id == "" {
+		t.Id = NewId()
+	}
+
+	t.CreateAt = GetMillis()
+}
