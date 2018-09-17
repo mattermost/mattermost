@@ -15,6 +15,11 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
+type NotificationType string
+
+const NOTIFICATION_TYPE_CLEAR NotificationType = "clear"
+const NOTIFICATION_TYPE_MESSAGE NotificationType = "message"
+
 const PUSH_NOTIFICATION_HUB_WORKERS = 1000
 const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
 
@@ -23,7 +28,7 @@ type PushNotificationsHub struct {
 }
 
 type PushNotification struct {
-	notificationType   string
+	notificationType   NotificationType
 	userId             string
 	channelId          string
 	post               *model.Post
@@ -34,6 +39,13 @@ type PushNotification struct {
 	explicitMention    bool
 	channelWideMention bool
 	replyToThreadType  string
+}
+
+func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan PushNotification {
+	h := fnv.New32a()
+	h.Write([]byte(userId))
+	chanIdx := h.Sum32() % PUSH_NOTIFICATION_HUB_WORKERS
+	return hub.Channels[chanIdx]
 }
 
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
@@ -105,13 +117,6 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 	return nil
 }
 
-func (a *App) getChannelFromUserId(userId string) chan PushNotification {
-	h := fnv.New32a()
-	h.Write([]byte(userId))
-	chanIdx := h.Sum32() % PUSH_NOTIFICATION_HUB_WORKERS
-	return a.PushNotificationsHub.Channels[chanIdx]
-}
-
 func (a *App) sendPushNotification(notification *postNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
 	cfg := a.Config()
 	channel := notification.channel
@@ -127,9 +132,9 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, cfg.ServiceSettings.EnablePostUsernameOverride)
 
-	c := a.getChannelFromUserId(user.Id)
+	c := a.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
-		notificationType:   "message",
+		notificationType:   NOTIFICATION_TYPE_MESSAGE,
 		post:               post,
 		user:               user,
 		channel:            channel,
@@ -209,9 +214,9 @@ func (a *App) ClearPushNotificationSync(userId string, channelId string) {
 }
 
 func (a *App) ClearPushNotification(userId string, channelId string) {
-	channel := a.getChannelFromUserId(userId)
+	channel := a.PushNotificationsHub.GetGoChannelFromUserId(userId)
 	channel <- PushNotification{
-		notificationType: "clear",
+		notificationType: NOTIFICATION_TYPE_CLEAR,
 		userId:           userId,
 		channelId:        channelId,
 	}
@@ -230,15 +235,14 @@ func (a *App) CreatePushNotificationsHub() {
 func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 	for notification := range notifications {
 		switch notification.notificationType {
-		case "clear":
+		case NOTIFICATION_TYPE_CLEAR:
 			a.ClearPushNotificationSync(notification.userId, notification.channelId)
-		case "message":
+		case NOTIFICATION_TYPE_MESSAGE:
 			a.sendPushNotificationSync(
 				notification.post,
 				notification.user,
 				notification.channel,
 				notification.channelName,
-				notification.sender,
 				notification.senderName,
 				notification.explicitMention,
 				notification.channelWideMention,
