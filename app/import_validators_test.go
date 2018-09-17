@@ -704,6 +704,12 @@ func TestImportValidateUserTeamsImportData(t *testing.T) {
 	if err := validateUserTeamsImportData(&data); err == nil {
 		t.Fatal("Should have fail with invalid JSON string of theme.")
 	}
+
+	// Invalid (valid JSON but invalid theme description)
+	data[0].Theme = ptrStr(`{"somekey": 25, "json_obj1": {"color": "#DBBD4E","buttonBg": "#23A1FF"}}`)
+	if err := validateUserTeamsImportData(&data); err == nil {
+		t.Fatal("Should have fail with valid JSON which contains invalid string of theme description.")
+	}
 	data[0].Theme = nil
 }
 
