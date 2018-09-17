@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package app
+package utils
 
 import (
 	"net"
 	"net/http"
 	"strings"
-
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 // Wraps the functionality for creating a new http.Client to encapsulate that and allow it to be mocked when testing
@@ -18,25 +16,25 @@ type HTTPService interface {
 }
 
 type HTTPServiceImpl struct {
-	app *App
+	configService ConfigService
 }
 
-func MakeHTTPService(app *App) HTTPService {
-	return &HTTPServiceImpl{app}
+func MakeHTTPService(configService ConfigService) HTTPService {
+	return &HTTPServiceImpl{configService}
 }
 
 func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
-	insecure := h.app.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *h.app.Config().ServiceSettings.EnableInsecureOutgoingConnections
+	insecure := h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections
 
 	if trustURLs {
-		return utils.NewHTTPClient(insecure, nil, nil)
+		return NewHTTPClient(insecure, nil, nil)
 	}
 
 	allowHost := func(host string) bool {
-		if h.app.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
+		if h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
 			return false
 		}
-		for _, allowed := range strings.Fields(*h.app.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
+		for _, allowed := range strings.Fields(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
 			if host == allowed {
 				return true
 			}
@@ -45,13 +43,13 @@ func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
 	}
 
 	allowIP := func(ip net.IP) bool {
-		if !utils.IsReservedIP(ip) {
+		if !IsReservedIP(ip) {
 			return true
 		}
-		if h.app.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
+		if h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
 			return false
 		}
-		for _, allowed := range strings.Fields(*h.app.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
+		for _, allowed := range strings.Fields(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
 			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
 				return true
 			}
@@ -59,7 +57,7 @@ func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
 		return false
 	}
 
-	return utils.NewHTTPClient(insecure, allowHost, allowIP)
+	return NewHTTPClient(insecure, allowHost, allowIP)
 }
 
 func (h *HTTPServiceImpl) Close() {

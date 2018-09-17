@@ -8,11 +8,12 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 type Workers struct {
 	startOnce     sync.Once
-	ConfigService ConfigService
+	ConfigService utils.ConfigService
 	Watcher       *Watcher
 
 	DataRetention            model.Worker

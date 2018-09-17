@@ -99,7 +99,7 @@ type App struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService HTTPService
+	HTTPService utils.HTTPService
 }
 
 var appCount = 0
@@ -126,7 +126,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 		licenseListeners: map[string]func(){},
 	}
 
-	app.HTTPService = MakeHTTPService(app)
+	app.HTTPService = utils.MakeHTTPService(app)
 
 	defer func() {
 		if outErr != nil {
