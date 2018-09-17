@@ -180,6 +180,14 @@
     "translation": "You're the only member left, try removing the Private Channel instead of leaving."
   },
   {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "An error occured marshalling the JSON data for export."
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "An error occurred writing the export data."
+  },
+  {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
   },

@@ -2016,3 +2016,57 @@ func (s SqlChannelStore) IsExperimentalPublicChannelsMaterializationEnabled() bo
 	// See SqlChannelStoreExperimental
 	return false
 }
+
+func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var data []*model.ChannelForExport
+		if _, err := s.GetReplica().Select(&data, `
+			SELECT
+				Channels.*,
+				Teams.Name as TeamName,
+				Schemes.Name as SchemeName
+			FROM Channels
+			INNER JOIN
+				Teams ON Channels.TeamId = Teams.Id
+			LEFT JOIN
+				Schemes ON Channels.SchemeId = Schemes.Id
+			WHERE
+				Channels.Id > :AfterId
+				AND Channels.Type IN ('O', 'P')
+			ORDER BY
+				Id
+			LIMIT :Limit`,
+			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllChannelsForExportAfter", "store.sql_channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = data
+	})
+}
+
+func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var members []*model.ChannelMemberForExport
+		_, err := s.GetReplica().Select(&members, `
+            SELECT
+                ChannelMembers.*,
+                Channels.Name as ChannelName
+            FROM
+                ChannelMembers
+            INNER JOIN
+                Channels ON ChannelMembers.ChannelId = Channels.Id
+            WHERE
+                ChannelMembers.UserId = :UserId
+				AND Channels.TeamId = :TeamId
+				AND Channels.DeleteAt = 0`,
+			map[string]interface{}{"TeamId": teamId, "UserId": userId})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.GetChannelMembersForExport", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = members
+	})
+}
