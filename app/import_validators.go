@@ -308,7 +308,7 @@ func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
 			}
 		}
 
-		if tdata.Theme != nil && 0 < len(*tdata.Theme) {
+		if tdata.Theme != nil && 0 < len(strings.Trim(*tdata.Theme, " \t\r")) {
 			var unused map[string]string
 			if err := json.NewDecoder(strings.NewReader(*tdata.Theme)).Decode(&unused); err != nil {
 				return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_team_theme.error", nil, err.Error(), http.StatusBadRequest)

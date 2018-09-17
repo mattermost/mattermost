@@ -698,6 +698,13 @@ func TestImportValidateUserTeamsImportData(t *testing.T) {
 	if err := validateUserTeamsImportData(&data); err != nil {
 		t.Fatal("Should have succeeded with valid theme.")
 	}
+
+	// Invalid (invalid JSON string of theme)
+	data[0].Theme = ptrStr(`This is the invalid string which cannot be marshalled to JSON object :) + {"#DBBD4E","buttonBg", "#23A1FF", buttonColor`)
+	if err := validateUserTeamsImportData(&data); err == nil {
+		t.Fatal("Should have fail with invalid JSON string of theme.")
+	}
+	data[0].Theme = nil
 }
 
 func TestImportValidateUserChannelsImportData(t *testing.T) {
