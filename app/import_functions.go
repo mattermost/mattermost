@@ -491,10 +491,10 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	if data.ProfileImage != nil {
 		file, err := os.Open(*data.ProfileImage)
 		if err != nil {
-			mlog.Error(fmt.Sprint("api.import.import_user.profile_image.error FIXME: NOT FOUND IN TRANSLATIONS FILE", err))
+			mlog.Error("Unable to open the profile image.", mlog.Any("err", err))
 		}
 		if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
-			mlog.Error(fmt.Sprint("api.import.import_user.profile_image.error FIXME: NOT FOUND IN TRANSLATIONS FILE", err))
+			mlog.Error("Unable to set the profile image from a file.", mlog.Any("err", err))
 		}
 	}
 
@@ -555,6 +555,33 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		})
 	}
 
+	if data.UseMarkdownPreview != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+			Name:     "feature_enabled_markdown_preview",
+			Value:    *data.UseMarkdownPreview,
+		})
+	}
+
+	if data.UseFormatting != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+			Name:     "formatting",
+			Value:    *data.UseFormatting,
+		})
+	}
+
+	if data.ShowUnreadSection != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS,
+			Name:     "show_unread_section",
+			Value:    *data.ShowUnreadSection,
+		})
+	}
+
 	if len(preferences) > 0 {
 		if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, result.Err.Error(), http.StatusInternalServerError)
@@ -569,10 +596,21 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		return nil
 	}
 
+	var teamThemePreferences model.Preferences
 	for _, tdata := range *data {
 		team, err := a.GetTeamByName(*tdata.Name)
 		if err != nil {
 			return err
+		}
+
+		// Team-specific theme Preferences.
+		if tdata.Theme != nil {
+			teamThemePreferences = append(teamThemePreferences, model.Preference{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_THEME,
+				Name:     team.Id,
+				Value:    *tdata.Theme,
+			})
 		}
 
 		var roles string
@@ -619,6 +657,12 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 
 		if err := a.ImportUserChannels(user, team, member, tdata.Channels); err != nil {
 			return err
+		}
+	}
+
+	if len(teamThemePreferences) > 0 {
+		if result := <-a.Srv.Store.Preference().Save(&teamThemePreferences); result.Err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_user_teams.save_preferences.error", nil, result.Err.Error(), http.StatusInternalServerError)
 		}
 	}
 

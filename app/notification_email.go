@@ -104,7 +104,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 
 	a.Go(func() {
 		if err := a.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
-			mlog.Error(fmt.Sprint("api.post.send_notifications_and_forget.send.error FIXME: NOT FOUND IN TRANSLATIONS FILE", user.Email, err))
+			mlog.Error(fmt.Sprint("Error to send the email", user.Email, err))
 		}
 	})
 

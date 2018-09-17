@@ -40,18 +40,21 @@ type ChannelImportData struct {
 }
 
 type UserImportData struct {
-	ProfileImage *string `json:"profile_image"`
-	Username     *string `json:"username"`
-	Email        *string `json:"email"`
-	AuthService  *string `json:"auth_service"`
-	AuthData     *string `json:"auth_data"`
-	Password     *string `json:"password"`
-	Nickname     *string `json:"nickname"`
-	FirstName    *string `json:"first_name"`
-	LastName     *string `json:"last_name"`
-	Position     *string `json:"position"`
-	Roles        *string `json:"roles"`
-	Locale       *string `json:"locale"`
+	ProfileImage       *string `json:"profile_image"`
+	Username           *string `json:"username"`
+	Email              *string `json:"email"`
+	AuthService        *string `json:"auth_service"`
+	AuthData           *string `json:"auth_data"`
+	Password           *string `json:"password"`
+	Nickname           *string `json:"nickname"`
+	FirstName          *string `json:"first_name"`
+	LastName           *string `json:"last_name"`
+	Position           *string `json:"position"`
+	Roles              *string `json:"roles"`
+	Locale             *string `json:"locale"`
+	UseMarkdownPreview *string `json:"feature_enabled_markdown_preview"`
+	UseFormatting      *string `json:"formatting"`
+	ShowUnreadSection  *string `json:"show_unread_section"`
 
 	Teams *[]UserTeamImportData `json:"teams"`
 
@@ -82,6 +85,7 @@ type UserNotifyPropsImportData struct {
 type UserTeamImportData struct {
 	Name     *string                  `json:"name"`
 	Roles    *string                  `json:"roles"`
+	Theme    *string                  `json:"theme"`
 	Channels *[]UserChannelImportData `json:"channels"`
 }
 

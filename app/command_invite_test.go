@@ -95,12 +95,7 @@ func TestInviteProvider(t *testing.T) {
 			msg:      basicUser4.Username,
 		},
 		{
-			desc:     "try to add a user to a direct channel",
-			expected: "api.command_invite.directchannel.app_error",
-			msg:      userAndDMChannel,
-		},
-		{
-			desc:     "try to add a user to a privante channel with no permission",
+			desc:     "try to add a user to a private channel with no permission",
 			expected: "api.command_invite.private_channel.app_error",
 			msg:      userAndInvalidPrivate,
 		},

@@ -162,6 +162,7 @@ type ChannelStore interface {
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
+	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
 	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
@@ -173,6 +174,11 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	ResetLastPostAt() StoreChannel
+	MigratePublicChannels() error
+	DropPublicChannels() error
+	EnableExperimentalPublicChannelsMaterialization()
+	DisableExperimentalPublicChannelsMaterialization()
+	IsExperimentalPublicChannelsMaterializationEnabled() bool
 }
 
 type ChannelMemberHistoryStore interface {

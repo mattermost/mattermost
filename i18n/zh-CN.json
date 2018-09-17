@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Cannot remove user from a channel."
+    "translation": "无法从频道移除用户。"
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -1034,11 +1034,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "无法确定文件是否存在。尝试检查文件是否存在时遇到错误。"
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "无法确定文件是否存在。尝试检查文件是否存在时遇到错误。"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1435,6 +1435,14 @@
     "translation": "无法设置用户偏好。"
   },
   {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "您不能移除已归档的频道中的互动。"
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "您不能在已归档的频道互动。"
+  },
+  {
     "id": "api.reaction.save_reaction.invalid.app_error",
     "translation": "无效互动。"
   },
@@ -1444,7 +1452,7 @@
   },
   {
     "id": "api.reaction.town_square_read_only",
-    "translation": "只读频道无法发反应。"
+    "translation": "只读频道无法发互动。"
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1651,6 +1659,10 @@
     "translation": "%v 已加入团队。"
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "电子邮件必须来自指定域名 (例如 @example.com)。详情请询问您的系统管理员。"
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v 离开了团队。"
   },
@@ -1725,6 +1737,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "指定的用户不属于指定的团队。"
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "系统设定不允许限制团队到 {{ .Domain }}。请联系您的系统管理员。"
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2516,7 +2532,7 @@
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": "导入数据行有类型 \"post\" 但消息对象是无。"
+    "translation": "导入数据行有类型 \"表情符\" 但消息对象为 null。"
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3220,7 +3236,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
+    "translation": "无法重新读取 Global Relay 导出临时文件。"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3404,11 +3420,11 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "无法添加附件到 CSV 导出。"
+    "translation": "无法添加附件到 Global Relay 导出。"
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close properly the zip file."
+    "translation": "无法正常关闭 zip 文件。"
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -3416,7 +3432,7 @@
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
+    "translation": "无法生成 eml 文件数据。"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -4692,7 +4708,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user status. Unknown user status."
+    "translation": "无法设定用户状态。未知用户状态。"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4908,11 +4924,11 @@
   },
   {
     "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "We could not reset the channel last post at date"
+    "translation": "我们无法重置频道最近消息日期"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "您不能更改已归档的频道"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -4989,6 +5005,10 @@
   {
     "id": "store.sql_channel.update.app_error",
     "translation": "我们无法更新这个频道"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "您不能更改已归档的频道"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -5144,7 +5164,7 @@
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "We couldn't delete attachments of the user"
+    "translation": "我们无法删除用户的附件"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -5168,7 +5188,7 @@
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "我们没法从信息获取文件信息"
+    "translation": "我们无法获取用户的文件信息"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5752,7 +5772,7 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "We couldn't get the channel count for the scheme."
+    "translation": "我们无法从方案获取频道数。"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
