@@ -131,7 +131,7 @@
         "Trace": false,
         "AtRestEncryptKey": "",
         "QueryTimeout": 30,
-        "EnablePublicChannelsMaterialization": true
+        "EnablePublicChannelsMaterialization": false
     },
     "LogSettings": {
         "EnableConsole": true,
