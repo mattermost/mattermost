@@ -116,8 +116,11 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 	// Try to get the user with LDAP if enabled
 	if *a.Config().LdapSettings.Enable && a.Ldap != nil {
-		if user, err := a.Ldap.GetUser(loginId); err == nil {
-			return user, nil
+		if ldapUser, err := a.Ldap.GetUser(loginId); err == nil {
+			if user, err := a.GetUserByAuth(ldapUser.AuthData, model.USER_AUTH_SERVICE_LDAP); err == nil {
+				return user, nil
+			}
+			return ldapUser, nil
 		}
 	}
 
