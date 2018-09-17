@@ -687,7 +687,7 @@ func (s *SqlSettings) SetDefaults() {
 	}
 
 	if s.EnablePublicChannelsMaterialization == nil {
-		s.EnablePublicChannelsMaterialization = NewBool(false)
+		s.EnablePublicChannelsMaterialization = NewBool(true)
 	}
 }
 
