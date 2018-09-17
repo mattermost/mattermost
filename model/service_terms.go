@@ -14,8 +14,6 @@ import (
 type ServiceTerms struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
-	EditAt   int64  `json:"edit_at"`
-	DeleteAt int64  `json:"delete_at"`
 	UserId   string `json:"user_id"`
 	Text     string `json:"text"`
 }
