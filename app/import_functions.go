@@ -491,10 +491,10 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	if data.ProfileImage != nil {
 		file, err := os.Open(*data.ProfileImage)
 		if err != nil {
-			mlog.Error(fmt.Sprint("api.import.import_user.profile_image.error FIXME: NOT FOUND IN TRANSLATIONS FILE", err))
+			mlog.Error("Unable to open the profile image.", mlog.Any("err", err))
 		}
 		if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
-			mlog.Error(fmt.Sprint("api.import.import_user.profile_image.error FIXME: NOT FOUND IN TRANSLATIONS FILE", err))
+			mlog.Error("Unable to set the profile image from a file.", mlog.Any("err", err))
 		}
 	}
 
