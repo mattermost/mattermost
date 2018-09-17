@@ -121,7 +121,7 @@ func TestUpdateUserStatus(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	toUpdateUserStatus := &model.Status{Status: "online"}
+	toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser.Id}
 	updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 	CheckNoError(t, resp)
 	if updateUserStatus.Status != "online" {
@@ -150,6 +150,7 @@ func TestUpdateUserStatus(t *testing.T) {
 	}
 
 	toUpdateUserStatus.Status = "online"
+	toUpdateUserStatus.UserId = th.BasicUser2.Id
 	_, resp = Client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
 	CheckForbiddenStatus(t, resp)
 
@@ -158,6 +159,9 @@ func TestUpdateUserStatus(t *testing.T) {
 	if updateUserStatus.Status != "online" {
 		t.Fatal("Should return online status")
 	}
+
+	_, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+	CheckBadRequestStatus(t, resp)
 
 	Client.Logout()
 
