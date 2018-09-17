@@ -1091,10 +1091,10 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time", *data.UseMilitaryTime)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "collapse_previews", *data.CollapsePreviews)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSE_SETTING, *data.CollapsePreviews)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "formatting", *data.UseFormatting)
@@ -1117,10 +1117,10 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check their values again.
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time", *data.UseMilitaryTime)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "collapse_previews", *data.CollapsePreviews)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSE_SETTING, *data.CollapsePreviews)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
 
 	// Set Notify Props
