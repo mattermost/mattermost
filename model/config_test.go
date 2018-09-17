@@ -564,3 +564,128 @@ func TestListenAddressIsValidated(t *testing.T) {
 	}
 
 }
+
+func TestImageProxySettingsSetDefaults(t *testing.T) {
+	ss := ServiceSettings{
+		ImageProxyType:    NewString(IMAGE_PROXY_TYPE_ATMOS_CAMO),
+		ImageProxyURL:     NewString("http://images.example.com"),
+		ImageProxyOptions: NewString("1234abcd"),
+	}
+
+	t.Run("default, no old settings", func(t *testing.T) {
+		ips := ImageProxySettings{}
+		ips.SetDefaults(ServiceSettings{})
+
+		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, "", *ips.RemoteImageProxyURL)
+		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
+	})
+
+	t.Run("default, old settings", func(t *testing.T) {
+		ips := ImageProxySettings{}
+		ips.SetDefaults(ss)
+
+		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, *ss.ImageProxyType, *ips.ImageProxyType)
+		assert.Equal(t, *ss.ImageProxyURL, *ips.RemoteImageProxyURL)
+		assert.Equal(t, *ss.ImageProxyOptions, *ips.RemoteImageProxyOptions)
+	})
+
+	t.Run("not default, old settings", func(t *testing.T) {
+		url := "http://images.mattermost.com"
+		options := "aaaaaaaa"
+
+		ips := ImageProxySettings{
+			Enable:                  NewBool(false),
+			ImageProxyType:          NewString(IMAGE_PROXY_TYPE_LOCAL),
+			RemoteImageProxyURL:     &url,
+			RemoteImageProxyOptions: &options,
+		}
+		ips.SetDefaults(ss)
+
+		assert.Equal(t, false, *ips.Enable)
+		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, url, *ips.RemoteImageProxyURL)
+		assert.Equal(t, options, *ips.RemoteImageProxyOptions)
+	})
+}
+
+func TestImageProxySettingsIsValid(t *testing.T) {
+	for _, test := range []struct {
+		Name                    string
+		Enable                  bool
+		ImageProxyType          string
+		RemoteImageProxyURL     string
+		RemoteImageProxyOptions string
+		ExpectError             bool
+	}{
+		{
+			Name:        "disabled",
+			Enable:      false,
+			ExpectError: false,
+		},
+		{
+			Name:                    "disabled with bad values",
+			Enable:                  false,
+			ImageProxyType:          "garbage",
+			RemoteImageProxyURL:     "garbage",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             false,
+		},
+		{
+			Name:           "missing type",
+			Enable:         true,
+			ImageProxyType: "",
+			ExpectError:    true,
+		},
+		{
+			Name:                    "local",
+			Enable:                  true,
+			ImageProxyType:          "local",
+			RemoteImageProxyURL:     "garbage",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             false,
+		},
+		{
+			Name:                    "atmos/camo",
+			Enable:                  true,
+			ImageProxyType:          model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "someoptions",
+			ExpectError:             false,
+		},
+		{
+			Name:                    "atmos/camo, missing url",
+			Enable:                  true,
+			ImageProxyType:          model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, missing options",
+			Enable:                  true,
+			ImageProxyType:          model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "",
+			ExpectError:             true,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			ips := &ImageProxySettings{
+				Enable:                  &test.Enable,
+				ImageProxyType:          &test.ImageProxyType,
+				RemoteImageProxyURL:     &test.RemoteImageProxyURL,
+				RemoteImageProxyOptions: &test.RemoteImageProxyOptions,
+			}
+
+			err := ips.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}

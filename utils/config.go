@@ -743,8 +743,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["DiagnosticId"] = diagnosticId
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
-	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
-	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
+	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
 
 	// Set default values for all options that require a license.
 	props["EnableCustomBrand"] = "false"

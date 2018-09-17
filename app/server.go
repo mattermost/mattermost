@@ -33,6 +33,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
@@ -110,6 +111,8 @@ type Server struct {
 	phase2PermissionsMigrationComplete bool
 
 	HTTPService httpservice.HTTPService
+
+	ImageProxy *imageproxy.ImageProxy
 
 	Log *mlog.Logger
 
@@ -347,6 +350,8 @@ func NewServer(options ...Option) (*Server, error) {
 	if result := <-s.Store.Status().ResetAll(); result.Err != nil {
 		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
 	}
+
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
 
 	return s, nil
 }
