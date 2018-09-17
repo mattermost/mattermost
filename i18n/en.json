@@ -4708,19 +4708,19 @@
   },
   {
     "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Invalid term id"
+    "translation": "Invalid term of service id."
   },
   {
     "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "Missing required term property: create_at"
+    "translation": "Missing required term of service property: create_at."
   },
   {
     "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "Missing required term property: user_id"
+    "translation": "Missing required terms of service property: user_id."
   },
   {
     "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Invali term text."
+    "translation": "Invalid terms of service text."
   },
   {
     "id": "oauth.gitlab.tos.error",
