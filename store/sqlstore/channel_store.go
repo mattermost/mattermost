@@ -1730,7 +1730,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 			JOIN
 				ChannelMembers AS CM ON CM.ChannelId = C.Id
 			WHERE
-			    C.TeamId = :TeamId
+			    (C.TeamId = :TeamId OR C.TeamId = '')
 				AND CM.UserId = :UserId
 				` + deleteFilter + `
 				%v
