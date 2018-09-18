@@ -323,11 +323,8 @@ func TestUpdateTeam(t *testing.T) {
 	originalTeamId := team.Id
 	team.Id = model.NewId()
 
-	if r, err := Client.DoApiPut(Client.GetTeamRoute(originalTeamId), team.ToJson()); err != nil {
-		t.Fatal(err)
-	} else {
-		uteam = model.TeamFromJson(r.Body)
-	}
+	r, _ := Client.DoApiPut(Client.GetTeamRoute(originalTeamId), team.ToJson())
+	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	if uteam.Id != originalTeamId {
 		t.Fatal("wrong team id")

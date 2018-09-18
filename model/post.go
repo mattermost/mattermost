@@ -124,6 +124,19 @@ func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	return &copy
 }
 
+type PostForExport struct {
+	Post
+	TeamName    string
+	ChannelName string
+	Username    string
+	ReplyCount  int
+}
+
+type ReplyForExport struct {
+	Post
+	Username string
+}
+
 type PostForIndexing struct {
 	Post
 	TeamId         string `json:"team_id"`

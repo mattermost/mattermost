@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
@@ -33,7 +35,7 @@ func compileGo(t *testing.T, sourceCode, outputPath string) {
 	require.NoError(t, cmd.Run())
 }
 
-func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) {
+func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) []error {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
@@ -45,14 +47,18 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	require.NoError(t, err)
 
 	app.Plugins = env
+	activationErrors := []error{}
 	for _, code := range pluginCode {
 		pluginId := model.NewId()
 		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
 		compileGo(t, code, backend)
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
-		env.Activate(pluginId)
+		_, _, activationErr := env.Activate(pluginId)
+		activationErrors = append(activationErrors, activationErr)
 	}
+
+	return activationErrors
 }
 
 func TestHookMessageWillBePosted(t *testing.T) {
@@ -790,4 +796,74 @@ func TestUserHasLoggedIn(t *testing.T) {
 	if user.FirstName != "plugin-callback-success" {
 		t.Errorf("Expected firstname overwrite, got default")
 	}
+}
+
+func TestErrorString(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	t.Run("errors.New", func(t *testing.T) {
+		activationErrors := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"github.com/pkg/errors"
+
+				"github.com/mattermost/mattermost-server/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				return errors.New("simulate failure")
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+
+		require.Len(t, activationErrors, 1)
+		require.NotNil(t, activationErrors[0])
+		require.Contains(t, activationErrors[0].Error(), "simulate failure")
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		activationErrors := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				return model.NewAppError("where", "id", map[string]interface{}{"param": 1}, "details", 42)
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+
+		require.Len(t, activationErrors, 1)
+		require.NotNil(t, activationErrors[0])
+
+		cause := errors.Cause(activationErrors[0])
+		require.IsType(t, &model.AppError{}, cause)
+
+		// params not expected, since not exported
+		expectedErr := model.NewAppError("where", "id", nil, "details", 42)
+		require.Equal(t, expectedErr, cause)
+	})
 }

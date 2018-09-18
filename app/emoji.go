@@ -23,9 +23,11 @@ import (
 )
 
 const (
-	MaxEmojiFileSize = 1 << 20 // 1 MB
-	MaxEmojiWidth    = 128
-	MaxEmojiHeight   = 128
+	MaxEmojiFileSize       = 1 << 20 // 1 MB
+	MaxEmojiWidth          = 128
+	MaxEmojiHeight         = 128
+	MaxEmojiOriginalWidth  = 1028
+	MaxEmojiOriginalHeight = 1028
 )
 
 func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
@@ -85,6 +87,11 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 	// make sure the file is an image and is within the required dimensions
 	if config, _, err := image.DecodeConfig(bytes.NewReader(buf.Bytes())); err != nil {
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, "", http.StatusBadRequest)
+	} else if config.Width > MaxEmojiOriginalWidth || config.Height > MaxEmojiOriginalHeight {
+		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.too_large.app_error", map[string]interface{}{
+			"MaxWidth":  MaxEmojiOriginalWidth,
+			"MaxHeight": MaxEmojiOriginalHeight,
+		}, "", http.StatusBadRequest)
 	} else if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
 		data := buf.Bytes()
 		newbuf := bytes.NewBuffer(nil)

@@ -38,7 +38,7 @@ func GetCommandProvider(name string) CommandProvider {
 }
 
 func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse) (*model.Post, *model.AppError) {
-	post.Message = parseSlackLinksToMarkdown(response.Text)
+	post.Message = model.ParseSlackLinksToMarkdown(response.Text)
 	post.CreateAt = model.GetMillis()
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
@@ -47,7 +47,7 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 	}
 
 	if response.Attachments != nil {
-		parseSlackAttachment(post, response.Attachments)
+		model.ParseSlackAttachment(post, response.Attachments)
 	}
 
 	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
@@ -233,7 +233,11 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 				var req *http.Request
 				if cmd.Method == model.COMMAND_METHOD_GET {
 					req, _ = http.NewRequest(http.MethodGet, cmd.URL, nil)
-					req.URL.RawQuery = p.Encode()
+
+					if req.URL.RawQuery != "" {
+						req.URL.RawQuery += "&"
+					}
+					req.URL.RawQuery += p.Encode()
 				} else {
 					req, _ = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 				}

@@ -57,8 +57,17 @@ type ChannelPatch struct {
 	Purpose     *string `json:"purpose"`
 }
 
+type ChannelForExport struct {
+	Channel
+	TeamName   string
+	SchemeName *string
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
+	if copy.SchemeId != nil {
+		copy.SchemeId = NewString(*o.SchemeId)
+	}
 	return &copy
 }
 

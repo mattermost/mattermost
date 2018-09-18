@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"regexp"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -26,8 +25,6 @@ const (
 	MAX_LIMIT_POSTS_SINCE = 1000
 	PAGE_DEFAULT          = 0
 )
-
-var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
@@ -308,28 +305,6 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	return nil
-}
-
-// This method only parses and processes the attachments,
-// all else should be set in the post which is passed
-func parseSlackAttachment(post *model.Post, attachments []*model.SlackAttachment) {
-	post.Type = model.POST_SLACK_ATTACHMENT
-
-	for _, attachment := range attachments {
-		attachment.Text = parseSlackLinksToMarkdown(attachment.Text)
-		attachment.Pretext = parseSlackLinksToMarkdown(attachment.Pretext)
-
-		for _, field := range attachment.Fields {
-			if value, ok := field.Value.(string); ok {
-				field.Value = parseSlackLinksToMarkdown(value)
-			}
-		}
-	}
-	post.AddProp("attachments", attachments)
-}
-
-func parseSlackLinksToMarkdown(text string) string {
-	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
 
 func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
@@ -754,8 +729,10 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 				return nil, presult.Err
 			} else {
 				for _, p := range presult.Data.([]*model.Post) {
-					postList.AddPost(p)
-					postList.AddOrder(p.Id)
+					if p.DeleteAt == 0 {
+						postList.AddPost(p)
+						postList.AddOrder(p.Id)
+					}
 				}
 			}
 		}
@@ -899,7 +876,7 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 
 	if response.EphemeralText != "" {
 		ephemeralPost := &model.Post{}
-		ephemeralPost.Message = parseSlackLinksToMarkdown(response.EphemeralText)
+		ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
 		ephemeralPost.ChannelId = post.ChannelId
 		ephemeralPost.RootId = post.RootId
 		if ephemeralPost.RootId == "" {

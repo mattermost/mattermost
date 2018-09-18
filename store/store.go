@@ -111,6 +111,8 @@ type TeamStore interface {
 	ResetAllTeamSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
+	GetAllForExportAfter(limit int, afterId string) StoreChannel
+	GetTeamMembersForExport(userId string) StoreChannel
 }
 
 type ChannelStore interface {
@@ -162,6 +164,7 @@ type ChannelStore interface {
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
+	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
 	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
@@ -173,6 +176,13 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	ResetLastPostAt() StoreChannel
+	MigratePublicChannels() error
+	DropPublicChannels() error
+	EnableExperimentalPublicChannelsMaterialization()
+	DisableExperimentalPublicChannelsMaterialization()
+	IsExperimentalPublicChannelsMaterializationEnabled() bool
+	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
+	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -211,6 +221,8 @@ type PostStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
 	GetMaxPostSize() StoreChannel
+	GetParentsForExportAfter(limit int, afterId string) StoreChannel
+	GetRepliesForExport(parentId string) StoreChannel
 }
 
 type UserStore interface {
@@ -266,6 +278,7 @@ type UserStore interface {
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
+	GetAllAfter(limit int, afterId string) StoreChannel
 }
 
 type SessionStore interface {

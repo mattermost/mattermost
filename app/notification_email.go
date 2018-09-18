@@ -17,7 +17,10 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, channelName string, senderName string, sender *model.User) *model.AppError {
+func (a *App) sendNotificationEmail(notification *postNotification, user *model.User, team *model.Team) *model.AppError {
+	channel := notification.channel
+	post := notification.post
+
 	if channel.IsGroupOrDirect() {
 		if result := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
 			return result.Err
@@ -41,6 +44,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 			}
 		}
 	}
+
 	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
 		if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
@@ -60,13 +64,24 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 		// fall back to sending a single email if we can't batch it for some reason
 	}
 
-	var useMilitaryTime bool
 	translateFunc := utils.GetUserTranslations(user.Locale)
-	if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time"); result.Err != nil {
+
+	var useMilitaryTime bool
+	if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); result.Err != nil {
 		useMilitaryTime = true
 	} else {
 		useMilitaryTime = result.Data.(model.Preference).Value == "true"
 	}
+
+	var nameFormat string
+	if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); result.Err != nil {
+		nameFormat = *a.Config().TeamSettings.TeammateNameDisplay
+	} else {
+		nameFormat = result.Data.(model.Preference).Value
+	}
+
+	channelName := notification.GetChannelName(nameFormat, "")
+	senderName := notification.GetSenderName(nameFormat, a.Config().ServiceSettings.EnablePostUsernameOverride)
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
@@ -79,7 +94,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 	} else if channel.Type == model.CHANNEL_GROUP {
 		subjectText = getGroupMessageNotificationEmailSubject(user, post, translateFunc, a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType, useMilitaryTime)
 	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
-		subjectText = getNotificationEmailSubject(user, post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channel.DisplayName+")", useMilitaryTime)
+		subjectText = getNotificationEmailSubject(user, post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channelName+")", useMilitaryTime)
 	} else {
 		subjectText = getNotificationEmailSubject(user, post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName, useMilitaryTime)
 	}
@@ -89,7 +104,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 
 	a.Go(func() {
 		if err := a.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
-			mlog.Error(fmt.Sprint("api.post.send_notifications_and_forget.send.error FIXME: NOT FOUND IN TRANSLATIONS FILE", user.Email, err))
+			mlog.Error(fmt.Sprint("Error to send the email", user.Email, err))
 		}
 	})
 
