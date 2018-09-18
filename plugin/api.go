@@ -34,6 +34,9 @@ type API interface {
 	// SaveConfig sets the given config and persists the changes
 	SaveConfig(config *model.Config) *model.AppError
 
+	// GetServerVersion return the current Mattermost server version
+	GetServerVersion() string
+
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 

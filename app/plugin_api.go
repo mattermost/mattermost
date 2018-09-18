@@ -83,6 +83,10 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
 
+func (api *PluginAPI) GetServerVersion() string {
+	return model.CurrentVersion
+}
+
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.CreateTeam(team)
 }

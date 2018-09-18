@@ -656,6 +656,33 @@ func (s *apiRPCServer) SaveConfig(args *Z_SaveConfigArgs, returns *Z_SaveConfigR
 	return nil
 }
 
+type Z_GetServerVersionArgs struct {
+}
+
+type Z_GetServerVersionReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetServerVersion() string {
+	_args := &Z_GetServerVersionArgs{}
+	_returns := &Z_GetServerVersionReturns{}
+	if err := g.client.Call("Plugin.GetServerVersion", _args, _returns); err != nil {
+		log.Printf("RPC call to GetServerVersion API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetServerVersion(args *Z_GetServerVersionArgs, returns *Z_GetServerVersionReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetServerVersion() string
+	}); ok {
+		returns.A = hook.GetServerVersion()
+	} else {
+		return encodableError(fmt.Errorf("API GetServerVersion called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CreateUserArgs struct {
 	A *model.User
 }
