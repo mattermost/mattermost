@@ -7,12 +7,12 @@ import (
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/configservice"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 type JobServer struct {
-	ConfigService utils.ConfigService
+	ConfigService configservice.ConfigService
 	Store         store.Store
 	Workers       *Workers
 	Schedulers    *Schedulers
@@ -25,7 +25,7 @@ type JobServer struct {
 	Migrations              tjobs.MigrationsJobInterface
 }
 
-func NewJobServer(configService utils.ConfigService, store store.Store) *JobServer {
+func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {
 	return &JobServer{
 		ConfigService: configService,
 		Store:         store,

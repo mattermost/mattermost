@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
@@ -99,7 +100,7 @@ type App struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService utils.HTTPService
+	HTTPService httpservice.HTTPService
 }
 
 var appCount = 0
@@ -126,7 +127,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 		licenseListeners: map[string]func(){},
 	}
 
-	app.HTTPService = utils.MakeHTTPService(app)
+	app.HTTPService = httpservice.MakeHTTPService(app)
 
 	defer func() {
 		if outErr != nil {

@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package utils
+package httpservice
 
 import (
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/services/configservice"
 )
 
 // Wraps the functionality for creating a new http.Client to encapsulate that and allow it to be mocked when testing
@@ -16,10 +18,10 @@ type HTTPService interface {
 }
 
 type HTTPServiceImpl struct {
-	configService ConfigService
+	configService configservice.ConfigService
 }
 
-func MakeHTTPService(configService ConfigService) HTTPService {
+func MakeHTTPService(configService configservice.ConfigService) HTTPService {
 	return &HTTPServiceImpl{configService}
 }
 
