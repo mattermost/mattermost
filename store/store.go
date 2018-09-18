@@ -111,6 +111,8 @@ type TeamStore interface {
 	ResetAllTeamSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
+	GetAllForExportAfter(limit int, afterId string) StoreChannel
+	GetTeamMembersForExport(userId string) StoreChannel
 }
 
 type ChannelStore interface {
@@ -179,6 +181,8 @@ type ChannelStore interface {
 	EnableExperimentalPublicChannelsMaterialization()
 	DisableExperimentalPublicChannelsMaterialization()
 	IsExperimentalPublicChannelsMaterializationEnabled() bool
+	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
+	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -217,6 +221,8 @@ type PostStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
 	GetMaxPostSize() StoreChannel
+	GetParentsForExportAfter(limit int, afterId string) StoreChannel
+	GetRepliesForExport(parentId string) StoreChannel
 }
 
 type UserStore interface {
@@ -272,6 +278,7 @@ type UserStore interface {
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
+	GetAllAfter(limit int, afterId string) StoreChannel
 }
 
 type SessionStore interface {
