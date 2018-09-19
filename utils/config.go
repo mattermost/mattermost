@@ -483,9 +483,6 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil && err.Id!= serviceTermsEnabledAndEmpty.Id {
-		mlog.Info("err message: " + err.Message)
-		mlog.Info("err ID: " + err.Id)
-		mlog.Info("reference message: " + serviceTermsEnabledAndEmpty.Message)
 		return nil, "", nil, err
 	}
 
