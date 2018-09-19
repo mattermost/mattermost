@@ -154,6 +154,8 @@ type PostActionIntegration struct {
 
 type PostActionIntegrationRequest struct {
 	UserId     string          `json:"user_id"`
+	ChannelId  string          `json:"channel_id"`
+	TeamId     string          `json:"team_id"`
 	PostId     string          `json:"post_id"`
 	Type       string          `json:"type"`
 	DataSource string          `json:"data_source"`
