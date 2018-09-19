@@ -3131,6 +3131,10 @@
     "translation": "in"
   },
   {
+    "id": "app.reminder.chrono.tomorrow",
+    "translation": "tomorrow"
+  },
+  {
     "id": "app.reminder.chrono.s",
     "translation": "s"
   },
@@ -3233,6 +3237,74 @@
   {
     "id": "app.reminder.chrono.y",
     "translation": "y"
+  },
+  {
+    "id": "app.reminder.chrono.monday",
+    "translation": "monday"
+  },
+  {
+    "id": "app.reminder.chrono.tuesday",
+    "translation": "tuesday"
+  },
+  {
+    "id": "app.reminder.chrono.wednesday",
+    "translation": "wednesday"
+  },
+  {
+    "id": "app.reminder.chrono.thursday",
+    "translation": "thursday"
+  },
+  {
+    "id": "app.reminder.chrono.friday",
+    "translation": "friday"
+  },
+  {
+    "id": "app.reminder.chrono.saturday",
+    "translation": "saturday"
+  },
+  {
+    "id": "app.reminder.chrono.sunday",
+    "translation": "sunday"
+  },
+  {
+    "id": "app.reminder.chrono.mondays",
+    "translation": "mondays"
+  },
+  {
+    "id": "app.reminder.chrono.tuesdays",
+    "translation": "tuesdays"
+  },
+  {
+    "id": "app.reminder.chrono.wednesdays",
+    "translation": "wednesdays"
+  },
+  {
+    "id": "app.reminder.chrono.thursdays",
+    "translation": "thursdays"
+  },
+  {
+    "id": "app.reminder.chrono.fridays",
+    "translation": "fridays"
+  },
+  {
+    "id": "app.reminder.chrono.saturdays",
+    "translation": "saturdays"
+  },
+  {
+    "id": "app.reminder.chrono.sundays",
+    "translation": "sundays"
+  },
+  {
+    "id": "app.reminder.chrono.everyday",
+    "translation": "everyday"
+  },
+  {
+    "id": "app.reminder.chrono.today",
+    "translation": "today"
+  },
+  {
+    "id": "app.reminder.chrono.sundays",
+    "translation": "sundays"
   },
   {
     "id": "app.reminder.chrono.at",

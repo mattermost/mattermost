@@ -6,10 +6,10 @@ package app
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"regexp"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -44,7 +44,6 @@ func (a *App) InitReminders() {
 
 	remindUser = user
 	emptyTime = time.Time{}.AddDate(1, 1, 1)
-
 
 	// TODO fix this flaw in translation.  should be per user, not the remind bot
 
@@ -643,12 +642,12 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 
 func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
+	_, location, translateFunc, _ := a.shared(user.Id)
+	cfg := a.Config()
+
 	whenSplit := strings.Split(when, " ")
 	value := whenSplit[1]
 	units := whenSplit[len(whenSplit)-1]
-
-	_, location, translateFunc, _ := a.shared(user.Id)
-	cfg := a.Config()
 
 	switch units {
 	case translateFunc("app.reminder.chrono.seconds"),
@@ -659,7 +658,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 		i, e := strconv.Atoi(value)
 
-		if e != nil  {
+		if e != nil {
 			num, wErr := a.wordToNumber(value)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
@@ -682,7 +681,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 		i, e := strconv.Atoi(value)
 
-		if e != nil  {
+		if e != nil {
 			num, wErr := a.wordToNumber(value)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
@@ -706,7 +705,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 		i, e := strconv.Atoi(value)
 
-		if e != nil  {
+		if e != nil {
 			num, wErr := a.wordToNumber(value)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
@@ -729,7 +728,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 		i, e := strconv.Atoi(value)
 
-		if e != nil  {
+		if e != nil {
 			num, wErr := a.wordToNumber(value)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
@@ -753,7 +752,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 		i, e := strconv.Atoi(value)
 
-		if e != nil  {
+		if e != nil {
 			num, wErr := a.wordToNumber(value)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
@@ -776,7 +775,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 		i, e := strconv.Atoi(value)
 
-		if e != nil  {
+		if e != nil {
 			num, wErr := a.wordToNumber(value)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
@@ -800,7 +799,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 		i, e := strconv.Atoi(value)
 
-		if e != nil  {
+		if e != nil {
 			num, wErr := a.wordToNumber(value)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
@@ -834,8 +833,8 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
 	if strings.Contains(when, translateFunc("app.reminder.chrono.every")) {
 
-		dateTimeSplit := strings.Split(when," "+translateFunc("app.reminder.chrono.every")+" ")
-		mlog.Info(translateFunc("app.reminder.chrono.every")+" "+dateTimeSplit[1]+" "+dateTimeSplit[0])
+		dateTimeSplit := strings.Split(when, " "+translateFunc("app.reminder.chrono.every")+" ")
+		mlog.Info(translateFunc("app.reminder.chrono.every") + " " + dateTimeSplit[1] + " " + dateTimeSplit[0])
 		return a.every(translateFunc("app.reminder.chrono.every")+" "+dateTimeSplit[1]+" "+dateTimeSplit[0], user)
 
 	} else if len(whenSplit) >= 3 &&
@@ -846,7 +845,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 			if len(normalizedWhen) >= 3 {
 				hrs := string(normalizedWhen[:len(normalizedWhen)-2])
 				mins := string(normalizedWhen[len(normalizedWhen)-2:])
-				normalizedWhen = hrs + ":" +mins
+				normalizedWhen = hrs + ":" + mins
 			} else {
 				normalizedWhen = normalizedWhen + ":00"
 			}
@@ -977,8 +976,8 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 			normalizedWhen = s + ":" + normalizedWhen[len(normalizedWhen)-2:]
 		}
 
-		timeSplit := strings.Split(normalizedWhen,":")
-		hr,_ := strconv.Atoi(timeSplit[0])
+		timeSplit := strings.Split(normalizedWhen, ":")
+		hr, _ := strconv.Atoi(timeSplit[0])
 		ampm := translateFunc("app.reminder.chrono.am")
 
 		if hr > 11 {
@@ -987,7 +986,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 		if hr > 12 {
 			hr -= 12
 			timeSplit[0] = strconv.Itoa(hr)
-			normalizedWhen = strings.Join(timeSplit,":")
+			normalizedWhen = strings.Join(timeSplit, ":")
 		}
 
 		t, pErr := time.Parse(time.Kitchen, strings.ToUpper(normalizedWhen+ampm))
@@ -1006,7 +1005,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
 func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
-	user, _, translateFunc, _ := a.shared(user.Id)
+	_, _, translateFunc, _ := a.shared(user.Id)
 
 	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
@@ -1045,8 +1044,8 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 			day = 7 + (weekDayNum - todayWeekDayNum)
 		}
 
-		timeUnitSplit := strings.Split(timeUnit,":")
-		hr,_ := strconv.Atoi(timeUnitSplit[0])
+		timeUnitSplit := strings.Split(timeUnit, ":")
+		hr, _ := strconv.Atoi(timeUnitSplit[0])
 		ampm := strings.ToUpper(translateFunc("app.reminder.chrono.am"))
 
 		if hr > 11 {
@@ -1076,7 +1075,7 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 				dateUnit[:len(dateUnit)-1]+" "+
 				translateFunc("app.reminder.chrono.at")+" "+
 				timeUnit[:len(timeUnit)-3],
-				user)
+			user)
 
 		break
 	}
@@ -1084,7 +1083,7 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 	dateSplit := a.regSplit(dateUnit, "T|Z")
 
 	if len(dateSplit) < 3 {
-		timeSplit := strings.Split(dateSplit[1],"-")
+		timeSplit := strings.Split(dateSplit[1], "-")
 		t, tErr := time.Parse(time.RFC3339, dateSplit[0]+"T"+timeUnit+"-"+timeSplit[1])
 		if tErr != nil {
 			return []time.Time{}, tErr
@@ -1113,9 +1112,9 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 
 	var everyOther bool
 	chronoUnit := strings.ToLower(strings.Join(whenSplit[1:], " "))
-	otherSplit := strings.Split(chronoUnit,translateFunc("app.reminder.chrono.other"))
+	otherSplit := strings.Split(chronoUnit, translateFunc("app.reminder.chrono.other"))
 	if len(otherSplit) == 2 {
-		chronoUnit = strings.Trim(otherSplit[1]," ")
+		chronoUnit = strings.Trim(otherSplit[1], " ")
 		everyOther = true
 	}
 	dateTimeSplit := strings.Split(chronoUnit, " "+translateFunc("app.reminder.chrono.at")+" ")
@@ -1125,11 +1124,11 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 		chronoTime = strings.Trim(dateTimeSplit[1], " ")
 	}
 
-	days := a.regSplit(chronoDate,"(and)|(,)")
+	days := a.regSplit(chronoDate, "(and)|(,)")
 
 	for _, chrono := range days {
 
-		dateUnit, ndErr := a.normalizeDate(user, strings.Trim(chrono," "))
+		dateUnit, ndErr := a.normalizeDate(user, strings.Trim(chrono, " "))
 		if ndErr != nil {
 			return []time.Time{}, ndErr
 		}
@@ -1145,8 +1144,8 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 				d = 2
 			}
 
-			timeUnitSplit := strings.Split(timeUnit,":")
-			hr,_ := strconv.Atoi(timeUnitSplit[0])
+			timeUnitSplit := strings.Split(timeUnit, ":")
+			hr, _ := strconv.Atoi(timeUnitSplit[0])
 			ampm := strings.ToUpper(translateFunc("app.reminder.chrono.am"))
 
 			if hr > 11 {
@@ -1168,7 +1167,7 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 			times = append(times, a.chooseClosest(user, &occurrence, false))
 
 			break
-		case "monday","tuesday","wednesday","thursday","friday","saturday","sunday":
+		case "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday":
 			todayWeekDayNum := int(time.Now().Weekday()) //5
 			weekDayNum := a.weekDayNumber(dateUnit)      //1
 			day := 0
@@ -1179,8 +1178,8 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 				day = 7 + (weekDayNum - todayWeekDayNum)
 			}
 
-			timeUnitSplit := strings.Split(timeUnit,":")
-			hr,_ := strconv.Atoi(timeUnitSplit[0])
+			timeUnitSplit := strings.Split(timeUnit, ":")
+			hr, _ := strconv.Atoi(timeUnitSplit[0])
 			ampm := strings.ToUpper(translateFunc("app.reminder.chrono.am"))
 
 			if hr > 11 {
@@ -1206,7 +1205,7 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 			dateSplit := a.regSplit(dateUnit, "T|Z")
 
 			if len(dateSplit) < 3 {
-				timeSplit := strings.Split(dateSplit[1],"-")
+				timeSplit := strings.Split(dateSplit[1], "-")
 				t, tErr := time.Parse(time.RFC3339, dateSplit[0]+"T"+timeUnit+"-"+timeSplit[1])
 				if tErr != nil {
 					return []time.Time{}, tErr
@@ -1226,6 +1225,87 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 
 	return times, nil
 
+}
+
+func (a *App) freeForm(when string, user *model.User) (times []time.Time, err error) {
+
+	_, _, translateFunc, _ := a.shared(user.Id)
+
+	whenTrim := strings.Trim(when, " ")
+	chronoUnit := strings.ToLower(whenTrim)
+	dateTimeSplit := strings.Split(chronoUnit, " "+translateFunc("app.reminder.chrono.at")+" ")
+	chronoTime := model.DEFAULT_TIME
+	chronoDate := dateTimeSplit[0]
+
+	if len(dateTimeSplit) > 1 {
+		chronoTime = dateTimeSplit[1]
+	}
+
+	dateUnit, ndErr := a.normalizeDate(user, chronoDate)
+	if ndErr != nil {
+		return []time.Time{}, ndErr
+	}
+	timeUnit, ntErr := a.normalizeTime(user, chronoTime)
+	if ntErr != nil {
+		return []time.Time{}, ntErr
+	}
+
+	//remove seconds for internal function calls
+	timeUnit = timeUnit[:len(timeUnit)-3]
+
+	switch dateUnit {
+	case translateFunc("app.reminder.chrono.today"):
+		return a.at(translateFunc("app.reminder.chrono.at")+" "+timeUnit, user)
+	case translateFunc("app.reminder.chrono.tomorrow"):
+		return a.on(
+			translateFunc("app.reminder.chrono.on")+" "+
+				time.Now().Add(time.Hour*24).Weekday().String()+" "+
+				translateFunc("app.reminder.chrono.at")+" "+
+				timeUnit,
+			user)
+	case translateFunc("app.reminder.chrono.everyday"):
+		return a.every(
+			translateFunc("app.reminder.chrono.every")+" "+
+				translateFunc("app.reminder.chrono.day")+" "+
+				translateFunc("app.reminder.chrono.at")+" "+
+				timeUnit,
+			user)
+	case translateFunc("app.reminder.chrono.mondays"),
+		translateFunc("app.reminder.chrono.tuesdays"),
+		translateFunc("app.reminder.chrono.wednesdays"),
+		translateFunc("app.reminder.chrono.thursdays"),
+		translateFunc("app.reminder.chrono.fridays"),
+		translateFunc("app.reminder.chrono.saturdays"),
+		translateFunc("app.reminder.chrono.sundays"):
+		return a.every(
+			translateFunc("app.reminder.chrono.every")+" "+
+				dateUnit[:len(dateUnit)-1]+" "+
+				translateFunc("app.reminder.chrono.at")+" "+
+				timeUnit,
+			user)
+	case translateFunc("app.reminder.chrono.monday"),
+		translateFunc("app.reminder.chrono.tuesday"),
+		translateFunc("app.reminder.chrono.wednesday"),
+		translateFunc("app.reminder.chrono.thursday"),
+		translateFunc("app.reminder.chrono.friday"),
+		translateFunc("app.reminder.chrono.saturday"),
+		translateFunc("app.reminder.chrono.sunday"):
+		return a.on(
+			translateFunc("app.reminder.chrono.on")+" "+
+				dateUnit+" "+
+				translateFunc("app.reminder.chrono.at")+" "+
+				timeUnit,
+			user)
+	default:
+		return a.on(
+			translateFunc("app.reminder.chrono.on")+" "+
+				dateUnit[:len(dateUnit)-1]+" "+
+				translateFunc("app.reminder.chrono.at")+" "+
+				timeUnit,
+			user)
+	}
+
+	return []time.Time{}, nil
 }
 
 func (a *App) normalizeTime(user *model.User, text string) (string, error) {
@@ -1256,13 +1336,13 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 			return "", wErr
 		}
 
-		wordTime :=  time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		wordTime := time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
 
-		dateTimeSplit := a.regSplit( a.chooseClosest(user, &wordTime, false).Format(time.RFC3339), "T|Z")
+		dateTimeSplit := a.regSplit(a.chooseClosest(user, &wordTime, false).Format(time.RFC3339), "T|Z")
 
 		switch len(dateTimeSplit) {
 		case 2:
-			tzSplit := strings.Split(dateTimeSplit[1],"-")
+			tzSplit := strings.Split(dateTimeSplit[1], "-")
 			return tzSplit[0], nil
 			break
 		case 3:
@@ -1270,7 +1350,6 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 		default:
 			return "", errors.New("unrecognized dateTime format")
 		}
-
 
 		return dateTimeSplit[1], nil
 
@@ -1281,12 +1360,12 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 			return "", nErr
 		}
 
-		numTime :=  time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
-		dateTimeSplit := a.regSplit( a.chooseClosest(user, &numTime, false).Format(time.RFC3339), "T|Z")
+		numTime := time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		dateTimeSplit := a.regSplit(a.chooseClosest(user, &numTime, false).Format(time.RFC3339), "T|Z")
 
 		switch len(dateTimeSplit) {
 		case 2:
-			tzSplit := strings.Split(dateTimeSplit[1],"-")
+			tzSplit := strings.Split(dateTimeSplit[1], "-")
 			return tzSplit[0], nil
 			break
 		case 3:
@@ -1304,7 +1383,7 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 	t := text
 	if match, _ := regexp.MatchString("(1[012]|[1-9]):[0-5][0-9](\\s)?(?i)(am|pm)", t); match { // 12:30PM, 12:30 pm
 
-		t = strings.ToUpper(strings.Replace(t, " ", "",-1))
+		t = strings.ToUpper(strings.Replace(t, " ", "", -1))
 		test, tErr := time.Parse(time.Kitchen, t)
 		if tErr != nil {
 			return "", tErr
@@ -1320,8 +1399,8 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
 		nowkit := time.Now().Format(time.Kitchen)
 		ampm := string(nowkit[len(nowkit)-2:])
-		timeUnitSplit := strings.Split(t,":")
-		hr,_ := strconv.Atoi(timeUnitSplit[0])
+		timeUnitSplit := strings.Split(t, ":")
+		hr, _ := strconv.Atoi(timeUnitSplit[0])
 
 		if hr > 11 {
 			ampm = strings.ToUpper(translateFunc("app.reminder.chrono.pm"))
@@ -1338,7 +1417,7 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 			return "", tErr
 		}
 
-		dateTimeSplit := a.regSplit( a.chooseClosest(user, &test, false).Format(time.RFC3339), "T|Z")
+		dateTimeSplit := a.regSplit(a.chooseClosest(user, &test, false).Format(time.RFC3339), "T|Z")
 		if len(dateTimeSplit) != 3 {
 			return "", errors.New("unrecognized dateTime format")
 		}
@@ -1347,18 +1426,17 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
 	} else if match, _ := regexp.MatchString("(1[012]|[1-9])(\\s)?(?i)(am|pm)", t); match { // 5PM, 7 am
 
-
 		nowkit := time.Now().Format(time.Kitchen)
 		ampm := string(nowkit[len(nowkit)-2:])
 
-		timeSplit := a.regSplit(t,"(?i)(am|pm)")
+		timeSplit := a.regSplit(t, "(?i)(am|pm)")
 
-		test, tErr := time.Parse(time.Kitchen,timeSplit[0]+":00"+ampm)
+		test, tErr := time.Parse(time.Kitchen, timeSplit[0]+":00"+ampm)
 		if tErr != nil {
 			return "", tErr
 		}
 
-		dateTimeSplit := a.regSplit( a.chooseClosest(user, &test, false).Format(time.RFC3339), "T|Z")
+		dateTimeSplit := a.regSplit(a.chooseClosest(user, &test, false).Format(time.RFC3339), "T|Z")
 		if len(dateTimeSplit) != 3 {
 			return "", errors.New("unrecognized dateTime format")
 		}
@@ -1514,9 +1592,9 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		}
 
 		if len(parts[1]) < 2 {
-			parts[1] = "0"+parts[1]
+			parts[1] = "0" + parts[1]
 		}
-		return parts[2]+"-"+parts[0]+"-"+parts[1]+"T00:00:00Z", nil
+		return parts[2] + "-" + parts[0] + "-" + parts[1] + "T00:00:00Z", nil
 
 	} else if match, _ := regexp.MatchString("^(([0-9]{2}|[0-9]{1})(-|/)([0-9]{2}|[0-9]{1})((-|/)([0-9]{4}|[0-9]{2}))?)", date); match {
 
@@ -1542,7 +1620,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 
 		case 3:
 			if len(date[2]) == 2 {
-				date[2] = "20"+date[2]
+				date[2] = "20" + date[2]
 			}
 			year, yErr := strconv.Atoi(date[2])
 			if yErr != nil {
@@ -1601,7 +1679,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		} else {
 			t = time.Date(year, month, dayInt, 0, 0, 0, 0, time.Local)
 		}
-		
+
 		if t.Before(time.Now()) {
 			t = t.AddDate(0, 1, 0)
 		}
@@ -1652,7 +1730,7 @@ func (a *App) wordToNumber(word string) (int, error) {
 	var temp int
 	var previous int
 	splitted := strings.Split(strings.ToLower(word), " ")
-
+	mlog.Info(fmt.Sprintf("%v", splitted))
 	for _, split := range splitted {
 		if numbers[split] != 0 {
 			temp = numbers[split]

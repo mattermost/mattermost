@@ -9,9 +9,9 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
-	"time"
-	"github.com/mattermost/mattermost-server/mlog"
 	"fmt"
+	"github.com/mattermost/mattermost-server/mlog"
+	"time"
 )
 
 const (
@@ -54,15 +54,18 @@ func TestScheduleReminders(t *testing.T) {
 	defer th.TearDown()
 
 	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
+	if uErr != nil {
+		t.Fatal("remindbot doesn't exist")
+	}
 	translateFunc := utils.GetUserTranslations(user.Locale)
 	request := &model.ReminderRequest{}
 	request.UserId = user.Id
 
-
 	request.Payload = "me foo in 2 seconds"
 	response, err := th.App.ScheduleReminder(request)
-	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
 	var responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
@@ -71,13 +74,14 @@ func TestScheduleReminders(t *testing.T) {
 	}
 	expectedResponse := translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
-		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
-
 
 	request.Payload = "@bob foo in 2 seconds"
 	response, err = th.App.ScheduleReminder(request)
-	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
 	responseParameters = map[string]interface{}{
 		"Target":  "@bob",
 		"UseTo":   "",
@@ -86,13 +90,14 @@ func TestScheduleReminders(t *testing.T) {
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
-		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
-
 
 	request.Payload = "~off-topic foo in 2 seconds"
 	response, err = th.App.ScheduleReminder(request)
-	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
 	responseParameters = map[string]interface{}{
 		"Target":  "~off-topic",
 		"UseTo":   "",
@@ -101,13 +106,14 @@ func TestScheduleReminders(t *testing.T) {
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
-		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
-
 
 	request.Payload = "me \"foo foo foo\" in 2 seconds"
 	response, err = th.App.ScheduleReminder(request)
-	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
 	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
@@ -116,13 +122,14 @@ func TestScheduleReminders(t *testing.T) {
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
-		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
-
 
 	request.Payload = "me foo in 5 seconds"
 	response, err = th.App.ScheduleReminder(request)
-	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
 	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
@@ -131,13 +138,14 @@ func TestScheduleReminders(t *testing.T) {
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
-		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
-
 
 	request.Payload = "me foo at 2:04 pm"
 	response, err = th.App.ScheduleReminder(request)
-	if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
 	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
@@ -146,9 +154,8 @@ func TestScheduleReminders(t *testing.T) {
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
-		t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
-
 
 	//request.Payload = "me foo on monday at 12:30PM"
 	//response, err = th.App.ScheduleReminder(request)
@@ -169,76 +176,84 @@ func TestScheduleReminders(t *testing.T) {
 	//TODO TEST Outlier
 }
 
-
 func TestIn(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
 	th.App.InitReminders()
 	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
-
+	if uErr != nil {
+		t.Fatal("remindbot doesn't exist")
+	}
 
 	when := "in one second"
 	times, iErr := th.App.in(when, user)
-	if iErr != nil { t.Fatal("in one second doesn't parse")}
+	if iErr != nil {
+		t.Fatal("in one second doesn't parse")
+	}
 	var duration time.Duration
 	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
 	if duration != time.Second {
 		t.Fatal("in one second isn't correct")
 	}
 
-
 	when = "in 712 minutes"
 	times, iErr = th.App.in(when, user)
-	if iErr != nil { t.Fatal("in 712 minutes doesn't parse")}
+	if iErr != nil {
+		t.Fatal("in 712 minutes doesn't parse")
+	}
 	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
-	if duration != time.Minute * time.Duration(712) {
+	if duration != time.Minute*time.Duration(712) {
 		t.Fatal("in 712 minutes isn't correct")
 	}
 
-
 	when = "in three hours"
 	times, iErr = th.App.in(when, user)
-	if iErr != nil { t.Fatal("in three hours doesn't parse")}
+	if iErr != nil {
+		t.Fatal("in three hours doesn't parse")
+	}
 	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
-	if duration != time.Hour * time.Duration(3) {
+	if duration != time.Hour*time.Duration(3) {
 		t.Fatal("in three hours isn't correct")
 	}
 
-
 	when = "in 2 days"
 	times, iErr = th.App.in(when, user)
-	if iErr != nil { t.Fatal("in 2 days doesn't parse")}
+	if iErr != nil {
+		t.Fatal("in 2 days doesn't parse")
+	}
 	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
-	if duration != time.Hour * time.Duration(24) * time.Duration(2) {
+	if duration != time.Hour*time.Duration(24)*time.Duration(2) {
 		t.Fatal("in 2 days isn't correct")
 	}
 
-
 	when = "in 90 weeks"
 	times, iErr = th.App.in(when, user)
-	if iErr != nil { t.Fatal("in 90 weeks doesn't parse")}
+	if iErr != nil {
+		t.Fatal("in 90 weeks doesn't parse")
+	}
 	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
-	if duration != time.Hour * time.Duration(24) * time.Duration(7) * time.Duration(90) {
+	if duration != time.Hour*time.Duration(24)*time.Duration(7)*time.Duration(90) {
 		t.Fatal("in 90 weeks isn't correct")
 	}
 
-
 	when = "in 4 months"
 	times, iErr = th.App.in(when, user)
-	if iErr != nil { t.Fatal("in 4 months doesn't parse")}
+	if iErr != nil {
+		t.Fatal("in 4 months doesn't parse")
+	}
 	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
-	if duration != time.Hour * time.Duration(24) * time.Duration(30) * time.Duration(4) {
+	if duration != time.Hour*time.Duration(24)*time.Duration(30)*time.Duration(4) {
 		t.Fatal("in 4 months isn't correct")
 	}
 
-
 	when = "in one year"
 	times, iErr = th.App.in(when, user)
-	if iErr != nil { t.Fatal("in one year doesn't parse")}
+	if iErr != nil {
+		t.Fatal("in one year doesn't parse")
+	}
 	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
-	if duration != time.Hour * time.Duration(24) * time.Duration(365)  {
+	if duration != time.Hour*time.Duration(24)*time.Duration(365) {
 		t.Fatal("in one year isn't correct")
 	}
 
@@ -250,140 +265,159 @@ func TestAt(t *testing.T) {
 
 	th.App.InitReminders()
 	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
-
+	if uErr != nil {
+		t.Fatal("remindbot doesn't exist")
+	}
 
 	when := "at noon"
 	times, iErr := th.App.at(when, user)
-	if iErr != nil { t.Fatal("at noon doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at noon doesn't parse")
+	}
 	if times[0].Hour() != 12 {
 		t.Fatal("at noon isn't correct")
 	}
 
-
 	when = "at midnight"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at midnight doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at midnight doesn't parse")
+	}
 	if times[0].Hour() != 0 {
 		t.Fatal("at midnight isn't correct")
 	}
 
-
 	when = "at two"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at two doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at two doesn't parse")
+	}
 	if times[0].Hour() != 2 && times[0].Hour() != 14 {
 		t.Fatal("at two isn't correct")
 	}
 
-
 	when = "at 7"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 7 doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at 7 doesn't parse")
+	}
 	if times[0].Hour() != 7 && times[0].Hour() != 19 {
 		t.Fatal("at 7 isn't correct")
 	}
 
-
 	when = "at 12:30pm"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 12:30pm doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at 12:30pm doesn't parse")
+	}
 	if times[0].Hour() != 12 && times[0].Minute() != 30 {
 		t.Fatal("at 12:30pm isn't correct")
 	}
 
-
 	when = "at 7:12 pm"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 7:12 pm doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at 7:12 pm doesn't parse")
+	}
 	if times[0].Hour() != 19 && times[0].Minute() != 12 {
 		t.Fatal("at 7:12 pm isn't correct")
 	}
 
-
 	when = "at 8:05 PM"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 8:05 PM doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at 8:05 PM doesn't parse")
+	}
 	if times[0].Hour() != 10 && times[0].Minute() != 5 {
 		t.Fatal("at 8:05 PM isn't correct")
 	}
 
-
 	when = "at 9:52 am"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 9:52 am doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at 9:52 am doesn't parse")
+	}
 	if times[0].Hour() != 9 && times[0].Minute() != 52 {
 		t.Fatal("at 9:52 am isn't correct")
 	}
 
-
 	when = "at 9:12"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 9:12 doesn't parse")}
+	if iErr != nil {
+		t.Fatal("at 9:12 doesn't parse")
+	}
 	if times[0].Hour() != 9 && times[0].Hour() != 21 && times[0].Minute() != 12 {
 		t.Fatal("at 9:12 isn't correct")
 	}
 
-
 	when = "at 17:15"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 17:15 doesn't parse") }
+	if iErr != nil {
+		t.Fatal("at 17:15 doesn't parse")
+	}
 	if times[0].Hour() != 17 && times[0].Minute() != 15 {
 		t.Fatal("at 17:15 isn't correct")
 	}
 
-
 	when = "at 930am"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 930am doesn't parse") }
+	if iErr != nil {
+		t.Fatal("at 930am doesn't parse")
+	}
 	if times[0].Hour() != 9 && times[0].Minute() != 30 {
 		t.Fatal("at 930am isn't correct")
 	}
 
-
 	when = "at 1230 am"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 1230 am doesn't parse") }
+	if iErr != nil {
+		t.Fatal("at 1230 am doesn't parse")
+	}
 	if times[0].Hour() != 0 && times[0].Minute() != 30 {
 		t.Fatal("at 1230 am isn't correct")
 	}
 
-
 	when = "at 5PM"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 5PM doesn't parse") }
+	if iErr != nil {
+		t.Fatal("at 5PM doesn't parse")
+	}
 	if times[0].Hour() != 17 && times[0].Minute() != 0 {
 		t.Fatal("at 5PM isn't correct")
 	}
 
-
 	when = "at 4 am"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 4 am doesn't parse") }
+	if iErr != nil {
+		t.Fatal("at 4 am doesn't parse")
+	}
 	if times[0].Hour() != 4 && times[0].Minute() != 0 {
 		t.Fatal("at 4 am isn't correct")
 	}
 
-
 	when = "at 1400"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 1400 doesn't parse") }
+	if iErr != nil {
+		t.Fatal("at 1400 doesn't parse")
+	}
 	if times[0].Hour() != 14 && times[0].Minute() != 0 {
 		t.Fatal("at 1400 isn't correct")
 	}
 
-
 	when = "at 11:00 every Thursday"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 11:00 every Thursday doesn't parse") }
+	if iErr != nil {
+		t.Fatal("at 11:00 every Thursday doesn't parse")
+	}
 	if times[0].Hour() != 11 && times[0].Weekday() != 4 {
 		t.Fatal("at 11:00 every Thursday isn't correct")
 	}
 
-
 	when = "at 3pm every day"
 	times, iErr = th.App.at(when, user)
-	if iErr != nil { t.Fatal("at 3pm every day doesn't parse") }
+	if iErr != nil {
+		t.Fatal("at 3pm every day doesn't parse")
+	}
 	if times[0].Hour() != 15 {
 		t.Fatal("at 3pm every day isn't correct")
 	}
@@ -396,8 +430,9 @@ func TestOn(t *testing.T) {
 
 	th.App.InitReminders()
 	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
-
+	if uErr != nil {
+		t.Fatal("remindbot doesn't exist")
+	}
 
 	when := "on Monday"
 	times, iErr := th.App.on(when, user)
@@ -409,7 +444,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on Monday isn't correct")
 	}
 
-
 	when = "on Tuesday"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -419,7 +453,6 @@ func TestOn(t *testing.T) {
 	if times[0].Weekday().String() != "Tuesday" {
 		t.Fatal("on Tuesday isn't correct")
 	}
-
 
 	when = "on Wednesday"
 	times, iErr = th.App.on(when, user)
@@ -431,7 +464,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on Wednesday isn't correct")
 	}
 
-
 	when = "on Thursday"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -441,7 +473,6 @@ func TestOn(t *testing.T) {
 	if times[0].Weekday().String() != "Thursday" {
 		t.Fatal("on Thursday isn't correct")
 	}
-
 
 	when = "on Friday"
 	times, iErr = th.App.on(when, user)
@@ -453,7 +484,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on Friday isn't correct")
 	}
 
-
 	when = "on Mondays"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -463,7 +493,6 @@ func TestOn(t *testing.T) {
 	if times[0].Weekday().String() != "Monday" {
 		t.Fatal("on Mondays isn't correct")
 	}
-
 
 	when = "on Tuesdays at 11:15"
 	times, iErr = th.App.on(when, user)
@@ -475,7 +504,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on Tuesdays at 11:15 isn't correct")
 	}
 
-
 	when = "on Wednesdays"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -485,7 +513,6 @@ func TestOn(t *testing.T) {
 	if times[0].Weekday().String() != "Wednesday" {
 		t.Fatal("on Wednesdays isn't correct")
 	}
-
 
 	when = "on Thursdays"
 	times, iErr = th.App.on(when, user)
@@ -497,7 +524,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on Thursdays isn't correct")
 	}
 
-
 	when = "on Fridays"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -507,7 +533,6 @@ func TestOn(t *testing.T) {
 	if times[0].Weekday().String() != "Friday" {
 		t.Fatal("on Fridays isn't correct")
 	}
-
 
 	when = "on mon"
 	times, iErr = th.App.on(when, user)
@@ -519,7 +544,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on mon isn't correct")
 	}
 
-
 	when = "on wED"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -529,7 +553,6 @@ func TestOn(t *testing.T) {
 	if times[0].Weekday().String() != "Wednesday" {
 		t.Fatal("on wED isn't correct")
 	}
-
 
 	when = "on tuesday at noon"
 	times, iErr = th.App.on(when, user)
@@ -541,7 +564,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on tuesday at noon isn't correct")
 	}
 
-
 	when = "on sunday at 3:42am"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -551,7 +573,6 @@ func TestOn(t *testing.T) {
 	if times[0].Weekday().String() != "Sunday" && times[0].Hour() != 3 && times[0].Minute() != 42 {
 		t.Fatal("on sunday at 3:42am isn't correct")
 	}
-
 
 	when = "on December 15"
 	times, iErr = th.App.on(when, user)
@@ -563,7 +584,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on December 15 isn't correct")
 	}
 
-
 	when = "on jan 12"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -573,7 +593,6 @@ func TestOn(t *testing.T) {
 	if times[0].Month().String() != "January" && times[0].Day() != 12 {
 		t.Fatal("on jan 12 isn't correct")
 	}
-
 
 	when = "on July 12th"
 	times, iErr = th.App.on(when, user)
@@ -585,7 +604,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on July 12th isn't correct")
 	}
 
-
 	when = "on March 22"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -595,7 +613,6 @@ func TestOn(t *testing.T) {
 	if times[0].Month().String() != "March" && times[0].Day() != 22 {
 		t.Fatal("on March 22 isn't correct")
 	}
-
 
 	when = "on March 17 at 5:41pm"
 	times, iErr = th.App.on(when, user)
@@ -607,17 +624,15 @@ func TestOn(t *testing.T) {
 		t.Fatal("on March 17 at 5:41pm isn't correct")
 	}
 
-
 	when = "on September 7th 2020"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
 		mlog.Error(iErr.Error())
 		t.Fatal("on September 7th 2019 doesn't parse")
 	}
-	if times[0].Month().String() != "September" && times[0].Day() != 7  {
+	if times[0].Month().String() != "September" && times[0].Day() != 7 {
 		t.Fatal("on September 7th 2019 isn't correct")
 	}
-
 
 	when = "on April 17 2020"
 	times, iErr = th.App.on(when, user)
@@ -625,10 +640,9 @@ func TestOn(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("on April 17 2020 doesn't parse")
 	}
-	if times[0].Month().String() != "April" && times[0].Day() != 17  {
+	if times[0].Month().String() != "April" && times[0].Day() != 17 {
 		t.Fatal("on April 17 2020 isn't correct")
 	}
-
 
 	when = "on April 9 2020 at 11am"
 	times, iErr = th.App.on(when, user)
@@ -636,10 +650,9 @@ func TestOn(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("on April 9 2020 at 11am doesn't parse")
 	}
-	if times[0].Month().String() != "April" && times[0].Day() != 20 && times[0].Hour() != 11  {
+	if times[0].Month().String() != "April" && times[0].Day() != 20 && times[0].Hour() != 11 {
 		t.Fatal("on April 9 2020 at 11am isn't correct")
 	}
-
 
 	when = "on auguSt tenth 2019"
 	times, iErr = th.App.on(when, user)
@@ -651,7 +664,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on auguSt tenth 2019 isn't correct")
 	}
 
-
 	when = "on 7"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -661,7 +673,6 @@ func TestOn(t *testing.T) {
 	if times[0].Day() != 7 {
 		t.Fatal("on 7 isn't correct")
 	}
-
 
 	when = "on 7th"
 	times, iErr = th.App.on(when, user)
@@ -673,7 +684,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on 7th isn't correct")
 	}
 
-
 	when = "on seven"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -683,7 +693,6 @@ func TestOn(t *testing.T) {
 	if times[0].Day() != 7 {
 		t.Fatal("on seven isn't correct")
 	}
-
 
 	when = "on 1/17/20"
 	times, iErr = th.App.on(when, user)
@@ -695,7 +704,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on 1/17/20 isn't correct")
 	}
 
-
 	when = "on 12/17/2020"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -705,7 +713,6 @@ func TestOn(t *testing.T) {
 	if times[0].Year() != 2020 && times[0].Month() != 12 && times[0].Day() != 17 {
 		t.Fatal("on 12/17/2020 isn't correct")
 	}
-
 
 	when = "on 12/1"
 	times, iErr = th.App.on(when, user)
@@ -717,7 +724,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on 12/1 isn't correct")
 	}
 
-
 	when = "on 5-17-20"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -727,7 +733,6 @@ func TestOn(t *testing.T) {
 	if times[0].Month() != 5 && times[0].Day() != 17 {
 		t.Fatal("on 5-17-20 isn't correct")
 	}
-
 
 	when = "on 12-5-2020"
 	times, iErr = th.App.on(when, user)
@@ -739,7 +744,6 @@ func TestOn(t *testing.T) {
 		t.Fatal("on 12-5-2020 isn't correct")
 	}
 
-
 	when = "on 12-12"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
@@ -749,7 +753,6 @@ func TestOn(t *testing.T) {
 	if times[0].Month() != 12 && times[0].Day() != 12 {
 		t.Fatal("on 12-12 isn't correct")
 	}
-
 
 	when = "on 1-1 at midnight"
 	times, iErr = th.App.on(when, user)
@@ -770,8 +773,9 @@ func TestEvery(t *testing.T) {
 
 	th.App.InitReminders()
 	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil { t.Fatal("remindbot doesn't exist") }
-
+	if uErr != nil {
+		t.Fatal("remindbot doesn't exist")
+	}
 
 	when := "every Thursday"
 	times, iErr := th.App.every(when, user)
@@ -783,17 +787,15 @@ func TestEvery(t *testing.T) {
 		t.Fatal("every Thursday isn't correct")
 	}
 
-
 	when = "every day"
 	times, iErr = th.App.every(when, user)
 	if iErr != nil {
 		mlog.Error(iErr.Error())
 		t.Fatal("every day doesn't parse")
 	}
-	if times[0].Weekday().String() != time.Now().AddDate(0,0,1).Weekday().String() {
+	if times[0].Weekday().String() != time.Now().AddDate(0, 0, 1).Weekday().String() {
 		t.Fatal("every day isn't correct")
 	}
-
 
 	when = "every 12/18"
 	times, iErr = th.App.every(when, user)
@@ -805,7 +807,6 @@ func TestEvery(t *testing.T) {
 		t.Fatal("every 12/18 isn't correct")
 	}
 
-
 	when = "every January 25"
 	times, iErr = th.App.every(when, user)
 	if iErr != nil {
@@ -815,7 +816,6 @@ func TestEvery(t *testing.T) {
 	if times[0].Month() != 1 && times[0].Day() != 25 {
 		t.Fatal("every January 25 isn't correct")
 	}
-
 
 	when = "every other Wednesday"
 	times, iErr = th.App.every(when, user)
@@ -827,17 +827,15 @@ func TestEvery(t *testing.T) {
 		t.Fatal("every other Wednesday isn't correct")
 	}
 
-
 	when = "every day at 11:32am"
 	times, iErr = th.App.every(when, user)
 	if iErr != nil {
 		mlog.Error(iErr.Error())
 		t.Fatal("every day at 11:32am doesn't parse")
 	}
-	if times[0].Hour() != 11 && times[0].Minute() != 32  {
+	if times[0].Hour() != 11 && times[0].Minute() != 32 {
 		t.Fatal("every day at 11:32am isn't correct")
 	}
-
 
 	when = "every 5/5 at 7"
 	times, iErr = th.App.every(when, user)
@@ -845,10 +843,9 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every 5/5 at 7 doesn't parse")
 	}
-	if times[0].Month() != 5 && times[0].Day() != 5 && times[0].Hour() != 7  {
+	if times[0].Month() != 5 && times[0].Day() != 5 && times[0].Hour() != 7 {
 		t.Fatal("every 5/5 at 7 isn't correct")
 	}
-
 
 	when = "every 7/20 at 1100"
 	times, iErr = th.App.every(when, user)
@@ -856,10 +853,9 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every 7/20 at 1100 doesn't parse")
 	}
-	if times[0].Month() != 7 && times[0].Day() != 20 && (times[0].Hour() != 11 || times[0].Hour() != 23)  {
+	if times[0].Month() != 7 && times[0].Day() != 20 && (times[0].Hour() != 11 || times[0].Hour() != 23) {
 		t.Fatal("every 7/20 at 1100 isn't correct")
 	}
-
 
 	when = "every Monday at 7:32am"
 	times, iErr = th.App.every(when, user)
@@ -867,10 +863,9 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every Monday at 7:32am doesn't parse")
 	}
-	if times[0].Weekday().String() != "Monday" && (times[0].Hour() != 7 || times[0].Hour() != 32)  {
+	if times[0].Weekday().String() != "Monday" && (times[0].Hour() != 7 || times[0].Hour() != 32) {
 		t.Fatal("every Monday at 7:32am isn't correct")
 	}
-
 
 	when = "every monday and wednesday"
 	times, iErr = th.App.every(when, user)
@@ -878,10 +873,9 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every monday and wednesday doesn't parse")
 	}
-	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Wednesday" {
+	if times[0].Weekday().String() != "Monday" && times[1].Weekday().String() != "Wednesday" {
 		t.Fatal("every monday and wednesday isn't correct")
 	}
-
 
 	when = "every wednesday, thursday"
 	times, iErr = th.App.every(when, user)
@@ -889,11 +883,10 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every  wednesday, thursday doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v",times[0]))
-	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Thursday" {
+	mlog.Info(fmt.Sprintf("%v", times[0]))
+	if times[0].Weekday().String() != "Monday" && times[1].Weekday().String() != "Thursday" {
 		t.Fatal("every wednesday, thursday isn't correct")
 	}
-
 
 	when = "every other friday and saturday"
 	times, iErr = th.App.every(when, user)
@@ -901,11 +894,9 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every  wednesday, thursday doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v",times[0]))
-	if times[0].Weekday().String() != "Friday"  && times[1].Weekday().String() != "Saturday" {
+	if times[0].Weekday().String() != "Friday" && times[1].Weekday().String() != "Saturday" {
 		t.Fatal("every wednesday, thursday isn't correct")
 	}
-
 
 	when = "every monday and wednesday at 1:39am"
 	times, iErr = th.App.every(when, user)
@@ -913,11 +904,9 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every monday and wednesday at 1:39am doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v",times[0]))
-	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Wednesday" && times[0].Hour() != 13 && times[0].Minute() != 39 {
+	if times[0].Weekday().String() != "Monday" && times[1].Weekday().String() != "Wednesday" && times[0].Hour() != 13 && times[0].Minute() != 39 {
 		t.Fatal("every monday and wednesday at 1:39am isn't correct")
 	}
-
 
 	when = "every monday, tuesday and sunday at 11:00"
 	times, iErr = th.App.every(when, user)
@@ -925,11 +914,9 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every monday, tuesday and sunday at 11:00 doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v",times[0]))
-	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Tuesday" && times[2].Weekday().String() != "Sunday" && times[0].Hour() != 11  {
+	if times[0].Weekday().String() != "Monday" && times[1].Weekday().String() != "Tuesday" && times[2].Weekday().String() != "Sunday" && times[0].Hour() != 11 {
 		t.Fatal("every monday, tuesday and sunday at 11:00 isn't correct")
 	}
-
 
 	when = "every monday, tuesday at 2pm"
 	times, iErr = th.App.every(when, user)
@@ -937,11 +924,9 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every monday, tuesday at 2pm doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v",times[0]))
-	if times[0].Weekday().String() != "Monday"  && times[1].Weekday().String() != "Tuesday" && times[0].Hour() != 14  {
+	if times[0].Weekday().String() != "Monday" && times[1].Weekday().String() != "Tuesday" && times[0].Hour() != 14 {
 		t.Fatal("every monday, tuesday at 2pm isn't correct")
 	}
-
 
 	when = "every 1/30 and 9/30 at noon"
 	times, iErr = th.App.every(when, user)
@@ -949,9 +934,199 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every 1/30 and 9/30 at noon doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v",times[0]))
-	if times[0].Month() != 1 && times[0].Day() != 30 && times[1].Month() != 9 && times[1].Day() != 30 && times[0].Hour() != 12  {
+	if times[0].Month() != 1 && times[0].Day() != 30 && times[1].Month() != 9 && times[1].Day() != 30 && times[0].Hour() != 12 {
 		t.Fatal("every 1/30 and 9/30 at noon isn't correct")
+	}
+
+}
+
+func TestFreeForm(t *testing.T) {
+
+	th := Setup()
+	defer th.TearDown()
+
+	th.App.InitReminders()
+	user, uErr := th.App.GetUserByUsername("remindbot")
+	if uErr != nil {
+		t.Fatal("remindbot doesn't exist")
+	}
+
+	when := "monday"
+	times, iErr := th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("monday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Monday" {
+		t.Fatal("monday isn't correct")
+	}
+
+	when = "tuesday at 9:34pm"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("tuesday at 9:34pm doesn't parse")
+	}
+	if times[0].Weekday().String() != "Tuesday" && times[0].Hour() != 21 && times[0].Minute() != 34 {
+		t.Fatal("tuesday at 9:34pm isn't correct")
+	}
+
+	when = "wednesday"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("wednesday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Wednesday" {
+		t.Fatal("wednesday isn't correct")
+	}
+
+	when = "thursday at noon"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("thursday at noon doesn't parse")
+	}
+	if times[0].Weekday().String() != "Thursday" && times[0].Hour() != 12 {
+		t.Fatal("thursday at noon isn't correct")
+	}
+
+	when = "friday"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("friday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Friday" {
+		t.Fatal("friday isn't correct")
+	}
+
+	when = "saturday"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("saturday doesn't parse")
+	}
+	if times[0].Weekday().String() != "Saturday" {
+		t.Fatal("saturday isn't correct")
+	}
+
+	when = "sunday at 4:20pm"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("sunday at 4:20pm doesn't parse")
+	}
+	if times[0].Weekday().String() != "Sunday" && times[0].Hour() != 16 && times[0].Minute() != 20 {
+		t.Fatal("sunday at 4:20pm isn't correct")
+	}
+
+	when = "today at 3pm"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("today at 3pm doesn't parse")
+	}
+	//mlog.Info(fmt.Sprintf("%v", times[0]))
+	if times[0].Hour() != 15 {
+		t.Fatal("today at 3pm isn't correct")
+	}
+
+	when = "tomorrow"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("tomorrow doesn't parse")
+	}
+	if times[0].Weekday().String() != time.Now().AddDate(0, 0, 1).Weekday().String() {
+		t.Fatal("tomorrow isn't correct")
+	}
+
+	when = "tomorrow at 4pm"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("tomorrow at 4pm doesn't parse")
+	}
+	if times[0].Weekday().String() != time.Now().AddDate(0, 0, 1).Weekday().String() && times[0].Hour() != 16 {
+		t.Fatal("tomorrow at 4pm isn't correct")
+	}
+
+
+	when = "everyday"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("everyday doesn't parse")
+	}
+	if times[0].Weekday().String() != time.Now().AddDate(0, 0, 1).Weekday().String()  {
+		t.Fatal("everyday isn't correct")
+	}
+
+
+	when = "everyday at 3:23am"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("everyday at 3:23am doesn't parse")
+	}
+	if times[0].Weekday().String() != time.Now().AddDate(0, 0, 1).Weekday().String()  && times[0].Hour() != 3 && times[0].Minute() != 23 {
+		t.Fatal("everyday at 3:23am isn't correct")
+	}
+
+
+	when = "mondays"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("mondays doesn't parse")
+	}
+	if times[0].Weekday().String() != "Monday" {
+		t.Fatal("mondays isn't correct")
+	}
+
+
+	when = "tuesdays"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("tuesdays doesn't parse")
+	}
+	if times[0].Weekday().String() != "Tuesday" {
+		t.Fatal("tuesdays isn't correct")
+	}
+
+
+	when = "wednesdays"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("wednesdays doesn't parse")
+	}
+	if times[0].Weekday().String() != "Wednesday" {
+		t.Fatal("wednesdays isn't correct")
+	}
+
+
+	when = "thursdays"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("thursdays doesn't parse")
+	}
+	if times[0].Weekday().String() != "Thursday" {
+		t.Fatal("thursdays isn't correct")
+	}
+
+
+	when = "fridays"
+	times, iErr = th.App.freeForm(when, user)
+	if iErr != nil {
+		mlog.Error(iErr.Error())
+		t.Fatal("fridays doesn't parse")
+	}
+	if times[0].Weekday().String() != "Friday" {
+		t.Fatal("fridays isn't correct")
 	}
 
 }
