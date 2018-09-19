@@ -80,7 +80,6 @@ func (s SqlServiceTermsStore) Get() store.StoreChannel {
 				result.Err = model.NewAppError("SqlServiceTermsStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
-			mlog.Info(serviceTerms.Text)
 			result.Data = serviceTerms
 		}
 	})

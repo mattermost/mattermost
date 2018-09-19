@@ -58,7 +58,9 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 		return err
 	}
 
-	if *cfg.SupportSettings.CustomServiceTermsEnabled {
+	// is custom service terms is not enabled, chances are there are no
+	// service terms in the database.
+	if *cfg.SupportSettings.CustomServiceTermsEnabled && a.Srv.Store != nil {
 		serviceTerms, err := a.GetServiceTerms()
 		if err != nil {
 			return err
@@ -75,6 +77,23 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
 
 	a.InvokeConfigListeners(old, cfg)
+	return nil
+}
+
+func (a *App) LoadServiceTerms() *model.AppError {
+	cfg := a.Config()
+	if *cfg.SupportSettings.CustomServiceTermsEnabled {
+		serviceTerms, err := a.GetServiceTerms()
+		if err != nil {
+			return err
+		}
+
+		cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTerms.Text)
+		a.UpdateConfig(func(update *model.Config) {
+			*update = *cfg
+		})
+	}
+
 	return nil
 }
 
