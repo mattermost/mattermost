@@ -11,6 +11,9 @@ import (
 	"unicode/utf8"
 )
 
+// we only ever need the latest version of service terms
+const SERVICE_TERMS_CACHE_SIZE = 1
+
 type ServiceTerms struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`

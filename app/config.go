@@ -58,6 +58,15 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 		return err
 	}
 
+	if *cfg.SupportSettings.CustomServiceTermsEnabled {
+		serviceTerms, err := a.GetServiceTerms()
+		if err != nil {
+			return err
+		}
+
+		cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTerms.Text)
+	}
+
 	a.configFile = configPath
 
 	a.config.Store(cfg)

@@ -3195,6 +3195,10 @@
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
+    "id": "ent.cluster.save_config.update_custom_service_terms_no_user.error",
+    "translation": "Custom service terms can only be changed if provided with exactly one user id"
+  },
+  {
     "id": "ent.compliance.bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
@@ -6281,6 +6285,18 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook"
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Must not call save for existing service terms"
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Unable to save service terms"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Unable to fetch service terms"
   },
   {
     "id": "system.message.name",

@@ -160,7 +160,7 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 	return a.EnvironmentConfig()
 }
 
-func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool, userId ...string) *model.AppError {
 	oldCfg := a.Config()
 	cfg.SetDefaults()
 	a.Desanitize(cfg)
@@ -178,6 +178,18 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 	}
 
 	a.DisableConfigWatch()
+
+	if oldCfg.SupportSettings.CustomServiceTermsText != cfg.SupportSettings.CustomServiceTermsText {
+		if len(userId) != 1 {
+			return model.NewAppError("saveConfig", "ent.cluster.save_config.update_custom_service_terms_no_user.error", nil, "", http.StatusBadRequest)
+		}
+		if _, err := a.CreateServiceTerms(*cfg.SupportSettings.CustomServiceTermsText, userId[0]); err != nil {
+			return err
+		}
+	}
+
+	cfg.SupportSettings.CustomServiceTermsText = model.NewString("")
+
 	a.UpdateConfig(func(update *model.Config) {
 		*update = *cfg
 	})

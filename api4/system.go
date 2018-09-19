@@ -130,7 +130,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow plugin uploads to be toggled through the API
 	cfg.PluginSettings.EnableUploads = c.App.GetConfig().PluginSettings.EnableUploads
 
-	err := c.App.SaveConfig(cfg, true)
+	err := c.App.SaveConfig(cfg, true, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
