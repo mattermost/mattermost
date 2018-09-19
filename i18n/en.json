@@ -4299,6 +4299,10 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.config.is_valid.support.custom_service_terms_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -6373,6 +6377,10 @@
   {
     "id": "store.sql_service_terms_store.get.app_error",
     "translation": "Unable to fetch service terms"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "No service terms found"
   },
   {
     "id": "system.message.name",

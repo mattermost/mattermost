@@ -39,6 +39,14 @@ var (
 		"../..",
 		"../../..",
 	}
+
+	serviceTermsEnabledAndEmpty = model.NewAppError(
+		"Config.IsValid",
+		"model.config.is_valid.support.custom_service_terms_text.app_error",
+		nil,
+		"",
+		http.StatusBadRequest,
+	)
 )
 
 func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
@@ -474,7 +482,10 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 
 	config.SetDefaults()
 
-	if err := config.IsValid(); err != nil {
+	if err := config.IsValid(); err != nil && err.Id!= serviceTermsEnabledAndEmpty.Id {
+		mlog.Info("err message: " + err.Message)
+		mlog.Info("err ID: " + err.Id)
+		mlog.Info("reference message: " + serviceTermsEnabledAndEmpty.Message)
 		return nil, "", nil, err
 	}
 

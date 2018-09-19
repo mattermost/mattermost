@@ -23,6 +23,10 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+const (
+	ERROR_SERVICE_TERMS_NO_ROWS_FOUND = "store.sql_service_terms_store.get.no_rows.app_error"
+)
+
 func (a *App) Config() *model.Config {
 	if cfg := a.config.Load(); cfg != nil {
 		return cfg.(*model.Config)
@@ -60,13 +64,18 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 	// is custom service terms is not enabled, chances are there are no
 	// service terms in the database.
-	if *cfg.SupportSettings.CustomServiceTermsEnabled && a.Srv.Store != nil {
+	if a.Srv.Store != nil {
 		serviceTerms, err := a.GetServiceTerms()
-		if err != nil {
+		if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
 			return err
 		}
 
-		cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTerms.Text)
+		serviceTermsText := ""
+		if serviceTerms != nil {
+			serviceTermsText = serviceTerms.Text
+		}
+
+		cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTermsText)
 	}
 
 	a.configFile = configPath
@@ -82,17 +91,20 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 func (a *App) LoadServiceTerms() *model.AppError {
 	cfg := a.Config()
-	if *cfg.SupportSettings.CustomServiceTermsEnabled {
 		serviceTerms, err := a.GetServiceTerms()
-		if err != nil {
+		if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
 			return err
 		}
 
-		cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTerms.Text)
+		var serviceTermsText = ""
+		if serviceTerms != nil {
+			serviceTermsText = serviceTerms.Text
+		}
+
+		cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTermsText)
 		a.UpdateConfig(func(update *model.Config) {
 			*update = *cfg
 		})
-	}
 
 	return nil
 }

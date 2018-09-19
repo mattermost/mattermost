@@ -179,7 +179,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool,
 
 	a.DisableConfigWatch()
 
-	if oldCfg.SupportSettings.CustomServiceTermsText != cfg.SupportSettings.CustomServiceTermsText {
+	if *oldCfg.SupportSettings.CustomServiceTermsText != *cfg.SupportSettings.CustomServiceTermsText {
 		if len(userId) != 1 {
 			return model.NewAppError("saveConfig", "ent.cluster.save_config.update_custom_service_terms_no_user.error", nil, "", http.StatusBadRequest)
 		}

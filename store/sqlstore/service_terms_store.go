@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -73,9 +72,8 @@ func (s SqlServiceTermsStore) Get() store.StoreChannel {
 
 		err := s.GetReplica().SelectOne(&serviceTerms, "SELECT * FROM ServiceTerms ORDER BY CreateAt DESC LIMIT 1")
 		if err != nil {
-			mlog.Info(err.Error())
 			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlServiceTermsStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusNotFound)
+				result.Err = model.NewAppError("SqlServiceTermsStore.Get", "store.sql_service_terms_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
 			} else {
 				result.Err = model.NewAppError("SqlServiceTermsStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 			}
