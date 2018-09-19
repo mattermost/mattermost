@@ -796,7 +796,7 @@ func (a *App) OldImportIncomingWebhookPost(post *model.Post, props model.StringI
 		for key, val := range props {
 			if key == "attachments" {
 				if attachments, success := val.([]*model.SlackAttachment); success {
-					parseSlackAttachment(post, attachments)
+					model.ParseSlackAttachment(post, attachments)
 				}
 			} else if key != "from_webhook" {
 				post.AddProp(key, val)

@@ -332,6 +332,17 @@ func (us SqlUserStore) GetAll() store.StoreChannel {
 	})
 }
 
+func (us SqlUserStore) GetAllAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var data []*model.User
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE Id > :AfterId ORDER BY Id LIMIT :Limit", map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetAllAfter", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = data
+	})
+}
+
 func (s SqlUserStore) GetEtagForAllProfiles() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")

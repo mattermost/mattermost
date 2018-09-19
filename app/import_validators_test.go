@@ -692,6 +692,25 @@ func TestImportValidateUserTeamsImportData(t *testing.T) {
 	if err := validateUserTeamsImportData(&data); err != nil {
 		t.Fatal("Should have succeeded with valid roles.")
 	}
+
+	// Valid (with JSON string of theme)
+	data[0].Theme = ptrStr(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`)
+	if err := validateUserTeamsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with valid theme.")
+	}
+
+	// Invalid (invalid JSON string of theme)
+	data[0].Theme = ptrStr(`This is the invalid string which cannot be marshalled to JSON object :) + {"#DBBD4E","buttonBg", "#23A1FF", buttonColor`)
+	if err := validateUserTeamsImportData(&data); err == nil {
+		t.Fatal("Should have fail with invalid JSON string of theme.")
+	}
+
+	// Invalid (valid JSON but invalid theme description)
+	data[0].Theme = ptrStr(`{"somekey": 25, "json_obj1": {"color": "#DBBD4E","buttonBg": "#23A1FF"}}`)
+	if err := validateUserTeamsImportData(&data); err == nil {
+		t.Fatal("Should have fail with valid JSON which contains invalid string of theme description.")
+	}
+	data[0].Theme = nil
 }
 
 func TestImportValidateUserChannelsImportData(t *testing.T) {
