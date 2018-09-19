@@ -45,6 +45,8 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("ResetAllTeamSchemes", func(t *testing.T) { testResetAllTeamSchemes(t, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testTeamStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("AnalyticsGetTeamCountForScheme", func(t *testing.T) { testTeamStoreAnalyticsGetTeamCountForScheme(t, ss) })
+	t.Run("GetAllForExportAfter", func(t *testing.T) { testTeamStoreGetAllForExportAfter(t, ss) })
+	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1326,4 +1328,64 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 
 	count5 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(2), count5)
+}
+
+func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	r1 := <-ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, r1.Err)
+	d1 := r1.Data.([]*model.TeamForExport)
+
+	found := false
+	for _, team := range d1 {
+		if team.Id == t1.Id {
+			found = true
+			assert.Equal(t, t1.Id, team.Id)
+			assert.Nil(t, team.SchemeId)
+			assert.Equal(t, t1.Name, team.Name)
+		}
+	}
+	assert.True(t, found)
+}
+
+func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	u2 := model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u2))
+
+	m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
+	store.Must(ss.Team().SaveMember(m1, -1))
+
+	m2 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
+	store.Must(ss.Team().SaveMember(m2, -1))
+
+	r1 := <-ss.Team().GetTeamMembersForExport(u1.Id)
+	assert.Nil(t, r1.Err)
+
+	d1 := r1.Data.([]*model.TeamMemberForExport)
+	assert.Len(t, d1, 1)
+
+	tmfe1 := d1[0]
+	assert.Equal(t, t1.Id, tmfe1.TeamId)
+	assert.Equal(t, u1.Id, tmfe1.UserId)
+	assert.Equal(t, t1.Name, tmfe1.TeamName)
 }

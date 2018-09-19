@@ -194,6 +194,22 @@ func (_m *PostStore) GetOldest() store.StoreChannel {
 	return r0
 }
 
+// GetParentsForExportAfter provides a mock function with given fields: limit, afterId
+func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+	ret := _m.Called(limit, afterId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+		r0 = rf(limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetPosts provides a mock function with given fields: channelId, offset, limit, allowFromCache
 func (_m *PostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(channelId, offset, limit, allowFromCache)
@@ -297,6 +313,22 @@ func (_m *PostStore) GetPostsSince(channelId string, time int64, allowFromCache 
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, int64, bool) store.StoreChannel); ok {
 		r0 = rf(channelId, time, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetRepliesForExport provides a mock function with given fields: parentId
+func (_m *PostStore) GetRepliesForExport(parentId string) store.StoreChannel {
+	ret := _m.Called(parentId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(parentId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

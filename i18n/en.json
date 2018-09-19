@@ -180,6 +180,14 @@
     "translation": "You're the only member left, try removing the Private Channel instead of leaving."
   },
   {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "An error occured marshalling the JSON data for export."
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "An error occurred writing the export data."
+  },
+  {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
   },
@@ -4927,8 +4935,32 @@
     "translation": "Unable to delete the channel"
   },
   {
+    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
+    "translation": "Unable to delete materialized public channel"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "Unable to delete the channels"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
+    "translation": "Unable to delete materialized public channels"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -4947,8 +4979,24 @@
     "translation": "We could not reset the channel schemes"
   },
   {
+    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
     "id": "store.sql_channel.reset_last_post_at.app_error",
     "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4965,6 +5013,10 @@
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
     "translation": "Unable to open transaction"
+  },
+  {
+    "id": "store.sql_channel.save.upsert_public_channel.app_error",
+    "translation": "Unable to upsert materialized public channel"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -5027,6 +5079,18 @@
     "translation": "We encountered an error searching channels"
   },
   {
+    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
+    "translation": "Unable to update the materialized public channel"
+  },
+  {
     "id": "store.sql_channel.update.app_error",
     "translation": "Unable to update the channel"
   },
@@ -5035,8 +5099,16 @@
     "translation": "You can not modify an archived channel"
   },
   {
+    "id": "store.sql_channel.update.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
     "id": "store.sql_channel.update.exists.app_error",
     "translation": "A channel with that handle already exists"
+  },
+  {
+    "id": "store.sql_channel.update.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.update.previously.app_error",
@@ -5045,6 +5117,10 @@
   {
     "id": "store.sql_channel.update.updating.app_error",
     "translation": "We encountered an error updating the channel"
+  },
+  {
+    "id": "store.sql_channel.update.upsert_public_channel.app_error",
+    "translation": "Unable to upsert materialized public channel"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",

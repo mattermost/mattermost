@@ -78,6 +78,8 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 			t.Run("ResetAllChannelSchemes", func(t *testing.T) { testResetAllChannelSchemes(t, ss) })
 			t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testChannelStoreClearAllCustomRoleAssignments(t, ss) })
 			t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, ss, s) })
+			t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
+			t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
 		})
 	}
 }
@@ -2692,4 +2694,86 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		require.Nil(t, result.Err)
 		require.Equal(t, &model.ChannelList{&o2, &o3, &o4}, result.Data.(*model.ChannelList))
 	})
+}
+
+func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	c1 := model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&c1, -1))
+
+	r1 := <-ss.Channel().GetAllChannelsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, r1.Err)
+	d1 := r1.Data.([]*model.ChannelForExport)
+
+	found := false
+	for _, c := range d1 {
+		if c.Id == c1.Id {
+			found = true
+			assert.Equal(t, t1.Id, c.TeamId)
+			assert.Nil(t, c.SchemeId)
+			assert.Equal(t, t1.Name, c.TeamName)
+		}
+	}
+	assert.True(t, found)
+}
+
+func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	c1 := model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&c1, -1))
+
+	c2 := model.Channel{}
+	c2.TeamId = model.NewId()
+	c2.DisplayName = "Channel2"
+	c2.Name = "zz" + model.NewId() + "b"
+	c2.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&c2, -1))
+
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = c1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = c2.Id
+	m2.UserId = u1.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m2))
+
+	r1 := <-ss.Channel().GetChannelMembersForExport(u1.Id, t1.Id)
+	assert.Nil(t, r1.Err)
+
+	d1 := r1.Data.([]*model.ChannelMemberForExport)
+	assert.Len(t, d1, 1)
+
+	cmfe1 := d1[0]
+	assert.Equal(t, c1.Name, cmfe1.ChannelName)
+	assert.Equal(t, c1.Id, cmfe1.ChannelId)
+	assert.Equal(t, u1.Id, cmfe1.UserId)
 }

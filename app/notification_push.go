@@ -15,13 +15,23 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, channelName string, sender *model.User, senderName string,
-	explicitMention, channelWideMention bool, replyToThreadType string) *model.AppError {
+func (a *App) sendPushNotification(notification *postNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) *model.AppError {
+	channel := notification.channel
+	post := notification.post
+
 	cfg := a.Config()
-	contentsConfig := *cfg.EmailSettings.PushNotificationContents
-	teammateNameConfig := *cfg.TeamSettings.TeammateNameDisplay
+
+	var nameFormat string
+	if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); result.Err != nil {
+		nameFormat = *a.Config().TeamSettings.TeammateNameDisplay
+	} else {
+		nameFormat = result.Data.(model.Preference).Value
+	}
+
+	channelName := notification.GetChannelName(nameFormat, user.Id)
+	senderName := notification.GetSenderName(nameFormat, cfg.ServiceSettings.EnablePostUsernameOverride)
+
 	sessions, err := a.getMobileAppSessions(user.Id)
-	sentBySystem := senderName == utils.T("system.message.name")
 	if err != nil {
 		return err
 	}
@@ -43,25 +53,13 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	msg.RootId = post.RootId
 	msg.SenderId = post.UserId
 
-	if !sentBySystem {
-		senderName = sender.GetDisplayName(teammateNameConfig)
-		preference, prefError := a.GetPreferenceByCategoryAndNameForUser(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format")
-		if prefError == nil && preference.Value != teammateNameConfig {
-			senderName = sender.GetDisplayName(preference.Value)
-		}
-	}
-
-	if channel.Type == model.CHANNEL_DIRECT {
-		channelName = fmt.Sprintf("@%v", senderName)
-	}
-
+	contentsConfig := *cfg.EmailSettings.PushNotificationContents
 	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
 		msg.ChannelName = channelName
 	}
 
 	if ou, ok := post.Props["override_username"].(string); ok && cfg.ServiceSettings.EnablePostUsernameOverride {
 		msg.OverrideUsername = ou
-		senderName = ou
 	}
 
 	if oi, ok := post.Props["override_icon_url"].(string); ok && cfg.ServiceSettings.EnablePostIconOverride {
