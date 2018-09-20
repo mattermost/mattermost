@@ -2023,6 +2023,30 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store) {
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	u1.Username = "user1" + model.NewId()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.Username = "user2" + model.NewId()
+	u2.Nickname = model.NewId()
+	store.Must(ss.User().Save(u2))
+
+	u3 := &model.User{}
+	u3.Email = MakeEmail()
+	u3.Username = "user3" + model.NewId()
+	u3.Nickname = model.NewId()
+	store.Must(ss.User().Save(u3))
+
+	u4 := &model.User{}
+	u4.Email = MakeEmail()
+	u4.Username = "user4" + model.NewId()
+	u4.Nickname = model.NewId()
+	store.Must(ss.User().Save(u4))
+
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "ChannelA"
@@ -2032,7 +2056,7 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store) {
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
-	m1.UserId = model.NewId()
+	m1.UserId = u1.Id
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m1))
 
@@ -2084,17 +2108,22 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store) {
 	o5.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&o5, -1))
 
+	store.Must(ss.Channel().CreateDirectChannel(u1.Id, u2.Id))
+	store.Must(ss.Channel().CreateDirectChannel(u2.Id, u3.Id))
+
 	tt := []struct {
 		name            string
 		term            string
 		includeDeleted  bool
 		expectedMatches int
 	}{
-		{"Empty search (list all)", "", false, 3},
+		{"Empty search (list all)", "", false, 4},
 		{"Narrow search", "ChannelA", false, 2},
 		{"Wide search", "Cha", false, 3},
+		{"Direct messages", "user", false, 1},
 		{"Wide search with archived channels", "Cha", true, 4},
 		{"Narrow with archived channels", "ChannelA", true, 3},
+		{"Direct messages with archived channels", "user", true, 1},
 		{"Search without results", "blarg", true, 0},
 	}
 
