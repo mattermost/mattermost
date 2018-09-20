@@ -1,7 +1,7 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package utils
+package mailservice
 
 import (
 	"bytes"
@@ -13,12 +13,14 @@ import (
 	"net/smtp"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	cfg, _, _, err := LoadConfig("config.json")
+	cfg, _, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServer(cfg); err != nil {
@@ -41,7 +43,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg, _, _, err := LoadConfig("config.json")
+	cfg, _, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServerAdvanced(
@@ -58,7 +60,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	} else {
 		if _, err1 := NewSMTPClientAdvanced(
 			conn,
-			GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
+			utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 			&SmtpConnectionInfo{
 				ConnectionSecurity:   cfg.EmailSettings.ConnectionSecurity,
 				SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -91,9 +93,9 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, _, err := LoadConfig("config.json")
+	cfg, _, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
-	T = GetUserTranslations("en")
+	utils.T = utils.GetUserTranslations("en")
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -133,9 +135,9 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, _, err := LoadConfig("config.json")
+	cfg, _, _, err := utils.LoadConfig("config.json")
 	require.Nil(t, err)
-	T = GetUserTranslations("en")
+	utils.T = utils.GetUserTranslations("en")
 
 	var mimeTo = "test@example.com"
 	var smtpTo = "test2@example.com"
@@ -146,7 +148,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(smtpTo)
 
-	fileBackend, err := NewFileBackend(&cfg.FileSettings, true)
+	fileBackend, err := filesstore.NewFileBackend(&cfg.FileSettings, true)
 	assert.Nil(t, err)
 
 	// create two files with the same name that will both be attached to the email
