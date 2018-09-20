@@ -87,6 +87,9 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 		})
 	}
 
+	if err := a.LatestServiceTermsAccepted(user); err != nil {
+		return nil, err
+	}
 	return user, nil
 }
 
@@ -105,13 +108,20 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 				return nil, err
 			}
 		} else {
+			if err := a.LatestServiceTermsAccepted(user); err != nil {
+				return nil, err
+			}
 			return user, nil
 		}
 	}
 
 	// Try to get the user by username/email
 	if result := <-a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); result.Err == nil {
-		return result.Data.(*model.User), nil
+		user := result.Data.(*model.User)
+		if err := a.LatestServiceTermsAccepted(user); err != nil {
+			return nil, err
+		}
+		return user, nil
 	}
 
 	// Try to get the user with LDAP if enabled

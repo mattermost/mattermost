@@ -89,6 +89,9 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 		return nil, err
 	}
 
+	if err := a.LatestServiceTermsAccepted(user); err != nil {
+		return nil, err
+	}
 	return ruser, nil
 }
 
@@ -245,6 +248,9 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 		}
 
 		ruser.Sanitize(map[string]bool{})
+		if err := a.LatestServiceTermsAccepted(user); err != nil {
+			return nil, err
+		}
 
 		return ruser, nil
 	}
@@ -349,7 +355,11 @@ func (a *App) GetUser(userId string) (*model.User, *model.AppError) {
 	if result := <-a.Srv.Store.User().Get(userId); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(*model.User), nil
+		user := result.Data.(*model.User)
+		if err := a.LatestServiceTermsAccepted(user); err != nil {
+			return nil, err
+		}
+		return user, nil
 	}
 }
 
@@ -358,7 +368,11 @@ func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) 
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
-		return result.Data.(*model.User), nil
+		user := result.Data.(*model.User)
+		if err := a.LatestServiceTermsAccepted(user); err != nil {
+			return nil, err
+		}
+		return user, nil
 	}
 }
 
@@ -371,7 +385,11 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
-		return result.Data.(*model.User), nil
+		user := result.Data.(*model.User)
+		if err := a.LatestServiceTermsAccepted(user); err != nil {
+			return nil, err
+		}
+		return user, nil
 	}
 }
 
@@ -379,7 +397,11 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	if result := <-a.Srv.Store.User().GetByAuth(authData, authService); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(*model.User), nil
+		user := result.Data.(*model.User)
+		if err := a.LatestServiceTermsAccepted(user); err != nil {
+			return nil, err
+		}
+		return user, nil
 	}
 }
 
@@ -387,7 +409,13 @@ func (a *App) GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
 	if result := <-a.Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.([]*model.User), nil
+		users := result.Data.([]*model.User)
+		for _, user := range users {
+			if err := a.LatestServiceTermsAccepted(user); err != nil {
+				return nil, err
+			}
+		}
+		return users, nil
 	}
 }
 
@@ -401,6 +429,9 @@ func (a *App) GetUsersMap(offset int, limit int, asAdmin bool) (map[string]*mode
 
 	for _, user := range users {
 		a.SanitizeProfile(user, asAdmin)
+		if err := a.LatestServiceTermsAccepted(user); err != nil {
+			return nil, err
+		}
 		userMap[user.Id] = user
 	}
 
@@ -411,6 +442,12 @@ func (a *App) GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, 
 	users, err := a.GetUsers(page*perPage, perPage)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, user := range users {
+		if err := a.LatestServiceTermsAccepted(user); err != nil {
+			return nil, err
+		}
 	}
 
 	return a.sanitizeProfiles(users, asAdmin), nil
@@ -1456,6 +1493,9 @@ func (a *App) SearchUsersInChannel(channelId string, term string, searchOptions 
 
 		for _, user := range users {
 			a.SanitizeProfile(user, asAdmin)
+			if err := a.LatestServiceTermsAccepted(user); err != nil {
+				return nil, err
+			}
 		}
 
 		return users, nil
@@ -1470,6 +1510,9 @@ func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term stri
 
 		for _, user := range users {
 			a.SanitizeProfile(user, asAdmin)
+			if err := a.LatestServiceTermsAccepted(user); err != nil {
+				return nil, err
+			}
 		}
 
 		return users, nil
@@ -1484,6 +1527,9 @@ func (a *App) SearchUsersInTeam(teamId string, term string, searchOptions map[st
 
 		for _, user := range users {
 			a.SanitizeProfile(user, asAdmin)
+			if err := a.LatestServiceTermsAccepted(user); err != nil {
+				return nil, err
+			}
 		}
 
 		return users, nil
@@ -1498,6 +1544,9 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, searchOption
 
 		for _, user := range users {
 			a.SanitizeProfile(user, asAdmin)
+			if err := a.LatestServiceTermsAccepted(user); err != nil {
+				return nil, err
+			}
 		}
 
 		return users, nil
@@ -1512,6 +1561,9 @@ func (a *App) SearchUsersWithoutTeam(term string, searchOptions map[string]bool,
 
 		for _, user := range users {
 			a.SanitizeProfile(user, asAdmin)
+			if err := a.LatestServiceTermsAccepted(user); err != nil {
+				return nil, err
+			}
 		}
 
 		return users, nil
@@ -1612,6 +1664,26 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 		user = result.Data.([2]*model.User)[0]
 		a.InvalidateCacheForUser(user.Id)
+	}
+
+	return nil
+}
+
+func (a *App) LatestServiceTermsAccepted(user *model.User) *model.AppError {
+	if user == nil {
+		return nil
+	}
+
+	serviceTerms, err := a.GetServiceTerms()
+
+	if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
+		return err
+	}
+
+	if serviceTerms == nil {
+		user.LatestServiceTermsAccepted = false
+	} else {
+		user.LatestServiceTermsAccepted = user.AcceptedServiceTermsId == serviceTerms.Id
 	}
 
 	return nil
