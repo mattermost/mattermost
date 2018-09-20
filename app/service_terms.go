@@ -23,7 +23,7 @@ func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *mod
 }
 
 func (a *App) GetServiceTerms() (*model.ServiceTerms, *model.AppError) {
-	if result := <- a.Srv.Store.ServiceTerms().Get(); result.Err != nil {
+	if result := <- a.Srv.Store.ServiceTerms().Get(true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		serviceTerms := result.Data.(*model.ServiceTerms)

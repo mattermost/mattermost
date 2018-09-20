@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -13,12 +14,14 @@ import (
 
 type SqlServiceTermsStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 var serviceTermsCache = utils.NewLru(model.SERVICE_TERMS_CACHE_SIZE)
+const serviceTermsCacheName = "ServiceTerms"
 
-func NewSqlTermStore(sqlStore SqlStore) store.ServiceTermsStore {
-	s := SqlServiceTermsStore{sqlStore}
+func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface ) store.ServiceTermsStore {
+	s := SqlServiceTermsStore{sqlStore, metrics}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.ServiceTerms{}, "ServiceTerms").SetKeys(false, "Id")
@@ -63,11 +66,32 @@ func (s SqlServiceTermsStore) Save(serviceTerms *model.ServiceTerms) store.Store
 		}
 
 		result.Data = serviceTerms
+
+		serviceTermsCache.AddWithDefaultExpires(serviceTerms.Id, serviceTerms)
 	})
 }
 
-func (s SqlServiceTermsStore) Get() store.StoreChannel {
+func (s SqlServiceTermsStore) Get(allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		if allowFromCache {
+			if serviceTermsCache.Len() == 0 {
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter(serviceTermsCacheName)
+				}
+			} else {
+				if cacheItem, ok := serviceTermsCache.Get(serviceTermsCache.Keys()[0]); ok {
+					if s.metrics != nil {
+						s.metrics.IncrementMemCacheHitCounter(serviceTermsCacheName)
+					}
+
+					result.Data = cacheItem.(*model.ServiceTerms)
+					return
+				} else if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter(serviceTermsCacheName)
+				}
+			}
+		}
+
 		var serviceTerms *model.ServiceTerms
 
 		err := s.GetReplica().SelectOne(&serviceTerms, "SELECT * FROM ServiceTerms ORDER BY CreateAt DESC LIMIT 1")
@@ -79,6 +103,10 @@ func (s SqlServiceTermsStore) Get() store.StoreChannel {
 			}
 		} else {
 			result.Data = serviceTerms
+
+			if allowFromCache {
+				serviceTermsCache.AddWithDefaultExpires(serviceTerms.Id, serviceTerms)
+			}
 		}
 	})
 }

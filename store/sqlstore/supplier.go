@@ -146,7 +146,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
 	supplier.oldStores.channelMemberHistory = NewSqlChannelMemberHistoryStore(supplier)
 	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
-	supplier.oldStores.serviceTerms = NewSqlTermStore(supplier)
+	supplier.oldStores.serviceTerms = NewSqlTermStore(supplier, metrics)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
