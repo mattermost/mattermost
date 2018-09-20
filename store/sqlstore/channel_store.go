@@ -1691,14 +1691,14 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 
 		var channels model.ChannelList
 
-		if likeClause, likeTerm := s.buildLIKEClause(term); likeClause == "" {
+		if likeClause, likeTerm := s.buildLIKEClause(term, "Name, DisplayName, Purpose"); likeClause == "" {
 			if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId}); err != nil {
 				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeam", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
 			// query you would get using an OR of the LIKE and full-text clauses.
-			fulltextClause, fulltextTerm := s.buildFulltextClause(term)
+			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "Name, DisplayName, Purpose")
 			likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
 			fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
 			query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
@@ -1730,7 +1730,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 			JOIN
 				ChannelMembers AS CM ON CM.ChannelId = C.Id
 			WHERE
-			    (C.TeamId = :TeamId OR C.TeamId = '')
+			    (C.TeamId = :TeamId OR (C.TeamId = '' AND C.Type = 'G'))
 				AND CM.UserId = :UserId
 				` + deleteFilter + `
 				%v
@@ -1738,14 +1738,14 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 
 		var channels model.ChannelList
 
-		if likeClause, likeTerm := s.buildLIKEClause(term); likeClause == "" {
+		if likeClause, likeTerm := s.buildLIKEClause(term, "Name, DisplayName, Purpose"); likeClause == "" {
 			if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId, "UserId": userId}); err != nil {
 				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
 			// query you would get using an OR of the LIKE and full-text clauses.
-			fulltextClause, fulltextTerm := s.buildFulltextClause(term)
+			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "Name, DisplayName, Purpose")
 			likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
 			fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
 			query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
@@ -1755,11 +1755,61 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId strin
 			}
 		}
 
+		directChannels, err := s.autocompleteInTeamForSearchDirectMessages(userId, term)
+		if err != nil {
+			result.Err = err
+			return
+		}
+
+		channels = append(channels, directChannels...)
+
 		sort.Slice(channels, func(a, b int) bool {
 			return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
 		})
 		result.Data = &channels
 	})
+}
+
+func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string, term string) ([]*model.Channel, *model.AppError) {
+	queryFormat := `
+			SELECT
+				C.*,
+				OtherUsers.Username as DisplayName
+			FROM
+				Channels AS C
+			JOIN
+				ChannelMembers AS CM ON CM.ChannelId = C.Id
+			INNER JOIN (
+				SELECT
+					ICM.ChannelId AS ChannelId, IU.Username AS Username
+				FROM
+					Users as IU
+				JOIN
+					ChannelMembers AS ICM ON ICM.UserId = IU.Id
+				WHERE
+					IU.Id != :UserId
+					%v
+				) AS OtherUsers ON OtherUsers.ChannelId = C.Id
+			WHERE
+			    C.Type = 'D'
+				AND CM.UserId = :UserId
+			LIMIT 50`
+
+	var channels model.ChannelList
+
+	if likeClause, likeTerm := s.buildLIKEClause(term, "IU.Username, IU.Nickname"); likeClause == "" {
+		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"UserId": userId}); err != nil {
+			return nil, model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		query := fmt.Sprintf(queryFormat, "AND "+likeClause)
+
+		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"UserId": userId, "LikeTerm": likeTerm}); err != nil {
+			return nil, model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return channels, nil
 }
 
 func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
@@ -1814,9 +1864,8 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) s
 	})
 }
 
-func (s SqlChannelStore) buildLIKEClause(term string) (likeClause, likeTerm string) {
+func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (likeClause, likeTerm string) {
 	likeTerm = term
-	searchColumns := "Name, DisplayName, Purpose"
 
 	// These chars must be removed from the like query.
 	for _, c := range ignoreLikeSearchChar {
@@ -1847,11 +1896,9 @@ func (s SqlChannelStore) buildLIKEClause(term string) (likeClause, likeTerm stri
 	return
 }
 
-func (s SqlChannelStore) buildFulltextClause(term string) (fulltextClause, fulltextTerm string) {
+func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	// Copy the terms as we will need to prepare them differently for each search type.
 	fulltextTerm = term
-
-	searchColumns := "Name, DisplayName, Purpose"
 
 	// These chars must be treated as spaces in the fulltext query.
 	for _, c := range spaceFulltextSearchChar {
@@ -1891,13 +1938,13 @@ func (s SqlChannelStore) buildFulltextClause(term string) (fulltextClause, fullt
 func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) store.StoreResult {
 	result := store.StoreResult{}
 
-	likeClause, likeTerm := s.buildLIKEClause(term)
+	likeClause, likeTerm := s.buildLIKEClause(term, "Name, DisplayName, Purpose")
 	if likeTerm == "" {
 		// If the likeTerm is empty after preparing, then don't bother searching.
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		parameters["LikeTerm"] = likeTerm
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term)
+		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "Name, DisplayName, Purpose")
 		parameters["FulltextTerm"] = fulltextTerm
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
 	}
