@@ -102,17 +102,17 @@ func TestSendMailUsingConfig(t *testing.T) {
 	var emailBody = "This is a test from autobot"
 
 	//Delete all the messages before check the sample email
-	utils.DeleteMailBox(emailTo)
+	DeleteMailBox(emailTo)
 
 	if err := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
 		//Check if the email was send to the right email address
-		var resultsMailbox utils.JSONMessageHeaderInbucket
-		err := utils.RetryInbucket(5, func() error {
+		var resultsMailbox JSONMessageHeaderInbucket
+		err := RetryInbucket(5, func() error {
 			var err error
-			resultsMailbox, err = utils.GetMailBox(emailTo)
+			resultsMailbox, err = GetMailBox(emailTo)
 			return err
 		})
 		if err != nil {
@@ -123,7 +123,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 			if !strings.ContainsAny(resultsMailbox[0].To[0], emailTo) {
 				t.Fatal("Wrong To recipient")
 			} else {
-				if resultsEmail, err := utils.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID); err == nil {
+				if resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID); err == nil {
 					if !strings.Contains(resultsEmail.Body.Text, emailBody) {
 						t.Log(resultsEmail.Body.Text)
 						t.Fatal("Received message")
@@ -146,7 +146,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	var emailBody = "This is a test from autobot"
 
 	//Delete all the messages before check the sample email
-	utils.DeleteMailBox(smtpTo)
+	DeleteMailBox(smtpTo)
 
 	fileBackend, err := filesstore.NewFileBackend(&cfg.FileSettings, true)
 	assert.Nil(t, err)
@@ -182,10 +182,10 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 		t.Fatal("Should connect to the STMP Server")
 	} else {
 		//Check if the email was send to the right email address
-		var resultsMailbox utils.JSONMessageHeaderInbucket
-		err := utils.RetryInbucket(5, func() error {
+		var resultsMailbox JSONMessageHeaderInbucket
+		err := RetryInbucket(5, func() error {
 			var err error
-			resultsMailbox, err = utils.GetMailBox(smtpTo)
+			resultsMailbox, err = GetMailBox(smtpTo)
 			return err
 		})
 		if err != nil {
@@ -196,7 +196,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 			if !strings.ContainsAny(resultsMailbox[0].To[0], smtpTo) {
 				t.Fatal("Wrong To recipient")
 			} else {
-				if resultsEmail, err := utils.GetMessageFromMailbox(smtpTo, resultsMailbox[0].ID); err == nil {
+				if resultsEmail, err := GetMessageFromMailbox(smtpTo, resultsMailbox[0].ID); err == nil {
 					if !strings.Contains(resultsEmail.Body.Text, emailBody) {
 						t.Log(resultsEmail.Body.Text)
 						t.Fatal("Received message")
