@@ -91,20 +91,20 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 func (a *App) LoadServiceTerms() *model.AppError {
 	cfg := a.Config()
-		serviceTerms, err := a.GetServiceTerms()
-		if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
-			return err
-		}
+	serviceTerms, err := a.GetServiceTerms()
+	if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
+		return err
+	}
 
-		var serviceTermsText = ""
-		if serviceTerms != nil {
-			serviceTermsText = serviceTerms.Text
-		}
+	var serviceTermsText = ""
+	if serviceTerms != nil {
+		serviceTermsText = serviceTerms.Text
+	}
 
-		cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTermsText)
-		a.UpdateConfig(func(update *model.Config) {
-			*update = *cfg
-		})
+	cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTermsText)
+	a.UpdateConfig(func(update *model.Config) {
+		*update = *cfg
+	})
 
 	return nil
 }

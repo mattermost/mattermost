@@ -2204,20 +2204,20 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 
 func testUserStoreGetWithServiceTerms(t *testing.T, ss store.Store) {
 	serviceTerms := &model.ServiceTerms{
-		Text: "ABC",
+		Text:   "ABC",
 		UserId: model.NewId(),
 	}
 
 	store.Must(ss.ServiceTerms().Save(serviceTerms))
 
 	u1 := model.User{
-		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Email:                  MakeEmail(),
+		Username:               model.NewId(),
 		AcceptedServiceTermsId: serviceTerms.Id,
 	}
 	store.Must(ss.User().Save(&u1))
 
-	r1 := <- ss.User().Get(u1.Id)
+	r1 := <-ss.User().Get(u1.Id)
 	assert.True(t, *r1.Data.(*model.User).LatestServiceTermsAccepted)
 }
 
@@ -2291,7 +2291,7 @@ func testUserStoreGetAllProfilesWithServiceTerms(t *testing.T, ss store.Store) {
 
 func testGetAllUsingAuthServiceWithServiceTerms(t *testing.T, ss store.Store) {
 	st1 := &model.ServiceTerms{
-		Id: model.NewId(),
+		Id:   model.NewId(),
 		Text: "ABC",
 	}
 	store.Must(ss.ServiceTerms().Save(st1))

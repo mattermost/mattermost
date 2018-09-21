@@ -18,9 +18,10 @@ type SqlServiceTermsStore struct {
 }
 
 var serviceTermsCache = utils.NewLru(model.SERVICE_TERMS_CACHE_SIZE)
+
 const serviceTermsCacheName = "ServiceTerms"
 
-func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface ) store.ServiceTermsStore {
+func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ServiceTermsStore {
 	s := SqlServiceTermsStore{sqlStore, metrics}
 
 	for _, db := range sqlStore.GetAllConns() {

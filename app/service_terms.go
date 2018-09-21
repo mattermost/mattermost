@@ -6,7 +6,7 @@ import (
 
 func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *model.AppError) {
 	serviceTerms := &model.ServiceTerms{
-		Text: text,
+		Text:   text,
 		UserId: userId,
 	}
 
@@ -14,7 +14,7 @@ func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *mod
 		return nil, err
 	}
 
-	if result := <- a.Srv.Store.ServiceTerms().Save(serviceTerms); result.Err != nil {
+	if result := <-a.Srv.Store.ServiceTerms().Save(serviceTerms); result.Err != nil {
 		return nil, result.Err
 	} else {
 		serviceTerms := result.Data.(*model.ServiceTerms)
@@ -23,7 +23,7 @@ func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *mod
 }
 
 func (a *App) GetServiceTerms() (*model.ServiceTerms, *model.AppError) {
-	if result := <- a.Srv.Store.ServiceTerms().Get(true); result.Err != nil {
+	if result := <-a.Srv.Store.ServiceTerms().Get(true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		serviceTerms := result.Data.(*model.ServiceTerms)
