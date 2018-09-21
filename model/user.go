@@ -74,8 +74,8 @@ type User struct {
 	MfaActive                  bool      `json:"mfa_active,omitempty"`
 	MfaSecret                  string    `json:"mfa_secret,omitempty"`
 	LastActivityAt             int64     `db:"-" json:"last_activity_at,omitempty"`
-	AcceptedServiceTermsId     string    `json:"accepted_service_terms_id"`
-	LatestServiceTermsAccepted bool      `db:"-" json:"latest_service_terms_accepted"`
+	AcceptedServiceTermsId     string    `json:"accepted_service_terms_id,omitempty"`
+	LatestServiceTermsAccepted *bool     `db:"-" json:"latest_service_terms_accepted,omitempty"`
 }
 
 type UserPatch struct {
@@ -372,6 +372,10 @@ func (u *User) Sanitize(options map[string]bool) {
 	}
 	if len(options) != 0 && !options["authservice"] {
 		u.AuthService = ""
+	}
+
+	if len(options) != 0 && !options["latestservicetermsaccepted"] {
+		u.LatestServiceTermsAccepted = nil
 	}
 }
 
