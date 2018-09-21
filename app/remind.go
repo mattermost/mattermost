@@ -20,9 +20,6 @@ import (
 var running bool
 var remindUser *model.User
 var emptyTime time.Time
-var numbers map[string]int
-var onumbers map[string]int
-var tnumbers map[string]int
 var daySuffixes []string
 
 func (a *App) InitReminders() {
@@ -45,82 +42,7 @@ func (a *App) InitReminders() {
 	remindUser = user
 	emptyTime = time.Time{}.AddDate(1, 1, 1)
 
-	// TODO fix this flaw in translation.  should be per user, not the remind bot
-
-	_, _, translationFunc, _ := a.shared(user.Id)
-
-	numbers = make(map[string]int)
-	onumbers = make(map[string]int)
-	tnumbers = make(map[string]int)
-
-	numbers[translationFunc("app.reminder.chrono.zero")] = 0
-	numbers[translationFunc("app.reminder.chrono.one")] = 1
-	numbers[translationFunc("app.reminder.chrono.two")] = 2
-	numbers[translationFunc("app.reminder.chrono.three")] = 3
-	numbers[translationFunc("app.reminder.chrono.four")] = 4
-	numbers[translationFunc("app.reminder.chrono.five")] = 5
-	numbers[translationFunc("app.reminder.chrono.six")] = 6
-	numbers[translationFunc("app.reminder.chrono.seven")] = 7
-	numbers[translationFunc("app.reminder.chrono.eight")] = 8
-	numbers[translationFunc("app.reminder.chrono.nine")] = 9
-	numbers[translationFunc("app.reminder.chrono.ten")] = 10
-	numbers[translationFunc("app.reminder.chrono.eleven")] = 11
-	numbers[translationFunc("app.reminder.chrono.twelve")] = 12
-	numbers[translationFunc("app.reminder.chrono.thirteen")] = 13
-	numbers[translationFunc("app.reminder.chrono.fourteen")] = 14
-	numbers[translationFunc("app.reminder.chrono.fifteen")] = 15
-	numbers[translationFunc("app.reminder.chrono.sixteen")] = 16
-	numbers[translationFunc("app.reminder.chrono.seventeen")] = 17
-	numbers[translationFunc("app.reminder.chrono.eighteen")] = 18
-	numbers[translationFunc("app.reminder.chrono.nineteen")] = 19
-
-	tnumbers["twenty"] = 20
-	tnumbers["thirty"] = 30
-	tnumbers["fourty"] = 40
-	tnumbers["fifty"] = 50
-	tnumbers["sixty"] = 60
-	tnumbers["seventy"] = 70
-	tnumbers["eighty"] = 80
-	tnumbers["ninety"] = 90
-
-	onumbers["hundred"] = 100
-	onumbers["thousand"] = 100
-	onumbers["million"] = 100
-	onumbers["billion"] = 100
-
-	numbers["first"] = 1
-	numbers["second"] = 2
-	numbers["third"] = 3
-	numbers["fourth"] = 4
-	numbers["fifth"] = 5
-	numbers["sixth"] = 6
-	numbers["seventh"] = 7
-	numbers["eighth"] = 8
-	numbers["nineth"] = 9
-	numbers["tenth"] = 10
-	numbers["eleventh"] = 11
-	numbers["twelveth"] = 12
-	numbers["thirteenth"] = 13
-	numbers["fourteenth"] = 14
-	numbers["fifteenth"] = 15
-	numbers["sixteenth"] = 16
-	numbers["seventeenth"] = 17
-	numbers["eighteenth"] = 18
-	numbers["nineteenth"] = 19
-
-	tnumbers["twenteth"] = 20
-	tnumbers["twentyfirst"] = 21
-	tnumbers["twentysecond"] = 22
-	tnumbers["twentythird"] = 23
-	tnumbers["twentyfourth"] = 24
-	tnumbers["twentyfifth"] = 25
-	tnumbers["twentysixth"] = 26
-	tnumbers["twentyseventh"] = 27
-	tnumbers["twentyeight"] = 28
-	tnumbers["twentynineth"] = 29
-	tnumbers["thirteth"] = 30
-	tnumbers["thirtyfirst"] = 31
-
+	//TODO get this in a function with translation
 	daySuffixes = []string{"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th",
 		"10th", "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th",
 		"20th", "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th",
@@ -609,33 +531,168 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 
 func (a *App) findWhen(request *model.ReminderRequest) error {
 
-	_, _, translateFunc, _ := a.shared(request.UserId)
+	user, _, translateFunc, _ := a.shared(request.UserId)
 
-	inSplit := strings.Split(request.Payload, " "+translateFunc("app.reminder.chrono.in")+" ")
-	if len(inSplit) == 2 {
-		request.Reminder.When = translateFunc("app.reminder.chrono.in") + " " + inSplit[len(inSplit)-1]
+	inIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.in")+" ")
+	if inIndex > -1 {
+		request.Reminder.When = strings.Trim(request.Payload[inIndex:], " ")
 		return nil
 	}
 
-	inSplit = strings.Split(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
-	if len(inSplit) == 2 {
-		request.Reminder.When = translateFunc("app.reminder.chrono.at") + " " + inSplit[len(inSplit)-1]
+	everyIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.every")+" ")
+	atIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (everyIndex > -1 && atIndex == -1) || (atIndex > everyIndex) && everyIndex != -1 {
+		request.Reminder.When = strings.Trim(request.Payload[everyIndex:], " ")
 		return nil
 	}
 
-	inSplit = strings.Split(request.Payload, " "+translateFunc("app.reminder.chrono.on")+" ")
-	if len(inSplit) == 2 {
-		request.Reminder.When = translateFunc("app.reminder.chrono.on") + " " + inSplit[len(inSplit)-1]
+	onIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.on")+" ")
+	if inIndex > -1 {
+		request.Reminder.When = strings.Trim(request.Payload[onIndex:], " ")
 		return nil
 	}
 
-	inSplit = strings.Split(request.Payload, " "+translateFunc("app.reminder.chrono.every")+" ")
-	if len(inSplit) == 2 {
-		request.Reminder.When = translateFunc("app.reminder.chrono.every") + " " + inSplit[len(inSplit)-1]
+	everydayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.everyday")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (everydayIndex > -1 && atIndex >= -1) && (atIndex > everydayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[everydayIndex:], " ")
 		return nil
 	}
 
-	//TODO the additional freeform when patterns
+	todayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.today")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (todayIndex > -1 && atIndex >= -1) && (atIndex > todayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[todayIndex:], " ")
+		return nil
+	}
+
+	tomorrowIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.tomorrow")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (tomorrowIndex > -1 && atIndex >= -1) && (atIndex > tomorrowIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[tomorrowIndex:], " ")
+		return nil
+	}
+
+	mondayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.monday")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (mondayIndex > -1 && atIndex >= -1) && (atIndex > mondayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[mondayIndex:], " ")
+		return nil
+	}
+
+	tuesdayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.tuesday")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (tuesdayIndex > -1 && atIndex >= -1) && (atIndex > tuesdayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[tuesdayIndex:], " ")
+		return nil
+	}
+
+	wednesdayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.wednesday")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (wednesdayIndex > -1 && atIndex >= -1) && (atIndex > wednesdayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[wednesdayIndex:], " ")
+		return nil
+	}
+
+	thursdayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.thursday")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (thursdayIndex > -1 && atIndex >= -1) && (atIndex > thursdayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[thursdayIndex:], " ")
+		return nil
+	}
+
+	fridayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.friday")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (fridayIndex > -1 && atIndex >= -1) && (atIndex > fridayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[fridayIndex:], " ")
+		return nil
+	}
+
+	saturdayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.saturday")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (saturdayIndex > -1 && atIndex >= -1) && (atIndex > saturdayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[saturdayIndex:], " ")
+		return nil
+	}
+
+	sundayIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.sunday")+" ")
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	if (sundayIndex > -1 && atIndex >= -1) && (atIndex > sundayIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[sundayIndex:], " ")
+		return nil
+	}
+
+	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
+	everyIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.every")+" ")
+	if (atIndex > -1 && everyIndex >= -1) && (everyIndex > atIndex) {
+		request.Reminder.When = strings.Trim(request.Payload[atIndex:], " ")
+		return nil
+	}
+
+	textSplit := strings.Split(request.Payload, " ")
+
+	if len(textSplit) == 1 {
+		request.Reminder.When = textSplit[0]
+		return nil
+	}
+
+	lastWord := textSplit[len(textSplit)-2] + " " + textSplit[len(textSplit)-1]
+	_, dErr := a.normalizeDate(user, lastWord)
+	if dErr == nil {
+		request.Reminder.When = lastWord
+		return nil
+	} else {
+		lastWord = textSplit[len(textSplit)-1]
+
+		switch lastWord {
+		case translateFunc("app.reminder.chrono.tomorrow"):
+			request.Reminder.When = lastWord
+			return nil
+		case translateFunc("app.reminder.chrono.everyday"),
+			translateFunc("app.reminder.chrono.mondays"),
+			translateFunc("app.reminder.chrono.tuesdays"),
+			translateFunc("app.reminder.chrono.wednesdays"),
+			translateFunc("app.reminder.chrono.thursdays"),
+			translateFunc("app.reminder.chrono.fridays"),
+			translateFunc("app.reminder.chrono.saturdays"),
+			translateFunc("app.reminder.chrono.sundays"):
+			request.Reminder.When = lastWord
+		default:
+			break
+		}
+
+		_, dErr = a.normalizeDate(user, lastWord)
+		if dErr == nil {
+			request.Reminder.When = lastWord
+			return nil
+		} else {
+			var firstWord string
+			switch textSplit[0] {
+			case translateFunc("app.reminder.chrono.at"):
+				firstWord = textSplit[1]
+				request.Reminder.When = textSplit[0] + " " + firstWord
+				return nil
+			case translateFunc("app.reminder.chrono.in"), translateFunc("app.reminder.chrono.on"):
+				firstWord = textSplit[1] + " " + textSplit[2]
+				request.Reminder.When = textSplit[0] + " " + firstWord
+				return nil
+			case translateFunc("app.reminder.chrono.tomorrow"),
+				translateFunc("app.reminder.chrono.monday"),
+				translateFunc("app.reminder.chrono.tuesday"),
+				translateFunc("app.reminder.chrono.wednesday"),
+				translateFunc("app.reminder.chrono.thursday"),
+				translateFunc("app.reminder.chrono.friday"),
+				translateFunc("app.reminder.chrono.saturday"),
+				translateFunc("app.reminder.chrono.sunday"):
+				firstWord = textSplit[0]
+				request.Reminder.When = firstWord
+				return nil
+			default:
+				break
+			}
+		}
+
+	}
 
 	return errors.New("unable to find when")
 }
@@ -659,7 +716,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		i, e := strconv.Atoi(value)
 
 		if e != nil {
-			num, wErr := a.wordToNumber(value)
+			num, wErr := a.wordToNumber(value, user)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
 				return []time.Time{}, wErr
@@ -682,7 +739,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		i, e := strconv.Atoi(value)
 
 		if e != nil {
-			num, wErr := a.wordToNumber(value)
+			num, wErr := a.wordToNumber(value, user)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
 				return []time.Time{}, wErr
@@ -706,7 +763,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		i, e := strconv.Atoi(value)
 
 		if e != nil {
-			num, wErr := a.wordToNumber(value)
+			num, wErr := a.wordToNumber(value, user)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
 				return []time.Time{}, wErr
@@ -729,7 +786,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		i, e := strconv.Atoi(value)
 
 		if e != nil {
-			num, wErr := a.wordToNumber(value)
+			num, wErr := a.wordToNumber(value, user)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
 				return []time.Time{}, wErr
@@ -753,7 +810,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		i, e := strconv.Atoi(value)
 
 		if e != nil {
-			num, wErr := a.wordToNumber(value)
+			num, wErr := a.wordToNumber(value, user)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
 				return []time.Time{}, wErr
@@ -776,7 +833,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		i, e := strconv.Atoi(value)
 
 		if e != nil {
-			num, wErr := a.wordToNumber(value)
+			num, wErr := a.wordToNumber(value, user)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
 				return []time.Time{}, wErr
@@ -800,7 +857,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		i, e := strconv.Atoi(value)
 
 		if e != nil {
-			num, wErr := a.wordToNumber(value)
+			num, wErr := a.wordToNumber(value, user)
 			if wErr != nil {
 				mlog.Error(fmt.Sprintf("%v", wErr))
 				return []time.Time{}, wErr
@@ -936,7 +993,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 		nowkit := time.Now().Format(time.Kitchen)
 		ampm := string(nowkit[len(nowkit)-2:])
 
-		num, wErr := a.wordToNumber(normalizedWhen)
+		num, wErr := a.wordToNumber(normalizedWhen, user)
 		if wErr != nil {
 			return []time.Time{}, wErr
 		}
@@ -1330,7 +1387,7 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 		translateFunc("app.reminder.chrono.eleven"),
 		translateFunc("app.reminder.chrono.twelve"):
 
-		num, wErr := a.wordToNumber(text)
+		num, wErr := a.wordToNumber(text, user)
 		if wErr != nil {
 			mlog.Error(fmt.Sprintf("%v", wErr))
 			return "", wErr
@@ -1515,7 +1572,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 				}
 			}
 			if _, err := strconv.Atoi(parts[1]); err != nil {
-				if wn, wErr := a.wordToNumber(parts[1]); wErr == nil {
+				if wn, wErr := a.wordToNumber(parts[1], user); wErr == nil {
 					parts[1] = strconv.Itoa(wn)
 				}
 			}
@@ -1534,7 +1591,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 			}
 
 			if _, err := strconv.Atoi(parts[1]); err != nil {
-				if wn, wErr := a.wordToNumber(parts[1]); wErr == nil {
+				if wn, wErr := a.wordToNumber(parts[1], user); wErr == nil {
 					parts[1] = strconv.Itoa(wn)
 				} else {
 					mlog.Error(wErr.Error())
@@ -1660,7 +1717,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		}
 
 		if d, nErr := strconv.Atoi(day); nErr != nil {
-			if wordNum, wErr := a.wordToNumber(date); wErr != nil {
+			if wordNum, wErr := a.wordToNumber(date, user); wErr != nil {
 				return "", wErr
 			} else {
 				day = strconv.Itoa(wordNum)
@@ -1725,12 +1782,88 @@ func (a *App) regSplit(text string, delimeter string) []string {
 	return result
 }
 
-func (a *App) wordToNumber(word string) (int, error) {
+func (a *App) wordToNumber(word string, user *model.User) (int, error) {
+
+	_, _, translationFunc, _ := a.shared(user.Id)
+
 	var sum int
 	var temp int
 	var previous int
+
+	numbers := make(map[string]int)
+	onumbers := make(map[string]int)
+	tnumbers := make(map[string]int)
+
+	numbers[translationFunc("app.reminder.chrono.zero")] = 0
+	numbers[translationFunc("app.reminder.chrono.one")] = 1
+	numbers[translationFunc("app.reminder.chrono.two")] = 2
+	numbers[translationFunc("app.reminder.chrono.three")] = 3
+	numbers[translationFunc("app.reminder.chrono.four")] = 4
+	numbers[translationFunc("app.reminder.chrono.five")] = 5
+	numbers[translationFunc("app.reminder.chrono.six")] = 6
+	numbers[translationFunc("app.reminder.chrono.seven")] = 7
+	numbers[translationFunc("app.reminder.chrono.eight")] = 8
+	numbers[translationFunc("app.reminder.chrono.nine")] = 9
+	numbers[translationFunc("app.reminder.chrono.ten")] = 10
+	numbers[translationFunc("app.reminder.chrono.eleven")] = 11
+	numbers[translationFunc("app.reminder.chrono.twelve")] = 12
+	numbers[translationFunc("app.reminder.chrono.thirteen")] = 13
+	numbers[translationFunc("app.reminder.chrono.fourteen")] = 14
+	numbers[translationFunc("app.reminder.chrono.fifteen")] = 15
+	numbers[translationFunc("app.reminder.chrono.sixteen")] = 16
+	numbers[translationFunc("app.reminder.chrono.seventeen")] = 17
+	numbers[translationFunc("app.reminder.chrono.eighteen")] = 18
+	numbers[translationFunc("app.reminder.chrono.nineteen")] = 19
+
+	tnumbers["twenty"] = 20
+	tnumbers["thirty"] = 30
+	tnumbers["fourty"] = 40
+	tnumbers["fifty"] = 50
+	tnumbers["sixty"] = 60
+	tnumbers["seventy"] = 70
+	tnumbers["eighty"] = 80
+	tnumbers["ninety"] = 90
+
+	onumbers["hundred"] = 100
+	onumbers["thousand"] = 100
+	onumbers["million"] = 100
+	onumbers["billion"] = 100
+
+	numbers["first"] = 1
+	numbers["second"] = 2
+	numbers["third"] = 3
+	numbers["fourth"] = 4
+	numbers["fifth"] = 5
+	numbers["sixth"] = 6
+	numbers["seventh"] = 7
+	numbers["eighth"] = 8
+	numbers["nineth"] = 9
+	numbers["tenth"] = 10
+	numbers["eleventh"] = 11
+	numbers["twelveth"] = 12
+	numbers["thirteenth"] = 13
+	numbers["fourteenth"] = 14
+	numbers["fifteenth"] = 15
+	numbers["sixteenth"] = 16
+	numbers["seventeenth"] = 17
+	numbers["eighteenth"] = 18
+	numbers["nineteenth"] = 19
+
+	tnumbers["twenteth"] = 20
+	tnumbers["twentyfirst"] = 21
+	tnumbers["twentysecond"] = 22
+	tnumbers["twentythird"] = 23
+	tnumbers["twentyfourth"] = 24
+	tnumbers["twentyfifth"] = 25
+	tnumbers["twentysixth"] = 26
+	tnumbers["twentyseventh"] = 27
+	tnumbers["twentyeight"] = 28
+	tnumbers["twentynineth"] = 29
+	tnumbers["thirteth"] = 30
+	tnumbers["thirtyfirst"] = 31
+
 	splitted := strings.Split(strings.ToLower(word), " ")
-	mlog.Info(fmt.Sprintf("%v", splitted))
+
 	for _, split := range splitted {
 		if numbers[split] != 0 {
 			temp = numbers[split]

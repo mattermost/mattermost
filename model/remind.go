@@ -25,7 +25,7 @@ type Occurrence struct {
 	ReminderId string `json:"reminder_id"`
 	Repeat     string `json:"repeat"`
 	Occurrence string `json:"occurrence"`
-	Snoozed    string  `json:"snoozed"`
+	Snoozed    string `json:"snoozed"`
 }
 
 type Reminder struct {
@@ -35,7 +35,7 @@ type Reminder struct {
 	Target    string `json:"target"`
 	Message   string `json:"message"`
 	When      string `json:"when"`
-	Completed string  `json:"completed"`
+	Completed string `json:"completed"`
 }
 
 type ReminderRequest struct {
