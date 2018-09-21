@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -402,5 +403,5 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
 	license := a.License()
-	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
 }

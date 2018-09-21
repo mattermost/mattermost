@@ -287,6 +287,10 @@ store-mocks: ## Creates mock files.
 	go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
+filesstore-mocks: ## Creates mock files.
+	go get -u github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
+
 ldap-mocks: ## Creates mock files for ldap.
 	go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'

@@ -29,6 +29,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -58,9 +59,9 @@ const (
 	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
 )
 
-func (a *App) FileBackend() (utils.FileBackend, *model.AppError) {
+func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := a.License()
-	return utils.NewFileBackend(&a.Config().FileSettings, license != nil && *license.Features.Compliance)
+	return filesstore.NewFileBackend(&a.Config().FileSettings, license != nil && *license.Features.Compliance)
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
