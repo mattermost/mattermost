@@ -1,7 +1,7 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package utils
+package filesstore
 
 import (
 	"bytes"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -62,7 +63,7 @@ func (b *LocalFileBackend) FileExists(path string) (bool, *model.AppError) {
 }
 
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) *model.AppError {
-	if err := CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
+	if err := utils.CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
 		return model.NewAppError("copyFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil

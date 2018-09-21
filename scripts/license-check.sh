@@ -5,7 +5,7 @@ count=0
 for fileType in GoFiles; do
     for file in `go list -f $'{{range .GoFiles}}{{$.Dir}}/{{.}}\n{{end}}' "$@"`; do
         case $file in
-            */utils/lru.go|*/store/storetest/mocks/*|*/app/plugin/jira/plugin_*|*/plugin/plugintest/*|*/app/plugin/zoom/plugin_*)
+            */utils/lru.go|*/store/storetest/mocks/*|*/services/*/mocks/*|*/app/plugin/jira/plugin_*|*/plugin/plugintest/*|*/app/plugin/zoom/plugin_*)
             # Third-party, doesn't require a header.
             ;;
         *)

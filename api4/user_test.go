@@ -1919,7 +1919,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	Client.Logout()
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
-	utils.DeleteMailBox(user.Email)
+	mailservice.DeleteMailBox(user.Email)
 	success, resp := Client.SendPasswordResetEmail(user.Email)
 	CheckNoError(t, resp)
 	if !success {
@@ -1934,10 +1934,10 @@ func TestUpdateUserPassword(t *testing.T) {
 		t.Fatal("should have succeeded")
 	}
 	// Check if the email was send to the right email address and the recovery key match
-	var resultsMailbox utils.JSONMessageHeaderInbucket
-	err := utils.RetryInbucket(5, func() error {
+	var resultsMailbox mailservice.JSONMessageHeaderInbucket
+	err := mailservice.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = utils.GetMailBox(user.Email)
+		resultsMailbox, err = mailservice.GetMailBox(user.Email)
 		return err
 	})
 	if err != nil {
@@ -1949,7 +1949,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		if !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			if resultsEmail, err := utils.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
+			if resultsEmail, err := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
 				loc := strings.Index(resultsEmail.Body.Text, "token=")
 				if loc == -1 {
 					t.Log(resultsEmail.Body.Text)
