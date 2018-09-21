@@ -2291,7 +2291,7 @@ func testUserStoreGetAllProfilesWithServiceTerms(t *testing.T, ss store.Store) {
 
 func testGetAllUsingAuthServiceWithServiceTerms(t *testing.T, ss store.Store) {
 	st1 := &model.ServiceTerms{
-		Text: "ABC",
+		Text:   "ABC",
 		UserId: model.NewId(),
 	}
 	store.Must(ss.ServiceTerms().Save(st1))
