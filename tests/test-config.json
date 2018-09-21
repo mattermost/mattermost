@@ -32,6 +32,9 @@
         "EnforceMultifactorAuthentication": false,
         "EnableUserAccessTokens": false,
         "AllowCorsFrom": "",
+        "CorsExposedHeaders": "",
+        "CorsAllowCredentials": false,
+        "CorsDebug": false,
         "AllowCookiesForSubdomains": false,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
@@ -43,6 +46,9 @@
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
         "EnableEmojiPicker": true,
+        "EnableGifPicker": false,
+        "GfycatApiKey": "2_KtH_W5",
+        "GfycatApiSecret": "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof",
         "RestrictCustomEmojiCreation": "all",
         "RestrictPostDelete": "all",
         "AllowEditPost": "always",
@@ -59,12 +65,14 @@
         "EnableTutorial": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
+        "ExperimentalChannelOrganization": false,
         "ImageProxyType": "",
         "ImageProxyURL": "",
         "ImageProxyOptions": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "ExperimentalLimitClientConfig": false
+        "ExperimentalLimitClientConfig": false,
+        "EnableEmailInvitations": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -92,10 +100,12 @@
         "MaxNotificationsPerChannel": 1000,
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
+        "ExperimentalViewArchivedChannels": false,
         "ExperimentalEnableAutomaticReplies": false,
         "ExperimentalHideTownSquareinLHS": false,
         "ExperimentalTownSquareIsReadOnly": false,
-        "ExperimentalPrimaryTeam": ""
+        "ExperimentalPrimaryTeam": "",
+        "ExperimentalDefaultChannels": []
     },
     "ClientRequirements": {
         "AndroidLatestVersion": "",
@@ -111,10 +121,12 @@
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
+        "ConnMaxLifetimeMilliseconds": 3600000,
         "MaxOpenConns": 300,
         "Trace": false,
         "AtRestEncryptKey": "jdh9iergmse3w9mt53snasugmmi9r6it",
-        "QueryTimeout": 30
+        "QueryTimeout": 30,
+        "EnablePublicChannelsMaterialization": true
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -183,6 +195,10 @@
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
         "LoginButtonTextColor": ""
+    },
+    "ExtensionSettings": {
+        "EnableExperimentalExtensions": false,
+        "AllowedExtensionsIDs": []
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -285,6 +301,7 @@
     "SamlSettings": {
         "Enable": false,
         "EnableSyncWithLdap": false,
+        "EnableSyncWithLdapIncludeAuth": false,
         "Verify": true,
         "Encrypt": true,
         "IdpUrl": "",
@@ -295,6 +312,7 @@
         "IdpCertificateFile": "",
         "PublicCertificateFile": "",
         "PrivateKeyFile": "",
+        "IdAttribute": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",
