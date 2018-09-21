@@ -698,6 +698,11 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
 		}
+
+		if *license.Features.CustomTermsOfService {
+			props["CustomServiceTermsEnabled"] = strconv.FormatBool(*c.SupportSettings.CustomServiceTermsEnabled)
+			props["CustomServiceTermsText"] = *c.SupportSettings.CustomServiceTermsText
+		}
 	}
 
 	return props
