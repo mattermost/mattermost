@@ -348,8 +348,7 @@ func (a *App) GetUser(userId string) (*model.User, *model.AppError) {
 	if result := <-a.Srv.Store.User().Get(userId); result.Err != nil {
 		return nil, result.Err
 	} else {
-		user := result.Data.(*model.User)
-		return user, nil
+		return result.Data.(*model.User), nil
 	}
 }
 
@@ -358,8 +357,7 @@ func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) 
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
-		user := result.Data.(*model.User)
-		return user, nil
+		return result.Data.(*model.User), nil
 	}
 }
 
@@ -372,8 +370,7 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
-		user := result.Data.(*model.User)
-		return user, nil
+		return result.Data.(*model.User), nil
 	}
 }
 
@@ -381,8 +378,7 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	if result := <-a.Srv.Store.User().GetByAuth(authData, authService); result.Err != nil {
 		return nil, result.Err
 	} else {
-		user := result.Data.(*model.User)
-		return user, nil
+		return result.Data.(*model.User), nil
 	}
 }
 
