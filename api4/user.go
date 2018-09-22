@@ -68,7 +68,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 
-	api.BaseRoutes.Users.Handle("/serviceTermsAction", api.ApiSessionRequired(registerServiceTermsAction)).Methods("POST")
+	api.BaseRoutes.User.Handle("/serviceTermsAction", api.ApiSessionRequired(registerServiceTermsAction)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
