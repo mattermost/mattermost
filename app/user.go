@@ -1615,3 +1615,20 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 	return nil
 }
+
+func (a *App) RecordUserServiceTermsAction(userId, serviceTermsId string, accepted bool) *model.AppError {
+	if accepted {
+		user, err := a.GetUser(userId)
+		if err != nil {
+			return err
+		}
+
+		user.AcceptedServiceTermsId = serviceTermsId
+		_, err = a.UpdateUser(user, false)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

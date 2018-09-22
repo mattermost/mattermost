@@ -67,6 +67,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/serviceTermsAction", api.ApiSessionRequired(registerServiceTermsAction)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1543,4 +1545,17 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success - token_id=" + accessToken.Id)
 	ReturnStatusOK(w)
+}
+
+func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	userId := c.Session.UserId
+	serviceTermsId := props["serviceTermsId"]
+	accepted := props["accepted"]
+
+	if err := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted); err != nil {
+		c.Err = err
+		return
+	}
 }
