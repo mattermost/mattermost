@@ -524,3 +524,35 @@ func TestPermanentDeleteUser(t *testing.T) {
 		t.Fatal("GetFileInfo after DeleteUser is nil")
 	}
 }
+
+func TestRecordUserServiceTermsAction(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := &model.User{
+		Email: strings.ToLower(model.NewId()) + "success+test@example.com",
+		Nickname: "Luke Skywalker", // trying to bring balance to the "Force", one test user at a time
+		Username: "luke" + model.NewId(),
+		Password: "passwd1",
+		AuthService: "",
+	}
+	user, err := th.App.CreateUser(user)
+	if err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	defer th.App.PermanentDeleteUser(user)
+
+	serviceTerms, err := th.App.CreateServiceTerms("text", user.Id)
+	if err != nil {
+		t.Fatalf("failed to create service terms: %v", err)
+	}
+
+	err = th.App.RecordUserServiceTermsAction(user.Id, serviceTerms.Id, true)
+	if err != nil {
+		t.Fatalf("failed to record user action: %v", err)
+	}
+
+	nuser, err := th.App.GetUser(user.Id)
+	assert.Equal(t, serviceTerms.Id, nuser.AcceptedServiceTermsId)
+}
