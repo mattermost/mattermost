@@ -1105,6 +1105,15 @@ func (c *Client4) SendVerificationEmail(email string) (bool, *Response) {
 	}
 }
 
+// SetDefaultProfileImage resets the profile image to a default generated one
+func (c *Client4) SetDefaultProfileImage(userId string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetUserRoute(userId) + "/image")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // SetProfileImage sets profile image of the user
 func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) {
 	body := &bytes.Buffer{}

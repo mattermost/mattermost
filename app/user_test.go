@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -113,6 +114,27 @@ func TestCreateProfileImage(t *testing.T) {
 	if img.At(1, 1) != colorful {
 		t.Fatal("Failed to create correct color")
 	}
+}
+
+func TestSetDefaultProfileImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	err := th.App.SetDefaultProfileImage(&model.User{
+		Id:       model.NewId(),
+		Username: "notvaliduser",
+	})
+	require.Error(t, err)
+
+	user := th.BasicUser
+
+	prevLastPictureUpdate := user.LastPictureUpdate
+
+	err = th.App.SetDefaultProfileImage(user)
+	require.Nil(t, err)
+
+	user = getUserFromDB(th.App, user.Id, t)
+	assert.True(t, prevLastPictureUpdate < user.LastPictureUpdate)
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
@@ -249,12 +271,12 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 }
 
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {
-	if user, err := a.GetUser(id); err != nil {
+	user, err := a.GetUser(id)
+	if err != nil {
 		t.Fatal("user is not found", err)
 		return nil
-	} else {
-		return user
 	}
+	return user
 }
 
 func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byte {
