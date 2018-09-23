@@ -1557,26 +1557,11 @@ func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user, appErr := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted)
-	if appErr != nil {
-		c.Err = appErr
+	if err := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted); err != nil {
+		c.Err = err
 		return
 	}
 
 	c.LogAudit("ServiceTermsId="+serviceTermsId+", accepted="+strconv.FormatBool(accepted))
-
-	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
-
-	if c.HandleEtag(etag, "Get User", w, r) {
-		return
-	}
-
-	if c.Session.UserId == user.Id {
-		user.Sanitize(map[string]bool{})
-	} else {
-		c.App.SanitizeProfile(user, c.IsSystemAdmin())
-	}
-	c.App.UpdateLastActivityAtIfNeeded(c.Session)
-	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(user.ToJson()))
+	ReturnStatusOK(w)
 }
