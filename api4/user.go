@@ -39,6 +39,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
+	api.BaseRoutes.User.Handle("/service_terms", api.ApiSessionRequired(registerServiceTermsAction)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
@@ -67,8 +68,6 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
-
-	api.BaseRoutes.User.Handle("/serviceTermsAction", api.ApiSessionRequired(registerServiceTermsAction)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1554,10 +1553,11 @@ func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Reque
 	serviceTermsId := props["serviceTermsId"]
 	accepted, _ := strconv.ParseBool(props["accepted"])
 
-	c.LogAudit("ServiceTermsId="+serviceTermsId+", accepted="+strconv.FormatBool(accepted))
-
 	if err := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted); err != nil {
 		c.Err = err
 		return
 	}
+
+	c.LogAudit("ServiceTermsId="+serviceTermsId+", accepted="+strconv.FormatBool(accepted))
+	ReturnStatusOK(w)
 }

@@ -1622,25 +1622,18 @@ func (a *App) RecordUserServiceTermsAction(userId, serviceTermsId string, accept
 		return err
 	}
 
-	mlog.Info("Latest terms ID: " + serviceTerms.Id)
-	mlog.Info("Accepted: "  + strconv.FormatBool(accepted))
-
 	if accepted && serviceTermsId == serviceTerms.Id {
 		user, err := a.GetUser(userId)
 		if err != nil {
 			return err
 		}
 
-		mlog.Info("serviceTermsId: " + serviceTermsId)
 		user.AcceptedServiceTermsId = serviceTermsId
-		updatedUser, err := a.UpdateUser(user, false)
+		_, err = a.UpdateUser(user, false)
 		if err != nil {
 			return err
 		}
-
-		mlog.Info(strconv.FormatBool(*updatedUser.LatestServiceTermsAccepted))
-		mlog.Info(updatedUser.AcceptedServiceTermsId)
-	}
+}
 
 	return nil
 }
