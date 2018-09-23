@@ -1552,7 +1552,9 @@ func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Reque
 
 	userId := c.Session.UserId
 	serviceTermsId := props["serviceTermsId"]
-	accepted := props["accepted"]
+	accepted, _ := strconv.ParseBool(props["accepted"])
+
+	c.LogAudit("ServiceTermsId="+serviceTermsId+", accepted="+strconv.FormatBool(accepted))
 
 	if err := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted); err != nil {
 		c.Err = err
