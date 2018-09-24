@@ -286,7 +286,7 @@ func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if _, ok := a.clientConfig["CustomServiceTermsId"]; ok {
-		if result := <- a.Srv.Store.ServiceTerms().Get(true); result.Err != nil && result.Err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND{
+		if result := <-a.Srv.Store.ServiceTerms().Get(true); result.Err != nil && result.Err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
 			panic(result.Err)
 		} else {
 			if result.Data != nil {
