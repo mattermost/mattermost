@@ -93,4 +93,5 @@ type SqlStore interface {
 	UserAccessToken() store.UserAccessTokenStore
 	Role() store.RoleStore
 	Scheme() store.SchemeStore
+	ServiceTerms() store.ServiceTermsStore
 }

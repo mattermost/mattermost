@@ -55,6 +55,7 @@ type Features struct {
 	DataRetention             *bool `json:"data_retention"`
 	MessageExport             *bool `json:"message_export"`
 	CustomPermissionsSchemes  *bool `json:"custom_permissions_schemes"`
+	CustomTermsOfService      *bool `json:"custom_terms_of_service"`
 
 	// after we enabled more features for webrtc we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -151,6 +152,10 @@ func (f *Features) SetDefaults() {
 
 	if f.CustomPermissionsSchemes == nil {
 		f.CustomPermissionsSchemes = NewBool(*f.FutureFeatures)
+	}
+
+	if f.CustomTermsOfService == nil {
+		f.CustomTermsOfService = NewBool(*f.FutureFeatures)
 	}
 }
 
