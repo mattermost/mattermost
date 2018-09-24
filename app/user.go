@@ -773,6 +773,14 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 	return data, false, nil
 }
 
+func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
+	img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return img, nil
+}
+
 func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 	img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
 	if appErr != nil {
