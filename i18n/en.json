@@ -4707,6 +4707,14 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Please enter a valid email address."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode"
   },
