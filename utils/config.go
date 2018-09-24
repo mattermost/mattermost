@@ -482,6 +482,9 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 
 	config.SetDefaults()
 
+	// Don't treat it as an error right now if custom service terms are enabled but text is empty.
+	// This is because service terms text will be fetched from database at a later state, but
+	// the flag indicating it is enabled is fetched from config file right away.
 	if err := config.IsValid(); err != nil && err.Id != serviceTermsEnabledAndEmpty.Id {
 		return nil, "", nil, err
 	}

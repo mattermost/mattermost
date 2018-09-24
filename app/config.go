@@ -62,8 +62,6 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 		return err
 	}
 
-	// is custom service terms is not enabled, chances are there are no
-	// service terms in the database.
 	if a.Srv.Store != nil {
 		serviceTerms, err := a.GetServiceTerms()
 		if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
