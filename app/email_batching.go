@@ -139,21 +139,26 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			if inspectedTeamNames[notification.teamName] != "" {
 				continue
 			}
-			tchan := job.app.Srv.Store.Team().GetByName(notifications[0].teamName)
-			if result := <-tchan; result.Err != nil {
+
+			result := <-job.app.Srv.Store.Team().GetByName(notifications[0].teamName)
+			if result.Err != nil {
 				mlog.Error(fmt.Sprint("Unable to find Team id for notification", result.Err))
 				continue
-			} else if team, ok := result.Data.(*model.Team); ok {
+			}
+
+			if team, ok := result.Data.(*model.Team); ok {
 				inspectedTeamNames[notification.teamName] = team.Id
 			}
 
 			// if the user has viewed any channels in this team since the notification was queued, delete
 			// all queued notifications
-			mchan := job.app.Srv.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
-			if result := <-mchan; result.Err != nil {
+			result = <-job.app.Srv.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			if result.Err != nil {
 				mlog.Error(fmt.Sprint("Unable to find ChannelMembers for user", result.Err))
 				continue
-			} else if channelMembers, ok := result.Data.(*model.ChannelMembers); ok {
+			}
+
+			if channelMembers, ok := result.Data.(*model.ChannelMembers); ok {
 				for _, channelMember := range *channelMembers {
 					if channelMember.LastViewedAt >= batchStartTime {
 						mlog.Debug(fmt.Sprintf("Deleted notifications for user %s", userId), mlog.String("user_id", userId))
@@ -194,38 +199,31 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 }
 
 func (a *App) sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
-	uchan := a.Srv.Store.User().Get(userId)
-
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
+	result := <-a.Srv.Store.User().Get(userId)
+	if result.Err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
+	user := result.Data.(*model.User)
 
 	translateFunc := utils.GetUserTranslations(user.Locale)
 	displayNameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 
 	var contents string
 	for _, notification := range notifications {
-		var sender *model.User
-		schan := a.Srv.Store.User().Get(notification.post.UserId)
-		if result := <-schan; result.Err != nil {
+		result := <-a.Srv.Store.User().Get(notification.post.UserId)
+		if result.Err != nil {
 			mlog.Warn("Unable to find sender of post for batched email notification")
 			continue
-		} else {
-			sender = result.Data.(*model.User)
 		}
+		sender := result.Data.(*model.User)
 
-		var channel *model.Channel
-		cchan := a.Srv.Store.Channel().Get(notification.post.ChannelId, true)
-		if result := <-cchan; result.Err != nil {
+		result = <-a.Srv.Store.Channel().Get(notification.post.ChannelId, true)
+		if result.Err != nil {
 			mlog.Warn("Unable to find channel of post for batched email notification")
 			continue
-		} else {
-			channel = result.Data.(*model.Channel)
 		}
+		channel := result.Data.(*model.Channel)
 
 		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 		if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
