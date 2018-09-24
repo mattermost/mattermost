@@ -75,13 +75,13 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 		}
 
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
-	} else {
-		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
-			return result.Err
-		}
-
-		return nil
 	}
+
+	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
 }
 
 func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
@@ -90,24 +90,22 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password strin
 		return nil, err
 	}
 
-	var user *model.User
-	if ldapUser, err := a.Ldap.DoLogin(*ldapId, password); err != nil {
+	ldapUser, err := a.Ldap.DoLogin(*ldapId, password)
+	if err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
-	} else {
-		user = ldapUser
 	}
 
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := a.CheckUserMfa(ldapUser, mfaToken); err != nil {
 		return nil, err
 	}
 
-	if err := checkUserNotDisabled(user); err != nil {
+	if err := checkUserNotDisabled(ldapUser); err != nil {
 		return nil, err
 	}
 
 	// user successfully authenticated
-	return user, nil
+	return ldapUser, nil
 }
 
 func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
@@ -155,9 +153,12 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 		return model.NewAppError("checkUserMfa", "api.user.check_user_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if ok, err := a.Mfa.ValidateToken(user.MfaSecret, token); err != nil {
+	ok, err := a.Mfa.ValidateToken(user.MfaSecret, token)
+	if err != nil {
 		return err
-	} else if !ok {
+	}
+
+	if !ok {
 		return model.NewAppError("checkUserMfa", "api.user.check_user_mfa.bad_code.app_error", nil, "", http.StatusUnauthorized)
 	}
 
@@ -187,28 +188,33 @@ func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*mo
 		if !ldapAvailable {
 			err := model.NewAppError("login", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 			return user, err
-		} else if ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken); err != nil {
+		}
+
+		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken)
+		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
-		} else {
-			// slightly redundant to get the user again, but we need to get it from the LDAP server
-			return ldapUser, nil
 		}
-	} else if user.AuthService != "" {
+
+		// slightly redundant to get the user again, but we need to get it from the LDAP server
+		return ldapUser, nil
+	}
+
+	if user.AuthService != "" {
 		authService := user.AuthService
 		if authService == model.USER_AUTH_SERVICE_SAML {
 			authService = strings.ToUpper(authService)
 		}
 		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "", http.StatusBadRequest)
 		return user, err
-	} else {
-		if err := a.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
-			err.StatusCode = http.StatusUnauthorized
-			return user, err
-		} else {
-			return user, nil
-		}
 	}
+
+	if err := a.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+		err.StatusCode = http.StatusUnauthorized
+		return user, err
+	}
+
+	return user, nil
 }
 
 func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
@@ -223,7 +229,9 @@ func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
 	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
 		// Default session token
 		return authHeader[7:], TokenLocationHeader
-	} else if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
+	}
+
+	if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
 		// OAuth token
 		return authHeader[6:], TokenLocationHeader
 	}
