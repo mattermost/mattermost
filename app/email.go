@@ -291,15 +291,17 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 		return
 	}
 	rateLimited, result, err := a.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	if err != nil {
+		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
+		return
+	}
+
 	if rateLimited {
 		a.Log.Error("Invite emails rate limited.",
 			mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id),
 			mlog.String("retry_after", result.RetryAfter.String()),
 			mlog.Err(err))
-		return
-	} else if err != nil {
-		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
 		return
 	}
 
