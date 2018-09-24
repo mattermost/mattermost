@@ -1,7 +1,7 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package utils
+package filesstore
 
 import (
 	"bytes"
@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 type FileBackendTestSuite struct {
@@ -81,7 +82,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 }
 
 func (s *FileBackendTestSuite) SetupTest() {
-	TranslationsPreInit()
+	utils.TranslationsPreInit()
 
 	backend, err := NewFileBackend(&s.settings, true)
 	require.Nil(s.T(), err)

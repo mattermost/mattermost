@@ -51,6 +51,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
+	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -2163,4 +2164,36 @@ func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	r4 := <-ss.User().GetByUsername(u4.Username)
 	require.Nil(t, r4.Err)
 	assert.Equal(t, "", r4.Data.(*model.User).Roles)
+}
+
+func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
+	u1 := model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+		Roles:    "system_user system_admin system_post_all",
+	}
+	store.Must(ss.User().Save(&u1))
+
+	r1 := <-ss.User().GetAllAfter(10000, strings.Repeat("0", 26))
+	require.Nil(t, r1.Err)
+
+	d1 := r1.Data.([]*model.User)
+
+	found := false
+	for _, u := range d1 {
+		if u.Id == u1.Id {
+			found = true
+			assert.Equal(t, u1.Id, u.Id)
+			assert.Equal(t, u1.Email, u.Email)
+		}
+	}
+	assert.True(t, found)
+
+	r2 := <-ss.User().GetAllAfter(10000, u1.Id)
+	require.Nil(t, r2.Err)
+
+	d2 := r2.Data.([]*model.User)
+	for _, u := range d2 {
+		assert.NotEqual(t, u1.Id, u.Id)
+	}
 }

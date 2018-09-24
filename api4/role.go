@@ -104,6 +104,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
 			model.PERMISSION_MANAGE_EMOJIS.Id,
+			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 		}
 
 		changedPermissions := model.PermissionsChangedByPatch(oldRole, patch)

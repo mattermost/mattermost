@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -130,10 +129,12 @@ func TestPostAction(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var request model.PostActionIntegrationRequest
-		err := json.NewDecoder(r.Body).Decode(&request)
-		assert.NoError(t, err)
+		request := model.PostActionIntegrationRequesteFromJson(r.Body)
+		assert.NotNil(t, request)
+
 		assert.Equal(t, request.UserId, th.BasicUser.Id)
+		assert.Equal(t, request.ChannelId, th.BasicChannel.Id)
+		assert.Equal(t, request.TeamId, th.BasicTeam.Id)
 		if request.Type == model.POST_ACTION_TYPE_SELECT {
 			assert.Equal(t, request.DataSource, "some_source")
 			assert.Equal(t, request.Context["selected_option"], "selected")

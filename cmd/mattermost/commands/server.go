@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
@@ -67,7 +68,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	}
 	defer a.Shutdown()
 
-	utils.TestConnection(a.Config())
+	mailservice.TestConnection(a.Config())
 
 	pwd, _ := os.Getwd()
 	if usedPlatform {
@@ -246,7 +247,7 @@ func runSessionCleanupJob(a *app.App) {
 
 func resetStatuses(a *app.App) {
 	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
-		mlog.Error(fmt.Sprint("mattermost.reset_status.error FIXME: NOT FOUND IN TRANSLATIONS FILE", result.Err.Error()))
+		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
 	}
 }
 

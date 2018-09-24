@@ -28,7 +28,6 @@ func createDefaultRoles(t *testing.T, ss store.Store) {
 		Name:        model.TEAM_ADMIN_ROLE_ID,
 		DisplayName: model.TEAM_ADMIN_ROLE_ID,
 		Permissions: []string{
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
 	})
@@ -91,7 +90,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 	roleRes1 := <-ss.Role().GetByName(d1.DefaultTeamAdminRole)
 	assert.Nil(t, roleRes1.Err)
 	role1 := roleRes1.Data.(*model.Role)
-	assert.Equal(t, role1.Permissions, []string{"edit_others_posts", "delete_others_posts"})
+	assert.Equal(t, role1.Permissions, []string{"delete_others_posts"})
 	assert.True(t, role1.SchemeManaged)
 
 	roleRes2 := <-ss.Role().GetByName(d1.DefaultTeamUserRole)
@@ -314,7 +313,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	roleRes1 := <-ss.Role().GetByName(d1.DefaultTeamAdminRole)
 	assert.Nil(t, roleRes1.Err)
 	role1 := roleRes1.Data.(*model.Role)
-	assert.Equal(t, role1.Permissions, []string{"edit_others_posts", "delete_others_posts"})
+	assert.Equal(t, role1.Permissions, []string{"delete_others_posts"})
 	assert.True(t, role1.SchemeManaged)
 
 	roleRes2 := <-ss.Role().GetByName(d1.DefaultTeamUserRole)

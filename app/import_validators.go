@@ -4,8 +4,10 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -267,6 +269,18 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		}
 	}
 
+	if data.UseMarkdownPreview != nil && !model.IsValidTrueOrFalseString(*data.UseMarkdownPreview) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.UseFormatting != nil && !model.IsValidTrueOrFalseString(*data.UseFormatting) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_formatting.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.ShowUnreadSection != nil && !model.IsValidTrueOrFalseString(*data.ShowUnreadSection) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_show_unread_section.error", nil, "", http.StatusBadRequest)
+	}
+
 	if data.Teams != nil {
 		return validateUserTeamsImportData(data.Teams)
 	} else {
@@ -291,6 +305,13 @@ func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
 		if tdata.Channels != nil {
 			if err := validateUserChannelsImportData(tdata.Channels); err != nil {
 				return err
+			}
+		}
+
+		if tdata.Theme != nil && 0 < len(strings.Trim(*tdata.Theme, " \t\r")) {
+			var unused map[string]string
+			if err := json.NewDecoder(strings.NewReader(*tdata.Theme)).Decode(&unused); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_team_theme.error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 	}

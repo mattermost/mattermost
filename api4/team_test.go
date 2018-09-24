@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1894,8 +1895,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 	emailList := []string{user1, user2}
 
 	//Delete all the messages before check the sample email
-	utils.DeleteMailBox(user1)
-	utils.DeleteMailBox(user2)
+	mailservice.DeleteMailBox(user1)
+	mailservice.DeleteMailBox(user2)
 
 	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
 	restrictCreationToDomains := th.App.Config().TeamSettings.RestrictCreationToDomains
@@ -1925,10 +1926,10 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 	//Check if the email was send to the rigth email address
 	for _, email := range emailList {
-		var resultsMailbox utils.JSONMessageHeaderInbucket
-		err := utils.RetryInbucket(5, func() error {
+		var resultsMailbox mailservice.JSONMessageHeaderInbucket
+		err := mailservice.RetryInbucket(5, func() error {
 			var err error
-			resultsMailbox, err = utils.GetMailBox(email)
+			resultsMailbox, err = mailservice.GetMailBox(email)
 			return err
 		})
 		if err != nil {
@@ -1939,7 +1940,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 			if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email) {
 				t.Fatal("Wrong To recipient")
 			} else {
-				if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
+				if resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
 					if resultsEmail.Subject != expectedSubject {
 						t.Log(resultsEmail.Subject)
 						t.Log(expectedSubject)

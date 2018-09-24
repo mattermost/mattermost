@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"regexp"
 	"strings"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -24,8 +23,6 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 	"golang.org/x/net/html/charset"
 )
-
-var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
@@ -306,28 +303,6 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	return nil
-}
-
-// This method only parses and processes the attachments,
-// all else should be set in the post which is passed
-func parseSlackAttachment(post *model.Post, attachments []*model.SlackAttachment) {
-	post.Type = model.POST_SLACK_ATTACHMENT
-
-	for _, attachment := range attachments {
-		attachment.Text = parseSlackLinksToMarkdown(attachment.Text)
-		attachment.Pretext = parseSlackLinksToMarkdown(attachment.Pretext)
-
-		for _, field := range attachment.Fields {
-			if value, ok := field.Value.(string); ok {
-				field.Value = parseSlackLinksToMarkdown(value)
-			}
-		}
-	}
-	post.AddProp("attachments", attachments)
-}
-
-func parseSlackLinksToMarkdown(text string) string {
-	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
 
 func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
@@ -865,16 +840,26 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 		post = result.Data.(*model.Post)
 	}
 
+	cchan := a.Srv.Store.Channel().GetForPost(postId)
+	var channel *model.Channel
+	if result := <-cchan; result.Err != nil {
+		return result.Err
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
 	action := post.GetAction(actionId)
 	if action == nil || action.Integration == nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 	}
 
 	request := &model.PostActionIntegrationRequest{
-		UserId:  userId,
-		PostId:  postId,
-		Type:    action.Type,
-		Context: action.Integration.Context,
+		UserId:    userId,
+		ChannelId: post.ChannelId,
+		TeamId:    channel.TeamId,
+		PostId:    postId,
+		Type:      action.Type,
+		Context:   action.Integration.Context,
 	}
 
 	if action.Type == model.POST_ACTION_TYPE_SELECT {
@@ -931,7 +916,7 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 
 	if response.EphemeralText != "" {
 		ephemeralPost := &model.Post{}
-		ephemeralPost.Message = parseSlackLinksToMarkdown(response.EphemeralText)
+		ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
 		ephemeralPost.ChannelId = post.ChannelId
 		ephemeralPost.RootId = post.RootId
 		if ephemeralPost.RootId == "" {

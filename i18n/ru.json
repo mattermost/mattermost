@@ -157,7 +157,7 @@
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
-    "translation": "Cannot delete direct or group message channels"
+    "translation": "Unable to delete direct or group message channels"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Cannot remove user from a channel."
+    "translation": "Unable to remove user from a channel."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -1025,6 +1025,10 @@
     "translation": "Невозможно создать смайлик. Произошла ошибка при кодирования GIF изображения."
   },
   {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
+  },
+  {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Невозможно создать смайлик. Произошла ошибка при попытке открыть изображение."
   },
@@ -1034,11 +1038,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Unable to check if the file exists."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Unable to check if the file exists."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2447,6 +2451,14 @@
     "translation": "Не найдена конечная точка API кластера."
   },
   {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "An error occurred writing the export data."
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "An error occured marshalling the JSON data for export."
+  },
+  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
@@ -3424,7 +3436,7 @@
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close properly the zip file."
+    "translation": "Unable to close the zip file."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -3624,7 +3636,7 @@
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Cannot run migration job due to unknown migration key."
+    "translation": "Unable to run migration job due to unknown migration key."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -4903,8 +4915,32 @@
     "translation": "Не удалось удалить канал"
   },
   {
+    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
+    "translation": "Unable to delete materialized public channel"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "Безуспешная попытка удалить каналы"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
+    "translation": "Unable to delete materialized public channels"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -4923,8 +4959,24 @@
     "translation": "We could not reset the channel schemes"
   },
   {
+    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
     "id": "store.sql_channel.reset_last_post_at.app_error",
     "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4941,6 +4993,10 @@
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
     "translation": "Невозможно открыть транзакцию"
+  },
+  {
+    "id": "store.sql_channel.save.upsert_public_channel.app_error",
+    "translation": "Unable to upsert materialized public channel"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -5003,6 +5059,18 @@
     "translation": "Возникла проблема при поиске канала"
   },
   {
+    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
+    "translation": "Unable to update the materialized public channel"
+  },
+  {
     "id": "store.sql_channel.update.app_error",
     "translation": "Не удалось обновить канал"
   },
@@ -5011,8 +5079,16 @@
     "translation": "You can not modify an archived channel"
   },
   {
+    "id": "store.sql_channel.update.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
     "id": "store.sql_channel.update.exists.app_error",
     "translation": "Канал с таким дескриптором уже существует"
+  },
+  {
+    "id": "store.sql_channel.update.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.update.previously.app_error",
@@ -5021,6 +5097,10 @@
   {
     "id": "store.sql_channel.update.updating.app_error",
     "translation": "Возникла ошибка при обновлении канала"
+  },
+  {
+    "id": "store.sql_channel.update.upsert_public_channel.app_error",
+    "translation": "Unable to upsert materialized public channel"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
@@ -5164,7 +5244,7 @@
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "We couldn't delete attachments of the user"
+    "translation": "Unable to delete attachments of the user"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -5192,7 +5272,7 @@
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "We couldn't permanently delete the file info"
+    "translation": "Unable to permanently delete the file info"
   },
   {
     "id": "store.sql_file_info.permanent_delete_batch.app_error",
@@ -5216,11 +5296,11 @@
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "We couldn't get the job count by status and type"
+    "translation": "Unable to get the job count by status and type"
   },
   {
     "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "We couldn't get the newest job by status and type"
+    "translation": "Unable to get the newest job by status and type"
   },
   {
     "id": "store.sql_job.save.app_error",
@@ -5368,7 +5448,7 @@
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": "We couldn't get the compliance export posts."
+    "translation": "Unable to get the compliance export posts."
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -5400,7 +5480,7 @@
   },
   {
     "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "We couldn't get the posts batch for indexing"
+    "translation": "Unable to get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -5448,7 +5528,7 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "Unable to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -5772,7 +5852,7 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "We couldn't get the channel count for the scheme."
+    "translation": "Unable to get the channel count for the scheme."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -5936,11 +6016,11 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "We couldn't update the date of the last team icon update"
+    "translation": "Unable to update the date of the last team icon update"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "We couldn't get the active users during the requested period"
+    "translation": "Unable to get the active users during the requested period"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -5948,7 +6028,7 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "We couldn't get the system admin count"
+    "translation": "Unable to get the system admin count"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
@@ -6080,7 +6160,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "We couldn't find any user maching the search parameters"
+    "translation": "Unable to find any user maching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6140,7 +6220,7 @@
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "We couldn't update the date of the last update of the user"
+    "translation": "Unable to update the date of the last update of the user"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
