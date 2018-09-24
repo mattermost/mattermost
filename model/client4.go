@@ -3810,4 +3810,3 @@ func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId, accepted st
 		return NewBool(CheckStatusOK(r)), BuildResponse(r)
 	}
 }
-

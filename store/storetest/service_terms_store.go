@@ -1,3 +1,6 @@
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package storetest
 
 import (
@@ -19,7 +22,7 @@ func testSaveServiceTerms(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(&u1))
 
 	serviceTerms := &model.ServiceTerms{Text: "service terms", UserId: u1.Id}
-	r1 := <- ss.ServiceTerms().Save(serviceTerms)
+	r1 := <-ss.ServiceTerms().Save(serviceTerms)
 
 	if r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -45,7 +48,7 @@ func testGetServiceTerms(t *testing.T, ss store.Store) {
 	serviceTerms := &model.ServiceTerms{Text: "service terms", UserId: u1.Id}
 	store.Must(ss.ServiceTerms().Save(serviceTerms))
 
-	r1 := <- ss.ServiceTerms().Get(true)
+	r1 := <-ss.ServiceTerms().Get(true)
 	if r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
