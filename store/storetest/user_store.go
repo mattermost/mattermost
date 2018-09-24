@@ -2219,6 +2219,8 @@ func testUserStoreGetWithServiceTerms(t *testing.T, ss store.Store) {
 
 	r1 := <-ss.User().Get(u1.Id)
 	assert.True(t, *r1.Data.(*model.User).LatestServiceTermsAccepted)
+
+	store.Must(ss.User().PermanentDelete(u1.Id))
 }
 
 func testUserStoreGetAllProfilesWithServiceTerms(t *testing.T, ss store.Store) {
@@ -2265,7 +2267,7 @@ func testUserStoreGetAllProfilesWithServiceTerms(t *testing.T, ss store.Store) {
 		}
 
 		for _, user := range users {
-			assert.Nil(t, user.LatestServiceTermsAccepted)
+			assert.False(t, *user.LatestServiceTermsAccepted)
 		}
 	}
 
@@ -2317,7 +2319,11 @@ func testGetAllUsingAuthServiceWithServiceTerms(t *testing.T, ss store.Store) {
 		}
 
 		for _, user := range users {
-			assert.True(t, *user.LatestServiceTermsAccepted)
+			if user.Id == u1.Id || user.Id == u2.Id {
+				assert.True(t, *user.LatestServiceTermsAccepted)
+			} else {
+				assert.False(t, *user.LatestServiceTermsAccepted)
+			}
 		}
 	}
 }

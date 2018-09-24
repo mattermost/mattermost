@@ -1562,6 +1562,6 @@ func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	c.LogAudit("ServiceTermsId="+serviceTermsId+", accepted="+strconv.FormatBool(accepted))
+	c.LogAudit("ServiceTermsId=" + serviceTermsId + ", accepted=" + strconv.FormatBool(accepted))
 	ReturnStatusOK(w)
 }
