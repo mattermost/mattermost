@@ -155,3 +155,22 @@ func TestEnsureInstallationDate(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadServiceTerms(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	st, err := th.App.CreateServiceTerms("service terms", th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = th.App.LoadServiceTerms()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config := th.App.GetConfig()
+	assert.Equal(t, *config.SupportSettings.CustomServiceTermsText, st.Text)
+	assert.Equal(t, *config.SupportSettings.CustomServiceTermsId, st.Id)
+}
