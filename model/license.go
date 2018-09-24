@@ -153,6 +153,10 @@ func (f *Features) SetDefaults() {
 	if f.CustomPermissionsSchemes == nil {
 		f.CustomPermissionsSchemes = NewBool(*f.FutureFeatures)
 	}
+
+	if f.CustomTermsOfService == nil {
+		f.CustomTermsOfService = NewBool(*f.FutureFeatures)
+	}
 }
 
 func (l *License) IsExpired() bool {
