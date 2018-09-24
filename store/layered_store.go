@@ -169,6 +169,10 @@ func (s *LayeredStore) Role() RoleStore {
 	return s.RoleStore
 }
 
+func (s *LayeredStore) ServiceTerms() ServiceTermsStore {
+	return s.DatabaseLayer.ServiceTerms()
+}
+
 func (s *LayeredStore) Scheme() SchemeStore {
 	return s.SchemeStore
 }

@@ -39,6 +39,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
+	api.BaseRoutes.User.Handle("/service_terms", api.ApiSessionRequired(registerServiceTermsAction)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
@@ -1542,5 +1543,25 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("success - token_id=" + accessToken.Id)
+	ReturnStatusOK(w)
+}
+
+func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	userId := c.Session.UserId
+	serviceTermsId := props["serviceTermsId"]
+	accepted, err := strconv.ParseBool(props["accepted"])
+	if err != nil {
+		c.Err = model.NewAppError("registerServiceTermsAction", "api.user.resgiter_service_terms_action.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("ServiceTermsId=" + serviceTermsId + ", accepted=" + strconv.FormatBool(accepted))
 	ReturnStatusOK(w)
 }

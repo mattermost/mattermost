@@ -245,7 +245,6 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 		}
 
 		ruser.Sanitize(map[string]bool{})
-
 		return ruser, nil
 	}
 }
@@ -1612,6 +1611,25 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 		user = result.Data.([2]*model.User)[0]
 		a.InvalidateCacheForUser(user.Id)
+	}
+
+	return nil
+}
+
+func (a *App) RecordUserServiceTermsAction(userId, serviceTermsId string, accepted bool) *model.AppError {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	if accepted {
+		user.AcceptedServiceTermsId = serviceTermsId
+	} else {
+		user.AcceptedServiceTermsId = ""
+	}
+	_, err = a.UpdateUser(user, false)
+	if err != nil {
+		return err
 	}
 
 	return nil

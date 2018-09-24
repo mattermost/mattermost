@@ -23,6 +23,10 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+const (
+	ERROR_SERVICE_TERMS_NO_ROWS_FOUND = "store.sql_service_terms_store.get.no_rows.app_error"
+)
+
 func (a *App) Config() *model.Config {
 	if cfg := a.config.Load(); cfg != nil {
 		return cfg.(*model.Config)
@@ -58,6 +62,23 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 		return err
 	}
 
+	if a.Srv.Store != nil {
+		serviceTerms, err := a.GetServiceTerms()
+		if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
+			return err
+		}
+
+		serviceTermsText := ""
+		serviceTermsId := ""
+		if serviceTerms != nil {
+			serviceTermsText = serviceTerms.Text
+			serviceTermsId = serviceTerms.Id
+		}
+
+		cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTermsText)
+		cfg.SupportSettings.CustomServiceTermsId = model.NewString(serviceTermsId)
+	}
+
 	a.configFile = configPath
 
 	a.config.Store(cfg)
@@ -66,6 +87,29 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
 
 	a.InvokeConfigListeners(old, cfg)
+	return nil
+}
+
+func (a *App) LoadServiceTerms() *model.AppError {
+	cfg := a.Config()
+	serviceTerms, err := a.GetServiceTerms()
+	if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
+		return err
+	}
+
+	serviceTermsText := ""
+	serviceTermsId := ""
+	if serviceTerms != nil {
+		serviceTermsText = serviceTerms.Text
+		serviceTermsId = serviceTerms.Id
+	}
+
+	cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTermsText)
+	cfg.SupportSettings.CustomServiceTermsId = model.NewString(serviceTermsId)
+	a.UpdateConfig(func(update *model.Config) {
+		*update = *cfg
+	})
+
 	return nil
 }
 
@@ -242,6 +286,17 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+
+	if _, ok := a.clientConfig["CustomServiceTermsId"]; ok {
+		if result := <-a.Srv.Store.ServiceTerms().Get(true); result.Err != nil && result.Err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
+			panic(result.Err)
+		} else {
+			if result.Data != nil {
+				a.clientConfig["CustomServiceTermsId"] = result.Data.(*model.ServiceTerms).Id
+			}
+		}
+	}
+
 	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if key := a.AsymmetricSigningKey(); key != nil {

@@ -39,6 +39,14 @@ var (
 		"../..",
 		"../../..",
 	}
+
+	serviceTermsEnabledAndEmpty = model.NewAppError(
+		"Config.IsValid",
+		"model.config.is_valid.support.custom_service_terms_text.app_error",
+		nil,
+		"",
+		http.StatusBadRequest,
+	)
 )
 
 func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
@@ -474,7 +482,10 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 
 	config.SetDefaults()
 
-	if err := config.IsValid(); err != nil {
+	// Don't treat it as an error right now if custom service terms are enabled but text is empty.
+	// This is because service terms text will be fetched from database at a later state, but
+	// the flag indicating it is enabled is fetched from config file right away.
+	if err := config.IsValid(); err != nil && err.Id != serviceTermsEnabledAndEmpty.Id {
 		return nil, "", nil, err
 	}
 
@@ -689,6 +700,12 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
+		}
+
+		if *license.Features.CustomTermsOfService {
+			props["CustomServiceTermsEnabled"] = strconv.FormatBool(*c.SupportSettings.CustomServiceTermsEnabled)
+			props["CustomServiceTermsText"] = *c.SupportSettings.CustomServiceTermsText
+			props["CustomServiceTermsId"] = ""
 		}
 	}
 

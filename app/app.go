@@ -212,6 +212,14 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	app.Srv.Store = app.newStore()
+
+	// Sql stores need to be populated for fetching service terms text. Hence,
+	// loading it separately. Population of Store and config is interlinked to some degree
+	// as well, that being another reason for fetching is separately.
+	if err := app.LoadServiceTerms(); err != nil {
+		return nil, err
+	}
+
 	app.AddConfigListener(func(_, current *model.Config) {
 		if current.SqlSettings.EnablePublicChannelsMaterialization != nil && !*current.SqlSettings.EnablePublicChannelsMaterialization {
 			app.Srv.Store.Channel().DisableExperimentalPublicChannelsMaterialization()
