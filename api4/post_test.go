@@ -587,8 +587,14 @@ func TestUpdatePost(t *testing.T) {
 
 	Client.Logout()
 
-	_, resp = th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
+	th.LoginTeamAdmin()
+	_, resp = Client.UpdatePost(rpost.Id, rpost)
 	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
+	CheckNoError(t, resp)
 }
 
 func TestPatchPost(t *testing.T) {
@@ -1599,7 +1605,7 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 	posts, _ = Client.SearchPosts(th.BasicTeam.Id, "before:2018-08-03 after:2018-08-01", false)
 	if len(posts.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
-	}	
+	}
 }
 
 func TestGetFileInfosForPost(t *testing.T) {
