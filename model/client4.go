@@ -401,6 +401,10 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
+func (c *Client4) GetRegisterServiceTermsAction(userId string) string {
+	return c.GetUserRoute(userId) + "/service_terms"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -3805,3 +3809,16 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 		return MapFromJson(r.Body)["location"], BuildResponse(r)
 	}
 }
+
+func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId, accepted string) (*bool, *Response) {
+	url := c.GetRegisterServiceTermsAction(userId)
+	data := map[string]string{"serviceTermsId": serviceTermsId, "accepted": accepted}
+
+	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return NewBool(CheckStatusOK(r)), BuildResponse(r)
+	}
+}
+

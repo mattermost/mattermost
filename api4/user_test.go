@@ -3014,3 +3014,36 @@ func TestGetUsersByStatus(t *testing.T) {
 		}
 	})
 }
+
+func TestRegisterServiceTermsAction(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	success, resp := Client.RegisterServiceTermsAction(th.BasicUser.Id, "st_1", "true")
+	CheckNoError(t, resp)
+
+	assert.True(t, *success)
+	user, err := th.App.GetUser(th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, user.AcceptedServiceTermsId, "st_1")
+
+	success, resp = Client.RegisterServiceTermsAction(th.BasicUser.Id, "st_1", "false")
+	CheckNoError(t, resp)
+
+	assert.True(t, *success)
+	user, err = th.App.GetUser(th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, user.AcceptedServiceTermsId, "")
+
+
+	Client.Logout()
+	_, resp = Client.GetMe("")
+	CheckUnauthorizedStatus(t, resp)
+}
