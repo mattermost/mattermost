@@ -1553,7 +1553,7 @@ func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Reque
 	serviceTermsId := props["serviceTermsId"]
 	accepted, err := strconv.ParseBool(props["accepted"])
 	if err != nil {
-		c.Err = model.NewAppError("registerServiceTermsAction", "api.user.resgiter_service_terms_action.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("registerServiceTermsAction", "api.user.register_service_terms_action.bad_value.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 

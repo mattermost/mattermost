@@ -2355,6 +2355,10 @@
     "translation": "Bad verify email token type."
   },
   {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Bad accepted value"
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection"
   },

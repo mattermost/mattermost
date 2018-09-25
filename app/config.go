@@ -286,17 +286,6 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
-
-	if _, ok := a.clientConfig["CustomServiceTermsId"]; ok {
-		if result := <-a.Srv.Store.ServiceTerms().Get(true); result.Err != nil && result.Err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
-			panic(result.Err)
-		} else {
-			if result.Data != nil {
-				a.clientConfig["CustomServiceTermsId"] = result.Data.(*model.ServiceTerms).Id
-			}
-		}
-	}
-
 	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if key := a.AsymmetricSigningKey(); key != nil {
