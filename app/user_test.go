@@ -555,7 +555,6 @@ func TestRecordUserServiceTermsAction(t *testing.T) {
 
 	nuser, err := th.App.GetUser(user.Id)
 	assert.Equal(t, serviceTerms.Id, nuser.AcceptedServiceTermsId)
-	assert.True(t, *nuser.LatestServiceTermsAccepted)
 
 	err = th.App.RecordUserServiceTermsAction(user.Id, serviceTerms.Id, false)
 	if err != nil {
@@ -564,5 +563,4 @@ func TestRecordUserServiceTermsAction(t *testing.T) {
 
 	nuser, err = th.App.GetUser(user.Id)
 	assert.Empty(t, nuser.AcceptedServiceTermsId)
-	assert.False(t, *nuser.LatestServiceTermsAccepted)
 }

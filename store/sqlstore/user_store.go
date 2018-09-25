@@ -37,15 +37,6 @@ type SqlUserStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-type userData struct {
-	model.User
-	LatestServiceTermsAccepted *bool
-}
-
-type usersData []*userData
-
-const latestServiceTermsSelectedSubQuery = "(AcceptedServiceTermsId = (SELECT Id from ServiceTerms ORDER BY CreateAt DESC LIMIT 1)) AS LatestServiceTermsAccepted"
-
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
 var profileByIdsCache *utils.Cache = utils.NewLru(PROFILE_BY_IDS_CACHE_SIZE)
 
@@ -320,55 +311,35 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) store.StoreCh
 
 func (us SqlUserStore) Get(id string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		user := &userData{}
-
-		if err := us.GetReplica().SelectOne(&user, "SELECT *, "+latestServiceTermsSelectedSubQuery+" FROM Users WHERE Id = :UserId", map[string]interface{}{"UserId": id}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlUserStore.Get", store.MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error(), http.StatusInternalServerError)
-			}
+		if obj, err := us.GetReplica().Get(model.User{}, id); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error(), http.StatusInternalServerError)
+		} else if obj == nil {
+			result.Err = model.NewAppError("SqlUserStore.Get", store.MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
 		} else {
-			userToUse := &user.User
-			userToUse.LatestServiceTermsAccepted = user.LatestServiceTermsAccepted
-			result.Data = userToUse
+			result.Data = obj.(*model.User)
 		}
 	})
 }
 
 func (us SqlUserStore) GetAll() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var data usersData
-		if _, err := us.GetReplica().Select(&data, "SELECT *, "+latestServiceTermsSelectedSubQuery+" FROM Users"); err != nil {
+		var data []*model.User
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users"); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAll", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		users := make([]*model.User, len(data))
-		for i, userData := range data {
-			user := &userData.User
-			user.LatestServiceTermsAccepted = userData.LatestServiceTermsAccepted
-			users[i] = user
-		}
-
-		result.Data = users
+		result.Data = data
 	})
 }
 
 func (us SqlUserStore) GetAllAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var data usersData
-		if _, err := us.GetReplica().Select(&data, "SELECT *, "+latestServiceTermsSelectedSubQuery+" FROM Users WHERE Id > :AfterId ORDER BY Id LIMIT :Limit", map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+		var data []*model.User
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE Id > :AfterId ORDER BY Id LIMIT :Limit", map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllAfter", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		users := make([]*model.User, len(data))
-		for i, userData := range data {
-			user := &userData.User
-			user.LatestServiceTermsAccepted = userData.LatestServiceTermsAccepted
-			users[i] = user
-		}
-
-		result.Data = users
+		result.Data = data
 	})
 }
 
@@ -806,15 +777,13 @@ func (us SqlUserStore) GetByEmail(email string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		email = strings.ToLower(email)
 
-		user := userData{}
+		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT *, "+latestServiceTermsSelectedSubQuery+" FROM Users WHERE Email = :Email", map[string]interface{}{"Email": email}); err != nil {
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE Email = :Email", map[string]interface{}{"Email": email}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetByEmail", store.MISSING_ACCOUNT_ERROR, nil, "email="+email+", "+err.Error(), http.StatusInternalServerError)
 		}
 
-		userToUse := user.User
-		userToUse.LatestServiceTermsAccepted = user.LatestServiceTermsAccepted
-		result.Data = &userToUse
+		result.Data = &user
 	})
 }
 
@@ -825,9 +794,9 @@ func (us SqlUserStore) GetByAuth(authData *string, authService string) store.Sto
 			return
 		}
 
-		user := userData{}
+		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT *, "+latestServiceTermsSelectedSubQuery+" FROM Users WHERE AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"AuthData": authData, "AuthService": authService}); err != nil {
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"AuthData": authData, "AuthService": authService}); err != nil {
 			if err == sql.ErrNoRows {
 				result.Err = model.NewAppError("SqlUserStore.GetByAuth", store.MISSING_AUTH_ACCOUNT_ERROR, nil, "authData="+*authData+", authService="+authService+", "+err.Error(), http.StatusInternalServerError)
 			} else {
@@ -835,42 +804,31 @@ func (us SqlUserStore) GetByAuth(authData *string, authService string) store.Sto
 			}
 		}
 
-		userToUse := user.User
-		userToUse.LatestServiceTermsAccepted = user.LatestServiceTermsAccepted
-		result.Data = &userToUse
+		result.Data = &user
 	})
 }
 
 func (us SqlUserStore) GetAllUsingAuthService(authService string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var data usersData
+		var data []*model.User
 
-		if _, err := us.GetReplica().Select(&data, "SELECT *, "+latestServiceTermsSelectedSubQuery+" FROM Users WHERE AuthService = :AuthService", map[string]interface{}{"AuthService": authService}); err != nil {
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE AuthService = :AuthService", map[string]interface{}{"AuthService": authService}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "authService="+authService+", "+err.Error(), http.StatusInternalServerError)
 		}
 
-		users := make([]*model.User, len(data))
-		for i, userData := range data {
-			user := &userData.User
-			user.LatestServiceTermsAccepted = userData.LatestServiceTermsAccepted
-			users[i] = user
-		}
-
-		result.Data = users
+		result.Data = data
 	})
 }
 
 func (us SqlUserStore) GetByUsername(username string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		user := userData{}
+		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT *, "+latestServiceTermsSelectedSubQuery+" FROM Users WHERE Username = :Username", map[string]interface{}{"Username": username}); err != nil {
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE Username = :Username", map[string]interface{}{"Username": username}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetByUsername", "store.sql_user.get_by_username.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		userToUse := &user.User
-		userToUse.LatestServiceTermsAccepted = user.LatestServiceTermsAccepted
-		result.Data = userToUse
+		result.Data = &user
 	})
 }
 
@@ -882,11 +840,11 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 			"AllowSignInWithEmail":    allowSignInWithEmail,
 		}
 
-		users := usersData{}
+		users := []*model.User{}
 		if _, err := us.GetReplica().Select(
 			&users,
 			`SELECT
-				*, `+latestServiceTermsSelectedSubQuery+`
+				*
 			FROM
 				Users
 			WHERE
@@ -895,9 +853,7 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 			params); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if len(users) == 1 {
-			userToUse := &users[0].User
-			userToUse.LatestServiceTermsAccepted = users[0].LatestServiceTermsAccepted
-			result.Data = userToUse
+			result.Data = users[0]
 		} else if len(users) > 1 {
 			result.Err = model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.multiple_users", nil, "", http.StatusInternalServerError)
 		} else {
