@@ -12,6 +12,7 @@ import (
 
 func TestServiceTermsStore(t *testing.T, ss store.Store) {
 	t.Run("TestSaveServiceTerms", func(t *testing.T) { testSaveServiceTerms(t, ss) })
+	t.Run("TestGetServiceTerms", func(t *testing.T) { testGetServiceTerms(t, ss) })
 }
 
 func testSaveServiceTerms(t *testing.T, ss store.Store) {
