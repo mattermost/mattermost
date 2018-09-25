@@ -35,7 +35,6 @@ func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 }
 
 func (s SqlServiceTermsStore) CreateIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_service_terms_id", "ServiceTerms", "Id")
 }
 
 func (s SqlServiceTermsStore) Save(serviceTerms *model.ServiceTerms) store.StoreChannel {
