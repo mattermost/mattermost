@@ -12,7 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/services/filesstore"
 )
 
 func (api *API) InitSystem() {
@@ -427,7 +427,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := utils.CheckMandatoryS3Fields(&cfg.FileSettings)
+	err := filesstore.CheckMandatoryS3Fields(&cfg.FileSettings)
 	if err != nil {
 		c.Err = err
 		return
@@ -438,7 +438,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	license := c.App.License()
-	backend, appErr := utils.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
+	backend, appErr := filesstore.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
 	if appErr == nil {
 		appErr = backend.TestConnection()
 	}

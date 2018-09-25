@@ -840,16 +840,26 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 		post = result.Data.(*model.Post)
 	}
 
+	cchan := a.Srv.Store.Channel().GetForPost(postId)
+	var channel *model.Channel
+	if result := <-cchan; result.Err != nil {
+		return result.Err
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
 	action := post.GetAction(actionId)
 	if action == nil || action.Integration == nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 	}
 
 	request := &model.PostActionIntegrationRequest{
-		UserId:  userId,
-		PostId:  postId,
-		Type:    action.Type,
-		Context: action.Integration.Context,
+		UserId:    userId,
+		ChannelId: post.ChannelId,
+		TeamId:    channel.TeamId,
+		PostId:    postId,
+		Type:      action.Type,
+		Context:   action.Integration.Context,
 	}
 
 	if action.Type == model.POST_ACTION_TYPE_SELECT {

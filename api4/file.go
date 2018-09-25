@@ -356,7 +356,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, true, w, r)
+	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, false, w, r)
 	if err != nil {
 		c.Err = err
 		return

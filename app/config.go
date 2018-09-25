@@ -185,7 +185,9 @@ func (a *App) ensureAsymmetricSigningKey() error {
 		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
 		if result.Err != nil {
 			return result.Err
-		} else if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+		}
+
+		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
 			return err
 		}
 	}

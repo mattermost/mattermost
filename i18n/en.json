@@ -180,14 +180,6 @@
     "translation": "You're the only member left, try removing the Private Channel instead of leaving."
   },
   {
-    "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
-  },
-  {
-    "id": "app.export.export_write_line.io_writer.error",
-    "translation": "An error occurred writing the export data."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
   },
@@ -1017,10 +1009,6 @@
     "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
   },
   {
-    "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
-  },
-  {
     "id": "api.emoji.upload.large_image.decode_error",
     "translation": "Unable to create emoji. An error occurred when trying to decode the image."
   },
@@ -1035,6 +1023,10 @@
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
     "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.open.app_error",
@@ -2457,6 +2449,14 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "An error occurred writing the export data."
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "An error occured marshalling the JSON data for export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -4705,6 +4705,14 @@
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
     "translation": "Invalid user id"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Please enter a valid email address."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
     "id": "model.utils.decode_json.app_error",

@@ -53,7 +53,9 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	channel, err := a.GetChannel(channelId)
 	if err == nil && channel.TeamId != "" {
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-	} else if err != nil && err.StatusCode == http.StatusNotFound {
+	}
+
+	if err != nil && err.StatusCode == http.StatusNotFound {
 		return false
 	}
 
