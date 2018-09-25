@@ -401,8 +401,12 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
-func (c *Client4) GetRegisterServiceTermsAction(userId string) string {
+func (c *Client4) GetRegisterServiceTermsRoute(userId string) string {
 	return c.GetUserRoute(userId) + "/service_terms"
+}
+
+func (c *Client4) GetServiceTermsRoute() string {
+	return "/service_terms"
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -3800,7 +3804,7 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 }
 
 func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId, accepted string) (*bool, *Response) {
-	url := c.GetRegisterServiceTermsAction(userId)
+	url := c.GetRegisterServiceTermsRoute(userId)
 	data := map[string]string{"serviceTermsId": serviceTermsId, "accepted": accepted}
 
 	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
@@ -3808,5 +3812,16 @@ func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId, accepted st
 	} else {
 		defer closeBody(r)
 		return NewBool(CheckStatusOK(r)), BuildResponse(r)
+	}
+}
+
+func (c *Client4) GetServiceTerms(etag string) (*ServiceTerms, *Response) {
+	url := c.GetServiceTermsRoute()
+
+	if r, err := c.DoApiGet(url, etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ServiceTermsFromJson(r.Body), BuildResponse(r)
 	}
 }
