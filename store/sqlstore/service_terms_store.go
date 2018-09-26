@@ -71,7 +71,7 @@ func (s SqlServiceTermsStore) Save(serviceTerms *model.ServiceTerms) store.Store
 	})
 }
 
-func (s SqlServiceTermsStore) Get(allowFromCache bool) store.StoreChannel {
+func (s SqlServiceTermsStore) GetLatest(allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			if serviceTermsCache.Len() == 0 {
@@ -97,9 +97,9 @@ func (s SqlServiceTermsStore) Get(allowFromCache bool) store.StoreChannel {
 		err := s.GetReplica().SelectOne(&serviceTerms, "SELECT * FROM ServiceTerms ORDER BY CreateAt DESC LIMIT 1")
 		if err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlServiceTermsStore.Get", "store.sql_service_terms_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
+				result.Err = model.NewAppError("SqlServiceTermsStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
 			} else {
-				result.Err = model.NewAppError("SqlServiceTermsStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlServiceTermsStore.GetLatest", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			result.Data = serviceTerms
@@ -107,6 +107,37 @@ func (s SqlServiceTermsStore) Get(allowFromCache bool) store.StoreChannel {
 			if allowFromCache {
 				serviceTermsCache.AddWithDefaultExpires(serviceTerms.Id, serviceTerms)
 			}
+		}
+	})
+}
+
+func (s SqlServiceTermsStore) Get(id string, allowFromCache bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if allowFromCache {
+			if serviceTermsCache.Len() == 0 {
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter(serviceTermsCacheName)
+				}
+			} else {
+				if cacheItem, ok := serviceTermsCache.Get(id); ok {
+					if s.metrics != nil {
+						s.metrics.IncrementMemCacheHitCounter(serviceTermsCacheName)
+					}
+
+					result.Data = cacheItem.(*model.ServiceTerms)
+					return
+				} else if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter(serviceTermsCacheName)
+				}
+			}
+		}
+
+		if obj, err := s.GetReplica().Get(model.ServiceTerms{}, id); err != nil {
+			result.Err = model.NewAppError("SqlServiceTermsStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		} else if obj == nil {
+			result.Err = model.NewAppError("SqlServiceTermsStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
+		} else {
+			result.Data = obj.(*model.ServiceTerms)
 		}
 	})
 }

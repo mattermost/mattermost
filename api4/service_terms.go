@@ -12,7 +12,7 @@ func (api *API) InitServiceTerms() {
 }
 
 func getServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
-	serviceTerms, err := c.App.GetServiceTerms()
+	serviceTerms, err := c.App.GetLatestServiceTerms()
 	if err != nil {
 		c.Err = err
 		return

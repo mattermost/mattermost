@@ -522,5 +522,6 @@ type SchemeStore interface {
 
 type ServiceTermsStore interface {
 	Save(serviceTerms *model.ServiceTerms) StoreChannel
-	Get(allowFromCache bool) StoreChannel
+	GetLatest(allowFromCache bool) StoreChannel
+	Get(id string, allowFromCache bool) StoreChannel
 }

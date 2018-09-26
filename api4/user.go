@@ -1557,6 +1557,11 @@ func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if _, err := c.App.GetServiceTerms(serviceTermsId); err != nil {
+		c.Err = err
+		return
+	}
+
 	if err := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted); err != nil {
 		c.Err = err
 		return

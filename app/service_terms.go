@@ -25,8 +25,17 @@ func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *mod
 	}
 }
 
-func (a *App) GetServiceTerms() (*model.ServiceTerms, *model.AppError) {
-	if result := <-a.Srv.Store.ServiceTerms().Get(true); result.Err != nil {
+func (a *App) GetLatestServiceTerms() (*model.ServiceTerms, *model.AppError) {
+	if result := <-a.Srv.Store.ServiceTerms().GetLatest(true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		serviceTerms := result.Data.(*model.ServiceTerms)
+		return serviceTerms, nil
+	}
+}
+
+func (a *App) GetServiceTerms(id string) (*model.ServiceTerms, *model.AppError) {
+	if result := <-a.Srv.Store.ServiceTerms().Get(id, true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		serviceTerms := result.Data.(*model.ServiceTerms)

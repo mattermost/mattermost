@@ -63,7 +63,7 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	}
 
 	if a.Srv.Store != nil {
-		serviceTerms, err := a.GetServiceTerms()
+		serviceTerms, err := a.GetLatestServiceTerms()
 		if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
 			return err
 		}
@@ -92,7 +92,7 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 func (a *App) LoadServiceTerms() *model.AppError {
 	cfg := a.Config()
-	serviceTerms, err := a.GetServiceTerms()
+	serviceTerms, err := a.GetLatestServiceTerms()
 	if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
 		return err
 	}

@@ -3046,9 +3046,4 @@ func TestRegisterServiceTermsAction(t *testing.T) {
 	}
 
 	assert.Equal(t, user.AcceptedServiceTermsId, "")
-
-
-	Client.Logout()
-	_, resp = Client.GetMe("")
-	CheckUnauthorizedStatus(t, resp)
 }

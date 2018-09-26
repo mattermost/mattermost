@@ -13,8 +13,24 @@ type ServiceTermsStore struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: allowFromCache
-func (_m *ServiceTermsStore) Get(allowFromCache bool) store.StoreChannel {
+// Get provides a mock function with given fields: id, allowFromCache
+func (_m *ServiceTermsStore) Get(id string, allowFromCache bool) store.StoreChannel {
+	ret := _m.Called(id, allowFromCache)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+		r0 = rf(id, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetLatest provides a mock function with given fields: allowFromCache
+func (_m *ServiceTermsStore) GetLatest(allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(allowFromCache)
 
 	var r0 store.StoreChannel

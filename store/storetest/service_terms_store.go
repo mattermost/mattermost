@@ -12,6 +12,7 @@ import (
 
 func TestServiceTermsStore(t *testing.T, ss store.Store) {
 	t.Run("TestSaveServiceTerms", func(t *testing.T) { testSaveServiceTerms(t, ss) })
+	t.Run("TestGetLatestServiceTerms", func(t *testing.T) { testGetLatestServiceTerms(t, ss) })
 	t.Run("TestGetServiceTerms", func(t *testing.T) { testGetServiceTerms(t, ss) })
 }
 
@@ -39,6 +40,26 @@ func testSaveServiceTerms(t *testing.T, ss store.Store) {
 	}
 }
 
+func testGetLatestServiceTerms(t *testing.T, ss store.Store) {
+	u1 := model.User{}
+	u1.Username = model.NewId()
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	serviceTerms := &model.ServiceTerms{Text: "service terms", UserId: u1.Id}
+	store.Must(ss.ServiceTerms().Save(serviceTerms))
+
+	r1 := <-ss.ServiceTerms().GetLatest(true)
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	fetchedServiceTerms := r1.Data.(*model.ServiceTerms)
+	assert.Equal(t, serviceTerms.Text, fetchedServiceTerms.Text)
+	assert.Equal(t, serviceTerms.UserId, fetchedServiceTerms.UserId)
+}
+
 func testGetServiceTerms(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Username = model.NewId()
@@ -49,12 +70,13 @@ func testGetServiceTerms(t *testing.T, ss store.Store) {
 	serviceTerms := &model.ServiceTerms{Text: "service terms", UserId: u1.Id}
 	store.Must(ss.ServiceTerms().Save(serviceTerms))
 
-	r1 := <-ss.ServiceTerms().Get(true)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
+	r1 := <-ss.ServiceTerms().Get("an_invalid_id", true)
+	assert.NotNil(t, r1.Err)
+	assert.Nil(t, r1.Data)
 
-	fetchedServiceTerms := r1.Data.(*model.ServiceTerms)
-	assert.Equal(t, serviceTerms.Text, fetchedServiceTerms.Text)
-	assert.Equal(t, serviceTerms.UserId, fetchedServiceTerms.UserId)
+	r1 = <-ss.ServiceTerms().Get(serviceTerms.Id, true)
+	assert.Nil(t, r1.Err)
+
+	receivedServiceTerms := r1.Data.(*model.ServiceTerms)
+	assert.Equal(t, "service terms", receivedServiceTerms.Text)
 }

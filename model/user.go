@@ -75,7 +75,6 @@ type User struct {
 	MfaSecret                  string    `json:"mfa_secret,omitempty"`
 	LastActivityAt             int64     `db:"-" json:"last_activity_at,omitempty"`
 	AcceptedServiceTermsId     string    `json:"accepted_service_terms_id,omitempty"`
-	LatestServiceTermsAccepted *bool     `db:"-" json:"latest_service_terms_accepted,omitempty"`
 }
 
 type UserPatch struct {
@@ -89,7 +88,6 @@ type UserPatch struct {
 	NotifyProps            StringMap `json:"notify_props,omitempty"`
 	Locale                 *string   `json:"locale"`
 	Timezone               StringMap `json:"timezone"`
-	AcceptedServiceTermsId string    `json:"accepted_service_terms_id"`
 }
 
 type UserAuth struct {
@@ -372,10 +370,6 @@ func (u *User) Sanitize(options map[string]bool) {
 	}
 	if len(options) != 0 && !options["authservice"] {
 		u.AuthService = ""
-	}
-
-	if len(options) != 0 && !options["latestservicetermsaccepted"] {
-		u.LatestServiceTermsAccepted = nil
 	}
 }
 
