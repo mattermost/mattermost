@@ -31,6 +31,7 @@ func createServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if text == "" {
 		c.Err = model.NewAppError("Config.IsValid", "api.create_service_terms.empty_text.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	oldServiceTerms, err := c.App.GetLatestServiceTerms()
