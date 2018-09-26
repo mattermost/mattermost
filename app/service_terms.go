@@ -22,7 +22,7 @@ func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *mod
 		return nil, result.Err
 	}
 
-	serviceTerms := result.Data.(*model.ServiceTerms)
+	serviceTerms = result.Data.(*model.ServiceTerms)
 	return serviceTerms, nil
 }
 
