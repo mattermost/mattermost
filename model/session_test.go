@@ -76,5 +76,3 @@ func TestSessionCSRF(t *testing.T) {
 	assert.NotEmpty(t, token2)
 	assert.Equal(t, token, token2)
 }
-
-

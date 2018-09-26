@@ -179,6 +179,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 	}
 
 	a.DisableConfigWatch()
+
 	a.UpdateConfig(func(update *model.Config) {
 		*update = *cfg
 	})

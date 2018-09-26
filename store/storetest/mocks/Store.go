@@ -320,6 +320,22 @@ func (_m *Store) Scheme() store.SchemeStore {
 	return r0
 }
 
+// ServiceTerms provides a mock function with given fields:
+func (_m *Store) ServiceTerms() store.ServiceTermsStore {
+	ret := _m.Called()
+
+	var r0 store.ServiceTermsStore
+	if rf, ok := ret.Get(0).(func() store.ServiceTermsStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ServiceTermsStore)
+		}
+	}
+
+	return r0
+}
+
 // Session provides a mock function with given fields:
 func (_m *Store) Session() store.SessionStore {
 	ret := _m.Called()

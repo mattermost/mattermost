@@ -37,13 +37,13 @@ func StopTestStore() {
 }
 
 type TestHelper struct {
-	App             *app.App
+	App *app.App
 
-	BasicUser       *model.User
-	BasicChannel    *model.Channel
-	BasicTeam       *model.Team
+	BasicUser    *model.User
+	BasicChannel *model.Channel
+	BasicTeam    *model.Team
 
-	SystemAdminUser   *model.User
+	SystemAdminUser *model.User
 }
 
 func Setup() *TestHelper {

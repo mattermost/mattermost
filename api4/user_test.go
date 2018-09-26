@@ -3019,3 +3019,28 @@ func TestGetUsersByStatus(t *testing.T) {
 		}
 	})
 }
+
+func TestRegisterServiceTermsAction(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	success, resp := Client.RegisterServiceTermsAction(th.BasicUser.Id, "st_1", true)
+	CheckErrorMessage(t, resp, "store.sql_service_terms_store.get.no_rows.app_error")
+
+	serviceTerms, err := th.App.CreateServiceTerms("service terms", th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	success, resp = Client.RegisterServiceTermsAction(th.BasicUser.Id, serviceTerms.Id, true)
+	CheckNoError(t, resp)
+
+	assert.True(t, *success)
+	user, err := th.App.GetUser(th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, user.AcceptedServiceTermsId, serviceTerms.Id)
+}
