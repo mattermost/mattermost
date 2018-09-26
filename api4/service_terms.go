@@ -44,6 +44,6 @@ func createServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(serviceTerms.ToJson()))
 	} else {
-		ReturnStatusOK(w)
+		w.Write([]byte(oldServiceTerms.ToJson()))
 	}
 }
