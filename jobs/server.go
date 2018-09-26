@@ -7,25 +7,12 @@ import (
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/configservice"
 	"github.com/mattermost/mattermost-server/store"
 )
 
-type ConfigService interface {
-	Config() *model.Config
-	AddConfigListener(func(old, current *model.Config)) string
-	RemoveConfigListener(string)
-}
-
-type StaticConfigService struct {
-	Cfg *model.Config
-}
-
-func (s StaticConfigService) Config() *model.Config                                   { return s.Cfg }
-func (StaticConfigService) AddConfigListener(func(old, current *model.Config)) string { return "" }
-func (StaticConfigService) RemoveConfigListener(string)                               {}
-
 type JobServer struct {
-	ConfigService ConfigService
+	ConfigService configservice.ConfigService
 	Store         store.Store
 	Workers       *Workers
 	Schedulers    *Schedulers
@@ -38,7 +25,7 @@ type JobServer struct {
 	Migrations              tjobs.MigrationsJobInterface
 }
 
-func NewJobServer(configService ConfigService, store store.Store) *JobServer {
+func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {
 	return &JobServer{
 		ConfigService: configService,
 		Store:         store,
