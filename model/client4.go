@@ -3825,3 +3825,15 @@ func (c *Client4) GetServiceTerms(etag string) (*ServiceTerms, *Response) {
 		return ServiceTermsFromJson(r.Body), BuildResponse(r)
 	}
 }
+
+func (c *Client4) CreateServiceTerms(text, userId string) (*ServiceTerms, *Response) {
+	url := c.GetServiceTermsRoute()
+
+	data := map[string]string{"text": text}
+	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ServiceTermsFromJson(r.Body), BuildResponse(r)
+	}
+}

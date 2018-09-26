@@ -23,3 +23,16 @@ func TestGetServiceTerms(t *testing.T) {
 	assert.NotEmpty(t, serviceTerms.Id)
 	assert.NotEmpty(t, serviceTerms.CreateAt)
 }
+
+func TestCreateServiceTerms(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	serviceTerms, resp := Client.CreateServiceTerms("service terms new", th.BasicUser.Id)
+	CheckNoError(t, resp)
+	assert.NotEmpty(t, serviceTerms.Id)
+	assert.NotEmpty(t, serviceTerms.CreateAt)
+	assert.Equal(t, "service terms new", serviceTerms.Text)
+	assert.Equal(t, th.BasicUser.Id, serviceTerms.UserId)
+}
