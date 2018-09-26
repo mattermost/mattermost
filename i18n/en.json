@@ -2419,6 +2419,10 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
     "id": "app.admin.test_email.failure",
     "translation": "Connection unsuccessful: {{.Error}}"
   },
@@ -4301,10 +4305,6 @@
   {
     "id": "model.config.is_valid.write_timeout.app_error",
     "translation": "Invalid value for write timeout."
-  },
-  {
-    "id": "model.config.is_valid.support.custom_service_terms_text.app_error",
-    "translation": "Please enter text for your Custom Terms of Service."
   },
   {
     "id": "model.emoji.create_at.app_error",

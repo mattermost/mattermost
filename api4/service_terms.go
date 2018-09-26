@@ -29,13 +29,17 @@ func createServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
 	text := props["text"]
 	userId := c.Session.UserId
 
+	if text == "" {
+		c.Err = model.NewAppError("Config.IsValid", "api.create_service_terms.empty_text.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	oldServiceTerms, err := c.App.GetLatestServiceTerms()
 	if err != nil && err.Id != app.ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
 		c.Err = err
 		return
 	}
 
-	if oldServiceTerms.Text != text {
+	if oldServiceTerms == nil || oldServiceTerms.Text != text {
 		serviceTerms, err := c.App.CreateServiceTerms(text, userId)
 		if err != nil {
 			c.Err = err
