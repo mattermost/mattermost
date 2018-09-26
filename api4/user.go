@@ -1547,15 +1547,11 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.Session.UserId
-	serviceTermsId := props["serviceTermsId"]
-	accepted, err := strconv.ParseBool(props["accepted"])
-	if err != nil {
-		c.Err = model.NewAppError("registerServiceTermsAction", "api.user.register_service_terms_action.bad_value.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
+	serviceTermsId := props["serviceTermsId"].(string)
+	accepted := props["accepted"].(bool)
 
 	if _, err := c.App.GetServiceTerms(serviceTermsId); err != nil {
 		c.Err = err
