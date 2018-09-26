@@ -402,11 +402,11 @@ func (c *Client4) GetRedirectLocationRoute() string {
 }
 
 func (c *Client4) GetRegisterServiceTermsRoute(userId string) string {
-	return c.GetUserRoute(userId) + "/service_terms"
+	return c.GetUserRoute(userId) + "/terms_of_service"
 }
 
 func (c *Client4) GetServiceTermsRoute() string {
-	return "/service_terms"
+	return "/terms_of_service"
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
