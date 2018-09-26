@@ -2423,6 +2423,10 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
+  },
+  {
     "id": "app.admin.test_email.failure",
     "translation": "Connection unsuccessful: {{.Error}}"
   },
