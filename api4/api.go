@@ -205,7 +205,7 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	api.BaseRoutes.Image = api.BaseRoutes.ApiRoot.PathPrefix("/image").Subrouter()
 
-	api.BaseRoutes.ServiceTerms = api.BaseRoutes.ApiRoot.PathPrefix("/service_terms").Subrouter()
+	api.BaseRoutes.ServiceTerms = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
 
 	api.InitUser()
 	api.InitTeam()
