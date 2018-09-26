@@ -1,6 +1,7 @@
 package api4
 
 import (
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -30,6 +31,11 @@ func TestCreateServiceTerms(t *testing.T) {
 	Client := th.Client
 
 	serviceTerms, resp := Client.CreateServiceTerms("service terms new", th.BasicUser.Id)
+	CheckErrorMessage(t, resp, "api.create_service_terms.custom_service_terms_disabled.app_error")
+
+	th.App.SetLicense(model.NewTestLicense("EnableCustomServiceTerms"))
+
+	serviceTerms, resp = Client.CreateServiceTerms("service terms new", th.BasicUser.Id)
 	CheckNoError(t, resp)
 	assert.NotEmpty(t, serviceTerms.Id)
 	assert.NotEmpty(t, serviceTerms.CreateAt)
