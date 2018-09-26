@@ -141,8 +141,8 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 	path := pathPrefix + name
 
 	// Open the file and populate the fields of the FileInfo
-	var info *model.FileInfo
-	if data, err := a.ReadFile(path); err != nil {
+	data, err := a.ReadFile(path)
+	if err != nil {
 		mlog.Error(
 			fmt.Sprintf("File not found when migrating post to use FileInfos, err=%v", err),
 			mlog.String("post_id", post.Id),
@@ -150,16 +150,15 @@ func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename strin
 			mlog.String("path", path),
 		)
 		return nil
-	} else {
-		var err *model.AppError
-		info, err = model.GetInfoForBytes(name, data)
-		if err != nil {
-			mlog.Warn(
-				fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, err=%v", err),
-				mlog.String("post_id", post.Id),
-				mlog.String("filename", filename),
-			)
-		}
+	}
+
+	info, err := model.GetInfoForBytes(name, data)
+	if err != nil {
+		mlog.Warn(
+			fmt.Sprintf("Unable to fully decode file info when migrating post to use FileInfos, err=%v", err),
+			mlog.String("post_id", post.Id),
+			mlog.String("filename", filename),
+		)
 	}
 
 	// Generate a new ID because with the old system, you could very rarely get multiple posts referencing the same file
@@ -185,18 +184,23 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 	name, _ := url.QueryUnescape(split[4])
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	if result := <-a.Srv.Store.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetTeamsByUserId(post.UserId)
+	if result.Err != nil {
 		mlog.Error(fmt.Sprintf("Unable to get teams when migrating post to use FileInfo, err=%v", result.Err), mlog.String("post_id", post.Id))
-	} else if teams := result.Data.([]*model.Team); len(teams) == 1 {
+		return ""
+	}
+
+	teams := result.Data.([]*model.Team)
+	if len(teams) == 1 {
 		// The user has only one team so the post must've been sent from it
 		return teams[0].Id
-	} else {
-		for _, team := range teams {
-			path := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name)
-			if _, err := a.ReadFile(path); err == nil {
-				// Found the team that this file was posted from
-				return team.Id
-			}
+	}
+
+	for _, team := range teams {
+		path := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name)
+		if _, err := a.ReadFile(path); err == nil {
+			// Found the team that this file was posted from
+			return team.Id
 		}
 	}
 
@@ -217,17 +221,16 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
 
-	var channel *model.Channel
-	if result := <-cchan; result.Err != nil {
+	result := <-cchan
+	if result.Err != nil {
 		mlog.Error(
 			fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, err=%v", result.Err),
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
 		)
 		return []*model.FileInfo{}
-	} else {
-		channel = result.Data.(*model.Channel)
 	}
+	channel := result.Data.(*model.Channel)
 
 	// Find the team that was used to make this post since its part of the file path that isn't saved in the Filename
 	var teamId string
@@ -260,18 +263,22 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	if result := <-a.Srv.Store.Post().Get(post.Id); result.Err != nil {
+	result = <-a.Srv.Store.Post().Get(post.Id)
+	if result.Err != nil {
 		mlog.Error(fmt.Sprintf("Unable to get post when migrating post to use FileInfos, err=%v", result.Err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
-	} else if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
+	}
+
+	if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		if result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false); result.Err != nil {
+		result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
+		if result.Err != nil {
 			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", result.Err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
-		} else {
-			mlog.Debug("Post already migrated to use FileInfos", mlog.String("post_id", post.Id))
-			return result.Data.([]*model.FileInfo)
 		}
+
+		mlog.Debug("Post already migrated to use FileInfos", mlog.String("post_id", post.Id))
+		return result.Data.([]*model.FileInfo)
 	}
 
 	mlog.Debug("Migrating post to use FileInfos", mlog.String("post_id", post.Id))
@@ -304,9 +311,8 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if result := <-a.Srv.Store.Post().Update(newPost, post); result.Err != nil {
 		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, result.Err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
-	} else {
-		return savedInfos
 	}
+	return savedInfos
 }
 
 func (a *App) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
@@ -540,20 +546,22 @@ func makeImageUpright(img image.Image, orientation int) image.Image {
 }
 
 func getImageOrientation(input io.Reader) (int, error) {
-	if exifData, err := exif.Decode(input); err != nil {
+	exifData, err := exif.Decode(input)
+	if err != nil {
 		return Upright, err
-	} else {
-		if tag, err := exifData.Get("Orientation"); err != nil {
-			return Upright, err
-		} else {
-			orientation, err := tag.Int(0)
-			if err != nil {
-				return Upright, err
-			} else {
-				return orientation, nil
-			}
-		}
 	}
+
+	tag, err := exifData.Get("Orientation")
+	if err != nil {
+		return Upright, err
+	}
+
+	orientation, err := tag.Int(0)
+	if err != nil {
+		return Upright, err
+	}
+
+	return orientation, nil
 }
 
 func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
@@ -606,11 +614,11 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 }
 
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	if result := <-a.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+	result := <-a.Srv.Store.FileInfo().Get(fileId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.FileInfo), nil
 	}
+	return result.Data.(*model.FileInfo), nil
 }
 
 func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {

@@ -330,26 +330,42 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeletedChannels := r.URL.Query().Get("include_deleted_channels") == "true"
+	params := model.SearchParameterFromJson(r.Body)
 
-	props := model.StringInterfaceFromJson(r.Body)
-
-	terms, ok := props["terms"].(string)
-	if !ok || len(terms) == 0 {
+	if params.Terms == nil || len(*params.Terms) == 0 {
 		c.SetInvalidParam("terms")
 		return
 	}
+	terms := *params.Terms
 
-	timeZoneOffset, ok := props["time_zone_offset"].(float64)
-	if !ok {
-		timeZoneOffset = 0
+	timeZoneOffset := 0
+	if params.TimeZoneOffset != nil {
+		timeZoneOffset = *params.TimeZoneOffset
 	}
 
-	isOrSearch, _ := props["is_or_search"].(bool)
+	isOrSearch := false
+	if params.IsOrSearch != nil {
+		isOrSearch = *params.IsOrSearch
+	}
+
+	page := 0
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	perPage := 60
+	if params.PerPage != nil {
+		perPage = *params.PerPage
+	}
+
+	includeDeletedChannels := false
+	if params.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *params.IncludeDeletedChannels
+	}
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset))
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset), page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
