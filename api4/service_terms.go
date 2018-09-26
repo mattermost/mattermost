@@ -25,6 +25,11 @@ func getServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().SupportSettings.CustomServiceTermsEnabled {
+		c.Err = model.NewAppError("createServiceTerms", "api.create_service_terms.custom_service_terms_disabled.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	props := model.MapFromJson(r.Body)
 	text := props["text"]
 	userId := c.Session.UserId
