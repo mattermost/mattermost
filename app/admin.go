@@ -180,24 +180,24 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool,
 
 	a.DisableConfigWatch()
 
-	if *oldCfg.SupportSettings.CustomServiceTermsText != *cfg.SupportSettings.CustomServiceTermsText {
-		if len(userId) != 1 {
-			return model.NewAppError("saveConfig", "ent.cluster.save_config.update_custom_service_terms_no_user.error", nil, "", http.StatusBadRequest)
-		}
-		if serviceTerms, err := a.CreateServiceTerms(*cfg.SupportSettings.CustomServiceTermsText, userId[0]); err != nil {
-			return err
-		} else {
-			cfg.SupportSettings.CustomServiceTermsId = model.NewString(serviceTerms.Id)
-		}
-	}
+	//if *oldCfg.SupportSettings.CustomServiceTermsText != *cfg.SupportSettings.CustomServiceTermsText {
+	//	if len(userId) != 1 {
+	//		return model.NewAppError("saveConfig", "ent.cluster.save_config.update_custom_service_terms_no_user.error", nil, "", http.StatusBadRequest)
+	//	}
+	//	if serviceTerms, err := a.CreateServiceTerms(*cfg.SupportSettings.CustomServiceTermsText, userId[0]); err != nil {
+	//		return err
+	//	} else {
+	//		cfg.SupportSettings.CustomServiceTermsId = model.NewString(serviceTerms.Id)
+	//	}
+	//}
 
 	// no need to temperorily store the text as it will be the as received form API
-	cfg.SupportSettings.CustomServiceTermsText = model.NewString("")
-
-	// service terms ID however changes on saving new text. So we need to update it
-	// but not save it on config.json.
-	serviceTermsId := cfg.SupportSettings.CustomServiceTermsId
-	cfg.SupportSettings.CustomServiceTermsId = model.NewString("")
+	//cfg.SupportSettings.CustomServiceTermsText = model.NewString("")
+	//
+	//// service terms ID however changes on saving new text. So we need to update it
+	//// but not save it on config.json.
+	//serviceTermsId := cfg.SupportSettings.CustomServiceTermsId
+	//cfg.SupportSettings.CustomServiceTermsId = model.NewString("")
 
 	a.UpdateConfig(func(update *model.Config) {
 		*update = *cfg
@@ -206,7 +206,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool,
 	a.ReloadConfig()
 	a.EnableConfigWatch()
 
-	cfg.SupportSettings.CustomServiceTermsId = serviceTermsId
+	//cfg.SupportSettings.CustomServiceTermsId = serviceTermsId
 
 	if a.Metrics != nil {
 		if *a.Config().MetricsSettings.Enable {
