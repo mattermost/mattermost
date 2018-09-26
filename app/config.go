@@ -246,6 +246,16 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+
+	if a.clientConfig["EnableCustomServiceTerms"] == "true" {
+		serviceTerms, err := a.GetLatestServiceTerms()
+		if err != nil {
+			mlog.Err(err)
+		} else {
+			a.clientConfig["CustomServiceTermsId"] = serviceTerms.Id
+		}
+	}
+
 	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if key := a.AsymmetricSigningKey(); key != nil {

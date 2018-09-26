@@ -1005,7 +1005,6 @@ type SupportSettings struct {
 	ReportAProblemLink        *string
 	SupportEmail              *string
 	CustomServiceTermsEnabled *bool
-	CustomServiceTermsText    *string
 	CustomServiceTermsId      *string
 }
 
@@ -1056,10 +1055,6 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.CustomServiceTermsEnabled == nil {
 		s.CustomServiceTermsEnabled = NewBool(false)
-	}
-
-	if s.CustomServiceTermsText == nil {
-		s.CustomServiceTermsText = NewString(SUPPORT_SETTINGS_DEFAULT_SERVICE_TERMS_TEXT)
 	}
 
 	if s.CustomServiceTermsId == nil {

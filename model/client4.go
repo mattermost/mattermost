@@ -3803,11 +3803,11 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	}
 }
 
-func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId, accepted string) (*bool, *Response) {
+func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId string, accepted bool) (*bool, *Response) {
 	url := c.GetRegisterServiceTermsRoute(userId)
-	data := map[string]string{"serviceTermsId": serviceTermsId, "accepted": accepted}
+	data := map[string]interface{}{"serviceTermsId": serviceTermsId, "accepted": accepted}
 
-	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
