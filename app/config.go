@@ -62,23 +62,6 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 		return err
 	}
 
-	//if a.Srv.Store != nil {
-	//	serviceTerms, err := a.GetLatestServiceTerms()
-	//	if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
-	//		return err
-	//	}
-	//
-	//	serviceTermsText := ""
-	//	serviceTermsId := ""
-	//	if serviceTerms != nil {
-	//		serviceTermsText = serviceTerms.Text
-	//		serviceTermsId = serviceTerms.Id
-	//	}
-	//
-	//	cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTermsText)
-	//	cfg.SupportSettings.CustomServiceTermsId = model.NewString(serviceTermsId)
-	//}
-
 	a.configFile = configPath
 
 	a.config.Store(cfg)
@@ -89,29 +72,6 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	a.InvokeConfigListeners(old, cfg)
 	return nil
 }
-
-//func (a *App) LoadServiceTerms() *model.AppError {
-//	cfg := a.Config()
-//	serviceTerms, err := a.GetLatestServiceTerms()
-//	if err != nil && err.Id != ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
-//		return err
-//	}
-//
-//	serviceTermsText := ""
-//	serviceTermsId := ""
-//	if serviceTerms != nil {
-//		serviceTermsText = serviceTerms.Text
-//		serviceTermsId = serviceTerms.Id
-//	}
-//
-//	cfg.SupportSettings.CustomServiceTermsText = model.NewString(serviceTermsText)
-//	cfg.SupportSettings.CustomServiceTermsId = model.NewString(serviceTermsId)
-//	a.UpdateConfig(func(update *model.Config) {
-//		*update = *cfg
-//	})
-//
-//	return nil
-//}
 
 func (a *App) ReloadConfig() *model.AppError {
 	debug.FreeOSMemory()
