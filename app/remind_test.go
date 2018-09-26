@@ -78,7 +78,7 @@ func TestScheduleReminders(t *testing.T) {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	request.Payload = "@bob foo in 2 seconds"
+	request.Payload = "@bob foo in 4 seconds"
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
@@ -87,14 +87,14 @@ func TestScheduleReminders(t *testing.T) {
 		"Target":  "@bob",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "in 2 seconds",
+		"When":    "in 4 seconds",
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	request.Payload = "~off-topic foo in 2 seconds"
+	request.Payload = "~off-topic foo in 8 seconds"
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
@@ -103,14 +103,14 @@ func TestScheduleReminders(t *testing.T) {
 		"Target":  "~off-topic",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "in 2 seconds",
+		"When":    "in 8 seconds",
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	request.Payload = "me \"foo foo foo\" in 2 seconds"
+	request.Payload = "me \"foo foo foo\" in 16 seconds"
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
@@ -119,14 +119,14 @@ func TestScheduleReminders(t *testing.T) {
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo foo foo",
-		"When":    "in 2 seconds",
+		"When":    "in 16 seconds",
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	request.Payload = "me foo in 5 seconds"
+	request.Payload = "me foo in 32 seconds"
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
@@ -135,7 +135,7 @@ func TestScheduleReminders(t *testing.T) {
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "in 5 seconds",
+		"When":    "in 32 seconds",
 	}
 	expectedResponse = translateFunc("app.reminder.response", responseParameters)
 	if response != expectedResponse {
@@ -158,23 +158,69 @@ func TestScheduleReminders(t *testing.T) {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	//request.Payload = "me foo on monday at 12:30PM"
-	//response, err = th.App.ScheduleReminder(request)
-	//if err != nil { t.Fatal(UNABLE_TO_SCHEDULE_REMINDER) }
-	//responseParameters = map[string]interface{}{
-	//	"Target":  "You",
-	//	"UseTo":   "",
-	//	"Message": "foo",
-	//	"When":    "on monday at 12:30PM",
-	//}
-	//expectedResponse = translateFunc("app.reminder.response", responseParameters)
-	//if response != expectedResponse {
-	//	t.Fatal("\""+response+"\" doesn't match \""+ expectedResponse+"\"")
-	//}
+	request.Payload = "me foo on monday at 12:30PM"
+	response, err = th.App.ScheduleReminder(request)
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
+	responseParameters = map[string]interface{}{
+		"Target":  "You",
+		"UseTo":   "",
+		"Message": "foo",
+		"When":    "on monday at 12:30PM",
+	}
+	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	if response != expectedResponse {
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
+	}
 
-	//TODO TEST Every
+	request.Payload = "me foo every wednesday at 12:30PM"
+	response, err = th.App.ScheduleReminder(request)
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
+	responseParameters = map[string]interface{}{
+		"Target":  "You",
+		"UseTo":   "",
+		"Message": "foo",
+		"When":    "every wednesday at 12:30PM",
+	}
+	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	if response != expectedResponse {
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
+	}
 
-	//TODO TEST Outlier
+	request.Payload = "me tuesday foo"
+	response, err = th.App.ScheduleReminder(request)
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
+	responseParameters = map[string]interface{}{
+		"Target":  "You",
+		"UseTo":   "",
+		"Message": "foo",
+		"When":    "tuesday",
+	}
+	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	if response != expectedResponse {
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
+	}
+
+	request.Payload = "me tomorrow foo"
+	response, err = th.App.ScheduleReminder(request)
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
+	responseParameters = map[string]interface{}{
+		"Target":  "You",
+		"UseTo":   "",
+		"Message": "foo",
+		"When":    "tomorrow",
+	}
+	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	if response != expectedResponse {
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
+	}
 }
 
 func TestFindWhen(t *testing.T) {
@@ -204,10 +250,10 @@ func TestFindWhen(t *testing.T) {
 	rErr = th.App.findWhen(request)
 	if rErr != nil {
 		mlog.Error(rErr.Error())
-		t.Fatal("foo at 2pm every saturday doesn't parse")
+		t.Fatal("foo every tuesday at 10am doesn't parse")
 	}
 	if strings.Trim(request.Reminder.When, " ") != "every tuesday at 10am" {
-		t.Fatal("foo at 2pm every saturday isn't correct")
+		t.Fatal("foo every tuesday at 10am isn't correct")
 	}
 
 	request.Payload = "foo today at noon"
@@ -238,6 +284,16 @@ func TestFindWhen(t *testing.T) {
 	}
 	if strings.Trim(request.Reminder.When, " ") != "monday at 11:11am" {
 		t.Fatal("foo monday at 11:11am isn't correct")
+	}
+
+	request.Payload = "foo monday"
+	rErr = th.App.findWhen(request)
+	if rErr != nil {
+		mlog.Error(rErr.Error())
+		t.Fatal("foo monday doesn't parse")
+	}
+	if strings.Trim(request.Reminder.When, " ") != "monday" {
+		t.Fatal("foo monday isn't correct")
 	}
 
 	request.Payload = "foo tuesday at 11:11am"
@@ -298,6 +354,16 @@ func TestFindWhen(t *testing.T) {
 	}
 	if strings.Trim(request.Reminder.When, " ") != "sunday at 11:11am" {
 		t.Fatal("foo sunday at 11:11am isn't correct")
+	}
+
+	request.Payload = "foo at 2:04 pm"
+	rErr = th.App.findWhen(request)
+	if rErr != nil {
+		mlog.Error(rErr.Error())
+		t.Fatal("foo at 2:04 pm doesn't parse")
+	}
+	if strings.Trim(request.Reminder.When, " ") != "at 2:04 pm" {
+		t.Fatal("foo at 2:04 pm isn't correct")
 	}
 
 	request.Payload = "foo at noon every monday"
@@ -555,7 +621,7 @@ func TestAt(t *testing.T) {
 	if iErr != nil {
 		t.Fatal("at 11:00 every Thursday doesn't parse")
 	}
-	if times[0].Hour() != 11 && times[0].Weekday() != 4 {
+	if times[0].Hour() != 11 && times[0].Hour() != 23 && times[0].Weekday().String() != "Thursday" {
 		t.Fatal("at 11:00 every Thursday isn't correct")
 	}
 
@@ -586,6 +652,8 @@ func TestOn(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("on Monday doesn't parse")
 	}
+	mlog.Info(fmt.Sprintf("%v", times[0]))
+	mlog.Info(times[0].Weekday().String())
 	if times[0].Weekday().String() != "Monday" {
 		t.Fatal("on Monday isn't correct")
 	}
@@ -1029,7 +1097,7 @@ func TestEvery(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("every  wednesday, thursday doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v", times[0]))
+	//mlog.Info(fmt.Sprintf("%v", times[0]))
 	if times[0].Weekday().String() != "Monday" && times[1].Weekday().String() != "Thursday" {
 		t.Fatal("every wednesday, thursday isn't correct")
 	}

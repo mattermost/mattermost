@@ -375,7 +375,6 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 		useToString = ""
 	}
 
-	//RFC3339
 	request.Reminder.Id = model.NewId()
 	request.Reminder.TeamId = request.TeamId
 	request.Reminder.UserId = request.UserId
@@ -490,9 +489,12 @@ func (a *App) createOccurrences(request *model.ReminderRequest) error {
 		}
 	}
 
-	// TODO handle the other freeform when patterns
+	if occurrences, freeErr := a.freeForm(request.Reminder.When, user); freeErr != nil {
+		return freeErr
+	} else {
+		return a.addOccurrences(request, occurrences)
+	}
 
-	return errors.New("unable to create occurrences")
 }
 
 func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.Time) error {
@@ -540,7 +542,7 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 	}
 
 	onIndex := strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.on")+" ")
-	if inIndex > -1 {
+	if onIndex > -1 {
 		request.Reminder.When = strings.Trim(request.Payload[onIndex:], " ")
 		return nil
 	}
@@ -617,7 +619,7 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 
 	atIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.at")+" ")
 	everyIndex = strings.Index(request.Payload, " "+translateFunc("app.reminder.chrono.every")+" ")
-	if (atIndex > -1 && everyIndex >= -1) && (everyIndex > atIndex) {
+	if (atIndex > -1 && everyIndex >= -1) || (everyIndex > atIndex) && atIndex != -1 {
 		request.Reminder.When = strings.Trim(request.Payload[atIndex:], " ")
 		return nil
 	}
@@ -659,15 +661,22 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 			request.Reminder.When = lastWord
 			return nil
 		} else {
+			if len(textSplit) < 3 {
+				return errors.New("unable to find when")
+			}
 			var firstWord string
-			switch textSplit[0] {
+			switch textSplit[1] {
 			case translateFunc("app.reminder.chrono.at"):
-				firstWord = textSplit[1]
-				request.Reminder.When = textSplit[0] + " " + firstWord
+				firstWord = textSplit[2]
+				request.Reminder.When = textSplit[1] + " " + firstWord
 				return nil
-			case translateFunc("app.reminder.chrono.in"), translateFunc("app.reminder.chrono.on"):
-				firstWord = textSplit[1] + " " + textSplit[2]
-				request.Reminder.When = textSplit[0] + " " + firstWord
+			case translateFunc("app.reminder.chrono.in"),
+				translateFunc("app.reminder.chrono.on"):
+				if len(textSplit) < 4 {
+					return errors.New("unable to find when")
+				}
+				firstWord = textSplit[2] + " " + textSplit[3]
+				request.Reminder.When = textSplit[1] + " " + firstWord
 				return nil
 			case translateFunc("app.reminder.chrono.tomorrow"),
 				translateFunc("app.reminder.chrono.monday"),
@@ -677,7 +686,7 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 				translateFunc("app.reminder.chrono.friday"),
 				translateFunc("app.reminder.chrono.saturday"),
 				translateFunc("app.reminder.chrono.sunday"):
-				firstWord = textSplit[0]
+				firstWord = textSplit[1]
 				request.Reminder.When = firstWord
 				return nil
 			default:
@@ -884,7 +893,6 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 	if strings.Contains(when, translateFunc("app.reminder.chrono.every")) {
 
 		dateTimeSplit := strings.Split(when, " "+translateFunc("app.reminder.chrono.every")+" ")
-		mlog.Info(translateFunc("app.reminder.chrono.every") + " " + dateTimeSplit[1] + " " + dateTimeSplit[0])
 		return a.every(translateFunc("app.reminder.chrono.every")+" "+dateTimeSplit[1]+" "+dateTimeSplit[0], user)
 
 	} else if len(whenSplit) >= 3 &&
@@ -1309,7 +1317,6 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 	if len(dateTimeSplit) > 1 {
 		chronoTime = dateTimeSplit[1]
 	}
-
 	dateUnit, ndErr := a.normalizeDate(user, chronoDate)
 	if ndErr != nil {
 		return []time.Time{}, ndErr
@@ -1555,7 +1562,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		return date, nil
 	} else if strings.EqualFold(translateFunc("app.reminder.chrono.everyday"), date) {
 		return date, nil
-	} else if strings.EqualFold(translateFunc("app.reminder.chrono.tommorrow"), date) {
+	} else if strings.EqualFold(translateFunc("app.reminder.chrono.tomorrow"), date) {
 		return date, nil
 	} else if match, _ := regexp.MatchString("^((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)", date); match {
 
@@ -1831,19 +1838,19 @@ func (a *App) weekDayNumber(day string, user *model.User) int {
 	_, _, translateFunc, _ := a.shared(user.Id)
 
 	switch day {
-	case translateFunc("app,reminder.chrono.sunday"):
+	case translateFunc("app.reminder.chrono.sunday"):
 		return 0
-	case translateFunc("app,reminder.chrono.monday"):
+	case translateFunc("app.reminder.chrono.monday"):
 		return 1
-	case translateFunc("app,reminder.chrono.tuesday"):
+	case translateFunc("app.reminder.chrono.tuesday"):
 		return 2
-	case translateFunc("app,reminder.chrono.wednesday"):
+	case translateFunc("app.reminder.chrono.wednesday"):
 		return 3
-	case translateFunc("app,reminder.chrono.thursday"):
+	case translateFunc("app.reminder.chrono.thursday"):
 		return 4
-	case translateFunc("app,reminder.chrono.friday"):
+	case translateFunc("app.reminder.chrono.friday"):
 		return 5
-	case translateFunc("app,reminder.chrono.saturday"):
+	case translateFunc("app.reminder.chrono.saturday"):
 		return 6
 	default:
 		return -1
