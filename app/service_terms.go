@@ -17,12 +17,13 @@ func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *mod
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.ServiceTerms().Save(serviceTerms); result.Err != nil {
+	result := <-a.Srv.Store.ServiceTerms().Save(serviceTerms)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		serviceTerms := result.Data.(*model.ServiceTerms)
-		return serviceTerms, nil
 	}
+
+	serviceTerms := result.Data.(*model.ServiceTerms)
+	return serviceTerms, nil
 }
 
 func (a *App) GetLatestServiceTerms() (*model.ServiceTerms, *model.AppError) {
