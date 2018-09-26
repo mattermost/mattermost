@@ -5,6 +5,8 @@ package app
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +19,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func getHashedKey(key string) string {
+	hash := sha256.New()
+	hash.Write([]byte(key))
+	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
+}
 func TestPluginKeyValueStore(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -40,6 +47,15 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "intkey"))
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "postkey"))
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "notrealkey"))
+
+	// Test ListKeys
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key2", []byte("test")))
+	hashedKey := getHashedKey("key")
+	hashedKey2 := getHashedKey("key2")
+	list, err := th.App.ListPluginKeys(pluginId)
+	assert.Equal(t, 2, len(list))
+	assert.Equal(t, hashedKey, list[0])
+	assert.Equal(t, hashedKey2, list[1])
 }
 
 func TestServePluginRequest(t *testing.T) {

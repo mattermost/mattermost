@@ -196,7 +196,7 @@ type API interface {
 	// KVDelete will remove a key-value pair. Returns nil for non-existent keys.
 	KVDelete(key string) *model.AppError
 
-	// KVList will list all keys for a plugin. Returns nil for non-existent keys.
+	// KVList will list all keys for a plugin.
 	KVList() ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.

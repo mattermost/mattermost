@@ -67,5 +67,10 @@ func (a *App) ListPluginKeys(pluginId string) ([]string, *model.AppError) {
 		mlog.Error(result.Err.Error())
 	}
 
+	if result.Data != nil {
+		list := result.Data.([]string)
+		return list, nil
+	}
+
 	return nil, result.Err
 }
