@@ -3135,10 +3135,6 @@
     "translation": "to"
   },
   {
-    "id": "app.reminder.chrono.in",
-    "translation": "in"
-  },
-  {
     "id": "app.reminder.chrono.tomorrow",
     "translation": "tomorrow"
   },
@@ -3247,28 +3243,68 @@
     "translation": "y"
   },
   {
+    "id": "app.reminder.chrono.mon",
+    "translation": "mon"
+  },
+  {
     "id": "app.reminder.chrono.monday",
     "translation": "monday"
+  },
+  {
+    "id": "app.reminder.chrono.tues",
+    "translation": "tues"
   },
   {
     "id": "app.reminder.chrono.tuesday",
     "translation": "tuesday"
   },
   {
+    "id": "app.reminder.chrono.wed",
+    "translation": "wed"
+  },
+  {
+    "id": "app.reminder.chrono.wednes",
+    "translation": "wednes"
+  },
+  {
     "id": "app.reminder.chrono.wednesday",
     "translation": "wednesday"
+  },
+  {
+    "id": "app.reminder.chrono.thur",
+    "translation": "thur"
+  },
+  {
+    "id": "app.reminder.chrono.thurs",
+    "translation": "thurs"
   },
   {
     "id": "app.reminder.chrono.thursday",
     "translation": "thursday"
   },
   {
+    "id": "app.reminder.chrono.fri",
+    "translation": "fri"
+  },
+  {
     "id": "app.reminder.chrono.friday",
     "translation": "friday"
   },
   {
+    "id": "app.reminder.chrono.sat",
+    "translation": "sat"
+  },
+  {
+    "id": "app.reminder.chrono.satur",
+    "translation": "satur"
+  },
+  {
     "id": "app.reminder.chrono.saturday",
     "translation": "saturday"
+  },
+  {
+    "id": "app.reminder.chrono.sun",
+    "translation": "sun"
   },
   {
     "id": "app.reminder.chrono.sunday",
@@ -3313,6 +3349,94 @@
   {
     "id": "app.reminder.chrono.sundays",
     "translation": "sundays"
+  },
+  {
+    "id": "app.reminder.chrono.jan",
+    "translation": "jan"
+  },
+  {
+    "id": "app.reminder.chrono.january",
+    "translation": "january"
+  },
+  {
+    "id": "app.reminder.chrono.feb",
+    "translation": "feb"
+  },
+  {
+    "id": "app.reminder.chrono.february",
+    "translation": "february"
+  },
+  {
+    "id": "app.reminder.chrono.mar",
+    "translation": "mar"
+  },
+  {
+    "id": "app.reminder.chrono.march",
+    "translation": "march"
+  },
+  {
+    "id": "app.reminder.chrono.apr",
+    "translation": "apr"
+  },
+  {
+    "id": "app.reminder.chrono.april",
+    "translation": "april"
+  },
+  {
+    "id": "app.reminder.chrono.may",
+    "translation": "may"
+  },
+  {
+    "id": "app.reminder.chrono.june",
+    "translation": "june"
+  },
+  {
+    "id": "app.reminder.chrono.july",
+    "translation": "july"
+  },
+  {
+    "id": "app.reminder.chrono.aug",
+    "translation": "aug"
+  },
+  {
+    "id": "app.reminder.chrono.august",
+    "translation": "august"
+  },
+  {
+    "id": "app.reminder.chrono.sept",
+    "translation": "sept"
+  },
+  {
+    "id": "app.reminder.chrono.september",
+    "translation": "september"
+  },
+  {
+    "id": "app.reminder.chrono.oct",
+    "translation": "oct"
+  },
+  {
+    "id": "app.reminder.chrono.october",
+    "translation": "october"
+  },
+  {
+    "id": "app.reminder.chrono.nov",
+    "translation": "nov"
+  },
+  {
+    "id": "app.reminder.chrono.november",
+    "translation": "november"
+  },
+  {
+    "id": "app.reminder.chrono.dec",
+    "translation": "dec"
+  },
+  {
+    "id": "app.reminder.chrono.december",
+    "translation": "december"
+  },
+  {
+    "id": "app.reminder.chrono.in",
+    "translation": "in"
   },
   {
     "id": "app.reminder.chrono.at",
@@ -3427,6 +3551,54 @@
     "translation": "nineteen"
   },
   {
+    "id": "app.reminder.chrono.twenty",
+    "translation": "twenty"
+  },
+  {
+    "id": "app.reminder.chrono.thirty",
+    "translation": "thirty"
+  },
+  {
+    "id": "app.reminder.chrono.fourty",
+    "translation": "fourty"
+  },
+  {
+    "id": "app.reminder.chrono.fifty",
+    "translation": "fifty"
+  },
+  {
+    "id": "app.reminder.chrono.sixty",
+    "translation": "sixty"
+  },
+  {
+    "id": "app.reminder.chrono.seventy",
+    "translation": "seventy"
+  },
+  {
+    "id": "app.reminder.chrono.eighty",
+    "translation": "eighty"
+  },
+  {
+    "id": "app.reminder.chrono.ninety",
+    "translation": "ninety"
+  },
+  {
+    "id": "app.reminder.chrono.hundred",
+    "translation": "hundred"
+  },
+  {
+    "id": "app.reminder.chrono.thousand",
+    "translation": "thousand"
+  },
+  {
+    "id": "app.reminder.chrono.million",
+    "translation": "million"
+  },
+  {
+    "id": "app.reminder.chrono.billion",
+    "translation": "billion"
+  },
+  {
     "id": "app.reminder.chrono.0",
     "translation": "0"
   },
@@ -3477,6 +3649,302 @@
   {
     "id": "app.reminder.chrono.12",
     "translation": "12"
+  },
+  {
+    "id": "app.reminder.chrono.13",
+    "translation": "13"
+  },
+  {
+    "id": "app.reminder.chrono.14",
+    "translation": "14"
+  },
+  {
+    "id": "app.reminder.chrono.15",
+    "translation": "15"
+  },
+  {
+    "id": "app.reminder.chrono.16",
+    "translation": "16"
+  },
+  {
+    "id": "app.reminder.chrono.17",
+    "translation": "17"
+  },
+  {
+    "id": "app.reminder.chrono.18",
+    "translation": "18"
+  },
+  {
+    "id": "app.reminder.chrono.19",
+    "translation": "19"
+  },
+  {
+    "id": "app.reminder.chrono.20",
+    "translation": "20"
+  },
+  {
+    "id": "app.reminder.chrono.21",
+    "translation": "21"
+  },
+  {
+    "id": "app.reminder.chrono.22",
+    "translation": "22"
+  },
+  {
+    "id": "app.reminder.chrono.23",
+    "translation": "23"
+  },
+  {
+    "id": "app.reminder.chrono.0th",
+    "translation": "0th"
+  },
+  {
+    "id": "app.reminder.chrono.1st",
+    "translation": "1st"
+  },
+  {
+    "id": "app.reminder.chrono.2nd",
+    "translation": "2nd"
+  },
+  {
+    "id": "app.reminder.chrono.3rd",
+    "translation": "3rd"
+  },
+  {
+    "id": "app.reminder.chrono.4th",
+    "translation": "4th"
+  },
+  {
+    "id": "app.reminder.chrono.5th",
+    "translation": "5th"
+  },
+  {
+    "id": "app.reminder.chrono.6th",
+    "translation": "6th"
+  },
+  {
+    "id": "app.reminder.chrono.7th",
+    "translation": "7th"
+  },
+  {
+    "id": "app.reminder.chrono.8th",
+    "translation": "8th"
+  },
+  {
+    "id": "app.reminder.chrono.9th",
+    "translation": "9th"
+  },
+  {
+    "id": "app.reminder.chrono.10th",
+    "translation": "10th"
+  },
+  {
+    "id": "app.reminder.chrono.11th",
+    "translation": "11th"
+  },
+  {
+    "id": "app.reminder.chrono.12th",
+    "translation": "12th"
+  },
+  {
+    "id": "app.reminder.chrono.13th",
+    "translation": "13th"
+  },
+  {
+    "id": "app.reminder.chrono.14th",
+    "translation": "14th"
+  },
+  {
+    "id": "app.reminder.chrono.15th",
+    "translation": "15th"
+  },
+  {
+    "id": "app.reminder.chrono.16th",
+    "translation": "16th"
+  },
+  {
+    "id": "app.reminder.chrono.17th",
+    "translation": "17th"
+  },
+  {
+    "id": "app.reminder.chrono.18th",
+    "translation": "18th"
+  },
+  {
+    "id": "app.reminder.chrono.19th",
+    "translation": "19th"
+  },
+  {
+    "id": "app.reminder.chrono.20th",
+    "translation": "20th"
+  },
+  {
+    "id": "app.reminder.chrono.21st",
+    "translation": "21st"
+  },
+  {
+    "id": "app.reminder.chrono.22nd",
+    "translation": "22nd"
+  },
+  {
+    "id": "app.reminder.chrono.23rd",
+    "translation": "23rd"
+  },
+  {
+    "id": "app.reminder.chrono.24th",
+    "translation": "24th"
+  },
+  {
+    "id": "app.reminder.chrono.25th",
+    "translation": "25th"
+  },
+  {
+    "id": "app.reminder.chrono.26th",
+    "translation": "26th"
+  },
+  {
+    "id": "app.reminder.chrono.27th",
+    "translation": "27th"
+  },
+  {
+    "id": "app.reminder.chrono.28th",
+    "translation": "28th"
+  },
+  {
+    "id": "app.reminder.chrono.29th",
+    "translation": "29th"
+  },
+  {
+    "id": "app.reminder.chrono.30th",
+    "translation": "30th"
+  },
+  {
+    "id": "app.reminder.chrono.31th",
+    "translation": "31th"
+  },
+  {
+    "id": "app.reminder.chrono.first",
+    "translation": "first"
+  },
+  {
+    "id": "app.reminder.chrono.second",
+    "translation": "second"
+  },
+  {
+    "id": "app.reminder.chrono.third",
+    "translation": "third"
+  },
+  {
+    "id": "app.reminder.chrono.fourth",
+    "translation": "fourth"
+  },
+  {
+    "id": "app.reminder.chrono.fifth",
+    "translation": "fifth"
+  },
+  {
+    "id": "app.reminder.chrono.sixth",
+    "translation": "sixth"
+  },
+  {
+    "id": "app.reminder.chrono.seventh",
+    "translation": "seventh"
+  },
+  {
+    "id": "app.reminder.chrono.eighth",
+    "translation": "eighth"
+  },
+  {
+    "id": "app.reminder.chrono.nineth",
+    "translation": "nineth"
+  },
+  {
+    "id": "app.reminder.chrono.tenth",
+    "translation": "tenth"
+  },
+  {
+    "id": "app.reminder.chrono.eleventh",
+    "translation": "eleventh"
+  },
+  {
+    "id": "app.reminder.chrono.twelveth",
+    "translation": "twelveth"
+  },
+  {
+    "id": "app.reminder.chrono.thirteenth",
+    "translation": "thirteenth"
+  },
+  {
+    "id": "app.reminder.chrono.fourteenth",
+    "translation": "fourteenth"
+  },
+  {
+    "id": "app.reminder.chrono.fifteenth",
+    "translation": "fifteenth"
+  },
+  {
+    "id": "app.reminder.chrono.sixteenth",
+    "translation": "sixteenth"
+  },
+  {
+    "id": "app.reminder.chrono.seventeenth",
+    "translation": "seventeenth"
+  },
+  {
+    "id": "app.reminder.chrono.eighteenth",
+    "translation": "eighteenth"
+  },
+  {
+    "id": "app.reminder.chrono.nineteenth",
+    "translation": "nineteenth"
+  },
+  {
+    "id": "app.reminder.chrono.twenteth",
+    "translation": "twenteth"
+  },
+  {
+    "id": "app.reminder.chrono.twentyfirst",
+    "translation": "twentyfirst"
+  },
+  {
+    "id": "app.reminder.chrono.twentysecond",
+    "translation": "twentysecond"
+  },
+  {
+    "id": "app.reminder.chrono.twentythird",
+    "translation": "twentythird"
+  },
+  {
+    "id": "app.reminder.chrono.twentyfourth",
+    "translation": "twentyfourth"
+  },
+  {
+    "id": "app.reminder.chrono.twentyfifth",
+    "translation": "twentyfifth"
+  },
+  {
+    "id": "app.reminder.chrono.twentysixth",
+    "translation": "twentysixth"
+  },
+  {
+    "id": "app.reminder.chrono.twentyseventh",
+    "translation": "twentyseventh"
+  },
+  {
+    "id": "app.reminder.chrono.twentyeight",
+    "translation": "twentyeight"
+  },
+  {
+    "id": "app.reminder.chrono.twentynineth",
+    "translation": "twentynineth"
+  },
+  {
+    "id": "app.reminder.chrono.thirteth",
+    "translation": "thirteth"
+  },
+  {
+    "id": "app.reminder.chrono.thirtyfirst",
+    "translation": "thirtyfirst"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",

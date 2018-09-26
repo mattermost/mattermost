@@ -20,7 +20,6 @@ import (
 var running bool
 var remindUser *model.User
 var emptyTime time.Time
-var daySuffixes []string
 
 func (a *App) InitReminders() {
 
@@ -42,12 +41,6 @@ func (a *App) InitReminders() {
 	remindUser = user
 	emptyTime = time.Time{}.AddDate(1, 1, 1)
 
-	//TODO get this in a function with translation
-	daySuffixes = []string{"0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th",
-		"10th", "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th",
-		"20th", "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th",
-		"30th", "31st"}
-
 	if !running {
 		running = true
 		a.runner()
@@ -59,6 +52,7 @@ func (a *App) StopReminders() {
 	running = false
 }
 
+// how does the behave in HA cluster?
 func (a *App) runner() {
 
 	go func() {
@@ -311,7 +305,6 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 	for _, occurrence := range *occurrences {
 
 		reminder := a.findReminder(occurrence.ReminderId, reminders)
-		//        RFC3339     = "2006-01-02T15:04:05Z07:00"
 		t, tErr := time.Parse(time.RFC3339, occurrence.Occurrence)
 		if tErr != nil {
 			continue
@@ -1089,10 +1082,16 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 	}
 
 	switch dateUnit {
-	case "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday":
+	case translateFunc("app.reminder.chrono.sunday"),
+		translateFunc("app.reminder.chrono.monday"),
+		translateFunc("app.reminder.chrono.tuesday"),
+		translateFunc("app.reminder.chrono.wednesday"),
+		translateFunc("app.reminder.chrono.thursday"),
+		translateFunc("app.reminder.chrono.friday"),
+		translateFunc("app.reminder.chrono.saturday"):
 
-		todayWeekDayNum := int(time.Now().Weekday()) //5
-		weekDayNum := a.weekDayNumber(dateUnit)      //1
+		todayWeekDayNum := int(time.Now().Weekday())
+		weekDayNum := a.weekDayNumber(dateUnit, user)
 		day := 0
 
 		if weekDayNum < todayWeekDayNum {
@@ -1125,7 +1124,13 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		return []time.Time{a.chooseClosest(user, &occurrence, false)}, nil
 
 		break
-	case "mondays", "tuesdays", "wednesdays", "thursdays", "fridays", "saturdays", "sundays":
+	case translateFunc("app.reminder.chrono.mondays"),
+		translateFunc("app.reminder.chrono.tuesdays"),
+		translateFunc("app.reminder.chrono.wednesdays"),
+		translateFunc("app.reminder.chrono.thursdays"),
+		translateFunc("app.reminder.chrono.fridays"),
+		translateFunc("app.reminder.chrono.saturdays"),
+		translateFunc("app.reminder.chrono.sundays"):
 
 		return a.every(
 			translateFunc("app.reminder.chrono.every")+" "+
@@ -1195,7 +1200,7 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 		}
 
 		switch dateUnit {
-		case "day":
+		case translateFunc("app.reminder.chrono.day"):
 			d := 1
 			if everyOther {
 				d = 2
@@ -1224,9 +1229,16 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 			times = append(times, a.chooseClosest(user, &occurrence, false))
 
 			break
-		case "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday":
-			todayWeekDayNum := int(time.Now().Weekday()) //5
-			weekDayNum := a.weekDayNumber(dateUnit)      //1
+		case translateFunc("app.reminder.chrono.sunday"),
+			translateFunc("app.reminder.chrono.monday"),
+			translateFunc("app.reminder.chrono.tuesday"),
+			translateFunc("app.reminder.chrono.wednesday"),
+			translateFunc("app.reminder.chrono.thursday"),
+			translateFunc("app.reminder.chrono.friday"),
+			translateFunc("app.reminder.chrono.saturday"):
+
+			todayWeekDayNum := int(time.Now().Weekday())
+			weekDayNum := a.weekDayNumber(dateUnit, user)
 			day := 0
 
 			if weekDayNum < todayWeekDayNum {
@@ -1410,7 +1422,30 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 
 		return dateTimeSplit[1], nil
 
-	case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23":
+	case translateFunc("app.reminder.chrono.0"),
+		translateFunc("app.reminder.chrono.1"),
+		translateFunc("app.reminder.chrono.2"),
+		translateFunc("app.reminder.chrono.3"),
+		translateFunc("app.reminder.chrono.4"),
+		translateFunc("app.reminder.chrono.5"),
+		translateFunc("app.reminder.chrono.6"),
+		translateFunc("app.reminder.chrono.7"),
+		translateFunc("app.reminder.chrono.8"),
+		translateFunc("app.reminder.chrono.9"),
+		translateFunc("app.reminder.chrono.10"),
+		translateFunc("app.reminder.chrono.11"),
+		translateFunc("app.reminder.chrono.12"),
+		translateFunc("app.reminder.chrono.13"),
+		translateFunc("app.reminder.chrono.14"),
+		translateFunc("app.reminder.chrono.15"),
+		translateFunc("app.reminder.chrono.16"),
+		translateFunc("app.reminder.chrono.17"),
+		translateFunc("app.reminder.chrono.18"),
+		translateFunc("app.reminder.chrono.19"),
+		translateFunc("app.reminder.chrono.20"),
+		translateFunc("app.reminder.chrono.21"),
+		translateFunc("app.reminder.chrono.22"),
+		translateFunc("app.reminder.chrono.23"):
 
 		num, nErr := strconv.Atoi(text)
 		if nErr != nil {
@@ -1509,51 +1544,57 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 }
 
 func (a *App) normalizeDate(user *model.User, text string) (string, error) {
-	_, location, _, _ := a.shared(user.Id)
+
+	_, location, translateFunc, _ := a.shared(user.Id)
 	cfg := a.Config()
 
 	date := strings.ToLower(text)
-	if strings.EqualFold("day", date) {
+	if strings.EqualFold(translateFunc("app.reminder.chrono.day"), date) {
 		return date, nil
-	} else if strings.EqualFold("today", date) {
+	} else if strings.EqualFold(translateFunc("app.reminder.chrono.today"), date) {
 		return date, nil
-	} else if strings.EqualFold("everyday", date) {
+	} else if strings.EqualFold(translateFunc("app.reminder.chrono.everyday"), date) {
 		return date, nil
-	} else if strings.EqualFold("tomorrow", date) {
+	} else if strings.EqualFold(translateFunc("app.reminder.chrono.tommorrow"), date) {
 		return date, nil
 	} else if match, _ := regexp.MatchString("^((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)", date); match {
+
 		switch date {
-		case "mon", "monday":
-			return "monday", nil
-		case "mondays":
-			return "mondays", nil
-		case "tues", "tuesday":
-			return "tuesday", nil
-		case "tuesdays":
-			return "tuesdays", nil
-		case "wed", "wednesday":
-			return "wednesday", nil
-		case "wednesdays":
-			return "wednesdays", nil
-		case "thur", "thursday":
-			return "thursday", nil
-		case "thursdays":
-			return "thursdays", nil
-		case "fri", "friday":
-			return "friday", nil
-		case "fridays":
-			return "fridays", nil
-		case "sat", "saturday":
-			return "saturday", nil
-		case "saturdays":
-			return "saturdays", nil
-		case "sun", "sunday":
-			return "sunday", nil
-		case "sundays":
-			return "sundays", nil
+		case translateFunc("app.reminder.chrono.mon"),
+			translateFunc("app.reminder.chrono.monday"):
+			return translateFunc("app.reminder.chrono.monday"), nil
+		case translateFunc("app.reminder.chrono.tues"),
+			translateFunc("app.reminder.chrono.tuesday"):
+			return translateFunc("app.reminder.chrono.tuesday"), nil
+		case translateFunc("app.reminder.chrono.wed"),
+			translateFunc("app.reminder.chrono.wednes"),
+			translateFunc("app.reminder.chrono.wednesday"):
+			return translateFunc("app.reminder.chrono.wednesday"), nil
+		case translateFunc("app.reminder.chrono.thur"),
+			translateFunc("app.reminder.chrono.thursday"):
+			return translateFunc("app.reminder.chrono.thursday"), nil
+		case translateFunc("app.reminder.chrono.fri"),
+			translateFunc("app.reminder.chrono.friday"):
+			return translateFunc("app.reminder.chrono.friday"), nil
+		case translateFunc("app.reminder.chrono.sat"),
+			translateFunc("app.reminder.chrono.satur"),
+			translateFunc("app.reminder.chrono.saturday"):
+			return translateFunc("app.reminder.chrono.saturday"), nil
+		case translateFunc("app.reminder.chrono.sun"),
+			translateFunc("app.reminder.chrono.sunday"):
+			return translateFunc("app.reminder.chrono.sunday"), nil
+		case translateFunc("app.reminder.chrono.mondays"),
+			translateFunc("app.reminder.chrono.tuesdays"),
+			translateFunc("app.reminder.chrono.wednesdays"),
+			translateFunc("app.reminder.chrono.thursdays"),
+			translateFunc("app.reminder.chrono.fridays"),
+			translateFunc("app.reminder.chrono.saturdays"),
+			translateFunc("app.reminder.chrono.sundays"):
+			return date, nil
 		default:
 			return "", errors.New("no day of week found")
 		}
+
 	} else if match, _ := regexp.MatchString("^(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june|july|aug(ust)?|sept(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)", date); match {
 
 		date = strings.Replace(date, ",", "", -1)
@@ -1564,12 +1605,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 			break
 		case 2:
 			if len(parts[1]) > 2 {
-				for _, suffix := range daySuffixes {
-					if suffix == parts[1] {
-						parts[1] = parts[1][:len(parts[1])-2]
-						break
-					}
-				}
+				parts[1] = a.daySuffix(user, parts[1])
 			}
 			if _, err := strconv.Atoi(parts[1]); err != nil {
 				if wn, wErr := a.wordToNumber(parts[1], user); wErr == nil {
@@ -1582,12 +1618,7 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 			break
 		case 3:
 			if len(parts[1]) > 2 {
-				for _, suffix := range daySuffixes {
-					if suffix == parts[1] {
-						parts[1] = parts[1][:len(parts[1])-2]
-						break
-					}
-				}
+				parts[1] = a.daySuffix(user, parts[1])
 			}
 
 			if _, err := strconv.Atoi(parts[1]); err != nil {
@@ -1608,40 +1639,49 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		}
 
 		switch parts[0] {
-		case "jan", "january":
+		case translateFunc("app.reminder.chrono.jan"),
+			translateFunc("app.reminder.chrono.january"):
 			parts[0] = "01"
 			break
-		case "feb", "february":
+		case translateFunc("app.reminder.chrono.feb"),
+			translateFunc("app.reminder.chrono.february"):
 			parts[0] = "02"
 			break
-		case "mar", "march":
+		case translateFunc("app.reminder.chrono.mar"),
+			translateFunc("app.reminder.chrono.march"):
 			parts[0] = "03"
 			break
-		case "apr", "april":
+		case translateFunc("app.reminder.chrono.apr"),
+			translateFunc("app.reminder.chrono.april"):
 			parts[0] = "04"
 			break
-		case "may":
+		case translateFunc("app.reminder.chrono.may"):
 			parts[0] = "05"
 			break
-		case "june":
+		case translateFunc("app.reminder.chrono.june"):
 			parts[0] = "06"
 			break
-		case "july":
+		case translateFunc("app.reminder.chrono.july"):
 			parts[0] = "07"
 			break
-		case "aug", "august":
+		case translateFunc("app.reminder.chrono.aug"),
+			translateFunc("app.reminder.chrono.august"):
 			parts[0] = "08"
 			break
-		case "sept", "september":
+		case translateFunc("app.reminder.chrono.sept"),
+			translateFunc("app.reminder.chrono.september"):
 			parts[0] = "09"
 			break
-		case "oct", "october":
+		case translateFunc("app.reminder.chrono.oct"),
+			translateFunc("app.reminder.chrono.october"):
 			parts[0] = "10"
 			break
-		case "nov", "november":
+		case translateFunc("app.reminder.chrono.nov"),
+			translateFunc("app.reminder.chrono.november"):
 			parts[0] = "11"
 			break
-		case "dec", "december":
+		case translateFunc("app.reminder.chrono.dec"),
+			translateFunc("app.reminder.chrono.december"):
 			parts[0] = "12"
 			break
 		default:
@@ -1704,17 +1744,8 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 
 	} else { //single number day
 
-		var day string
 		var dayInt int
-		for _, suffix := range daySuffixes {
-			if suffix == date {
-				day = date[:len(date)-2]
-				break
-			}
-		}
-		if day == "" {
-			day = date
-		}
+		day := a.daySuffix(user, date)
 
 		if d, nErr := strconv.Atoi(day); nErr != nil {
 			if wordNum, wErr := a.wordToNumber(date, user); wErr != nil {
@@ -1745,24 +1776,74 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 
 	}
 
-	return "", errors.New("Non recognized time")
+	return "", errors.New("unrecognized time")
 }
 
-func (a *App) weekDayNumber(day string) int {
+func (a *App) daySuffix(user *model.User, day string) string {
+
+	_, _, translateFunc, _ := a.shared(user.Id)
+
+	daySuffixes := []string{
+		translateFunc("app.reminder.chrono.0th"),
+		translateFunc("app.reminder.chrono.1st"),
+		translateFunc("app.reminder.chrono.2nd"),
+		translateFunc("app.reminder.chrono.3rd"),
+		translateFunc("app.reminder.chrono.4th"),
+		translateFunc("app.reminder.chrono.5th"),
+		translateFunc("app.reminder.chrono.6th"),
+		translateFunc("app.reminder.chrono.7th"),
+		translateFunc("app.reminder.chrono.8th"),
+		translateFunc("app.reminder.chrono.9th"),
+		translateFunc("app.reminder.chrono.10th"),
+		translateFunc("app.reminder.chrono.11th"),
+		translateFunc("app.reminder.chrono.12th"),
+		translateFunc("app.reminder.chrono.13th"),
+		translateFunc("app.reminder.chrono.14th"),
+		translateFunc("app.reminder.chrono.15th"),
+		translateFunc("app.reminder.chrono.16th"),
+		translateFunc("app.reminder.chrono.17th"),
+		translateFunc("app.reminder.chrono.18th"),
+		translateFunc("app.reminder.chrono.19th"),
+		translateFunc("app.reminder.chrono.20th"),
+		translateFunc("app.reminder.chrono.21st"),
+		translateFunc("app.reminder.chrono.22nd"),
+		translateFunc("app.reminder.chrono.23rd"),
+		translateFunc("app.reminder.chrono.24th"),
+		translateFunc("app.reminder.chrono.25th"),
+		translateFunc("app.reminder.chrono.26th"),
+		translateFunc("app.reminder.chrono.27th"),
+		translateFunc("app.reminder.chrono.28th"),
+		translateFunc("app.reminder.chrono.29th"),
+		translateFunc("app.reminder.chrono.30th"),
+		translateFunc("app.reminder.chrono.31st"),
+	}
+	for _, suffix := range daySuffixes {
+		if suffix == day {
+			day = day[:len(day)-2]
+			break
+		}
+	}
+	return day
+}
+
+func (a *App) weekDayNumber(day string, user *model.User) int {
+
+	_, _, translateFunc, _ := a.shared(user.Id)
+
 	switch day {
-	case "sunday":
+	case translateFunc("app,reminder.chrono.sunday"):
 		return 0
-	case "monday":
+	case translateFunc("app,reminder.chrono.monday"):
 		return 1
-	case "tuesday":
+	case translateFunc("app,reminder.chrono.tuesday"):
 		return 2
-	case "wednesday":
+	case translateFunc("app,reminder.chrono.wednesday"):
 		return 3
-	case "thursday":
+	case translateFunc("app,reminder.chrono.thursday"):
 		return 4
-	case "friday":
+	case translateFunc("app,reminder.chrono.friday"):
 		return 5
-	case "saturday":
+	case translateFunc("app,reminder.chrono.saturday"):
 		return 6
 	default:
 		return -1
@@ -1770,6 +1851,7 @@ func (a *App) weekDayNumber(day string) int {
 }
 
 func (a *App) regSplit(text string, delimeter string) []string {
+
 	reg := regexp.MustCompile(delimeter)
 	indexes := reg.FindAllStringIndex(text, -1)
 	laststart := 0
@@ -1784,7 +1866,7 @@ func (a *App) regSplit(text string, delimeter string) []string {
 
 func (a *App) wordToNumber(word string, user *model.User) (int, error) {
 
-	_, _, translationFunc, _ := a.shared(user.Id)
+	_, _, translateFunc, _ := a.shared(user.Id)
 
 	var sum int
 	var temp int
@@ -1794,73 +1876,73 @@ func (a *App) wordToNumber(word string, user *model.User) (int, error) {
 	onumbers := make(map[string]int)
 	tnumbers := make(map[string]int)
 
-	numbers[translationFunc("app.reminder.chrono.zero")] = 0
-	numbers[translationFunc("app.reminder.chrono.one")] = 1
-	numbers[translationFunc("app.reminder.chrono.two")] = 2
-	numbers[translationFunc("app.reminder.chrono.three")] = 3
-	numbers[translationFunc("app.reminder.chrono.four")] = 4
-	numbers[translationFunc("app.reminder.chrono.five")] = 5
-	numbers[translationFunc("app.reminder.chrono.six")] = 6
-	numbers[translationFunc("app.reminder.chrono.seven")] = 7
-	numbers[translationFunc("app.reminder.chrono.eight")] = 8
-	numbers[translationFunc("app.reminder.chrono.nine")] = 9
-	numbers[translationFunc("app.reminder.chrono.ten")] = 10
-	numbers[translationFunc("app.reminder.chrono.eleven")] = 11
-	numbers[translationFunc("app.reminder.chrono.twelve")] = 12
-	numbers[translationFunc("app.reminder.chrono.thirteen")] = 13
-	numbers[translationFunc("app.reminder.chrono.fourteen")] = 14
-	numbers[translationFunc("app.reminder.chrono.fifteen")] = 15
-	numbers[translationFunc("app.reminder.chrono.sixteen")] = 16
-	numbers[translationFunc("app.reminder.chrono.seventeen")] = 17
-	numbers[translationFunc("app.reminder.chrono.eighteen")] = 18
-	numbers[translationFunc("app.reminder.chrono.nineteen")] = 19
+	numbers[translateFunc("app.reminder.chrono.zero")] = 0
+	numbers[translateFunc("app.reminder.chrono.one")] = 1
+	numbers[translateFunc("app.reminder.chrono.two")] = 2
+	numbers[translateFunc("app.reminder.chrono.three")] = 3
+	numbers[translateFunc("app.reminder.chrono.four")] = 4
+	numbers[translateFunc("app.reminder.chrono.five")] = 5
+	numbers[translateFunc("app.reminder.chrono.six")] = 6
+	numbers[translateFunc("app.reminder.chrono.seven")] = 7
+	numbers[translateFunc("app.reminder.chrono.eight")] = 8
+	numbers[translateFunc("app.reminder.chrono.nine")] = 9
+	numbers[translateFunc("app.reminder.chrono.ten")] = 10
+	numbers[translateFunc("app.reminder.chrono.eleven")] = 11
+	numbers[translateFunc("app.reminder.chrono.twelve")] = 12
+	numbers[translateFunc("app.reminder.chrono.thirteen")] = 13
+	numbers[translateFunc("app.reminder.chrono.fourteen")] = 14
+	numbers[translateFunc("app.reminder.chrono.fifteen")] = 15
+	numbers[translateFunc("app.reminder.chrono.sixteen")] = 16
+	numbers[translateFunc("app.reminder.chrono.seventeen")] = 17
+	numbers[translateFunc("app.reminder.chrono.eighteen")] = 18
+	numbers[translateFunc("app.reminder.chrono.nineteen")] = 19
 
-	tnumbers["twenty"] = 20
-	tnumbers["thirty"] = 30
-	tnumbers["fourty"] = 40
-	tnumbers["fifty"] = 50
-	tnumbers["sixty"] = 60
-	tnumbers["seventy"] = 70
-	tnumbers["eighty"] = 80
-	tnumbers["ninety"] = 90
+	tnumbers[translateFunc("app.reminder.chrono.twenty")] = 20
+	tnumbers[translateFunc("app.reminder.chrono.thirty")] = 30
+	tnumbers[translateFunc("app.reminder.chrono.forty")] = 40
+	tnumbers[translateFunc("app.reminder.chrono.fifty")] = 50
+	tnumbers[translateFunc("app.reminder.chrono.sixty")] = 60
+	tnumbers[translateFunc("app.reminder.chrono.seventy")] = 70
+	tnumbers[translateFunc("app.reminder.chrono.eighty")] = 80
+	tnumbers[translateFunc("app.reminder.chrono.ninety")] = 90
 
-	onumbers["hundred"] = 100
-	onumbers["thousand"] = 100
-	onumbers["million"] = 100
-	onumbers["billion"] = 100
+	onumbers[translateFunc("app.reminder.chrono.hundred")] = 100
+	onumbers[translateFunc("app.reminder.chrono.thousand")] = 1000
+	onumbers[translateFunc("app.reminder.chrono.million")] = 1000000
+	onumbers[translateFunc("app.reminder.chrono.billion")] = 1000000000
 
-	numbers["first"] = 1
-	numbers["second"] = 2
-	numbers["third"] = 3
-	numbers["fourth"] = 4
-	numbers["fifth"] = 5
-	numbers["sixth"] = 6
-	numbers["seventh"] = 7
-	numbers["eighth"] = 8
-	numbers["nineth"] = 9
-	numbers["tenth"] = 10
-	numbers["eleventh"] = 11
-	numbers["twelveth"] = 12
-	numbers["thirteenth"] = 13
-	numbers["fourteenth"] = 14
-	numbers["fifteenth"] = 15
-	numbers["sixteenth"] = 16
-	numbers["seventeenth"] = 17
-	numbers["eighteenth"] = 18
-	numbers["nineteenth"] = 19
+	numbers[translateFunc("app.reminder.chrono.first")] = 1
+	numbers[translateFunc("app.reminder.chrono.second")] = 2
+	numbers[translateFunc("app.reminder.chrono.third")] = 3
+	numbers[translateFunc("app.reminder.chrono.fourth")] = 4
+	numbers[translateFunc("app.reminder.chrono.fifth")] = 5
+	numbers[translateFunc("app.reminder.chrono.sixth")] = 6
+	numbers[translateFunc("app.reminder.chrono.seventh")] = 7
+	numbers[translateFunc("app.reminder.chrono.eighth")] = 8
+	numbers[translateFunc("app.reminder.chrono.nineth")] = 9
+	numbers[translateFunc("app.reminder.chrono.tenth")] = 10
+	numbers[translateFunc("app.reminder.chrono.eleventh")] = 11
+	numbers[translateFunc("app.reminder.chrono.twelveth")] = 12
+	numbers[translateFunc("app.reminder.chrono.thirteenth")] = 13
+	numbers[translateFunc("app.reminder.chrono.fourteenth")] = 14
+	numbers[translateFunc("app.reminder.chrono.fifteenth")] = 15
+	numbers[translateFunc("app.reminder.chrono.sixteenth")] = 16
+	numbers[translateFunc("app.reminder.chrono.seventeenth")] = 17
+	numbers[translateFunc("app.reminder.chrono.eighteenth")] = 18
+	numbers[translateFunc("app.reminder.chrono.nineteenth")] = 19
 
-	tnumbers["twenteth"] = 20
-	tnumbers["twentyfirst"] = 21
-	tnumbers["twentysecond"] = 22
-	tnumbers["twentythird"] = 23
-	tnumbers["twentyfourth"] = 24
-	tnumbers["twentyfifth"] = 25
-	tnumbers["twentysixth"] = 26
-	tnumbers["twentyseventh"] = 27
-	tnumbers["twentyeight"] = 28
-	tnumbers["twentynineth"] = 29
-	tnumbers["thirteth"] = 30
-	tnumbers["thirtyfirst"] = 31
+	tnumbers[translateFunc("app.reminder.chrono.twenteth")] = 20
+	tnumbers[translateFunc("app.reminder.chrono.twentyfirst")] = 21
+	tnumbers[translateFunc("app.reminder.chrono.twentysecond")] = 22
+	tnumbers[translateFunc("app.reminder.chrono.twentythird")] = 23
+	tnumbers[translateFunc("app.reminder.chrono.twentyfourth")] = 24
+	tnumbers[translateFunc("app.reminder.chrono.twentyfifth")] = 25
+	tnumbers[translateFunc("app.reminder.chrono.twentysixth")] = 26
+	tnumbers[translateFunc("app.reminder.chrono.twentyseventh")] = 27
+	tnumbers[translateFunc("app.reminder.chrono.twentyeight")] = 28
+	tnumbers[translateFunc("app.reminder.chrono.twentynineth")] = 29
+	tnumbers[translateFunc("app.reminder.chrono.thirteth")] = 30
+	tnumbers[translateFunc("app.reminder.chrono.thirtyfirst")] = 31
 
 	splitted := strings.Split(strings.ToLower(word), " ")
 

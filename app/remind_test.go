@@ -750,14 +750,14 @@ func TestOn(t *testing.T) {
 		t.Fatal("on July 12th isn't correct")
 	}
 
-	when = "on March 22"
+	when = "on March 22nd"
 	times, iErr = th.App.on(when, user)
 	if iErr != nil {
 		mlog.Error(iErr.Error())
-		t.Fatal("on March 22 doesn't parse")
+		t.Fatal("on March 22nd doesn't parse")
 	}
 	if times[0].Month().String() != "March" && times[0].Day() != 22 {
-		t.Fatal("on March 22 isn't correct")
+		t.Fatal("on March 22nd isn't correct")
 	}
 
 	when = "on March 17 at 5:41pm"
