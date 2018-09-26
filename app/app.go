@@ -218,6 +218,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	app.Srv.Store = app.newStore()
+
 	app.AddConfigListener(func(_, current *model.Config) {
 		if current.SqlSettings.EnablePublicChannelsMaterialization != nil && !*current.SqlSettings.EnablePublicChannelsMaterialization {
 			app.Srv.Store.Channel().DisableExperimentalPublicChannelsMaterialization()
