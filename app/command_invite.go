@@ -135,7 +135,7 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		}
 	}
 
-	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.Session.UserId, ""); err != nil {
+	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.Session.UserId, "", !args.Session.IsMobileApp()); err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.fail.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

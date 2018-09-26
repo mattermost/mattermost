@@ -50,6 +50,8 @@ type App struct {
 	Hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
 
+	PushNotificationsHub PushNotificationsHub
+
 	Jobs *jobs.JobServer
 
 	AccountMigration einterfaces.AccountMigrationInterface
@@ -127,6 +129,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	app.HTTPService = MakeHTTPService(app)
+
+	app.CreatePushNotificationsHub()
+	app.StartPushNotificationsHubWorkers()
 
 	defer func() {
 		if outErr != nil {
@@ -276,6 +281,7 @@ func (a *App) Shutdown() {
 
 	a.StopServer()
 	a.HubStop()
+	a.StopPushNotificationsHubWorkers()
 
 	a.ShutDownPlugins()
 	a.WaitForGoroutines()
