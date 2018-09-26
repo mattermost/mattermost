@@ -996,6 +996,31 @@ func (_m *API) KVGet(key string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
+// KVList provides a mock function with given fields:
+func (_m *API) KVList() ([]string, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // KVSet provides a mock function with given fields: key, value
 func (_m *API) KVSet(key string, value []byte) *model.AppError {
 	ret := _m.Called(key, value)
