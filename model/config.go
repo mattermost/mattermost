@@ -2127,10 +2127,6 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
-	if err := o.SupportSettings.isValid(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -2538,20 +2534,6 @@ func (ds *DisplaySettings) isValid() *AppError {
 				)
 			}
 		}
-	}
-
-	return nil
-}
-
-func (ss *SupportSettings) isValid() *AppError {
-	if *ss.CustomServiceTermsEnabled && len(*ss.CustomServiceTermsText) == 0 {
-		return NewAppError(
-			"Config.IsValid",
-			"model.config.is_valid.support.custom_service_terms_text.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
 	}
 
 	return nil
