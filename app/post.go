@@ -726,6 +726,11 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 		}
 
+		// Since we don't support paging we just return nothing for later pages
+		if page > 0 {
+			return model.MakePostSearchResults(model.NewPostList(), nil), nil
+		}
+
 		channels := []store.StoreChannel{}
 
 		for _, params := range paramsList {
