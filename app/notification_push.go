@@ -148,42 +148,45 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 
 func (a *App) getPushNotificationMessage(postMessage string, explicitMention, channelWideMention, hasFiles bool,
 	senderName, channelName, channelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
-	message := ""
+
+	// If the post only has images then push an appropriate message
+	if len(postMessage) == 0 && hasFiles {
+		if channelType == model.CHANNEL_DIRECT {
+			return strings.Trim(userLocale("api.post.send_notifications_and_forget.push_image_only"), " ")
+		}
+		return "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_image_only")
+	}
 
 	contentsConfig := *a.Config().EmailSettings.PushNotificationContents
 
 	if contentsConfig == model.FULL_NOTIFICATION {
 		if channelType == model.CHANNEL_DIRECT {
-			message = model.ClearMentionTags(postMessage)
-		} else {
-			message = "@" + senderName + ": " + model.ClearMentionTags(postMessage)
+			return model.ClearMentionTags(postMessage)
 		}
-	} else {
-		if channelType == model.CHANNEL_DIRECT {
-			message = userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if channelWideMention {
-			message = "@" + senderName + userLocale("api.post.send_notification_and_forget.push_channel_mention")
-		} else if explicitMention {
-			message = "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_explicit_mention")
-		} else if replyToThreadType == THREAD_ROOT {
-			message = "@" + senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_post")
-		} else if replyToThreadType == THREAD_ANY {
-			message = "@" + senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_thread")
-		} else {
-			message = "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
-		}
+		return "@" + senderName + ": " + model.ClearMentionTags(postMessage)
 	}
 
-	// If the post only has images then push an appropriate message
-	if len(postMessage) == 0 && hasFiles {
-		if channelType == model.CHANNEL_DIRECT {
-			message = strings.Trim(userLocale("api.post.send_notifications_and_forget.push_image_only"), " ")
-		} else {
-			message = "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_image_only")
-		}
+	if channelType == model.CHANNEL_DIRECT {
+		return userLocale("api.post.send_notifications_and_forget.push_message")
 	}
 
-	return message
+	if channelWideMention {
+		return "@" + senderName + userLocale("api.post.send_notification_and_forget.push_channel_mention")
+	}
+
+	if explicitMention {
+		return "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_explicit_mention")
+	}
+
+	if replyToThreadType == THREAD_ROOT {
+		return "@" + senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_post")
+	}
+
+	if replyToThreadType == THREAD_ANY {
+		return "@" + senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_thread")
+	}
+
+	return "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
 func (a *App) ClearPushNotificationSync(userId string, channelId string) {
@@ -272,32 +275,34 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 
 	request, _ := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
-	if resp, err := a.HTTPService.MakeClient(true).Do(request); err != nil {
+	resp, err := a.HTTPService.MakeClient(true).Do(request)
+	if err != nil {
 		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
-	} else {
-		pushResponse := model.PushResponseFromJson(resp.Body)
-		if resp.Body != nil {
-			consumeAndClose(resp)
-		}
+		return
+	}
 
-		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
-			mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("user_id", session.UserId))
-			a.AttachDeviceId(session.Id, "", session.ExpiresAt)
-			a.ClearSessionCacheForUser(session.UserId)
-		}
+	pushResponse := model.PushResponseFromJson(resp.Body)
+	if resp.Body != nil {
+		consumeAndClose(resp)
+	}
 
-		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
-			mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, pushResponse[model.PUSH_STATUS_ERROR_MSG]), mlog.String("user_id", session.UserId))
-		}
+	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
+		mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("user_id", session.UserId))
+		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
+		a.ClearSessionCacheForUser(session.UserId)
+	}
+
+	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
+		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, pushResponse[model.PUSH_STATUS_ERROR_MSG]), mlog.String("user_id", session.UserId))
 	}
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	if result := <-a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId); result.Err != nil {
+	result := <-a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Session), nil
 	}
+	return result.Data.([]*model.Session), nil
 }
 
 func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
@@ -352,11 +357,16 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 		return false
 	}
 
-	if pushStatus, ok := userNotifyProps["push_status"]; (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
+	pushStatus, ok := userNotifyProps["push_status"]
+	if (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
 		return true
-	} else if pushStatus == model.STATUS_AWAY && (status.Status == model.STATUS_AWAY || status.Status == model.STATUS_OFFLINE) {
+	}
+
+	if pushStatus == model.STATUS_AWAY && (status.Status == model.STATUS_AWAY || status.Status == model.STATUS_OFFLINE) {
 		return true
-	} else if pushStatus == model.STATUS_OFFLINE && status.Status == model.STATUS_OFFLINE {
+	}
+
+	if pushStatus == model.STATUS_OFFLINE && status.Status == model.STATUS_OFFLINE {
 		return true
 	}
 
