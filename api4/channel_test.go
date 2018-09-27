@@ -2109,9 +2109,11 @@ func TestAutocompleteChannels(t *testing.T) {
 			[]string{"town"},
 		},
 	} {
-		if channels, resp := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment); resp.Error != nil {
-			t.Fatal("Test case " + tc.description + " failed. Err: " + resp.Error.Error())
-		} else {
+		t.Run(tc.description, func(t *testing.T) {
+			channels, resp := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment)
+			if resp.Error != nil {
+				t.Fatal("Err: " + resp.Error.Error())
+			}
 			for _, expectedInclude := range tc.expectedIncludes {
 				found := false
 				for _, channel := range *channels {
@@ -2121,17 +2123,140 @@ func TestAutocompleteChannels(t *testing.T) {
 					}
 				}
 				if !found {
-					t.Fatal("Test case " + tc.description + " failed. Expected but didn't find channel: " + expectedInclude)
+					t.Fatal("Expected but didn't find channel: " + expectedInclude)
 				}
 			}
 			for _, expectedExclude := range tc.expectedExcludes {
 				for _, channel := range *channels {
 					if channel.Name == expectedExclude {
-						t.Fatal("Test case " + tc.description + " failed. Found channel we didn't want: " + expectedExclude)
+						t.Fatal("Found channel we didn't want: " + expectedExclude)
 					}
 				}
 			}
-		}
+		})
+	}
+}
+
+func TestAutocompleteChannelsForSearch(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.LoginSystemAdminWithClient(th.SystemAdminClient)
+	th.LoginBasicWithClient(th.Client)
+
+	u1 := th.CreateUserWithClient(th.SystemAdminClient)
+	u2 := th.CreateUserWithClient(th.SystemAdminClient)
+	u3 := th.CreateUserWithClient(th.SystemAdminClient)
+	u4 := th.CreateUserWithClient(th.SystemAdminClient)
+
+	// A private channel to make sure private channels are not used
+	utils.DisableDebugLogForTest()
+	ptown, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName: "Town",
+		Name:        "town",
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      th.BasicTeam.Id,
+	})
+	defer func() {
+		th.Client.DeleteChannel(ptown.Id)
+	}()
+	mypriv, _ := th.Client.CreateChannel(&model.Channel{
+		DisplayName: "My private town",
+		Name:        "townpriv",
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      th.BasicTeam.Id,
+	})
+	defer func() {
+		th.Client.DeleteChannel(mypriv.Id)
+	}()
+	utils.EnableDebugLogForTest()
+
+	dc1, resp := th.Client.CreateDirectChannel(th.BasicUser.Id, u1.Id)
+	CheckNoError(t, resp)
+	defer func() {
+		th.Client.DeleteChannel(dc1.Id)
+	}()
+
+	dc2, resp := th.SystemAdminClient.CreateDirectChannel(u2.Id, u3.Id)
+	CheckNoError(t, resp)
+	defer func() {
+		th.SystemAdminClient.DeleteChannel(dc2.Id)
+	}()
+
+	gc1, resp := th.Client.CreateGroupChannel([]string{th.BasicUser.Id, u2.Id, u3.Id})
+	CheckNoError(t, resp)
+	defer func() {
+		th.Client.DeleteChannel(gc1.Id)
+	}()
+
+	gc2, resp := th.SystemAdminClient.CreateGroupChannel([]string{u2.Id, u3.Id, u4.Id})
+	CheckNoError(t, resp)
+	defer func() {
+		th.SystemAdminClient.DeleteChannel(gc2.Id)
+	}()
+
+	for _, tc := range []struct {
+		description      string
+		teamId           string
+		fragment         string
+		expectedIncludes []string
+		expectedExcludes []string
+	}{
+		{
+			"Basic town-square",
+			th.BasicTeam.Id,
+			"town",
+			[]string{"town-square", "townpriv"},
+			[]string{"off-topic", "town"},
+		},
+		{
+			"Basic off-topic",
+			th.BasicTeam.Id,
+			"off-to",
+			[]string{"off-topic"},
+			[]string{"town-square", "town", "townpriv"},
+		},
+		{
+			"Basic town square and off topic",
+			th.BasicTeam.Id,
+			"to",
+			[]string{"off-topic", "town-square", "townpriv"},
+			[]string{"town"},
+		},
+		{
+			"Direct and group messages",
+			th.BasicTeam.Id,
+			"fakeuser",
+			[]string{dc1.Name, gc1.Name},
+			[]string{dc2.Name, gc2.Name},
+		},
+	} {
+		t.Run(tc.description, func(t *testing.T) {
+			channels, resp := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamId, tc.fragment)
+			if resp.Error != nil {
+				t.Fatal("Err: " + resp.Error.Error())
+			}
+			for _, expectedInclude := range tc.expectedIncludes {
+				found := false
+				for _, channel := range *channels {
+					if channel.Name == expectedInclude {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Fatal("Expected but didn't find channel: " + expectedInclude + " Channels: " + fmt.Sprintf("%v", channels))
+				}
+			}
+
+			for _, expectedExclude := range tc.expectedExcludes {
+				for _, channel := range *channels {
+					if channel.Name == expectedExclude {
+						t.Fatal("Found channel we didn't want: " + expectedExclude)
+					}
+				}
+			}
+		})
 	}
 }
 

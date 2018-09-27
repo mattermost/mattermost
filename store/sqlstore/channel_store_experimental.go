@@ -555,14 +555,14 @@ func (s SqlChannelStoreExperimental) AutocompleteInTeam(teamId string, term stri
 
 		var channels model.ChannelList
 
-		if likeClause, likeTerm := s.buildLIKEClause(term); likeClause == "" {
+		if likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose"); likeClause == "" {
 			if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId}); err != nil {
 				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeam", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
 			// query you would get using an OR of the LIKE and full-text clauses.
-			fulltextClause, fulltextTerm := s.buildFulltextClause(term)
+			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
 			likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
 			fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
 			query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
@@ -647,13 +647,12 @@ func (s SqlChannelStoreExperimental) SearchMore(userId string, teamId string, te
 	})
 }
 
-func (s SqlChannelStoreExperimental) buildLIKEClause(term string) (likeClause, likeTerm string) {
+func (s SqlChannelStoreExperimental) buildLIKEClause(term string, searchColumns string) (likeClause, likeTerm string) {
 	if !s.IsExperimentalPublicChannelsMaterializationEnabled() {
-		return s.SqlChannelStore.buildLIKEClause(term)
+		return s.SqlChannelStore.buildLIKEClause(term, searchColumns)
 	}
 
 	likeTerm = term
-	searchColumns := "c.Name, c.DisplayName, c.Purpose"
 
 	// These chars must be removed from the like query.
 	for _, c := range ignoreLikeSearchChar {
@@ -684,15 +683,13 @@ func (s SqlChannelStoreExperimental) buildLIKEClause(term string) (likeClause, l
 	return
 }
 
-func (s SqlChannelStoreExperimental) buildFulltextClause(term string) (fulltextClause, fulltextTerm string) {
+func (s SqlChannelStoreExperimental) buildFulltextClause(term string, searchColumns string) (fulltextClause, fulltextTerm string) {
 	if !s.IsExperimentalPublicChannelsMaterializationEnabled() {
-		return s.SqlChannelStore.buildFulltextClause(term)
+		return s.SqlChannelStore.buildFulltextClause(term, searchColumns)
 	}
 
 	// Copy the terms as we will need to prepare them differently for each search type.
 	fulltextTerm = term
-
-	searchColumns := "c.Name, c.DisplayName, c.Purpose"
 
 	// These chars must be treated as spaces in the fulltext query.
 	for _, c := range spaceFulltextSearchChar {
@@ -736,13 +733,13 @@ func (s SqlChannelStoreExperimental) performSearch(searchQuery string, term stri
 
 	result := store.StoreResult{}
 
-	likeClause, likeTerm := s.buildLIKEClause(term)
+	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
 	if likeTerm == "" {
 		// If the likeTerm is empty after preparing, then don't bother searching.
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		parameters["LikeTerm"] = likeTerm
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term)
+		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
 		parameters["FulltextTerm"] = fulltextTerm
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
 	}
