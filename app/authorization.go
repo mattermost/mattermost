@@ -74,7 +74,9 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 
 	if result := <-a.Srv.Store.Channel().GetForPost(postId); result.Err == nil {
 		channel := result.Data.(*model.Channel)
-		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+		if channel.TeamId != "" {
+			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+		}
 	}
 
 	return a.SessionHasPermissionTo(session, permission)
