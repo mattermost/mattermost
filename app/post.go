@@ -619,7 +619,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIds []string
-		users, err := a.GetUsersByUsernames(strings.Fields(channelName[1:]), false)
+		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false)
 		if err != nil {
 			return nil, err
 		}
@@ -733,6 +733,16 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			params.OrTerms = isOrSearch
 			// don't allow users to search for everything
 			if params.Terms != "*" {
+				for idx, channelName := range params.InChannels {
+					if strings.HasPrefix(channelName, "@") {
+						channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+						if err != nil {
+							mlog.Error(fmt.Sprint(err))
+							continue
+						}
+						params.InChannels[idx] = channel.Name
+					}
+				}
 				channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
 			}
 		}
