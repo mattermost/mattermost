@@ -244,6 +244,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	})
 
 	app.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", app.IsLeader()))
 		app.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
 	})
 
