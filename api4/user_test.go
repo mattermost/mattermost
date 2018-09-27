@@ -2340,15 +2340,12 @@ func TestSetDefaultProfileImage(t *testing.T) {
 		t.Fatal("Should have failed either forbidden or unauthorized")
 	}
 
-	buser, err := th.App.GetUser(user.Id)
-	require.Nil(t, err)
-
 	_, resp = th.SystemAdminClient.SetDefaultProfileImage(user.Id)
 	CheckNoError(t, resp)
 
 	ruser, err := th.App.GetUser(user.Id)
 	require.Nil(t, err)
-	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
+	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have resetted to default")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 	if err := th.cleanupTestFile(info); err != nil {

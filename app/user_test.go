@@ -128,13 +128,11 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 	user := th.BasicUser
 
-	prevLastPictureUpdate := user.LastPictureUpdate
-
 	err = th.App.SetDefaultProfileImage(user)
 	require.Nil(t, err)
 
 	user = getUserFromDB(th.App, user.Id, t)
-	assert.True(t, prevLastPictureUpdate < user.LastPictureUpdate)
+	assert.Equal(t, int64(0), user.LastPictureUpdate)
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
@@ -552,10 +550,10 @@ func TestRecordUserServiceTermsAction(t *testing.T) {
 	defer th.TearDown()
 
 	user := &model.User{
-		Email: strings.ToLower(model.NewId()) + "success+test@example.com",
-		Nickname: "Luke Skywalker", // trying to bring balance to the "Force", one test user at a time
-		Username: "luke" + model.NewId(),
-		Password: "passwd1",
+		Email:       strings.ToLower(model.NewId()) + "success+test@example.com",
+		Nickname:    "Luke Skywalker", // trying to bring balance to the "Force", one test user at a time
+		Username:    "luke" + model.NewId(),
+		Password:    "passwd1",
 		AuthService: "",
 	}
 	user, err := th.App.CreateUser(user)

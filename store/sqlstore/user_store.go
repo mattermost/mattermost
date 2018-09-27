@@ -212,6 +212,16 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) store.StoreChannel
 	})
 }
 
+func (us SqlUserStore) ResetLastPictureUpdate(userId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": 0, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+		} else {
+			result.Data = userId
+		}
+	})
+}
+
 func (us SqlUserStore) UpdateUpdateAt(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		curTime := model.GetMillis()
