@@ -533,6 +533,20 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// If a teamId is provided, require it to match the channel's team id.
+		if teamId != "" {
+			channel, err := c.App.GetChannel(channelId)
+			if err != nil {
+				c.Err = err
+				return
+			}
+
+			if channel.TeamId != teamId {
+				c.Err = model.NewAppError("autocompleteUsers", "api.user.autocomplete_users.invalid_team_id", nil, "", http.StatusUnauthorized)
+				return
+			}
+		}
+
 		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
 		if err != nil {
 			c.Err = err

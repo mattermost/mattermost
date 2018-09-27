@@ -2019,6 +2019,10 @@
     "translation": "Unsupported OAuth service provider"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Invalid team id"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
