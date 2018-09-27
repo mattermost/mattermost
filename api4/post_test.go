@@ -599,6 +599,31 @@ func TestUpdatePost(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
+	// This test checks that a sysadmin with the "EDIT_OTHERS_POSTS" permission can edit someone else's post in a
+	// channel without a team (DM/GM). This indirectly checks for the proper cascading all the way to system-wide roles
+	// on the user object of permissions based on a post in a channel with no team ID.
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	dmChannel := th.CreateDmChannel(th.SystemAdminUser)
+
+	post := &model.Post{
+		Message:       "asd",
+		ChannelId:     dmChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		CreateAt:      0,
+	}
+
+	post, resp := th.Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	post.Message = "changed"
+	post, resp = th.SystemAdminClient.UpdatePost(post.Id, post)
+	CheckNoError(t, resp)
+}
+
 func TestPatchPost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
