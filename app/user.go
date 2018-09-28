@@ -1471,20 +1471,20 @@ func (a *App) VerifyUserEmail(userId string) *model.AppError {
 
 func (a *App) SearchUsers(props *model.UserSearch, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
 	if props.WithoutTeam {
-		return a.SearchUsersWithoutTeam(props.Term, searchOptions, asAdmin)
+		return a.SearchUsersWithoutTeam(props.Term, searchOptions, asAdmin, props.Limit)
 	} else if props.InChannelId != "" {
-		return a.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, asAdmin)
+		return a.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, asAdmin, props.Limit)
 	} else if props.NotInChannelId != "" {
-		return a.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, asAdmin)
+		return a.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, asAdmin, props.Limit)
 	} else if props.NotInTeamId != "" {
-		return a.SearchUsersNotInTeam(props.NotInTeamId, props.Term, searchOptions, asAdmin)
+		return a.SearchUsersNotInTeam(props.NotInTeamId, props.Term, searchOptions, asAdmin, props.Limit)
 	} else {
-		return a.SearchUsersInTeam(props.TeamId, props.Term, searchOptions, asAdmin)
+		return a.SearchUsersInTeam(props.TeamId, props.Term, searchOptions, asAdmin, props.Limit)
 	}
 }
 
-func (a *App) SearchUsersInChannel(channelId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
-	if result := <-a.Srv.Store.User().SearchInChannel(channelId, term, searchOptions); result.Err != nil {
+func (a *App) SearchUsersInChannel(channelId string, term string, searchOptions map[string]bool, asAdmin bool, limit int) ([]*model.User, *model.AppError) {
+	if result := <-a.Srv.Store.User().SearchInChannel(channelId, term, searchOptions, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
@@ -1497,8 +1497,8 @@ func (a *App) SearchUsersInChannel(channelId string, term string, searchOptions 
 	}
 }
 
-func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
-	if result := <-a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions); result.Err != nil {
+func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term string, searchOptions map[string]bool, asAdmin bool, limit int) ([]*model.User, *model.AppError) {
+	if result := <-a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
@@ -1511,8 +1511,8 @@ func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term stri
 	}
 }
 
-func (a *App) SearchUsersInTeam(teamId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
-	if result := <-a.Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+func (a *App) SearchUsersInTeam(teamId string, term string, searchOptions map[string]bool, asAdmin bool, limit int) ([]*model.User, *model.AppError) {
+	if result := <-a.Srv.Store.User().Search(teamId, term, searchOptions, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
@@ -1525,8 +1525,8 @@ func (a *App) SearchUsersInTeam(teamId string, term string, searchOptions map[st
 	}
 }
 
-func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
-	if result := <-a.Srv.Store.User().SearchNotInTeam(notInTeamId, term, searchOptions); result.Err != nil {
+func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, searchOptions map[string]bool, asAdmin bool, limit int) ([]*model.User, *model.AppError) {
+	if result := <-a.Srv.Store.User().SearchNotInTeam(notInTeamId, term, searchOptions, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
@@ -1539,8 +1539,8 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, searchOption
 	}
 }
 
-func (a *App) SearchUsersWithoutTeam(term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
-	if result := <-a.Srv.Store.User().SearchWithoutTeam(term, searchOptions); result.Err != nil {
+func (a *App) SearchUsersWithoutTeam(term string, searchOptions map[string]bool, asAdmin bool, limit int) ([]*model.User, *model.AppError) {
+	if result := <-a.Srv.Store.User().SearchWithoutTeam(term, searchOptions, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
@@ -1553,9 +1553,9 @@ func (a *App) SearchUsersWithoutTeam(term string, searchOptions map[string]bool,
 	}
 }
 
-func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, searchOptions map[string]bool, asAdmin bool) (*model.UserAutocompleteInChannel, *model.AppError) {
-	uchan := a.Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
-	nuchan := a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
+func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, searchOptions map[string]bool, asAdmin bool, limit int) (*model.UserAutocompleteInChannel, *model.AppError) {
+	uchan := a.Srv.Store.User().SearchInChannel(channelId, term, searchOptions, limit)
+	nuchan := a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions, limit)
 
 	autocomplete := &model.UserAutocompleteInChannel{}
 
@@ -1586,10 +1586,10 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 	return autocomplete, nil
 }
 
-func (a *App) AutocompleteUsersInTeam(teamId string, term string, searchOptions map[string]bool, asAdmin bool) (*model.UserAutocompleteInTeam, *model.AppError) {
+func (a *App) AutocompleteUsersInTeam(teamId string, term string, searchOptions map[string]bool, asAdmin bool, limit int) (*model.UserAutocompleteInTeam, *model.AppError) {
 	autocomplete := &model.UserAutocompleteInTeam{}
 
-	if result := <-a.Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+	if result := <-a.Srv.Store.User().Search(teamId, term, searchOptions, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)

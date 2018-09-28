@@ -8,6 +8,9 @@ import (
 	"io"
 )
 
+const USER_SEARCH_MAX_LIMIT = 1000
+const USER_SEARCH_DEFAULT_LIMIT = 100
+
 type UserSearch struct {
 	Term           string `json:"term"`
 	TeamId         string `json:"team_id"`
@@ -16,17 +19,23 @@ type UserSearch struct {
 	NotInChannelId string `json:"not_in_channel_id"`
 	AllowInactive  bool   `json:"allow_inactive"`
 	WithoutTeam    bool   `json:"without_team"`
+	Limit          int    `json:"limit"`
 }
 
 // ToJson convert a User to a json string
-func (u *UserSearch) ToJson() string {
+func (u *UserSearch) ToJson() []byte {
 	b, _ := json.Marshal(u)
-	return string(b)
+	return b
 }
 
 // UserSearchFromJson will decode the input and return a User
 func UserSearchFromJson(data io.Reader) *UserSearch {
 	var us *UserSearch
 	json.NewDecoder(data).Decode(&us)
+
+	if us.Limit == 0 {
+		us.Limit = USER_SEARCH_DEFAULT_LIMIT
+	}
+
 	return us
 }

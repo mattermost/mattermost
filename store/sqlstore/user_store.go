@@ -970,12 +970,11 @@ func (us SqlUserStore) GetAnyUnreadPostCountForChannel(userId string, channelId 
 	})
 }
 
-func (us SqlUserStore) Search(teamId string, term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) Search(teamId string, term string, options map[string]bool, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := ""
 
 		if teamId == "" {
-
 			// Id != '' is added because both SEARCH_CLAUSE and INACTIVE_CLAUSE start with an AND
 			searchQuery = `
 			SELECT
@@ -986,8 +985,8 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 				Id != ''
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
-				ORDER BY Username ASC
-			LIMIT 100`
+			ORDER BY Username ASC
+			LIMIT :Limit`
 		} else {
 			searchQuery = `
 			SELECT
@@ -1000,16 +999,19 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 				AND TeamMembers.DeleteAt = 0
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
-				ORDER BY Users.Username ASC
-			LIMIT 100`
+			ORDER BY Users.Username ASC
+			LIMIT :Limit`
 		}
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId})
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"TeamId": teamId,
+			"Limit":  limit,
+		})
 
 	})
 }
 
-func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 		SELECT
@@ -1027,14 +1029,16 @@ func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool) s
 			SEARCH_CLAUSE
 			INACTIVE_CLAUSE
 			ORDER BY Username ASC
-		LIMIT 100`
+		LIMIT :Limit`
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{})
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"Limit": limit,
+		})
 
 	})
 }
 
-func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options map[string]bool, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 			SELECT
@@ -1048,14 +1052,17 @@ func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options 
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 			ORDER BY Users.Username ASC
-			LIMIT 100`
+			LIMIT :Limit`
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{"NotInTeamId": notInTeamId})
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"NotInTeamId": notInTeamId,
+			"Limit":       limit,
+		})
 
 	})
 }
 
-func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := ""
 		if teamId == "" {
@@ -1071,7 +1078,7 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 			ORDER BY Users.Username ASC
-			LIMIT 100`
+			LIMIT :Limit`
 		} else {
 			searchQuery = `
 			SELECT
@@ -1089,30 +1096,37 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 			ORDER BY Users.Username ASC
-			LIMIT 100`
+			LIMIT :Limit`
 		}
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId})
-
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"TeamId":    teamId,
+			"ChannelId": channelId,
+			"Limit":     limit,
+		})
 	})
 }
 
-func (us SqlUserStore) SearchInChannel(channelId string, term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) SearchInChannel(channelId string, term string, options map[string]bool, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
-        SELECT
-            Users.*
-        FROM
-            Users, ChannelMembers
-        WHERE
-            ChannelMembers.ChannelId = :ChannelId
-            AND ChannelMembers.UserId = Users.Id
-            SEARCH_CLAUSE
-            INACTIVE_CLAUSE
-            ORDER BY Users.Username ASC
-        LIMIT 100`
+			SELECT
+			    Users.*
+			FROM
+			    Users, ChannelMembers
+			WHERE
+			    ChannelMembers.ChannelId = :ChannelId
+			    AND ChannelMembers.UserId = Users.Id
+			    SEARCH_CLAUSE
+			    INACTIVE_CLAUSE
+			    ORDER BY Users.Username ASC
+		    LIMIT :Limit
+		`
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{"ChannelId": channelId})
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"ChannelId": channelId,
+			"Limit":     limit,
+		})
 
 	})
 }

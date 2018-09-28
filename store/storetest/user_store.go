@@ -1613,7 +1613,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.User().Search(testCase.TeamId, testCase.Term, testCase.SearchOptions)
+			result := <-ss.User().Search(testCase.TeamId, testCase.Term, testCase.SearchOptions, model.USER_SEARCH_DEFAULT_LIMIT)
 			require.Nil(t, result.Err)
 			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
 		})
@@ -1624,9 +1624,22 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 		}
 
-		r1 := <-ss.User().Search(tid, "", searchOptions)
+		r1 := <-ss.User().Search(tid, "", searchOptions, model.USER_SEARCH_DEFAULT_LIMIT)
 		require.Nil(t, r1.Err)
 		assert.Len(t, r1.Data.([]*model.User), 4)
+		// Don't assert contents, since Postgres' default collation order is left up to
+		// the operating system, and jimbo1 might sort before or after jim-bo.
+		// assertUsers(t, []*model.User{u2, u1, u6, u5}, r1.Data.([]*model.User))
+	})
+
+	t.Run("search empty string, limit 2", func(t *testing.T) {
+		searchOptions := map[string]bool{
+			store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+		}
+
+		r1 := <-ss.User().Search(tid, "", searchOptions, 2)
+		require.Nil(t, r1.Err)
+		assert.Len(t, r1.Data.([]*model.User), 2)
 		// Don't assert contents, since Postgres' default collation order is left up to
 		// the operating system, and jimbo1 might sort before or after jim-bo.
 		// assertUsers(t, []*model.User{u2, u1, u6, u5}, r1.Data.([]*model.User))
@@ -1645,7 +1658,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	defer ss.User().PermanentDelete(u1.Id)
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim2-bobby" + model.NewId(),
 		Email:    MakeEmail(),
 	}
 	store.Must(ss.User().Save(u2))
@@ -1710,6 +1723,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 		ChannelId     string
 		Term          string
 		SearchOptions map[string]bool
+		Limit         int
 		Expected      []*model.User
 	}{
 		{
@@ -1720,6 +1734,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u1},
 		},
 		{
@@ -1731,6 +1746,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
 				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u1},
 		},
 		{
@@ -1741,6 +1757,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u1},
 		},
 		{
@@ -1751,6 +1768,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
 		},
 		{
@@ -1761,6 +1779,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
 		},
 		{
@@ -1772,6 +1791,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
 				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u3},
 		},
 		{
@@ -1782,6 +1802,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
 		},
 		{
@@ -1792,7 +1813,30 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
+		},
+		{
+			"search jim, channel 1",
+			tid,
+			c1.Id,
+			"jim",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
+			[]*model.User{u2, u1},
+		},
+		{
+			"search jim, channel 1, limit 1",
+			tid,
+			c1.Id,
+			"jim",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			1,
+			[]*model.User{u2},
 		},
 	}
 
@@ -1803,6 +1847,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 				testCase.ChannelId,
 				testCase.Term,
 				testCase.SearchOptions,
+				testCase.Limit,
 			)
 			require.Nil(t, result.Err)
 			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
@@ -1886,6 +1931,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		ChannelId     string
 		Term          string
 		SearchOptions map[string]bool
+		Limit         int
 		Expected      []*model.User
 	}{
 		{
@@ -1895,6 +1941,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u1},
 		},
 		{
@@ -1905,7 +1952,19 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
 				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u1, u3},
+		},
+		{
+			"search jimb, allow inactive, channel 1, limit 1",
+			c1.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			1,
+			[]*model.User{u1},
 		},
 		{
 			"search jimb, channel 2",
@@ -1914,6 +1973,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
 		},
 		{
@@ -1924,6 +1984,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
 				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
 		},
 	}
@@ -1934,6 +1995,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 				testCase.ChannelId,
 				testCase.Term,
 				testCase.SearchOptions,
+				testCase.Limit,
 			)
 			require.Nil(t, result.Err)
 			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
@@ -2022,6 +2084,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 		TeamId        string
 		Term          string
 		SearchOptions map[string]bool
+		Limit         int
 		Expected      []*model.User
 	}{
 		{
@@ -2031,6 +2094,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u4},
 		},
 
@@ -2041,6 +2105,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
 		},
 		{
@@ -2051,6 +2116,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
 				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
 		},
 		{
@@ -2060,6 +2126,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{},
 		},
 		{
@@ -2069,6 +2136,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u1},
 		},
 		{
@@ -2079,7 +2147,19 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
 				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u1, u3},
+		},
+		{
+			"search jimb, allow inactive, team 2, limit 1",
+			teamId2,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			1,
+			[]*model.User{u1},
 		},
 	}
 
@@ -2089,6 +2169,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 				testCase.TeamId,
 				testCase.Term,
 				testCase.SearchOptions,
+				testCase.Limit,
 			)
 			require.Nil(t, result.Err)
 			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
@@ -2137,6 +2218,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 		Description   string
 		Term          string
 		SearchOptions map[string]bool
+		Limit         int
 		Expected      []*model.User
 	}{
 		{
@@ -2145,6 +2227,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u2, u1},
 		},
 		{
@@ -2153,6 +2236,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u2, u1},
 		},
 		{
@@ -2161,7 +2245,17 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			map[string]bool{
 				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 			},
+			model.USER_SEARCH_DEFAULT_LIMIT,
 			[]*model.User{u2, u1},
+		},
+		{
+			"jim, limit 1",
+			"jim",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			1,
+			[]*model.User{u2},
 		},
 	}
 
@@ -2170,6 +2264,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			result := <-ss.User().SearchWithoutTeam(
 				testCase.Term,
 				testCase.SearchOptions,
+				testCase.Limit,
 			)
 			require.Nil(t, result.Err)
 			assertUsers(t, testCase.Expected, result.Data.([]*model.User))

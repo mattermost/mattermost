@@ -547,6 +547,10 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if props.Limit <= 0 || props.Limit > model.USER_SEARCH_MAX_LIMIT {
+		c.SetInvalidParam("limit")
+	}
+
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
@@ -576,6 +580,11 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelId := r.URL.Query().Get("in_channel")
 	teamId := r.URL.Query().Get("in_team")
 	name := r.URL.Query().Get("name")
+	limitStr := r.URL.Query().Get("limit")
+	limit, _ := strconv.Atoi(limitStr)
+	if limitStr == "" {
+		limit = model.USER_SEARCH_DEFAULT_LIMIT
+	}
 
 	autocomplete := new(model.UserAutocomplete)
 	var err *model.AppError
@@ -607,7 +616,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Applying the provided teamId here is useful for DMs and GMs which don't belong
 		// to a team. Applying it when the channel does belong to a team makes less sense,
 		//t but the permissions are checked above regardless.
-		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
+		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin(), limit)
 		if err != nil {
 			c.Err = err
 			return
@@ -616,7 +625,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
-		result, err := c.App.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
+		result, err := c.App.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin(), limit)
 		if err != nil {
 			c.Err = err
 			return
@@ -625,7 +634,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InTeam
 	} else {
 		// No permission check required
-		result, err := c.App.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin())
+		result, err := c.App.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin(), limit)
 		if err != nil {
 			c.Err = err
 			return

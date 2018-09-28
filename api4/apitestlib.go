@@ -186,7 +186,7 @@ func (me *TestHelper) TearDown() {
 		defer wg.Done()
 		options := map[string]bool{}
 		options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
-		if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
+		if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options, model.USER_SEARCH_MAX_LIMIT); result.Err != nil {
 			mlog.Error("Error tearing down test users")
 		} else {
 			users := result.Data.([]*model.User)
