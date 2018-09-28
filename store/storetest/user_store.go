@@ -16,6 +16,15 @@ import (
 )
 
 func TestUserStore(t *testing.T, ss store.Store) {
+	result := <-ss.User().GetAll()
+	require.Nil(t, result.Err, "failed cleaning up test users")
+	users := result.Data.([]*model.User)
+
+	for _, u := range users {
+		result := <-ss.User().PermanentDelete(u.Id)
+		require.Nil(t, result.Err, "failed cleaning up test user %s", u.Username)
+	}
+
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
