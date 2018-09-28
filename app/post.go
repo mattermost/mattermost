@@ -448,12 +448,13 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	}
 }
 
-func (a *App) RethreadPost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) RethreadPost(post *model.Post) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
 	var oldPost *model.Post
 	var thread *model.PostList
-	if result := <-a.Srv.Store.Post().Get(post.Id); result.Err != nil {
+	result := <-a.Srv.Store.Post().get(post.Id);
+	if (result.Err != nil) {
 		return nil, result.Err
 	} else {
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]

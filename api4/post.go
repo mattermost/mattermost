@@ -413,7 +413,7 @@ func rethreadPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !*c.App.Config().ServiceSettings.ExperimentalRethreadMessages {
-		c.SetPermissionError(model.PERMISSION_EDIT_POST)
+		c.Err = model.NewAppError("rethreadPost", "api.rethread.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -444,7 +444,7 @@ func rethreadPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	post.Id = c.Params.PostId
 
-	rpost, err := c.App.RethreadPost(c.App.PostWithProxyRemovedFromImageURLs(post), false)
+	rpost, err := c.App.RethreadPost(c.App.PostWithProxyRemovedFromImageURLs(post))
 	if err != nil {
 		c.Err = err
 		return
