@@ -53,7 +53,7 @@ func ServiceTermsFromJson(data io.Reader) *ServiceTerms {
 }
 
 func InvalidServiceTermsError(fieldName string, serviceTermsId string) *AppError {
-	id := fmt.Sprintf("model.term.is_valid.%s.app_error", fieldName)
+	id := fmt.Sprintf("model.service_terms.is_valid.%s.app_error", fieldName)
 	details := ""
 	if serviceTermsId != "" {
 		details = "service_terms_id=" + serviceTermsId
