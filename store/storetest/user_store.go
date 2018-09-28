@@ -46,6 +46,9 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, ss) })
 	t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, ss) })
 	t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, ss) })
+	t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, ss) })
+	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
+	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
 	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, ss) })
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
@@ -65,6 +68,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 	if err := (<-ss.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save user", err)
 	}
+	defer ss.User().PermanentDelete(u1.Id)
 
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam))
 
@@ -95,6 +99,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 		if err := (<-ss.User().Save(&u1)).Err; err != nil {
 			t.Fatal("couldn't save item", err)
 		}
+		defer ss.User().PermanentDelete(u1.Id)
 
 		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam))
 	}
@@ -105,6 +110,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 	if err := (<-ss.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
 	}
+	defer ss.User().PermanentDelete(u1.Id)
 
 	if err := (<-ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam)).Err; err == nil {
 		t.Fatal("should be the limit")
@@ -115,12 +121,14 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.AuthService = "ldap"
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
 	time.Sleep(100 * time.Millisecond)
@@ -149,6 +157,7 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	oldEmail := u3.Email
 	u3.AuthService = "gitlab"
 	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u3.Id}, -1))
 
 	u3.Email = MakeEmail()
@@ -180,6 +189,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	time.Sleep(10 * time.Millisecond)
@@ -202,6 +212,7 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	if err := (<-ss.User().UpdateFailedPasswordAttempts(u1.Id, 3)).Err; err != nil {
@@ -222,6 +233,7 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	if r1 := <-ss.User().Get(u1.Id); r1.Err != nil {
@@ -241,6 +253,7 @@ func testUserCount(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	if result := <-ss.User().GetTotalUsersCount(); result.Err != nil {
@@ -256,11 +269,13 @@ func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
 	u1.Email = MakeEmail()
 	u1.AuthService = "someservice"
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.AuthService = "someservice"
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 
 	if r1 := <-ss.User().GetAllUsingAuthService(u1.AuthService); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -276,10 +291,12 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 
 	if r1 := <-ss.User().GetAllProfiles(0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -318,6 +335,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u3 := &model.User{}
 	u3.Email = MakeEmail()
 	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 
 	if r2 := <-ss.User().GetEtagForAllProfiles(); r2.Err != nil {
 		t.Fatal(r2.Err)
@@ -334,11 +352,13 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	if r1 := <-ss.User().GetProfiles(teamId, 0, 100); r1.Err != nil {
@@ -379,6 +399,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	u3 := &model.User{}
 	u3.Email = MakeEmail()
 	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
 
 	if r2 := <-ss.User().GetEtagForProfiles(teamId); r2.Err != nil {
@@ -396,11 +417,13 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	c1 := model.Channel{}
@@ -472,11 +495,13 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	c1 := model.Channel{}
@@ -589,11 +614,13 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	c1 := model.Channel{}
@@ -677,11 +704,13 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	c1 := model.Channel{}
@@ -770,11 +799,13 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	if r1 := <-ss.User().GetProfileByIds([]string{u1.Id}, false); r1.Err != nil {
@@ -913,12 +944,14 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
 	u1.Email = MakeEmail()
 	u1.Username = "username1" + model.NewId()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Username = "username2" + model.NewId()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	if r1 := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u2.Username}, teamId); r1.Err != nil {
@@ -957,6 +990,7 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
 	u3.Email = MakeEmail()
 	u3.Username = "username3" + model.NewId()
 	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: team2Id, UserId: u3.Id}, -1))
 
 	if r1 := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, ""); r1.Err != nil {
@@ -997,11 +1031,13 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 	u1.Email = MakeEmail()
 	u1.Roles = model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	if r1 := <-ss.User().GetSystemAdminProfiles(); r1.Err != nil {
@@ -1020,6 +1056,7 @@ func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamid, UserId: u1.Id}, -1))
 
 	if err := (<-ss.User().GetByEmail(u1.Email)).Err; err != nil {
@@ -1041,6 +1078,7 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	u1.AuthData = &auth
 	u1.AuthService = "service"
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	if err := (<-ss.User().GetByAuth(u1.AuthData, u1.AuthService)).Err; err != nil {
@@ -1060,6 +1098,7 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	if err := (<-ss.User().GetByUsername(u1.Username)).Err; err != nil {
@@ -1081,6 +1120,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 		AuthData:    &auth,
 	}
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
 	auth2 := model.NewId()
 
@@ -1091,6 +1131,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 		AuthData:    &auth2,
 	}
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 
 	if result := <-ss.User().GetForLogin(u1.Username, true, true); result.Err != nil {
 		t.Fatal("Should have gotten user by username", result.Err)
@@ -1120,6 +1161,7 @@ func testUserStoreUpdatePassword(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	hashedPassword := model.HashPassword("newpwd")
@@ -1142,6 +1184,7 @@ func testUserStoreDelete(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	if err := (<-ss.User().PermanentDelete(u1.Id)).Err; err != nil {
@@ -1155,6 +1198,7 @@ func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	service := "someservice"
@@ -1199,12 +1243,14 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	u1.Username = "user1" + model.NewId()
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Username = "user2" + model.NewId()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
 	if err := (<-ss.Channel().Save(&c1, -1)).Err; err != nil {
@@ -1275,6 +1321,7 @@ func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(&u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
 	time.Sleep(100 * time.Millisecond)
 
@@ -1292,6 +1339,7 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(&u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
 	time.Sleep(100 * time.Millisecond)
 
@@ -1313,6 +1361,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}))
 	tid := model.NewId()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1))
@@ -1326,6 +1375,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}))
 	tid := model.NewId()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1))
@@ -1335,41 +1385,67 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	}
 }
 
+func assertUsers(t *testing.T, expected, actual []*model.User) {
+	expectedUsernames := make([]string, 0, len(expected))
+	for _, user := range expected {
+		expectedUsernames = append(expectedUsernames, user.Username)
+	}
+
+	actualUsernames := make([]string, 0, len(actual))
+	for _, user := range actual {
+		actualUsernames = append(actualUsernames, user.Username)
+	}
+
+	if assert.Equal(t, expectedUsernames, actualUsernames) {
+		assert.Equal(t, expected, actual)
+	}
+}
+
 func testUserStoreSearch(t *testing.T, ss store.Store) {
-	u1 := &model.User{}
-	u1.Username = "jimbo" + model.NewId()
-	u1.FirstName = "Tim"
-	u1.LastName = "Bill"
-	u1.Nickname = "Rob"
-	u1.Email = "harold" + model.NewId() + "@simulator.amazonses.com"
+	u1 := &model.User{
+		Username:  "jimbo1" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+	}
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
-	u2 := &model.User{}
-	u2.Username = "jim-bobby" + model.NewId()
-	u2.Email = MakeEmail()
+	u2 := &model.User{
+		Username: "jim-bobby" + model.NewId(),
+		Email:    MakeEmail(),
+	}
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 
-	u3 := &model.User{}
-	u3.Username = "jimbo" + model.NewId()
-	u3.Email = MakeEmail()
-	u3.DeleteAt = 1
+	u3 := &model.User{
+		Username: "jimbo3" + model.NewId(),
+		Email:    MakeEmail(),
+		DeleteAt: 1,
+	}
 	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 
-	u5 := &model.User{}
-	u5.Username = "yu" + model.NewId()
-	u5.FirstName = "En"
-	u5.LastName = "Yu"
-	u5.Nickname = "enyu"
-	u5.Email = MakeEmail()
+	u5 := &model.User{
+		Username:  "yu" + model.NewId(),
+		FirstName: "En",
+		LastName:  "Yu",
+		Nickname:  "enyu",
+		Email:     MakeEmail(),
+	}
 	store.Must(ss.User().Save(u5))
+	defer ss.User().PermanentDelete(u5.Id)
 
-	u6 := &model.User{}
-	u6.Username = "underscore" + model.NewId()
-	u6.FirstName = "Du_"
-	u6.LastName = "_DE"
-	u6.Nickname = "lodash"
-	u6.Email = MakeEmail()
+	u6 := &model.User{
+		Username:  "underscore" + model.NewId(),
+		FirstName: "Du_",
+		LastName:  "_DE",
+		Nickname:  "lodash",
+		Email:     MakeEmail(),
+	}
 	store.Must(ss.User().Save(u6))
+	defer ss.User().PermanentDelete(u6.Id)
 
 	tid := model.NewId()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1))
@@ -1378,550 +1454,726 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u5.Id}, -1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u6.Id}, -1))
 
-	searchOptions := map[string]bool{}
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
 
-	if r1 := <-ss.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found1 := false
-		found2 := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found1 = true
-			}
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+	u5.AuthData = nilAuthData
+	u6.AuthData = nilAuthData
 
-			if profile.Id == u3.Id {
-				found2 = true
-			}
-		}
+	testCases := []struct {
+		Description   string
+		TeamId        string
+		Term          string
+		SearchOptions map[string]bool
+		Expected      []*model.User
+	}{
+		{
+			"search jimb",
+			tid,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search en",
+			tid,
+			"en",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u5},
+		},
+		{
+			"search email",
+			tid,
+			u1.Email,
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: false,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search maps * to space",
+			tid,
+			"jimb*",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"should not return spurious matches",
+			tid,
+			"harol",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"% should be escaped",
+			tid,
+			"h%",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"_ should be escaped",
+			tid,
+			"h_",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"_ should be escaped (2)",
+			tid,
+			"Du_",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u6},
+		},
+		{
+			"_ should be escaped (2)",
+			tid,
+			"_dE",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u6},
+		},
+		{
+			"search jimb, allowing inactive",
+			tid,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			[]*model.User{u1, u3},
+		},
+		{
+			"search jimb, no team id",
+			"",
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jim-bobb, no team id",
+			"",
+			"jim-bobb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u2},
+		},
 
-		if !found1 {
-			t.Fatal("should have found user")
-		}
-
-		if found2 {
-			t.Fatal("should not have found inactive user")
-		}
+		{
+			"search harol, no options",
+			tid,
+			"harol",
+			map[string]bool{},
+			[]*model.User{u1},
+		},
+		{
+			"search Tim, no options",
+			tid,
+			"Tim",
+			map[string]bool{},
+			[]*model.User{u1},
+		},
+		{
+			"search Bill, no options",
+			tid,
+			"Bill",
+			map[string]bool{},
+			[]*model.User{u1},
+		},
+		{
+			"search Rob, no options",
+			tid,
+			"Rob",
+			map[string]bool{},
+			[]*model.User{u1},
+		},
 	}
 
-	if r1 := <-ss.User().Search(tid, "en", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found1 := false
-		for _, profile := range profiles {
-			if profile.Id == u5.Id {
-				found1 = true
-			}
-		}
-
-		if !found1 {
-			t.Fatal("should have found user")
-		}
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			result := <-ss.User().Search(testCase.TeamId, testCase.Term, testCase.SearchOptions)
+			require.Nil(t, result.Err)
+			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+		})
 	}
 
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = false
-
-	if r1 := <-ss.User().Search(tid, u1.Email, searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found1 := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found1 = true
-			}
+	t.Run("search empty string", func(t *testing.T) {
+		searchOptions := map[string]bool{
+			store.USER_SEARCH_OPTION_NAMES_ONLY: true,
 		}
 
-		if !found1 {
-			t.Fatal("should have found user")
-		}
+		r1 := <-ss.User().Search(tid, "", searchOptions)
+		require.Nil(t, r1.Err)
+		assert.Len(t, r1.Data.([]*model.User), 4)
+		// Don't assert contents, since Postgres' default collation order is left up to
+		// the operating system, and jimbo1 might sort before or after jim-bo.
+		// assertUsers(t, []*model.User{u2, u1, u6, u5}, r1.Data.([]*model.User))
+	})
+}
+
+func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
+	u1 := &model.User{
+		Username:  "jimbo1" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
 	}
+	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
-
-	// * should be treated as a space
-	if r1 := <-ss.User().Search(tid, "jimb*", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found1 := false
-		found2 := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found1 = true
-			}
-
-			if profile.Id == u3.Id {
-				found2 = true
-			}
-		}
-
-		if !found1 {
-			t.Fatal("should have found user")
-		}
-
-		if found2 {
-			t.Fatal("should not have found inactive user")
-		}
+	u2 := &model.User{
+		Username: "jim-bobby" + model.NewId(),
+		Email:    MakeEmail(),
 	}
+	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 
-	if r1 := <-ss.User().Search(tid, "harol", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found1 := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found1 = true
-			}
-		}
-
-		if found1 {
-			t.Fatal("should not have found user")
-		}
+	u3 := &model.User{
+		Username: "jimbo3" + model.NewId(),
+		Email:    MakeEmail(),
+		DeleteAt: 1,
 	}
+	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 
-	// % should be escaped and searched for.
-	if r1 := <-ss.User().Search(tid, "h%", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		if len(profiles) != 0 {
-			t.Fatal("shouldn't have found anything")
-		}
+	tid := model.NewId()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1))
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
+
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+
+	c1 := model.Channel{
+		TeamId:      tid,
+		DisplayName: "NameName",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
 	}
-
-	// "_" should be properly escaped and searched for.
-	if r1 := <-ss.User().Search(tid, "h_", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		if len(profiles) != 0 {
-			t.Fatal("shouldn't have found anything")
-		}
-	}
-	if r1 := <-ss.User().Search(tid, "Du_", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found6 := false
-		for _, profile := range profiles {
-			if profile.Id == u6.Id {
-				found6 = true
-			}
-		}
-
-		if !found6 {
-			t.Fatal("should have found user")
-		}
-	}
-	if r1 := <-ss.User().Search(tid, "_dE", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found6 := false
-		for _, profile := range profiles {
-			if profile.Id == u6.Id {
-				found6 = true
-			}
-		}
-
-		if !found6 {
-			t.Fatal("should have found user")
-		}
-	}
-
-	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = true
-
-	if r1 := <-ss.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found1 := false
-		found2 := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found1 = true
-			}
-
-			if profile.Id == u3.Id {
-				found2 = true
-			}
-		}
-
-		if !found1 {
-			t.Fatal("should have found user")
-		}
-
-		if !found2 {
-			t.Fatal("should have found inactive user")
-		}
-	}
-
-	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = false
-
-	if r1 := <-ss.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Fatal("should have found user")
-		}
-	}
-
-	if r1 := <-ss.User().Search("", "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Fatal("should have found user")
-		}
-	}
-
-	if r1 := <-ss.User().Search("", "jim-bobb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			t.Log(profile.Username)
-			if profile.Id == u2.Id {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Fatal("should have found user")
-		}
-	}
-
-	if r1 := <-ss.User().Search(tid, "", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-
-	c1 := model.Channel{}
-	c1.TeamId = tid
-	c1.DisplayName = "NameName"
-	c1.Name = "zz" + model.NewId() + "b"
-	c1.Type = model.CHANNEL_OPEN
 	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
 
-	if r1 := <-ss.User().SearchNotInChannel(tid, c1.Id, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
+	c2 := model.Channel{
+		TeamId:      tid,
+		DisplayName: "NameName",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	c2 = *store.Must(ss.Channel().Save(&c2, -1)).(*model.Channel)
 
-		if !found {
-			t.Fatal("should have found user")
-		}
+	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}))
+	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}))
+	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}))
+
+	testCases := []struct {
+		Description   string
+		TeamId        string
+		ChannelId     string
+		Term          string
+		SearchOptions map[string]bool
+		Expected      []*model.User
+	}{
+		{
+			"search jimb, channel 1",
+			tid,
+			c1.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jimb, allow inactive, channel 1",
+			tid,
+			c1.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jimb, channel 1, no team id",
+			"",
+			c1.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jimb, channel 1, junk team id",
+			"junk",
+			c1.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"search jimb, channel 2",
+			tid,
+			c2.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"search jimb, allow inactive, channel 2",
+			tid,
+			c2.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			[]*model.User{u3},
+		},
+		{
+			"search jimb, channel 2, no team id",
+			"",
+			c2.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"search jimb, channel 2, junk team id",
+			"junk",
+			c2.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
 	}
 
-	if r1 := <-ss.User().SearchNotInChannel("", c1.Id, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			result := <-ss.User().SearchNotInChannel(
+				testCase.TeamId,
+				testCase.ChannelId,
+				testCase.Term,
+				testCase.SearchOptions,
+			)
+			require.Nil(t, result.Err)
+			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+		})
+	}
+}
 
-		if !found {
-			t.Fatal("should have found user")
-		}
+func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
+	u1 := &model.User{
+		Username:  "jimbo1" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+	}
+	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
+
+	u2 := &model.User{
+		Username: "jim-bobby" + model.NewId(),
+		Email:    MakeEmail(),
+	}
+	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
+
+	u3 := &model.User{
+		Username: "jimbo3" + model.NewId(),
+		Email:    MakeEmail(),
+		DeleteAt: 1,
+	}
+	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
+
+	tid := model.NewId()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1))
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
+
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+
+	c1 := model.Channel{
+		TeamId:      tid,
+		DisplayName: "NameName",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
+
+	c2 := model.Channel{
+		TeamId:      tid,
+		DisplayName: "NameName",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	c2 = *store.Must(ss.Channel().Save(&c2, -1)).(*model.Channel)
+
+	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}))
+	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}))
+	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}))
+
+	testCases := []struct {
+		Description   string
+		ChannelId     string
+		Term          string
+		SearchOptions map[string]bool
+		Expected      []*model.User
+	}{
+		{
+			"search jimb, channel 1",
+			c1.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jimb, allow inactive, channel 1",
+			c1.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			[]*model.User{u1, u3},
+		},
+		{
+			"search jimb, channel 2",
+			c2.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"search jimb, allow inactive, channel 2",
+			c2.Id,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			[]*model.User{},
+		},
 	}
 
-	if r1 := <-ss.User().SearchNotInChannel("junk", c1.Id, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if found {
-			t.Fatal("should not have found user")
-		}
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			result := <-ss.User().SearchInChannel(
+				testCase.ChannelId,
+				testCase.Term,
+				testCase.SearchOptions,
+			)
+			require.Nil(t, result.Err)
+			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+		})
 	}
+}
 
-	if r1 := <-ss.User().SearchInChannel(c1.Id, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if found {
-			t.Fatal("should not have found user")
-		}
+func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
+	u1 := &model.User{
+		Username:  "jimbo1" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
 	}
+	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
-	store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: c1.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}))
-
-	if r1 := <-ss.User().SearchInChannel(c1.Id, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Fatal("should have found user")
-		}
+	u2 := &model.User{
+		Username: "jim-bobby" + model.NewId(),
+		Email:    MakeEmail(),
 	}
+	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 
-	searchOptions = map[string]bool{}
-
-	if r1 := <-ss.User().Search(tid, "harol", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found1 := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found1 = true
-			}
-		}
-
-		if !found1 {
-			t.Fatal("should have found user")
-		}
+	u3 := &model.User{
+		Username: "jimbo3" + model.NewId(),
+		Email:    MakeEmail(),
+		DeleteAt: 1,
 	}
+	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 
-	if r1 := <-ss.User().Search(tid, "Tim", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Fatal("should have found user")
-		}
+	u4 := &model.User{
+		Username: "simon" + model.NewId(),
+		Email:    MakeEmail(),
+		DeleteAt: 0,
 	}
-
-	if r1 := <-ss.User().Search(tid, "Bill", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Fatal("should have found user")
-		}
-	}
-
-	if r1 := <-ss.User().Search(tid, "Rob", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Fatal("should have found user")
-		}
-	}
-
-	// Search Users not in Team.
-	u4 := &model.User{}
-	u4.Username = "simon" + model.NewId()
-	u4.Email = MakeEmail()
-	u4.DeleteAt = 0
 	store.Must(ss.User().Save(u4))
+	defer ss.User().PermanentDelete(u4.Id)
 
-	if r1 := <-ss.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u4.Id {
-				found = true
-				break
-			}
-		}
+	u5 := &model.User{
+		Username:  "yu" + model.NewId(),
+		FirstName: "En",
+		LastName:  "Yu",
+		Nickname:  "enyu",
+		Email:     MakeEmail(),
+	}
+	store.Must(ss.User().Save(u5))
+	defer ss.User().PermanentDelete(u5.Id)
 
-		if !found {
-			t.Fatal("should have found user")
-		}
+	u6 := &model.User{
+		Username:  "underscore" + model.NewId(),
+		FirstName: "Du_",
+		LastName:  "_DE",
+		Nickname:  "lodash",
+		Email:     MakeEmail(),
+	}
+	store.Must(ss.User().Save(u6))
+	defer ss.User().PermanentDelete(u6.Id)
+
+	teamId1 := model.NewId()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u1.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u2.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u3.Id}, -1))
+	// u4 is not in team 1
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u5.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u6.Id}, -1))
+
+	teamId2 := model.NewId()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u4.Id}, -1))
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
+
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+	u4.AuthData = nilAuthData
+	u5.AuthData = nilAuthData
+	u6.AuthData = nilAuthData
+
+	testCases := []struct {
+		Description   string
+		TeamId        string
+		Term          string
+		SearchOptions map[string]bool
+		Expected      []*model.User
+	}{
+		{
+			"search simo, team 1",
+			teamId1,
+			"simo",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u4},
+		},
+
+		{
+			"search jimb, team 1",
+			teamId1,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"search jimb, allow inactive, team 1",
+			teamId1,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"search simo, team 2",
+			teamId2,
+			"simo",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{},
+		},
+		{
+			"search jimb, team1",
+			teamId2,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jimb, allow inactive, team 2",
+			teamId2,
+			"jimb",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY:     true,
+				store.USER_SEARCH_OPTION_ALLOW_INACTIVE: true,
+			},
+			[]*model.User{u1, u3},
+		},
 	}
 
-	if r1 := <-ss.User().SearchNotInTeam(tid, "jimb", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found = true
-				break
-			}
-		}
-
-		if found {
-			t.Fatal("should not have found user")
-		}
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			result := <-ss.User().SearchNotInTeam(
+				testCase.TeamId,
+				testCase.Term,
+				testCase.SearchOptions,
+			)
+			require.Nil(t, result.Err)
+			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+		})
 	}
-
-	// Check SearchNotInTeam finds previously deleted team members.
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u4.Id}, -1))
-
-	if r1 := <-ss.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u4.Id {
-				found = true
-				break
-			}
-		}
-
-		if found {
-			t.Fatal("should not have found user")
-		}
-	}
-
-	store.Must(ss.Team().UpdateMember(&model.TeamMember{TeamId: tid, UserId: u4.Id, DeleteAt: model.GetMillis() - 1000}))
-	if r1 := <-ss.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-		found := false
-		for _, profile := range profiles {
-			if profile.Id == u4.Id {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			t.Fatal("should have found user")
-		}
-	}
-
-	// Check PLT-8354 - search that ends up with just space for terms doesn't error.
-	r1 := <-ss.User().SearchWithoutTeam("* ", searchOptions)
-	assert.Nil(t, r1.Err)
 }
 
 func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
-	u1 := &model.User{}
-	u1.Username = "jimbo" + model.NewId()
-	u1.FirstName = "Tim"
-	u1.LastName = "Bill"
-	u1.Nickname = "Rob"
-	u1.Email = "harold" + model.NewId() + "@simulator.amazonses.com"
+	u1 := &model.User{
+		Username:  "jimbo1" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+	}
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
-	u2 := &model.User{}
-	u2.Username = "jim-bobby" + model.NewId()
-	u2.Email = MakeEmail()
+	u2 := &model.User{
+		Username: "jim2-bobby" + model.NewId(),
+		Email:    MakeEmail(),
+	}
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 
-	u3 := &model.User{}
-	u3.Username = "jimbo" + model.NewId()
-	u3.Email = MakeEmail()
-	u3.DeleteAt = 1
+	u3 := &model.User{
+		Username: "jimbo3" + model.NewId(),
+		Email:    MakeEmail(),
+		DeleteAt: 1,
+	}
 	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 
 	tid := model.NewId()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1))
 
-	searchOptions := map[string]bool{}
-	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
 
-	if r1 := <-ss.User().SearchWithoutTeam("", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+
+	testCases := []struct {
+		Description   string
+		Term          string
+		SearchOptions map[string]bool
+		Expected      []*model.User
+	}{
+		{
+			"empty string",
+			"",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u2, u1},
+		},
+		{
+			"jim",
+			"jim",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u2, u1},
+		},
+		{
+			"PLT-8354",
+			"* ",
+			map[string]bool{
+				store.USER_SEARCH_OPTION_NAMES_ONLY: true,
+			},
+			[]*model.User{u2, u1},
+		},
 	}
 
-	if r1 := <-ss.User().SearchWithoutTeam("jim", searchOptions); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		profiles := r1.Data.([]*model.User)
-
-		found1 := false
-		found2 := false
-		found3 := false
-
-		for _, profile := range profiles {
-			if profile.Id == u1.Id {
-				found1 = true
-			} else if profile.Id == u2.Id {
-				found2 = true
-			} else if profile.Id == u3.Id {
-				found3 = true
-			}
-		}
-
-		if !found1 {
-			t.Fatal("should have found user1")
-		} else if !found2 {
-			t.Fatal("should have found user2")
-		} else if found3 {
-			t.Fatal("should not have found user3")
-		}
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			result := <-ss.User().SearchWithoutTeam(
+				testCase.Term,
+				testCase.SearchOptions,
+			)
+			require.Nil(t, result.Err)
+			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+		})
 	}
 }
 
@@ -1929,6 +2181,7 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
 	var count int64
 
@@ -1942,6 +2195,7 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	u2.Email = MakeEmail()
 	u2.DeleteAt = model.GetMillis()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 
 	if result := <-ss.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
 		t.Fatal(result.Err)
@@ -1973,10 +2227,12 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	if err := (<-ss.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save user", err)
 	}
+	defer ss.User().PermanentDelete(u1.Id)
 
 	if err := (<-ss.User().Save(&u2)).Err; err != nil {
 		t.Fatal("couldn't save user", err)
 	}
+	defer ss.User().PermanentDelete(u2.Id)
 
 	if result := <-ss.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
 		t.Fatal(result.Err)
@@ -1994,12 +2250,14 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 	store.Must(ss.User().UpdateUpdateAt(u1.Id))
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	store.Must(ss.User().Save(u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.User().UpdateUpdateAt(u2.Id))
 
 	var initialUsersNotInTeam int
@@ -2106,6 +2364,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	u3 := &model.User{}
 	u3.Email = MakeEmail()
 	store.Must(ss.User().Save(u3))
+	defer ss.User().PermanentDelete(u3.Id)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
 	store.Must(ss.User().UpdateUpdateAt(u3.Id))
 
@@ -2143,9 +2402,13 @@ func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	}
 
 	store.Must(ss.User().Save(&u1))
+	defer ss.User().PermanentDelete(u1.Id)
 	store.Must(ss.User().Save(&u2))
+	defer ss.User().PermanentDelete(u2.Id)
 	store.Must(ss.User().Save(&u3))
+	defer ss.User().PermanentDelete(u3.Id)
 	store.Must(ss.User().Save(&u4))
+	defer ss.User().PermanentDelete(u4.Id)
 
 	require.Nil(t, (<-ss.User().ClearAllCustomRoleAssignments()).Err)
 
@@ -2173,6 +2436,7 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 		Roles:    "system_user system_admin system_post_all",
 	}
 	store.Must(ss.User().Save(&u1))
+	defer ss.User().PermanentDelete(u1.Id)
 
 	r1 := <-ss.User().GetAllAfter(10000, strings.Repeat("0", 26))
 	require.Nil(t, r1.Err)
