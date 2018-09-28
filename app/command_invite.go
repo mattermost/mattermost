@@ -49,15 +49,21 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	targetUsername := splitMessage[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	var userProfile *model.User
-	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
+	result := <-a.Srv.Store.User().GetByUsername(targetUsername)
+	if result.Err != nil {
 		mlog.Error(result.Err.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_user.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
-	} else {
-		userProfile = result.Data.(*model.User)
+	}
+
+	userProfile := result.Data.(*model.User)
+	if userProfile.DeleteAt != 0 {
+		return &model.CommandResponse{
+			Text:         args.T("api.command_invite.missing_user.app_error"),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
 	}
 
 	var channelToJoin *model.Channel

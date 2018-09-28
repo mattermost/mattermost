@@ -23,6 +23,8 @@ func TestInviteProvider(t *testing.T) {
 	basicUser3 := th.CreateUser()
 	th.LinkUserToTeam(basicUser3, th.BasicTeam)
 	basicUser4 := th.CreateUser()
+	deactivatedUser := th.CreateUser()
+	th.App.UpdateActive(deactivatedUser, false)
 
 	InviteP := InviteProvider{}
 	args := &model.CommandArgs{
@@ -38,6 +40,7 @@ func TestInviteProvider(t *testing.T) {
 	userAndPrivateChannel := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
 	userAndDMChannel := "@" + basicUser3.Username + " ~" + dmChannel.Name
 	userAndInvalidPrivate := "@" + basicUser3.Username + " ~" + privateChannel2.Name
+	deactivatedUserPublicChannel := "@" + deactivatedUser.Username + " ~" + channel.Name
 
 	tests := []struct {
 		desc     string
@@ -98,6 +101,11 @@ func TestInviteProvider(t *testing.T) {
 			desc:     "try to add a user to a private channel with no permission",
 			expected: "api.command_invite.private_channel.app_error",
 			msg:      userAndInvalidPrivate,
+		},
+		{
+			desc:     "try to add a deleted user to a public channel",
+			expected: "api.command_invite.missing_user.app_error",
+			msg:      deactivatedUserPublicChannel,
 		},
 	}
 
