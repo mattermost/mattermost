@@ -511,20 +511,24 @@ func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.5.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_4_0, VERSION_5_5_0) {
 	sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
-	// 	saveSchemaVersion(sqlStore, VERSION_5_5_0)
-	failureF := func(msg string) {
-		mlog.Critical(msg)
+
+	if err := migrateGroups(sqlStore); err != nil {
+		mlog.Critical(err.Error())
 		time.Sleep(time.Second)
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
+	// saveSchemaVersion(sqlStore, VERSION_5_5_0)
+	// }
+}
 
-	// sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
+func migrateGroups(sqlStore SqlStore) error {
 	sqlStore.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
+	// sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
 	// sqlStore.CreateUniqueIndexIfNotExists("ux_groups_type_remote_id", "Groups", []string{"Type", "RemoteId"})
 
 	transaction, err := sqlStore.GetMaster().Begin()
 	if err != nil {
-		failureF(err.Error())
+		return err
 	}
 
 	foreignKeys := [][]string{
@@ -541,12 +545,13 @@ func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 	for _, item := range foreignKeys {
 		sql := fmt.Sprintf("ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s", item[0], item[1], item[2])
 		if _, err := transaction.Exec(sql); err != nil {
-			failureF(err.Error())
+			return err
 		}
 	}
 
 	if err := transaction.Commit(); err != nil {
-		failureF(err.Error())
+		return err
 	}
-	// }
+
+	return nil
 }
