@@ -5,13 +5,13 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ed25519","ed25519/internal/edwards25519"]
-  revision = "b080dc9a8c480b08e698fb1219160d598526310f"
+  revision = "b47b1587369238182299fe4dad77d05b8b461e06"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["bpf","internal/iana","internal/socket","ipv4","ipv6"]
-  revision = "894f8ed5849b15b810ae41e9590a0d05395bba27"
+  revision = "1e491301e022f8f977054da4c2d852decd59571f"
 
 [solve-meta]
   analyzer-name = "dep"

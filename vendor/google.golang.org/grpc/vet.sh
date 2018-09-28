@@ -13,19 +13,46 @@ die() {
   exit 1
 }
 
-PATH="$GOPATH/bin:$GOROOT/bin:$PATH"
+# Check to make sure it's safe to modify the user's git repo.
+if git status --porcelain | read; then
+  die "Uncommitted or untracked files found; commit changes first"
+fi
 
-if [ "$1" = "-install" ]; then
-  go get -d \
-    google.golang.org/grpc/...
-  go get -u \
-    github.com/golang/lint/golint \
-    golang.org/x/tools/cmd/goimports \
-    honnef.co/go/tools/cmd/staticcheck \
-    github.com/client9/misspell/cmd/misspell \
-    github.com/golang/protobuf/protoc-gen-go
-  if [[ -z "$VET_SKIP_PROTO" ]]; then
-    if [[ "$TRAVIS" = "true" ]]; then
+if [[ -d "${GOPATH}/src" ]]; then
+  die "\${GOPATH}/src (${GOPATH}/src) exists; this script will delete it."
+fi
+
+# Undo any edits made by this script.
+cleanup() {
+  rm -rf "${GOPATH}/src"
+  git reset --hard HEAD
+}
+trap cleanup EXIT
+
+PATH="${GOPATH}/bin:${GOROOT}/bin:${PATH}"
+
+if [[ "$1" = "-install" ]]; then
+  # Check for module support
+  if go help mod >& /dev/null; then
+    go install \
+      github.com/golang/lint/golint \
+      golang.org/x/tools/cmd/goimports \
+      honnef.co/go/tools/cmd/staticcheck \
+      github.com/client9/misspell/cmd/misspell \
+      github.com/golang/protobuf/protoc-gen-go
+  else
+    # Ye olde `go get` incantation.
+    # Note: this gets the latest version of all tools (vs. the pinned versions
+    # with Go modules).
+    go get -u \
+      github.com/golang/lint/golint \
+      golang.org/x/tools/cmd/goimports \
+      honnef.co/go/tools/cmd/staticcheck \
+      github.com/client9/misspell/cmd/misspell \
+      github.com/golang/protobuf/protoc-gen-go
+  fi
+  if [[ -z "${VET_SKIP_PROTO}" ]]; then
+    if [[ "${TRAVIS}" = "true" ]]; then
       PROTOBUF_VERSION=3.3.0
       PROTOC_FILENAME=protoc-${PROTOBUF_VERSION}-linux-x86_64.zip
       pushd /home/travis
@@ -42,48 +69,54 @@ elif [[ "$#" -ne 0 ]]; then
   die "Unknown argument(s): $*"
 fi
 
-# TODO: Remove this check and the mangling below once "context" is imported
-# directly.
-if git status --porcelain | read; then
-  die "Uncommitted or untracked files found; commit changes first"
-fi
-
 git ls-files "*.go" | xargs grep -L "\(Copyright [0-9]\{4,\} gRPC authors\)\|DO NOT EDIT" 2>&1 | tee /dev/stderr | (! read)
-git ls-files "*.go" | xargs grep -l '"unsafe"' 2>&1 | (! grep -v '_test.go') | tee /dev/stderr | (! read)
 git ls-files "*.go" | xargs grep -l '"math/rand"' 2>&1 | (! grep -v '^examples\|^stress\|grpcrand') | tee /dev/stderr | (! read)
+git ls-files | xargs dirname | sort | uniq | xargs go run go_vet/vet.go | tee /dev/stderr | (! read)
 gofmt -s -d -l . 2>&1 | tee /dev/stderr | (! read)
 goimports -l . 2>&1 | tee /dev/stderr | (! read)
 golint ./... 2>&1 | (grep -vE "(_mock|\.pb)\.go:" || true) | tee /dev/stderr | (! read)
 
-# Undo any edits made by this script.
-cleanup() {
-  git reset --hard HEAD
-}
-trap cleanup EXIT
-
 # Rewrite golang.org/x/net/context -> context imports (see grpc/grpc-go#1484).
 # TODO: Remove this mangling once "context" is imported directly (grpc/grpc-go#711).
 git ls-files "*.go" | xargs sed -i 's:"golang.org/x/net/context":"context":'
-set +o pipefail
-# TODO: Stop filtering pb.go files once golang/protobuf#214 is fixed.
-go tool vet -all . 2>&1 | grep -vE '(clientconn|transport\/transport_test).go:.*cancel (function|var)' | grep -vF '.pb.go:' | tee /dev/stderr | (! read)
+set +o pipefail # vet exits with non-zero error if issues are found
+go tool vet -all . 2>&1 | grep -vE 'clientconn.go:.*cancel (function|var)' | tee /dev/stderr | (! read)
 set -o pipefail
 git reset --hard HEAD
 
-if [[ -z "$VET_SKIP_PROTO" ]]; then
-  PATH="/home/travis/bin:$PATH" make proto && \
+if [[ -z "${VET_SKIP_PROTO}" ]]; then
+  PATH="/home/travis/bin:${PATH}" make proto && \
     git status --porcelain 2>&1 | (! read) || \
     (git status; git --no-pager diff; exit 1)
 fi
 
+if go help mod >& /dev/null; then
+  go mod tidy && \
+    git status --porcelain 2>&1 | (! read) || \
+    (git status; git --no-pager diff; exit 1)
+fi
+
+### HACK HACK HACK: Remove once staticcheck works with modules.
+# Make a symlink in ${GOPATH}/src to its ${GOPATH}/pkg/mod equivalent for every package we use.
+for x in $(find "${GOPATH}/pkg/mod" -name '*@*' | grep -v \/mod\/cache\/); do
+  pkg="$(echo ${x#"${GOPATH}/pkg/mod/"} | cut -f1 -d@)";
+  # If multiple versions exist, just use the existing one.
+  if [[ -L "${GOPATH}/src/${pkg}" ]]; then continue; fi
+  mkdir -p "$(dirname "${GOPATH}/src/${pkg}")";
+  ln -s $x "${GOPATH}/src/${pkg}";
+done
+### END HACK HACK HACK
+
 # TODO(menghanl): fix errors in transport_test.
 staticcheck -ignore '
-google.golang.org/grpc/internal/transport/transport_test.go:SA2002
-google.golang.org/grpc/benchmark/benchmain/main.go:SA1019
-google.golang.org/grpc/stats/stats_test.go:SA1019
-google.golang.org/grpc/test/end2end_test.go:SA1019
-google.golang.org/grpc/balancer_test.go:SA1019
-google.golang.org/grpc/balancer.go:SA1019
-google.golang.org/grpc/clientconn_test.go:SA1019
+internal/transport/transport_test.go:SA2002
+benchmark/benchmain/main.go:SA1019
+stats/stats_test.go:SA1019
+test/end2end_test.go:SA1019
+balancer_test.go:SA1019
+balancer.go:SA1019
+clientconn_test.go:SA1019
+internal/transport/handler_server_test.go:SA1019
+internal/transport/handler_server.go:SA1019
 ' ./...
 misspell -error .
