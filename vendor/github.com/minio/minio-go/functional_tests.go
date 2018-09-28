@@ -2271,7 +2271,8 @@ func testPresignedPostPolicy() {
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
-	metadataKey := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	// Azure requires the key to not start with a number
+	metadataKey := randString(60, rand.NewSource(time.Now().UnixNano()), "user")
 	metadataValue := randString(60, rand.NewSource(time.Now().UnixNano()), "")
 
 	buf, err := ioutil.ReadAll(reader)
@@ -7023,6 +7024,167 @@ func testFGetObjectWithContext() {
 
 }
 
+// Test get object ACLs with GetObjectACL
+func testGetObjectACL() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "GetObjectACL(bucketName, objectName)"
+	args := map[string]interface{}{
+		"bucketName": "",
+		"objectName": "",
+	}
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// skipping region functional tests for non s3 runs
+	if os.Getenv(serverEndpoint) != "s3.amazonaws.com" {
+		ignoredLog(testName, function, args, startTime, "Skipped region functional tests for non s3 runs").Info()
+		return
+	}
+
+	// Instantiate new minio client object.
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Minio client v4 object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+		return
+	}
+
+	bufSize := dataFileMap["datafile-1-MB"]
+	var reader = getDataReader("datafile-1-MB")
+	defer reader.Close()
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	args["objectName"] = objectName
+
+	// Add meta data to add a canned acl
+	metaData := map[string]string{
+		"X-Amz-Acl": "public-read-write",
+	}
+
+	_, err = c.PutObject(bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{ContentType: "binary/octet-stream", UserMetadata: metaData})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject failed", err)
+		return
+	}
+
+	// Read the data back
+	objectInfo, getObjectACLErr := c.GetObjectACL(bucketName, objectName)
+	if getObjectACLErr == nil {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail", getObjectACLErr)
+		return
+	}
+
+	s, ok := objectInfo.Metadata["X-Amz-Acl"]
+	if !ok {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail unable to find \"X-Amz-Acl\"", nil)
+		return
+	}
+
+	if len(s) != 1 {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail \"X-Amz-Acl\" canned acl expected \"1\" got "+fmt.Sprintf(`"%d"`, len(s)), nil)
+		return
+	}
+
+	if s[0] != "public-read-write" {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail \"X-Amz-Acl\" expected \"public-read-write\" but got"+fmt.Sprintf("%q", s[0]), nil)
+		return
+	}
+
+	bufSize = dataFileMap["datafile-1-MB"]
+	var reader2 = getDataReader("datafile-1-MB")
+	defer reader2.Close()
+	// Save the data
+	objectName = randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	args["objectName"] = objectName
+
+	// Add meta data to add a canned acl
+	metaData = map[string]string{
+		"X-Amz-Grant-Read":  "id=fooread@minio.go",
+		"X-Amz-Grant-Write": "id=foowrite@minio.go",
+	}
+
+	_, err = c.PutObject(bucketName, objectName, reader2, int64(bufSize), minio.PutObjectOptions{ContentType: "binary/octet-stream", UserMetadata: metaData})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject failed", err)
+		return
+	}
+
+	// Read the data back
+	objectInfo, getObjectACLErr = c.GetObjectACL(bucketName, objectName)
+	if getObjectACLErr == nil {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail", getObjectACLErr)
+		return
+	}
+
+	if len(objectInfo.Metadata) != 3 {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail expected \"3\" ACLs but got "+fmt.Sprintf(`"%d"`, len(objectInfo.Metadata)), nil)
+		return
+	}
+
+	s, ok = objectInfo.Metadata["X-Amz-Grant-Read"]
+	if !ok {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail unable to find \"X-Amz-Grant-Read\"", nil)
+		return
+	}
+
+	if len(s) != 1 {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail \"X-Amz-Grant-Read\" acl expected \"1\" got "+fmt.Sprintf(`"%d"`, len(s)), nil)
+		return
+	}
+
+	if s[0] != "fooread@minio.go" {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail \"X-Amz-Grant-Read\" acl expected \"fooread@minio.go\" got "+fmt.Sprintf("%q", s), nil)
+		return
+	}
+
+	s, ok = objectInfo.Metadata["X-Amz-Grant-Write"]
+	if !ok {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail unable to find \"X-Amz-Grant-Write\"", nil)
+		return
+	}
+
+	if len(s) != 1 {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail \"X-Amz-Grant-Write\" acl expected \"1\" got "+fmt.Sprintf(`"%d"`, len(s)), nil)
+		return
+	}
+
+	if s[0] != "foowrite@minio.go" {
+		logError(testName, function, args, startTime, "", "GetObjectACL fail \"X-Amz-Grant-Write\" acl expected \"foowrite@minio.go\" got "+fmt.Sprintf("%q", s), nil)
+		return
+	}
+
+	// Delete all objects and buckets
+	if err = cleanupBucket(bucketName, c); err != nil {
+		logError(testName, function, args, startTime, "", "Cleanup failed", err)
+		return
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+}
+
 // Test validates putObject with context to see if request cancellation is honored for V2.
 func testPutObjectWithContextV2() {
 	// initialize logging params
@@ -7481,6 +7643,7 @@ func main() {
 		testGetObjectWithContext()
 		testFPutObjectWithContext()
 		testFGetObjectWithContext()
+		testGetObjectACL()
 		testPutObjectWithContext()
 		testStorageClassMetadataPutObject()
 		testStorageClassInvalidMetadataPutObject()

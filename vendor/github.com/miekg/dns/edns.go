@@ -92,17 +92,17 @@ func (rr *OPT) len() int {
 
 // Version returns the EDNS version used. Only zero is defined.
 func (rr *OPT) Version() uint8 {
-	return uint8((rr.Hdr.Ttl & 0x00FF0000) >> 16)
+	return uint8(rr.Hdr.Ttl & 0x00FF0000 >> 16)
 }
 
 // SetVersion sets the version of EDNS. This is usually zero.
 func (rr *OPT) SetVersion(v uint8) {
-	rr.Hdr.Ttl = rr.Hdr.Ttl&0xFF00FFFF | (uint32(v) << 16)
+	rr.Hdr.Ttl = rr.Hdr.Ttl&0xFF00FFFF | uint32(v)<<16
 }
 
 // ExtendedRcode returns the EDNS extended RCODE field (the upper 8 bits of the TTL).
 func (rr *OPT) ExtendedRcode() int {
-	return int((rr.Hdr.Ttl&0xFF000000)>>24) + 15
+	return int(rr.Hdr.Ttl&0xFF000000>>24) + 15
 }
 
 // SetExtendedRcode sets the EDNS extended RCODE field.
@@ -110,7 +110,7 @@ func (rr *OPT) SetExtendedRcode(v uint8) {
 	if v < RcodeBadVers { // Smaller than 16.. Use the 4 bits you have!
 		return
 	}
-	rr.Hdr.Ttl = rr.Hdr.Ttl&0x00FFFFFF | (uint32(v-15) << 24)
+	rr.Hdr.Ttl = rr.Hdr.Ttl&0x00FFFFFF | uint32(v-15)<<24
 }
 
 // UDPSize returns the UDP buffer size.

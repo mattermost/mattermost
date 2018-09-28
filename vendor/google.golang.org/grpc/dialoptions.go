@@ -349,6 +349,9 @@ func WithStatsHandler(h stats.Handler) DialOption {
 // error, gRPC will fail the connection to the network address and won't try to
 // reconnect. The default value of FailOnNonTempDialError is false.
 //
+// FailOnNonTempDialError only affects the initial dial, and does not do
+// anything useful unless you are also using WithBlock().
+//
 // This is an EXPERIMENTAL API.
 func FailOnNonTempDialError(f bool) DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
