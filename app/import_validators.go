@@ -283,9 +283,9 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Teams != nil {
 		return validateUserTeamsImportData(data.Teams)
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {

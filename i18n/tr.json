@@ -149,7 +149,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "{{.Channel}} varsayılan kanalını silemezsiniz"
+    "translation": "{{.Channel}} varsayılan kanalı silinemez"
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
@@ -229,7 +229,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Kullanıcıyı {{.Channel}} varsayılan kanalından çıkaramazsınız"
+    "translation": "Kullanıcı {{.Channel}} varsayılan kanalından çıkarılamadı"
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
@@ -1038,11 +1038,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Dosyanın var olup olmadığı anlaşılamadı. Dosya denetlenirken bir sorun çıktı."
+    "translation": "Dosyanın var olup olmadığı denetlenemedi."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Dosyanın var olup olmadığı anlaşılamadı. Dosya denetlenirken bir sorun çıktı."
+    "translation": "Dosyanın var olup olmadığı denetlenemedi."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2424,7 +2424,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Bir kanalın üyeleri hedef kanalın da üyeleri değil ise bir kanal taşınamaz."
+    "translation": "Bir kanalın tüm üyeleri hedef kanalın da üyeleri değil ise bir kanal taşınamaz."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2452,11 +2452,11 @@
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": "An error occurred writing the export data."
+    "translation": "Dışa aktarma verileri yazılırken bir sorun çıktı."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "JSON verileri dışa aktarılmak için sıralanırken bir sorun çıktı"
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -3436,7 +3436,7 @@
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Zip dosyası doğru şekilde kapatılamadı."
+    "translation": "zip dosyası kapatılamadı."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -4687,8 +4687,16 @@
     "translation": "Kod geçersiz."
   },
   {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Please enter a valid email address."
+  },
+  {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalıdır."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4840,7 +4848,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Var olan silinmiş kanal alınamadı"
+    "translation": "Var olan silinmiş kanal bulunamadı"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
@@ -4916,15 +4924,15 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "İşlem tamamlanamadı"
   },
   {
     "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
-    "translation": "Unable to delete materialized public channel"
+    "translation": "Oluşturulmuş herkese açık kanal silinemedi"
   },
   {
     "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "İşlem açılamadı"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
@@ -4932,15 +4940,15 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "İşlem tamamlanamadı"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Unable to delete materialized public channels"
+    "translation": "Oluşturulmuş herkese açık kanallar silinemedi"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "İşlem açılamadı"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -4960,11 +4968,11 @@
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "İşlem tamamlanamadı"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "İşlem açılamadı"
   },
   {
     "id": "store.sql_channel.reset_last_post_at.app_error",
@@ -4972,11 +4980,11 @@
   },
   {
     "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "İşlem tamamlanamadı"
   },
   {
     "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "İşlem açılamadı"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4996,7 +5004,7 @@
   },
   {
     "id": "store.sql_channel.save.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel"
+    "translation": "Oluşturulmuş herkese açık kanal güncellenemedi"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -5060,15 +5068,15 @@
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "İşlem tamamlanamadı"
   },
   {
     "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "İşlem açılamadı"
   },
   {
     "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
-    "translation": "Unable to update the materialized public channel"
+    "translation": "Oluşturulmuş herkese açık kanal güncellenemedi"
   },
   {
     "id": "store.sql_channel.update.app_error",
@@ -5080,7 +5088,7 @@
   },
   {
     "id": "store.sql_channel.update.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "İşlem tamamlanamadı"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -5088,7 +5096,7 @@
   },
   {
     "id": "store.sql_channel.update.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "İşlem açılamadı"
   },
   {
     "id": "store.sql_channel.update.previously.app_error",
@@ -5100,7 +5108,7 @@
   },
   {
     "id": "store.sql_channel.update.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel"
+    "translation": "Oluşturulmuş herkese açık kanal güncellenemedi"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
@@ -5192,7 +5200,7 @@
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "KomutWebBağlantısı kaydedilemedi"
+    "translation": "Komut web bağlantısı kaydedilemedi"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -5284,15 +5292,15 @@
   },
   {
     "id": "store.sql_job.delete.app_error",
-    "translation": "İş silinemedi"
+    "translation": "Görev silinemedi"
   },
   {
     "id": "store.sql_job.get.app_error",
-    "translation": "İş alınamadı"
+    "translation": "Görev alınamadı"
   },
   {
     "id": "store.sql_job.get_all.app_error",
-    "translation": "İşler alınamadı"
+    "translation": "Görevler alınamadı"
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
@@ -5304,11 +5312,11 @@
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "İş kaydedilemedi"
+    "translation": "Görev kaydedilemedi"
   },
   {
     "id": "store.sql_job.update.app_error",
-    "translation": "İş güncellenemedi"
+    "translation": "Görev güncellenemedi"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5356,7 +5364,7 @@
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "Var olan bir uygulama bulunamadı"
+    "translation": "Var olan herhangi bir uygulama bulunamadı"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -5380,7 +5388,7 @@
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Erişim kodu kaldırılamadı"
+    "translation": "Erişim kodu silinemedi"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
@@ -5388,7 +5396,7 @@
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Erişim kodu kaydedilemedi."
+    "translation": "Erişim kodu kaydedilemedi"
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -5396,7 +5404,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Uygulama kaydedilemedi."
+    "translation": "Uygulama kaydedilemedi"
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -5436,15 +5444,15 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "İleti sayısı alınamadı"
+    "translation": "İleti sayıları alınamadı"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Güne göre ileti sayısı alınamadı"
+    "translation": "Güne göre ileti sayıları alınamadı"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "İleti gönderen kullanıcı sayısı alınamadı"
+    "translation": "İletilerin kullanıcı sayıları alınamadı"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
@@ -5484,7 +5492,7 @@
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "We couldn't get the posts"
+    "translation": "İletiler alınamadı"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5516,7 +5524,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Kanala göre ileti silinemedi"
+    "translation": "Kanalın iletileri silinemedi"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5784,7 +5792,7 @@
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Son etkinlik zamanı güncellenemedi"
+    "translation": "Son işlem zamanı güncellenemedi"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
@@ -5852,7 +5860,7 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "Şema için kanal sayısı alınamadı."
+    "translation": "Şemanın kanal sayısı alınamadı."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -5960,7 +5968,7 @@
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "Üye takımdan çıkarılamadı"
+    "translation": "Takım üyesi silinemedi"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
@@ -6016,7 +6024,7 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Son takım simgesi güncelleme tarihi alınamadı"
+    "translation": "Son takım simgesi güncelleme tarihi güncellenemedi"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -6028,7 +6036,7 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Sistem yönetici sayısı alınamadı"
+    "translation": "Sistem yöneticisi sayısı alınamadı"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
@@ -6060,7 +6068,7 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Bu takım için kimlik doğrulama türünüze uygun olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
+    "translation": "Bu takım için kimlik doğrulama türünüzle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
@@ -6068,11 +6076,11 @@
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Bu takım için kullanıcı adınıza uygun olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
+    "translation": "Bu takım için kullanıcı adınızla eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "Bu takım için kimlik doğrulama bilgilerinize uygun olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
+    "translation": "Bu takım için kimlik doğrulama bilgilerinizle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
@@ -6192,7 +6200,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Kimlik doğrulama bilgileri güncellenemedi"
+    "translation": "Kimlik doğrulama verileri güncellenemedi"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -6200,11 +6208,11 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Başarısız girişim sayısı güncellenemedi"
+    "translation": "Başarısız oturum açma girişimleri güncellenemedi"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Son güncelleme zamanı güncellenemedi"
+    "translation": "Güncelleme zamanı güncellenemedi"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6216,11 +6224,11 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "Kullanıcının parolası güncellenemedi"
+    "translation": "Kullanıcı parolası güncellenemedi"
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "Kullanıcının son güncellenme tarihi alınamadı"
+    "translation": "Kullanıcının son güncellenme tarihi güncellenemedi"
   },
   {
     "id": "store.sql_user.verify_email.app_error",

@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Impossibile aggiornare comandi tra gruppi"
+    "translation": "Impossibile aggiornare i comandi tra gruppi"
   },
   {
     "id": "api.command_away.desc",
@@ -616,7 +616,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Non è stato possibile trovare l'utente."
+    "translation": "Impossibile trovare l'utente."
   },
   {
     "id": "api.command_invite.name",
@@ -660,7 +660,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Non è possibile trovare il canale"
+    "translation": "Impossibile trovare il canale"
   },
   {
     "id": "api.command_join.name",
@@ -728,7 +728,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "Non è stato possibile trovare l'utente"
+    "translation": "Impossibile trovare l'utente"
   },
   {
     "id": "api.command_msg.name",
@@ -824,7 +824,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Non è stato possibile trovare l'utente"
+    "translation": "Impossibile trovare l'utente"
   },
   {
     "id": "api.command_remove.name",
@@ -1038,11 +1038,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Impossibile verificare se il file esiste. Si è verificato un errore controllando l'esistenza del file."
+    "translation": "Impossibile controllare se il file esiste."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Impossibile verificare se il file esiste. Si è verificato un errore controllando l'esistenza del file."
+    "translation": "Impossibile controllare se il file esiste."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1408,7 +1408,7 @@
   },
   {
     "id": "api.post.update_post.find.app_error",
-    "translation": "Non è stato possibile trovare la pubblicazione o il commento all'aggiornamento."
+    "translation": "Non è stato possibile trovare la pubblicazione o il commento da aggiornare."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -2196,7 +2196,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Non è possibile cambiare la password per account SSO (Single Sign-On)"
+    "translation": "Non è possibile reimpostare la password per account SSO (Single Sign-On)"
   },
   {
     "id": "api.user.saml.app_error",
@@ -2248,7 +2248,7 @@
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Non è possibile cambiare la password per account SSO (Single Sign-On)"
+    "translation": "Non è possibile reimpostare la password per gli account SSO"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -2452,11 +2452,11 @@
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": "An error occurred writing the export data."
+    "translation": "Si è verificato un errore scrivendo i dati esportati."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "Si è verificato un errore smistando i dati JSON per l'esportazione."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2484,7 +2484,7 @@
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Impossibile impostare uno schema eliminato per l'utilizzo"
+    "translation": "Impossibile impostare il canale per usare uno schema eliminato."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
@@ -2588,7 +2588,7 @@
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Impossibile impostare uno schema eliminato per l'utilizzo"
+    "translation": "Impossibile impostare il gruppo per usare uno schema eliminato."
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
@@ -3436,7 +3436,7 @@
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Impossibile chiudere correttamente il file zip."
+    "translation": "Impossibile chiudere il file zip."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -4687,8 +4687,16 @@
     "translation": "Token non valido."
   },
   {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Please enter a valid email address."
+  },
+  {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "La tua password deve contenere almeno {{.Min}} caratteri."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4756,11 +4764,11 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Impossibile recuperare il conteggio dei canali eliminati"
+    "translation": "Impossibile recuperare il conteggio del tipo di canali eliminati"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "Impossibile recuperare il conteggio dei canali"
+    "translation": "Impossibile recuperare il conteggio dei canali eliminati"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -4784,11 +4792,11 @@
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Non è possibile cancellare il canale"
+    "translation": "Impossibile cancellare il canale"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Non è possibile trovare il canale"
+    "translation": "Non è stato possibile trovare il canale"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -4796,11 +4804,11 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "Non è possibile recuperare tutti i canali"
+    "translation": "Impossibile recuperare tutti i canali"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Non è possibile trovare il canale"
+    "translation": "Non è stato possibile trovare il canale esistente"
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -4812,11 +4820,11 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Impossibile recuperare il conteggio dei canali"
+    "translation": "Impossibile ottenere il numero dei canali"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Non è possibile trovare i canali"
+    "translation": "Impossibile recuperare canali"
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -4824,7 +4832,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Non è possibile recuperare i canali"
+    "translation": "Impossibile recuperare canali"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
@@ -4848,11 +4856,11 @@
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "Non è stato possibile ottenere il canale per la pubblicazione specificato"
+    "translation": "Non è stato possibile ottenere il canale per la pubblicazione specificata"
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "Impossibile recuperare il conteggio dei canali"
+    "translation": "Impossibile ottenere i membri del canale"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -4868,19 +4876,19 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
-    "translation": "Impossibile recuperare i membri del canale"
+    "translation": "Impossibile ottenere i membri del canale"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Non è stato possibile recuperare i membri del canale"
+    "translation": "Impossibile ottenere i membri del canale"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Non è possibile trovare i canali"
+    "translation": "Impossibile recuperare i canali"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Non è stato possibile recuperare i canali pubblici"
+    "translation": "Impossibile recuperare i canali pubblici"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -4888,7 +4896,7 @@
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Impossibile aumentare il conteggio delle citazioni"
+    "translation": "Impossibile incrementare il conteggio della citazione"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -4912,47 +4920,47 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Non è stato possibile cancellare il canale"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
-    "translation": "Unable to delete materialized public channel"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
-    "translation": "Unable to open transaction"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "Impossibile cancellare il canale"
   },
   {
+    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
+    "translation": "Impossibile confermare la transazione"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
+    "translation": "Impossibile eliminare il canale pubblico materializzato"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
+    "translation": "Impossibile avviare la transazione"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.app_error",
+    "translation": "Impossibile cancellare i canali"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "Impossibile confermare la transazione"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Unable to delete materialized public channels"
+    "translation": "Impossibile eliminare i canali pubblici materializzati"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "Impossibile avviare la transazione"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Non è possibile rimuovere il membro del canale"
+    "translation": "Impossibile eliminare il membro del canale"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Non è stato possibile trovare le pubblicazioni in evidenza"
+    "translation": "Impossibile trovare le pubblicazioni fissate"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Non è possibile rimuovere il membro del canale"
+    "translation": "Impossibile eliminare il membro del canale"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -4960,11 +4968,11 @@
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "Impossibile confermare la transazione"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "Impossibile avviare la transazione"
   },
   {
     "id": "store.sql_channel.reset_last_post_at.app_error",
@@ -4972,11 +4980,11 @@
   },
   {
     "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "Impossibile confermare la transazione"
   },
   {
     "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "Impossibile avviare la transazione"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4996,7 +5004,7 @@
   },
   {
     "id": "store.sql_channel.save.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel"
+    "translation": "Impossibile inserire o aggiornare il canale pubblico materializzato"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -5020,7 +5028,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Non è possibile salvare il canale"
+    "translation": "Impossibile salvare il canale"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -5052,7 +5060,7 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Non è possibile salvare il membro del canale"
+    "translation": "Errore durante l'aggiornamento del membro del canale"
   },
   {
     "id": "store.sql_channel.search.app_error",
@@ -5060,19 +5068,19 @@
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "Impossibile confermare la transazione"
   },
   {
     "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "Impossibile avviare la transazione"
   },
   {
     "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
-    "translation": "Unable to update the materialized public channel"
+    "translation": "Impossibile aggiornare il canale pubblico materializzato"
   },
   {
     "id": "store.sql_channel.update.app_error",
-    "translation": "Non è possibile aggiornare il canale"
+    "translation": "Errore durante l'aggiornamento del canale"
   },
   {
     "id": "store.sql_channel.update.archived_channel.app_error",
@@ -5080,7 +5088,7 @@
   },
   {
     "id": "store.sql_channel.update.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "Impossibile confermare la transazione"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -5088,7 +5096,7 @@
   },
   {
     "id": "store.sql_channel.update.open_transaction.app_error",
-    "translation": "Unable to open transaction"
+    "translation": "Impossibile avviare la transazione"
   },
   {
     "id": "store.sql_channel.update.previously.app_error",
@@ -5100,7 +5108,7 @@
   },
   {
     "id": "store.sql_channel.update.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel"
+    "translation": "Impossibile aggiornare o inserire il canale pubblico materializzato"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
@@ -5152,31 +5160,31 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Impossibile contare comandi"
+    "translation": "Impossibile contare i comandi"
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "Non è possibile trovare il comando"
+    "translation": "Impossibile ottenere il comando"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "Impossibile cancellare comando"
+    "translation": "Impossibile cancellare il comando"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Impossibile cancellare comando"
+    "translation": "Impossibile cancellare il comando"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Non è possibile trovare il comando"
+    "translation": "Impossibile ottenere il comando"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Non è possibile trovare i comandi"
+    "translation": "Impossibile ottenere i comandi"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "Non è stato possibile salvare il comando"
+    "translation": "Impossibile salvare il comando"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -5184,15 +5192,15 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "Non è stato possibile aggiornare il canale"
+    "translation": "Impossibile aggiornare il comando"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Non è stato possibile recuperare il webhook"
+    "translation": "Impossibile ottenere il webhook"
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Non è stato possibile salvare il comando Webhook"
+    "translation": "Impossibile salvare il ComandoWebhook"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -5220,7 +5228,7 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Non è stato possibile cancellare l'emoji"
+    "translation": "Impossibile cancellare l'emoji"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
@@ -5228,19 +5236,19 @@
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Non è stato possibile recuperare l'emoji"
+    "translation": "Impossibile ottenere l'emoji"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Non è stato possibile recuperare l'emoji"
+    "translation": "Impossibile ottenere l'emoji"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Non è stato possibile recuperare l'emoji"
+    "translation": "Impossibile ottenere l'emoji"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Non è stato possibile salvare l'emoji"
+    "translation": "Impossibile salvare l'emoji"
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -5256,7 +5264,7 @@
   },
   {
     "id": "store.sql_file_info.get.app_error",
-    "translation": "Non è stato possibile recuperare le informaziono sul file"
+    "translation": "Impossibile salvare il file informativo"
   },
   {
     "id": "store.sql_file_info.get_by_path.app_error",
@@ -5280,19 +5288,19 @@
   },
   {
     "id": "store.sql_file_info.save.app_error",
-    "translation": "Non è stato possibile salvare le informazioni sul file"
+    "translation": "Impossibile salvare le informazioni sul file"
   },
   {
     "id": "store.sql_job.delete.app_error",
-    "translation": "Non è possibile cancellare il lavoro"
+    "translation": "Impossibile cancellare il lavoro"
   },
   {
     "id": "store.sql_job.get.app_error",
-    "translation": "Impossibile recuperare il lavoro"
+    "translation": "Impossibile ottenere il lavoro"
   },
   {
     "id": "store.sql_job.get_all.app_error",
-    "translation": "Impossibile recuperare i lavori"
+    "translation": "Impossibile ottenere i lavori"
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
@@ -5348,7 +5356,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Non è stato possibile trovare l'app richiesta"
+    "translation": "Impossibile ottenere l'app richiesta"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -5356,7 +5364,7 @@
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "Non è stato possibile trovare alcuna app esistente"
+    "translation": "Impossibile trovare un'app esistente"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -5380,7 +5388,7 @@
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Non è stato possibile rimuovere il token di accesso"
+    "translation": "Impossibile salvare il token"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
@@ -5388,7 +5396,7 @@
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Impossibile salvare la sessione."
+    "translation": "Impossibile salvare il token."
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -5396,7 +5404,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Non è possibile salvare l'app."
+    "translation": "Impossibile salvare l'app."
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -5408,7 +5416,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "Non è stato possibile trovare la pubblicazione o il commento all'aggiornamento"
+    "translation": "Non è stato possibile trovare l'app da aggiornare"
   },
   {
     "id": "store.sql_oauth.update_app.finding.app_error",
@@ -5416,7 +5424,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Non è possibile aggiornare l'app"
+    "translation": "Impossibile aggiornare l'app"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
@@ -5436,15 +5444,15 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Impossibile recuperare il conteggio delle pubblicazioni"
+    "translation": "Impossibile ottenere il numero delle pubblicazioni"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Impossibile recuperare il conteggio delle pubblicazioni giornaliere"
+    "translation": "Impossibile ottenere il numero delle pubblicazioni per giorno"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Impossibile recuperare il conteggio degli utenti con pubblicazioni"
+    "translation": "Impossibile ottenere il numero degli utenti con pubblicazioni"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
@@ -5452,7 +5460,7 @@
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "Non è possibile cancellare la pubblicazione"
+    "translation": "Impossibile cancellare la pubblicazione"
   },
   {
     "id": "store.sql_post.get.app_error",
@@ -5460,7 +5468,7 @@
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni segnate"
+    "translation": "Impossibile ottenere le pubblicazioni segnate"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5472,7 +5480,7 @@
   },
   {
     "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "Impossibile recuperare la pubblicazione dal canale"
+    "translation": "Impossibile recuperare le pubblicazioni del canale"
   },
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
@@ -5484,27 +5492,27 @@
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Non è stato possibile recuperare la pubblicazione"
+    "translation": "Impossibile recuperare le pubblicazioni"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni per il canale"
+    "translation": "Impossibile recuperare le pubblicazioni del canale"
   },
   {
     "id": "store.sql_post.get_posts_since.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni per il canale"
+    "translation": "Impossibile recuperare le pubblicazioni del canale"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni per il canale"
+    "translation": "Impossibile recuperare le pubblicazioni del canale"
   },
   {
     "id": "store.sql_post.overwrite.app_error",
-    "translation": "Non è stato possibile sovrascrivere la pubblicazione"
+    "translation": "Impossibile sovrascrivere la pubblicazione"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Non è stato possibile eliminare la pubblicazione"
+    "translation": "Impossibile cancellare la pubblicazione"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
@@ -5516,7 +5524,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Non è stato possibile eliminare le pubblicazioni del canale"
+    "translation": "Impossibile cancellare le pubblicazioni del canale"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5532,7 +5540,7 @@
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "Non è stato possibile salvare la pubblicazione"
+    "translation": "Impossibile salvare la pubblicazione"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -5544,7 +5552,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "Non è stato possibile aggiornare la pubblicazione"
+    "translation": "Impossibile aggiornare la pubblicazione"
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
@@ -5572,7 +5580,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Non è stato possibile salvare la preferenza"
+    "translation": "Impossibile salvare le preferenze"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -5604,7 +5612,7 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "Non è stato possibile aggiornare le preferenze"
+    "translation": "Impossibile aggiornare le preferenze"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
@@ -5748,7 +5756,7 @@
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Impossibile effettuare il conteggio delle sessioni"
+    "translation": "Impossibile contare le sessioni"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -5780,15 +5788,15 @@
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Non è stato possibile aggiornare l'id periferica"
+    "translation": "Impossibile aggiornare l'id utente"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Non è stato possibile aggiornare last_activity_at"
+    "translation": "Impossibile aggiornare il campo last_activity_at"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "Non è possibile aggiornare i ruoli"
+    "translation": "Impossibile aggiornare lo i ruoli"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -5836,7 +5844,7 @@
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Non è stato possibile trovare la variabile di sistema."
+    "translation": "Impossibile trovare la variabile di sistema."
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
@@ -5856,7 +5864,7 @@
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Non è stato possibile effettuare il conteggio dei gruppi"
+    "translation": "Impossibile contare i gruppi"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -5880,7 +5888,7 @@
   },
   {
     "id": "store.sql_team.get.find.app_error",
-    "translation": "Non è possibile trovare il gruppo esistente"
+    "translation": "Non è stato possibile trovare il gruppo esistente"
   },
   {
     "id": "store.sql_team.get.finding.app_error",
@@ -5896,7 +5904,7 @@
   },
   {
     "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Non è stato possibile trovare il gruppo esistente"
+    "translation": "Impossibile trovare il gruppo esistente"
   },
   {
     "id": "store.sql_team.get_by_invite_id.finding.app_error",
@@ -5912,7 +5920,7 @@
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "Impossibile recuperare il membro del gruppo"
+    "translation": "Impossibile ottenere il membro del gruppo"
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
@@ -5920,19 +5928,19 @@
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Impossibile effettuare il conteggio dei membri del gruppo"
+    "translation": "Impossibile contare i membri del gruppo"
   },
   {
     "id": "store.sql_team.get_members.app_error",
-    "translation": "Impossibile recuperare i membri del gruppo"
+    "translation": "Impossibile ottenere i membri del gruppo"
   },
   {
     "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Impossibile recuperare i membri del gruppo"
+    "translation": "Impossibile ottenere i membri del gruppo"
   },
   {
     "id": "store.sql_team.get_unread.app_error",
-    "translation": "Non è stato possibile recuperare i messaggi non letti dei gruppi"
+    "translation": "Impossibile ottenere i messaggi non letti dei gruppi"
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
@@ -5956,11 +5964,11 @@
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Non è stato possibile eliminare il gruppo esistente"
+    "translation": "Impossibile cancellare il gruppo esistente"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "Non è stato possibile rimuovere il membro del gruppo"
+    "translation": "Impossibile rimuovere il membro dal gruppo"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
@@ -5968,7 +5976,7 @@
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "Non è stato possibile salvare il gruppo"
+    "translation": "Impossibile salvare il gruppo"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -5984,7 +5992,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Non è possibile salvare il membro gruppo"
+    "translation": "Impossibile salvare il membro del gruppo"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -5996,7 +6004,7 @@
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "Non è possibile aggiornare il gruppo"
+    "translation": "Impossibile aggiornare il gruppo"
   },
   {
     "id": "store.sql_team.update.find.app_error",
@@ -6012,7 +6020,7 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Non è possibile aggiornare il nome gruppo"
+    "translation": "Impossibile aggiornare il nome del gruppo"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
@@ -6028,11 +6036,11 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Impossibile recuperare il numero di amministratori attivi"
+    "translation": "Impossibile ottenere il conteggio degli amministratori di sistema"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Impossibile recuperare il numero di utenti unici"
+    "translation": "Impossibile ottenere il conteggio degli utenti univoci"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6112,15 +6120,15 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Non è stato possibile trovare l'utente."
+    "translation": "Impossibile trovare l'utente."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Non è stato possibile eliminare l'account esistente"
+    "translation": "Impossibile cancellare l'account esistente"
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "Non è possibile salvare il canale."
+    "translation": "Impossibile aggiornare l'account."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -6160,11 +6168,11 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Non sono stati trovati utenti corrispondenti ai parametri di ricerca"
+    "translation": "Impossibile trovare degli utenti corrispondenti ai parametri di ricerca"
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "Non è stato possibile aggiornare l'account"
+    "translation": "Impossibile aggiornare l'account"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -6192,7 +6200,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Non è stato possibile aggiornare i dati di autenticazione"
+    "translation": "Impossibile aggiornare i dati di autenticazione"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -6200,11 +6208,11 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Non è stato possibile aggiornare failed_attempts"
+    "translation": "Impossibile aggiornare failed_attempts"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Non è stato possibile aggiornare update_at"
+    "translation": "Impossibile aggiornare update_at"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6216,7 +6224,7 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "Non è stato possibile aggiornare la password utente"
+    "translation": "Impossibile aggiornare la password"
   },
   {
     "id": "store.sql_user.update_update.app_error",
@@ -6228,11 +6236,11 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Impossibile eliminare il Token di accesso personale"
+    "translation": "Impossibile eliminare il token di accesso personale"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Impossibile trovare il Token di accesso personale"
+    "translation": "Impossibile trovare il token di accesso personale"
   },
   {
     "id": "store.sql_user_access_token.get_all.app_error",
@@ -6244,11 +6252,11 @@
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Impossibile trovare i Token di accesso personale per utente"
+    "translation": "Impossibile trovare i token di accesso personale per utente"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Impossibile salvare il Token di accesso personale"
+    "translation": "Impossibile salvare il token di accesso personale"
   },
   {
     "id": "store.sql_user_access_token.search.app_error",
@@ -6264,63 +6272,63 @@
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Non è stato possibile effettuare il conteggio dei webhook in ingresso"
+    "translation": "Impossibile contare i webhook in ingresso"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Non è stato possibile effettuare il conteggio dei webhook in uscita"
+    "translation": "Impossibile contare il webhook in uscita"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Non è stato possibile eliminare il webhook"
+    "translation": "Impossibile eliminare il webhook"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Non è stato possibile eliminare il webhook"
+    "translation": "Impossibile eliminare il webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Non è stato possibile recuperare il webhook"
+    "translation": "Impossibile ottenere il webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Non è stato possibile recuperare i webhook"
+    "translation": "Impossibile ottenere i webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Non è stato possibile recuperare il webhook"
+    "translation": "Impossibile ottenere il webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Non è stato possibile recuperare il webhook"
+    "translation": "Impossibile ottenere il webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Non è stato possibile recuperare i webhook"
+    "translation": "Impossibile ottenere i webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Non è stato possibile recuperare i webhook"
+    "translation": "Impossibile cancellare i webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Impossibile eliminare il webhook"
+    "translation": "Impossibile cancellare il webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Non è stato possibile eliminare il webhook"
+    "translation": "Impossibile cancellare il webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Impossibile eliminare il webhook"
+    "translation": "Impossibile cancellare il webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Non è stato possibile eliminare il webhook"
+    "translation": "Impossibile cancellare il webhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Non è stato possibile salvare Webhook in ingresso"
+    "translation": "Impossibile salvare il webhook in ingresso"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -6328,7 +6336,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Non è stato possibile salvare Webhook in uscita"
+    "translation": "Impossibile salvare il webhook in uscita"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -6336,11 +6344,11 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Non è stato possibile aggiornare Webhook in ingresso"
+    "translation": "Impossibile aggiornare il webhook in ingresso"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Non è stato possibile aggiornare il webhook"
+    "translation": "Impossibile aggiornare il webhook"
   },
   {
     "id": "system.message.name",

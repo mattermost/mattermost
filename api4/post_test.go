@@ -599,6 +599,31 @@ func TestUpdatePost(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
+	// This test checks that a sysadmin with the "EDIT_OTHERS_POSTS" permission can edit someone else's post in a
+	// channel without a team (DM/GM). This indirectly checks for the proper cascading all the way to system-wide roles
+	// on the user object of permissions based on a post in a channel with no team ID.
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	dmChannel := th.CreateDmChannel(th.SystemAdminUser)
+
+	post := &model.Post{
+		Message:       "asd",
+		ChannelId:     dmChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		CreateAt:      0,
+	}
+
+	post, resp := th.Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	post.Message = "changed"
+	post, resp = th.SystemAdminClient.UpdatePost(post.Id, post)
+	CheckNoError(t, resp)
+}
+
 func TestPatchPost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
@@ -1342,6 +1367,20 @@ func TestSearchPosts(t *testing.T) {
 	}
 	assert.Equal(t, posts.Order[0], posts2.Order[0])
 	assert.Equal(t, posts.Order[1], posts2.Order[1])
+
+	page = 1
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	posts2, resp = Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	if len(posts2.Order) != 0 { // We don't support paging for DB search yet, modify this when we do.
+		t.Fatal("Wrong number of posts", len(posts2.Order))
+	}
 
 	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "search", false)
 	CheckNoError(t, resp)
