@@ -96,17 +96,16 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 	// If we are given a userID then fail if we can't find a user with that ID
 	if len(id) != 0 {
-		if user, err := a.GetUser(id); err != nil {
+		user, err := a.GetUser(id)
+		if err != nil {
 			if err.Id != store.MISSING_ACCOUNT_ERROR {
 				err.StatusCode = http.StatusInternalServerError
 				return nil, err
-			} else {
-				err.StatusCode = http.StatusBadRequest
-				return nil, err
 			}
-		} else {
-			return user, nil
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
 		}
+		return user, nil
 	}
 
 	// Try to get the user by username/email
@@ -200,7 +199,6 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 func GetProtocol(r *http.Request) string {
 	if r.Header.Get(model.HEADER_FORWARDED_PROTO) == "https" || r.TLS != nil {
 		return "https"
-	} else {
-		return "http"
 	}
+	return "http"
 }
