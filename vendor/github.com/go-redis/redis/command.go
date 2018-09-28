@@ -183,7 +183,7 @@ func (cmd *Cmd) Int() (int, error) {
 	case string:
 		return strconv.Atoi(val)
 	default:
-		err := fmt.Errorf("redis: unexpected type=%T for Int64", val)
+		err := fmt.Errorf("redis: unexpected type=%T for Int", val)
 		return 0, err
 	}
 }

@@ -893,19 +893,19 @@ Altitude:
 				if !ok {
 					return nil, &ParseError{f, "bad LOC Size", l}, ""
 				}
-				rr.Size = (e & 0x0f) | (m << 4 & 0xf0)
+				rr.Size = e&0x0f | m<<4&0xf0
 			case 1: // HorizPre
 				e, m, ok := stringToCm(l.token)
 				if !ok {
 					return nil, &ParseError{f, "bad LOC HorizPre", l}, ""
 				}
-				rr.HorizPre = (e & 0x0f) | (m << 4 & 0xf0)
+				rr.HorizPre = e&0x0f | m<<4&0xf0
 			case 2: // VertPre
 				e, m, ok := stringToCm(l.token)
 				if !ok {
 					return nil, &ParseError{f, "bad LOC VertPre", l}, ""
 				}
-				rr.VertPre = (e & 0x0f) | (m << 4 & 0xf0)
+				rr.VertPre = e&0x0f | m<<4&0xf0
 			}
 			count++
 		case zBlank:
@@ -1665,9 +1665,9 @@ func setTA(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 		return nil, &ParseError{f, "bad TA DigestType", l}, ""
 	}
 	rr.DigestType = uint8(i)
-	s, e, c1 := endingToString(c, "bad TA Digest", f)
-	if e != nil {
-		return nil, e.(*ParseError), c1
+	s, err, c1 := endingToString(c, "bad TA Digest", f)
+	if err != nil {
+		return nil, err, c1
 	}
 	rr.Digest = s
 	return rr, nil, c1

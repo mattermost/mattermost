@@ -3,6 +3,7 @@ package logrus
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -35,6 +36,9 @@ type TextFormatter struct {
 	// Force disabling colors.
 	DisableColors bool
 
+	// Override coloring based on CLICOLOR and CLICOLOR_FORCE. - https://bixense.com/clicolors/
+	EnvironmentOverrideColors bool
+
 	// Disable timestamp logging. useful when output is redirected to logging
 	// system that already adds timestamps.
 	DisableTimestamp bool
@@ -50,6 +54,9 @@ type TextFormatter struct {
 	// that log extremely frequently and don't use the JSON formatter this may not
 	// be desired.
 	DisableSorting bool
+
+	// The keys sorting function, when uninitialized it uses sort.Strings.
+	SortingFunc func([]string)
 
 	// Disables the truncation of the level text to 4 characters.
 	DisableLevelTruncation bool
@@ -69,13 +76,33 @@ type TextFormatter struct {
 	//         FieldKeyMsg:   "@message"}}
 	FieldMap FieldMap
 
-	sync.Once
+	terminalInitOnce sync.Once
 }
 
 func (f *TextFormatter) init(entry *Entry) {
 	if entry.Logger != nil {
 		f.isTerminal = checkIfTerminal(entry.Logger.Out)
+
+		if f.isTerminal {
+			initTerminal(entry.Logger.Out)
+		}
 	}
+}
+
+func (f *TextFormatter) isColored() bool {
+	isColored := f.ForceColors || f.isTerminal
+
+	if f.EnvironmentOverrideColors {
+		if force, ok := os.LookupEnv("CLICOLOR_FORCE"); ok && force != "0" {
+			isColored = true
+		} else if ok && force == "0" {
+			isColored = false
+		} else if os.Getenv("CLICOLOR") == "0" {
+			isColored = false
+		}
+	}
+
+	return isColored && !f.DisableColors
 }
 
 // Format renders a single log entry
@@ -87,8 +114,29 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 		keys = append(keys, k)
 	}
 
+	fixedKeys := make([]string, 0, 3+len(entry.Data))
+	if !f.DisableTimestamp {
+		fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyTime))
+	}
+	fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyLevel))
+	if entry.Message != "" {
+		fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyMsg))
+	}
+
 	if !f.DisableSorting {
-		sort.Strings(keys)
+		if f.SortingFunc == nil {
+			sort.Strings(keys)
+			fixedKeys = append(fixedKeys, keys...)
+		} else {
+			if !f.isColored() {
+				fixedKeys = append(fixedKeys, keys...)
+				f.SortingFunc(fixedKeys)
+			} else {
+				f.SortingFunc(keys)
+			}
+		}
+	} else {
+		fixedKeys = append(fixedKeys, keys...)
 	}
 
 	var b *bytes.Buffer
@@ -98,26 +146,28 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 		b = &bytes.Buffer{}
 	}
 
-	f.Do(func() { f.init(entry) })
-
-	isColored := (f.ForceColors || f.isTerminal) && !f.DisableColors
+	f.terminalInitOnce.Do(func() { f.init(entry) })
 
 	timestampFormat := f.TimestampFormat
 	if timestampFormat == "" {
 		timestampFormat = defaultTimestampFormat
 	}
-	if isColored {
+	if f.isColored() {
 		f.printColored(b, entry, keys, timestampFormat)
 	} else {
-		if !f.DisableTimestamp {
-			f.appendKeyValue(b, f.FieldMap.resolve(FieldKeyTime), entry.Time.Format(timestampFormat))
-		}
-		f.appendKeyValue(b, f.FieldMap.resolve(FieldKeyLevel), entry.Level.String())
-		if entry.Message != "" {
-			f.appendKeyValue(b, f.FieldMap.resolve(FieldKeyMsg), entry.Message)
-		}
-		for _, key := range keys {
-			f.appendKeyValue(b, key, entry.Data[key])
+		for _, key := range fixedKeys {
+			var value interface{}
+			switch key {
+			case f.FieldMap.resolve(FieldKeyTime):
+				value = entry.Time.Format(timestampFormat)
+			case f.FieldMap.resolve(FieldKeyLevel):
+				value = entry.Level.String()
+			case f.FieldMap.resolve(FieldKeyMsg):
+				value = entry.Message
+			default:
+				value = entry.Data[key]
+			}
+			f.appendKeyValue(b, key, value)
 		}
 	}
 
@@ -142,6 +192,10 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *Entry, keys []strin
 	if !f.DisableLevelTruncation {
 		levelText = levelText[0:4]
 	}
+
+	// Remove a single newline if it already exists in the message to keep
+	// the behavior of logrus text_formatter the same as the stdlib log package
+	entry.Message = strings.TrimSuffix(entry.Message, "\n")
 
 	if f.DisableTimestamp {
 		fmt.Fprintf(b, "\x1b[%dm%s\x1b[0m %-44s ", levelColor, levelText, entry.Message)
