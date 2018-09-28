@@ -872,6 +872,11 @@ func TestAutocompleteUsers(t *testing.T) {
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
 		t.Fatal("should not show first/last name")
 	}
+
+	t.Run("team id, if provided, must match channel's team id", func(t *testing.T) {
+		rusers, resp = Client.AutocompleteUsersInChannel("otherTeamId", channelId, username, "")
+		CheckErrorMessage(t, resp, "api.user.autocomplete_users.invalid_team_id")
+	})
 }
 
 func TestGetProfileImage(t *testing.T) {
