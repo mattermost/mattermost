@@ -339,9 +339,15 @@ func (s *LayeredGroupStore) Create(group *model.Group) StoreChannel {
 	})
 }
 
-func (s *LayeredGroupStore) Get(groupId string) StoreChannel {
+func (s *LayeredGroupStore) Get(groupID string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGet(s.TmpContext, groupId)
+		return supplier.GroupGet(s.TmpContext, groupID)
+	})
+}
+
+func (s *LayeredGroupStore) GetByRemoteID(remoteID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetByRemoteID(s.TmpContext, remoteID)
 	})
 }
 
@@ -357,9 +363,9 @@ func (s *LayeredGroupStore) Update(group *model.Group) StoreChannel {
 	})
 }
 
-func (s *LayeredGroupStore) Delete(groupId string) StoreChannel {
+func (s *LayeredGroupStore) Delete(groupID string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupDelete(s.TmpContext, groupId)
+		return supplier.GroupDelete(s.TmpContext, groupID)
 	})
 }
 

@@ -15,6 +15,14 @@ func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 	return result.Data.(*model.Group), nil
 }
 
+func (a *App) GetGroupByRemoteID(remoteID string) (*model.Group, *model.AppError) {
+	result := <-a.Srv.Store.Group().GetByRemoteID(remoteID)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.(*model.Group), nil
+}
+
 func (a *App) GetGroupsPage(page int, perPage int) ([]*model.Group, *model.AppError) {
 	result := <-a.Srv.Store.Group().GetAllPage(page*perPage, perPage)
 	if result.Err != nil {

@@ -113,6 +113,23 @@ func (s *SqlSupplier) GroupGet(ctx context.Context, groupId string, hints ...sto
 	return result
 }
 
+func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	var group *model.Group
+	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE RemoteId = :RemoteId", map[string]interface{}{"RemoteId": remoteID}); err != nil {
+		if err == sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.sql_group.no_rows", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		return result
+	}
+
+	result.Data = group
+	return result
+}
+
 func (s *SqlSupplier) GroupGetAllPage(ctx context.Context, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 

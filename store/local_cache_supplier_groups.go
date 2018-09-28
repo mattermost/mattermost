@@ -21,14 +21,26 @@ func (s *LocalCacheSupplier) GroupCreate(ctx context.Context, group *model.Group
 	return s.Next().GroupCreate(ctx, group, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupGet(ctx context.Context, groupId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	if result := s.doStandardReadCache(ctx, s.groupCache, groupId, hints...); result != nil {
+func (s *LocalCacheSupplier) GroupGet(ctx context.Context, groupID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	if result := s.doStandardReadCache(ctx, s.groupCache, groupID, hints...); result != nil {
 		return result
 	}
 
-	result := s.Next().GroupGet(ctx, groupId, hints...)
+	result := s.Next().GroupGet(ctx, groupID, hints...)
 
-	s.doStandardAddToCache(ctx, s.groupCache, groupId, result, hints...)
+	s.doStandardAddToCache(ctx, s.groupCache, groupID, result, hints...)
+
+	return result
+}
+
+func (s *LocalCacheSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	if result := s.doStandardReadCache(ctx, s.groupCache, remoteID, hints...); result != nil {
+		return result
+	}
+
+	result := s.Next().GroupGetByRemoteID(ctx, remoteID, hints...)
+
+	s.doStandardAddToCache(ctx, s.groupCache, remoteID, result, hints...)
 
 	return result
 }
@@ -42,11 +54,11 @@ func (s *LocalCacheSupplier) GroupUpdate(ctx context.Context, group *model.Group
 	return s.Next().GroupUpdate(ctx, group, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupDelete(ctx context.Context, groupId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	defer s.doInvalidateCacheCluster(s.groupCache, groupId)
+func (s *LocalCacheSupplier) GroupDelete(ctx context.Context, groupID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	defer s.doInvalidateCacheCluster(s.groupCache, groupID)
 	defer s.doClearCacheCluster(s.roleCache)
 
-	return s.Next().GroupDelete(ctx, groupId, hints...)
+	return s.Next().GroupDelete(ctx, groupID, hints...)
 }
 
 func (s *LocalCacheSupplier) GroupCreateMember(ctx context.Context, groupID string, userID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {

@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -16,6 +17,7 @@ import (
 func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Create", func(t *testing.T) { testGroupStoreCreate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testGroupStoreGet(t, ss) })
+	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, ss) })
 	t.Run("GetAllPage", func(t *testing.T) { testGroupStoreGetAllPage(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
@@ -170,6 +172,39 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 
 	// Get an invalid group
 	res3 := <-ss.Group().Get(model.NewId())
+	assert.NotNil(t, res3.Err)
+	assert.Equal(t, res3.Err.Id, "store.sql_group.no_rows")
+}
+
+func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
+	// Create a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Type:        model.GroupTypeLdap,
+		RemoteId:    model.NewId(),
+	}
+	res1 := <-ss.Group().Create(g1)
+	assert.Nil(t, res1.Err)
+	d1 := res1.Data.(*model.Group)
+	assert.Len(t, d1.Id, 26)
+
+	// Get the group
+	res2 := <-ss.Group().GetByRemoteID(d1.RemoteId)
+	assert.Nil(t, res2.Err)
+	d2 := res2.Data.(*model.Group)
+	assert.Equal(t, d1.Id, d2.Id)
+	assert.Equal(t, d1.Name, d2.Name)
+	assert.Equal(t, d1.DisplayName, d2.DisplayName)
+	assert.Equal(t, d1.Description, d2.Description)
+	assert.Equal(t, d1.RemoteId, d2.RemoteId)
+	assert.Equal(t, d1.CreateAt, d2.CreateAt)
+	assert.Equal(t, d1.UpdateAt, d2.UpdateAt)
+	assert.Equal(t, d1.DeleteAt, d2.DeleteAt)
+
+	// Get an invalid group
+	res3 := <-ss.Group().GetByRemoteID(model.NewId())
 	assert.NotNil(t, res3.Err)
 	assert.Equal(t, res3.Err.Id, "store.sql_group.no_rows")
 }
@@ -418,6 +453,7 @@ func testGroupCreateMember(t *testing.T, ss store.Store) {
 
 	// Invalid UserId
 	res5 := <-ss.Group().CreateMember(group.Id, model.NewId())
+	fmt.Printf("%#v\n", res5)
 	assert.Equal(t, res5.Err.Id, "store.sql_group.insert_error")
 
 	// Invalid GroupId

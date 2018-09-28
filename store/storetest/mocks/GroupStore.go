@@ -157,6 +157,22 @@ func (_m *GroupStore) GetAllPage(offset int, limit int) store.StoreChannel {
 	return r0
 }
 
+// GetByRemoteID provides a mock function with given fields: remoteID
+func (_m *GroupStore) GetByRemoteID(remoteID string) store.StoreChannel {
+	ret := _m.Called(remoteID)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(remoteID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
 func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) store.StoreChannel {
 	ret := _m.Called(groupID, syncableID, syncableType)

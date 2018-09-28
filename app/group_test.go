@@ -24,6 +24,21 @@ func TestGetGroup(t *testing.T) {
 	}
 }
 
+func TestGetGroupByRemoteID(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	group := th.CreateGroup()
+
+	if _, err := th.App.GetGroupByRemoteID(group.RemoteId); err != nil {
+		t.Log(err)
+		t.Fatal("Should get the group")
+	}
+
+	if _, err := th.App.GetGroupByRemoteID(model.NewId()); err == nil {
+		t.Fatal("Should not have found a group")
+	}
+}
+
 func TestGetGroupsPage(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

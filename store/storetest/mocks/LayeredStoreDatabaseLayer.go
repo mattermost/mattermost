@@ -391,6 +391,29 @@ func (_m *LayeredStoreDatabaseLayer) GroupGetAllPage(ctx context.Context, offset
 	return r0
 }
 
+// GroupGetByRemoteID provides a mock function with given fields: ctx, remoteID, hints
+func (_m *LayeredStoreDatabaseLayer) GroupGetByRemoteID(ctx context.Context, remoteID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, remoteID)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, remoteID, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
 // GroupGetGroupSyncable provides a mock function with given fields: ctx, groupID, syncableID, syncableType, hints
 func (_m *LayeredStoreDatabaseLayer) GroupGetGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))

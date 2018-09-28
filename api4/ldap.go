@@ -68,13 +68,20 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groups, err := c.App.Ldap.GetChildGroups(parentDN)
+	scimGroups, err := c.App.Ldap.GetChildGroups(parentDN)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	b, marshalErr := json.Marshal(groups)
+	for _, scimGroup := range scimGroups {
+		group, _ := c.App.GetGroupByRemoteID(scimGroup.PrimaryKey)
+		if group != nil {
+			scimGroup.MattermostGroupID = &group.Id
+		}
+	}
+
+	b, marshalErr := json.Marshal(scimGroups)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap.marshal_error", nil, marshalErr.Error(), http.StatusNotImplemented)
 		return
