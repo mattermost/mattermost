@@ -179,7 +179,7 @@ userPassword: Password1
 
 # sales
 dn: cn=sales,ou=testusers,dc=mm,dc=test,dc=com
-objectClass: organizationalRole
+objectclass: organizationalRole
 roleOccupant: uid=sales.one,ou=testusers,dc=mm,dc=test,dc=com
 roleOccupant: uid=sales.two,ou=testusers,dc=mm,dc=test,dc=com
 
