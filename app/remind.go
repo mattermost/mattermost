@@ -632,7 +632,7 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 	}
 
 	lastWord := textSplit[len(textSplit)-2] + " " + textSplit[len(textSplit)-1]
-	_, dErr := a.normalizeDate(user, lastWord)
+	_, dErr := a.normalizeDate(lastWord, user)
 	if dErr == nil {
 		request.Reminder.When = lastWord
 		return nil
@@ -656,7 +656,7 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 			break
 		}
 
-		_, dErr = a.normalizeDate(user, lastWord)
+		_, dErr = a.normalizeDate(lastWord, user)
 		if dErr == nil {
 			request.Reminder.When = lastWord
 			return nil
@@ -1080,11 +1080,11 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		chronoTime = dateTimeSplit[1]
 	}
 
-	dateUnit, ndErr := a.normalizeDate(user, chronoDate)
+	dateUnit, ndErr := a.normalizeDate(chronoDate, user)
 	if ndErr != nil {
 		return []time.Time{}, ndErr
 	}
-	timeUnit, ntErr := a.normalizeTime(user, chronoTime)
+	timeUnit, ntErr := a.normalizeTime(chronoTime, user)
 	if ntErr != nil {
 		return []time.Time{}, ntErr
 	}
@@ -1194,15 +1194,15 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 		chronoTime = strings.Trim(dateTimeSplit[1], " ")
 	}
 
-	days := a.regSplit(chronoDate, "(and)|(,)")
+	days := a.regSplit(chronoDate, "("+translateFunc("app.reminder.and")+")|(,)")
 
 	for _, chrono := range days {
 
-		dateUnit, ndErr := a.normalizeDate(user, strings.Trim(chrono, " "))
+		dateUnit, ndErr := a.normalizeDate(strings.Trim(chrono, " "), user)
 		if ndErr != nil {
 			return []time.Time{}, ndErr
 		}
-		timeUnit, ntErr := a.normalizeTime(user, chronoTime)
+		timeUnit, ntErr := a.normalizeTime(chronoTime, user)
 		if ntErr != nil {
 			return []time.Time{}, ntErr
 		}
@@ -1317,11 +1317,11 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 	if len(dateTimeSplit) > 1 {
 		chronoTime = dateTimeSplit[1]
 	}
-	dateUnit, ndErr := a.normalizeDate(user, chronoDate)
+	dateUnit, ndErr := a.normalizeDate(chronoDate, user)
 	if ndErr != nil {
 		return []time.Time{}, ndErr
 	}
-	timeUnit, ntErr := a.normalizeTime(user, chronoTime)
+	timeUnit, ntErr := a.normalizeTime(chronoTime, user)
 	if ntErr != nil {
 		return []time.Time{}, ntErr
 	}
@@ -1384,7 +1384,7 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 	return []time.Time{}, nil
 }
 
-func (a *App) normalizeTime(user *model.User, text string) (string, error) {
+func (a *App) normalizeTime(text string, user *model.User) (string, error) {
 
 	_, _, translateFunc, _ := a.shared(user.Id)
 
@@ -1550,7 +1550,7 @@ func (a *App) normalizeTime(user *model.User, text string) (string, error) {
 	return "", errors.New("unable to normalize time")
 }
 
-func (a *App) normalizeDate(user *model.User, text string) (string, error) {
+func (a *App) normalizeDate(text string, user *model.User) (string, error) {
 
 	_, location, translateFunc, _ := a.shared(user.Id)
 	cfg := a.Config()
@@ -1564,45 +1564,65 @@ func (a *App) normalizeDate(user *model.User, text string) (string, error) {
 		return date, nil
 	} else if strings.EqualFold(translateFunc("app.reminder.chrono.tomorrow"), date) {
 		return date, nil
-	} else if match, _ := regexp.MatchString("^((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?)", date); match {
+	}
 
-		switch date {
-		case translateFunc("app.reminder.chrono.mon"),
-			translateFunc("app.reminder.chrono.monday"):
-			return translateFunc("app.reminder.chrono.monday"), nil
-		case translateFunc("app.reminder.chrono.tues"),
-			translateFunc("app.reminder.chrono.tuesday"):
-			return translateFunc("app.reminder.chrono.tuesday"), nil
-		case translateFunc("app.reminder.chrono.wed"),
-			translateFunc("app.reminder.chrono.wednes"),
-			translateFunc("app.reminder.chrono.wednesday"):
-			return translateFunc("app.reminder.chrono.wednesday"), nil
-		case translateFunc("app.reminder.chrono.thur"),
-			translateFunc("app.reminder.chrono.thursday"):
-			return translateFunc("app.reminder.chrono.thursday"), nil
-		case translateFunc("app.reminder.chrono.fri"),
-			translateFunc("app.reminder.chrono.friday"):
-			return translateFunc("app.reminder.chrono.friday"), nil
-		case translateFunc("app.reminder.chrono.sat"),
-			translateFunc("app.reminder.chrono.satur"),
-			translateFunc("app.reminder.chrono.saturday"):
-			return translateFunc("app.reminder.chrono.saturday"), nil
-		case translateFunc("app.reminder.chrono.sun"),
-			translateFunc("app.reminder.chrono.sunday"):
-			return translateFunc("app.reminder.chrono.sunday"), nil
-		case translateFunc("app.reminder.chrono.mondays"),
-			translateFunc("app.reminder.chrono.tuesdays"),
-			translateFunc("app.reminder.chrono.wednesdays"),
-			translateFunc("app.reminder.chrono.thursdays"),
-			translateFunc("app.reminder.chrono.fridays"),
-			translateFunc("app.reminder.chrono.saturdays"),
-			translateFunc("app.reminder.chrono.sundays"):
-			return date, nil
-		default:
-			return "", errors.New("no day of week found")
-		}
+	switch date {
+	case translateFunc("app.reminder.chrono.mon"),
+		translateFunc("app.reminder.chrono.monday"):
+		return translateFunc("app.reminder.chrono.monday"), nil
+	case translateFunc("app.reminder.chrono.tues"),
+		translateFunc("app.reminder.chrono.tuesday"):
+		return translateFunc("app.reminder.chrono.tuesday"), nil
+	case translateFunc("app.reminder.chrono.wed"),
+		translateFunc("app.reminder.chrono.wednes"),
+		translateFunc("app.reminder.chrono.wednesday"):
+		return translateFunc("app.reminder.chrono.wednesday"), nil
+	case translateFunc("app.reminder.chrono.thur"),
+		translateFunc("app.reminder.chrono.thursday"):
+		return translateFunc("app.reminder.chrono.thursday"), nil
+	case translateFunc("app.reminder.chrono.fri"),
+		translateFunc("app.reminder.chrono.friday"):
+		return translateFunc("app.reminder.chrono.friday"), nil
+	case translateFunc("app.reminder.chrono.sat"),
+		translateFunc("app.reminder.chrono.satur"),
+		translateFunc("app.reminder.chrono.saturday"):
+		return translateFunc("app.reminder.chrono.saturday"), nil
+	case translateFunc("app.reminder.chrono.sun"),
+		translateFunc("app.reminder.chrono.sunday"):
+		return translateFunc("app.reminder.chrono.sunday"), nil
+	case translateFunc("app.reminder.chrono.mondays"),
+		translateFunc("app.reminder.chrono.tuesdays"),
+		translateFunc("app.reminder.chrono.wednesdays"),
+		translateFunc("app.reminder.chrono.thursdays"),
+		translateFunc("app.reminder.chrono.fridays"),
+		translateFunc("app.reminder.chrono.saturdays"),
+		translateFunc("app.reminder.chrono.sundays"):
+		return date, nil
+	default:
+		return "", errors.New("no day of week found")
+	}
 
-	} else if match, _ := regexp.MatchString("^(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june|july|aug(ust)?|sept(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)", date); match {
+	if strings.Contains(date, translateFunc("app.reminder.chrono.jan")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.january")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.feb")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.february")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.mar")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.march")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.apr")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.april")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.may")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.june")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.july")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.aug")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.august")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.sept")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.september")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.oct")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.october")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.nov")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.november")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.dec")) ||
+		strings.Contains(date, translateFunc("app.reminder.chrono.december")) {
 
 		date = strings.Replace(date, ",", "", -1)
 		parts := strings.Split(date, " ")

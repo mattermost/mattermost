@@ -3135,6 +3135,10 @@
     "translation": "to"
   },
   {
+    "id": "app.reminder.and",
+    "translation": "and"
+  },
+  {
     "id": "app.reminder.chrono.tomorrow",
     "translation": "tomorrow"
   },
