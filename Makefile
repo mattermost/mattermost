@@ -308,7 +308,7 @@ check-licenses: ## Checks license status.
 
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
-	
+
 check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
 
 test-te-race: ## Checks for race conditions in the team edition.

@@ -401,6 +401,14 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
+func (c *Client4) GetRegisterServiceTermsRoute(userId string) string {
+	return c.GetUserRoute(userId) + "/terms_of_service"
+}
+
+func (c *Client4) GetServiceTermsRoute() string {
+	return "/terms_of_service"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -2168,17 +2176,6 @@ func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) 
 	}
 }
 
-// SearchPosts returns any posts with matching terms string including deleted channels.
-func (c *Client4) SearchPostsIncludeDeletedChannels(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
-	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
-	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search?include_deleted_channels=true", StringInterfaceToJson(requestBody)); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return PostListFromJson(r.Body), BuildResponse(r)
-	}
-}
-
 // SearchPosts returns any posts with matching terms string, including .
 func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response) {
 	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
@@ -3803,5 +3800,40 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	} else {
 		defer closeBody(r)
 		return MapFromJson(r.Body)["location"], BuildResponse(r)
+	}
+}
+
+func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId string, accepted bool) (*bool, *Response) {
+	url := c.GetRegisterServiceTermsRoute(userId)
+	data := map[string]interface{}{"serviceTermsId": serviceTermsId, "accepted": accepted}
+
+	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return NewBool(CheckStatusOK(r)), BuildResponse(r)
+	}
+}
+
+func (c *Client4) GetServiceTerms(etag string) (*ServiceTerms, *Response) {
+	url := c.GetServiceTermsRoute()
+
+	if r, err := c.DoApiGet(url, etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ServiceTermsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+func (c *Client4) CreateServiceTerms(text, userId string) (*ServiceTerms, *Response) {
+	url := c.GetServiceTermsRoute()
+
+	data := map[string]string{"text": text}
+	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ServiceTermsFromJson(r.Body), BuildResponse(r)
 	}
 }

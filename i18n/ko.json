@@ -558,8 +558,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "유저를 찾지 못했습니다: {{.Users}}유저를 찾지 못했습니다: {{.Users}}",
-      "other": ""
+      "one": "Unable to find the user: {{.Users}}",
+      "other": "Unable to find the users: {{.Users}}"
     }
   },
   {
@@ -616,7 +616,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "해당 사용자를 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "api.command_invite.name",
@@ -660,7 +660,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "api.command_join.name",
@@ -728,7 +728,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "사용자를 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "api.command_msg.name",
@@ -824,7 +824,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "해당 사용자를 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "api.command_remove.name",
@@ -3068,7 +3068,7 @@
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "Unable to deactivate plugin"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3088,7 +3088,7 @@
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "Unable to get active plugins"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3124,7 +3124,7 @@
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "Unable to delete plugin"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3300,7 +3300,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
-    "translation": "Failed to delete the post"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3308,7 +3308,7 @@
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": "Failed to index the post"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -4687,8 +4687,16 @@
     "translation": "잘못된 토큰"
   },
   {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Please enter a valid email address."
+  },
+  {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "Your password must contain at least {{.Min}} characters."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4784,7 +4792,7 @@
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "채널을 삭제하지 못했습니다."
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -4796,7 +4804,7 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "모든 채널을 가져오지 못했습니다."
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -4812,11 +4820,11 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to add direct channel members"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -4824,7 +4832,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
@@ -4852,7 +4860,7 @@
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to add direct channel members"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -4868,19 +4876,19 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to add direct channel members"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to add direct channel members"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -4888,7 +4896,7 @@
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "We couldn't increment the mention count"
+    "translation": "Unable to increment the mention count"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -4912,7 +4920,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "채널을 삭제하지 못했습니다."
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
@@ -4928,7 +4936,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
@@ -4944,7 +4952,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
@@ -4952,7 +4960,7 @@
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5020,7 +5028,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -5052,7 +5060,7 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_channel.search.app_error",
@@ -5072,7 +5080,7 @@
   },
   {
     "id": "store.sql_channel.update.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_channel.update.archived_channel.app_error",
@@ -5152,31 +5160,31 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -5184,15 +5192,15 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Webhook을 찾는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "IncomingWebhook을 저장하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -5200,7 +5208,7 @@
   },
   {
     "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Unable to use the webhook"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_command_webhooks.try_use.invalid.app_error",
@@ -5220,7 +5228,7 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_emoji.delete.no_results",
@@ -5228,19 +5236,19 @@
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -5248,27 +5256,27 @@
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Unable to attach the file info to the post"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Unable to delete the file info to the post"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_file_info.get.app_error",
-    "translation": "Unable to get the file info"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Unable to get the file info by path"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "Unable to get the file info for the post"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Unable to get the file info for the user"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -5280,19 +5288,19 @@
   },
   {
     "id": "store.sql_file_info.save.app_error",
-    "translation": "Unable to save the file info"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_job.delete.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_job.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_job.get_all.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
@@ -5304,11 +5312,11 @@
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_job.update.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5348,7 +5356,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to find the requested app"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -5396,7 +5404,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -5416,7 +5424,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
@@ -5436,15 +5444,15 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "We couldn't get post counts"
+    "translation": "Unable to get post counts"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "We couldn't get post counts by day"
+    "translation": "Unable to get post counts by day"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "We couldn't get user counts with posts"
+    "translation": "Unable to get user counts with posts"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
@@ -5452,15 +5460,15 @@
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_post.get.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to add direct channel members"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5484,7 +5492,7 @@
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5500,11 +5508,11 @@
   },
   {
     "id": "store.sql_post.overwrite.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
@@ -5516,7 +5524,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "채널을 삭제하지 못했습니다."
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5532,7 +5540,7 @@
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -5544,7 +5552,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
@@ -5572,7 +5580,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to save the preference"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -5604,11 +5612,11 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to update the preference"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
-    "translation": "Unable to delete reaction"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
@@ -5644,11 +5652,11 @@
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Unable to save reaction"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_recover.delete.app_error",
-    "translation": "Unable to delete token"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
@@ -5656,11 +5664,11 @@
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": "Unable to save the token"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_role.delete.update.app_error",
-    "translation": "Unable to delete the role"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_role.get.app_error",
@@ -5680,7 +5688,7 @@
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Unable to save new role"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
@@ -5704,11 +5712,11 @@
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Unable to delete the scheme"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_scheme.get.app_error",
-    "translation": "Unable to get the scheme"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_scheme.permanent_delete_all.app_error",
@@ -5724,7 +5732,7 @@
   },
   {
     "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Unable to create the scheme"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_scheme.save.invalid_scheme.app_error",
@@ -5740,7 +5748,7 @@
   },
   {
     "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Unable to update the scheme"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
@@ -5748,7 +5756,7 @@
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -5764,15 +5772,15 @@
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_session.save.existing.app_error",
@@ -5780,15 +5788,15 @@
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to update the device id"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "We couldn't update the last_activity_at"
+    "translation": "Unable to update the last_activity_at"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -5836,7 +5844,7 @@
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "We couldn't find the system variable."
+    "translation": "Unable to find the system variable."
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
@@ -5856,7 +5864,7 @@
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -5912,7 +5920,7 @@
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
@@ -5920,15 +5928,15 @@
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.get_members.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.get_unread.app_error",
@@ -5960,7 +5968,7 @@
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
@@ -5968,7 +5976,7 @@
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -5984,7 +5992,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -5996,7 +6004,7 @@
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.update.find.app_error",
@@ -6012,7 +6020,7 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
@@ -6032,7 +6040,7 @@
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "Unable to get the unique user count"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6112,7 +6120,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "사용자를 찾을 수 없습니다"
+    "translation": "채널을 불러올 수 없습니다."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
@@ -6120,7 +6128,7 @@
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -6164,7 +6172,7 @@
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -6192,7 +6200,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -6200,11 +6208,11 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "We couldn't update the failed_attempts"
+    "translation": "Unable to update the failed_attempts"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "update_at 필드를 업데이트 할 수 없습니다"
+    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6216,7 +6224,7 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "We couldn't update the user password"
+    "translation": "Unable to update the user password"
   },
   {
     "id": "store.sql_user.update_update.app_error",
@@ -6264,63 +6272,63 @@
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Incoming webhook 갯수를 셀 수 없었습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Outgoing webhook 갯수를 셀 수 없었습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Webhook을 삭제하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Webhook을 삭제하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Webhook을 찾는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Webhook들을 찾는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Webhook을 찾는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Webhook을 찾는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Webhook들을 찾는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Webhook들을 찾는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Webhook을 삭제하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Webhook을 삭제하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Webhook을 삭제하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Webhook을 삭제하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "IncomingWebhook을 저장하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -6328,7 +6336,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "OutgoingWebhook을 저장하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -6336,11 +6344,11 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "IncomingWebhook을 저장하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Webhook을 갱신하는 데 실패했습니다"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "system.message.name",

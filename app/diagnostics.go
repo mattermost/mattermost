@@ -263,6 +263,7 @@ func (a *App) trackConfig() {
 		"experimental_limit_client_config":                        *cfg.ServiceSettings.ExperimentalLimitClientConfig,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
+		"custom_service_terms_enabled":                            *cfg.SupportSettings.CustomServiceTermsEnabled,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -308,14 +309,15 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
-		"driver_name":                    *cfg.SqlSettings.DriverName,
-		"trace":                          cfg.SqlSettings.Trace,
-		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
-		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
-		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
-		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
-		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
-		"query_timeout":                  *cfg.SqlSettings.QueryTimeout,
+		"driver_name":                            *cfg.SqlSettings.DriverName,
+		"trace":                                  cfg.SqlSettings.Trace,
+		"max_idle_conns":                         *cfg.SqlSettings.MaxIdleConns,
+		"conn_max_lifetime_milliseconds":         *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"max_open_conns":                         *cfg.SqlSettings.MaxOpenConns,
+		"data_source_replicas":                   len(cfg.SqlSettings.DataSourceReplicas),
+		"data_source_search_replicas":            len(cfg.SqlSettings.DataSourceSearchReplicas),
+		"query_timeout":                          *cfg.SqlSettings.QueryTimeout,
+		"enable_public_channels_materialization": *cfg.SqlSettings.EnablePublicChannelsMaterialization,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{

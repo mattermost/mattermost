@@ -808,15 +808,15 @@ func (dns *Msg) Unpack(msg []byte) (err error) {
 	}
 
 	dns.Id = dh.Id
-	dns.Response = (dh.Bits & _QR) != 0
+	dns.Response = dh.Bits&_QR != 0
 	dns.Opcode = int(dh.Bits>>11) & 0xF
-	dns.Authoritative = (dh.Bits & _AA) != 0
-	dns.Truncated = (dh.Bits & _TC) != 0
-	dns.RecursionDesired = (dh.Bits & _RD) != 0
-	dns.RecursionAvailable = (dh.Bits & _RA) != 0
-	dns.Zero = (dh.Bits & _Z) != 0
-	dns.AuthenticatedData = (dh.Bits & _AD) != 0
-	dns.CheckingDisabled = (dh.Bits & _CD) != 0
+	dns.Authoritative = dh.Bits&_AA != 0
+	dns.Truncated = dh.Bits&_TC != 0
+	dns.RecursionDesired = dh.Bits&_RD != 0
+	dns.RecursionAvailable = dh.Bits&_RA != 0
+	dns.Zero = dh.Bits&_Z != 0
+	dns.AuthenticatedData = dh.Bits&_AD != 0
+	dns.CheckingDisabled = dh.Bits&_CD != 0
 	dns.Rcode = int(dh.Bits & 0xF)
 
 	// If we are at the end of the message we should return *just* the

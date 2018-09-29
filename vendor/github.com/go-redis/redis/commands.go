@@ -206,6 +206,8 @@ type Cmdable interface {
 	ZLexCount(key, min, max string) *IntCmd
 	ZIncrBy(key string, increment float64, member string) *FloatCmd
 	ZInterStore(destination string, store ZStore, keys ...string) *IntCmd
+	ZPopMax(key string, count ...int64) *ZSliceCmd
+	ZPopMin(key string, count ...int64) *ZSliceCmd
 	ZRange(key string, start, stop int64) *StringSliceCmd
 	ZRangeWithScores(key string, start, stop int64) *ZSliceCmd
 	ZRangeByScore(key string, opt ZRangeBy) *StringSliceCmd
@@ -1690,6 +1692,46 @@ func (c *cmdable) ZInterStore(destination string, store ZStore, keys ...string) 
 		args = append(args, "aggregate", store.Aggregate)
 	}
 	cmd := NewIntCmd(args...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) ZPopMax(key string, count ...int64) *ZSliceCmd {
+	args := []interface{}{
+		"zpopmax",
+		key,
+	}
+
+	switch len(count) {
+	case 0:
+		break
+	case 1:
+		args = append(args, count[0])
+	default:
+		panic("too many arguments")
+	}
+
+	cmd := NewZSliceCmd(args...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) ZPopMin(key string, count ...int64) *ZSliceCmd {
+	args := []interface{}{
+		"zpopmin",
+		key,
+	}
+
+	switch len(count) {
+	case 0:
+		break
+	case 1:
+		args = append(args, count[0])
+	default:
+		panic("too many arguments")
+	}
+
+	cmd := NewZSliceCmd(args...)
 	c.process(cmd)
 	return cmd
 }

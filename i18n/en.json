@@ -2039,6 +2039,10 @@
     "translation": "Unsupported OAuth service provider"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Invalid team id"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
@@ -2375,6 +2379,10 @@
     "translation": "Bad verify email token type."
   },
   {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Bad accepted value"
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection"
   },
@@ -2433,6 +2441,14 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
   },
   {
     "id": "app.admin.test_email.failure",
@@ -4095,6 +4111,10 @@
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
+    "id": "ent.cluster.save_config.update_custom_service_terms_no_user.error",
+    "translation": "Custom service terms can only be changed if provided with exactly one user id"
+  },
+  {
     "id": "ent.compliance.bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
@@ -5613,6 +5633,22 @@
   {
     "id": "model.websocket_client.connect_fail.app_error",
     "translation": "Unable to connect to the WebSocket server."
+  },
+  {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Missing required term of service property: create_at."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Missing required terms of service property: user_id."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Invalid terms of service text."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -7269,6 +7305,22 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook"
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Must not call save for existing service terms"
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Unable to save service terms"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Unable to fetch service terms"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "No service terms found"
   },
   {
     "id": "system.message.name",

@@ -872,6 +872,11 @@ func TestAutocompleteUsers(t *testing.T) {
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
 		t.Fatal("should not show first/last name")
 	}
+
+	t.Run("team id, if provided, must match channel's team id", func(t *testing.T) {
+		rusers, resp = Client.AutocompleteUsersInChannel("otherTeamId", channelId, username, "")
+		CheckErrorMessage(t, resp, "api.user.autocomplete_users.invalid_team_id")
+	})
 }
 
 func TestGetProfileImage(t *testing.T) {
@@ -3018,4 +3023,29 @@ func TestGetUsersByStatus(t *testing.T) {
 			t.Fatal("expected to receive offline users last")
 		}
 	})
+}
+
+func TestRegisterServiceTermsAction(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	success, resp := Client.RegisterServiceTermsAction(th.BasicUser.Id, "st_1", true)
+	CheckErrorMessage(t, resp, "store.sql_service_terms_store.get.no_rows.app_error")
+
+	serviceTerms, err := th.App.CreateServiceTerms("service terms", th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	success, resp = Client.RegisterServiceTermsAction(th.BasicUser.Id, serviceTerms.Id, true)
+	CheckNoError(t, resp)
+
+	assert.True(t, *success)
+	user, err := th.App.GetUser(th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, user.AcceptedServiceTermsId, serviceTerms.Id)
 }
