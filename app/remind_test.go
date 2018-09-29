@@ -9,10 +9,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
-	"fmt"
 	"github.com/mattermost/mattermost-server/mlog"
 	"strings"
 	"time"
+	"fmt"
 )
 
 const (
@@ -652,8 +652,8 @@ func TestOn(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("on Monday doesn't parse")
 	}
-	mlog.Info(fmt.Sprintf("%v", times[0]))
-	mlog.Info(times[0].Weekday().String())
+	//mlog.Info(fmt.Sprintf("%v", times[0]))
+	//mlog.Info(times[0].Weekday().String())
 	if times[0].Weekday().String() != "Monday" {
 		t.Fatal("on Monday isn't correct")
 	}
@@ -794,6 +794,7 @@ func TestOn(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("on December 15 doesn't parse")
 	}
+	//mlog.Info(fmt.Sprintf("%v", times[0]))
 	if times[0].Month().String() != "December" && times[0].Day() != 15 {
 		t.Fatal("on December 15 isn't correct")
 	}
@@ -1241,7 +1242,7 @@ func TestFreeForm(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("today at 3pm doesn't parse")
 	}
-	//mlog.Info(fmt.Sprintf("%v", times[0]))
+	mlog.Info(fmt.Sprintf("%v", times[0]))
 	if times[0].Hour() != 15 {
 		t.Fatal("today at 3pm isn't correct")
 	}

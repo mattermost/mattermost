@@ -144,7 +144,8 @@ func (a *App) triggerReminders() {
 					//},
 				}
 
-				if _, pErr := a.CreatePostAsUser(&interactivePost); pErr != nil {
+				//TODO understand clearPushNotifications bool 2nd arg
+				if _, pErr := a.CreatePostAsUser(&interactivePost, true); pErr != nil {
 					mlog.Error(fmt.Sprintf("%v", pErr))
 				}
 
@@ -196,7 +197,8 @@ func (a *App) triggerReminders() {
 					//},
 				}
 
-				if _, pErr := a.CreatePostAsUser(&interactivePost); pErr != nil {
+				//TODO understand clearPushNotifications bool 2nd arg
+				if _, pErr := a.CreatePostAsUser(&interactivePost, true); pErr != nil {
 					mlog.Error(fmt.Sprintf("%v", pErr))
 				}
 
@@ -889,7 +891,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
 	normalizedWhen := strings.ToLower(whenSplit[1])
-
+	
 	if strings.Contains(when, translateFunc("app.reminder.chrono.every")) {
 
 		dateTimeSplit := strings.Split(when, " "+translateFunc("app.reminder.chrono.every")+" ")
@@ -908,7 +910,6 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 				normalizedWhen = normalizedWhen + ":00"
 			}
 		}
-
 		t, pErr := time.Parse(time.Kitchen, normalizedWhen+strings.ToUpper(whenSplit[2]))
 		if pErr != nil {
 			mlog.Error(fmt.Sprintf("%v", pErr))
@@ -1037,12 +1038,14 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 		timeSplit := strings.Split(normalizedWhen, ":")
 		hr, _ := strconv.Atoi(timeSplit[0])
 		ampm := translateFunc("app.reminder.chrono.am")
+		dayInterval := false
 
 		if hr > 11 {
 			ampm = translateFunc("app.reminder.chrono.pm")
 		}
 		if hr > 12 {
 			hr -= 12
+			dayInterval = true
 			timeSplit[0] = strconv.Itoa(hr)
 			normalizedWhen = strings.Join(timeSplit, ":")
 		}
@@ -1054,7 +1057,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
 		now := time.Now().Round(time.Hour * time.Duration(24))
 		occurrence := t.AddDate(now.Year(), int(now.Month())-1, now.Day()-1)
-		return []time.Time{a.chooseClosest(user, &occurrence, false)}, nil
+		return []time.Time{a.chooseClosest(user, &occurrence, dayInterval)}, nil
 
 	}
 
@@ -1598,8 +1601,6 @@ func (a *App) normalizeDate(text string, user *model.User) (string, error) {
 		translateFunc("app.reminder.chrono.saturdays"),
 		translateFunc("app.reminder.chrono.sundays"):
 		return date, nil
-	default:
-		return "", errors.New("no day of week found")
 	}
 
 	if strings.Contains(date, translateFunc("app.reminder.chrono.jan")) ||
