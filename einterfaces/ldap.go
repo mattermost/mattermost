@@ -21,5 +21,5 @@ type LdapInterface interface {
 	MigrateIDAttribute(toAttribute string) error
 	GetChildGroups(parentDN string) ([]*model.SCIMGroup, *model.AppError)
 	GetAllGroups() ([]*model.SCIMGroup, *model.AppError)
-	GetUserIDsInGroupRecursive(groupDN string) ([]*model.User, *model.AppError)
+	GetUsersInGroupRecursive(groupDN string) ([]*model.User, *model.AppError)
 }
