@@ -2152,6 +2152,8 @@ func (s *apiRPCServer) KVDelete(args *Z_KVDeleteArgs, returns *Z_KVDeleteReturns
 }
 
 type Z_KVListArgs struct {
+	A int
+	B int
 }
 
 type Z_KVListReturns struct {
@@ -2159,8 +2161,8 @@ type Z_KVListReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) KVList() ([]string, *model.AppError) {
-	_args := &Z_KVListArgs{}
+func (g *apiRPCClient) KVList(offset int, limit int) ([]string, *model.AppError) {
+	_args := &Z_KVListArgs{offset, limit}
 	_returns := &Z_KVListReturns{}
 	if err := g.client.Call("Plugin.KVList", _args, _returns); err != nil {
 		log.Printf("RPC call to KVList API failed: %s", err.Error())
@@ -2170,9 +2172,9 @@ func (g *apiRPCClient) KVList() ([]string, *model.AppError) {
 
 func (s *apiRPCServer) KVList(args *Z_KVListArgs, returns *Z_KVListReturns) error {
 	if hook, ok := s.impl.(interface {
-		KVList() ([]string, *model.AppError)
+		KVList(offset int, limit int) ([]string, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.KVList()
+		returns.A, returns.B = hook.KVList(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API KVList called but not implemented."))
 	}

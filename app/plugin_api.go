@@ -331,8 +331,8 @@ func (api *PluginAPI) KVDelete(key string) *model.AppError {
 	return api.app.DeletePluginKey(api.id, key)
 }
 
-func (api *PluginAPI) KVList() ([]string, *model.AppError) {
-	return api.app.ListPluginKeys(api.id)
+func (api *PluginAPI) KVList(offset int, limit int) ([]string, *model.AppError) {
+	return api.app.ListPluginKeys(api.id, offset, limit)
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
