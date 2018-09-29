@@ -1,0 +1,57 @@
+# groupOfNames
+dn: cn=executive,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfNames
+member: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
+member: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: cn=board,cn=executive,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfNames
+member: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
+member: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
+
+
+# groupOfUniqueNames
+dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
+uniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
+uniqueMember: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: cn=developers,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
+uniqueMember: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: cn=team-one,cn=developers,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
+uniqueMember: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
+uniqueMember: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: cn=team-two,cn=developers,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
+uniqueMember: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: cn=qa,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
+uniqueMember: uid=qa.one,ou=testusers,dc=mm,dc=test,dc=com
+uniqueMember: uid=qa.two,ou=testusers,dc=mm,dc=test,dc=com
+
+
+# organizationalRole
+dn: cn=sales,ou=testusers,dc=mm,dc=test,dc=com
+objectclass: organizationalRole
+roleOccupant: uid=sales.one,ou=testusers,dc=mm,dc=test,dc=com
+roleOccupant: uid=sales.two,ou=testusers,dc=mm,dc=test,dc=com
+
+
+# posixGroup
+dn: cn=pm,ou=testusers,dc=mm,dc=test,dc=com
+objectClass: posixGroup
+gidNumber: 678
+memberUid: pm.one
+memberUid: pm.two

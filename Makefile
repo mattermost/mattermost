@@ -147,10 +147,12 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 			-e LDAP_ORGANISATION="Mattermost Test" \
 			-e LDAP_DOMAIN="mm.test.com" \
 			-e LDAP_ADMIN_PASSWORD="mostest" \
-			-d osixia/openldap:1.1.6 > /dev/null;\
+			-d osixia/openldap:1.2.2 > /dev/null;\
 		sleep 10; \
-		docker cp tests/add-users-and-groups.ldif mattermost-openldap:/add-data.ldif;\
-		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-data.ldif';\
+		docker cp tests/add-users.ldif mattermost-openldap:/add-users.ldif;\
+		docker cp tests/add-groups.ldif mattermost-openldap:/add-groups.ldif;\
+		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-users.ldif';\
+		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-groups.ldif';\
 	elif [ $(shell docker ps | grep -ci mattermost-openldap) -eq 0 ]; then \
 		echo restarting mattermost-openldap; \
 		docker start mattermost-openldap > /dev/null; \
