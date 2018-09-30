@@ -41,18 +41,19 @@ func (a *App) InitReminders() {
 	remindUser = user
 	emptyTime = time.Time{}.AddDate(1, 1, 1)
 
+}
+
+func (a *App) StartReminders() {
 	if !running {
 		running = true
 		a.runner()
 	}
-
 }
 
 func (a *App) StopReminders() {
 	running = false
 }
 
-// how does the behave in HA cluster?
 func (a *App) runner() {
 
 	go func() {
@@ -68,6 +69,7 @@ func (a *App) runner() {
 func (a *App) triggerReminders() {
 
 	t := time.Now().Round(time.Second).Format(time.RFC3339)
+	mlog.Debug(t)
 	schan := a.Srv.Store.Remind().GetByTime(t)
 
 	if result := <-schan; result.Err != nil {
@@ -213,7 +215,7 @@ func (a *App) ListReminders(userId string) string {
 	_, _, translateFunc, sErr := a.shared(userId)
 
 	if sErr != nil {
-		return model.REMIND_EXCEPTION_TEXT
+		return translateFunc(model.REMIND_EXCEPTION_TEXT)
 	}
 
 	reminders := a.getReminders(userId)
@@ -891,7 +893,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
 	normalizedWhen := strings.ToLower(whenSplit[1])
-	
+
 	if strings.Contains(when, translateFunc("app.reminder.chrono.every")) {
 
 		dateTimeSplit := strings.Split(when, " "+translateFunc("app.reminder.chrono.every")+" ")

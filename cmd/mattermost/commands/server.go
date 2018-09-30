@@ -164,6 +164,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	})
 	a.Go(func() {
 		a.InitReminders()
+		a.StartReminders()
 	})
 
 	if complianceI := a.Compliance; complianceI != nil {

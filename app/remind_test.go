@@ -9,56 +9,40 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
+	"fmt"
 	"github.com/mattermost/mattermost-server/mlog"
 	"strings"
 	"time"
-	"fmt"
 )
 
 const (
 	UNABLE_TO_SCHEDULE_REMINDER = "unable to schedule reminder"
 )
 
-func TestInitReminders(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-
-	th.App.InitReminders()
-}
-
-func TestStopReminders(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-
-	th.App.StopReminders()
-}
-
 func TestListReminders(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	list := th.App.ListReminders("user_id")
-	if list == "" {
-		t.Fatal("list should not be empty")
+	th.App.InitReminders()
+	defer th.App.StopReminders()
+	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
+	translateFunc := utils.GetUserTranslations(user.Locale)
+
+	list := th.App.ListReminders(user.Id)
+	if list == translateFunc(model.REMIND_EXCEPTION_TEXT) {
+		t.Fatal("exception text displayed")
 	}
-}
-
-func TestDeleteReminders(t *testing.T) {
-	th := Setup()
-	defer th.TearDown()
-
-	th.App.DeleteReminders("user_id")
 }
 
 func TestScheduleReminders(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil {
-		t.Fatal("remindbot doesn't exist")
-	}
+	th.App.InitReminders()
+	defer th.App.StopReminders()
+	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	translateFunc := utils.GetUserTranslations(user.Locale)
+
 	request := &model.ReminderRequest{}
 	request.UserId = user.Id
 
@@ -228,10 +212,9 @@ func TestFindWhen(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.InitReminders()
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil {
-		t.Fatal("remindbot doesn't exist")
-	}
+	defer th.App.StopReminders()
+	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
+	//translateFunc := utils.GetUserTranslations(user.Locale)
 
 	request := &model.ReminderRequest{}
 	request.UserId = user.Id
@@ -393,10 +376,9 @@ func TestIn(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.InitReminders()
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil {
-		t.Fatal("remindbot doesn't exist")
-	}
+	defer th.App.StopReminders()
+	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
+	//translateFunc := utils.GetUserTranslations(user.Locale)
 
 	when := "in one second"
 	times, iErr := th.App.in(when, user)
@@ -476,10 +458,9 @@ func TestAt(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.InitReminders()
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil {
-		t.Fatal("remindbot doesn't exist")
-	}
+	defer th.App.StopReminders()
+	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
+	//translateFunc := utils.GetUserTranslations(user.Locale)
 
 	when := "at noon"
 	times, iErr := th.App.at(when, user)
@@ -641,10 +622,9 @@ func TestOn(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.InitReminders()
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil {
-		t.Fatal("remindbot doesn't exist")
-	}
+	defer th.App.StopReminders()
+	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
+	//translateFunc := utils.GetUserTranslations(user.Locale)
 
 	when := "on Monday"
 	times, iErr := th.App.on(when, user)
@@ -652,8 +632,6 @@ func TestOn(t *testing.T) {
 		mlog.Error(iErr.Error())
 		t.Fatal("on Monday doesn't parse")
 	}
-	//mlog.Info(fmt.Sprintf("%v", times[0]))
-	//mlog.Info(times[0].Weekday().String())
 	if times[0].Weekday().String() != "Monday" {
 		t.Fatal("on Monday isn't correct")
 	}
@@ -982,15 +960,13 @@ func TestOn(t *testing.T) {
 }
 
 func TestEvery(t *testing.T) {
-
 	th := Setup()
 	defer th.TearDown()
 
 	th.App.InitReminders()
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil {
-		t.Fatal("remindbot doesn't exist")
-	}
+	defer th.App.StopReminders()
+	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
+	//translateFunc := utils.GetUserTranslations(user.Locale)
 
 	when := "every Thursday"
 	times, iErr := th.App.every(when, user)
@@ -1156,15 +1132,13 @@ func TestEvery(t *testing.T) {
 }
 
 func TestFreeForm(t *testing.T) {
-
 	th := Setup()
 	defer th.TearDown()
 
 	th.App.InitReminders()
-	user, uErr := th.App.GetUserByUsername("remindbot")
-	if uErr != nil {
-		t.Fatal("remindbot doesn't exist")
-	}
+	defer th.App.StopReminders()
+	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
+	//translateFunc := utils.GetUserTranslations(user.Locale)
 
 	when := "monday"
 	times, iErr := th.App.freeForm(when, user)
