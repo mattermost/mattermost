@@ -59,6 +59,14 @@ var ListTeamsCmd = &cobra.Command{
 	RunE:    listTeamsCmdF,
 }
 
+var SearchTeamCmd = &cobra.Command{
+	Use:     "search [teams]",
+	Short:   "Search for teams",
+	Long:    "Search for teams based on name",
+	Example: "  team search team1",
+	RunE:    searchTeamCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -73,6 +81,7 @@ func init() {
 		AddUsersCmd,
 		DeleteTeamsCmd,
 		ListTeamsCmd,
+		SearchTeamCmd,
 	)
 	RootCmd.AddCommand(TeamCmd)
 }
@@ -243,6 +252,37 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 
 	for _, team := range teams {
 		CommandPrettyPrintln(team.Name)
+	}
+
+	return nil
+}
+
+func searchTeamCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	teams := getTeamsFromTeamArgs(a, args)
+
+	for i, team := range teams {
+		if i > 0 {
+			CommandPrettyPrintln("------------------------------")
+		}
+		if team == nil {
+			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
+			continue
+		}
+
+		CommandPrettyPrintln("id: " + team.Id)
+		CommandPrettyPrintln("name: " + team.Name)
+		CommandPrettyPrintln("display_name: " + team.DisplayName)
+		CommandPrettyPrintln("email: " + team.Email)
 	}
 
 	return nil
