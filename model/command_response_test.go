@@ -35,33 +35,29 @@ func TestCommandResponseFromPlainText(t *testing.T) {
 func TestCommandResponseFromJson(t *testing.T) {
 	t.Parallel()
 
-	sToP := func(s string) *string {
-		return &s
-	}
-
 	testCases := []struct {
 		Description             string
 		Json                    string
 		ExpectedCommandResponse *CommandResponse
-		ExpectedError           *string
+		ShouldError             bool
 	}{
 		{
 			"empty response",
 			"",
 			nil,
-			sToP("parsing error at line 1, character 1: unexpected end of JSON input"),
+			true,
 		},
 		{
 			"malformed response",
 			`{"text": }`,
 			nil,
-			sToP("parsing error at line 1, character 11: invalid character '}' looking for beginning of value"),
+			true,
 		},
 		{
 			"invalid response",
 			`{"text": "test", "response_type": 5}`,
 			nil,
-			sToP("parsing error at line 1, character 36: json: cannot unmarshal number into Go struct field CommandResponse.response_type of type string"),
+			true,
 		},
 		{
 			"ephemeral response",
@@ -115,7 +111,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 					},
 				},
 			},
-			nil,
+			false,
 		},
 		{
 			"null array items",
@@ -133,7 +129,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 					},
 				},
 			},
-			nil,
+			false,
 		},
 	}
 
@@ -143,8 +139,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 			t.Parallel()
 
 			response, err := CommandResponseFromJson(strings.NewReader(testCase.Json))
-			if testCase.ExpectedError != nil {
-				assert.EqualError(t, err, *testCase.ExpectedError)
+			if testCase.ShouldError {
 				assert.Nil(t, response)
 			} else {
 				assert.NoError(t, err)
