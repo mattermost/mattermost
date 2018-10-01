@@ -549,7 +549,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 
 	_, errch := a.RenameChannel(channel, newChannelName, newDisplayName)
 	if errch != nil {
-		return errors.New("Error in updating channel from " + channel.Name + " to " + newChannelName + err.Error())
+		return errors.New("Error in updating channel from " + channel.Name + " to " + newChannelName + ": " + errch.Error())
 	}
 
 	return nil
