@@ -412,6 +412,10 @@
     "translation": "Errore nell'aggiornamento del canale."
   },
   {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
+  },
+  {
     "id": "api.command_channel_rename.channel.app_error",
     "translation": "Errore nel caricamento del canale."
   },
@@ -929,6 +933,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "La sessione non è OAuth ma il token è presente nella stringa di query"
+  },
+  {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "La funzione termini di servizio personalizzati è disattivata"
+  },
+  {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Inserire il testo dei Termini di Servizio personalizzati."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2019,6 +2031,10 @@
     "translation": "OAuth Service Provider non supportato"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Team-ID non valido"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Il tuo account è stato bloccato a causa di troppi errori nel inserire la password. Per favore resetta la tua password."
   },
@@ -2177,6 +2193,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Autenticazione sul Trasferimento non configurata o non disponibile su questo server."
+  },
+  {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Accettato valore invalido"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -4623,6 +4643,22 @@
     "translation": "Id utente non valido"
   },
   {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Manca una proprietà obbligatoria dei termini di servizio: create_at."
+  },
+  {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Id dei termini di servizio non valido."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Testo dei termini di servizio non valido."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Manca una proprietà obbligatoria dei termini di servizio: user_id."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Nome deve essere composto da 2 o più lettere minuscole alfanumeriche"
   },
@@ -4688,7 +4724,7 @@
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "Inserire un indirizzo email valido."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -4696,7 +4732,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Il nome utente deve iniziare con una lettera e contenere da 3 a 22 caratteri inclusi numeri, lettere minuscole e i simboli \".\",\"-\" e \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5753,6 +5789,22 @@
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
     "translation": "Impossibile confermare la transazione per salvare lo schema"
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Impossibile salvare i termini di servizio"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Impossibile caricare i termini di servizio"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "Termini di servizio non trovati"
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Non deve chiamare salva per i termini di servizio esistenti"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

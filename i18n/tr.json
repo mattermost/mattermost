@@ -412,6 +412,10 @@
     "translation": "Geçerli kanal güncellenirken sorun çıktı."
   },
   {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
+  },
+  {
     "id": "api.command_channel_rename.channel.app_error",
     "translation": "Geçerli kanal alınırken sorun çıktı."
   },
@@ -929,6 +933,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "Oturum OAuth olmadığı halde sorgu dizgesinde kod belirtilmiş"
+  },
+  {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "Özel hizmet koşulları özelliği devre dışı"
+  },
+  {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Lütfen Özel Hizmet Koşulları metnini yazın."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2019,6 +2031,10 @@
     "translation": "Desteklenmeyen OAuth hizmeti sağlayıcı"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Takım kodu geçersiz"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Çok sayıda başarısız oturum açma girişimi nedeniyle hesabınız kilitlendi. Lütfen parolanızı sıfırlayın."
   },
@@ -2177,6 +2193,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Kimlik Doğrulama Aktarımı yapılandırılmamış ya da bu sunucu üzerinde kullanılamıyor."
+  },
+  {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Onaylanan değer hatalı"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -4623,6 +4643,22 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: olusturulma_zamani."
+  },
+  {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Hizmet koşulları kodu geçersiz."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Hizmet koşulları metni geçersiz."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: kullanici_kodu."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Ad içinde 2 ya da daha fazla küçük alfasayısal karakter bulunmalıdır"
   },
@@ -4688,7 +4724,7 @@
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "Lütfen geçerli bir e-posta adresi yazın."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -4696,7 +4732,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Kullanıcı adı bir harf ile başlamalı, 3 ile 22 karakter arasında olmalı ve rakamlar, küçük harfler ve \".\",\"-\" ile \"_\" karakterlerini içermelidir."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5753,6 +5789,22 @@
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
     "translation": "Şemayı kaydedecek hareket işlenemedi"
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Hizmet koşulları kaydedilemedi"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Hizmet koşulları alınamadı"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "Herhangi bir hizmet koşulu bulunamadı."
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Var olan hizmet koşulları için kaydetme çağrısı yapılmamalıdır"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

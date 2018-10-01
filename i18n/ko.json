@@ -412,6 +412,10 @@
     "translation": "현재 채널의 업데이트에 실패하였습니다."
   },
   {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
+  },
+  {
     "id": "api.command_channel_rename.channel.app_error",
     "translation": "현재 채널을 찾는 중 오류가 발생하였습니다."
   },
@@ -929,6 +933,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "OAuth 세션이 아님에도 쿼리 문자열에 토큰이 제공되었습니다"
+  },
+  {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
+  },
+  {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2019,6 +2031,10 @@
     "translation": "Unsupported OAuth service provider"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "잘못된 팀 ID"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "로그인 실패가 계속되어 계정이 잠겼습니다. 비밀번호를 재설정하세요."
   },
@@ -2177,6 +2193,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
+  },
+  {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Bad accepted value"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -4623,6 +4643,22 @@
     "translation": "잘못된 사용자 ID"
   },
   {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Missing required term of service property: create_at."
+  },
+  {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Missing required terms of service property: user_id."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "이름은 반드시 2글자 이상의 영문 또는 숫자여야 합니다."
   },
@@ -5753,6 +5789,22 @@
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
     "translation": "Failed to commit the transaction to save the scheme"
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

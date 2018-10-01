@@ -412,6 +412,10 @@
     "translation": "Error al actualizar el canal actual."
   },
   {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
+  },
+  {
     "id": "api.command_channel_rename.channel.app_error",
     "translation": "Error al recuperar el canal actual."
   },
@@ -929,6 +933,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "La sesión no es de tipo OAuth pero existe un token en el query string"
+  },
+  {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "La característica de Términos de servicio personalizado está desactivada"
+  },
+  {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Por favor, introduce el texto de los Términos de Servicio Personalizado."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2019,6 +2031,10 @@
     "translation": "Proveedor de servicios de OAuth no es compatible"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Id del Equipo no válido"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Tu cuenta ha sido bloqueada debido a demasiados intentos fallidos. Por favor, restablece tu contraseña."
   },
@@ -2177,6 +2193,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "La transferencia de autenticación no está configurado o disponible en este servidor."
+  },
+  {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Valor aceptado incorrecto"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -4623,6 +4643,22 @@
     "translation": "Id del usuario no es válido"
   },
   {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Falta la propiedad requerida de términos de servicio: create_at."
+  },
+  {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Id de términos de servicio no válido."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "El texto de términos de servicio no es válido."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Falta la propiedad requerida de términos de servicio: user_id."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Nombre debe tener 2 o más caracteres alfanuméricos en minúscula"
   },
@@ -4688,7 +4724,7 @@
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "Por favor, ingresa una dirección válida de correo electrónico."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -4696,7 +4732,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Nombre de usuario debe comenzar con una letra y contener entre 3 y 22 caracteres, incluyendo números, letras minúsculas, y los símbolos \".\", \"- \" y \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5753,6 +5789,22 @@
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
     "translation": "Falla al terminar la transacción para guardar el esquema"
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "No se puede guardar los términos de servicio"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "No se puede obtener los términos de servicio"
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "Términos de servicio no encontrado"
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "No se debe invocar guardar un término de servicio existente"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

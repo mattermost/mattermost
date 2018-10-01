@@ -412,6 +412,10 @@
     "translation": "Une erreur s'est produite lors de la mise à jour du canal courant."
   },
   {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
+  },
+  {
     "id": "api.command_channel_rename.channel.app_error",
     "translation": "Impossible de récupérer le canal courant."
   },
@@ -929,6 +933,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "La session n'est pas OAuth alors qu'un jeton a été spécifié dans les paramètres de la requête"
+  },
+  {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
+  },
+  {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2019,6 +2031,10 @@
     "translation": "Fournisseur de service OAuth non supporté"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "ID d'équipe invalide"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Votre compte est verrouillé en raison d'un trop grand nombre de tentatives de connexions. Veuillez réinitialiser votre mot de passe."
   },
@@ -2177,6 +2193,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Le changement de méthode d'authentification n'est pas configuré ou disponible sur ce serveur."
+  },
+  {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Bad accepted value"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -4623,6 +4643,22 @@
     "translation": "ID utilisateur invalide"
   },
   {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "La propriété requise pour un message est manquante : create_at."
+  },
+  {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "La propriété requise pour un message est manquante : create_at."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques minuscules"
   },
@@ -5753,6 +5789,22 @@
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
     "translation": "Impossible de valider la transaction pour enregistrer le schéma de permissions"
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
