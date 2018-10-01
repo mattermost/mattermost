@@ -451,6 +451,13 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
+	m := make(map[string]string)
+	m["location"] = ""
+	cfg := c.App.GetConfig()
+	if !*cfg.ServiceSettings.EnableLinkPreviews {
+		w.Write([]byte(model.MapToJson(m)))
+		return
+	}
 	url := r.URL.Query().Get("url")
 	if len(url) == 0 {
 		c.SetInvalidParam("url")
@@ -462,9 +469,6 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 			return http.ErrUseLastResponse
 		},
 	}
-
-	m := make(map[string]string)
-	m["location"] = ""
 
 	res, err := client.Head(url)
 	if err != nil {
