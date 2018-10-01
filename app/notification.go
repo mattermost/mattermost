@@ -35,19 +35,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		fchan = a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
 	}
 
-	var profileMap map[string]*model.User
-	if result := <-pchan; result.Err != nil {
+	result := <-pchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		profileMap = result.Data.(map[string]*model.User)
 	}
+	profileMap := result.Data.(map[string]*model.User)
 
-	var channelMemberNotifyPropsMap map[string]model.StringMap
-	if result := <-cmnchan; result.Err != nil {
+	result = <-cmnchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		channelMemberNotifyPropsMap = result.Data.(map[string]model.StringMap)
 	}
+	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
 	mentionedUserIds := make(map[string]bool)
 	threadMentionedUserIds := make(map[string]string)

@@ -22,26 +22,27 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	post := notification.post
 
 	if channel.IsGroupOrDirect() {
-		if result := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
+		result := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+		if result.Err != nil {
 			return result.Err
+		}
+
+		// if the recipient isn't in the current user's team, just pick one
+		teams := result.Data.([]*model.Team)
+		found := false
+
+		for i := range teams {
+			if teams[i].Id == team.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found && len(teams) > 0 {
+			team = teams[0]
 		} else {
-			// if the recipient isn't in the current user's team, just pick one
-			teams := result.Data.([]*model.Team)
-			found := false
-
-			for i := range teams {
-				if teams[i].Id == team.Id {
-					found = true
-					break
-				}
-			}
-
-			if !found && len(teams) > 0 {
-				team = teams[0]
-			} else {
-				// in case the user hasn't joined any teams we send them to the select_team page
-				team = &model.Team{Name: "select_team", DisplayName: a.Config().TeamSettings.SiteName}
-			}
+			// in case the user hasn't joined any teams we send them to the select_team page
+			team = &model.Team{Name: "select_team", DisplayName: a.Config().TeamSettings.SiteName}
 		}
 	}
 
@@ -357,7 +358,6 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 
 	if onlyImages {
 		return translateFunc("api.post.get_message_for_notification.images_sent", len(filenames), props)
-	} else {
-		return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
 	}
+	return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
 }
