@@ -3219,10 +3219,6 @@
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
-    "id": "ent.cluster.save_config.update_custom_service_terms_no_user.error",
-    "translation": "Custom service terms can only be changed if provided with exactly one user id"
-  },
-  {
     "id": "ent.compliance.bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
@@ -4756,7 +4752,7 @@
   },
   {
     "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Invalid terms of service text."
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -6388,19 +6384,19 @@
   },
   {
     "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Must not call save for existing service terms"
+    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_service_terms.save.app_error",
-    "translation": "Unable to save service terms"
+    "translation": "Unable to save terms of service."
   },
   {
     "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Unable to fetch service terms"
+    "translation": "Unable to fetch terms of service."
   },
   {
     "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "No service terms found"
+    "translation": "No terms of service found."
   },
   {
     "id": "system.message.name",
