@@ -58,7 +58,7 @@ func InvalidServiceTermsError(fieldName string, serviceTermsId string) *AppError
 	if serviceTermsId != "" {
 		details = "service_terms_id=" + serviceTermsId
 	}
-	return NewAppError("ServiceTerms.IsValid", id, nil, details, http.StatusBadRequest)
+	return NewAppError("ServiceTerms.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
 }
 
 func (t *ServiceTerms) PreSave() {
