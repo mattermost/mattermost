@@ -106,4 +106,19 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 
 	actual = rp.DoCommand(th.App, args, user1.Username).Text
 	assert.Equal(t, "api.command_remove.direct_group.app_error", actual)
+
+	// Try a public channel with a deactivated user.
+	deactivatedUser := th.CreateUser()
+	th.App.AddUserToTeam(th.BasicTeam.Id, deactivatedUser.Id, deactivatedUser.Id)
+	th.App.AddUserToChannel(deactivatedUser, publicChannel)
+	th.App.UpdateActive(deactivatedUser, false)
+
+	args = &model.CommandArgs{
+		T:         func(s string, args ...interface{}) string { return s },
+		ChannelId: publicChannel.Id,
+		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+	}
+
+	actual = rp.DoCommand(th.App, args, deactivatedUser.Username).Text
+	assert.Equal(t, "api.command_remove.missing.app_error", actual)
 }
