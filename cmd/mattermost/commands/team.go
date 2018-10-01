@@ -64,6 +64,7 @@ var SearchTeamCmd = &cobra.Command{
 	Short:   "Search for teams",
 	Long:    "Search for teams based on name",
 	Example: "  team search team1",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    searchTeamCmdF,
 }
 
@@ -264,25 +265,20 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+	teams := make([]*model.Team, 0, len(args))
+
+	for _, searchTerm := range args {
+		team, err := a.SearchAllTeams(searchTerm)
+		if err != nil {
+			return err
+		}
+		teams = append(teams, team...)
 	}
 
-	teams := getTeamsFromTeamArgs(a, args)
+	sortedTeams := removeDuplicatesAndSortTeams(teams)
 
-	for i, team := range teams {
-		if i > 0 {
-			CommandPrettyPrintln("------------------------------")
-		}
-		if team == nil {
-			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
-			continue
-		}
-
-		CommandPrettyPrintln("id: " + team.Id)
-		CommandPrettyPrintln("name: " + team.Name)
-		CommandPrettyPrintln("display_name: " + team.DisplayName)
-		CommandPrettyPrintln("email: " + team.Email)
+	for _, team := range sortedTeams {
+		CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")")
 	}
 
 	return nil

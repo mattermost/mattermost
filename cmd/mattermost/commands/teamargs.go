@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"sort"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -30,4 +32,20 @@ func getTeamFromTeamArg(a *app.App, teamArg string) *model.Team {
 	}
 
 	return team
+}
+
+// Removes duplicates and sorts teams by name
+func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
+	keys := make(map[string]bool)
+	result := []*model.Team{}
+	for _, team := range teams {
+		if _, value := keys[team.Name]; !value {
+			keys[team.Name] = true
+			result = append(result, team)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name < result[j].Name
+	})
+	return result
 }
