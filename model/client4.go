@@ -723,7 +723,7 @@ func (c *Client4) AutocompleteUsers(username string, etag string) (*UserAutocomp
 	}
 }
 
-// GetDefaultProfileImage gets the default user's profile image. Must be logged in or be a system administrator.
+// GetDefaultProfileImage gets the default user's profile image. Must be logged in.
 func (c *Client4) GetDefaultProfileImage(userId string) ([]byte, *Response) {
 	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+"/image/default", "")
 	if appErr != nil {
@@ -733,13 +733,13 @@ func (c *Client4) GetDefaultProfileImage(userId string) ([]byte, *Response) {
 
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return nil, BuildErrorResponse(r, NewAppError("GetProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
+		return nil, BuildErrorResponse(r, NewAppError("GetDefaultProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
 	}
 
 	return data, BuildResponse(r)
 }
 
-// GetProfileImage gets user's profile image. Must be logged in or be a system administrator.
+// GetProfileImage gets user's profile image. Must be logged in.
 func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
