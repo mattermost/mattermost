@@ -279,6 +279,7 @@
         "BindUsername": "",
         "BindPassword": "",
         "UserFilter": "",
+        "GroupFilter": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",
