@@ -40,18 +40,3 @@ changetype: add
 objectclass: groupOfUniqueNames
 uniqueMember: uid=qa.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: uid=qa.two,ou=testusers,dc=mm,dc=test,dc=com
-
-
-# organizationalRole
-dn: cn=sales,ou=testusers,dc=mm,dc=test,dc=com
-objectclass: organizationalRole
-roleOccupant: uid=sales.one,ou=testusers,dc=mm,dc=test,dc=com
-roleOccupant: uid=sales.two,ou=testusers,dc=mm,dc=test,dc=com
-
-
-# posixGroup
-dn: cn=pm,ou=testusers,dc=mm,dc=test,dc=com
-objectClass: posixGroup
-gidNumber: 678
-memberUid: pm.one
-memberUid: pm.two

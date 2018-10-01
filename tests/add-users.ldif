@@ -106,39 +106,3 @@ sn: User
 cn: Board2
 mail: success+boardtwo@simulator.amazonses.com
 userPassword: Password1
-
-
-# pm
-dn: uid=pm.one,ou=testusers,dc=mm,dc=test,dc=com
-changetype: add
-objectclass: iNetOrgPerson
-sn: User
-cn: PM1
-mail: success+pmone@simulator.amazonses.com
-userPassword: Password1
-
-dn: uid=pm.two,ou=testusers,dc=mm,dc=test,dc=com
-changetype: add
-objectclass: iNetOrgPerson
-sn: User
-cn: PM2
-mail: success+pmtwo@simulator.amazonses.com
-userPassword: Password1
-
-
-# sales
-dn: uid=sales.one,ou=testusers,dc=mm,dc=test,dc=com
-changetype: add
-objectclass: iNetOrgPerson
-sn: User
-cn: Sales1
-mail: success+salesone@simulator.amazonses.com
-userPassword: Password1
-
-dn: uid=sales.two,ou=testusers,dc=mm,dc=test,dc=com
-changetype: add
-objectclass: iNetOrgPerson
-sn: User
-cn: Sales2
-mail: success+salestwo@simulator.amazonses.com
-userPassword: Password1
