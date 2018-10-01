@@ -38,7 +38,7 @@ type SqlChannelStoreExperimental struct {
 
 func NewSqlChannelStoreExperimental(sqlStore SqlStore, metrics einterfaces.MetricsInterface, enabled bool) store.ChannelStore {
 	s := &SqlChannelStoreExperimental{
-		SqlChannelStore:                                   *NewSqlChannelStore(sqlStore, metrics).(*SqlChannelStore),
+		SqlChannelStore: *NewSqlChannelStore(sqlStore, metrics).(*SqlChannelStore),
 		experimentalPublicChannelsMaterializationDisabled: new(uint32),
 	}
 
