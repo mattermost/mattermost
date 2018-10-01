@@ -441,6 +441,7 @@ func (a *App) trackConfig() {
 		"isdefault_login_button_border_color": isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":   isDefault(*cfg.LdapSettings.LoginButtonTextColor, ""),
 		"isempty_group_filter":                isDefault(*cfg.LdapSettings.GroupFilter, ""),
+		"use_memberof_overlay":                *cfg.LdapSettings.UseMemberOfOverlay,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
