@@ -6,6 +6,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -265,14 +266,14 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	teams := make([]*model.Team, 0, len(args))
+	var teams []*model.Team
 
 	for _, searchTerm := range args {
-		team, err := a.SearchAllTeams(searchTerm)
+		foundTeams, err := a.SearchAllTeams(searchTerm)
 		if err != nil {
 			return err
 		}
-		teams = append(teams, team...)
+		teams = append(teams, foundTeams...)
 	}
 
 	sortedTeams := removeDuplicatesAndSortTeams(teams)
@@ -282,4 +283,20 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// Removes duplicates and sorts teams by name
+func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
+	keys := make(map[string]bool)
+	result := []*model.Team{}
+	for _, team := range teams {
+		if _, value := keys[team.Name]; !value {
+			keys[team.Name] = true
+			result = append(result, team)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name < result[j].Name
+	})
+	return result
 }
