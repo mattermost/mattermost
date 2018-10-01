@@ -4835,6 +4835,10 @@
     "translation": "Unable to set the user status. Unknown user status."
   },
   {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
+  },
+  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Unable to convert StringArray to *string"
   },

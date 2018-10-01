@@ -1670,7 +1670,13 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 
 // This function is intended for use from the CLI. It is not robust against people joining the channel while the move
 // is in progress, and therefore should not be used from the API without first fixing this potential race condition.
-func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
+	if removeDeactivatedMembers {
+		if result := <-a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); result.Err != nil {
+			return result.Err
+		}
+	}
+
 	// Check that all channel members are in the destination team.
 	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
 	if err != nil {
