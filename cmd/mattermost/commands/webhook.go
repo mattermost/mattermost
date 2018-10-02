@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"math"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
 )
@@ -44,27 +42,27 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 			continue
 		}
 
-		incomingResult := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, math.MaxInt32)
-		outgoingResult := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, math.MaxInt32)
+		incomingResult := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, -1, -1)
+		outgoingResult := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, -1, -1)
 
 		if result := <-incomingResult; result.Err == nil {
-			CommandPrettyPrintln("Outgoing Webhooks:")
-			hooks := result.Data.([]*model.IncomingWebhook)
-			for _, hook := range hooks {
-				CommandPrettyPrintln(hook.DisplayName + " (" + hook.Id + ")")
-			}
-		} else {
-			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
-		}
-
-		if result := <-outgoingResult; result.Err != nil {
-			hooks := result.Data.([]*model.IncomingWebhook)
 			CommandPrettyPrintln("Incoming Webhooks:")
+			hooks := result.Data.([]*model.IncomingWebhook)
 			for _, hook := range hooks {
-				CommandPrettyPrintln(hook.DisplayName + " (" + hook.Id + ")")
+				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
 			}
 		} else {
 			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
+		}
+
+		if result := <-outgoingResult; result.Err == nil {
+			hooks := result.Data.([]*model.OutgoingWebhook)
+			CommandPrettyPrintln("Outgoing Webhooks:")
+			for _, hook := range hooks {
+				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
+			}
+		} else {
+			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
 		}
 	}
 	return nil
@@ -74,4 +72,6 @@ func init() {
 	WebhookCmd.AddCommand(
 		WebhookListCmd,
 	)
+
+	RootCmd.AddCommand(WebhookCmd)
 }
