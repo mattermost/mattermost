@@ -96,7 +96,7 @@ func TestListTeams(t *testing.T) {
 	}
 }
 
-func TestSearchTeams(t *testing.T) {
+func TestSearchTeamsByName(t *testing.T) {
 	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
@@ -107,6 +107,23 @@ func TestSearchTeams(t *testing.T) {
 	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
 
 	output := CheckCommand(t, "team", "search", name)
+
+	if !strings.Contains(string(output), name) {
+		t.Fatal("should have the created team")
+	}
+}
+
+func TestSearchTeamsByDisplayName(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	output := CheckCommand(t, "team", "search", displayName)
 
 	if !strings.Contains(string(output), name) {
 		t.Fatal("should have the created team")
