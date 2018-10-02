@@ -116,8 +116,6 @@ func (s *SqlSupplier) GroupGet(ctx context.Context, groupId string, hints ...sto
 func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupType model.GroupType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	fmt.Sprintf("groupType: %s\n", groupType)
-
 	var group *model.Group
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE RemoteId = :RemoteId AND Type = :Type", map[string]interface{}{"RemoteId": remoteID, "Type": groupType}); err != nil {
 		if err == sql.ErrNoRows {

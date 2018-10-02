@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -453,7 +452,6 @@ func testGroupCreateMember(t *testing.T, ss store.Store) {
 
 	// Invalid UserId
 	res5 := <-ss.Group().CreateMember(group.Id, model.NewId())
-	fmt.Printf("%#v\n", res5)
 	assert.Equal(t, res5.Err.Id, "store.sql_group.insert_error")
 
 	// Invalid GroupId
