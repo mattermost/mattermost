@@ -197,7 +197,7 @@ type API interface {
 	KVDelete(key string) *model.AppError
 
 	// KVList will list all keys for a plugin.
-	KVList(offset int, limit int) ([]string, *model.AppError)
+	KVList(page, perPage int) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_"

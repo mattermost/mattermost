@@ -996,13 +996,13 @@ func (_m *API) KVGet(key string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
-// KVList provides a mock function with given fields: offset, limit
-func (_m *API) KVList(offset int, limit int) ([]string, *model.AppError) {
-	ret := _m.Called(offset, limit)
+// KVList provides a mock function with given fields: page, perPage
+func (_m *API) KVList(page int, perPage int) ([]string, *model.AppError) {
+	ret := _m.Called(page, perPage)
 
 	var r0 []string
 	if rf, ok := ret.Get(0).(func(int, int) []string); ok {
-		r0 = rf(offset, limit)
+		r0 = rf(page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
@@ -1011,7 +1011,7 @@ func (_m *API) KVList(offset int, limit int) ([]string, *model.AppError) {
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
-		r1 = rf(offset, limit)
+		r1 = rf(page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
