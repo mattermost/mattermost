@@ -15,6 +15,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -589,7 +591,38 @@ func TestUpdatePost(t *testing.T) {
 
 	Client.Logout()
 
+	th.LoginTeamAdmin()
+	_, resp = Client.UpdatePost(rpost.Id, rpost)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
 	_, resp = th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
+	CheckNoError(t, resp)
+}
+
+func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
+	// This test checks that a sysadmin with the "EDIT_OTHERS_POSTS" permission can edit someone else's post in a
+	// channel without a team (DM/GM). This indirectly checks for the proper cascading all the way to system-wide roles
+	// on the user object of permissions based on a post in a channel with no team ID.
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	dmChannel := th.CreateDmChannel(th.SystemAdminUser)
+
+	post := &model.Post{
+		Message:       "asd",
+		ChannelId:     dmChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		CreateAt:      0,
+	}
+
+	post, resp := th.Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	post.Message = "changed"
+	post, resp = th.SystemAdminClient.UpdatePost(post.Id, post)
 	CheckNoError(t, resp)
 }
 
@@ -675,7 +708,7 @@ func TestPatchPost(t *testing.T) {
 
 	th.LoginTeamAdmin()
 	_, resp = Client.PatchPost(post.Id, patch)
-	CheckNoError(t, resp)
+	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.PatchPost(post.Id, patch)
 	CheckNoError(t, resp)
@@ -1478,6 +1511,38 @@ func TestSearchPosts(t *testing.T) {
 		t.Fatal("wrong search")
 	}
 
+	terms = "search"
+	page := 0
+	perPage := 2
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	posts2, resp := Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	if len(posts2.Order) != 3 { // We don't support paging for DB search yet, modify this when we do.
+		t.Fatal("Wrong number of posts", len(posts2.Order))
+	}
+	assert.Equal(t, posts.Order[0], posts2.Order[0])
+	assert.Equal(t, posts.Order[1], posts2.Order[1])
+
+	page = 1
+	searchParams = model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		TimeZoneOffset: &timezoneOffset,
+		Page:           &page,
+		PerPage:        &perPage,
+	}
+	posts2, resp = Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
+	CheckNoError(t, resp)
+	if len(posts2.Order) != 0 { // We don't support paging for DB search yet, modify this when we do.
+		t.Fatal("Wrong number of posts", len(posts2.Order))
+	}
+
 	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "search", false)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 3 {
@@ -1496,7 +1561,15 @@ func TestSearchPosts(t *testing.T) {
 		t.Fatal("wrong search")
 	}
 
-	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
+	terms = "#hashtag"
+	includeDeletedChannels := true
+	searchParams = model.SearchParameter{
+		Terms:                  &terms,
+		IsOrSearch:             &isOrSearch,
+		TimeZoneOffset:         &timezoneOffset,
+		IncludeDeletedChannels: &includeDeletedChannels,
+	}
+	posts, resp = Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 2 {
 		t.Fatal("wrong search")
@@ -1506,7 +1579,7 @@ func TestSearchPosts(t *testing.T) {
 		*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
 	})
 
-	posts, resp = Client.SearchPostsIncludeDeletedChannels(th.BasicTeam.Id, "#hashtag", false)
+	posts, resp = Client.SearchPostsWithParams(th.BasicTeam.Id, &searchParams)
 	CheckNoError(t, resp)
 	if len(posts.Order) != 1 {
 		t.Fatal("wrong search")
@@ -1544,13 +1617,13 @@ func TestSearchHashtagPosts(t *testing.T) {
 	Client := th.Client
 
 	message := "#sgtitlereview with space"
-	_ = th.CreateMessagePost(message)
+	assert.NotNil(t, th.CreateMessagePost(message))
 
 	message = "#sgtitlereview\n with return"
-	_ = th.CreateMessagePost(message)
+	assert.NotNil(t, th.CreateMessagePost(message))
 
 	message = "no hashtag"
-	_ = th.CreateMessagePost(message)
+	assert.NotNil(t, th.CreateMessagePost(message))
 
 	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
 	CheckNoError(t, resp)

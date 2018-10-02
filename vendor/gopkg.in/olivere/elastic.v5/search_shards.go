@@ -176,5 +176,5 @@ type ShardsInfo struct {
 	Shard          uint        `json:"shard"`
 	State          string      `json:"state"`
 	AllocationId   interface{} `json:"allocation_id"`
-	RelocatingNode bool        `json:"relocating_node"`
+	RelocatingNode string      `json:"relocating_node"`
 }

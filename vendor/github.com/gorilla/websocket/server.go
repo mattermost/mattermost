@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"errors"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -171,17 +170,12 @@ func (u *Upgrader) Upgrade(w http.ResponseWriter, r *http.Request, responseHeade
 		}
 	}
 
-	var (
-		netConn net.Conn
-		err     error
-	)
-
 	h, ok := w.(http.Hijacker)
 	if !ok {
 		return u.returnError(w, r, http.StatusInternalServerError, "websocket: response does not implement http.Hijacker")
 	}
 	var brw *bufio.ReadWriter
-	netConn, brw, err = h.Hijack()
+	netConn, brw, err := h.Hijack()
 	if err != nil {
 		return u.returnError(w, r, http.StatusInternalServerError, err.Error())
 	}
@@ -331,7 +325,7 @@ func IsWebSocketUpgrade(r *http.Request) bool {
 		tokenListContainsValue(r.Header, "Upgrade", "websocket")
 }
 
-// bufioReader size returns the size of a bufio.Reader.
+// bufioReaderSize size returns the size of a bufio.Reader.
 func bufioReaderSize(originalReader io.Reader, br *bufio.Reader) int {
 	// This code assumes that peek on a reset reader returns
 	// bufio.Reader.buf[:0].

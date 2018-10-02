@@ -2181,6 +2181,7 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 
 	found := false
 	for _, u := range d1 {
+
 		if u.Id == u1.Id {
 			found = true
 			assert.Equal(t, u1.Id, u.Id)

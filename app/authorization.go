@@ -53,7 +53,9 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	channel, err := a.GetChannel(channelId)
 	if err == nil && channel.TeamId != "" {
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-	} else if err != nil && err.StatusCode == http.StatusNotFound {
+	}
+
+	if err != nil && err.StatusCode == http.StatusNotFound {
 		return false
 	}
 
@@ -72,7 +74,9 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 
 	if result := <-a.Srv.Store.Channel().GetForPost(postId); result.Err == nil {
 		channel := result.Data.(*model.Channel)
-		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+		if channel.TeamId != "" {
+			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+		}
 	}
 
 	return a.SessionHasPermissionTo(session, permission)

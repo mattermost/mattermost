@@ -156,13 +156,11 @@ type callInfo struct {
 	compressorType        string
 	failFast              bool
 	stream                *clientStream
-	traceInfo             traceInfo // in trace.go
 	maxReceiveMessageSize *int
 	maxSendMessageSize    *int
 	creds                 credentials.PerRPCCredentials
 	contentSubtype        string
 	codec                 baseCodec
-	disableRetry          bool
 	maxRetryRPCBufferSize int
 }
 
@@ -748,6 +746,19 @@ func parseDialTarget(target string) (net string, addr string) {
 	}
 
 	return net, target
+}
+
+// channelzData is used to store channelz related data for ClientConn, addrConn and Server.
+// These fields cannot be embedded in the original structs (e.g. ClientConn), since to do atomic
+// operation on int64 variable on 32-bit machine, user is responsible to enforce memory alignment.
+// Here, by grouping those int64 fields inside a struct, we are enforcing the alignment.
+type channelzData struct {
+	callsStarted   int64
+	callsFailed    int64
+	callsSucceeded int64
+	// lastCallStartedTime stores the timestamp that last call starts. It is of int64 type instead of
+	// time.Time since it's more costly to atomically update time.Time variable than int64 variable.
+	lastCallStartedTime int64
 }
 
 // The SupportPackageIsVersion variables are referenced from generated protocol

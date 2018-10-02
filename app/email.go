@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -290,15 +291,17 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 		return
 	}
 	rateLimited, result, err := a.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	if err != nil {
+		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
+		return
+	}
+
 	if rateLimited {
 		a.Log.Error("Invite emails rate limited.",
 			mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id),
 			mlog.String("retry_after", result.RetryAfter.String()),
 			mlog.Err(err))
-		return
-	} else if err != nil {
-		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
 		return
 	}
 
@@ -402,5 +405,5 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
 	license := a.License()
-	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
 }

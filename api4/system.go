@@ -12,7 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/services/filesstore"
 )
 
 func (api *API) InitSystem() {
@@ -427,7 +427,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := utils.CheckMandatoryS3Fields(&cfg.FileSettings)
+	err := filesstore.CheckMandatoryS3Fields(&cfg.FileSettings)
 	if err != nil {
 		c.Err = err
 		return
@@ -438,7 +438,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	license := c.App.License()
-	backend, appErr := utils.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
+	backend, appErr := filesstore.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
 	if appErr == nil {
 		appErr = backend.TestConnection()
 	}
@@ -451,6 +451,13 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
+	m := make(map[string]string)
+	m["location"] = ""
+	cfg := c.App.GetConfig()
+	if !*cfg.ServiceSettings.EnableLinkPreviews {
+		w.Write([]byte(model.MapToJson(m)))
+		return
+	}
 	url := r.URL.Query().Get("url")
 	if len(url) == 0 {
 		c.SetInvalidParam("url")
@@ -462,9 +469,6 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 			return http.ErrUseLastResponse
 		},
 	}
-
-	m := make(map[string]string)
-	m["location"] = ""
 
 	res, err := client.Head(url)
 	if err != nil {

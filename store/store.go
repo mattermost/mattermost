@@ -65,6 +65,7 @@ type Store interface {
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
+	ServiceTerms() ServiceTermsStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -229,6 +230,7 @@ type UserStore interface {
 	Save(user *model.User) StoreChannel
 	Update(user *model.User, allowRoleUpdate bool) StoreChannel
 	UpdateLastPictureUpdate(userId string) StoreChannel
+	ResetLastPictureUpdate(userId string) StoreChannel
 	UpdateUpdateAt(userId string) StoreChannel
 	UpdatePassword(userId, newPassword string) StoreChannel
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) StoreChannel
@@ -265,6 +267,7 @@ type UserStore interface {
 	AnalyticsActiveCount(time int64) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
+	GetAnyUnreadPostCountForChannel(userId string, channelId string) StoreChannel
 	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int) StoreChannel
 	GetNewUsersForTeam(teamId string, offset, limit int) StoreChannel
 	Search(teamId string, term string, options map[string]bool) StoreChannel
@@ -517,4 +520,10 @@ type SchemeStore interface {
 	GetAllPage(scope string, offset int, limit int) StoreChannel
 	Delete(schemeId string) StoreChannel
 	PermanentDeleteAll() StoreChannel
+}
+
+type ServiceTermsStore interface {
+	Save(serviceTerms *model.ServiceTerms) StoreChannel
+	GetLatest(allowFromCache bool) StoreChannel
+	Get(id string, allowFromCache bool) StoreChannel
 }

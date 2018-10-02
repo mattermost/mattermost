@@ -83,6 +83,10 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
 
+func (api *PluginAPI) GetServerVersion() string {
+	return model.CurrentVersion
+}
+
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.CreateTeam(team)
 }
@@ -251,7 +255,7 @@ func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.Channel
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
+	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId, false)
 }
 
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {

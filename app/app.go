@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
@@ -49,6 +50,8 @@ type App struct {
 
 	Hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
+
+	PushNotificationsHub PushNotificationsHub
 
 	Jobs *jobs.JobServer
 
@@ -99,7 +102,7 @@ type App struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService HTTPService
+	HTTPService httpservice.HTTPService
 }
 
 var appCount = 0
@@ -126,7 +129,10 @@ func New(options ...Option) (outApp *App, outErr error) {
 		licenseListeners: map[string]func(){},
 	}
 
-	app.HTTPService = MakeHTTPService(app)
+	app.HTTPService = httpservice.MakeHTTPService(app)
+
+	app.CreatePushNotificationsHub()
+	app.StartPushNotificationsHubWorkers()
 
 	defer func() {
 		if outErr != nil {
@@ -212,6 +218,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 
 	app.Srv.Store = app.newStore()
+
 	app.AddConfigListener(func(_, current *model.Config) {
 		if current.SqlSettings.EnablePublicChannelsMaterialization != nil && !*current.SqlSettings.EnablePublicChannelsMaterialization {
 			app.Srv.Store.Channel().DisableExperimentalPublicChannelsMaterialization()
@@ -237,6 +244,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	})
 
 	app.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", app.IsLeader()))
 		app.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
 	})
 
@@ -278,6 +286,7 @@ func (a *App) Shutdown() {
 
 	a.StopServer()
 	a.HubStop()
+	a.StopPushNotificationsHubWorkers()
 
 	a.ShutDownPlugins()
 	a.WaitForGoroutines()

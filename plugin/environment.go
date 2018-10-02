@@ -166,7 +166,9 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		env.activePlugins.Store(pluginInfo.Manifest.Id, activePlugin)
 	}()
 
-	if pluginInfo.Manifest.Webapp != nil {
+	componentActivated := false
+
+	if pluginInfo.Manifest.HasWebapp() {
 		bundlePath := filepath.Clean(pluginInfo.Manifest.Webapp.BundlePath)
 		if bundlePath == "" || bundlePath[0] == '.' {
 			return nil, false, fmt.Errorf("invalid webapp bundle path")
@@ -199,6 +201,8 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		); err != nil {
 			return nil, false, errors.Wrapf(err, "unable to rename webapp bundle: %v", id)
 		}
+
+		componentActivated = true
 	}
 
 	if pluginInfo.Manifest.HasServer() {
@@ -207,6 +211,12 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
 		activePlugin.supervisor = supervisor
+
+		componentActivated = true
+	}
+
+	if !componentActivated {
+		return nil, false, fmt.Errorf("unable to start plugin: must at least have a web app or server component")
 	}
 
 	return pluginInfo.Manifest, true, nil

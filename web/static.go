@@ -45,7 +45,8 @@ func (w *Web) InitStatic() {
 		// trailing slash. We don't want to use StrictSlash on the w.MainRouter and affect
 		// all routes, just /subpath -> /subpath/.
 		w.MainRouter.HandleFunc("", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, r.URL.String()+"/", http.StatusFound)
+			r.URL.Path += "/"
+			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		}))
 	}
 }

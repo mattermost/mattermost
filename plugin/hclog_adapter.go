@@ -97,3 +97,5 @@ func (h *hclogAdapter) ResetNamed(name string) hclog.Logger {
 func (h *hclogAdapter) StandardLogger(opts *hclog.StandardLoggerOptions) *log.Logger {
 	return h.wrappedLogger.StdLog()
 }
+
+func (h *hclogAdapter) SetLevel(hclog.Level) {}

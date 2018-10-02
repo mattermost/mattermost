@@ -3,7 +3,10 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/model"
+)
 
 // Registers a given function to be called when the cluster leader may have changed. Returns a unique ID for the
 // listener which can later be used to remove it. If clustering is not enabled in this build, the callback will never
@@ -20,6 +23,7 @@ func (a *App) RemoveClusterLeaderChangedListener(id string) {
 }
 
 func (a *App) InvokeClusterLeaderChangedListeners() {
+	mlog.Info("Cluster leader changed. Invoking ClusterLeaderChanged listeners.")
 	a.Go(func() {
 		a.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
 			listener.(func())()

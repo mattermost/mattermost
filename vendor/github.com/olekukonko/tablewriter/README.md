@@ -115,7 +115,7 @@ table.SetRowLine(true)         // Enable row line
 
 // Change table lines
 table.SetCenterSeparator("*")
-table.SetColumnSeparator("‡")
+table.SetColumnSeparator("╪")
 table.SetRowSeparator("-")
 
 table.SetAlignment(tablewriter.ALIGN_LEFT)

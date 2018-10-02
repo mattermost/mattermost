@@ -152,7 +152,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
 		"team_admin": []string{
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
 			model.PERMISSION_IMPORT_TEAM.Id,
@@ -197,6 +196,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
 			model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
 			model.PERMISSION_EDIT_OTHER_USERS.Id,
+			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_INVITE_USER.Id,
 			model.PERMISSION_DELETE_POST.Id,
@@ -222,7 +222,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
 			model.PERMISSION_IMPORT_TEAM.Id,
@@ -315,7 +314,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
 		"team_admin": []string{
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
 			model.PERMISSION_IMPORT_TEAM.Id,
@@ -362,6 +360,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
 			model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
 			model.PERMISSION_EDIT_OTHER_USERS.Id,
+			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_INVITE_USER.Id,
 			model.PERMISSION_DELETE_POST.Id,
@@ -387,7 +386,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
 			model.PERMISSION_IMPORT_TEAM.Id,
@@ -496,6 +494,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
 		model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
 		model.PERMISSION_EDIT_OTHER_USERS.Id,
+		model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 		model.PERMISSION_MANAGE_OAUTH.Id,
 		model.PERMISSION_INVITE_USER.Id,
 		model.PERMISSION_DELETE_POST.Id,
@@ -521,7 +520,6 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_GET_PUBLIC_LINK.Id,
 		model.PERMISSION_CREATE_POST.Id,
 		model.PERMISSION_USE_SLASH_COMMANDS.Id,
-		model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 		model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 		model.PERMISSION_MANAGE_TEAM.Id,
 		model.PERMISSION_IMPORT_TEAM.Id,
@@ -549,7 +547,6 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	role2, err2 := th.App.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
 	assert.Nil(t, err2)
 	expected2 := []string{
-		model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 		model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 		model.PERMISSION_MANAGE_TEAM.Id,
 		model.PERMISSION_IMPORT_TEAM.Id,

@@ -23,6 +23,10 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+const (
+	ERROR_SERVICE_TERMS_NO_ROWS_FOUND = "store.sql_service_terms_store.get.no_rows.app_error"
+)
+
 func (a *App) Config() *model.Config {
 	if cfg := a.config.Load(); cfg != nil {
 		return cfg.(*model.Config)
@@ -185,7 +189,9 @@ func (a *App) ensureAsymmetricSigningKey() error {
 		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
 		if result.Err != nil {
 			return result.Err
-		} else if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+		}
+
+		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
 			return err
 		}
 	}
@@ -240,6 +246,16 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+
+	if a.clientConfig["EnableCustomServiceTerms"] == "true" {
+		serviceTerms, err := a.GetLatestServiceTerms()
+		if err != nil {
+			mlog.Err(err)
+		} else {
+			a.clientConfig["CustomServiceTermsId"] = serviceTerms.Id
+		}
+	}
+
 	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if key := a.AsymmetricSigningKey(); key != nil {

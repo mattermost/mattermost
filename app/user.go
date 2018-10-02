@@ -245,7 +245,6 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 		}
 
 		ruser.Sanitize(map[string]bool{})
-
 		return ruser, nil
 	}
 }
@@ -746,36 +745,72 @@ func getFont(initialFont string) (*truetype.Font, error) {
 }
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
-	var img []byte
-	readFailed := false
-
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		var err *model.AppError
-		if img, err = CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont); err != nil {
-			return nil, false, err
+		img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+		if appErr != nil {
+			return nil, false, appErr
 		}
-	} else {
-		path := "users/" + user.Id + "/profile.png"
-
-		if data, err := a.ReadFile(path); err != nil {
-			readFailed = true
-
-			if img, err = CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont); err != nil {
-				return nil, false, err
-			}
-
-			if user.LastPictureUpdate == 0 {
-				if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
-					return nil, false, err
-				}
-			}
-
-		} else {
-			img = data
-		}
+		return img, false, nil
 	}
 
-	return img, readFailed, nil
+	path := "users/" + user.Id + "/profile.png"
+
+	data, err := a.ReadFile(path)
+	if err != nil {
+		img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+
+		if user.LastPictureUpdate == 0 {
+			if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
+				return nil, false, err
+			}
+		}
+		return img, true, nil
+	}
+
+	return data, false, nil
+}
+
+func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
+	img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return img, nil
+}
+
+func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
+	img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+	if appErr != nil {
+		return appErr
+	}
+
+	path := "users/" + user.Id + "/profile.png"
+
+	if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
+		return err
+	}
+
+	<-a.Srv.Store.User().ResetLastPictureUpdate(user.Id)
+
+	a.InvalidateCacheForUser(user.Id)
+
+	updatedUser, appErr := a.GetUser(user.Id)
+	if appErr != nil {
+		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", user.Id), mlog.String("user_id", user.Id))
+		return nil
+	}
+
+	options := a.Config().GetSanitizeOptions()
+	updatedUser.SanitizeProfile(options)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message.Add("user", updatedUser)
+	a.Publish(message)
+
+	return nil
 }
 
 func (a *App) SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {
@@ -1612,6 +1647,25 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 		user = result.Data.([2]*model.User)[0]
 		a.InvalidateCacheForUser(user.Id)
+	}
+
+	return nil
+}
+
+func (a *App) RecordUserServiceTermsAction(userId, serviceTermsId string, accepted bool) *model.AppError {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	if accepted {
+		user.AcceptedServiceTermsId = serviceTermsId
+	} else {
+		user.AcceptedServiceTermsId = ""
+	}
+	_, err = a.UpdateUser(user, false)
+	if err != nil {
+		return err
 	}
 
 	return nil

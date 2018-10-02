@@ -401,6 +401,14 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
+func (c *Client4) GetRegisterServiceTermsRoute(userId string) string {
+	return c.GetUserRoute(userId) + "/terms_of_service"
+}
+
+func (c *Client4) GetServiceTermsRoute() string {
+	return "/terms_of_service"
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -715,7 +723,23 @@ func (c *Client4) AutocompleteUsers(username string, etag string) (*UserAutocomp
 	}
 }
 
-// GetProfileImage gets user's profile image. Must be logged in or be a system administrator.
+// GetDefaultProfileImage gets the default user's profile image. Must be logged in.
+func (c *Client4) GetDefaultProfileImage(userId string) ([]byte, *Response) {
+	r, appErr := c.DoApiGet(c.GetUserRoute(userId)+"/image/default", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetDefaultProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
+	}
+
+	return data, BuildResponse(r)
+}
+
+// GetProfileImage gets user's profile image. Must be logged in.
 func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -1095,6 +1119,15 @@ func (c *Client4) SendVerificationEmail(email string) (bool, *Response) {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
 	}
+}
+
+// SetDefaultProfileImage resets the profile image to a default generated one
+func (c *Client4) SetDefaultProfileImage(userId string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetUserRoute(userId) + "/image")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	return CheckStatusOK(r), BuildResponse(r)
 }
 
 // SetProfileImage sets profile image of the user
@@ -2172,17 +2205,6 @@ func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*Po
 // SearchPosts returns any posts with matching terms string.
 func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) (*PostList, *Response) {
 	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", params.SearchParameterToJson()); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return PostListFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-// SearchPosts returns any posts with matching terms string including deleted channels.
-func (c *Client4) SearchPostsIncludeDeletedChannels(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
-	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
-	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search?include_deleted_channels=true", StringInterfaceToJson(requestBody)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -3814,5 +3836,40 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	} else {
 		defer closeBody(r)
 		return MapFromJson(r.Body)["location"], BuildResponse(r)
+	}
+}
+
+func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId string, accepted bool) (*bool, *Response) {
+	url := c.GetRegisterServiceTermsRoute(userId)
+	data := map[string]interface{}{"serviceTermsId": serviceTermsId, "accepted": accepted}
+
+	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return NewBool(CheckStatusOK(r)), BuildResponse(r)
+	}
+}
+
+func (c *Client4) GetServiceTerms(etag string) (*ServiceTerms, *Response) {
+	url := c.GetServiceTermsRoute()
+
+	if r, err := c.DoApiGet(url, etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ServiceTermsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+func (c *Client4) CreateServiceTerms(text, userId string) (*ServiceTerms, *Response) {
+	url := c.GetServiceTermsRoute()
+
+	data := map[string]string{"text": text}
+	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ServiceTermsFromJson(r.Body), BuildResponse(r)
 	}
 }

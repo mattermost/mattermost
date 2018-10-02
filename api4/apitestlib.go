@@ -454,6 +454,20 @@ func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 	return post
 }
 
+func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	var channel *model.Channel
+	if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return channel
+}
+
 func (me *TestHelper) LoginBasic() {
 	me.LoginBasicWithClient(me.Client)
 }

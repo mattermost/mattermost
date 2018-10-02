@@ -996,12 +996,13 @@ type PrivacySettings struct {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink *string
-	PrivacyPolicyLink  *string
-	AboutLink          *string
-	HelpLink           *string
-	ReportAProblemLink *string
-	SupportEmail       *string
+	TermsOfServiceLink        *string
+	PrivacyPolicyLink         *string
+	AboutLink                 *string
+	HelpLink                  *string
+	ReportAProblemLink        *string
+	SupportEmail              *string
+	CustomServiceTermsEnabled *bool
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1047,6 +1048,10 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.SupportEmail == nil {
 		s.SupportEmail = NewString(SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL)
+	}
+
+	if s.CustomServiceTermsEnabled == nil {
+		s.CustomServiceTermsEnabled = NewBool(false)
 	}
 }
 

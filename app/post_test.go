@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -115,7 +114,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost); err != nil {
+	if _, err := th.App.CreatePostAsUser(&replyPost, false); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -129,10 +128,12 @@ func TestPostAction(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var request model.PostActionIntegrationRequest
-		err := json.NewDecoder(r.Body).Decode(&request)
-		assert.NoError(t, err)
+		request := model.PostActionIntegrationRequesteFromJson(r.Body)
+		assert.NotNil(t, request)
+
 		assert.Equal(t, request.UserId, th.BasicUser.Id)
+		assert.Equal(t, request.ChannelId, th.BasicChannel.Id)
+		assert.Equal(t, request.TeamId, th.BasicTeam.Id)
 		if request.Type == model.POST_ACTION_TYPE_SELECT {
 			assert.Equal(t, request.DataSource, "some_source")
 			assert.Equal(t, request.Context["selected_option"], "selected")
@@ -173,7 +174,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost)
+	post, err := th.App.CreatePostAsUser(&interactivePost, false)
 	require.Nil(t, err)
 
 	attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
@@ -210,7 +211,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	post2, err := th.App.CreatePostAsUser(&menuPost)
+	post2, err := th.App.CreatePostAsUser(&menuPost, false)
 	require.Nil(t, err)
 
 	attachments2, ok := post2.Props["attachments"].([]*model.SlackAttachment)
@@ -265,7 +266,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin)
+	postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, false)
 	require.Nil(t, err)
 
 	attachmentsPlugin, ok := postplugin.Props["attachments"].([]*model.SlackAttachment)
@@ -306,7 +307,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL)
+	postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, false)
 	require.Nil(t, err)
 
 	attachmentsSiteURL, ok := postSiteURL.Props["attachments"].([]*model.SlackAttachment)
@@ -348,7 +349,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath)
+	postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, false)
 	require.Nil(t, err)
 
 	attachmentsSubpath, ok := postSubpath.Props["attachments"].([]*model.SlackAttachment)
@@ -387,7 +388,7 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	result, err := th.App.CreatePostAsUser(post)
+	result, err := th.App.CreatePostAsUser(post, false)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{

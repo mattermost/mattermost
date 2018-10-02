@@ -51,6 +51,7 @@ var BulkExportCmd = &cobra.Command{
 	Long:    "Export data to a file compatible with the Mattermost Bulk Import format.",
 	Example: "  export bulk bulk_data.json",
 	RunE:    bulkExportCmdF,
+	Args:    cobra.ExactArgs(1),
 }
 
 func init() {

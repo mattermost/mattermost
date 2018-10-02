@@ -180,14 +180,6 @@
     "translation": "You're the only member left, try removing the Private Channel instead of leaving."
   },
   {
-    "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
-  },
-  {
-    "id": "app.export.export_write_line.io_writer.error",
-    "translation": "An error occurred writing the export data."
-  },
-  {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
   },
@@ -420,6 +412,10 @@
     "translation": "Error to update the current channel."
   },
   {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
+  },
+  {
     "id": "api.command_channel_rename.channel.app_error",
     "translation": "Error to retrieve the current channel."
   },
@@ -624,7 +620,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Unable to find the user."
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.name",
@@ -832,7 +828,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Unable to find the user"
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_remove.name",
@@ -1017,10 +1013,6 @@
     "translation": "Unable to create emoji. File must be a PNG, JPEG, or GIF."
   },
   {
-    "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
-  },
-  {
     "id": "api.emoji.upload.large_image.decode_error",
     "translation": "Unable to create emoji. An error occurred when trying to decode the image."
   },
@@ -1035,6 +1027,10 @@
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
     "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.open.app_error",
@@ -2027,6 +2023,10 @@
     "translation": "Unsupported OAuth service provider"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Invalid team id"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
@@ -2363,6 +2363,10 @@
     "translation": "Bad verify email token type."
   },
   {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Bad accepted value"
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection"
   },
@@ -2423,6 +2427,14 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
+  },
+  {
     "id": "app.admin.test_email.failure",
     "translation": "Connection unsuccessful: {{.Error}}"
   },
@@ -2457,6 +2469,14 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "An error occurred writing the export data."
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "An error occured marshalling the JSON data for export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -4711,12 +4731,36 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Please enter a valid email address."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode"
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
     "translation": "Unable to connect to the WebSocket server."
+  },
+  {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Missing required term of service property: create_at."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Missing required terms of service property: user_id."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -6345,6 +6389,22 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "Unable to update the webhook"
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
   },
   {
     "id": "system.message.name",

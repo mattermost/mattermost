@@ -157,7 +157,7 @@
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
-    "translation": "Cannot delete direct or group message channels"
+    "translation": "Unable to delete direct or group message channels"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Cannot remove user from a channel."
+    "translation": "Unable to remove user from a channel."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -558,8 +558,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "Мы не смогли найти пользователя: {{.Users}}Мы не смогли найти пользователей: {{.Users}}",
-      "other": ""
+      "one": "Unable to find the user: {{.Users}}",
+      "other": "Unable to find the users: {{.Users}}"
     }
   },
   {
@@ -616,7 +616,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Мы не смогли найти пользователя."
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "api.command_invite.name",
@@ -660,7 +660,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Мы не смогли найти канал"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "api.command_join.name",
@@ -728,7 +728,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "Мы не смогли найти пользователя"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "api.command_msg.name",
@@ -824,7 +824,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Мы не смогли найти пользователя"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "api.command_remove.name",
@@ -1025,6 +1025,10 @@
     "translation": "Невозможно создать смайлик. Произошла ошибка при кодирования GIF изображения."
   },
   {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
+  },
+  {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Невозможно создать смайлик. Произошла ошибка при попытке открыть изображение."
   },
@@ -1034,11 +1038,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Unable to check if the file exists."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Unable to check if the file exists."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2244,7 +2248,7 @@
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Невозможно сбросить пароль учетной записи SSO"
+    "translation": "Невозможно сбросить пароль для учетной записи SSO"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -2445,6 +2449,14 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Не найдена конечная точка API кластера."
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "An error occurred writing the export data."
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "An error occured marshalling the JSON data for export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -3288,7 +3300,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
-    "translation": "Failed to delete the post"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3296,7 +3308,7 @@
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": "Failed to index the post"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3424,7 +3436,7 @@
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close properly the zip file."
+    "translation": "Unable to close the zip file."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -3624,7 +3636,7 @@
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Cannot run migration job due to unknown migration key."
+    "translation": "Unable to run migration job due to unknown migration key."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -4675,8 +4687,16 @@
     "translation": "Неверный токен."
   },
   {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Please enter a valid email address."
+  },
+  {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4748,7 +4768,7 @@
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "Не удалось получить подсчет типов каналов"
+    "translation": "Не удалось получить количество удалённых каналов по типам"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -4772,11 +4792,11 @@
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Неудачная попытка удалить канал"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Не удалось найти существующий канал"
+    "translation": "Не удалось найти существующий удалённый канал"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -4784,11 +4804,11 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "Не удалось получить все каналы"
+    "translation": "Невозможно получить каналы"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Не удалось найти существующий канал"
+    "translation": "Не удалось найти существующий удалённый канал"
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -4800,11 +4820,11 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Не удалось получить счетчики канала"
+    "translation": "Не удалось добавить участников прямого канала"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Не удалось получить каналы"
+    "translation": "Невозможно получить каналы"
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -4812,7 +4832,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Не удалось получить каналы"
+    "translation": "Невозможно получить каналы"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
@@ -4840,7 +4860,7 @@
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "Не удалось получить участников канала"
+    "translation": "Не удалось добавить участников прямого канала"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -4856,19 +4876,19 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
-    "translation": "Не удалось получить участников канала"
+    "translation": "Не удалось добавить участников прямого канала"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Не удалось получить список участников канала"
+    "translation": "Не удалось добавить участников прямого канала"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Не удалось получить каналы"
+    "translation": "Невозможно получить каналы"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Не удалось получить список публичных каналов"
+    "translation": "Невозможно получить каналы"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -4876,7 +4896,7 @@
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Не удалось увеличить счетчик упоминаний"
+    "translation": "Unable to increment the mention count"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -4900,31 +4920,71 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Не удалось удалить канал"
+    "translation": "Не удалось удалить плагин"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
+    "translation": "Не удалось зафиксировать транзакцию"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
+    "translation": "Unable to delete materialized public channel"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
+    "translation": "Невозможно открыть транзакцию"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Безуспешная попытка удалить каналы"
+    "translation": "Не удалось удалить плагин"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
+    "translation": "Не удалось зафиксировать транзакцию"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
+    "translation": "Unable to delete materialized public channels"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
+    "translation": "Невозможно открыть транзакцию"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Безуспешная попытка удалить участника канала"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Не удалось найти прикреплённые сообщения"
+    "translation": "Unable to find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Безуспешная попытка удалить участника канала"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "We could not reset the channel schemes"
   },
   {
+    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
+    "translation": "Не удалось зафиксировать транзакцию"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
+    "translation": "Невозможно открыть транзакцию"
+  },
+  {
     "id": "store.sql_channel.reset_last_post_at.app_error",
     "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
+    "translation": "Не удалось зафиксировать транзакцию"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
+    "translation": "Невозможно открыть транзакцию"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4941,6 +5001,10 @@
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
     "translation": "Невозможно открыть транзакцию"
+  },
+  {
+    "id": "store.sql_channel.save.upsert_public_channel.app_error",
+    "translation": "Unable to upsert materialized public channel"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -4964,7 +5028,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Не удалось сохранить канал"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -4996,11 +5060,23 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Не удалось сохранить участника канала"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_channel.search.app_error",
     "translation": "Возникла проблема при поиске канала"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
+    "translation": "Не удалось зафиксировать транзакцию"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
+    "translation": "Невозможно открыть транзакцию"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
+    "translation": "Unable to update the materialized public channel"
   },
   {
     "id": "store.sql_channel.update.app_error",
@@ -5011,8 +5087,16 @@
     "translation": "You can not modify an archived channel"
   },
   {
+    "id": "store.sql_channel.update.commit_transaction.app_error",
+    "translation": "Не удалось зафиксировать транзакцию"
+  },
+  {
     "id": "store.sql_channel.update.exists.app_error",
     "translation": "Канал с таким дескриптором уже существует"
+  },
+  {
+    "id": "store.sql_channel.update.open_transaction.app_error",
+    "translation": "Невозможно открыть транзакцию"
   },
   {
     "id": "store.sql_channel.update.previously.app_error",
@@ -5021,6 +5105,10 @@
   {
     "id": "store.sql_channel.update.updating.app_error",
     "translation": "Возникла ошибка при обновлении канала"
+  },
+  {
+    "id": "store.sql_channel.update.upsert_public_channel.app_error",
+    "translation": "Unable to upsert materialized public channel"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
@@ -5072,31 +5160,31 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Не удалось подсчитать команды"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "Не удалось получить команду"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "Безуспешная попытка удалить команду"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Безуспешная попытка удалить команду"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Не удалось получить команду"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Не удалось получить команды"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "Не удалось сохранить Команду"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -5104,15 +5192,15 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "Не удалось обновить команду"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Не удалось получить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Не удалось сохранить CommandWebhook"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -5120,7 +5208,7 @@
   },
   {
     "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Unable to use the webhook"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_command_webhooks.try_use.invalid.app_error",
@@ -5140,7 +5228,7 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Безуспешная попытка удалить эмодзи"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
@@ -5148,23 +5236,23 @@
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Не удалось получить эмодзи"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Не удалось получить эмодзи"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Не удалось получить эмодзи"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Не удалось сохранить эмодзи"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "We couldn't delete attachments of the user"
+    "translation": "Unable to delete attachments of the user"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -5176,11 +5264,11 @@
   },
   {
     "id": "store.sql_file_info.get.app_error",
-    "translation": "Мы не смогли получить информацию о файле"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Мы не смогли получить информацию о файле по пути"
+    "translation": "Мы не смогли получить информацию о файле к сообщению"
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
@@ -5192,7 +5280,7 @@
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "We couldn't permanently delete the file info"
+    "translation": "Unable to permanently delete the file info"
   },
   {
     "id": "store.sql_file_info.permanent_delete_batch.app_error",
@@ -5200,35 +5288,35 @@
   },
   {
     "id": "store.sql_file_info.save.app_error",
-    "translation": "Мы не смогли сохранить информацию о файле"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_job.delete.app_error",
-    "translation": "Не удалось удалить задачу"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_job.get.app_error",
-    "translation": "Не удалось получить задачу"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_job.get_all.app_error",
-    "translation": "Не удалось получить задачи"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "We couldn't get the job count by status and type"
+    "translation": "Unable to get the job count by status and type"
   },
   {
     "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "We couldn't get the newest job by status and type"
+    "translation": "Unable to get the newest job by status and type"
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "Не удалось сохранить задачу"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_job.update.app_error",
-    "translation": "Не удалось обновить задачу"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5268,7 +5356,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Не удалось отыскать запрашиваемое приложение"
+    "translation": "Unable to find the requested app"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -5276,7 +5364,7 @@
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "Не удалось найти ни одного имеющегося приложения"
+    "translation": "Не удалось найти действительную команду для обновления"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -5300,7 +5388,7 @@
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Неудачная попытка удалить токен доступа"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
@@ -5308,7 +5396,7 @@
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Мы не смогли сохранить токен."
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -5316,7 +5404,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Мы не смогли сохранить приложение."
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -5336,7 +5424,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Не удалось обновить приложение"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
@@ -5356,31 +5444,31 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Не удалось получить количество постов"
+    "translation": "Unable to get post counts"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Не удалось получить количество постов за день"
+    "translation": "Unable to get post counts by day"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Не удалось получить количество пользователей с постами"
+    "translation": "Unable to get user counts with posts"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": "We couldn't get the compliance export posts."
+    "translation": "Unable to get the compliance export posts."
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "Неудачная попытка удалить пост"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_post.get.app_error",
-    "translation": "Не удалось получить пост"
+    "translation": "Не удалось получить post"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "Не удалось получить счетчики канала"
+    "translation": "Не удалось добавить участников прямого канала"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5400,15 +5488,15 @@
   },
   {
     "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "We couldn't get the posts batch for indexing"
+    "translation": "Unable to get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Не удалось получить сообщения"
+    "translation": "Не удалось получить post"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Не удалось получить сообщения из канала"
+    "translation": "Не удалось получить посты для канала"
   },
   {
     "id": "store.sql_post.get_posts_since.app_error",
@@ -5420,11 +5508,11 @@
   },
   {
     "id": "store.sql_post.overwrite.app_error",
-    "translation": "Не удалось перезаписать сообщение"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Неудачная попытка удалить пост"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
@@ -5436,7 +5524,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Не удалось удалить сообщения на канале"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5448,11 +5536,11 @@
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "Unable to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "Не удалось сохранить Пост"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -5464,7 +5552,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "Мы не смогли обновить Пост"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
@@ -5492,7 +5580,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Не удалось сохранить настройку"
+    "translation": "Unable to save the preference"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -5524,7 +5612,7 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "Не удалось обновить настройку"
+    "translation": "Unable to update the preference"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
@@ -5668,7 +5756,7 @@
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Не удалось подсчитать сессии"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -5684,15 +5772,15 @@
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "Неудачная попытка удалить сессию"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Неудачная попытка удалить все сессии"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "Не удалось сохранить сессию"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_session.save.existing.app_error",
@@ -5700,15 +5788,15 @@
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Не удалось обновить идентификатор устройства"
+    "translation": "Unable to update the device id"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Не удалось обновить last_activity_at"
+    "translation": "Unable to update the last_activity_at"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "Не удалось обновить роли"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -5756,7 +5844,7 @@
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Не удалось найти системную переменную."
+    "translation": "Unable to find the system variable."
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
@@ -5772,11 +5860,11 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "We couldn't get the channel count for the scheme."
+    "translation": "Unable to get the channel count for the scheme."
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Не удалось подсчитать команды"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -5800,7 +5888,7 @@
   },
   {
     "id": "store.sql_team.get.find.app_error",
-    "translation": "Не удалось найти существующую команду"
+    "translation": "Не удалось найти действительную команду для обновления"
   },
   {
     "id": "store.sql_team.get.finding.app_error",
@@ -5816,15 +5904,15 @@
   },
   {
     "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Не удалось найти существующую команду"
+    "translation": "Не удалось найти действительную команду для обновления"
   },
   {
     "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Не удалось найти существующую команду"
+    "translation": "Не удалось найти действительную команду для обновления"
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Не удалось найти существующую команду"
+    "translation": "Не удалось найти действительную команду для обновления"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
@@ -5832,7 +5920,7 @@
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "Не удалось получить участника команды"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
@@ -5840,15 +5928,15 @@
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Мы не можем посчитать количество участников команды"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_team.get_members.app_error",
-    "translation": "Не удалось получить участников команды"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Мы не можем получить список участников команды"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_team.get_unread.app_error",
@@ -5876,11 +5964,11 @@
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Неудачная попытка удалить существующую команду"
+    "translation": "Не удалось найти действительную команду для обновления"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "Мы не можем удалить участника команды"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
@@ -5888,7 +5976,7 @@
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "Не удалось сохранить команду"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -5904,7 +5992,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Не удалось сохранить участника команды"
+    "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -5916,7 +6004,7 @@
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "Не удалось обновить команду"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_team.update.find.app_error",
@@ -5932,15 +6020,15 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Не удалось обновить имя команды"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "We couldn't update the date of the last team icon update"
+    "translation": "Unable to update the date of the last team icon update"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "We couldn't get the active users during the requested period"
+    "translation": "Unable to get the active users during the requested period"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -5948,11 +6036,11 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "We couldn't get the system admin count"
+    "translation": "Unable to get the system admin count"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Не удалось подсчитать уникальных пользователей"
+    "translation": "Unable to get the unique user count"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6032,15 +6120,15 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Не удалось найти пользователя"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Неудачная попытка удалить существующую учетную запись"
+    "translation": "Не удалось найти действительную команду для обновления"
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "Мы не смогли сохранить учетную запись."
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -6080,11 +6168,11 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "We couldn't find any user maching the search parameters"
+    "translation": "Unable to find any user maching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "Не удалось обновить учетную запись."
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -6112,7 +6200,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Не удалось обновить данные авторизации"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -6120,11 +6208,11 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Не удалось обновить failed_attempts"
+    "translation": "Unable to update the failed_attempts"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Мы не смогли сохранить время последнего обновления"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6136,11 +6224,11 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "Не удалось обновить пароль пользователя"
+    "translation": "Unable to update the user password"
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "We couldn't update the date of the last update of the user"
+    "translation": "Unable to update the date of the last update of the user"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -6176,71 +6264,71 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "Мы не смогли сохранить токен."
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "Мы не смогли сохранить токен."
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Не удалось подсчитать входящие вебхуки"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Не удалось подсчитать исходящие вебхуки"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Неудачная попытка удалить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Неудачная попытка удалить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Не удалось получить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Не удалось получить вебхуки"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Не удалось получить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Не удалось получить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Не удалось получить вебхуки"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Не удалось получить вебхуки"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Не удалось удалить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Неудачная попытка удалить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Не удалось удалить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Неудачная попытка удалить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Не удалось сохранить IncomingWebhook"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -6248,7 +6336,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Не удалось сохранить OutgoingWebhook"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -6256,11 +6344,11 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Не удалось сохранить IncomingWebhook"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Не удалось обновить вебхук"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "system.message.name",
