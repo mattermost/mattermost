@@ -27,8 +27,10 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/image/default", api.ApiSessionRequiredTrustRequester(getDefaultProfileImage)).Methods("GET")
 	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequiredTrustRequester(getProfileImage)).Methods("GET")
 	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequired(setProfileImage)).Methods("POST")
+	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequired(setDefaultProfileImage)).Methods("DELETE")
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(updateUser)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/patch", api.ApiSessionRequired(patchUser)).Methods("PUT")
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(deleteUser)).Methods("DELETE")
@@ -193,6 +195,35 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(user.ToJson()))
 }
 
+func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if len(users) == 0 {
+		c.Err = model.NewAppError("getProfileImage", "api.user.get_profile_image.not_found.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	user := users[0]
+	img, err := c.App.GetDefaultProfileImage(user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	w.Header().Set("Content-Type", "image/png")
+	w.Write(img)
+}
+
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -278,6 +309,37 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	imageData := imageArray[0]
 
 	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
+}
+
+func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if len(*c.App.Config().FileSettings.DriverName) == 0 {
+		c.Err = model.NewAppError("setDefaultProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := c.App.SetDefaultProfileImage(user); err != nil {
 		c.Err = err
 		return
 	}
