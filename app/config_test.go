@@ -36,7 +36,7 @@ func TestLoadConfig(t *testing.T) {
 	lines := strings.Split(string(input), "\n")
 	for i, line := range lines {
 		if strings.Contains(line, "SiteURL") {
-			lines[i] = `"SiteURL": "        http://localhost:8065/",`
+			lines[i] = `        "SiteURL": "http://localhost:8065/",`
 		}
 	}
 	output := strings.Join(lines, "\n")
