@@ -137,7 +137,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        "fake",
+		Type:        model.GroupType("fake"),
 		RemoteId:    model.NewId(),
 	}
 	assert.Equal(t, g6.IsValidForCreate().Id, "model.group.type.app_error")
@@ -191,7 +191,7 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 	assert.Len(t, d1.Id, 26)
 
 	// Get the group
-	res2 := <-ss.Group().GetByRemoteID(d1.RemoteId)
+	res2 := <-ss.Group().GetByRemoteID(d1.RemoteId, model.GroupTypeLdap)
 	assert.Nil(t, res2.Err)
 	d2 := res2.Data.(*model.Group)
 	assert.Equal(t, d1.Id, d2.Id)
@@ -204,7 +204,7 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 	assert.Equal(t, d1.DeleteAt, d2.DeleteAt)
 
 	// Get an invalid group
-	res3 := <-ss.Group().GetByRemoteID(model.NewId())
+	res3 := <-ss.Group().GetByRemoteID(model.NewId(), model.GroupType("fake"))
 	assert.NotNil(t, res3.Err)
 	assert.Equal(t, res3.Err.Id, "store.sql_group.no_rows")
 }

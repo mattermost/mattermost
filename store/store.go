@@ -537,7 +537,7 @@ type TermsOfServiceStore interface {
 type GroupStore interface {
 	Create(group *model.Group) StoreChannel
 	Get(groupID string) StoreChannel
-	GetByRemoteID(remoteID string) StoreChannel
+	GetByRemoteID(remoteID string, groupType model.GroupType) StoreChannel
 	GetAllPage(offset int, limit int) StoreChannel
 	Update(group *model.Group) StoreChannel
 	Delete(groupID string) StoreChannel

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -93,4 +94,17 @@ func GetHostnameFromSiteURL(siteURL string) string {
 	}
 
 	return u.Hostname()
+}
+
+// Slugify replaces and removes characters to provide a 'slug' representation of the input string. Thus:
+//  slug := Slugify("Hello, world!")
+//  fmt.Println(slug)
+// will yield "hello-world".
+func Slugify(in string) string {
+	var out string
+	re1 := regexp.MustCompile(`[^\s\w]`)
+	re2 := regexp.MustCompile(`\s`)
+	out = re1.ReplaceAllLiteralString(in, "")
+	out = re2.ReplaceAllLiteralString(out, "-")
+	return strings.ToLower(out)
 }

@@ -54,6 +54,7 @@ type Params struct {
 	PerPage        int
 	LogsPerPage    int
 	Permanent      bool
+	DN             string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -176,6 +177,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["group_id"]; ok {
 		params.GroupId = val
+	}
+
+	if val, ok := props["dn"]; ok {
+		params.DN = val
 	}
 
 	params.Scope = query.Get("scope")

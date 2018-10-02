@@ -221,20 +221,20 @@ func (_m *LayeredStoreSupplier) GroupGetAllPage(ctx context.Context, offset int,
 	return r0
 }
 
-// GroupGetByRemoteID provides a mock function with given fields: ctx, remoteID, hints
-func (_m *LayeredStoreSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupGetByRemoteID provides a mock function with given fields: ctx, remoteID, groupType, hints
+func (_m *LayeredStoreSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupType model.GroupType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, remoteID)
+	_ca = append(_ca, ctx, remoteID, groupType)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, remoteID, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupType, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, remoteID, groupType, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)

@@ -32,7 +32,7 @@ func initSqlSupplierGroups(sqlStore SqlStore) {
 		groups.ColMap("DisplayName").SetMaxSize(model.GroupDisplayNameMaxLength)
 		groups.ColMap("Description").SetMaxSize(model.GroupDescriptionMaxLength)
 		groups.ColMap("Type").SetMaxSize(model.GroupTypeMaxLength)
-		groups.ColMap("RemoteId").SetMaxSize(model.GroupRemoteIdMaxLength)
+		groups.ColMap("RemoteId").SetMaxSize(model.GroupRemoteIDMaxLength)
 
 		groupMembers := db.AddTableWithName(model.GroupMember{}, "GroupMembers").SetKeys(false, "GroupId", "UserId")
 		groupMembers.ColMap("GroupId").SetMaxSize(26)
@@ -113,12 +113,15 @@ func (s *SqlSupplier) GroupGet(ctx context.Context, groupId string, hints ...sto
 	return result
 }
 
-func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupType model.GroupType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
+	fmt.Sprintf("groupType: %s\n", groupType)
+
 	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE RemoteId = :RemoteId", map[string]interface{}{"RemoteId": remoteID}); err != nil {
+	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE RemoteId = :RemoteId AND Type = :Type", map[string]interface{}{"RemoteId": remoteID, "Type": groupType}); err != nil {
 		if err == sql.ErrNoRows {
+			// This AppError's details may be compared against in a call to GroupGetByRemoteID, so don't change it.
 			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.sql_group.no_rows", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)

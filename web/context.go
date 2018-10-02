@@ -546,3 +546,14 @@ func (c *Context) RequireGroupId() *Context {
 	}
 	return c
 }
+
+func (c *Context) RequireDN() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.DN) == 0 {
+		c.SetInvalidUrlParam("dn")
+	}
+	return c
+}

@@ -157,13 +157,13 @@ func (_m *GroupStore) GetAllPage(offset int, limit int) store.StoreChannel {
 	return r0
 }
 
-// GetByRemoteID provides a mock function with given fields: remoteID
-func (_m *GroupStore) GetByRemoteID(remoteID string) store.StoreChannel {
-	ret := _m.Called(remoteID)
+// GetByRemoteID provides a mock function with given fields: remoteID, groupType
+func (_m *GroupStore) GetByRemoteID(remoteID string, groupType model.GroupType) store.StoreChannel {
+	ret := _m.Called(remoteID, groupType)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(remoteID)
+	if rf, ok := ret.Get(0).(func(string, model.GroupType) store.StoreChannel); ok {
+		r0 = rf(remoteID, groupType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

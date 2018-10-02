@@ -15,8 +15,8 @@ func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 	return result.Data.(*model.Group), nil
 }
 
-func (a *App) GetGroupByRemoteID(remoteID string) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetByRemoteID(remoteID)
+func (a *App) GetGroupByRemoteID(remoteID string, groupType model.GroupType) (*model.Group, *model.AppError) {
+	result := <-a.Srv.Store.Group().GetByRemoteID(remoteID, groupType)
 	if result.Err != nil {
 		return nil, result.Err
 	}

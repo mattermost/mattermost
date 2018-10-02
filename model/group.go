@@ -10,33 +10,46 @@ import (
 	"strings"
 )
 
+type GroupType string
+
+type GroupTypes []GroupType
+
+func (gts *GroupTypes) String() string {
+	gtStrs := []string{}
+	for _, gt := range *gts {
+		gtStrs = append(gtStrs, string(gt))
+	}
+	return strings.Join(gtStrs, ",")
+}
+
+var groupTypes = GroupTypes{
+	GroupTypeLdap,
+}
+
 const (
-	GroupTypeLdap             = "ldap"
+	GroupTypeLdap GroupType = "ldap"
+
 	GroupNameMaxLength        = 64
 	GroupTypeMaxLength        = 64
 	GroupDisplayNameMaxLength = 128
 	GroupDescriptionMaxLength = 1024
-	GroupRemoteIdMaxLength    = 2048
+	GroupRemoteIDMaxLength    = 2048
 )
 
-var groupTypesRequiringRemoteId = []string{
-	GroupTypeLdap,
-}
-
-var groupTypes = []string{
+var groupTypesRequiringRemoteID = []GroupType{
 	GroupTypeLdap,
 }
 
 type Group struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Description string `json:"description"`
-	Type        string `json:"type"`
-	RemoteId    string `json:"remote_id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
+	Id          string    `json:"id"`
+	Name        string    `json:"name"`
+	DisplayName string    `json:"display_name"`
+	Description string    `json:"description"`
+	Type        GroupType `json:"type"`
+	RemoteId    string    `json:"remote_id"`
+	CreateAt    int64     `json:"create_at"`
+	UpdateAt    int64     `json:"update_at"`
+	DeleteAt    int64     `json:"delete_at"`
 }
 
 type GroupPatch struct {
@@ -78,10 +91,10 @@ func (group *Group) IsValidForCreate() *AppError {
 		}
 	}
 	if !isValidType {
-		return NewAppError("Group.IsValidForCreate", "model.group.type.app_error", map[string]interface{}{"ValidGroupTypes": strings.Join(groupTypes, ", ")}, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidForCreate", "model.group.type.app_error", map[string]interface{}{"ValidGroupTypes": groupTypes.String()}, "", http.StatusBadRequest)
 	}
 
-	if len(group.RemoteId) > GroupRemoteIdMaxLength || len(group.RemoteId) == 0 && group.RequiresRemoteId() {
+	if len(group.RemoteId) > GroupRemoteIDMaxLength || len(group.RemoteId) == 0 && group.RequiresRemoteId() {
 		return NewAppError("Group.IsValidForCreate", "model.group.remote_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -89,7 +102,7 @@ func (group *Group) IsValidForCreate() *AppError {
 }
 
 func (group *Group) RequiresRemoteId() bool {
-	for _, groupType := range groupTypesRequiringRemoteId {
+	for _, groupType := range groupTypesRequiringRemoteID {
 		if groupType == group.Type {
 			return true
 		}
