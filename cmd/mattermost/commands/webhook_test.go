@@ -15,14 +15,24 @@ func TestListWebhooks(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
-	dispName := "myhook"
+	dispName := "myhookinc"
 	hook := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id}
 	_, resp := Client.CreateIncomingWebhook(hook)
+	api4.CheckNoError(t, resp)
+
+	dispName2 := "myhookout"
+	outHook := &model.OutgoingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id}
+	_, resp = Client.CreateOutgoingWebhook(outHook)
 	api4.CheckNoError(t, resp)
 
 	output := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
 	if !strings.Contains(string(output), dispName) {
-		t.Fatal("should have webhooks")
+		t.Fatal("should have incoming webhooks")
 	}
+
+	if !strings.Contains(string(output), dispName2) {
+		t.Fatal("should have outgoing webhooks")
+	}
+
 }
