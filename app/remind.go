@@ -69,7 +69,7 @@ func (a *App) runner() {
 func (a *App) triggerReminders() {
 
 	t := time.Now().Round(time.Second).Format(time.RFC3339)
-	mlog.Debug(t)
+	//mlog.Debug(t)
 	schan := a.Srv.Store.Remind().GetByTime(t)
 
 	if result := <-schan; result.Err != nil {
@@ -505,7 +505,6 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 
 	for _, o := range occurrences {
 
-		//RFC3339
 		occurrence := &model.Occurrence{
 			model.NewId(),
 			request.UserId,
