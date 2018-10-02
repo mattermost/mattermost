@@ -27,30 +27,44 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 	defer app.Shutdown()
 
+	var teams []*model.Team
 	if len(args) < 1 {
-		// TODO: get all hooks for all teams
+		// If no team is specified, list all teams
+		teams, err = app.GetAllTeams()
+		if err != nil {
+			return err
+		}
+	} else {
+		teams = getTeamsFromTeamArgs(app, args)
 	}
 
-	teams := getTeamsFromTeamArgs(app, args)
 	for i, team := range teams {
 		if team == nil {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
+
 		incomingResult := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, math.MaxInt32)
 		outgoingResult := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, math.MaxInt32)
 
 		if result := <-incomingResult; result.Err == nil {
+			CommandPrettyPrintln("Outgoing Webhooks:")
 			hooks := result.Data.([]*model.IncomingWebhook)
 			for _, hook := range hooks {
-				CommandPrettyPrintln(hook.DisplayName)
+				CommandPrettyPrintln(hook.DisplayName + " (" + hook.Id + ")")
 			}
+		} else {
+			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
 		}
+
 		if result := <-outgoingResult; result.Err != nil {
 			hooks := result.Data.([]*model.IncomingWebhook)
+			CommandPrettyPrintln("Incoming Webhooks:")
 			for _, hook := range hooks {
-				CommandPrettyPrintln(hook.DisplayName)
+				CommandPrettyPrintln(hook.DisplayName + " (" + hook.Id + ")")
 			}
+		} else {
+			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
 		}
 	}
 	return nil
