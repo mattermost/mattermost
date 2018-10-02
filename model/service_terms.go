@@ -53,12 +53,12 @@ func ServiceTermsFromJson(data io.Reader) *ServiceTerms {
 }
 
 func InvalidServiceTermsError(fieldName string, serviceTermsId string) *AppError {
-	id := fmt.Sprintf("model.term.is_valid.%s.app_error", fieldName)
+	id := fmt.Sprintf("model.service_terms.is_valid.%s.app_error", fieldName)
 	details := ""
 	if serviceTermsId != "" {
 		details = "service_terms_id=" + serviceTermsId
 	}
-	return NewAppError("ServiceTerms.IsValid", id, nil, details, http.StatusBadRequest)
+	return NewAppError("ServiceTerms.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
 }
 
 func (t *ServiceTerms) PreSave() {

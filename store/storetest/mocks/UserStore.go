@@ -593,6 +593,22 @@ func (_m *UserStore) PermanentDelete(userId string) store.StoreChannel {
 	return r0
 }
 
+// ResetLastPictureUpdate provides a mock function with given fields: userId
+func (_m *UserStore) ResetLastPictureUpdate(userId string) store.StoreChannel {
+	ret := _m.Called(userId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: user
 func (_m *UserStore) Save(user *model.User) store.StoreChannel {
 	ret := _m.Called(user)
