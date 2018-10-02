@@ -717,6 +717,12 @@ func TestRedirectLocation(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
+	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews })
+	}()
+
+	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
 
 	_, resp := th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
 	CheckNoError(t, resp)
@@ -729,6 +735,19 @@ func TestRedirectLocation(t *testing.T) {
 	if actual != expected {
 		t.Errorf("Expected %v but got %v.", expected, actual)
 	}
+
+	*th.App.Config().ServiceSettings.EnableLinkPreviews = false
+	actual, resp = th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
+	CheckNoError(t, resp)
+	assert.Equal(t, actual, "")
+
+	actual, resp = th.SystemAdminClient.GetRedirectLocation("", "")
+	CheckNoError(t, resp)
+	assert.Equal(t, actual, "")
+
+	actual, resp = th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, actual, "")
 
 	Client.Logout()
 	_, resp = Client.GetRedirectLocation("", "")
