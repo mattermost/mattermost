@@ -2309,6 +2309,50 @@ func TestSetProfileImage(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSetDefaultProfileImage(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
+
+	ok, resp := Client.SetDefaultProfileImage(user.Id)
+	if !ok {
+		t.Fatal(resp.Error)
+	}
+	CheckNoError(t, resp)
+
+	ok, resp = Client.SetDefaultProfileImage(model.NewId())
+	if ok {
+		t.Fatal("Should return false, set profile image not allowed")
+	}
+	CheckForbiddenStatus(t, resp)
+
+	// status code returns either forbidden or unauthorized
+	// note: forbidden is set as default at Client4.SetDefaultProfileImage when request is terminated early by server
+	Client.Logout()
+	_, resp = Client.SetDefaultProfileImage(user.Id)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	_, resp = th.SystemAdminClient.SetDefaultProfileImage(user.Id)
+	CheckNoError(t, resp)
+
+	ruser, err := th.App.GetUser(user.Id)
+	require.Nil(t, err)
+	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have resetted to default")
+
+	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
+	if err := th.cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCBALogin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
