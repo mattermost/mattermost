@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DEFAULT_KEY_FETCH_LIMIT = 10
+	DEFAULT_PLUGIN_KEY_FETCH_LIMIT = 10
 )
 
 type SqlPluginStore struct {
@@ -99,7 +99,7 @@ func (ps SqlPluginStore) Delete(pluginId, key string) store.StoreChannel {
 
 func (ps SqlPluginStore) List(pluginId string, offset int, limit int) store.StoreChannel {
 	if limit <= 0 {
-		limit = DEFAULT_KEY_FETCH_LIMIT
+		limit = DEFAULT_PLUGIN_KEY_FETCH_LIMIT
 	}
 
 	if offset <= 0 {
