@@ -19,15 +19,6 @@ const (
 type Reminders []Reminder
 type Occurrences []Occurrence
 
-type Occurrence struct {
-	Id         string `json:"id"`
-	UserId     string `json:"user_id"`
-	ReminderId string `json:"reminder_id"`
-	Repeat     string `json:"repeat"`
-	Occurrence string `json:"occurrence"`
-	Snoozed    string `json:"snoozed"`
-}
-
 type Reminder struct {
 	Id        string `json:"id"`
 	TeamId    string `json:"team_id"`
@@ -36,6 +27,15 @@ type Reminder struct {
 	Message   string `json:"message"`
 	When      string `json:"when"`
 	Completed string `json:"completed"`
+}
+
+type Occurrence struct {
+	Id         string `json:"id"`
+	UserId     string `json:"user_id"`
+	ReminderId string `json:"reminder_id"`
+	Repeat     string `json:"repeat"`
+	Occurrence string `json:"occurrence"`
+	Snoozed    string `json:"snoozed"`
 }
 
 type ReminderRequest struct {
@@ -57,17 +57,6 @@ func ReminderFromJson(data io.Reader) *Reminder {
 	return r
 }
 
-func (r *ReminderRequest) ToJson() string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func ReminderRequestFromJson(data io.Reader) *ReminderRequest {
-	var r *ReminderRequest
-	json.NewDecoder(data).Decode(&r)
-	return r
-}
-
 func (o *Occurrence) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
@@ -77,4 +66,15 @@ func OccurrenceFromJson(data io.Reader) *Occurrence {
 	var o *Occurrence
 	json.NewDecoder(data).Decode(&o)
 	return o
+}
+
+func (r *ReminderRequest) ToJson() string {
+	b, _ := json.Marshal(r)
+	return string(b)
+}
+
+func ReminderRequestFromJson(data io.Reader) *ReminderRequest {
+	var r *ReminderRequest
+	json.NewDecoder(data).Decode(&r)
+	return r
 }

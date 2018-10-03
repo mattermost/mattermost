@@ -505,6 +505,8 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 
 	for _, o := range occurrences {
 
+		//TODO set repeat text
+
 		occurrence := &model.Occurrence{
 			model.NewId(),
 			request.UserId,
