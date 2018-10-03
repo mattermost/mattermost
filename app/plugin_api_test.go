@@ -76,16 +76,28 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 			"fmt"
 		)
 
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-			
+		type configuration struct {
 			MyStringSetting string
 			MyIntSetting int
 			MyBoolSetting bool
 		}
 
+		type MyPlugin struct {
+			plugin.MattermostPlugin	
+
+			configuration configuration
+		}
+
+		func (p *MyPlugin) OnConfigurationChange() error {
+			if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
+				return err
+			}
+
+			return nil
+		}
+
 		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			return nil, fmt.Sprintf("%v%v%v", p.MyStringSetting, p.MyIntSetting, p.MyBoolSetting)
+			return nil, fmt.Sprintf("%v%v%v", p.configuration.MyStringSetting, p.configuration.MyIntSetting, p.configuration.MyBoolSetting)
 		}
 
 		func main() {
@@ -135,16 +147,28 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 			"fmt"
 		)
 
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-			
+		type configuration struct {
 			MyStringSetting string
 			MyIntSetting int
 			MyBoolSetting bool
 		}
 
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+
+			configuration configuration
+		}
+
+		func (p *MyPlugin) OnConfigurationChange() error {
+			if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
+				return err
+			}
+
+			return nil
+		}
+
 		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			return nil, fmt.Sprintf("%v%v%v", p.MyStringSetting, p.MyIntSetting, p.MyBoolSetting)
+			return nil, fmt.Sprintf("%v%v%v", p.configuration.MyStringSetting, p.configuration.MyIntSetting, p.configuration.MyBoolSetting)
 		}
 
 		func main() {

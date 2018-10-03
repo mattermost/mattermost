@@ -55,7 +55,9 @@ type Hooks interface {
 	// will stop receiving hooks just prior to this method being called.
 	OnDeactivate() error
 
-	// OnConfigurationChange is invoked when configuration changes may have been made.
+	// OnConfigurationChange is invoked when configuration changes may have been made. Any
+	// returned error is logged, but does not stop the plugin. You must be prepared to handle
+	// a configuration failure gracefully.
 	OnConfigurationChange() error
 
 	// ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for
