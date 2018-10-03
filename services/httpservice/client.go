@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 const (
@@ -27,6 +29,8 @@ func IsReservedIP(ip net.IP) bool {
 	}
 	return false
 }
+
+var defaultUserAgent string
 
 func init() {
 	for _, cidr := range []string{
@@ -48,6 +52,7 @@ func init() {
 		}
 		reservedIPRanges = append(reservedIPRanges, parsed)
 	}
+	defaultUserAgent = "mattermost-" + model.CurrentVersion
 }
 
 type DialContextFunction func(ctx context.Context, network, addr string) (net.Conn, error)
@@ -97,6 +102,15 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 	}
 }
 
+type Client struct {
+	*http.Client
+}
+
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	req.Header.Set("User-Agent", defaultUserAgent)
+	return c.Client.Do(req)
+}
+
 // NewHTTPClient returns a variation the default implementation of Client.
 // It uses a Transport with the same settings as the default Transport
 // but with the following modifications:
@@ -104,7 +118,7 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 //   "connectTimeout")
 // - timeout for the end-to-end request (defined as constant
 //   "requestTimeout")
-func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *http.Client {
+func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *Client {
 	dialContext := (&net.Dialer{
 		Timeout:   connectTimeout,
 		KeepAlive: 30 * time.Second,
@@ -129,5 +143,5 @@ func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) b
 		Timeout: requestTimeout,
 	}
 
-	return client
+	return &Client{Client: client}
 }
