@@ -81,7 +81,6 @@ func moveCommand(a *app.App, team *model.Team, command *model.Command) *model.Ap
 func listCommandCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
-
 		return err
 	}
 	defer a.Shutdown()
@@ -89,10 +88,10 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 	var teams []*model.Team
 	if len(args) < 1 {
 		teamList, err := a.GetAllTeams()
-		teams = teamList
 		if err != nil {
 			return err
 		}
+		teams = teamList
 	} else {
 		teams = getTeamsFromTeamArgs(a, args)
 	}
@@ -109,8 +108,8 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 		}
 		commands := result.Data.([]*model.Command)
 		for _, command := range commands {
-			commadList := fmt.Sprintf("%s: %s (team: %s)", command.Id, command.DisplayName, team.Name)
-			CommandPrettyPrintln(commadList)
+			commandListItem := fmt.Sprintf("%s: %s (team: %s)", command.Id, command.DisplayName, team.Name)
+			CommandPrettyPrintln(commandListItem)
 		}
 	}
 	return nil
