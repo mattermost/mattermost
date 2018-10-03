@@ -140,6 +140,9 @@ type API interface {
 	// GetChannelMember gets a channel membership for a user.
 	GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
+	// GetChannelMembers gets a channel membership for all users.
+	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 
