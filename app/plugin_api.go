@@ -262,6 +262,10 @@ func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.Channel
 	return api.app.GetChannelMember(channelId, userId)
 }
 
+func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersPage(channelId, page, perPage)
+}
+
 func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
 	return api.app.UpdateChannelMemberRoles(channelId, userId, newRoles)
 }
