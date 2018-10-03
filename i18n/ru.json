@@ -121,7 +121,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Нельзя создать больше {{.MaxChannelsPerTeam}} каналов для этой команды"
+    "translation": "Нельзя создать больше чем {{.MaxChannelsPerTeam}} каналов для этой команды"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -157,7 +157,7 @@
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
-    "translation": "Unable to delete direct or group message channels"
+    "translation": "Невозможно удалить прямые или групповые каналы сообщений"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Unable to remove user from a channel."
+    "translation": "Не удалось удалить пользователя из канала."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -305,7 +305,7 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "Email invitations are disabled, no invite(s) sent"
+    "translation": "Приглашения по электронной почте отключены, приглашение не отправлено"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Невозможно обновить команды через команды"
+    "translation": "Невозможно обновить команды через термины"
   },
   {
     "id": "api.command_away.desc",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "Для прямых сообщений невозможно установить цель. Вместо этого используйте /header для установки заголовка."
+    "translation": "Невозможно установить назначение для каналов личных сообщений. Используйте /header, чтобы вместо этого установить заголовок."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -405,11 +405,15 @@
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "У вас нет соответствующих прав для редактирования цели канала."
+    "translation": "У вас нет прав для редактирования цели канала."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "Ошибка обновления текущего канала."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -437,7 +441,7 @@
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "У вас нет прав для переименовании канала."
+    "translation": "У вас нет прав на переименование канала."
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
@@ -558,8 +562,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "Unable to find the user: {{.Users}}",
-      "other": "Unable to find the users: {{.Users}}"
+      "one": "Не удалось найти пользователя: {{.Users}}",
+      "other": "Не удалось найти пользователей: {{.Users}}"
     }
   },
   {
@@ -576,7 +580,7 @@
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to create a new group message."
+    "translation": "У вас нет соответствующих разрешений для создания нового группового сообщения."
   },
   {
     "id": "api.command_help.desc",
@@ -616,7 +620,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось найти пользователя."
   },
   {
     "id": "api.command_invite.name",
@@ -628,7 +632,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+    "translation": "Невозможно найти канал {{.Channel}}. Пожалуйста, используйте управление каналом для идентификации."
   },
   {
     "id": "api.command_invite.success",
@@ -660,7 +664,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось найти канал"
   },
   {
     "id": "api.command_join.name",
@@ -728,7 +732,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось найти пользователя"
   },
   {
     "id": "api.command_msg.name",
@@ -736,7 +740,7 @@
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "У Вас нет соответствующих прав для удаления участника."
+    "translation": "У вас не прав для отправки личного сообщения этому пользователю."
   },
   {
     "id": "api.command_mute.desc",
@@ -824,7 +828,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось найти пользователя"
   },
   {
     "id": "api.command_remove.name",
@@ -832,7 +836,7 @@
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "У Вас нет соответствующих прав для удаления участника."
+    "translation": "У Вас нет прав для удаления участника."
   },
   {
     "id": "api.command_remove.user_not_in_channel",
@@ -931,6 +935,14 @@
     "translation": "Сессия не OAuth, но токен присутствует в строке запроса"
   },
   {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
+  },
+  {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Канал-получатель почтового объединения был полон. Пожалуйста, увеличьте значение EmailBatchingBufferSize."
   },
@@ -1026,7 +1038,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
+    "translation": "Не удалось создать эможи. Изображение должно быть меньше {{.MaxWidth}} {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.open.app_error",
@@ -1038,11 +1050,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to check if the file exists."
+    "translation": "Не удалось проверить, существует ли файл."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to check if the file exists."
+    "translation": "Не удалось проверить, существует ли файл."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -2019,6 +2031,10 @@
     "translation": "Неподдерживаемый провайдер OAuth"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Некорректный идентификатор команды"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Ваша учетная запись была заблокирована из-за слишком большого числа неудачных попыток ввода пароля. Пожалуйста, сбросьте свой пароль."
   },
@@ -2177,6 +2193,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
+  },
+  {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Bad accepted value"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -4623,6 +4643,22 @@
     "translation": "Неверный идентификатор пользователя"
   },
   {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Отсутствует необходимое поле для Post: create_at."
+  },
+  {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Отсутствует необходимое поле для Post: create_at."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Имя должно состоять из 2 или более строчных букв и цифр"
   },
@@ -5753,6 +5789,22 @@
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
     "translation": "Failed to commit the transaction to save the scheme"
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
