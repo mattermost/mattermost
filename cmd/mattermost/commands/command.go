@@ -39,6 +39,7 @@ var CommandCreateCmd = &cobra.Command{
 	Use:     "create [team]",
 	Short:   "Create a custom slash command",
 	Long:    `Create a custom slash command for the specified team.`,
+	Args:    cobra.MinimumNArgs(1),
 	Example: `  command create myteam --title MyCommand --description "My Command Description" --trigger-word mycommand --url http://localhost:8000/my-slash-handler --creator myusername --response-username my-bot-username --icon http://localhost:8000/my-slash-handler-bot-icon.png --autocomplete --post`,
 	RunE:    createCommandCmdF,
 }
@@ -144,10 +145,6 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Shutdown()
-
-	if len(args) < 1 {
-		return errors.New("enter the team this command will be created for")
-	}
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
