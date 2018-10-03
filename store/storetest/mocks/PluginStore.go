@@ -45,6 +45,22 @@ func (_m *PluginStore) Get(pluginId string, key string) store.StoreChannel {
 	return r0
 }
 
+// List provides a mock function with given fields: pluginId, page, perPage
+func (_m *PluginStore) List(pluginId string, page int, perPage int) store.StoreChannel {
+	ret := _m.Called(pluginId, page, perPage)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(pluginId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // SaveOrUpdate provides a mock function with given fields: keyVal
 func (_m *PluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) store.StoreChannel {
 	ret := _m.Called(keyVal)
