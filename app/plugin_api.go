@@ -331,6 +331,10 @@ func (api *PluginAPI) KVDelete(key string) *model.AppError {
 	return api.app.DeletePluginKey(api.id, key)
 }
 
+func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
+	return api.app.ListPluginKeys(api.id, page, perPage)
+}
+
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
 	api.app.Publish(&model.WebSocketEvent{
 		Event:     fmt.Sprintf("custom_%v_%v", api.id, event),

@@ -2151,6 +2151,36 @@ func (s *apiRPCServer) KVDelete(args *Z_KVDeleteArgs, returns *Z_KVDeleteReturns
 	return nil
 }
 
+type Z_KVListArgs struct {
+	A int
+	B int
+}
+
+type Z_KVListReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) KVList(page, perPage int) ([]string, *model.AppError) {
+	_args := &Z_KVListArgs{page, perPage}
+	_returns := &Z_KVListReturns{}
+	if err := g.client.Call("Plugin.KVList", _args, _returns); err != nil {
+		log.Printf("RPC call to KVList API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) KVList(args *Z_KVListArgs, returns *Z_KVListReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVList(page, perPage int) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.KVList(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API KVList called but not implemented."))
+	}
+	return nil
+}
+
 type Z_PublishWebSocketEventArgs struct {
 	A string
 	B map[string]interface{}
