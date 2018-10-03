@@ -154,15 +154,10 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 		URL:              url,
 	}
 
-	if err := createCommand(a, team, newCommand); err != nil {
+	if _, err := a.CreateCommand(newCommand); err != nil {
 		return errors.New("unable to create command '" + newCommand.Trigger + "'. " + err.Error())
 	}
 	CommandPrettyPrintln("created command '" + newCommand.Trigger + "'")
 
 	return nil
-}
-
-func createCommand(a *app.App, team *model.Team, command *model.Command) *model.AppError {
-	_, err := a.CreateCommand(command)
-	return err
 }
