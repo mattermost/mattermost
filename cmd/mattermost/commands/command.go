@@ -6,6 +6,7 @@ package commands
 import (
 	"errors"
 
+	"fmt"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
@@ -80,28 +81,36 @@ func moveCommand(a *app.App, team *model.Team, command *model.Command) *model.Ap
 func listCommandCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
+
 		return err
 	}
 	defer a.Shutdown()
 
+	var teams []*model.Team
 	if len(args) < 1 {
-		return errors.New("Enter at least one team")
+		teamList, err := a.GetAllTeams()
+		teams = teamList
+		if err != nil {
+			return err
+		}
+	} else {
+		teams = getTeamsFromTeamArgs(a, args)
 	}
 
-	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
 		if team == nil {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Command().GetByTeam(team.Id); result.Err != nil {
+		result := <-a.Srv.Store.Command().GetByTeam(team.Id)
+		if result.Err != nil {
 			CommandPrintErrorln("Unable to list commands for '" + args[i] + "'")
-		} else {
-			commands := result.Data.([]*model.Command)
-
-			for _, command := range commands {
-				CommandPrettyPrintln(command.DisplayName)
-			}
+			continue
+		}
+		commands := result.Data.([]*model.Command)
+		for _, command := range commands {
+			commadList := fmt.Sprintf("%s: %s (team: %s)", command.Id, command.DisplayName, team.Name)
+			CommandPrettyPrintln(commadList)
 		}
 	}
 	return nil
