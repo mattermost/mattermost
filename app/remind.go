@@ -505,13 +505,17 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 
 	for _, o := range occurrences {
 
-		//TODO set repeat text
+		repeat := ""
+
+		if a.isRepeating(request) {
+			repeat = request.Reminder.When
+		}
 
 		occurrence := &model.Occurrence{
 			model.NewId(),
 			request.UserId,
 			request.Reminder.Id,
-			"",
+			repeat,
 			o.Format(time.RFC3339),
 			emptyTime.Format(time.RFC3339),
 		}
@@ -527,6 +531,21 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 	}
 
 	return nil
+}
+
+func (a *App) isRepeating(request *model.ReminderRequest) bool {
+
+	_, _, translateFunc, _ := a.shared(request.UserId)
+
+	return strings.Contains(request.Reminder.When, translateFunc("app.reminder.chrono.every")) ||
+		strings.Contains(request.Reminder.When, translateFunc("app.reminder.chrono.sundays")) ||
+		strings.Contains(request.Reminder.When, translateFunc("app.reminder.chrono.mondays")) ||
+		strings.Contains(request.Reminder.When, translateFunc("app.reminder.chrono.tuesdays")) ||
+		strings.Contains(request.Reminder.When, translateFunc("app.reminder.chrono.wednesdays")) ||
+		strings.Contains(request.Reminder.When, translateFunc("app.reminder.chrono.thursdays")) ||
+		strings.Contains(request.Reminder.When, translateFunc("app.reminder.chrono.fridays")) ||
+		strings.Contains(request.Reminder.When, translateFunc("app.reminder.chrono.saturdays"))
+
 }
 
 func (a *App) findWhen(request *model.ReminderRequest) error {
