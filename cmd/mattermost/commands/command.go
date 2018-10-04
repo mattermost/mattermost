@@ -47,9 +47,12 @@ var CommandCreateCmd = &cobra.Command{
 func init() {
 	CommandCreateCmd.Flags().String("title", "", "Command Title")
 	CommandCreateCmd.Flags().String("description", "", "Command Description")
-	CommandCreateCmd.Flags().String("trigger-word", "", "Command Trigger Word")
-	CommandCreateCmd.Flags().String("url", "", "Command Callback URL")
-	CommandCreateCmd.Flags().String("creator", "", "Command Creator's Username")
+	CommandCreateCmd.Flags().String("trigger-word", "", "Command Trigger Word (required)")
+	CommandCreateCmd.MarkFlagRequired("trigger-word")
+	CommandCreateCmd.Flags().String("url", "", "Command Callback URL (required)")
+	CommandCreateCmd.MarkFlagRequired("url")
+	CommandCreateCmd.Flags().String("creator", "", "Command Creator's Username (required)")
+	CommandCreateCmd.MarkFlagRequired("creator")
 	CommandCreateCmd.Flags().String("response-username", "", "Command Response Username")
 	CommandCreateCmd.Flags().String("icon", "", "Command Icon URL")
 	CommandCreateCmd.Flags().Bool("autocomplete", false, "Show Command in autocomplete list")
@@ -153,10 +156,8 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 
 	title, _ := command.Flags().GetString("title")
 	description, _ := command.Flags().GetString("description")
-	trigger, errt := command.Flags().GetString("trigger-word")
-	if errt != nil || trigger == "" {
-		return errors.New("atrigger word is required")
-	}
+	trigger, _ := command.Flags().GetString("trigger-word")
+
 	if strings.HasPrefix(trigger, "/") {
 		return errors.New("a trigger word cannot begin with a /")
 	}
@@ -164,14 +165,8 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 		return errors.New("a trigger word must not contain spaces")
 	}
 
-	url, erru := command.Flags().GetString("url")
-	if erru != nil || url == "" {
-		return errors.New("a request URL is required")
-	}
-	creator, errc := command.Flags().GetString("creator")
-	if errc != nil || creator == "" {
-		return errors.New("a creator username is required")
-	}
+	url, _ := command.Flags().GetString("url")
+	creator, _ := command.Flags().GetString("creator")
 	user := getUserFromUserArg(a, creator)
 	responseUsername, _ := command.Flags().GetString("response-username")
 	icon, _ := command.Flags().GetString("icon")
