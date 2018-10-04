@@ -4,11 +4,11 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -518,7 +518,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 
 	user := getUserFromUserArg(a, username)
 	if _, err := a.UpdateChannelPrivacy(channel, user); err != nil {
-		return errors.New("Failed to update channel ('" + args[0] + "') privacy - " + err.Error())
+		return errors.Wrapf(err, "Failed to update channel ('%s') privacy", args[0])
 	}
 
 	return nil
@@ -549,7 +549,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 
 	_, errch := a.RenameChannel(channel, newChannelName, newDisplayName)
 	if errch != nil {
-		return errors.New("Error in updating channel from " + channel.Name + " to " + newChannelName + err.Error())
+		return errors.Wrapf(errch, "Error in updating channel from %s to %s", channel.Name, newChannelName)
 	}
 
 	return nil

@@ -15,6 +15,9 @@ Lines: 1
 vim
 Mode: 644
 # ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Path: fixtures/26231/cwd
+SymlinkTo: /usr/bin
+# ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Path: fixtures/26231/exe
 SymlinkTo: /usr/bin/vim
 # ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -111,6 +114,9 @@ SymlinkTo: mnt:[4026531840]
 Path: fixtures/26231/ns/net
 SymlinkTo: net:[4026531993]
 # ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Path: fixtures/26231/root
+SymlinkTo: /
+# ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Path: fixtures/26231/stat
 Lines: 1
 26231 (vim) R 5392 7446 5392 34835 7446 4218880 32533 309516 26 82 1677 44 158 99 20 0 1 0 82375 56274944 1981 18446744073709551615 4194304 6294284 140736914091744 140736914087944 139965136429984 0 0 12288 1870679807 0 0 0 17 0 0 0 31 0 0 8391624 8481048 16420864 140736914093252 140736914093279 140736914093279 140736914096107 0
@@ -127,6 +133,9 @@ Path: fixtures/26232/comm
 Lines: 1
 ata_sff
 Mode: 644
+# ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Path: fixtures/26232/cwd
+SymlinkTo: /does/not/exist
 # ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Directory: fixtures/26232/fd
 Mode: 755
@@ -166,6 +175,9 @@ Max nice priority         0                    0
 Max realtime priority     0                    0                    
 Max realtime timeout      unlimited            unlimited            us        
 Mode: 644
+# ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Path: fixtures/26232/root
+SymlinkTo: /does/not/exist
 # ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Path: fixtures/26232/stat
 Lines: 1
@@ -443,4 +455,8 @@ Mode: 644
 Path: fixtures/symlinktargets/xyz
 Lines: 0
 Mode: 644
+# ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Path: fixtures/.unpacked
+Lines: 0
+Mode: 664
 # ttar - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -240,6 +240,14 @@
     "translation": "%v removed from the channel."
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "You cannot rename a direct message channel"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "You cannot rename a group message channel"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted"
   },
@@ -410,6 +418,10 @@
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "Error to update the current channel."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -616,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Unable to find the user."
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.name",
@@ -824,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Unable to find the user"
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_remove.name",
@@ -2017,6 +2029,10 @@
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
     "translation": "Unsupported OAuth service provider"
+  },
+  {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Invalid team id"
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",

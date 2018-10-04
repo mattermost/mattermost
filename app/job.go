@@ -8,11 +8,11 @@ import (
 )
 
 func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
-	if result := <-a.Srv.Store.Job().Get(id); result.Err != nil {
+	result := <-a.Srv.Store.Job().Get(id)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Job), nil
 	}
+	return result.Data.(*model.Job), nil
 }
 
 func (a *App) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
@@ -20,11 +20,11 @@ func (a *App) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
 }
 
 func (a *App) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
-	if result := <-a.Srv.Store.Job().GetAllPage(offset, limit); result.Err != nil {
+	result := <-a.Srv.Store.Job().GetAllPage(offset, limit)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Job), nil
 	}
+	return result.Data.([]*model.Job), nil
 }
 
 func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
@@ -32,11 +32,11 @@ func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model
 }
 
 func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	if result := <-a.Srv.Store.Job().GetAllByTypePage(jobType, offset, limit); result.Err != nil {
+	result := <-a.Srv.Store.Job().GetAllByTypePage(jobType, offset, limit)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Job), nil
 	}
+	return result.Data.([]*model.Job), nil
 }
 
 func (a *App) CreateJob(job *model.Job) (*model.Job, *model.AppError) {

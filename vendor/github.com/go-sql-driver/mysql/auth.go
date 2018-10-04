@@ -241,7 +241,7 @@ func (mc *mysqlConn) auth(authData []byte, plugin string) ([]byte, bool, error) 
 	switch plugin {
 	case "caching_sha2_password":
 		authResp := scrambleSHA256Password(authData, mc.cfg.Passwd)
-		return authResp, false, nil
+		return authResp, (authResp == nil), nil
 
 	case "mysql_old_password":
 		if !mc.cfg.AllowOldPasswords {

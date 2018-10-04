@@ -118,3 +118,24 @@ func TestDialContextFilter(t *testing.T) {
 		}
 	}
 }
+
+func TestUserAgentIsSet(t *testing.T) {
+	testUserAgent := "test-user-agent"
+	defaultUserAgent = testUserAgent
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		ua := req.UserAgent()
+		if ua == "" {
+			t.Error("expected user-agent to be non-empty")
+		}
+		if ua != testUserAgent {
+			t.Errorf("expected user-agent to be %q but was %q", testUserAgent, ua)
+		}
+	}))
+	defer ts.Close()
+	client := NewHTTPClient(true, nil, nil)
+	req, err := http.NewRequest("GET", ts.URL, nil)
+	if err != nil {
+		t.Fatal("NewRequest failed", err)
+	}
+	client.Do(req)
+}

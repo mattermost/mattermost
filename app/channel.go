@@ -163,6 +163,14 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 
 // RenameChannel is used to rename the channel Name and the DisplayName fields
 func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
+	if channel.Type == model.CHANNEL_DIRECT {
+		return nil, model.NewAppError("RenameChannel", "api.channel.rename_channel.cant_rename_direct_messages.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if channel.Type == model.CHANNEL_GROUP {
+		return nil, model.NewAppError("RenameChannel", "api.channel.rename_channel.cant_rename_group_messages.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	channel.Name = newChannelName
 	if newDisplayName != "" {
 		channel.DisplayName = newDisplayName

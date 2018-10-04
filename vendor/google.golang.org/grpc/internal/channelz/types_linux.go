@@ -50,5 +50,4 @@ func (s *SocketOptionData) Getsockopt(fd uintptr) {
 	if v, err := unix.GetsockoptTCPInfo(int(fd), syscall.SOL_TCP, syscall.TCP_INFO); err == nil {
 		s.TCPInfo = v
 	}
-	return
 }
