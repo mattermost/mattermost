@@ -314,10 +314,6 @@ func (me *TestHelper) CreateUser() *model.User {
 	return me.CreateUserWithClient(me.Client)
 }
 
-func (me *TestHelper) CreateCommand(user *model.User, team *model.Team, url string) *model.Command {
-	return me.CreateCommandWithClient(me.Client, user, team, url)
-}
-
 func (me *TestHelper) CreateTeam() *model.Team {
 	return me.CreateTeamWithClient(me.Client)
 }
@@ -359,27 +355,6 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
 	utils.EnableDebugLogForTest()
 	return ruser
-}
-
-func (me *TestHelper) CreateCommandWithClient(client *model.Client4, user *model.User, team *model.Team, url string) *model.Command {
-	id := model.NewId()
-	command := &model.Command{
-		DisplayName: "dn_" + id,
-		Method:      "G",
-		TeamId:      team.Id,
-		Username:    user.Username,
-		URL:         url,
-		Trigger:     "test",
-	}
-
-	// utils.DisableDebugLogForTest()
-	rcommand, resp := client.CreateCommand(command)
-	fmt.Println(rcommand)
-	if resp.Error != nil {
-		panic(resp.Error)
-	}
-	utils.EnableDebugLogForTest()
-	return rcommand
 }
 
 func (me *TestHelper) CreatePublicChannel() *model.Channel {
