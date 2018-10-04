@@ -5,8 +5,11 @@ package commands
 
 import (
 	"errors"
+<<<<<<< HEAD
 	"strings"
 
+=======
+>>>>>>> Add confirm flag
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/app"
@@ -54,6 +57,7 @@ var CommandDeleteCmd = &cobra.Command{
 }
 
 func init() {
+<<<<<<< HEAD
 	CommandCreateCmd.Flags().String("title", "", "Command Title")
 	CommandCreateCmd.Flags().String("description", "", "Command Description")
 	CommandCreateCmd.Flags().String("trigger-word", "", "Command Trigger Word (required)")
@@ -69,6 +73,9 @@ func init() {
 	CommandCreateCmd.Flags().String("autocompleteHint", "", "Command Arguments displayed as help in autocomplete list")
 	CommandCreateCmd.Flags().Bool("post", false, "Use POST method for Callback URL")
 
+=======
+	CommandDeleteCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the command.")
+>>>>>>> Add confirm flag
 	CommandCmd.AddCommand(
 		CommandCreateCmd,
 		CommandMoveCmd,
@@ -212,6 +219,7 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrettyPrintln(commandListItem)
 		}
 	}
+<<<<<<< HEAD
 	return nil
 }
 
@@ -221,6 +229,18 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Shutdown()
+=======
+
+	confirmFlag, _ := command.Flags().GetBool("confirm")
+	if !confirmFlag {
+		var confirm string
+		CommandPrettyPrintln("Are you sure you want to delete the command specified?  All data will be permanently deleted? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+	}
+>>>>>>> Add confirm flag
 
 	commandID := args[0]
 	err = a.DeleteCommand(commandID)
