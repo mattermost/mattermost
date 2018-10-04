@@ -51,7 +51,8 @@ func (a *App) GetChildLdapGroups(parentDN string) ([]*model.SCIMGroup, *model.Ap
 			return nil, err
 		}
 	} else {
-		mlog.Error(fmt.Sprintf("%v", model.NewAppError("GetChildLdapGroups", "ent.ldap.app_error", nil, "", http.StatusNotImplemented).Error()))
+		ae := model.NewAppError("GetChildLdapGroups", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		mlog.Error(fmt.Sprintf("%v", ae.Error()))
 	}
 
 	return groups, nil
@@ -68,10 +69,55 @@ func (a *App) GetLdapGroup(dn string) (*model.SCIMGroup, *model.AppError) {
 			return nil, err
 		}
 	} else {
-		mlog.Error(fmt.Sprintf("%v", model.NewAppError("GetChildLdapGroups", "ent.ldap.app_error", nil, "", http.StatusNotImplemented).Error()))
+		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		mlog.Error(fmt.Sprintf("%v", ae.Error()))
 	}
 
 	return group, nil
+}
+
+// GetAllLdapGroups retrieves all LDAP groups under the configured base DN using the default or configured group
+// filter.
+func (a *App) GetAllLdapGroups() ([]*model.SCIMGroup, *model.AppError) {
+	var groups []*model.SCIMGroup
+
+	if a.Ldap != nil {
+		var err *model.AppError
+		groups, err = a.Ldap.GetAllGroups()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		ae := model.NewAppError("GetAllLdapGroups", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		mlog.Error(fmt.Sprintf("%v", ae.Error()))
+	}
+
+	return groups, nil
+}
+
+// GetUserIDsInLdapGroupRecursive recursively retrieves the unique identifiers of all of the members of a given
+// group.
+func (a *App) GetUserIDsInLdapGroupRecursive(groupDN string) ([]string, *model.AppError) {
+	var uids []string
+
+	if a.Ldap != nil {
+		var err *model.AppError
+		uids, err = a.Ldap.GetUserIDsInGroupRecursive(groupDN)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		ae := model.NewAppError(
+			"GetUserIDsInLdapGroupRecursive",
+			"ent.ldap.app_error",
+			nil,
+			"",
+			http.StatusNotImplemented,
+		)
+		mlog.Error(fmt.Sprintf("%v", ae.Error()))
+	}
+
+	return uids, nil
 }
 
 func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
