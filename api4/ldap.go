@@ -6,7 +6,6 @@ package api4
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/utils"
@@ -31,7 +30,7 @@ func (api *API) InitLdap() {
 
 	// DELETE /api/v4/ldap/groups/:dn/link
 	api.BaseRoutes.LDAP.Handle(
-		"/groups/{dn:[A-Za-z0-9]+}/link",
+		"/groups/{dn:[A-Za-z0-9=,]+}/link",
 		api.ApiSessionRequired(unlinkLdapGroup),
 	).Methods("DELETE")
 }
@@ -92,7 +91,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	for _, scimGroup := range scimGroups {
 		group, _ := c.App.GetGroupByRemoteID(scimGroup.PrimaryKey, model.GroupTypeLdap)
-		if group != nil {
+		if group != nil && group.DeleteAt == 0 {
 			scimGroup.MattermostGroupID = &group.Id
 		}
 	}
@@ -108,7 +107,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.ldap.marshal_error",
 			nil,
 			marshalErr.Error(),
-			http.StatusNotImplemented,
+			http.StatusInternalServerError,
 		)
 		return
 	}
@@ -150,24 +149,30 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("ldapGroup: %#v\n", ldapGroup)
-
-	// Group is already linked.
-	if group != nil && group.DeleteAt == 0 {
-		c.Err = model.NewAppError(
-			"Api4.linkLdapGroup",
-			"api.ldap.already_linked",
-			nil,
-			"",
-			http.StatusNotImplemented,
-		)
-		return
-	}
-
 	var status int
 	var newOrUpdatedGroup *model.Group
 
-	if group == nil {
+	// Group is already linked.
+	if group != nil {
+		if group.DeleteAt == 0 {
+			c.Err = model.NewAppError(
+				"Api4.linkLdapGroup",
+				"api.ldap.already_linked",
+				nil,
+				"",
+				http.StatusNotModified,
+			)
+			return
+		}
+
+		group.DeleteAt = 0
+		newOrUpdatedGroup, err = c.App.UpdateGroup(group)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		status = http.StatusOK
+	} else {
 		newGroup := &model.Group{
 			Name:        utils.Slugify(ldapGroup.Name),
 			DisplayName: ldapGroup.Name,
@@ -182,16 +187,6 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		status = http.StatusCreated
 	}
 
-	if group != nil && group.DeleteAt != 0 {
-		group.DeleteAt = 0
-		newOrUpdatedGroup, err = c.App.UpdateGroup(group)
-		if err != nil {
-			c.Err = err
-			return
-		}
-		status = http.StatusOK
-	}
-
 	b, marshalErr := json.Marshal(newOrUpdatedGroup)
 	if marshalErr != nil {
 		c.Err = model.NewAppError(
@@ -199,7 +194,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.ldap.marshal_error",
 			nil,
 			marshalErr.Error(),
-			http.StatusNotImplemented,
+			http.StatusInternalServerError,
 		)
 		return
 	}
@@ -208,4 +203,53 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {}
+func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireDN()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAP {
+		c.Err = model.NewAppError(
+			"Api4.unlinkLdapGroup",
+			"api.ldap.license.error",
+			nil,
+			"",
+			http.StatusNotImplemented,
+		)
+		return
+	}
+
+	group, err := c.App.GetGroupByRemoteID(c.Params.DN, model.GroupTypeLdap)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if group != nil && group.DeleteAt == 0 {
+		_, err = c.App.DeleteGroup(group.Id)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	}
+
+	if group != nil && group.DeleteAt != 0 {
+		c.Err = model.NewAppError(
+			"Api4.unlinkLdapGroup",
+			"api.ldap.already_unlink",
+			nil,
+			"",
+			http.StatusNotModified,
+		)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return
+}

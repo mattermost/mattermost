@@ -5,7 +5,6 @@ package store
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -35,16 +34,7 @@ func (s *LocalCacheSupplier) GroupGet(ctx context.Context, groupID string, hints
 }
 
 func (s *LocalCacheSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupType model.GroupType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	key := fmt.Sprintf("types/%s/remoteID/%s", groupType, remoteID)
-	if result := s.doStandardReadCache(ctx, s.groupCache, key, hints...); result != nil {
-		return result
-	}
-
-	result := s.Next().GroupGetByRemoteID(ctx, remoteID, groupType, hints...)
-
-	s.doStandardAddToCache(ctx, s.groupCache, key, result, hints...)
-
-	return result
+	return s.Next().GroupGetByRemoteID(ctx, remoteID, groupType, hints...)
 }
 
 func (s *LocalCacheSupplier) GroupGetAllPage(ctx context.Context, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
