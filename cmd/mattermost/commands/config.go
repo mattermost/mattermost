@@ -50,6 +50,14 @@ var ConfigGetCmd = &cobra.Command{
 	RunE:    configGetCmdF,
 }
 
+var ConfigShowCmd = &cobra.Command{
+	Use:     "show",
+	Short:   "Writes the server configuration to STDOUT",
+	Long:    "Pretty-prints the server configuration and writes to STDOUT",
+	Example: "config show",
+	RunE:    configShowCmdF,
+}
+
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
 
@@ -57,6 +65,7 @@ func init() {
 		ValidateConfigCmd,
 		ConfigSubpathCmd,
 		ConfigGetCmd,
+		ConfigShowCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -140,6 +149,27 @@ func configGetCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func configShowCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	// check that no arguments are given
+	err = cobra.NoArgs(command, args)
+	if err != nil {
+		return err
+	}
+
+	// set up the config object
+	config := app.Config()
+
+	// pretty print
+	fmt.Printf("%s", prettyPrint(configToMap(*config)))
+	return nil
+}
+
 // printConfigValues function prints out the value of the configSettings working recursively or
 // gives an error if config setting is not in the file.
 func printConfigValues(configMap map[string]interface{}, configSetting []string, name string) (string, error) {
@@ -163,10 +193,15 @@ func printConfigValues(configMap map[string]interface{}, configSetting []string,
 	}
 }
 
-// printMap takes a reflect.Value and return a string, recursively if its a map with the given tab settings.
+// prettyPrint the map
+func prettyPrint(configMap map[string]interface{}) string {
+	value := reflect.ValueOf(configMap)
+	return printMap(value, 0)
+}
+
+// printMap takes a reflect.Value and print it out, recursively if its a map with the given tab settings.
 func printMap(value reflect.Value, tabVal int) string {
 
-	// our output buffer
 	out := &bytes.Buffer{}
 
 	for _, key := range value.MapKeys() {
