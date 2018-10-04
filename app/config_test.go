@@ -4,9 +4,7 @@
 package app
 
 import (
-	"io"
 	"io/ioutil"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -21,17 +19,10 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
-	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
-	require.Nil(t, err)
-	defer permConfig.Close()
-
 	tempConfig, err := ioutil.TempFile("", "")
 	require.Nil(t, err)
 
-	_, err = io.Copy(tempConfig, permConfig)
-	tempConfig.Close()
-
-	input, err := ioutil.ReadFile(tempConfig.Name())
+	input, err := ioutil.ReadFile(utils.FindConfigFile("config.json"))
 	require.Nil(t, err)
 	lines := strings.Split(string(input), "\n")
 	for i, line := range lines {
