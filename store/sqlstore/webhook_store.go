@@ -204,14 +204,7 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) sto
 	return store.Do(func(result *store.StoreResult) {
 		var webhooks []*model.IncomingWebhook
 
-		var query string
-		if limit < 0 || offset < 0 {
-			query = "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0"
-		} else {
-			query = "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
-		}
-
-		if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
 			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
@@ -357,7 +350,7 @@ func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) store.Store
 func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query :=
-			`SELECT
+			`SELECT 
 			    COUNT(*)
 			FROM
 			    IncomingWebhooks
@@ -379,7 +372,7 @@ func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) store.StoreChanne
 func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query :=
-			`SELECT
+			`SELECT 
 			    COUNT(*)
 			FROM
 			    OutgoingWebhooks

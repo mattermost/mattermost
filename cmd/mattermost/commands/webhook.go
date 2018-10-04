@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
 )
@@ -30,10 +32,11 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 
 	var teams []*model.Team
 	if len(args) < 1 {
+		var getErr error
 		// If no team is specified, list all teams
-		teams, err = app.GetAllTeams()
-		if err != nil {
-			return err
+		teams, getErr = app.GetAllTeams()
+		if getErr != nil {
+			return getErr
 		}
 	} else {
 		teams = getTeamsFromTeamArgs(app, args)
@@ -45,11 +48,12 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 			continue
 		}
 
-		incomingResult := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, -1, -1)
-		outgoingResult := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, -1, -1)
+		// Fetch all hooks with a very large limit so we get them all.
+		incomingResult := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
+		outgoingResult := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
 
 		if result := <-incomingResult; result.Err == nil {
-			CommandPrettyPrintln("Incoming Webhooks:")
+			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))
 			hooks := result.Data.([]*model.IncomingWebhook)
 			for _, hook := range hooks {
 				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
@@ -60,7 +64,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 
 		if result := <-outgoingResult; result.Err == nil {
 			hooks := result.Data.([]*model.OutgoingWebhook)
-			CommandPrettyPrintln("Outgoing Webhooks:")
+			CommandPrettyPrintln(fmt.Sprintf("Outgoing webhooks for %s (%s):", team.DisplayName, team.Name))
 			for _, hook := range hooks {
 				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
 			}
