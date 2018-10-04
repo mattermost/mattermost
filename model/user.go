@@ -499,7 +499,7 @@ func (u *User) IsSAMLUser() bool {
 }
 
 func (u *User) GetPreferredTimezone() string {
-	return model.GetPreferredTimezone(u.Timezone)
+	return GetPreferredTimezone(u.Timezone)
 }
 
 // UserFromJson will decode the input and return a User
