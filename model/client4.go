@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -2962,6 +2963,66 @@ func (c *Client4) TestLdap() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetChildLdapGroups retrieves the immediate child groups of the given parent group.
+func (c *Client4) GetChildLdapGroups(parentDN string) ([]*SCIMGroup, *Response) {
+	pathAndParams := fmt.Sprintf("%s/groups?parent_dn=%s", c.GetLdapRoute(), parentDN)
+
+	if r, err := c.DoApiGet(pathAndParams, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+
+		response := BuildResponse(r)
+
+		var groups []*SCIMGroup
+		if err := json.NewDecoder(r.Body).Decode(&groups); err != nil {
+			return nil, response
+		}
+
+		return groups, BuildResponse(r)
+	}
+}
+
+// LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
+func (c *Client4) LinkLdapGroup(dn string) (*SCIMGroup, *Response) {
+	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
+
+	if r, err := c.DoApiPost(path, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+
+		response := BuildResponse(r)
+
+		var group *SCIMGroup
+		if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
+			return nil, response
+		}
+
+		return group, BuildResponse(r)
+	}
+}
+
+// UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
+func (c *Client4) UnlinkLdapGroup(dn string) (*SCIMGroup, *Response) {
+	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
+
+	if r, err := c.DoApiDelete(path); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+
+		response := BuildResponse(r)
+
+		var group *SCIMGroup
+		if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
+			return nil, response
+		}
+
+		return group, BuildResponse(r)
 	}
 }
 

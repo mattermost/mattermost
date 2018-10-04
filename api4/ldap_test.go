@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestLdapTest(t *testing.T) {
+func TestTestLdap(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
@@ -18,7 +18,7 @@ func TestLdapTest(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 }
 
-func TestLdapSync(t *testing.T) {
+func TestSyncLdap(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
@@ -27,4 +27,40 @@ func TestLdapSync(t *testing.T) {
 
 	_, resp = th.Client.SyncLdap()
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestGetChildLdapGroups(t *testing.T) {
+	const testDN string = "cn=developers,ou=testusers,dc=mm,dc=test,dc=com"
+
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	_, resp := th.Client.GetChildLdapGroups(testDN)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChildLdapGroups(testDN)
+	CheckNotImplementedStatus(t, resp)
+}
+
+func TestLinkLdapGroup(t *testing.T) {
+	const testDN string = "cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com"
+
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	_, resp := th.Client.LinkLdapGroup(testDN)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.LinkLdapGroup(testDN)
+	CheckNotImplementedStatus(t, resp)
+}
+
+func TestUnlinkLdapGroup(t *testing.T) {
+	const testDN string = "cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com"
+
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	_, resp := th.Client.UnlinkLdapGroup(testDN)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UnlinkLdapGroup(testDN)
+	CheckNotImplementedStatus(t, resp)
 }

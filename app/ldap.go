@@ -40,6 +40,40 @@ func (a *App) TestLdap() *model.AppError {
 	return nil
 }
 
+// GetChildLdapGroups retrieves all of the immediate child groups of the given parent DN.
+func (a *App) GetChildLdapGroups(parentDN string) ([]*model.SCIMGroup, *model.AppError) {
+	var groups []*model.SCIMGroup
+
+	if a.Ldap != nil {
+		var err *model.AppError
+		groups, err = a.Ldap.GetChildGroups(parentDN)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		mlog.Error(fmt.Sprintf("%v", model.NewAppError("GetChildLdapGroups", "ent.ldap.app_error", nil, "", http.StatusNotImplemented).Error()))
+	}
+
+	return groups, nil
+}
+
+// GetLdapGroup retrieves a single LDAP group by the given DN.
+func (a *App) GetLdapGroup(dn string) (*model.SCIMGroup, *model.AppError) {
+	var group *model.SCIMGroup
+
+	if a.Ldap != nil {
+		var err *model.AppError
+		group, err = a.Ldap.GetGroup(dn)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		mlog.Error(fmt.Sprintf("%v", model.NewAppError("GetChildLdapGroups", "ent.ldap.app_error", nil, "", http.StatusNotImplemented).Error()))
+	}
+
+	return group, nil
+}
+
 func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
 	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)

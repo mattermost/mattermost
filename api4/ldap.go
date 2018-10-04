@@ -13,8 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-const paramParentDN string = "parent_dn"
-
 func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
@@ -61,6 +59,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
+	const paramParentDN string = "parent_dn"
+
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -83,7 +83,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	scimGroups, err := c.App.Ldap.GetChildGroups(parentDN)
+	scimGroups, err := c.App.GetChildLdapGroups(parentDN)
 	if err != nil {
 		c.Err = err
 		return
@@ -137,9 +137,20 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ldapGroup, err := c.App.Ldap.GetGroup(c.Params.DN)
+	ldapGroup, err := c.App.GetLdapGroup(c.Params.DN)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if ldapGroup == nil {
+		c.Err = model.NewAppError(
+			"Api4.linkLdapGroup",
+			"api.ldap.not_found",
+			nil,
+			"",
+			http.StatusNotFound,
+		)
 		return
 	}
 
