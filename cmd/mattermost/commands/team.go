@@ -69,6 +69,15 @@ var SearchTeamCmd = &cobra.Command{
 	RunE:    searchTeamCmdF,
 }
 
+var ArchiveTeamCmd = &cobra.Command{
+	Use:     "archive [teams]",
+	Short:   "Archive teams",
+	Long:    "Archive teams based on name",
+	Example: "  team archive team1",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    archiveTeamCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -84,6 +93,7 @@ func init() {
 		DeleteTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
+		ArchiveTeamCmd,
 	)
 	RootCmd.AddCommand(TeamCmd)
 }
@@ -299,4 +309,25 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 		return result[i].Name < result[j].Name
 	})
 	return result
+}
+
+func archiveTeamCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	foundTeams := getTeamsFromTeamArgs(a, args)
+	for i, team := range foundTeams {
+		if team == nil {
+			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		if result := <-a.Srv.Store.Team().Delete(team.Id, model.GetMillis()); result.Err != nil {
+			CommandPrintErrorln("Unable to archive team '" + team.Name + "' error: " + result.Err.Error())
+		}
+	}
+
+	return nil
 }

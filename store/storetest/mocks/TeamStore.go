@@ -61,6 +61,22 @@ func (_m *TeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 	return r0
 }
 
+// Delete provides a mock function with given fields: teamId, time
+func (_m *TeamStore) Delete(teamId string, time int64) store.StoreChannel {
+	ret := _m.Called(teamId, time)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+		r0 = rf(teamId, time)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id
 func (_m *TeamStore) Get(id string) store.StoreChannel {
 	ret := _m.Called(id)
@@ -532,6 +548,22 @@ func (_m *TeamStore) SearchOpen(term string) store.StoreChannel {
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
 		r0 = rf(term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// SetDeleteAt provides a mock function with given fields: teamId, deleteAt, updateAt
+func (_m *TeamStore) SetDeleteAt(teamId string, deleteAt int64, updateAt int64) store.StoreChannel {
+	ret := _m.Called(teamId, deleteAt, updateAt)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int64, int64) store.StoreChannel); ok {
+		r0 = rf(teamId, deleteAt, updateAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
