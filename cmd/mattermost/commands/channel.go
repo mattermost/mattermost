@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -108,6 +109,15 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 	RunE:    modifyChannelCmdF,
 }
 
+var SearchChannelCmd = &cobra.Command{
+	Use:     "search [channel]",
+	Short:   "Search a channel",
+	Long:    `Search a channel using channel name`,
+	Example: " channel search Developers",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    searchChannelCmdF,
+}
+
 func init() {
 	ChannelCreateCmd.Flags().String("name", "", "Channel Name")
 	ChannelCreateCmd.Flags().String("display_name", "", "Channel Display Name")
@@ -127,7 +137,7 @@ func init() {
 	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
-
+	SearchChannelCmd.Flags().String("name", "", "Channel name")
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
 		RemoveChannelUsersCmd,
@@ -139,6 +149,7 @@ func init() {
 		RestoreChannelsCmd,
 		ModifyChannelCmd,
 		ChannelRenameCmd,
+		SearchChannelCmd,
 	)
 
 	RootCmd.AddCommand(ChannelCmd)
@@ -553,4 +564,40 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func searchChannelCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	teamID, term := parseChannelArg(args[0])
+	foundChannelList, err2 := a.SearchChannels(teamID, term)
+	if err2 != nil {
+		return err2
+	}
+
+	sortedChannelList := removeDuplicatesAndSortChannels(foundChannelList)
+	for _, channel := range sortedChannelList {
+		CommandPrettyPrintln(channel.Name + ": " + channel.DisplayName + " (" + channel.Id + ")")
+	}
+	return nil
+}
+
+// Removes duplicates and sorts channels by name
+func removeDuplicatesAndSortChannels(channels *model.ChannelList) []*model.Channel {
+	keys := make(map[string]bool)
+	result := []*model.Channel{}
+	for _, channel := range *channels {
+		if _, value := keys[channel.Name]; !value {
+			keys[channel.Name] = true
+			result = append(result, channel)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name < result[j].Name
+	})
+	return result
 }

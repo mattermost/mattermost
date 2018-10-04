@@ -127,3 +127,18 @@ func TestRenameChannel(t *testing.T) {
 	assert.Equal(t, "newchannelname10", updatedChannel.Name)
 	assert.Equal(t, "New Display Name", updatedChannel.DisplayName)
 }
+
+func TestSearchChannel(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+
+	CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name)
+	out := CheckCommand(t, "channel", "search", th.BasicTeam.Id+":"+name)
+
+	assert.Contains(t, out, name)
+	assert.NotContains(t, out, "random-channel")
+
+}
