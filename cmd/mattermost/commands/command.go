@@ -58,7 +58,7 @@ func init() {
 	CommandCreateCmd.Flags().Bool("autocomplete", false, "Show Command in autocomplete list")
 	CommandCreateCmd.Flags().String("autocompleteDesc", "", "Short Command Description for autocomplete list")
 	CommandCreateCmd.Flags().String("autocompleteHint", "", "Command Arguments displayed as help in autocomplete list")
-	CommandCreateCmd.Flags().Bool("post", false, "Command Callback URL Method Type ")
+	CommandCreateCmd.Flags().Bool("post", false, "Use POST method for Callback URL")
 
 	CommandCmd.AddCommand(
 		CommandCreateCmd,
