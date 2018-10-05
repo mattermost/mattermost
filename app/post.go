@@ -453,7 +453,7 @@ func (a *App) RethreadPost(post *model.Post) (*model.Post, *model.AppError) {
 
 	var oldPost *model.Post
 	var thread *model.PostList
-	result := <-a.Srv.Store.Post().get(post.Id);
+	result := <-a.Srv.Store.Post().Get(post.Id);
 	if (result.Err != nil) {
 		return nil, result.Err
 	} else {
