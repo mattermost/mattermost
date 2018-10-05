@@ -639,3 +639,9 @@ func IsValidCommentsNotifyLevel(notifyLevel string) bool {
 		notifyLevel == COMMENTS_NOTIFY_ROOT ||
 		notifyLevel == COMMENTS_NOTIFY_NEVER
 }
+
+func IsValidEmailBatchingInterval(emailInterval string) bool {
+	return emailInterval == "immediately" ||
+		emailInterval == "fifteen" ||
+		emailInterval == "hour"
+}
