@@ -5,6 +5,9 @@ package model
 
 import (
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSplitWords(t *testing.T) {
@@ -299,5 +302,101 @@ func TestParseSearchParams(t *testing.T) {
 
 	if sp := ParseSearchParams("after:2018-8-1", 0); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
+	}
+}
+
+func TestGetOnDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Input       string
+		StartOnDate int64
+		EndOnDate   int64
+	}{
+		{
+			Input:       "2018-08-01",
+			StartOnDate: 1533081600000,
+			EndOnDate:   1533167999999,
+		},
+		{
+			Input:       "2018-8-1",
+			StartOnDate: 1533081600000,
+			EndOnDate:   1533167999999,
+		},
+		{
+			Input:       "2018-02-29",
+			StartOnDate: 0,
+			EndOnDate:   0,
+		},
+		{
+			Input:       "holiday",
+			StartOnDate: 0,
+			EndOnDate:   0,
+		},
+	} {
+		t.Run(testCase.Input, func(t *testing.T) {
+			sp := &SearchParams{OnDate: testCase.Input, TimeZoneOffset: 0}
+			startOnDate, endOnDate := sp.GetOnDateMillis()
+			assert.Equal(t, testCase.StartOnDate, startOnDate)
+			assert.Equal(t, testCase.EndOnDate, endOnDate)
+		})
+	}
+}
+
+func TestGetBeforeDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Input      string
+		BeforeDate int64
+	}{
+		{
+			Input:      "2018-08-01",
+			BeforeDate: 1533081599999,
+		},
+		{
+			Input:      "2018-8-1",
+			BeforeDate: 1533081599999,
+		},
+		{
+			Input:      "2018-02-29",
+			BeforeDate: 0,
+		},
+		{
+			Input:      "holiday",
+			BeforeDate: 0,
+		},
+	} {
+		t.Run(testCase.Input, func(t *testing.T) {
+			sp := &SearchParams{BeforeDate: testCase.Input, TimeZoneOffset: 0}
+			beforeDate := sp.GetBeforeDateMillis()
+			assert.Equal(t, testCase.BeforeDate, beforeDate)
+		})
+	}
+}
+
+func TestGetAfterDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Input     string
+		AfterDate int64
+	}{
+		{
+			Input:     "2018-08-01",
+			AfterDate: 1533168000000,
+		},
+		{
+			Input:     "2018-8-1",
+			AfterDate: 1533168000000,
+		},
+		{
+			Input:     "2018-02-29",
+			AfterDate: GetStartOfDayMillis(time.Now().Add(time.Hour*24), 0),
+		},
+		{
+			Input:     "holiday",
+			AfterDate: GetStartOfDayMillis(time.Now().Add(time.Hour*24), 0),
+		},
+	} {
+		t.Run(testCase.Input, func(t *testing.T) {
+			sp := &SearchParams{AfterDate: testCase.Input, TimeZoneOffset: 0}
+			afterDate := sp.GetAfterDateMillis()
+			assert.Equal(t, testCase.AfterDate, afterDate)
+		})
 	}
 }
