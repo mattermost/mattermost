@@ -46,19 +46,22 @@ func TestGetMillisForTime(t *testing.T) {
 
 func TestPadDateStringZeros(t *testing.T) {
 	for _, testCase := range []struct {
+		Name     string
 		Input    string
 		Expected string
 	}{
 		{
+			Name:     "Valid date",
 			Input:    "2016-08-01",
 			Expected: "2016-08-01",
 		},
 		{
+			Name:     "Valid date but requires padding of zero",
 			Input:    "2016-8-1",
 			Expected: "2016-08-01",
 		},
 	} {
-		t.Run(testCase.Input, func(t *testing.T) {
+		t.Run(testCase.Name, func(t *testing.T) {
 			assert.Equal(t, testCase.Expected, PadDateStringZeros(testCase.Input))
 		})
 	}
