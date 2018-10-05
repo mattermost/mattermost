@@ -80,7 +80,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 			t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, ss, s) })
 			t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
 			t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
-			t.Run("RemoveAllDeactivatedmembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss) })
+			t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss) })
 		})
 	}
 }
