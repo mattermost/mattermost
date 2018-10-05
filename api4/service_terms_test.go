@@ -34,7 +34,7 @@ func TestCreateTermsOfService(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.create_service_terms.custom_service_terms_disabled.app_error")
 
 	// TODO refactor this to be terms of service
-	th.App.SetLicense(model.NewTestLicense("EnableCustomServiceTerms"))
+	th.App.SetLicense(model.NewTestLicense("EnableCustomTermsOfService"))
 
 	termsOfService, resp = Client.CreateTermsOfService("service terms new", th.BasicUser.Id)
 	CheckNoError(t, resp)

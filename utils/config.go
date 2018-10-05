@@ -704,11 +704,9 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 		if *license.Features.CustomTermsOfService {
 			// TODO refactor this to be terms of service
-			props["EnableCustomServiceTerms"] = strconv.FormatBool(*c.SupportSettings.CustomServiceTermsEnabled)
+			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomServiceTermsEnabled)
 		}
 	}
-
-	props["EnableCustomServiceTerms"] = strconv.FormatBool(*c.SupportSettings.CustomServiceTermsEnabled)
 
 	return props
 }

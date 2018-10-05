@@ -248,7 +248,7 @@ func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	// TODO refactor this to be terms of service
-	if a.clientConfig["EnableCustomServiceTerms"] == "true" {
+	if a.clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := a.GetLatestTermsOfService()
 		if err != nil {
 			mlog.Err(err)
