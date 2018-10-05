@@ -44,25 +44,26 @@ func TestGetMillisForTime(t *testing.T) {
 	}
 }
 
-func TestParseDateFilterToTimeISO8601(t *testing.T) {
-	testString := "2016-08-01"
-	compareTime := time.Date(2016, time.August, 1, 0, 0, 0, 0, time.UTC)
-
-	result := ParseDateFilterToTime(testString)
-
-	if result != compareTime {
-		t.Fatalf(fmt.Sprintf("parsed date doesn't match the expected result: parsed result %v and expected time %v", result, compareTime))
-	}
-}
-
-func TestParseDateFilterToTimeNeedZeroPadding(t *testing.T) {
-	testString := "2016-8-1"
-	compareTime := time.Date(2016, time.August, 1, 0, 0, 0, 0, time.UTC)
-
-	result := ParseDateFilterToTime(testString)
-
-	if result != compareTime {
-		t.Fatalf(fmt.Sprintf("parsed date doesn't match the expected result: parsed result %v and expected time %v", result, compareTime))
+func TestPadDateStringZeros(t *testing.T) {
+	for _, testCase := range []struct {
+		Name     string
+		Input    string
+		Expected string
+	}{
+		{
+			Name:     "Valid date",
+			Input:    "2016-08-01",
+			Expected: "2016-08-01",
+		},
+		{
+			Name:     "Valid date but requires padding of zero",
+			Input:    "2016-8-1",
+			Expected: "2016-08-01",
+		},
+	} {
+		t.Run(testCase.Name, func(t *testing.T) {
+			assert.Equal(t, testCase.Expected, PadDateStringZeros(testCase.Input))
+		})
 	}
 }
 
