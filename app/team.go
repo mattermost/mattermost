@@ -1000,6 +1000,19 @@ func (a *App) SoftDeleteTeam(teamId string) *model.AppError {
 	return nil
 }
 
+func (a *App) RestoreTeam(teamId string) *model.AppError {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+	result := <-a.Srv.Store.Team().SetDeleteAt(team.Id, 0, model.GetMillis())
+	if result.Err != nil {
+		return result.Err
+	}
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_RESTORE_TEAM)
+	return nil
+}
+
 func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	tchan := a.Srv.Store.Team().GetTotalMemberCount(teamId)
 	achan := a.Srv.Store.Team().GetActiveMemberCount(teamId)
