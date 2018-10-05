@@ -15,14 +15,14 @@ import (
 const TERMS_OF_SERVICE_CACHE_SIZE = 1
 
 // TODO refactor this to be terms of service
-type ServiceTerms struct {
+type TermsOfService struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
 	UserId   string `json:"user_id"`
 	Text     string `json:"text"`
 }
 
-func (t *ServiceTerms) IsValid() *AppError {
+func (t *TermsOfService) IsValid() *AppError {
 	if len(t.Id) != 26 {
 		return InvalidTermsOfServiceError("id", "")
 	}
@@ -42,13 +42,13 @@ func (t *ServiceTerms) IsValid() *AppError {
 	return nil
 }
 
-func (t *ServiceTerms) ToJson() string {
+func (t *TermsOfService) ToJson() string {
 	b, _ := json.Marshal(t)
 	return string(b)
 }
 
-func TermsOfServiceFromJson(data io.Reader) *ServiceTerms {
-	var termsOfService *ServiceTerms
+func TermsOfServiceFromJson(data io.Reader) *TermsOfService {
+	var termsOfService *TermsOfService
 	json.NewDecoder(data).Decode(&termsOfService)
 	return termsOfService
 }
@@ -62,7 +62,7 @@ func InvalidTermsOfServiceError(fieldName string, termsOfServiceId string) *AppE
 	return NewAppError("TermsOfServiceStore.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
 }
 
-func (t *ServiceTerms) PreSave() {
+func (t *TermsOfService) PreSave() {
 	if t.Id == "" {
 		t.Id = NewId()
 	}

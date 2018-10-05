@@ -46,11 +46,11 @@ func (_m *TermsOfServiceStore) GetLatest(allowFromCache bool) store.StoreChannel
 }
 
 // Save provides a mock function with given fields: termsOfService
-func (_m *TermsOfServiceStore) Save(termsOfService *model.ServiceTerms) store.StoreChannel {
+func (_m *TermsOfServiceStore) Save(termsOfService *model.TermsOfService) store.StoreChannel {
 	ret := _m.Called(termsOfService)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.ServiceTerms) store.StoreChannel); ok {
+	if rf, ok := ret.Get(0).(func(*model.TermsOfService) store.StoreChannel); ok {
 		r0 = rf(termsOfService)
 	} else {
 		if ret.Get(0) != nil {

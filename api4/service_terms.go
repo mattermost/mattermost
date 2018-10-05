@@ -25,10 +25,10 @@ func getTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	//if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
-	//	c.Err = model.NewAppError("createTermsOfService", "api.create_service_terms.custom_service_terms_disabled.app_error", nil, "", http.StatusBadRequest)
-	//	return
-	//}
+	if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
+		c.Err = model.NewAppError("createTermsOfService", "api.create_service_terms.custom_service_terms_disabled.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	props := model.MapFromJson(r.Body)
 	text := props["text"]

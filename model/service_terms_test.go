@@ -10,7 +10,7 @@ import (
 )
 
 func TestTermsOfServiceIsValid(t *testing.T) {
-	s := ServiceTerms{}
+	s := TermsOfService{}
 
 	if err := s.IsValid(); err == nil {
 		t.Fatal("should be invalid")
@@ -48,7 +48,7 @@ func TestTermsOfServiceIsValid(t *testing.T) {
 }
 
 func TestTermsOfServiceJson(t *testing.T) {
-	o := ServiceTerms{
+	o := TermsOfService{
 		Id:       NewId(),
 		Text:     NewId(),
 		CreateAt: GetMillis(),

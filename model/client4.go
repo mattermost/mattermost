@@ -3840,7 +3840,7 @@ func (c *Client4) RegisteTermsOfServiceAction(userId, termsOfServiceId string, a
 	}
 }
 
-func (c *Client4) GetTermsOfService(etag string) (*ServiceTerms, *Response) {
+func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response) {
 	url := c.GetTermsOfServiceRoute()
 
 	if r, err := c.DoApiGet(url, etag); err != nil {
@@ -3851,7 +3851,7 @@ func (c *Client4) GetTermsOfService(etag string) (*ServiceTerms, *Response) {
 	}
 }
 
-func (c *Client4) CreateTermsOfService(text, userId string) (*ServiceTerms, *Response) {
+func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response) {
 	url := c.GetTermsOfServiceRoute()
 
 	data := map[string]string{"text": text}

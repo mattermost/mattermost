@@ -7,8 +7,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) CreateTermsOfService(text, userId string) (*model.ServiceTerms, *model.AppError) {
-	termsOfService := &model.ServiceTerms{
+func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError) {
+	termsOfService := &model.TermsOfService{
 		Text:   text,
 		UserId: userId,
 	}
@@ -22,24 +22,24 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.ServiceTerms, *m
 		return nil, result.Err
 	}
 
-	termsOfService = result.Data.(*model.ServiceTerms)
+	termsOfService = result.Data.(*model.TermsOfService)
 	return termsOfService, nil
 }
 
-func (a *App) GetLatestTermsOfService() (*model.ServiceTerms, *model.AppError) {
+func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
 	if result := <-a.Srv.Store.TermsOfService().GetLatest(true); result.Err != nil {
 		return nil, result.Err
 	} else {
-		termsOfService := result.Data.(*model.ServiceTerms)
+		termsOfService := result.Data.(*model.TermsOfService)
 		return termsOfService, nil
 	}
 }
 
-func (a *App) GetTermsOfService(id string) (*model.ServiceTerms, *model.AppError) {
+func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
 	if result := <-a.Srv.Store.TermsOfService().Get(id, true); result.Err != nil {
 		return nil, result.Err
 	} else {
-		termsOfService := result.Data.(*model.ServiceTerms)
+		termsOfService := result.Data.(*model.TermsOfService)
 		return termsOfService, nil
 	}
 }

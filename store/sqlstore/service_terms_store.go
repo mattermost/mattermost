@@ -25,7 +25,7 @@ func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	s := SqlTermsOfServiceStore{sqlStore, metrics}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.ServiceTerms{}, "ServiceTerms").SetKeys(false, "Id")
+		table := db.AddTableWithName(model.TermsOfService{}, "ServiceTerms").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Text").SetMaxSize(model.POST_MESSAGE_MAX_BYTES_V2)
@@ -37,7 +37,7 @@ func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 func (s SqlTermsOfServiceStore) CreateIndexesIfNotExists() {
 }
 
-func (s SqlTermsOfServiceStore) Save(termsOfService *model.ServiceTerms) store.StoreChannel {
+func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if len(termsOfService.Id) > 0 {
 			result.Err = model.NewAppError(
@@ -84,7 +84,7 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) store.StoreChanne
 						s.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
 					}
 
-					result.Data = cacheItem.(*model.ServiceTerms)
+					result.Data = cacheItem.(*model.TermsOfService)
 					return
 				} else if s.metrics != nil {
 					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
@@ -92,7 +92,7 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) store.StoreChanne
 			}
 		}
 
-		var termsOfService *model.ServiceTerms
+		var termsOfService *model.TermsOfService
 
 		err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM ServiceTerms ORDER BY CreateAt DESC LIMIT 1")
 		if err != nil {
@@ -124,7 +124,7 @@ func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) store.StoreC
 						s.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
 					}
 
-					result.Data = cacheItem.(*model.ServiceTerms)
+					result.Data = cacheItem.(*model.TermsOfService)
 					return
 				} else if s.metrics != nil {
 					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
@@ -132,12 +132,12 @@ func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) store.StoreC
 			}
 		}
 
-		if obj, err := s.GetReplica().Get(model.ServiceTerms{}, id); err != nil {
+		if obj, err := s.GetReplica().Get(model.TermsOfService{}, id); err != nil {
 			result.Err = model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		} else if obj == nil {
 			result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
 		} else {
-			result.Data = obj.(*model.ServiceTerms)
+			result.Data = obj.(*model.TermsOfService)
 		}
 	})
 }

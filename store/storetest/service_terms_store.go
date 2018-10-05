@@ -23,14 +23,14 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u1))
 
-	termsOfService := &model.ServiceTerms{Text: "service terms", UserId: u1.Id}
+	termsOfService := &model.TermsOfService{Text: "service terms", UserId: u1.Id}
 	r1 := <-ss.TermsOfService().Save(termsOfService)
 
 	if r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
 
-	savedTermsOfService := r1.Data.(*model.ServiceTerms)
+	savedTermsOfService := r1.Data.(*model.TermsOfService)
 	if len(savedTermsOfService.Id) != 26 {
 		t.Fatal("Id should have been populated")
 	}
@@ -47,7 +47,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u1))
 
-	termsOfService := &model.ServiceTerms{Text: "service terms", UserId: u1.Id}
+	termsOfService := &model.TermsOfService{Text: "service terms", UserId: u1.Id}
 	store.Must(ss.TermsOfService().Save(termsOfService))
 
 	r1 := <-ss.TermsOfService().GetLatest(true)
@@ -55,7 +55,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	fetchedTermsOfService := r1.Data.(*model.ServiceTerms)
+	fetchedTermsOfService := r1.Data.(*model.TermsOfService)
 	assert.Equal(t, termsOfService.Text, fetchedTermsOfService.Text)
 	assert.Equal(t, termsOfService.UserId, fetchedTermsOfService.UserId)
 }
@@ -67,7 +67,7 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u1))
 
-	termsOfService := &model.ServiceTerms{Text: "service terms", UserId: u1.Id}
+	termsOfService := &model.TermsOfService{Text: "service terms", UserId: u1.Id}
 	store.Must(ss.TermsOfService().Save(termsOfService))
 
 	r1 := <-ss.TermsOfService().Get("an_invalid_id", true)
@@ -77,6 +77,6 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	r1 = <-ss.TermsOfService().Get(termsOfService.Id, true)
 	assert.Nil(t, r1.Err)
 
-	receivedTermsOfService := r1.Data.(*model.ServiceTerms)
+	receivedTermsOfService := r1.Data.(*model.TermsOfService)
 	assert.Equal(t, "service terms", receivedTermsOfService.Text)
 }
