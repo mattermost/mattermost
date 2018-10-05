@@ -263,7 +263,11 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 	}
 
 	for _, team := range teams {
-		CommandPrettyPrintln(team.Name)
+		if team.DeleteAt > 0 {
+			CommandPrettyPrintln(team.Name + " (archived)")
+		} else {
+			CommandPrettyPrintln(team.Name)
+		}
 	}
 
 	return nil
@@ -289,7 +293,11 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	sortedTeams := removeDuplicatesAndSortTeams(teams)
 
 	for _, team := range sortedTeams {
-		CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")")
+		if team.DeleteAt > 0 {
+			CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")" + " (archived)")
+		} else {
+			CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")")
+		}
 	}
 
 	return nil
@@ -324,8 +332,8 @@ func archiveTeamCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Team().Delete(team.Id, model.GetMillis()); result.Err != nil {
-			CommandPrintErrorln("Unable to archive team '" + team.Name + "' error: " + result.Err.Error())
+		if err := a.SoftDeleteTeam(team.Id); err != nil {
+			CommandPrintErrorln("Unable to archive team '"+team.Name+"' error: ", err)
 		}
 	}
 

@@ -114,8 +114,6 @@ type TeamStore interface {
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 	GetAllForExportAfter(limit int, afterId string) StoreChannel
 	GetTeamMembersForExport(userId string) StoreChannel
-	Delete(teamId string, time int64) StoreChannel
-	SetDeleteAt(teamId string, deleteAt int64, updateAt int64) StoreChannel
 }
 
 type ChannelStore interface {
