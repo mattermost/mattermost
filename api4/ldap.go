@@ -13,6 +13,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const linkPath string = `/groups/{dn:[^#+"<>;]+}/link`
+
 func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
@@ -21,16 +23,10 @@ func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getChildLdapGroups)).Methods("GET")
 
 	// POST /api/v4/ldap/groups/:dn/link
-	api.BaseRoutes.LDAP.Handle(
-		"/groups/{dn:[A-Za-z0-9=,]+}/link",
-		api.ApiSessionRequired(linkLdapGroup),
-	).Methods("POST")
+	api.BaseRoutes.LDAP.Handle(linkPath, api.ApiSessionRequired(linkLdapGroup)).Methods("POST")
 
 	// DELETE /api/v4/ldap/groups/:dn/link
-	api.BaseRoutes.LDAP.Handle(
-		"/groups/{dn:[A-Za-z0-9=,]+}/link",
-		api.ApiSessionRequired(unlinkLdapGroup),
-	).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle(linkPath, api.ApiSessionRequired(unlinkLdapGroup)).Methods("DELETE")
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
