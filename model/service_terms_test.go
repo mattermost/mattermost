@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestServiceTermsIsValid(t *testing.T) {
+func TestTermsOfServiceIsValid(t *testing.T) {
 	s := ServiceTerms{}
 
 	if err := s.IsValid(); err == nil {
@@ -47,7 +47,7 @@ func TestServiceTermsIsValid(t *testing.T) {
 	}
 }
 
-func TestServiceTermsJson(t *testing.T) {
+func TestTermsOfServiceJson(t *testing.T) {
 	o := ServiceTerms{
 		Id:       NewId(),
 		Text:     NewId(),
@@ -55,7 +55,7 @@ func TestServiceTermsJson(t *testing.T) {
 		UserId:   NewId(),
 	}
 	j := o.ToJson()
-	ro := ServiceTermsFromJson(strings.NewReader(j))
+	ro := TermsOfServiceFromJson(strings.NewReader(j))
 
 	assert.NotNil(t, ro)
 	assert.Equal(t, o, *ro)

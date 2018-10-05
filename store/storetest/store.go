@@ -45,7 +45,7 @@ type Store struct {
 	ChannelMemberHistoryStore mocks.ChannelMemberHistoryStore
 	RoleStore                 mocks.RoleStore
 	SchemeStore               mocks.SchemeStore
-	ServiceTermsStore         mocks.ServiceTermsStore
+	TermsOfServiceStore       mocks.ServiceTermsStore
 }
 
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
@@ -67,13 +67,13 @@ func (s *Store) Token() store.TokenStore                       { return &s.Token
 func (s *Store) Emoji() store.EmojiStore                       { return &s.EmojiStore }
 func (s *Store) Status() store.StatusStore                     { return &s.StatusStore }
 func (s *Store) FileInfo() store.FileInfoStore                 { return &s.FileInfoStore }
-func (s *Store) Reaction() store.ReactionStore                 { return &s.ReactionStore }
-func (s *Store) Job() store.JobStore                           { return &s.JobStore }
-func (s *Store) UserAccessToken() store.UserAccessTokenStore   { return &s.UserAccessTokenStore }
-func (s *Store) Plugin() store.PluginStore                     { return &s.PluginStore }
-func (s *Store) Role() store.RoleStore                         { return &s.RoleStore }
-func (s *Store) Scheme() store.SchemeStore                     { return &s.SchemeStore }
-func (s *Store) ServiceTerms() store.ServiceTermsStore         { return &s.ServiceTermsStore }
+func (s *Store) Reaction() store.ReactionStore               { return &s.ReactionStore }
+func (s *Store) Job() store.JobStore                         { return &s.JobStore }
+func (s *Store) UserAccessToken() store.UserAccessTokenStore { return &s.UserAccessTokenStore }
+func (s *Store) Plugin() store.PluginStore                   { return &s.PluginStore }
+func (s *Store) Role() store.RoleStore                       { return &s.RoleStore }
+func (s *Store) Scheme() store.SchemeStore                   { return &s.SchemeStore }
+func (s *Store) TermsOfService() store.TermsOfServiceStore   { return &s.TermsOfServiceStore }
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }

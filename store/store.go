@@ -65,7 +65,7 @@ type Store interface {
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
-	ServiceTerms() ServiceTermsStore
+	TermsOfService() TermsOfServiceStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -522,8 +522,8 @@ type SchemeStore interface {
 	PermanentDeleteAll() StoreChannel
 }
 
-type ServiceTermsStore interface {
-	Save(serviceTerms *model.ServiceTerms) StoreChannel
+type TermsOfServiceStore interface {
+	Save(termsOfService *model.ServiceTerms) StoreChannel
 	GetLatest(allowFromCache bool) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 }

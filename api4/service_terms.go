@@ -9,26 +9,26 @@ import (
 	"net/http"
 )
 
-func (api *API) InitServiceTerms() {
-	api.BaseRoutes.ServiceTerms.Handle("", api.ApiSessionRequired(getServiceTerms)).Methods("GET")
-	api.BaseRoutes.ServiceTerms.Handle("", api.ApiSessionRequired(createServiceTerms)).Methods("POST")
+func (api *API) InitTermsOfService() {
+	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(getTermsOfService)).Methods("GET")
+	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(createTermsOfService)).Methods("POST")
 }
 
-func getServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
-	serviceTerms, err := c.App.GetLatestServiceTerms()
+func getTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
+	termsOfService, err := c.App.GetLatestTermsOfService()
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(serviceTerms.ToJson()))
+	w.Write([]byte(termsOfService.ToJson()))
 }
 
-func createServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
-	if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
-		c.Err = model.NewAppError("createServiceTerms", "api.create_service_terms.custom_service_terms_disabled.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
+func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
+	//if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
+	//	c.Err = model.NewAppError("createTermsOfService", "api.create_service_terms.custom_service_terms_disabled.app_error", nil, "", http.StatusBadRequest)
+	//	return
+	//}
 
 	props := model.MapFromJson(r.Body)
 	text := props["text"]
@@ -39,21 +39,21 @@ func createServiceTerms(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oldServiceTerms, err := c.App.GetLatestServiceTerms()
+	oldTermsOfService, err := c.App.GetLatestTermsOfService()
 	if err != nil && err.Id != app.ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
 		c.Err = err
 		return
 	}
 
-	if oldServiceTerms == nil || oldServiceTerms.Text != text {
-		serviceTerms, err := c.App.CreateServiceTerms(text, userId)
+	if oldTermsOfService == nil || oldTermsOfService.Text != text {
+		termsOfService, err := c.App.CreateTermsOfService(text, userId)
 		if err != nil {
 			c.Err = err
 			return
 		}
 
-		w.Write([]byte(serviceTerms.ToJson()))
+		w.Write([]byte(termsOfService.ToJson()))
 	} else {
-		w.Write([]byte(oldServiceTerms.ToJson()))
+		w.Write([]byte(oldTermsOfService.ToJson()))
 	}
 }

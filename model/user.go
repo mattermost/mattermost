@@ -74,7 +74,7 @@ type User struct {
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
-	AcceptedServiceTermsId string    `json:"accepted_service_terms_id,omitempty"`
+	AcceptedServiceTermsId string    `json:"accepted_service_terms_id,omitempty"` // TODO remove this field when new TOS action table is created
 }
 
 type UserPatch struct {

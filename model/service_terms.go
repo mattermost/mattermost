@@ -12,8 +12,9 @@ import (
 )
 
 // we only ever need the latest version of service terms
-const SERVICE_TERMS_CACHE_SIZE = 1
+const TERMS_OF_SERVICE_CACHE_SIZE = 1
 
+// TODO refactor this to be terms of service
 type ServiceTerms struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
@@ -23,19 +24,19 @@ type ServiceTerms struct {
 
 func (t *ServiceTerms) IsValid() *AppError {
 	if len(t.Id) != 26 {
-		return InvalidServiceTermsError("id", "")
+		return InvalidTermsOfServiceError("id", "")
 	}
 
 	if t.CreateAt == 0 {
-		return InvalidServiceTermsError("create_at", t.Id)
+		return InvalidTermsOfServiceError("create_at", t.Id)
 	}
 
 	if len(t.UserId) != 26 {
-		return InvalidServiceTermsError("user_id", t.Id)
+		return InvalidTermsOfServiceError("user_id", t.Id)
 	}
 
 	if utf8.RuneCountInString(t.Text) > POST_MESSAGE_MAX_RUNES_V2 {
-		return InvalidServiceTermsError("text", t.Id)
+		return InvalidTermsOfServiceError("text", t.Id)
 	}
 
 	return nil
@@ -46,19 +47,19 @@ func (t *ServiceTerms) ToJson() string {
 	return string(b)
 }
 
-func ServiceTermsFromJson(data io.Reader) *ServiceTerms {
-	var serviceTerms *ServiceTerms
-	json.NewDecoder(data).Decode(&serviceTerms)
-	return serviceTerms
+func TermsOfServiceFromJson(data io.Reader) *ServiceTerms {
+	var termsOfService *ServiceTerms
+	json.NewDecoder(data).Decode(&termsOfService)
+	return termsOfService
 }
 
-func InvalidServiceTermsError(fieldName string, serviceTermsId string) *AppError {
+func InvalidTermsOfServiceError(fieldName string, termsOfServiceId string) *AppError {
 	id := fmt.Sprintf("model.service_terms.is_valid.%s.app_error", fieldName)
 	details := ""
-	if serviceTermsId != "" {
-		details = "service_terms_id=" + serviceTermsId
+	if termsOfServiceId != "" {
+		details = "service_terms_id=" + termsOfServiceId
 	}
-	return NewAppError("ServiceTerms.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
+	return NewAppError("TermsOfServiceStore.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
 }
 
 func (t *ServiceTerms) PreSave() {

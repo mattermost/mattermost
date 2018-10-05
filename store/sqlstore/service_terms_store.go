@@ -12,17 +12,17 @@ import (
 	"net/http"
 )
 
-type SqlServiceTermsStore struct {
+type SqlTermsOfServiceStore struct {
 	SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
-var serviceTermsCache = utils.NewLru(model.SERVICE_TERMS_CACHE_SIZE)
+var termsOfServiceCache = utils.NewLru(model.TERMS_OF_SERVICE_CACHE_SIZE)
 
-const serviceTermsCacheName = "ServiceTerms"
+const termsOfServiceCacheName = "TermsOfServiceStore"
 
-func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ServiceTermsStore {
-	s := SqlServiceTermsStore{sqlStore, metrics}
+func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
+	s := SqlTermsOfServiceStore{sqlStore, metrics}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.ServiceTerms{}, "ServiceTerms").SetKeys(false, "Id")
@@ -34,108 +34,108 @@ func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	return s
 }
 
-func (s SqlServiceTermsStore) CreateIndexesIfNotExists() {
+func (s SqlTermsOfServiceStore) CreateIndexesIfNotExists() {
 }
 
-func (s SqlServiceTermsStore) Save(serviceTerms *model.ServiceTerms) store.StoreChannel {
+func (s SqlTermsOfServiceStore) Save(termsOfService *model.ServiceTerms) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if len(serviceTerms.Id) > 0 {
+		if len(termsOfService.Id) > 0 {
 			result.Err = model.NewAppError(
-				"SqlServiceTermsStore.Save",
+				"SqlTermsOfServiceStore.Save",
 				"store.sql_service_terms_store.save.existing.app_error",
 				nil,
-				"id="+serviceTerms.Id, http.StatusBadRequest,
+				"id="+termsOfService.Id, http.StatusBadRequest,
 			)
 			return
 		}
 
-		serviceTerms.PreSave()
+		termsOfService.PreSave()
 
-		if result.Err = serviceTerms.IsValid(); result.Err != nil {
+		if result.Err = termsOfService.IsValid(); result.Err != nil {
 			return
 		}
 
-		if err := s.GetMaster().Insert(serviceTerms); err != nil {
+		if err := s.GetMaster().Insert(termsOfService); err != nil {
 			result.Err = model.NewAppError(
-				"SqlServiceTermsStore.Save",
+				"SqlTermsOfServiceStore.Save",
 				"store.sql_service_terms.save.app_error",
 				nil,
-				"service_term_id="+serviceTerms.Id+",err="+err.Error(),
+				"service_term_id="+termsOfService.Id+",err="+err.Error(),
 				http.StatusInternalServerError,
 			)
 		}
 
-		result.Data = serviceTerms
+		result.Data = termsOfService
 
-		serviceTermsCache.AddWithDefaultExpires(serviceTerms.Id, serviceTerms)
+		termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
 	})
 }
 
-func (s SqlServiceTermsStore) GetLatest(allowFromCache bool) store.StoreChannel {
+func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
-			if serviceTermsCache.Len() == 0 {
+			if termsOfServiceCache.Len() == 0 {
 				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter(serviceTermsCacheName)
+					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
 				}
 			} else {
-				if cacheItem, ok := serviceTermsCache.Get(serviceTermsCache.Keys()[0]); ok {
+				if cacheItem, ok := termsOfServiceCache.Get(termsOfServiceCache.Keys()[0]); ok {
 					if s.metrics != nil {
-						s.metrics.IncrementMemCacheHitCounter(serviceTermsCacheName)
+						s.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
 					}
 
 					result.Data = cacheItem.(*model.ServiceTerms)
 					return
 				} else if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter(serviceTermsCacheName)
+					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
 				}
 			}
 		}
 
-		var serviceTerms *model.ServiceTerms
+		var termsOfService *model.ServiceTerms
 
-		err := s.GetReplica().SelectOne(&serviceTerms, "SELECT * FROM ServiceTerms ORDER BY CreateAt DESC LIMIT 1")
+		err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM ServiceTerms ORDER BY CreateAt DESC LIMIT 1")
 		if err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlServiceTermsStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
+				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
 			} else {
-				result.Err = model.NewAppError("SqlServiceTermsStore.GetLatest", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
-			result.Data = serviceTerms
+			result.Data = termsOfService
 
 			if allowFromCache {
-				serviceTermsCache.AddWithDefaultExpires(serviceTerms.Id, serviceTerms)
+				termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
 			}
 		}
 	})
 }
 
-func (s SqlServiceTermsStore) Get(id string, allowFromCache bool) store.StoreChannel {
+func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
-			if serviceTermsCache.Len() == 0 {
+			if termsOfServiceCache.Len() == 0 {
 				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter(serviceTermsCacheName)
+					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
 				}
 			} else {
-				if cacheItem, ok := serviceTermsCache.Get(id); ok {
+				if cacheItem, ok := termsOfServiceCache.Get(id); ok {
 					if s.metrics != nil {
-						s.metrics.IncrementMemCacheHitCounter(serviceTermsCacheName)
+						s.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
 					}
 
 					result.Data = cacheItem.(*model.ServiceTerms)
 					return
 				} else if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter(serviceTermsCacheName)
+					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
 				}
 			}
 		}
 
 		if obj, err := s.GetReplica().Get(model.ServiceTerms{}, id); err != nil {
-			result.Err = model.NewAppError("SqlServiceTermsStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlServiceTermsStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
+			result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
 		} else {
 			result.Data = obj.(*model.ServiceTerms)
 		}

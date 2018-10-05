@@ -40,7 +40,7 @@ var (
 		"../../..",
 	}
 
-	serviceTermsEnabledAndEmpty = model.NewAppError(
+	termsOfServiceEnabledAndEmpty = model.NewAppError(
 		"Config.IsValid",
 		"model.config.is_valid.support.custom_service_terms_text.app_error",
 		nil,
@@ -485,7 +485,7 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 	// Don't treat it as an error right now if custom service terms are enabled but text is empty.
 	// This is because service terms text will be fetched from database at a later state, but
 	// the flag indicating it is enabled is fetched from config file right away.
-	if err := config.IsValid(); err != nil && err.Id != serviceTermsEnabledAndEmpty.Id {
+	if err := config.IsValid(); err != nil && err.Id != termsOfServiceEnabledAndEmpty.Id {
 		return nil, "", nil, err
 	}
 
@@ -703,9 +703,12 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 		}
 
 		if *license.Features.CustomTermsOfService {
+			// TODO refactor this to be terms of service
 			props["EnableCustomServiceTerms"] = strconv.FormatBool(*c.SupportSettings.CustomServiceTermsEnabled)
 		}
 	}
+
+	props["EnableCustomServiceTerms"] = strconv.FormatBool(*c.SupportSettings.CustomServiceTermsEnabled)
 
 	return props
 }

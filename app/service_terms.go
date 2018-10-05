@@ -7,8 +7,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *model.AppError) {
-	serviceTerms := &model.ServiceTerms{
+func (a *App) CreateTermsOfService(text, userId string) (*model.ServiceTerms, *model.AppError) {
+	termsOfService := &model.ServiceTerms{
 		Text:   text,
 		UserId: userId,
 	}
@@ -17,29 +17,29 @@ func (a *App) CreateServiceTerms(text, userId string) (*model.ServiceTerms, *mod
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.ServiceTerms().Save(serviceTerms)
+	result := <-a.Srv.Store.TermsOfService().Save(termsOfService)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 
-	serviceTerms = result.Data.(*model.ServiceTerms)
-	return serviceTerms, nil
+	termsOfService = result.Data.(*model.ServiceTerms)
+	return termsOfService, nil
 }
 
-func (a *App) GetLatestServiceTerms() (*model.ServiceTerms, *model.AppError) {
-	if result := <-a.Srv.Store.ServiceTerms().GetLatest(true); result.Err != nil {
+func (a *App) GetLatestTermsOfService() (*model.ServiceTerms, *model.AppError) {
+	if result := <-a.Srv.Store.TermsOfService().GetLatest(true); result.Err != nil {
 		return nil, result.Err
 	} else {
-		serviceTerms := result.Data.(*model.ServiceTerms)
-		return serviceTerms, nil
+		termsOfService := result.Data.(*model.ServiceTerms)
+		return termsOfService, nil
 	}
 }
 
-func (a *App) GetServiceTerms(id string) (*model.ServiceTerms, *model.AppError) {
-	if result := <-a.Srv.Store.ServiceTerms().Get(id, true); result.Err != nil {
+func (a *App) GetTermsOfService(id string) (*model.ServiceTerms, *model.AppError) {
+	if result := <-a.Srv.Store.TermsOfService().Get(id, true); result.Err != nil {
 		return nil, result.Err
 	} else {
-		serviceTerms := result.Data.(*model.ServiceTerms)
-		return serviceTerms, nil
+		termsOfService := result.Data.(*model.ServiceTerms)
+		return termsOfService, nil
 	}
 }

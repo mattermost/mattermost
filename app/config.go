@@ -247,12 +247,14 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
+	// TODO refactor this to be terms of service
 	if a.clientConfig["EnableCustomServiceTerms"] == "true" {
-		serviceTerms, err := a.GetLatestServiceTerms()
+		termsOfService, err := a.GetLatestTermsOfService()
 		if err != nil {
 			mlog.Err(err)
 		} else {
-			a.clientConfig["CustomServiceTermsId"] = serviceTerms.Id
+			// TODO refactor this to be terms of service
+			a.clientConfig["CustomServiceTermsId"] = termsOfService.Id
 		}
 	}
 
