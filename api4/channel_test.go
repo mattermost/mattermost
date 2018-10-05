@@ -150,8 +150,8 @@ func TestUpdateChannel(t *testing.T) {
 	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	private := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
 
-	channel, resp := Client.CreateChannel(channel)
-	private, resp = Client.CreateChannel(private)
+	channel, _ = Client.CreateChannel(channel)
+	private, _ = Client.CreateChannel(private)
 
 	//Update a open channel
 	channel.DisplayName = "My new display name"
@@ -434,7 +434,7 @@ func TestCreateGroupChannel(t *testing.T) {
 		t.Fatal("should be equal")
 	}
 
-	rgc, resp = Client.CreateGroupChannel([]string{user2.Id})
+	_, resp = Client.CreateGroupChannel([]string{user2.Id})
 	CheckBadRequestStatus(t, resp)
 
 	user4 := th.CreateUser()
@@ -541,12 +541,12 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	Client := th.Client
 	team := th.BasicTeam
 
-	channels, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	_, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginTeamAdmin()
 
-	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	channels, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
 	numInitialChannelsForTeam := len(channels)
 
@@ -860,6 +860,7 @@ func TestDeleteChannel(t *testing.T) {
 
 	// successful delete of channel with multiple members
 	publicChannel3 := th.CreatePublicChannel()
+	th.App.AddUserToChannel(user, publicChannel3)
 	th.App.AddUserToChannel(user2, publicChannel3)
 	_, resp = Client.DeleteChannel(publicChannel3.Id)
 	CheckNoError(t, resp)
@@ -901,7 +902,7 @@ func TestDeleteChannel(t *testing.T) {
 	publicChannel5 := th.CreatePublicChannel()
 	Client.Logout()
 
-	Client.Login(user2.Id, user2.Password)
+	Client.Login(user.Id, user.Password)
 	_, resp = Client.DeleteChannel(publicChannel5.Id)
 	CheckUnauthorizedStatus(t, resp)
 
@@ -927,16 +928,14 @@ func TestDeleteChannel(t *testing.T) {
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
 
 	Client = th.Client
-	team = th.BasicTeam
 	user = th.BasicUser
-	user2 = th.BasicUser2
 
 	// channels created by SystemAdmin
 	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	th.App.AddUserToChannel(user, publicChannel6)
 	th.App.AddUserToChannel(user, privateChannel7)
-	th.App.AddUserToChannel(user2, privateChannel7)
+	th.App.AddUserToChannel(user, privateChannel7)
 
 	// successful delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -956,7 +955,7 @@ func TestDeleteChannel(t *testing.T) {
 	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	th.App.AddUserToChannel(user, publicChannel6)
 	th.App.AddUserToChannel(user, privateChannel7)
-	th.App.AddUserToChannel(user2, privateChannel7)
+	th.App.AddUserToChannel(user, privateChannel7)
 
 	// cannot delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -1629,7 +1628,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// System Admin promotes User 1
-	pass, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN)
+	_, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN)
 	CheckNoError(t, resp)
 
 	th.LoginBasic()
@@ -2110,9 +2109,11 @@ func TestAutocompleteChannels(t *testing.T) {
 			[]string{"town"},
 		},
 	} {
-		if channels, resp := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment); resp.Error != nil {
-			t.Fatal("Test case " + tc.description + " failed. Err: " + resp.Error.Error())
-		} else {
+		t.Run(tc.description, func(t *testing.T) {
+			channels, resp := th.Client.AutocompleteChannelsForTeam(tc.teamId, tc.fragment)
+			if resp.Error != nil {
+				t.Fatal("Err: " + resp.Error.Error())
+			}
 			for _, expectedInclude := range tc.expectedIncludes {
 				found := false
 				for _, channel := range *channels {
@@ -2122,17 +2123,140 @@ func TestAutocompleteChannels(t *testing.T) {
 					}
 				}
 				if !found {
-					t.Fatal("Test case " + tc.description + " failed. Expected but didn't find channel: " + expectedInclude)
+					t.Fatal("Expected but didn't find channel: " + expectedInclude)
 				}
 			}
 			for _, expectedExclude := range tc.expectedExcludes {
 				for _, channel := range *channels {
 					if channel.Name == expectedExclude {
-						t.Fatal("Test case " + tc.description + " failed. Found channel we didn't want: " + expectedExclude)
+						t.Fatal("Found channel we didn't want: " + expectedExclude)
 					}
 				}
 			}
-		}
+		})
+	}
+}
+
+func TestAutocompleteChannelsForSearch(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.LoginSystemAdminWithClient(th.SystemAdminClient)
+	th.LoginBasicWithClient(th.Client)
+
+	u1 := th.CreateUserWithClient(th.SystemAdminClient)
+	u2 := th.CreateUserWithClient(th.SystemAdminClient)
+	u3 := th.CreateUserWithClient(th.SystemAdminClient)
+	u4 := th.CreateUserWithClient(th.SystemAdminClient)
+
+	// A private channel to make sure private channels are not used
+	utils.DisableDebugLogForTest()
+	ptown, _ := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName: "Town",
+		Name:        "town",
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      th.BasicTeam.Id,
+	})
+	defer func() {
+		th.Client.DeleteChannel(ptown.Id)
+	}()
+	mypriv, _ := th.Client.CreateChannel(&model.Channel{
+		DisplayName: "My private town",
+		Name:        "townpriv",
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      th.BasicTeam.Id,
+	})
+	defer func() {
+		th.Client.DeleteChannel(mypriv.Id)
+	}()
+	utils.EnableDebugLogForTest()
+
+	dc1, resp := th.Client.CreateDirectChannel(th.BasicUser.Id, u1.Id)
+	CheckNoError(t, resp)
+	defer func() {
+		th.Client.DeleteChannel(dc1.Id)
+	}()
+
+	dc2, resp := th.SystemAdminClient.CreateDirectChannel(u2.Id, u3.Id)
+	CheckNoError(t, resp)
+	defer func() {
+		th.SystemAdminClient.DeleteChannel(dc2.Id)
+	}()
+
+	gc1, resp := th.Client.CreateGroupChannel([]string{th.BasicUser.Id, u2.Id, u3.Id})
+	CheckNoError(t, resp)
+	defer func() {
+		th.Client.DeleteChannel(gc1.Id)
+	}()
+
+	gc2, resp := th.SystemAdminClient.CreateGroupChannel([]string{u2.Id, u3.Id, u4.Id})
+	CheckNoError(t, resp)
+	defer func() {
+		th.SystemAdminClient.DeleteChannel(gc2.Id)
+	}()
+
+	for _, tc := range []struct {
+		description      string
+		teamId           string
+		fragment         string
+		expectedIncludes []string
+		expectedExcludes []string
+	}{
+		{
+			"Basic town-square",
+			th.BasicTeam.Id,
+			"town",
+			[]string{"town-square", "townpriv"},
+			[]string{"off-topic", "town"},
+		},
+		{
+			"Basic off-topic",
+			th.BasicTeam.Id,
+			"off-to",
+			[]string{"off-topic"},
+			[]string{"town-square", "town", "townpriv"},
+		},
+		{
+			"Basic town square and off topic",
+			th.BasicTeam.Id,
+			"to",
+			[]string{"off-topic", "town-square", "townpriv"},
+			[]string{"town"},
+		},
+		{
+			"Direct and group messages",
+			th.BasicTeam.Id,
+			"fakeuser",
+			[]string{dc1.Name, gc1.Name},
+			[]string{dc2.Name, gc2.Name},
+		},
+	} {
+		t.Run(tc.description, func(t *testing.T) {
+			channels, resp := th.Client.AutocompleteChannelsForTeamForSearch(tc.teamId, tc.fragment)
+			if resp.Error != nil {
+				t.Fatal("Err: " + resp.Error.Error())
+			}
+			for _, expectedInclude := range tc.expectedIncludes {
+				found := false
+				for _, channel := range *channels {
+					if channel.Name == expectedInclude {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Fatal("Expected but didn't find channel: " + expectedInclude + " Channels: " + fmt.Sprintf("%v", channels))
+				}
+			}
+
+			for _, expectedExclude := range tc.expectedExcludes {
+				for _, channel := range *channels {
+					if channel.Name == expectedExclude {
+						t.Fatal("Found channel we didn't want: " + expectedExclude)
+					}
+				}
+			}
+		})
 	}
 }
 

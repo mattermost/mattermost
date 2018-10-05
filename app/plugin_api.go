@@ -83,6 +83,10 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
 
+func (api *PluginAPI) GetServerVersion() string {
+	return model.CurrentVersion
+}
+
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.CreateTeam(team)
 }
@@ -184,6 +188,22 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 
 	return api.app.GetStatus(userId)
 }
+func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+	if api.app.Ldap == nil {
+		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	user, err := api.app.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.AuthService != model.USER_AUTH_SERVICE_LDAP || user.AuthData == nil {
+		return map[string]string{}, nil
+	}
+
+	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+}
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	return api.app.CreateChannel(channel, false)
@@ -235,11 +255,15 @@ func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.Channel
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
+	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId, false)
 }
 
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	return api.app.GetChannelMember(channelId, userId)
+}
+
+func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersPage(channelId, page, perPage)
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -309,6 +333,10 @@ func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {
 
 func (api *PluginAPI) KVDelete(key string) *model.AppError {
 	return api.app.DeletePluginKey(api.id, key)
+}
+
+func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
+	return api.app.ListPluginKeys(api.id, page, perPage)
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {

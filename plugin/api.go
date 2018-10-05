@@ -34,6 +34,9 @@ type API interface {
 	// SaveConfig sets the given config and persists the changes
 	SaveConfig(config *model.Config) *model.AppError
 
+	// GetServerVersion return the current Mattermost server version
+	GetServerVersion() string
+
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 
@@ -61,6 +64,12 @@ type API interface {
 	// UpdateUserStatus will set a user's status until the user, or another integration/plugin, sets it back to online.
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
+
+	// GetLDAPUserAttributes will return LDAP attributes for a user.
+	// The attributes parameter should be a list of attributes to pull.
+	// Returns a map with attribute names as keys and the user's attributes as values.
+	// Requires an enterprise license, LDAP to be configured and for the user to use LDAP as an authentication method.
+	GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError)
 
 	// CreateTeam creates a team.
 	CreateTeam(team *model.Team) (*model.Team, *model.AppError)
@@ -131,6 +140,9 @@ type API interface {
 	// GetChannelMember gets a channel membership for a user.
 	GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
+	// GetChannelMembers gets a channel membership for all users.
+	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 
@@ -186,6 +198,9 @@ type API interface {
 
 	// KVDelete will remove a key-value pair. Returns nil for non-existent keys.
 	KVDelete(key string) *model.AppError
+
+	// KVList will list all keys for a plugin.
+	KVList(page, perPage int) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_"

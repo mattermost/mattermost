@@ -130,7 +130,8 @@
         "MaxOpenConns": 300,
         "Trace": false,
         "AtRestEncryptKey": "",
-        "QueryTimeout": 30
+        "QueryTimeout": 30,
+        "EnablePublicChannelsMaterialization": true
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -308,6 +309,7 @@
     "SamlSettings": {
         "Enable": false,
         "EnableSyncWithLdap": false,
+        "EnableSyncWithLdapIncludeAuth": false,
         "Verify": true,
         "Encrypt": true,
         "IdpUrl": "",
@@ -318,6 +320,7 @@
         "IdpCertificateFile": "",
         "PublicCertificateFile": "",
         "PrivateKeyFile": "",
+        "IdAttribute": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",

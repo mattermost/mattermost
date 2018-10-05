@@ -96,12 +96,34 @@ type PostPatch struct {
 	HasReactions *bool            `json:"has_reactions"`
 }
 
+type SearchParameter struct {
+	Terms                  *string `json:"terms"`
+	IsOrSearch             *bool   `json:"is_or_search"`
+	TimeZoneOffset         *int    `json:"time_zone_offset"`
+	Page                   *int    `json:"page"`
+	PerPage                *int    `json:"per_page"`
+	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
+}
+
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	copy := *o
 	if copy.Message != nil {
 		*copy.Message = RewriteImageURLs(*o.Message, f)
 	}
 	return &copy
+}
+
+type PostForExport struct {
+	Post
+	TeamName    string
+	ChannelName string
+	Username    string
+	ReplyCount  int
+}
+
+type ReplyForExport struct {
+	Post
+	Username string
 }
 
 type PostForIndexing struct {
@@ -135,6 +157,8 @@ type PostActionIntegration struct {
 
 type PostActionIntegrationRequest struct {
 	UserId     string          `json:"user_id"`
+	ChannelId  string          `json:"channel_id"`
+	TeamId     string          `json:"team_id"`
 	PostId     string          `json:"post_id"`
 	Type       string          `json:"type"`
 	DataSource string          `json:"data_source"`
@@ -357,6 +381,26 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	}
 
 	return &post
+}
+
+func (o *SearchParameter) SearchParameterToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
+}
+
+func SearchParameterFromJson(data io.Reader) *SearchParameter {
+	decoder := json.NewDecoder(data)
+	var searchParam SearchParameter
+	err := decoder.Decode(&searchParam)
+	if err != nil {
+		return nil
+	}
+
+	return &searchParam
 }
 
 func (o *Post) ChannelMentions() []string {

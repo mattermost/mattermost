@@ -433,6 +433,31 @@ func (_m *API) GetChannelMember(channelId string, userId string) (*model.Channel
 	return r0, r1
 }
 
+// GetChannelMembers provides a mock function with given fields: channelId, page, perPage
+func (_m *API) GetChannelMembers(channelId string, page int, perPage int) (*model.ChannelMembers, *model.AppError) {
+	ret := _m.Called(channelId, page, perPage)
+
+	var r0 *model.ChannelMembers
+	if rf, ok := ret.Get(0).(func(string, int, int) *model.ChannelMembers); ok {
+		r0 = rf(channelId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMembers)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(channelId, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetConfig provides a mock function with given fields:
 func (_m *API) GetConfig() *model.Config {
 	ret := _m.Called()
@@ -524,6 +549,31 @@ func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppErro
 	return r0, r1
 }
 
+// GetLDAPUserAttributes provides a mock function with given fields: userId, attributes
+func (_m *API) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+	ret := _m.Called(userId, attributes)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, []string) map[string]string); ok {
+		r0 = rf(userId, attributes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(userId, attributes)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPost provides a mock function with given fields: postId
 func (_m *API) GetPost(postId string) (*model.Post, *model.AppError) {
 	ret := _m.Called(postId)
@@ -597,6 +647,20 @@ func (_m *API) GetReactions(postId string) ([]*model.Reaction, *model.AppError) 
 	}
 
 	return r0, r1
+}
+
+// GetServerVersion provides a mock function with given fields:
+func (_m *API) GetServerVersion() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
 }
 
 // GetSession provides a mock function with given fields: sessionId
@@ -948,6 +1012,31 @@ func (_m *API) KVGet(key string) ([]byte, *model.AppError) {
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(key)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// KVList provides a mock function with given fields: page, perPage
+func (_m *API) KVList(page int, perPage int) ([]string, *model.AppError) {
+	ret := _m.Called(page, perPage)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(int, int) []string); ok {
+		r0 = rf(page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+		r1 = rf(page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

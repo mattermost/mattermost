@@ -121,7 +121,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+    "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -149,19 +149,15 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Cannot delete the default channel {{.Channel}}"
+    "translation": "Unable to delete the default channel {{.Channel}}"
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted"
   },
   {
-    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "We couldn't get the channel count for the scheme."
-  },
-  {
     "id": "api.channel.delete_channel.type.invalid",
-    "translation": "Cannot delete direct or group message channels"
+    "translation": "Unable to delete direct or group message channels"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -173,11 +169,11 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Cannot leave the default channel {{.Channel}}"
+    "translation": "Unable to leave the default channel {{.Channel}}"
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "Cannot leave a direct message channel"
+    "translation": "Unable to leave a direct message channel"
   },
   {
     "id": "api.channel.leave.last_member.app_error",
@@ -233,15 +229,23 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Cannot remove user from the default channel {{.Channel}}"
+    "translation": "Unable to remove user from the default channel {{.Channel}}"
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Cannot remove user from a channel."
+    "translation": "Unable to remove user from a channel."
   },
   {
     "id": "api.channel.remove_member.removed",
     "translation": "%v removed from the channel."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "You cannot rename a direct message channel"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "You cannot rename a group message channel"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -341,7 +345,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Cannot update commands across teams"
+    "translation": "Unable to update commands across teams"
   },
   {
     "id": "api.command_away.desc",
@@ -393,7 +397,7 @@
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "Cannot set purpose for direct message channels. Use /header to set the header instead."
+    "translation": "Unable to set purpose for direct message channels. Use /header to set the header instead."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -416,6 +420,10 @@
     "translation": "Error to update the current channel."
   },
   {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
+  },
+  {
     "id": "api.command_channel_rename.channel.app_error",
     "translation": "Error to retrieve the current channel."
   },
@@ -425,7 +433,7 @@
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "Cannot rename direct message channels."
+    "translation": "Unable to rename direct message channels."
   },
   {
     "id": "api.command_channel_rename.hint",
@@ -562,8 +570,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "We couldn't find the user: {{.Users}}",
-      "other": "We couldn't find the users: {{.Users}}"
+      "one": "Unable to find the user: {{.Users}}",
+      "other": "Unable to find the users: {{.Users}}"
     }
   },
   {
@@ -620,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "We couldn't find the user."
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.name",
@@ -664,7 +672,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "We couldn't find the channel"
+    "translation": "Unable to find the channel"
   },
   {
     "id": "api.command_join.name",
@@ -732,7 +740,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "We couldn't find the user"
+    "translation": "Unable to find the user"
   },
   {
     "id": "api.command_msg.name",
@@ -828,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "We couldn't find the user"
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_remove.name",
@@ -1029,6 +1037,10 @@
     "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
   },
   {
+    "id": "api.emoji.upload.large_image.too_large.app_error",
+    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
+  },
+  {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error ocurred when trying to open the attached image."
   },
@@ -1038,11 +1050,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Unable to check if the file exists."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to know if the file exists. An error ocurred when trying to check file existency."
+    "translation": "Unable to check if the file exists."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1408,7 +1420,7 @@
   },
   {
     "id": "api.post.update_post.find.app_error",
-    "translation": "We couldn't find the existing post or comment to update."
+    "translation": "Unable to find the existing post or comment to update."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1437,6 +1449,14 @@
   {
     "id": "api.preference.update_preferences.set.app_error",
     "translation": "Unable to set user preferences."
+  },
+  {
+    "id": "api.reaction.delete.archived_channel.app_error",
+    "translation": "You cannot remove a reaction in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.archived_channel.app_error",
+    "translation": "You cannot react in an archived channel."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1480,7 +1500,7 @@
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Cannot forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+    "translation": "Unable to forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
@@ -1655,6 +1675,10 @@
     "translation": "%v joined the team."
   },
   {
+    "id": "api.team.join_user_to_team.allowed_domains.app_error",
+    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your team or system administrator for details."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
   },
@@ -1729,6 +1753,10 @@
   {
     "id": "api.team.update_member_roles.not_a_member",
     "translation": "Specified user is not a member of specified team."
+  },
+  {
+    "id": "api.team.update_restricted_domains.mismatch.app_error",
+    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2003,6 +2031,10 @@
     "translation": "Unsupported OAuth service provider"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Invalid team id"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
@@ -2180,7 +2212,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Cannot reset password for SSO accounts"
+    "translation": "Unable to reset password for SSO accounts"
   },
   {
     "id": "api.user.saml.app_error",
@@ -2232,7 +2264,7 @@
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Cannot reset password for SSO accounts"
+    "translation": "Unable to reset password for SSO accounts"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -2339,6 +2371,10 @@
     "translation": "Bad verify email token type."
   },
   {
+    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "translation": "Bad accepted value"
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection"
   },
@@ -2380,7 +2416,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Cannot update webhook across teams"
+    "translation": "Unable to update webhook across teams"
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -2399,6 +2435,14 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "api.create_service_terms.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
+    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
+  },
+  {
     "id": "app.admin.test_email.failure",
     "translation": "Connection unsuccessful: {{.Error}}"
   },
@@ -2408,7 +2452,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2433,6 +2477,14 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
+  },
+  {
+    "id": "app.export.export_write_line.io_writer.error",
+    "translation": "An error occurred writing the export data."
+  },
+  {
+    "id": "app.export.export_write_line.json_marshall.error",
+    "translation": "An error occured marshalling the JSON data for export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2460,7 +2512,7 @@
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Cannot set a channel to use a deleted scheme."
+    "translation": "Unable to set a channel to use a deleted scheme."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
@@ -2564,7 +2616,7 @@
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Cannot set a team to use a deleted scheme."
+    "translation": "Unable to set a team to use a deleted scheme."
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
@@ -3412,7 +3464,7 @@
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close properly the zip file."
+    "translation": "Unable to close the zip file."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -3612,7 +3664,7 @@
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Cannot run migration job due to unknown migration key."
+    "translation": "Unable to run migration job due to unknown migration key."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -4667,6 +4719,66 @@
     "translation": "Your password must contain at least {{.Min}} characters."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Invalid description, must be 255 or less characters"
   },
@@ -4683,6 +4795,14 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Please enter a valid email address."
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode"
   },
@@ -4691,12 +4811,28 @@
     "translation": "Unable to connect to the WebSocket server."
   },
   {
+    "id": "model.service_terms.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.service_terms.is_valid.create_at.app_error",
+    "translation": "Missing required term of service property: create_at."
+  },
+  {
+    "id": "model.service_terms.is_valid.user_id.app_error",
+    "translation": "Missing required terms of service property: user_id."
+  },
+  {
+    "id": "model.service_terms.is_valid.text.app_error",
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user statys. Unknown user status."
+    "translation": "Unable to set the user status. Unknown user status."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4732,11 +4868,11 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "We couldn't get deleted channel type counts"
+    "translation": "Unable to get deleted channel type counts"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "We couldn't get channel type counts"
+    "translation": "Unable to get channel type counts"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -4760,11 +4896,11 @@
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "We couldn't delete the channel"
+    "translation": "Unable to delete the channel"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "We couldn't find the existing channel"
+    "translation": "Unable to find the existing channel"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -4772,11 +4908,11 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "We couldn't get all the channels"
+    "translation": "Unable to get all the channels"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "We couldn't find the existing channel"
+    "translation": "Unable to find the existing channel"
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -4788,11 +4924,11 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "We couldn't get the channel counts"
+    "translation": "Unable to get the channel counts"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "We couldn't get the channels"
+    "translation": "Unable to get the channels"
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -4800,7 +4936,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "We couldn't get the channels"
+    "translation": "Unable to get the channels"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
@@ -4808,7 +4944,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "We couldn't find the existing deleted channel"
+    "translation": "Unable to find the existing deleted channel"
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
@@ -4816,7 +4952,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "We couldn't find the existing deleted channel"
+    "translation": "Unable to find the existing deleted channel"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
@@ -4824,11 +4960,11 @@
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "We couldn't get the channel for the given post"
+    "translation": "Unable to get the channel for the given post"
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "We couldn't get the channel member"
+    "translation": "Unable to get the channel member"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -4836,35 +4972,35 @@
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "We couldn't get the channel member count"
+    "translation": "Unable to get the channel member count"
   },
   {
     "id": "store.sql_channel.get_member_for_post.app_error",
-    "translation": "We couldn't get the channel member for the given post"
+    "translation": "Unable to get the channel member for the given post"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
-    "translation": "We couldn't get the channel members"
+    "translation": "Unable to get the channel members"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "We couldn't get the channel members"
+    "translation": "Unable to get the channel members"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "We couldn't get the channels"
+    "translation": "Unable to get the channels"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "We couldn't get public channels"
+    "translation": "Unable to get public channels"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "We couldn't get the channel unread messages"
+    "translation": "Unable to get the channel unread messages"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "We couldn't increment the mention count"
+    "translation": "Unable to increment the mention count"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -4888,31 +5024,71 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "We couldn't delete the channel"
+    "translation": "Unable to delete the channel"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
+    "translation": "Unable to delete materialized public channel"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "We couldn't delete the channels"
+    "translation": "Unable to delete the channels"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
+    "translation": "Unable to delete materialized public channels"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "We couldn't remove the channel member"
+    "translation": "Unable to remove the channel member"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "We couldn't find the pinned posts"
+    "translation": "Unable to find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "We couldn't remove the channel member"
+    "translation": "Unable to remove the channel member"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
     "translation": "We could not reset the channel schemes"
   },
   {
+    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
     "id": "store.sql_channel.reset_last_post_at.app_error",
     "translation": "We could not reset the channel last post at date"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4929,6 +5105,10 @@
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
     "translation": "Unable to open transaction"
+  },
+  {
+    "id": "store.sql_channel.save.upsert_public_channel.app_error",
+    "translation": "Unable to upsert materialized public channel"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -4952,7 +5132,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "We couldn't save the channel"
+    "translation": "Unable to save the channel"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -4984,19 +5164,43 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "We couldn't save the channel member"
+    "translation": "Unable to save the channel member"
   },
   {
     "id": "store.sql_channel.search.app_error",
     "translation": "We encountered an error searching channels"
   },
   {
+    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
+    "translation": "Unable to open transaction"
+  },
+  {
+    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
+    "translation": "Unable to update the materialized public channel"
+  },
+  {
     "id": "store.sql_channel.update.app_error",
-    "translation": "We couldn't update the channel"
+    "translation": "Unable to update the channel"
+  },
+  {
+    "id": "store.sql_channel.update.archived_channel.app_error",
+    "translation": "You can not modify an archived channel"
+  },
+  {
+    "id": "store.sql_channel.update.commit_transaction.app_error",
+    "translation": "Unable to commit transaction"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
     "translation": "A channel with that handle already exists"
+  },
+  {
+    "id": "store.sql_channel.update.open_transaction.app_error",
+    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.update.previously.app_error",
@@ -5007,8 +5211,12 @@
     "translation": "We encountered an error updating the channel"
   },
   {
+    "id": "store.sql_channel.update.upsert_public_channel.app_error",
+    "translation": "Unable to upsert materialized public channel"
+  },
+  {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "We couldn't update the last viewed at time"
+    "translation": "Unable to update the last viewed at time"
   },
   {
     "id": "store.sql_channel.update_member.app_error",
@@ -5056,31 +5264,31 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "We couldn't count the commands"
+    "translation": "Unable to count the commands"
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "We couldn't get the command"
+    "translation": "Unable to get the command"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "We couldn't delete the command"
+    "translation": "Unable to delete the command"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "We couldn't delete the command"
+    "translation": "Unable to delete the command"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "We couldn't get the command"
+    "translation": "Unable to get the command"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "We couldn't get the commands"
+    "translation": "Unable to get the commands"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "We couldn't save the Command"
+    "translation": "Unable to save the Command"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -5088,15 +5296,15 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "We couldn't update the command"
+    "translation": "Unable to update the command"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "We couldn't get the webhook"
+    "translation": "Unable to get the webhook"
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "We couldn't save the CommandWebhook"
+    "translation": "Unable to save the CommandWebhook"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -5124,7 +5332,7 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "We couldn't delete the emoji"
+    "translation": "Unable to delete the emoji"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
@@ -5132,51 +5340,51 @@
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "We couldn't get the emoji"
+    "translation": "Unable to get the emoji"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "We couldn't get the emoji"
+    "translation": "Unable to get the emoji"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "We couldn't get the emoji"
+    "translation": "Unable to get the emoji"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "We couldn't save the emoji"
+    "translation": "Unable to save the emoji"
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "We couldn't delete attachments of the user"
+    "translation": "Unable to delete attachments of the user"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "We couldn't attach the file info to the post"
+    "translation": "Unable to attach the file info to the post"
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "We couldn't delete the file info to the post"
+    "translation": "Unable to delete the file info to the post"
   },
   {
     "id": "store.sql_file_info.get.app_error",
-    "translation": "We couldn't get the file info"
+    "translation": "Unable to get the file info"
   },
   {
     "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "We couldn't get the file info by path"
+    "translation": "Unable to get the file info by path"
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "We couldn't get the file info for the post"
+    "translation": "Unable to get the file info for the post"
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "We couldn't get the file info for the user"
+    "translation": "Unable to get the file info for the user"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "We couldn't permanently delete the file info"
+    "translation": "Unable to permanently delete the file info"
   },
   {
     "id": "store.sql_file_info.permanent_delete_batch.app_error",
@@ -5184,35 +5392,35 @@
   },
   {
     "id": "store.sql_file_info.save.app_error",
-    "translation": "We couldn't save the file info"
+    "translation": "Unable to save the file info"
   },
   {
     "id": "store.sql_job.delete.app_error",
-    "translation": "We couldn't delete the job"
+    "translation": "Unable to delete the job"
   },
   {
     "id": "store.sql_job.get.app_error",
-    "translation": "We couldn't get the job"
+    "translation": "Unable to get the job"
   },
   {
     "id": "store.sql_job.get_all.app_error",
-    "translation": "We couldn't get the jobs"
+    "translation": "Unable to get the jobs"
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "We couldn't get the job count by status and type"
+    "translation": "Unable to get the job count by status and type"
   },
   {
     "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "We couldn't get the newest job by status and type"
+    "translation": "Unable to get the newest job by status and type"
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "We couldn't save the job"
+    "translation": "Unable to save the job"
   },
   {
     "id": "store.sql_job.update.app_error",
-    "translation": "We couldn't update the job"
+    "translation": "Unable to update the job"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5252,7 +5460,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "We couldn't find the requested app"
+    "translation": "Unable to find the requested app"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -5260,7 +5468,7 @@
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "We couldn't find any existing apps"
+    "translation": "Unable to find any existing apps"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -5268,7 +5476,7 @@
   },
   {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
-    "translation": "We couldn't find the existing authorization code"
+    "translation": "Unable to find the existing authorization code"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
@@ -5280,19 +5488,19 @@
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "We couldn't remove the authorization code"
+    "translation": "Unable to remove the authorization code"
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "We couldn't remove the access token"
+    "translation": "Unable to remove the access token"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
-    "translation": "We couldn't remove the authorization code"
+    "translation": "Unable to remove the authorization code"
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "We couldn't save the access token."
+    "translation": "Unable to save the access token."
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -5300,11 +5508,11 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "We couldn't save the app."
+    "translation": "Unable to save the app."
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "We couldn't save the authorization code."
+    "translation": "Unable to save the authorization code."
   },
   {
     "id": "store.sql_oauth.update_access_data.app_error",
@@ -5312,7 +5520,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "We couldn't find the existing app to update"
+    "translation": "Unable to find the existing app to update"
   },
   {
     "id": "store.sql_oauth.update_app.finding.app_error",
@@ -5320,7 +5528,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "We couldn't update the app"
+    "translation": "Unable to update the app"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
@@ -5340,35 +5548,35 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "We couldn't get post counts"
+    "translation": "Unable to get post counts"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "We couldn't get post counts by day"
+    "translation": "Unable to get post counts by day"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "We couldn't get user counts with posts"
+    "translation": "Unable to get user counts with posts"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": "We couldn't get the compliance export posts."
+    "translation": "Unable to get the compliance export posts."
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "We couldn't delete the post"
+    "translation": "Unable to delete the post"
   },
   {
     "id": "store.sql_post.get.app_error",
-    "translation": "We couldn't get the post"
+    "translation": "Unable to get the post"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "We couldn't get the flagged posts"
+    "translation": "Unable to get the flagged posts"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "We couldn't get the parent post for the channel"
+    "translation": "Unable to get the parent post for the channel"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -5376,43 +5584,43 @@
   },
   {
     "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "We couldn't get the posts for the channel"
+    "translation": "Unable to get the posts for the channel"
   },
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "We couldn't get the parent posts for the channel"
+    "translation": "Unable to get the parent posts for the channel"
   },
   {
     "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "We couldn't get the posts batch for indexing"
+    "translation": "Unable to get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "We couldn't get the posts"
+    "translation": "Unable to get the posts"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "We couldn't get the posts for the channel"
+    "translation": "Unable to get the posts for the channel"
   },
   {
     "id": "store.sql_post.get_posts_since.app_error",
-    "translation": "We couldn't get the posts for the channel"
+    "translation": "Unable to get the posts for the channel"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "We couldn't get the posts for the channel"
+    "translation": "Unable to get the posts for the channel"
   },
   {
     "id": "store.sql_post.overwrite.app_error",
-    "translation": "We couldn't overwrite the Post"
+    "translation": "Unable to overwrite the Post"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "We couldn't delete the post"
+    "translation": "Unable to delete the post"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "We couldn't delete the comments for user"
+    "translation": "Unable to delete the comments for user"
   },
   {
     "id": "store.sql_post.permanent_delete_batch.app_error",
@@ -5420,23 +5628,23 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "We couldn't delete the posts by channel"
+    "translation": "Unable to delete the posts by channel"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "We couldn't select the posts to delete for the user"
+    "translation": "Unable to select the posts to delete for the user"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "We couldn't select the posts to delete for the user (too many), please re-run"
+    "translation": "Unable to select the posts to delete for the user (too many), please re-run"
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
-    "translation": "We couldn't determine the maximum supported post size"
+    "translation": "Unable to determine the maximum supported post size"
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "We couldn't save the Post"
+    "translation": "Unable to save the Post"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -5448,7 +5656,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "We couldn't update the Post"
+    "translation": "Unable to update the Post"
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
@@ -5476,7 +5684,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "We couldn't save the preference"
+    "translation": "Unable to save the preference"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -5508,7 +5716,7 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "We couldn't update the preference"
+    "translation": "Unable to update the preference"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
@@ -5652,7 +5860,7 @@
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "We couldn't count the sessions"
+    "translation": "Unable to count the sessions"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -5664,35 +5872,35 @@
   },
   {
     "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-    "translation": "We couldn't remove all the sessions for the user"
+    "translation": "Unable to remove all the sessions for the user"
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "We couldn't remove the session"
+    "translation": "Unable to remove the session"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "We couldn't remove all the sessions"
+    "translation": "Unable to remove all the sessions"
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "We couldn't save the session"
+    "translation": "Unable to save the session"
   },
   {
     "id": "store.sql_session.save.existing.app_error",
-    "translation": "Cannot update existing session"
+    "translation": "Unable to update existing session"
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
-    "translation": "We couldn't update the device id"
+    "translation": "Unable to update the device id"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "We couldn't update the last_activity_at"
+    "translation": "Unable to update the last_activity_at"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "We couldn't update the roles"
+    "translation": "Unable to update the roles"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -5740,7 +5948,7 @@
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "We couldn't find the system variable."
+    "translation": "Unable to find the system variable."
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
@@ -5755,8 +5963,12 @@
     "translation": "We encountered an error updating the system property"
   },
   {
+    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
+    "translation": "Unable to get the channel count for the scheme."
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "We couldn't count the teams"
+    "translation": "Unable to count the teams"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -5780,7 +5992,7 @@
   },
   {
     "id": "store.sql_team.get.find.app_error",
-    "translation": "We couldn't find the existing team"
+    "translation": "Unable to find the existing team"
   },
   {
     "id": "store.sql_team.get.finding.app_error",
@@ -5796,15 +6008,15 @@
   },
   {
     "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "We couldn't find the existing team"
+    "translation": "Unable to find the existing team"
   },
   {
     "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "We couldn't find the existing team"
+    "translation": "Unable to find the existing team"
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
-    "translation": "We couldn't find the existing team"
+    "translation": "Unable to find the existing team"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
@@ -5812,7 +6024,7 @@
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "We couldn't get the team member"
+    "translation": "Unable to get the team member"
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
@@ -5820,19 +6032,19 @@
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
-    "translation": "We couldn't count the team members"
+    "translation": "Unable to count the team members"
   },
   {
     "id": "store.sql_team.get_members.app_error",
-    "translation": "We couldn't get the team members"
+    "translation": "Unable to get the team members"
   },
   {
     "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "We couldn't get the team members"
+    "translation": "Unable to get the team members"
   },
   {
     "id": "store.sql_team.get_unread.app_error",
-    "translation": "We couldn't get the teams unread messages"
+    "translation": "Unable to get the teams unread messages"
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
@@ -5856,11 +6068,11 @@
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "We couldn't delete the existing team"
+    "translation": "Unable to delete the existing team"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "We couldn't remove the team member"
+    "translation": "Unable to remove the team member"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
@@ -5868,7 +6080,7 @@
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "We couldn't save the team"
+    "translation": "Unable to save the team"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -5884,7 +6096,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "We couldn't save the team member"
+    "translation": "Unable to save the team member"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -5896,11 +6108,11 @@
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "We couldn't update the team"
+    "translation": "Unable to update the team"
   },
   {
     "id": "store.sql_team.update.find.app_error",
-    "translation": "We couldn't find the existing team to update"
+    "translation": "Unable to find the existing team to update"
   },
   {
     "id": "store.sql_team.update.finding.app_error",
@@ -5912,15 +6124,15 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "We couldn't update the team name"
+    "translation": "Unable to update the team name"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "We couldn't update the date of the last team icon update"
+    "translation": "Unable to update the date of the last team icon update"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "We couldn't get the active users during the requested period"
+    "translation": "Unable to get the active users during the requested period"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -5928,11 +6140,11 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "We couldn't get the system admin count"
+    "translation": "Unable to get the system admin count"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "We couldn't get the unique user count"
+    "translation": "Unable to get the unique user count"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -5960,7 +6172,7 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "We couldn't find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
+    "translation": "Unable to find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
@@ -5968,11 +6180,11 @@
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "We couldn't find an existing account matching your username for this team. This team may require an invite from the team owner to join."
+    "translation": "Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "We couldn't find an existing account matching your credentials. This team may require an invite from the team owner to join."
+    "translation": "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
@@ -6012,15 +6224,15 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "We couldn't find the user."
+    "translation": "Unable to find the user."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "We couldn't delete the existing account"
+    "translation": "Unable to delete the existing account"
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "We couldn't save the account."
+    "translation": "Unable to save the account."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -6060,11 +6272,11 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "We couldn't find any user maching the search parameters"
+    "translation": "Unable to find any user maching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "We couldn't update the account"
+    "translation": "Unable to update the account"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -6076,7 +6288,7 @@
   },
   {
     "id": "store.sql_user.update.find.app_error",
-    "translation": "We couldn't find the existing account to update"
+    "translation": "Unable to find the existing account to update"
   },
   {
     "id": "store.sql_user.update.finding.app_error",
@@ -6092,7 +6304,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "We couldn't update the auth data"
+    "translation": "Unable to update the auth data"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -6100,11 +6312,11 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "We couldn't update the failed_attempts"
+    "translation": "Unable to update the failed_attempts"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "We couldn't update the update_at"
+    "translation": "Unable to update the update_at"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6116,11 +6328,11 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "We couldn't update the user password"
+    "translation": "Unable to update the user password"
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "We couldn't update the date of the last update of the user"
+    "translation": "Unable to update the date of the last update of the user"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -6128,27 +6340,27 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "We couldn't delete the personal access token"
+    "translation": "Unable to delete the personal access token"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "We couldn't get the personal access token"
+    "translation": "Unable to get the personal access token"
   },
   {
     "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "We couldn't get all personal access tokens"
+    "translation": "Unable to get all personal access tokens"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "We couldn't get the personal access token by token"
+    "translation": "Unable to get the personal access token by token"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "We couldn't get the personal access tokens by user"
+    "translation": "Unable to get the personal access tokens by user"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "We couldn't save the personal access token"
+    "translation": "Unable to save the personal access token"
   },
   {
     "id": "store.sql_user_access_token.search.app_error",
@@ -6156,71 +6368,71 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "We couldn't disable the access token"
+    "translation": "Unable to disable the access token"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "We couldn't enable the access token"
+    "translation": "Unable to enable the access token"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "We couldn't count the incoming webhooks"
+    "translation": "Unable to count the incoming webhooks"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "We couldn't count the outgoing webhooks"
+    "translation": "Unable to count the outgoing webhooks"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "We couldn't delete the webhook"
+    "translation": "Unable to delete the webhook"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "We couldn't delete the webhook"
+    "translation": "Unable to delete the webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "We couldn't get the webhook"
+    "translation": "Unable to get the webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "We couldn't get the webhooks"
+    "translation": "Unable to get the webhooks"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "We couldn't get the webhook"
+    "translation": "Unable to get the webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "We couldn't get the webhook"
+    "translation": "Unable to get the webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "We couldn't get the webhooks"
+    "translation": "Unable to get the webhooks"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "We couldn't get the webhooks"
+    "translation": "Unable to get the webhooks"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "We couldn't delete the webhook"
+    "translation": "Unable to delete the webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "We couldn't delete the webhook"
+    "translation": "Unable to delete the webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "We couldn't delete the webhook"
+    "translation": "Unable to delete the webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "We couldn't delete the webhook"
+    "translation": "Unable to delete the webhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "We couldn't save the IncomingWebhook"
+    "translation": "Unable to save the IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -6228,7 +6440,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "We couldn't save the OutgoingWebhook"
+    "translation": "Unable to save the OutgoingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -6236,11 +6448,27 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "We couldn't update the IncomingWebhook"
+    "translation": "Unable to update the IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "We couldn't update the webhook"
+    "translation": "Unable to update the webhook"
+  },
+  {
+    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
+  },
+  {
+    "id": "store.sql_service_terms.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
   },
   {
     "id": "system.message.name",
@@ -6360,7 +6588,7 @@
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "We couldn't update the user access data."
+    "translation": "Unable to update the user access data."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",

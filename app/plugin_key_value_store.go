@@ -59,3 +59,14 @@ func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
 
 	return result.Err
 }
+
+func (a *App) ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError) {
+	result := <-a.Srv.Store.Plugin().List(pluginId, page, perPage)
+
+	if result.Err != nil {
+		mlog.Error(result.Err.Error())
+		return nil, result.Err
+	}
+
+	return result.Data.([]string), nil
+}

@@ -34,7 +34,7 @@ const (
 
 	// Maximum allowed depth when recursively substituing variable names.
 	_DEPTH_VALUES = 99
-	_VERSION      = "1.38.1"
+	_VERSION      = "1.38.2"
 )
 
 // Version returns current package version literal.
@@ -204,7 +204,7 @@ func InsensitiveLoad(source interface{}, others ...interface{}) (*File, error) {
 	return LoadSources(LoadOptions{Insensitive: true}, source, others...)
 }
 
-// InsensitiveLoad has exactly same functionality as Load function
+// ShadowLoad has exactly same functionality as Load function
 // except it allows have shadow keys.
 func ShadowLoad(source interface{}, others ...interface{}) (*File, error) {
 	return LoadSources(LoadOptions{AllowShadows: true}, source, others...)

@@ -4,11 +4,11 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -35,11 +35,12 @@ var ChannelRenameCmd = &cobra.Command{
 }
 
 var RemoveChannelUsersCmd = &cobra.Command{
-	Use:     "remove [channel] [users]",
-	Short:   "Remove users from channel",
-	Long:    "Remove some users from channel",
-	Example: "  channel remove myteam:mychannel user@example.com username",
-	RunE:    removeChannelUsersCmdF,
+	Use:   "remove [channel] [users]",
+	Short: "Remove users from channel",
+	Long:  "Remove some users from channel",
+	Example: `  channel remove myteam:mychannel user@example.com username
+  channel remove myteam:mychannel --all-users`,
+	RunE: removeChannelUsersCmdF,
 }
 
 var AddChannelUsersCmd = &cobra.Command{
@@ -80,12 +81,12 @@ Archived channels are appended with ' (archived)'.`,
 }
 
 var MoveChannelsCmd = &cobra.Command{
-	Use:   "move [team] [channels]",
+	Use:   "move [team] [channels] --username [user]",
 	Short: "Moves channels to the specified team",
 	Long: `Moves the provided channels to the specified team.
 Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel move newteam oldteam:mychannel",
+	Example: "  channel move newteam oldteam:mychannel --username myusername",
 	RunE:    moveChannelsCmdF,
 }
 
@@ -99,11 +100,11 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 }
 
 var ModifyChannelCmd = &cobra.Command{
-	Use:   "modify [channel]",
+	Use:   "modify [channel] [flags] --username [user]",
 	Short: "Modify a channel's public/private type",
 	Long: `Change the public/private type of a channel.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel modify myteam:mychannel --private",
+	Example: "  channel modify myteam:mychannel --private --username myusername",
 	RunE:    modifyChannelCmdF,
 }
 
@@ -124,6 +125,8 @@ func init() {
 	ModifyChannelCmd.Flags().String("username", "", "Required. Username who changes the channel privacy.")
 
 	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
+
+	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
@@ -198,8 +201,14 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
+	allUsers, _ := command.Flags().GetBool("all-users")
+
+	if allUsers && len(args) != 1 {
+		return errors.New("individual users must not be specified in conjunction with the --all-users flag")
+	}
+
+	if !allUsers && len(args) < 2 {
+		return errors.New("you must specify some users to remove from the channel, or use the --all-users flag to remove them all")
 	}
 
 	channel := getChannelFromChannelArg(a, args[0])
@@ -207,9 +216,13 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	users := getUsersFromUserArgs(a, args[1:])
-	for i, user := range users {
-		removeUserFromChannel(a, channel, user, args[i+1])
+	if allUsers {
+		removeAllUsersFromChannel(a, channel)
+	} else {
+		users := getUsersFromUserArgs(a, args[1:])
+		for i, user := range users {
+			removeUserFromChannel(a, channel, user, args[i+1])
+		}
 	}
 
 	return nil
@@ -222,6 +235,12 @@ func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User,
 	}
 	if err := a.RemoveUserFromChannel(user.Id, "", channel); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
+	}
+}
+
+func removeAllUsersFromChannel(a *app.App, channel *model.Channel) {
+	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
+		CommandPrintErrorln("Unable to remove all users from " + channel.Name + ". Error: " + result.Err.Error())
 	}
 }
 
@@ -343,7 +362,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
-		return errors.New("Username is required")
+		return errors.New("Username is required.")
 	}
 	user := getUserFromUserArg(a, username)
 
@@ -473,7 +492,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
-		return errors.New("Username is required")
+		return errors.New("Username is required.")
 	}
 
 	public, _ := command.Flags().GetBool("public")
@@ -499,7 +518,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 
 	user := getUserFromUserArg(a, username)
 	if _, err := a.UpdateChannelPrivacy(channel, user); err != nil {
-		return errors.New("Failed to update channel ('" + args[0] + "') privacy - " + err.Error())
+		return errors.Wrapf(err, "Failed to update channel ('%s') privacy", args[0])
 	}
 
 	return nil
@@ -530,7 +549,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 
 	_, errch := a.RenameChannel(channel, newChannelName, newDisplayName)
 	if errch != nil {
-		return errors.New("Error in updating channel from " + channel.Name + " to " + newChannelName + err.Error())
+		return errors.Wrapf(errch, "Error in updating channel from %s to %s", channel.Name, newChannelName)
 	}
 
 	return nil

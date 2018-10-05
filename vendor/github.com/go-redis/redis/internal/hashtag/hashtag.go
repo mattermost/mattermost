@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-const SlotNumber = 16384
+const slotNumber = 16384
 
 // CRC16 implementation according to CCITT standards.
 // Copyright 2001-2010 Georges Menie (www.menie.org)
@@ -56,7 +56,7 @@ func Key(key string) string {
 }
 
 func RandomSlot() int {
-	return rand.Intn(SlotNumber)
+	return rand.Intn(slotNumber)
 }
 
 // hashSlot returns a consistent slot number between 0 and 16383
@@ -66,7 +66,7 @@ func Slot(key string) int {
 		return RandomSlot()
 	}
 	key = Key(key)
-	return int(crc16sum(key)) % SlotNumber
+	return int(crc16sum(key)) % slotNumber
 }
 
 func crc16sum(key string) (crc uint16) {

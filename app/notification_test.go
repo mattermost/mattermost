@@ -817,3 +817,165 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 	assert.EqualValues(t, 4, len(mentionEnabledFields))
 	assert.EqualValues(t, expectedFields, mentionEnabledFields)
 }
+
+func TestPostNotificationGetChannelName(t *testing.T) {
+	sender := &model.User{Id: model.NewId(), Username: "sender", FirstName: "Sender", LastName: "Sender", Nickname: "Sender"}
+	recipient := &model.User{Id: model.NewId(), Username: "recipient", FirstName: "Recipient", LastName: "Recipient", Nickname: "Recipient"}
+	otherUser := &model.User{Id: model.NewId(), Username: "other", FirstName: "Other", LastName: "Other", Nickname: "Other"}
+	profileMap := map[string]*model.User{
+		sender.Id:    sender,
+		recipient.Id: recipient,
+		otherUser.Id: otherUser,
+	}
+
+	for name, testCase := range map[string]struct {
+		channel     *model.Channel
+		nameFormat  string
+		recipientId string
+		expected    string
+	}{
+		"regular channel": {
+			channel:  &model.Channel{Type: model.CHANNEL_OPEN, Name: "channel", DisplayName: "My Channel"},
+			expected: "My Channel",
+		},
+		"direct channel, unspecified": {
+			channel:  &model.Channel{Type: model.CHANNEL_DIRECT},
+			expected: "@sender",
+		},
+		"direct channel, username": {
+			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
+			nameFormat: model.SHOW_USERNAME,
+			expected:   "@sender",
+		},
+		"direct channel, full name": {
+			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
+			nameFormat: model.SHOW_FULLNAME,
+			expected:   "@Sender Sender",
+		},
+		"direct channel, nickname": {
+			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
+			nameFormat: model.SHOW_NICKNAME_FULLNAME,
+			expected:   "@Sender",
+		},
+		"group channel, unspecified": {
+			channel:  &model.Channel{Type: model.CHANNEL_GROUP},
+			expected: "other, sender",
+		},
+		"group channel, username": {
+			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
+			nameFormat: model.SHOW_USERNAME,
+			expected:   "other, sender",
+		},
+		"group channel, full name": {
+			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
+			nameFormat: model.SHOW_FULLNAME,
+			expected:   "Other Other, Sender Sender",
+		},
+		"group channel, nickname": {
+			channel:    &model.Channel{Type: model.CHANNEL_GROUP},
+			nameFormat: model.SHOW_NICKNAME_FULLNAME,
+			expected:   "Other, Sender",
+		},
+		"group channel, not excluding current user": {
+			channel:     &model.Channel{Type: model.CHANNEL_GROUP},
+			nameFormat:  model.SHOW_NICKNAME_FULLNAME,
+			expected:    "Other, Sender",
+			recipientId: "",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			notification := &postNotification{
+				channel:    testCase.channel,
+				sender:     sender,
+				profileMap: profileMap,
+			}
+
+			recipientId := recipient.Id
+			if testCase.recipientId != "" {
+				recipientId = testCase.recipientId
+			}
+
+			assert.Equal(t, testCase.expected, notification.GetChannelName(testCase.nameFormat, recipientId))
+		})
+	}
+}
+
+func TestPostNotificationGetSenderName(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	defaultChannel := &model.Channel{Type: model.CHANNEL_OPEN}
+	defaultPost := &model.Post{Props: model.StringInterface{}}
+	sender := &model.User{Id: model.NewId(), Username: "sender", FirstName: "Sender", LastName: "Sender", Nickname: "Sender"}
+
+	overriddenPost := &model.Post{
+		Props: model.StringInterface{
+			"override_username": "Overridden",
+			"from_webhook":      "true",
+		},
+	}
+
+	for name, testCase := range map[string]struct {
+		channel        *model.Channel
+		post           *model.Post
+		nameFormat     string
+		allowOverrides bool
+		expected       string
+	}{
+		"name format unspecified": {
+			expected: sender.Username,
+		},
+		"name format username": {
+			nameFormat: model.SHOW_USERNAME,
+			expected:   sender.Username,
+		},
+		"name format full name": {
+			nameFormat: model.SHOW_FULLNAME,
+			expected:   sender.FirstName + " " + sender.LastName,
+		},
+		"name format nickname": {
+			nameFormat: model.SHOW_NICKNAME_FULLNAME,
+			expected:   sender.Nickname,
+		},
+		"system message": {
+			post:     &model.Post{Type: model.POST_SYSTEM_MESSAGE_PREFIX + "custom"},
+			expected: utils.T("system.message.name"),
+		},
+		"overridden username": {
+			post:           overriddenPost,
+			allowOverrides: true,
+			expected:       overriddenPost.Props["override_username"].(string),
+		},
+		"overridden username, direct channel": {
+			channel:        &model.Channel{Type: model.CHANNEL_DIRECT},
+			post:           overriddenPost,
+			allowOverrides: true,
+			expected:       sender.Username,
+		},
+		"overridden username, overrides disabled": {
+			post:           overriddenPost,
+			allowOverrides: false,
+			expected:       sender.Username,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			channel := defaultChannel
+			if testCase.channel != nil {
+				channel = testCase.channel
+			}
+
+			post := defaultPost
+			if testCase.post != nil {
+				post = testCase.post
+			}
+
+			notification := &postNotification{
+				channel: channel,
+				post:    post,
+				sender:  sender,
+			}
+
+			assert.Equal(t, testCase.expected, notification.GetSenderName(testCase.nameFormat, testCase.allowOverrides))
+		})
+	}
+}

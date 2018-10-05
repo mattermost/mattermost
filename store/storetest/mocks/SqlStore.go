@@ -241,6 +241,20 @@ func (_m *SqlStore) DoesTableExist(tablename string) bool {
 	return r0
 }
 
+// DoesTriggerExist provides a mock function with given fields: triggerName
+func (_m *SqlStore) DoesTriggerExist(triggerName string) bool {
+	ret := _m.Called(triggerName)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(triggerName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // DriverName provides a mock function with given fields:
 func (_m *SqlStore) DriverName() string {
 	ret := _m.Called()
@@ -583,6 +597,22 @@ func (_m *SqlStore) Scheme() store.SchemeStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.SchemeStore)
+		}
+	}
+
+	return r0
+}
+
+// ServiceTerms provides a mock function with given fields:
+func (_m *SqlStore) ServiceTerms() store.ServiceTermsStore {
+	ret := _m.Called()
+
+	var r0 store.ServiceTermsStore
+	if rf, ok := ret.Get(0).(func() store.ServiceTermsStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ServiceTermsStore)
 		}
 	}
 

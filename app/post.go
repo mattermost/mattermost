@@ -12,21 +12,21 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
+	"path"
 	"strings"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"golang.org/x/net/html/charset"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-	"golang.org/x/net/html/charset"
 )
 
-var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
-
-func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	var channel *model.Channel
 	if result := <-a.Srv.Store.Channel().Get(post.ChannelId, true); result.Err != nil {
@@ -80,14 +80,8 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 	} else {
 		// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 		if _, ok := post.Props["from_webhook"]; !ok {
-			if result := <-a.Srv.Store.Channel().UpdateLastViewedAt([]string{post.ChannelId}, post.UserId); result.Err != nil {
-				mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, result.Err))
-			}
-
-			if *a.Config().ServiceSettings.EnableChannelViewedMessages {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
-				message.Add("channel_id", post.ChannelId)
-				a.Publish(message)
+			if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, clearPushNotifications); err != nil {
+				mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, err))
 			}
 		}
 
@@ -305,28 +299,6 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	return nil
-}
-
-// This method only parses and processes the attachments,
-// all else should be set in the post which is passed
-func parseSlackAttachment(post *model.Post, attachments []*model.SlackAttachment) {
-	post.Type = model.POST_SLACK_ATTACHMENT
-
-	for _, attachment := range attachments {
-		attachment.Text = parseSlackLinksToMarkdown(attachment.Text)
-		attachment.Pretext = parseSlackLinksToMarkdown(attachment.Pretext)
-
-		for _, field := range attachment.Fields {
-			if value, ok := field.Value.(string); ok {
-				field.Value = parseSlackLinksToMarkdown(value)
-			}
-		}
-	}
-	post.AddProp("attachments", attachments)
-}
-
-func parseSlackLinksToMarkdown(text string) string {
-	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
 
 func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
@@ -646,8 +618,45 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool) (*model.PostSearchResults, *model.AppError) {
-	paramsList := model.ParseSearchParams(terms)
+func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId string, includeDeleted bool) (*model.Channel, error) {
+	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
+		var userIds []string
+		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range users {
+			userIds = append(userIds, user.Id)
+		}
+
+		channel, err := a.GetGroupChannel(userIds)
+		if err != nil {
+			return nil, err
+		}
+		return channel, nil
+	}
+
+	if strings.HasPrefix(channelName, "@") && !strings.Contains(channelName, ",") {
+		user, err := a.GetUserByUsername(channelName[1:])
+		if err != nil {
+			return nil, err
+		}
+		channel, err := a.GetDirectChannel(userId, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		return channel, nil
+	}
+
+	channel, err := a.GetChannelByName(channelName, teamId, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+	return channel, nil
+}
+
+func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	paramsList := model.ParseSearchParams(terms, timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	esInterface := a.Elasticsearch
@@ -660,11 +669,12 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			if params.Terms != "*" {
 				// Convert channel names to channel IDs
 				for idx, channelName := range params.InChannels {
-					if channel, err := a.GetChannelByName(channelName, teamId, includeDeleted); err != nil {
+					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+					if err != nil {
 						mlog.Error(fmt.Sprint(err))
-					} else {
-						params.InChannels[idx] = channel.Id
+						continue
 					}
+					params.InChannels[idx] = channel.Id
 				}
 
 				// Convert usernames to user IDs
@@ -692,7 +702,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			return nil, err
 		}
 
-		postIds, matches, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList)
+		postIds, matches, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList, page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -704,8 +714,10 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 				return nil, presult.Err
 			} else {
 				for _, p := range presult.Data.([]*model.Post) {
-					postList.AddPost(p)
-					postList.AddOrder(p.Id)
+					if p.DeleteAt == 0 {
+						postList.AddPost(p)
+						postList.AddOrder(p.Id)
+					}
 				}
 			}
 		}
@@ -716,6 +728,11 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 		}
 
+		// Since we don't support paging we just return nothing for later pages
+		if page > 0 {
+			return model.MakePostSearchResults(model.NewPostList(), nil), nil
+		}
+
 		channels := []store.StoreChannel{}
 
 		for _, params := range paramsList {
@@ -723,6 +740,16 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			params.OrTerms = isOrSearch
 			// don't allow users to search for everything
 			if params.Terms != "*" {
+				for idx, channelName := range params.InChannels {
+					if strings.HasPrefix(channelName, "@") {
+						channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+						if err != nil {
+							mlog.Error(fmt.Sprint(err))
+							continue
+						}
+						params.InChannels[idx] = channel.Name
+					}
+				}
 				channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
 			}
 		}
@@ -776,7 +803,7 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := a.HTTPClient(false).Get(requestURL)
+	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
 	if err != nil {
 		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error()))
 		return og
@@ -862,16 +889,26 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 		post = result.Data.(*model.Post)
 	}
 
+	cchan := a.Srv.Store.Channel().GetForPost(postId)
+	var channel *model.Channel
+	if result := <-cchan; result.Err != nil {
+		return result.Err
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
 	action := post.GetAction(actionId)
 	if action == nil || action.Integration == nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 	}
 
 	request := &model.PostActionIntegrationRequest{
-		UserId:  userId,
-		PostId:  postId,
-		Type:    action.Type,
-		Context: action.Integration.Context,
+		UserId:    userId,
+		ChannelId: post.ChannelId,
+		TeamId:    channel.TeamId,
+		PostId:    postId,
+		Type:      action.Type,
+		Context:   action.Integration.Context,
 	}
 
 	if action.Type == model.POST_ACTION_TYPE_SELECT {
@@ -882,7 +919,19 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 	req, _ := http.NewRequest("POST", action.Integration.URL, strings.NewReader(request.ToJson()))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	resp, err := a.HTTPClient(false).Do(req)
+
+	// Allow access to plugin routes for action buttons
+	var httpClient *httpservice.Client
+	url, _ := url.Parse(action.Integration.URL)
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
+		httpClient = a.HTTPService.MakeClient(true)
+	} else {
+		httpClient = a.HTTPService.MakeClient(false)
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
@@ -916,7 +965,7 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 
 	if response.EphemeralText != "" {
 		ephemeralPost := &model.Post{}
-		ephemeralPost.Message = parseSlackLinksToMarkdown(response.EphemeralText)
+		ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
 		ephemeralPost.ChannelId = post.ChannelId
 		ephemeralPost.RootId = post.RootId
 		if ephemeralPost.RootId == "" {

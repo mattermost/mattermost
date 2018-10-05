@@ -46,6 +46,7 @@ endif
 GOPATH ?= $(shell go env GOPATH)
 GOFLAGS ?= $(GOFLAGS:)
 GO=go
+DELVE=dlv
 GO_LINKER_FLAGS ?= -ldflags \
 				   "-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
 				    -X 'github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)'\
@@ -274,9 +275,21 @@ gofmt: ## Runs gofmt against all packages.
 	done
 	@echo "gofmt success"; \
 
+megacheck: ## Run megacheck on codebasis
+	go get honnef.co/go/tools/cmd/megacheck
+	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	$(GOPATH)/bin/megacheck $(EE_PACKAGES) || exit 1
+endif
+
 store-mocks: ## Creates mock files.
 	go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+
+filesstore-mocks: ## Creates mock files.
+	go get -u github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
 	go get -u github.com/vektra/mockery/...
@@ -295,7 +308,7 @@ check-licenses: ## Checks license status.
 
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
-	
+
 check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
 
 test-te-race: ## Checks for race conditions in the team edition.
@@ -389,6 +402,15 @@ run-server: start-docker ## Starts the server.
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) --disableconfigwatch &
+
+debug-server: start-docker
+	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
+	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
+		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development

@@ -9,6 +9,7 @@ import (
 	_ "image/gif"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
@@ -105,16 +106,26 @@ func TestCreateEmoji(t *testing.T) {
 		t.Fatal("create with wrong name")
 	}
 
+	// try to create an emoji that's too wide
+	emoji = &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, app.MaxEmojiOriginalWidth+1), "image.gif")
+	if resp.Error == nil {
+		t.Fatal("should fail - emoji is too wide")
+	}
+
 	// try to create an emoji that's too tall
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 1000), "image.gif")
-	CheckNoError(t, resp)
-	if newEmoji.Name != emoji.Name {
-		t.Fatal("create with wrong name")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, app.MaxEmojiOriginalHeight+1, 10), "image.gif")
+	if resp.Error == nil {
+		t.Fatal("should fail - emoji is too tall")
 	}
 
 	// try to create an emoji that's too large
@@ -329,12 +340,16 @@ func TestDeleteEmoji(t *testing.T) {
 
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+
 	Client.Logout()
 	th.LoginBasic2()
-	ok, resp = Client.DeleteEmoji(newEmoji.Id)
+
+	_, resp = Client.DeleteEmoji(newEmoji.Id)
 	CheckForbiddenStatus(t, resp)
+
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+
 	Client.Logout()
 	th.LoginBasic()
 
@@ -349,8 +364,10 @@ func TestDeleteEmoji(t *testing.T) {
 
 	Client.Logout()
 	th.LoginBasic2()
-	ok, resp = Client.DeleteEmoji(newEmoji.Id)
+
+	_, resp = Client.DeleteEmoji(newEmoji.Id)
 	CheckForbiddenStatus(t, resp)
+
 	Client.Logout()
 	th.LoginBasic()
 
@@ -365,9 +382,11 @@ func TestDeleteEmoji(t *testing.T) {
 
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id, model.SYSTEM_USER_ROLE_ID)
+
 	Client.Logout()
 	th.LoginBasic2()
-	ok, resp = Client.DeleteEmoji(newEmoji.Id)
+
+	_, resp = Client.DeleteEmoji(newEmoji.Id)
 	CheckNoError(t, resp)
 
 	Client.Logout()
@@ -401,7 +420,8 @@ func TestDeleteEmoji(t *testing.T) {
 
 	Client.Logout()
 	th.LoginBasic2()
-	ok, resp = Client.DeleteEmoji(newEmoji.Id)
+
+	_, resp = Client.DeleteEmoji(newEmoji.Id)
 	CheckNoError(t, resp)
 }
 

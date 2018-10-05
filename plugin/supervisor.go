@@ -17,7 +17,6 @@ import (
 )
 
 type supervisor struct {
-	pluginId    string
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksId]bool

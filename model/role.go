@@ -243,7 +243,6 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName: "authentication.roles.team_admin.name",
 		Description: "authentication.roles.team_admin.description",
 		Permissions: []string{
-			PERMISSION_EDIT_OTHERS_POSTS.Id,
 			PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			PERMISSION_MANAGE_TEAM.Id,
 			PERMISSION_IMPORT_TEAM.Id,
@@ -332,6 +331,7 @@ func MakeDefaultRoles() map[string]*Role {
 							PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
 							PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
 							PERMISSION_EDIT_OTHER_USERS.Id,
+							PERMISSION_EDIT_OTHERS_POSTS.Id,
 							PERMISSION_MANAGE_OAUTH.Id,
 							PERMISSION_INVITE_USER.Id,
 							PERMISSION_DELETE_POST.Id,

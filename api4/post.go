@@ -58,7 +58,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post))
+	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post), !c.Session.IsMobileApp())
 	if err != nil {
 		c.Err = err
 		return
@@ -330,20 +330,42 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeletedChannels := r.URL.Query().Get("include_deleted_channels") == "true"
+	params := model.SearchParameterFromJson(r.Body)
 
-	props := model.StringInterfaceFromJson(r.Body)
-	terms, ok := props["terms"].(string)
-	if !ok || len(terms) == 0 {
+	if params.Terms == nil || len(*params.Terms) == 0 {
 		c.SetInvalidParam("terms")
 		return
 	}
+	terms := *params.Terms
 
-	isOrSearch, _ := props["is_or_search"].(bool)
+	timeZoneOffset := 0
+	if params.TimeZoneOffset != nil {
+		timeZoneOffset = *params.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if params.IsOrSearch != nil {
+		isOrSearch = *params.IsOrSearch
+	}
+
+	page := 0
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	perPage := 60
+	if params.PerPage != nil {
+		perPage = *params.PerPage
+	}
+
+	includeDeletedChannels := false
+	if params.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *params.IncludeDeletedChannels
+	}
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels)
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset), page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
@@ -373,6 +395,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post == nil {
 		c.SetInvalidParam("post")
+		return
+	}
+
+	// The post being updated in the payload must be the same one as indicated in the URL.
+	if post.Id != c.Params.PostId {
+		c.SetInvalidParam("post_id")
 		return
 	}
 

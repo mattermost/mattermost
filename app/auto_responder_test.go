@@ -94,7 +94,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	userUpdated1, err := th.App.PatchUser(user.Id, patch, true)
 	require.Nil(t, err)
 
-	firstPost, err := th.App.CreatePost(&model.Post{
+	firstPost, _ := th.App.CreatePost(&model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},
@@ -134,7 +134,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	userUpdated1, err := th.App.PatchUser(user.Id, patch, true)
 	require.Nil(t, err)
 
-	firstPost, err := th.App.CreatePost(&model.Post{
+	firstPost, _ := th.App.CreatePost(&model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},

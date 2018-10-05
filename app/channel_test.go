@@ -389,7 +389,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
 	userRequestorId := ""
 	postRootId := ""
-	if _, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId); err != nil {
+	if _, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId, false); err != nil {
 		t.Fatal("Failed to add user to channel. Error: " + err.Message)
 	}
 
@@ -640,12 +640,45 @@ func TestRenameChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
-
-	channel, err := th.App.RenameChannel(channel, "newchannelname", "New Display Name")
-	if err != nil {
-		t.Fatal("Failed to update channel name. Error: " + err.Error())
+	testCases := []struct {
+		Name                string
+		Channel             *model.Channel
+		ExpectError         bool
+		ExpectedName        string
+		ExpectedDisplayName string
+	}{
+		{
+			"Rename open channel",
+			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
+			false,
+			"newchannelname",
+			"New Display Name",
+		},
+		{
+			"Fail on rename direct message channel",
+			th.CreateDmChannel(th.BasicUser2),
+			true,
+			"",
+			"",
+		},
+		{
+			"Fail on rename direct message channel",
+			th.CreateGroupChannel(th.BasicUser2, th.CreateUser()),
+			true,
+			"",
+			"",
+		},
 	}
-	assert.Equal(t, "newchannelname", channel.Name)
-	assert.Equal(t, "New Display Name", channel.DisplayName)
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			channel, err := th.App.RenameChannel(tc.Channel, "newchannelname", "New Display Name")
+			if tc.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Equal(t, tc.ExpectedName, channel.Name)
+				assert.Equal(t, tc.ExpectedDisplayName, channel.DisplayName)
+			}
+		})
+	}
 }

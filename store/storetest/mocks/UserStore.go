@@ -130,6 +130,22 @@ func (_m *UserStore) GetAll() store.StoreChannel {
 	return r0
 }
 
+// GetAllAfter provides a mock function with given fields: limit, afterId
+func (_m *UserStore) GetAllAfter(limit int, afterId string) store.StoreChannel {
+	ret := _m.Called(limit, afterId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+		r0 = rf(limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetAllProfiles provides a mock function with given fields: offset, limit
 func (_m *UserStore) GetAllProfiles(offset int, limit int) store.StoreChannel {
 	ret := _m.Called(offset, limit)
@@ -169,6 +185,22 @@ func (_m *UserStore) GetAllUsingAuthService(authService string) store.StoreChann
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
 		r0 = rf(authService)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetAnyUnreadPostCountForChannel provides a mock function with given fields: userId, channelId
+func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) store.StoreChannel {
+	ret := _m.Called(userId, channelId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(userId, channelId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -547,6 +579,22 @@ func (_m *UserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 
 // PermanentDelete provides a mock function with given fields: userId
 func (_m *UserStore) PermanentDelete(userId string) store.StoreChannel {
+	ret := _m.Called(userId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// ResetLastPictureUpdate provides a mock function with given fields: userId
+func (_m *UserStore) ResetLastPictureUpdate(userId string) store.StoreChannel {
 	ret := _m.Called(userId)
 
 	var r0 store.StoreChannel

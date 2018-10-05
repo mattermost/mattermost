@@ -212,6 +212,16 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) store.StoreChannel
 	})
 }
 
+func (us SqlUserStore) ResetLastPictureUpdate(userId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": 0, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+		} else {
+			result.Data = userId
+		}
+	})
+}
+
 func (us SqlUserStore) UpdateUpdateAt(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		curTime := model.GetMillis()
@@ -326,6 +336,17 @@ func (us SqlUserStore) GetAll() store.StoreChannel {
 		var data []*model.User
 		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users"); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAll", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = data
+	})
+}
+
+func (us SqlUserStore) GetAllAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var data []*model.User
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE Id > :AfterId ORDER BY Id LIMIT :Limit", map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetAllAfter", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = data
@@ -938,6 +959,16 @@ func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string)
 	})
 }
 
+func (us SqlUserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if count, err := us.GetReplica().SelectInt("SELECT SUM(c.TotalMsgCount - cm.MsgCount) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = :ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetMentionCountForChannel", "store.sql_user.get_unread_count_for_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = count
+		}
+	})
+}
+
 func (us SqlUserStore) Search(teamId string, term string, options map[string]bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := ""
@@ -1255,7 +1286,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		builtInRoles := model.MakeDefaultRoles()
 		lastUserId := strings.Repeat("0", 26)
 
-		for true {
+		for {
 			var transaction *gorp.Transaction
 			var err error
 

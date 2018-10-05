@@ -67,17 +67,21 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hookId := c.Params.HookId
-
 	updatedHook := model.IncomingWebhookFromJson(r.Body)
 	if updatedHook == nil {
 		c.SetInvalidParam("incoming_webhook")
 		return
 	}
 
+	// The hook being updated in the payload must be the same one as indicated in the URL.
+	if updatedHook.Id != c.Params.HookId {
+		c.SetInvalidParam("hook_id")
+		return
+	}
+
 	c.LogAudit("attempt")
 
-	oldHook, err := c.App.GetIncomingWebhook(hookId)
+	oldHook, err := c.App.GetIncomingWebhook(c.Params.HookId)
 	if err != nil {
 		c.Err = err
 		return
@@ -247,34 +251,49 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	toUpdateHook := model.OutgoingWebhookFromJson(r.Body)
-	if toUpdateHook == nil {
+	updatedHook := model.OutgoingWebhookFromJson(r.Body)
+	if updatedHook == nil {
 		c.SetInvalidParam("outgoing_webhook")
+		return
+	}
+
+	// The hook being updated in the payload must be the same one as indicated in the URL.
+	if updatedHook.Id != c.Params.HookId {
+		c.SetInvalidParam("hook_id")
 		return
 	}
 
 	c.LogAudit("attempt")
 
-	toUpdateHook.CreatorId = c.Session.UserId
-
-	if !c.App.SessionHasPermissionToTeam(c.Session, toUpdateHook.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
-		return
-	}
-
-	oldHook, err := c.App.GetOutgoingWebhook(toUpdateHook.Id)
+	oldHook, err := c.App.GetOutgoingWebhook(c.Params.HookId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if c.Session.UserId != oldHook.CreatorId && !c.App.SessionHasPermissionToTeam(c.Session, oldHook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+	if updatedHook.TeamId == "" {
+		updatedHook.TeamId = oldHook.TeamId
+	}
+
+	if updatedHook.TeamId != oldHook.TeamId {
+		c.Err = model.NewAppError("updateOutgoingHook", "api.webhook.team_mismatch.app_error", nil, "user_id="+c.Session.UserId, http.StatusBadRequest)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, updatedHook.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+		return
+	}
+
+	if c.Session.UserId != oldHook.CreatorId && !c.App.SessionHasPermissionToTeam(c.Session, updatedHook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
 		c.LogAudit("fail - inappropriate permissions")
 		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
 		return
 	}
 
-	rhook, err := c.App.UpdateOutgoingWebhook(oldHook, toUpdateHook)
+	updatedHook.CreatorId = c.Session.UserId
+
+	rhook, err := c.App.UpdateOutgoingWebhook(oldHook, updatedHook)
 	if err != nil {
 		c.Err = err
 		return

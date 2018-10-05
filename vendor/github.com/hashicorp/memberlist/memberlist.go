@@ -15,6 +15,7 @@ multiple routes.
 package memberlist
 
 import (
+	"container/list"
 	"fmt"
 	"log"
 	"net"
@@ -34,6 +35,7 @@ type Memberlist struct {
 	sequenceNum uint32 // Local sequence number
 	incarnation uint32 // Local incarnation number
 	numNodes    uint32 // Number of known nodes (estimate)
+	pushPullReq uint32 // Number of push/pull requests
 
 	config         *Config
 	shutdown       int32 // Used as an atomic boolean value
@@ -45,7 +47,11 @@ type Memberlist struct {
 	leaveLock    sync.Mutex // Serializes calls to Leave
 
 	transport Transport
-	handoff   chan msgHandoff
+
+	handoffCh            chan struct{}
+	highPriorityMsgQueue *list.List
+	lowPriorityMsgQueue  *list.List
+	msgQueueLock         sync.Mutex
 
 	nodeLock   sync.RWMutex
 	nodes      []*nodeState          // Known nodes
@@ -160,17 +166,19 @@ func newMemberlist(conf *Config) (*Memberlist, error) {
 	}
 
 	m := &Memberlist{
-		config:         conf,
-		shutdownCh:     make(chan struct{}),
-		leaveBroadcast: make(chan struct{}, 1),
-		transport:      transport,
-		handoff:        make(chan msgHandoff, conf.HandoffQueueDepth),
-		nodeMap:        make(map[string]*nodeState),
-		nodeTimers:     make(map[string]*suspicion),
-		awareness:      newAwareness(conf.AwarenessMaxMultiplier),
-		ackHandlers:    make(map[uint32]*ackHandler),
-		broadcasts:     &TransmitLimitedQueue{RetransmitMult: conf.RetransmitMult},
-		logger:         logger,
+		config:               conf,
+		shutdownCh:           make(chan struct{}),
+		leaveBroadcast:       make(chan struct{}, 1),
+		transport:            transport,
+		handoffCh:            make(chan struct{}, 1),
+		highPriorityMsgQueue: list.New(),
+		lowPriorityMsgQueue:  list.New(),
+		nodeMap:              make(map[string]*nodeState),
+		nodeTimers:           make(map[string]*suspicion),
+		awareness:            newAwareness(conf.AwarenessMaxMultiplier),
+		ackHandlers:          make(map[uint32]*ackHandler),
+		broadcasts:           &TransmitLimitedQueue{RetransmitMult: conf.RetransmitMult},
+		logger:               logger,
 	}
 	m.broadcasts.NumNodes = func() int {
 		return m.estNumNodes()

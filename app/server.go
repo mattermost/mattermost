@@ -60,7 +60,7 @@ type RecoveryLogger struct {
 
 func (rl *RecoveryLogger) Println(i ...interface{}) {
 	mlog.Error("Please check the std error output for the stack trace")
-	mlog.Error(fmt.Sprint(i))
+	mlog.Error(fmt.Sprint(i...))
 }
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second

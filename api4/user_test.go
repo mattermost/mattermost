@@ -69,6 +69,11 @@ func TestCreateUser(t *testing.T) {
 	CheckErrorMessage(t, resp, "model.user.is_valid.email.app_error")
 	CheckBadRequestStatus(t, resp)
 
+	ruser.Username = "testinvalid+++"
+	_, resp = Client.CreateUser(ruser)
+	CheckErrorMessage(t, resp, "model.user.is_valid.username.app_error")
+	CheckBadRequestStatus(t, resp)
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
@@ -406,7 +411,7 @@ func TestGetUser(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUser(user.Id, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUser(user.Id, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -474,7 +479,7 @@ func TestGetUserByUsername(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -539,7 +544,7 @@ func TestGetUserByEmail(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUserByEmail(user.Email, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUserByEmail(user.Email, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -867,6 +872,11 @@ func TestAutocompleteUsers(t *testing.T) {
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
 		t.Fatal("should not show first/last name")
 	}
+
+	t.Run("team id, if provided, must match channel's team id", func(t *testing.T) {
+		rusers, resp = Client.AutocompleteUsersInChannel("otherTeamId", channelId, username, "")
+		CheckErrorMessage(t, resp, "api.user.autocomplete_users.invalid_team_id")
+	})
 }
 
 func TestGetProfileImage(t *testing.T) {
@@ -1919,7 +1929,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	Client.Logout()
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
-	utils.DeleteMailBox(user.Email)
+	mailservice.DeleteMailBox(user.Email)
 	success, resp := Client.SendPasswordResetEmail(user.Email)
 	CheckNoError(t, resp)
 	if !success {
@@ -1934,10 +1944,10 @@ func TestUpdateUserPassword(t *testing.T) {
 		t.Fatal("should have succeeded")
 	}
 	// Check if the email was send to the right email address and the recovery key match
-	var resultsMailbox utils.JSONMessageHeaderInbucket
-	err := utils.RetryInbucket(5, func() error {
+	var resultsMailbox mailservice.JSONMessageHeaderInbucket
+	err := mailservice.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = utils.GetMailBox(user.Email)
+		resultsMailbox, err = mailservice.GetMailBox(user.Email)
 		return err
 	})
 	if err != nil {
@@ -1949,7 +1959,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		if !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			if resultsEmail, err := utils.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
+			if resultsEmail, err := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
 				loc := strings.Index(resultsEmail.Body.Text, "token=")
 				if loc == -1 {
 					t.Log(resultsEmail.Body.Text)
@@ -2208,14 +2218,14 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
-	ruser, resp := Client.CreateUser(&user)
+	ruser, _ := Client.CreateUser(&user)
 
 	token, err := th.App.CreateVerifyEmailToken(ruser.Id)
 	if err != nil {
 		t.Fatal("Unable to create email verify token")
 	}
 
-	_, resp = Client.VerifyUserEmail(token.Token)
+	_, resp := Client.VerifyUserEmail(token.Token)
 	CheckNoError(t, resp)
 
 	_, resp = Client.VerifyUserEmail(GenerateTestId())
@@ -2299,6 +2309,50 @@ func TestSetProfileImage(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSetDefaultProfileImage(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
+
+	ok, resp := Client.SetDefaultProfileImage(user.Id)
+	if !ok {
+		t.Fatal(resp.Error)
+	}
+	CheckNoError(t, resp)
+
+	ok, resp = Client.SetDefaultProfileImage(model.NewId())
+	if ok {
+		t.Fatal("Should return false, set profile image not allowed")
+	}
+	CheckForbiddenStatus(t, resp)
+
+	// status code returns either forbidden or unauthorized
+	// note: forbidden is set as default at Client4.SetDefaultProfileImage when request is terminated early by server
+	Client.Logout()
+	_, resp = Client.SetDefaultProfileImage(user.Id)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	_, resp = th.SystemAdminClient.SetDefaultProfileImage(user.Id)
+	CheckNoError(t, resp)
+
+	ruser, err := th.App.GetUser(user.Id)
+	require.Nil(t, err)
+	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have resetted to default")
+
+	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
+	if err := th.cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCBALogin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -2329,7 +2383,7 @@ func TestCBALogin(t *testing.T) {
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, "")
+	user, _ = Client.Login(th.BasicUser.Email, "")
 	if !(user != nil && user.Email == th.BasicUser.Email) {
 		t.Fatal("Should have been able to login")
 	}
@@ -2340,13 +2394,13 @@ func TestCBALogin(t *testing.T) {
 	})
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, "")
+	user, _ = Client.Login(th.BasicUser.Email, "")
 	if resp.Error.StatusCode != 400 && user == nil {
 		t.Fatal("Should have failed because password is required")
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	user, _ = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	if !(user != nil && user.Email == th.BasicUser.Email) {
 		t.Fatal("Should have been able to login")
 	}
@@ -2597,7 +2651,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	_, resp = AdminClient.GetUserAccessToken(token.Id)
 	CheckNoError(t, resp)
 
-	token, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
 	rtokens, resp := Client.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)
@@ -3013,4 +3067,29 @@ func TestGetUsersByStatus(t *testing.T) {
 			t.Fatal("expected to receive offline users last")
 		}
 	})
+}
+
+func TestRegisterServiceTermsAction(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	success, resp := Client.RegisterServiceTermsAction(th.BasicUser.Id, "st_1", true)
+	CheckErrorMessage(t, resp, "store.sql_service_terms_store.get.no_rows.app_error")
+
+	serviceTerms, err := th.App.CreateServiceTerms("service terms", th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	success, resp = Client.RegisterServiceTermsAction(th.BasicUser.Id, serviceTerms.Id, true)
+	CheckNoError(t, resp)
+
+	assert.True(t, *success)
+	user, err := th.App.GetUser(th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, user.AcceptedServiceTermsId, serviceTerms.Id)
 }

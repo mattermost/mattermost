@@ -173,7 +173,7 @@ func (k *DNSKEY) KeyTag() uint16 {
 				keytag += int(v) << 8
 			}
 		}
-		keytag += (keytag >> 16) & 0xFFFF
+		keytag += keytag >> 16 & 0xFFFF
 		keytag &= 0xFFFF
 	}
 	return uint16(keytag)
@@ -512,8 +512,8 @@ func (rr *RRSIG) ValidityPeriod(t time.Time) bool {
 	}
 	modi := (int64(rr.Inception) - utc) / year68
 	mode := (int64(rr.Expiration) - utc) / year68
-	ti := int64(rr.Inception) + (modi * year68)
-	te := int64(rr.Expiration) + (mode * year68)
+	ti := int64(rr.Inception) + modi*year68
+	te := int64(rr.Expiration) + mode*year68
 	return ti <= utc && utc <= te
 }
 
@@ -533,6 +533,11 @@ func (k *DNSKEY) publicKeyRSA() *rsa.PublicKey {
 		return nil
 	}
 
+	if len(keybuf) < 1+1+64 {
+		// Exponent must be at least 1 byte and modulus at least 64
+		return nil
+	}
+
 	// RFC 2537/3110, section 2. RSA Public KEY Resource Records
 	// Length is in the 0th byte, unless its zero, then it
 	// it in bytes 1 and 2 and its a 16 bit number
@@ -542,13 +547,22 @@ func (k *DNSKEY) publicKeyRSA() *rsa.PublicKey {
 		explen = uint16(keybuf[1])<<8 | uint16(keybuf[2])
 		keyoff = 3
 	}
-	if explen > 4 {
-		// Larger exponent than supported by the crypto package.
+
+	if explen > 4 || explen == 0 || keybuf[keyoff] == 0 {
+		// Exponent larger than supported by the crypto package,
+		// empty, or contains prohibited leading zero.
 		return nil
 	}
+
+	modoff := keyoff + int(explen)
+	modlen := len(keybuf) - modoff
+	if modlen < 64 || modlen > 512 || keybuf[modoff] == 0 {
+		// Modulus is too small, large, or contains prohibited leading zero.
+		return nil
+	}
+
 	pubkey := new(rsa.PublicKey)
 
-	pubkey.N = big.NewInt(0)
 	expo := uint64(0)
 	for i := 0; i < int(explen); i++ {
 		expo <<= 8
@@ -560,7 +574,9 @@ func (k *DNSKEY) publicKeyRSA() *rsa.PublicKey {
 	}
 	pubkey.E = int(expo)
 
-	pubkey.N.SetBytes(keybuf[keyoff+int(explen):])
+	pubkey.N = big.NewInt(0)
+	pubkey.N.SetBytes(keybuf[modoff:])
+
 	return pubkey
 }
 

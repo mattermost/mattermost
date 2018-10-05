@@ -330,7 +330,7 @@ func (rr *MX) String() string {
 type AFSDB struct {
 	Hdr      RR_Header
 	Subtype  uint16
-	Hostname string `dns:"cdomain-name"`
+	Hostname string `dns:"domain-name"`
 }
 
 func (rr *AFSDB) String() string {
@@ -728,7 +728,7 @@ func (rr *LOC) String() string {
 	lat = lat % LOC_DEGREES
 	m := lat / LOC_HOURS
 	lat = lat % LOC_HOURS
-	s += fmt.Sprintf("%02d %02d %0.3f %s ", h, m, (float64(lat) / 1000), ns)
+	s += fmt.Sprintf("%02d %02d %0.3f %s ", h, m, float64(lat)/1000, ns)
 
 	lon := rr.Longitude
 	ew := "E"
@@ -742,7 +742,7 @@ func (rr *LOC) String() string {
 	lon = lon % LOC_DEGREES
 	m = lon / LOC_HOURS
 	lon = lon % LOC_HOURS
-	s += fmt.Sprintf("%02d %02d %0.3f %s ", h, m, (float64(lon) / 1000), ew)
+	s += fmt.Sprintf("%02d %02d %0.3f %s ", h, m, float64(lon)/1000, ew)
 
 	var alt = float64(rr.Altitude) / 100
 	alt -= LOC_ALTITUDEBASE
@@ -752,9 +752,9 @@ func (rr *LOC) String() string {
 		s += fmt.Sprintf("%.0fm ", alt)
 	}
 
-	s += cmToM((rr.Size&0xf0)>>4, rr.Size&0x0f) + "m "
-	s += cmToM((rr.HorizPre&0xf0)>>4, rr.HorizPre&0x0f) + "m "
-	s += cmToM((rr.VertPre&0xf0)>>4, rr.VertPre&0x0f) + "m"
+	s += cmToM(rr.Size&0xf0>>4, rr.Size&0x0f) + "m "
+	s += cmToM(rr.HorizPre&0xf0>>4, rr.HorizPre&0x0f) + "m "
+	s += cmToM(rr.VertPre&0xf0>>4, rr.VertPre&0x0f) + "m"
 
 	return s
 }
@@ -1306,11 +1306,11 @@ func (rr *CSYNC) len() int {
 // string representation used when printing the record.
 // It takes serial arithmetic (RFC 1982) into account.
 func TimeToString(t uint32) string {
-	mod := ((int64(t) - time.Now().Unix()) / year68) - 1
+	mod := (int64(t)-time.Now().Unix())/year68 - 1
 	if mod < 0 {
 		mod = 0
 	}
-	ti := time.Unix(int64(t)-(mod*year68), 0).UTC()
+	ti := time.Unix(int64(t)-mod*year68, 0).UTC()
 	return ti.Format("20060102150405")
 }
 
@@ -1322,11 +1322,11 @@ func StringToTime(s string) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-	mod := (t.Unix() / year68) - 1
+	mod := t.Unix()/year68 - 1
 	if mod < 0 {
 		mod = 0
 	}
-	return uint32(t.Unix() - (mod * year68)), nil
+	return uint32(t.Unix() - mod*year68), nil
 }
 
 // saltToString converts a NSECX salt to uppercase and returns "-" when it is empty.

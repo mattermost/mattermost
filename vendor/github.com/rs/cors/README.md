@@ -49,6 +49,14 @@ The server now runs on `localhost:8080`:
 
     {"hello": "world"}
 
+### Allow * With Credentials Security Protection
+
+This library has been modified to avoid a well known security issue when configured with `AllowedOrigins` to `*` and `AllowCredentials` to `true`. Such setup used to make the library reflects the request `Origin` header value, working around a security protection embedded into the standard that makes clients to refuse such configuration. This behavior has been removed with [#55](https://github.com/rs/cors/issues/55) and [#57](https://github.com/rs/cors/issues/57).
+
+If you depend on this behavior and understand the implications, you can restore it using the `AllowOriginFunc` with `func(origin string) {return true}`.
+
+Please refer to [#55](https://github.com/rs/cors/issues/55) for more information about the security implications.
+
 ### More Examples
 
 * `net/http`: [examples/nethttp/server.go](https://github.com/rs/cors/blob/master/examples/nethttp/server.go)

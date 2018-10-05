@@ -444,6 +444,31 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 	return rpost
 }
 
+func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
+	post := store.Must(me.App.Srv.Store.Post().Save(&model.Post{
+		UserId:    me.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   message,
+		CreateAt:  createAtTime,
+	})).(*model.Post)
+
+	return post
+}
+
+func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	var channel *model.Channel
+	if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return channel
+}
+
 func (me *TestHelper) LoginBasic() {
 	me.LoginBasicWithClient(me.Client)
 }

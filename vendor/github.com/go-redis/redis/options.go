@@ -59,16 +59,24 @@ type Options struct {
 	// Maximum number of socket connections.
 	// Default is 10 connections per every CPU as reported by runtime.NumCPU.
 	PoolSize int
+	// Minimum number of idle connections which is useful when establishing
+	// new connection is slow.
+	MinIdleConns int
+	// Connection age at which client retires (closes) the connection.
+	// Default is to not close aged connections.
+	MaxConnAge time.Duration
 	// Amount of time client waits for connection if all connections
 	// are busy before returning an error.
 	// Default is ReadTimeout + 1 second.
 	PoolTimeout time.Duration
 	// Amount of time after which client closes idle connections.
 	// Should be less than server's timeout.
-	// Default is 5 minutes.
+	// Default is 5 minutes. -1 disables idle timeout check.
 	IdleTimeout time.Duration
-	// Frequency of idle checks.
-	// Default is 1 minute. -1 disables idle check.
+	// Frequency of idle checks made by idle connections reaper.
+	// Default is 1 minute. -1 disables idle connections reaper,
+	// but idle connections are still discarded by the client
+	// if IdleTimeout is set.
 	IdleCheckFrequency time.Duration
 
 	// Enables read only queries on slave nodes.
@@ -84,12 +92,15 @@ func (opt *Options) init() {
 	}
 	if opt.Dialer == nil {
 		opt.Dialer = func() (net.Conn, error) {
-			conn, err := net.DialTimeout(opt.Network, opt.Addr, opt.DialTimeout)
-			if opt.TLSConfig == nil || err != nil {
-				return conn, err
+			netDialer := &net.Dialer{
+				Timeout:   opt.DialTimeout,
+				KeepAlive: 5 * time.Minute,
 			}
-			t := tls.Client(conn, opt.TLSConfig)
-			return t, t.Handshake()
+			if opt.TLSConfig == nil {
+				return netDialer.Dial(opt.Network, opt.Addr)
+			} else {
+				return tls.DialWithDialer(netDialer, opt.Network, opt.Addr, opt.TLSConfig)
+			}
 		}
 	}
 	if opt.PoolSize == 0 {
@@ -192,6 +203,8 @@ func newConnPool(opt *Options) *pool.ConnPool {
 	return pool.NewConnPool(&pool.Options{
 		Dialer:             opt.Dialer,
 		PoolSize:           opt.PoolSize,
+		MinIdleConns:       opt.MinIdleConns,
+		MaxConnAge:         opt.MaxConnAge,
 		PoolTimeout:        opt.PoolTimeout,
 		IdleTimeout:        opt.IdleTimeout,
 		IdleCheckFrequency: opt.IdleCheckFrequency,

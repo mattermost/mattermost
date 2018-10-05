@@ -5,7 +5,10 @@ package model
 
 import (
 	"fmt"
+	"regexp"
 )
+
+var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 type SlackAttachment struct {
 	Id         int64                   `json:"id"`
@@ -56,4 +59,26 @@ func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
 		attachment.Fields = nonNilFields
 	}
 	return nonNilAttachments
+}
+
+// This method only parses and processes the attachments,
+// all else should be set in the post which is passed
+func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
+	post.Type = POST_SLACK_ATTACHMENT
+
+	for _, attachment := range attachments {
+		attachment.Text = ParseSlackLinksToMarkdown(attachment.Text)
+		attachment.Pretext = ParseSlackLinksToMarkdown(attachment.Pretext)
+
+		for _, field := range attachment.Fields {
+			if value, ok := field.Value.(string); ok {
+				field.Value = ParseSlackLinksToMarkdown(value)
+			}
+		}
+	}
+	post.AddProp("attachments", attachments)
+}
+
+func ParseSlackLinksToMarkdown(text string) string {
+	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }

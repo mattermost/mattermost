@@ -57,7 +57,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Config().LogSettings.EnableWebhookDebugging {
-		mlog.Debug(fmt.Sprint("Incoming webhook received. Content=", incomingWebhookPayload.ToJson()))
+		mlog.Debug(fmt.Sprintf("Incoming webhook received. Id=%s Content=%s", id, incomingWebhookPayload.ToJson()))
 	}
 
 	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)

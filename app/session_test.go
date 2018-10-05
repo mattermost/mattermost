@@ -54,8 +54,6 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, rsession.Id, session.Id)
 
-	rsession, err = th.App.GetSession(session.Token)
-
 	// Test regular session, should timeout
 	time := session.LastActivityAt - (1000 * 60 * 6)
 	<-th.App.Srv.Store.Session().UpdateLastActivityAt(session.Id, time)
