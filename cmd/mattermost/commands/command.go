@@ -168,6 +168,9 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	url, _ := command.Flags().GetString("url")
 	creator, _ := command.Flags().GetString("creator")
 	user := getUserFromUserArg(a, creator)
+	if user == nil {
+		return errors.New("unable to find user '" + creator + "'")
+	}
 	responseUsername, _ := command.Flags().GetString("response-username")
 	icon, _ := command.Flags().GetString("icon")
 	autocomplete, _ := command.Flags().GetBool("autocomplete")
