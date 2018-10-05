@@ -108,7 +108,7 @@ func TestCreateCommand(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 
-			actual, err := exec.Command(path, execArgs(t, testCase.Args)...).CombinedOutput()
+			actual, _ := exec.Command(path, execArgs(t, testCase.Args)...).CombinedOutput()
 
 			cmds, _ := th.SystemAdminClient.ListCommands(team.Id, true)
 
@@ -116,7 +116,7 @@ func TestCreateCommand(t *testing.T) {
 				if len(cmds) == 0 || cmds[0].Trigger != "testcmd" {
 					t.Fatal("Failed to create command")
 				}
-				assert.NoError(t, err)
+				assert.Contains(t, string(actual), "PASS")
 			} else {
 				if len(cmds) > 1 {
 					t.Fatal("Created command that shouldn't have been created")
