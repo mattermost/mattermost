@@ -20,11 +20,11 @@ func (api *API) InitLdap() {
 	// GET /api/v4/ldap/groups
 	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getChildLdapGroups)).Methods("GET")
 
-	// POST /api/v4/ldap/groups/:dn/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{dn}/link`, api.ApiSessionRequired(linkLdapGroup)).Methods("POST")
+	// POST /api/v4/ldap/groups/:remote_id/link
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.ApiSessionRequired(linkLdapGroup)).Methods("POST")
 
-	// DELETE /api/v4/ldap/groups/:dn/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{dn}/link`, api.ApiSessionRequired(unlinkLdapGroup)).Methods("DELETE")
+	// DELETE /api/v4/ldap/groups/:remote_id/link
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.ApiSessionRequired(unlinkLdapGroup)).Methods("DELETE")
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -110,7 +110,7 @@ func getChildLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireDN()
+	c.RequireRemoteId()
 	if c.Err != nil {
 		return
 	}
@@ -131,7 +131,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ldapGroup, err := c.App.GetLdapGroup(c.Params.DN)
+	ldapGroup, err := c.App.GetLdapGroup(c.Params.RemoteId)
 	if err != nil {
 		c.Err = err
 		return
@@ -209,7 +209,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireDN()
+	c.RequireRemoteId()
 	if c.Err != nil {
 		return
 	}
@@ -230,7 +230,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroupByRemoteID(c.Params.DN, model.GroupTypeLdap)
+	group, err := c.App.GetGroupByRemoteID(c.Params.RemoteId, model.GroupTypeLdap)
 	if err != nil {
 		c.Err = err
 		return

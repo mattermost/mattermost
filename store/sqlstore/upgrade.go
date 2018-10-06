@@ -524,8 +524,8 @@ func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 
 func migrateGroups(sqlStore SqlStore) error {
 	sqlStore.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
-	// sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
-	// sqlStore.CreateUniqueIndexIfNotExists("ux_groups_type_remote_id", "Groups", []string{"Type", "RemoteId"})
+	sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
+	sqlStore.CreateUniqueIndexIfNotExists("ux_groups_type_remote_id", "Groups", []string{"Type", "RemoteId"})
 
 	foreignKeys := [][]string{
 		[]string{"GroupMembers", "GroupId", "Groups(Id)"},

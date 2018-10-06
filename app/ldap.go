@@ -59,12 +59,12 @@ func (a *App) GetChildLdapGroups(parentDN string) ([]*model.SCIMGroup, *model.Ap
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given DN.
-func (a *App) GetLdapGroup(dn string) (*model.SCIMGroup, *model.AppError) {
+func (a *App) GetLdapGroup(id string) (*model.SCIMGroup, *model.AppError) {
 	var group *model.SCIMGroup
 
 	if a.Ldap != nil {
 		var err *model.AppError
-		group, err = a.Ldap.GetGroup(dn)
+		group, err = a.Ldap.GetGroup(id)
 		if err != nil {
 			return nil, err
 		}

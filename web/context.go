@@ -547,13 +547,13 @@ func (c *Context) RequireGroupId() *Context {
 	return c
 }
 
-func (c *Context) RequireDN() *Context {
+func (c *Context) RequireRemoteId() *Context {
 	if c.Err != nil {
 		return c
 	}
 
-	if len(c.Params.DN) == 0 {
-		c.SetInvalidUrlParam("dn")
+	if len(c.Params.RemoteId) == 0 {
+		c.SetInvalidUrlParam("remote_id")
 	}
 	return c
 }
