@@ -581,7 +581,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		})
 	}
 
-	if data.EmailInterval != nil || savedUser.NotifyProps[model.EMAIL_NOTIFY_PROP] == "false"{
+	if data.EmailInterval != nil || savedUser.NotifyProps[model.EMAIL_NOTIFY_PROP] == "false" {
 		var intervalSeconds string
 		if value := savedUser.NotifyProps[model.EMAIL_NOTIFY_PROP]; value == "false" {
 			intervalSeconds = "0"

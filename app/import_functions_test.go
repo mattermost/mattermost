@@ -1079,7 +1079,7 @@ func TestImportImportUser(t *testing.T) {
 		UseMarkdownPreview: ptrStr("true"),
 		UseFormatting:      ptrStr("true"),
 		ShowUnreadSection:  ptrStr("true"),
-		EmailInterval:		ptrStr("immediately"),
+		EmailInterval:      ptrStr("immediately"),
 	}
 	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
@@ -1112,7 +1112,7 @@ func TestImportImportUser(t *testing.T) {
 		MessageDisplay:     ptrStr("clean"),
 		ChannelDisplayMode: ptrStr("full"),
 		TutorialStep:       ptrStr("2"),
-		EmailInterval:		ptrStr("hour"),
+		EmailInterval:      ptrStr("hour"),
 	}
 	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
