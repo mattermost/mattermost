@@ -54,6 +54,24 @@ type TestClientRequirements struct {
 	Desktoplatestversion string
 }
 
+type TestNewConfig struct {
+	TestNewServiceSettings TestNewServiceSettings
+	TestNewTeamSettings TestNewTeamSettings
+}
+
+type TestNewServiceSettings struct{
+	SiteUrl *string
+	UseLetsEncrypt *bool
+	TLSStrictTransportMaxAge    *int64
+	AllowedThemes   []string
+}
+
+
+type TestNewTeamSettings struct {
+	SiteName *string
+	MaxUserPerTeam *int
+}
+
 func TestConfigValidate(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -416,5 +434,122 @@ func TestConfigShow(t *testing.T) {
 	assert.Contains(t, string(output), "SqlSettings")
 	assert.Contains(t, string(output), "MessageExportSettings")
 	assert.Contains(t, string(output), "AnnouncementSettings")
+}
 
+func TestSetConfig(t *testing.T) {
+	// Error when no argument is given
+	assert.Error(t, RunCommand(t, "config", "set"))
+
+	// No Error when more than one argument is given
+	assert.NoError(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello", "World"))
+
+	// No Error when two arguments are given
+	assert.NoError(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello"))
+
+	// Error when only one argument is given
+	assert.Error(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes"))
+
+	// Error when config settings not in the config file are given
+	assert.Error(t, RunCommand(t, "config", "set", "Abc"))
+}
+
+func TestUpdateMap(t *testing.T) {
+
+	// create a config to make changes
+	config := TestNewConfig{
+		TestNewServiceSettings{
+			SiteUrl:                  model.NewString("abc.def"),
+			UseLetsEncrypt:           model.NewBool(false),
+			TLSStrictTransportMaxAge: model.NewInt64(36),
+			AllowedThemes:            []string{"Hello", "World"},
+		},
+		TestNewTeamSettings{
+			SiteName:       model.NewString("def.ghi"),
+			MaxUserPerTeam: model.NewInt(12),
+		},
+	}
+
+
+	// create a map of type map[string]interface
+	configMap := configToMap(config)
+
+	cases := []struct{
+		Name string
+		configSettings []string
+		newVal []string
+		expected interface{}
+	} {
+		{
+			Name:           "check for Map and string",
+			configSettings: []string{"TestNewServiceSettings", "SiteUrl"},
+			newVal:         []string{"siteurl"},
+			expected:       "siteurl",
+		},
+		{
+			Name:           "check for Map and bool",
+			configSettings: []string{"TestNewServiceSettings", "UseLetsEncrypt"},
+			newVal:         []string{"true"},
+			expected:       true,
+		},
+		{
+			Name:           "check for Map and int64",
+			configSettings: []string{"TestNewServiceSettings", "TLSStrictTransportMaxAge"},
+			newVal:         []string{"56"},
+			expected:       int64(56),
+		},
+		{
+			Name:           "check for Map and string Slice",
+			configSettings: []string{"TestNewServiceSettings", "AllowedThemes"},
+			newVal:         []string{"hello1", "world1"},
+			expected:       []string{"hello1", "world1"},
+		},
+		{
+			Name:           "Map and string",
+			configSettings: []string{"TestNewTeamSettings", "SiteName"},
+			newVal:         []string{"jkl.mno"},
+			expected:       "jkl.mno",
+		},
+		{
+			Name:           "Map and int",
+			configSettings: []string{"TestNewTeamSettings", "MaxUserPerTeam"},
+			newVal:         []string{"18"},
+			expected:       18,
+		},
+	}
+
+
+	for _, test := range cases {
+
+		t.Run(test.Name, func(t *testing.T){
+			err := UpdateMap(configMap, test.configSettings, test.newVal)
+
+			if err != nil {
+				t.Fatal("Wasn't expecting an error: ", err)
+			}
+
+			if !contains(configMap, test.expected, test.configSettings) {
+				t.Error("update didn't happen")
+			}
+
+		})
+	}
+
+}
+
+func contains(configMap map[string]interface{}, v interface{}, configSettings []string) bool {
+
+	res := configMap[configSettings[0]]
+
+	value := reflect.ValueOf(res)
+
+	switch value.Kind() {
+	case reflect.Map:
+		return contains(res.(map[string]interface{}), v, configSettings[1:])
+	case reflect.Slice:
+		return reflect.DeepEqual(value.Interface(), v)
+	case reflect.Int64:
+		return value.Interface() == v.(int64)
+	default:
+		return value.Interface() == v
+	}
 }
