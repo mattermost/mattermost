@@ -587,12 +587,12 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			intervalSeconds = "0"
 		} else {
 			switch *data.EmailInterval {
-			case "immediately":
+			case model.PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY:
 				intervalSeconds = model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
-			case "fifteen":
-				intervalSeconds = "900"
-			case "hour":
-				intervalSeconds = "3600"
+			case model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN:
+				intervalSeconds = model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN_AS_SECONDS
+			case model.PREFERENCE_EMAIL_INTERVAL_HOUR:
+				intervalSeconds = model.PREFERENCE_EMAIL_INTERVAL_HOUR_AS_SECONDS
 			}
 		}
 		if intervalSeconds != "" {
