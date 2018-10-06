@@ -547,7 +547,7 @@ type GroupStore interface {
 
 	CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
-	GetAllGroupSyncablesByGroupPage(groupID string, syncableType model.GroupSyncableType, offset int, limit int) StoreChannel
+	GetAllGroupSyncablesByGroupIdPage(groupID string, syncableType model.GroupSyncableType, offset int, limit int) StoreChannel
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
 	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
 }

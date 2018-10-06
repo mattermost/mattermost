@@ -88,7 +88,7 @@ func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType m
 }
 
 func (a *App) GetGroupSyncablesPage(groupID string, syncableType model.GroupSyncableType, page int, perPage int) ([]*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllGroupSyncablesByGroupPage(groupID, syncableType, page*perPage, perPage)
+	result := <-a.Srv.Store.Group().GetAllGroupSyncablesByGroupIdPage(groupID, syncableType, page*perPage, perPage)
 	if result.Err != nil {
 		return nil, result.Err
 	}

@@ -121,13 +121,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.License() == nil || !*c.App.License().Features.LDAP {
-		c.Err = model.NewAppError(
-			"Api4.linkLdapGroup",
-			"api.ldap.license.error",
-			nil,
-			"",
-			http.StatusNotImplemented,
-		)
+		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -138,13 +132,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ldapGroup == nil {
-		c.Err = model.NewAppError(
-			"Api4.linkLdapGroup",
-			"api.ldap.not_found",
-			nil,
-			"",
-			http.StatusNotFound,
-		)
+		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap.not_found", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -160,13 +148,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Group is already linked.
 	if group != nil {
 		if group.DeleteAt == 0 {
-			c.Err = model.NewAppError(
-				"Api4.linkLdapGroup",
-				"api.ldap.already_linked",
-				nil,
-				"",
-				http.StatusNotModified,
-			)
+			c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap.already_linked", nil, "", http.StatusNotModified)
 			return
 		}
 
@@ -194,13 +176,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, marshalErr := json.Marshal(newOrUpdatedGroup)
 	if marshalErr != nil {
-		c.Err = model.NewAppError(
-			"Api4.linkLdapGroup",
-			"api.ldap.marshal_error",
-			nil,
-			marshalErr.Error(),
-			http.StatusInternalServerError,
-		)
+		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -220,13 +196,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.License() == nil || !*c.App.License().Features.LDAP {
-		c.Err = model.NewAppError(
-			"Api4.unlinkLdapGroup",
-			"api.ldap.license.error",
-			nil,
-			"",
-			http.StatusNotImplemented,
-		)
+		c.Err = model.NewAppError("Api4.unlinkLdapGroup", "api.ldap.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -245,13 +215,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group != nil && group.DeleteAt != 0 {
-		c.Err = model.NewAppError(
-			"Api4.unlinkLdapGroup",
-			"api.ldap.already_unlink",
-			nil,
-			"",
-			http.StatusNotModified,
-		)
+		c.Err = model.NewAppError("Api4.unlinkLdapGroup", "api.ldap.already_unlink", nil, "", http.StatusNotModified)
 		return
 	}
 

@@ -107,13 +107,7 @@ func (a *App) GetUserIDsInLdapGroupRecursive(groupDN string) ([]string, *model.A
 			return nil, err
 		}
 	} else {
-		ae := model.NewAppError(
-			"GetUserIDsInLdapGroupRecursive",
-			"ent.ldap.app_error",
-			nil,
-			"",
-			http.StatusNotImplemented,
-		)
+		ae := model.NewAppError("GetUserIDsInLdapGroupRecursive", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
 		mlog.Error(fmt.Sprintf("%v", ae.Error()))
 	}
 
