@@ -61,13 +61,7 @@ func getChildLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.License() == nil || !*c.App.License().Features.LDAP {
-		c.Err = model.NewAppError(
-			"Api4.getChildLdapGroups",
-			"api.ldap.license.error",
-			nil,
-			"",
-			http.StatusNotImplemented,
-		)
+		c.Err = model.NewAppError("Api4.getChildLdapGroups", "api.ldap.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -96,13 +90,7 @@ func getChildLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, marshalErr := json.Marshal(scimGroups)
 	if marshalErr != nil {
-		c.Err = model.NewAppError(
-			"Api4.getChildLdapGroups",
-			"api.ldap.marshal_error",
-			nil,
-			marshalErr.Error(),
-			http.StatusInternalServerError,
-		)
+		c.Err = model.NewAppError("Api4.getChildLdapGroups", "api.ldap.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
