@@ -1005,7 +1005,8 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	result := <-a.Srv.Store.Team().SetDeleteAt(team.Id, 0, model.GetMillis())
+	team.DeleteAt = 0
+	result := <-a.Srv.Store.Team().Update(team)
 	if result.Err != nil {
 		return result.Err
 	}
