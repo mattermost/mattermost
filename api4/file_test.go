@@ -4,250 +4,458 @@
 package api4
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 )
 
-func TestUploadFileAsMultipart(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
+var testDir = ""
 
-	user := th.BasicUser
-	channel := th.BasicChannel
+func init() {
+	testDir, _ = utils.FindDir("tests")
+}
 
-	var uploadInfo *model.FileInfo
-	var data []byte
-	var err error
-	if data, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else if fileResp, resp := Client.UploadFile(data, channel.Id, "test.png"); resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else if len(fileResp.FileInfos) != 1 {
-		t.Fatal("should've returned a single file infos")
-	} else {
-		uploadInfo = fileResp.FileInfos[0]
-	}
-
-	// The returned file info from the upload call will be missing some fields that will be stored in the database
-	if uploadInfo.CreatorId != user.Id {
-		t.Fatal("file should be assigned to user")
-	} else if uploadInfo.PostId != "" {
-		t.Fatal("file shouldn't have a post")
-	} else if uploadInfo.Path != "" {
-		t.Fatal("file path should not be set on returned info")
-	} else if uploadInfo.ThumbnailPath != "" {
-		t.Fatal("file thumbnail path should not be set on returned info")
-	} else if uploadInfo.PreviewPath != "" {
-		t.Fatal("file preview path should not be set on returned info")
-	}
-
-	var info *model.FileInfo
-	if result := <-th.App.Srv.Store.FileInfo().Get(uploadInfo.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		info = result.Data.(*model.FileInfo)
-	}
-
-	if info.Id != uploadInfo.Id {
-		t.Fatal("file id from response should match one stored in database")
-	} else if info.CreatorId != user.Id {
-		t.Fatal("file should be assigned to user")
-	} else if info.PostId != "" {
-		t.Fatal("file shouldn't have a post")
-	} else if info.Path == "" {
-		t.Fatal("file path should be set in database")
-	} else if info.ThumbnailPath == "" {
-		t.Fatal("file thumbnail path should be set in database")
-	} else if info.PreviewPath == "" {
-		t.Fatal("file preview path should be set in database")
-	}
-
-	date := time.Now().Format("20060102")
-
-	// This also makes sure that the relative path provided above is sanitized out
-	expectedPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test.png", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
-	if info.Path != expectedPath {
-		t.Logf("file is saved in %v", info.Path)
-		t.Fatalf("file should've been saved in %v", expectedPath)
-	}
-
-	expectedThumbnailPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_thumb.jpg", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
-	if info.ThumbnailPath != expectedThumbnailPath {
-		t.Logf("file thumbnail is saved in %v", info.ThumbnailPath)
-		t.Fatalf("file thumbnail should've been saved in %v", expectedThumbnailPath)
-	}
-
-	expectedPreviewPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_preview.jpg", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
-	if info.PreviewPath != expectedPreviewPath {
-		t.Logf("file preview is saved in %v", info.PreviewPath)
-		t.Fatalf("file preview should've been saved in %v", expectedPreviewPath)
-	}
-
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
-
-	if err := th.cleanupTestFile(info); err != nil {
-		t.Fatal(err)
-	}
-
-	_, resp := Client.UploadFile(data, model.NewId(), "test.png")
-	CheckForbiddenStatus(t, resp)
-
-	_, resp = Client.UploadFile(data, "../../junk", "test.png")
-	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.UploadFile(data, model.NewId(), "test.png")
-	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.UploadFile(data, "../../junk", "test.png")
-	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.UploadFile(data, channel.Id, "test.png")
-	CheckNoError(t, resp)
-
-	enableFileAttachments := *th.App.Config().FileSettings.EnableFileAttachments
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = enableFileAttachments })
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
-
-	_, resp = th.SystemAdminClient.UploadFile(data, channel.Id, "test.png")
-	if resp.StatusCode == 0 {
-		t.Log("file upload request failed completely")
-	} else if resp.StatusCode != http.StatusNotImplemented {
-		// This should return an HTTP 501, but it occasionally causes the http client itself to error
-		t.Fatalf("should've returned HTTP 501 or failed completely, got %v instead", resp.StatusCode)
+func checkCond(tb testing.TB, cond bool, text string) {
+	if !cond {
+		tb.Error(text)
 	}
 }
 
-func TestUploadFileAsRequestBody(t *testing.T) {
+func checkEq(tb testing.TB, v1, v2 interface{}, text string) {
+	checkCond(tb, fmt.Sprintf("%+v", v1) == fmt.Sprintf("%+v", v2), text)
+}
+
+func checkNeq(tb testing.TB, v1, v2 interface{}, text string) {
+	checkCond(tb, fmt.Sprintf("%+v", v1) != fmt.Sprintf("%+v", v2), text)
+}
+
+type zeroReader struct {
+	limit, read int
+}
+
+func (z *zeroReader) Read(b []byte) (int, error) {
+	for i := range b {
+		if z.read == z.limit {
+			return i, io.EOF
+		}
+		b[i] = 0
+		z.read++
+	}
+
+	return len(b), nil
+}
+
+func TestUploadFiles(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
 
-	user := th.BasicUser
 	channel := th.BasicChannel
-
-	var uploadInfo *model.FileInfo
-	var data []byte
-	var err error
-	if data, err = testutils.ReadTestFile("test.png"); err != nil {
-		t.Fatal(err)
-	} else if fileResp, resp := Client.UploadFileAsRequestBody(data, channel.Id, "test.png"); resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else if len(fileResp.FileInfos) != 1 {
-		t.Fatal("should've returned a single file infos")
-	} else {
-		uploadInfo = fileResp.FileInfos[0]
-	}
-
-	// The returned file info from the upload call will be missing some fields that will be stored in the database
-	if uploadInfo.CreatorId != user.Id {
-		t.Fatal("file should be assigned to user")
-	} else if uploadInfo.PostId != "" {
-		t.Fatal("file shouldn't have a post")
-	} else if uploadInfo.Path != "" {
-		t.Fatal("file path should not be set on returned info")
-	} else if uploadInfo.ThumbnailPath != "" {
-		t.Fatal("file thumbnail path should not be set on returned info")
-	} else if uploadInfo.PreviewPath != "" {
-		t.Fatal("file preview path should not be set on returned info")
-	}
-
-	var info *model.FileInfo
-	if result := <-th.App.Srv.Store.FileInfo().Get(uploadInfo.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		info = result.Data.(*model.FileInfo)
-	}
-
-	if info.Id != uploadInfo.Id {
-		t.Fatal("file id from response should match one stored in database")
-	} else if info.CreatorId != user.Id {
-		t.Fatal("file should be assigned to user")
-	} else if info.PostId != "" {
-		t.Fatal("file shouldn't have a post")
-	} else if info.Path == "" {
-		t.Fatal("file path should be set in database")
-	} else if info.ThumbnailPath == "" {
-		t.Fatal("file thumbnail path should be set in database")
-	} else if info.PreviewPath == "" {
-		t.Fatal("file preview path should be set in database")
-	}
-
 	date := time.Now().Format("20060102")
 
-	// This also makes sure that the relative path provided above is sanitized out
-	expectedPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test.png", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
-	if info.Path != expectedPath {
-		t.Logf("file is saved in %v", info.Path)
-		t.Fatalf("file should've been saved in %v", expectedPath)
+	// Get better error messages
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+
+	op := func(name string) model.UploadOpener {
+		return model.NewUploadOpenerFile(filepath.Join(testDir, name))
 	}
 
-	expectedThumbnailPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_thumb.jpg", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
-	if info.ThumbnailPath != expectedThumbnailPath {
-		t.Logf("file thumbnail is saved in %v", info.ThumbnailPath)
-		t.Fatalf("file thumbnail should've been saved in %v", expectedThumbnailPath)
+	tests := []struct {
+		title     string
+		client    *model.Client4
+		openers   []model.UploadOpener
+		names     []string
+		clientIds []string
+
+		skipSuccessValidation  bool
+		skipPayloadValidation  bool
+		skipSimplePost         bool
+		skipMultipart          bool
+		expectedPayloadNames   []string
+		expectedThumbnailNames []string
+		expectedPreviewNames   []string
+		channelId              string
+		useChunkedInSimplePost bool
+		expectImage            bool
+		expectedCreatorId      string
+		setupConfig            func(a *app.App) func(a *app.App)
+		checkResponse          func(t *testing.T, resp *model.Response)
+	}{
+		// Upload a bunch of files, mixed images and non-images
+		{
+			title:             "Happy",
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-config.json"},
+			expectedCreatorId: th.BasicUser.Id,
+		},
+		// Upload a bunch of files, with clientIds
+		{
+			title:             "Happy client_ids",
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-config.json"},
+			clientIds:         []string{"1", "2", "3", "4"},
+			expectedCreatorId: th.BasicUser.Id,
+		},
+		// Upload a bunch of images
+		{
+			title:             "Happy images",
+			names:             []string{"test.png", "testgif.gif"},
+			expectImage:       true,
+			expectedCreatorId: th.BasicUser.Id,
+		},
+		{
+			title:                 "Happy invalid image",
+			names:                 []string{"testgif.gif"},
+			openers:               []model.UploadOpener{model.NewUploadOpenerFile(filepath.Join(testDir, "test-config.json"))},
+			skipPayloadValidation: true,
+			expectedCreatorId:     th.BasicUser.Id,
+		},
+		// Simple POST, chunked encoding
+		{
+			title:                  "Happy image chunked post",
+			skipMultipart:          true,
+			useChunkedInSimplePost: true,
+			names:                  []string{"test.png"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		// Image thumbnail and preview: size and orientation
+		{
+			title:                  "Happy image thumbnail/preview 1",
+			names:                  []string{"orientation_test_1.jpeg"},
+			expectedThumbnailNames: []string{"orientation_test_1_expected_thumb.jpeg"},
+			expectedPreviewNames:   []string{"orientation_test_1_expected_preview.jpeg"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		{
+			title:                  "Happy image thumbnail/preview 2",
+			names:                  []string{"orientation_test_2.jpeg"},
+			expectedThumbnailNames: []string{"orientation_test_2_expected_thumb.jpeg"},
+			expectedPreviewNames:   []string{"orientation_test_2_expected_preview.jpeg"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		{
+			title:                  "Happy image thumbnail/preview 3",
+			names:                  []string{"orientation_test_3.jpeg"},
+			expectedThumbnailNames: []string{"orientation_test_3_expected_thumb.jpeg"},
+			expectedPreviewNames:   []string{"orientation_test_3_expected_preview.jpeg"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		{
+			title:                  "Happy image thumbnail/preview 4",
+			names:                  []string{"orientation_test_4.jpeg"},
+			expectedThumbnailNames: []string{"orientation_test_4_expected_thumb.jpeg"},
+			expectedPreviewNames:   []string{"orientation_test_4_expected_preview.jpeg"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		{
+			title:                  "Happy image thumbnail/preview 5",
+			names:                  []string{"orientation_test_5.jpeg"},
+			expectedThumbnailNames: []string{"orientation_test_5_expected_thumb.jpeg"},
+			expectedPreviewNames:   []string{"orientation_test_5_expected_preview.jpeg"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		{
+			title:                  "Happy image thumbnail/preview 6",
+			names:                  []string{"orientation_test_6.jpeg"},
+			expectedThumbnailNames: []string{"orientation_test_6_expected_thumb.jpeg"},
+			expectedPreviewNames:   []string{"orientation_test_6_expected_preview.jpeg"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		{
+			title:                  "Happy image thumbnail/preview 7",
+			names:                  []string{"orientation_test_7.jpeg"},
+			expectedThumbnailNames: []string{"orientation_test_7_expected_thumb.jpeg"},
+			expectedPreviewNames:   []string{"orientation_test_7_expected_preview.jpeg"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		{
+			title:                  "Happy image thumbnail/preview 8",
+			names:                  []string{"orientation_test_8.jpeg"},
+			expectedThumbnailNames: []string{"orientation_test_8_expected_thumb.jpeg"},
+			expectedPreviewNames:   []string{"orientation_test_8_expected_preview.jpeg"},
+			expectImage:            true,
+			expectedCreatorId:      th.BasicUser.Id,
+		},
+		{
+			title:             "Happy admin",
+			client:            th.SystemAdminClient,
+			names:             []string{"test.png"},
+			expectedCreatorId: th.SystemAdminUser.Id,
+		},
+		{
+			title:                  "Happy stream",
+			useChunkedInSimplePost: true,
+			skipPayloadValidation:  true,
+			names:                  []string{"50Mb-stream"},
+			openers:                []model.UploadOpener{model.NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
+			setupConfig: func(a *app.App) func(a *app.App) {
+				maxFileSize := *a.Config().FileSettings.MaxFileSize
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 50 * 1024 * 1024 })
+				return func(a *app.App) {
+					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
+				}
+			},
+			expectedCreatorId: th.BasicUser.Id,
+		},
+		// Error cases
+		{
+			title:                 "Error channel_id does not exist",
+			channelId:             model.NewId(),
+			names:                 []string{"test.png"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckForbiddenStatus,
+		},
+		{
+			// on simple post this uploads the last file
+			// successfully, without a ClientId
+			title:                 "Error too few client_ids",
+			skipSimplePost:        true,
+			names:                 []string{"test.png", "testplugin.tar.gz", "test-config.json"},
+			clientIds:             []string{"1", "4"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckBadRequestStatus,
+		},
+		{
+			title:                 "Error invalid channel_id",
+			channelId:             "../../junk",
+			names:                 []string{"test.png"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckBadRequestStatus,
+		},
+		{
+			title:                 "Error admin channel_id does not exist",
+			client:                th.SystemAdminClient,
+			channelId:             model.NewId(),
+			names:                 []string{"test.png"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckForbiddenStatus,
+		},
+		{
+			title:                 "Error admin invalid channel_id",
+			client:                th.SystemAdminClient,
+			channelId:             "../../junk",
+			names:                 []string{"test.png"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckBadRequestStatus,
+		},
+		{
+			title:                 "Error admin disabled uploads",
+			client:                th.SystemAdminClient,
+			names:                 []string{"test.png"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckNotImplementedStatus,
+			setupConfig: func(a *app.App) func(a *app.App) {
+				enableFileAttachments := *a.Config().FileSettings.EnableFileAttachments
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
+				return func(a *app.App) {
+					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = enableFileAttachments })
+				}
+			},
+		},
+		{
+			title:                 "Error file too large",
+			names:                 []string{"test.png"},
+			skipSuccessValidation: true,
+			checkResponse:         CheckRequestEntityTooLargeStatus,
+			setupConfig: func(a *app.App) func(a *app.App) {
+				maxFileSize := *a.Config().FileSettings.MaxFileSize
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 279590 })
+				return func(a *app.App) {
+					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
+				}
+			},
+		},
+		// File too large (chunked, simple POST only, multipart would've been redundant with above)
+		{
+			title:                  "File too large chunked",
+			useChunkedInSimplePost: true,
+			skipMultipart:          true,
+			names:                  []string{"test.png"},
+			skipSuccessValidation:  true,
+			checkResponse:          CheckRequestEntityTooLargeStatus,
+			setupConfig: func(a *app.App) func(a *app.App) {
+				maxFileSize := *a.Config().FileSettings.MaxFileSize
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 279590 })
+				return func(a *app.App) {
+					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
+				}
+			},
+		},
+		{
+			title:                 "Error stream too large",
+			skipPayloadValidation: true,
+			names:                 []string{"50Mb-stream"},
+			openers:               []model.UploadOpener{model.NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
+			skipSuccessValidation: true,
+			checkResponse:         CheckRequestEntityTooLargeStatus,
+			setupConfig: func(a *app.App) func(a *app.App) {
+				maxFileSize := *a.Config().FileSettings.MaxFileSize
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 100 * 1024 })
+				return func(a *app.App) {
+					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
+				}
+			},
+		},
 	}
 
-	expectedPreviewPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_preview.jpg", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
-	if info.PreviewPath != expectedPreviewPath {
-		t.Logf("file preview is saved in %v", info.PreviewPath)
-		t.Fatalf("file preview should've been saved in %v", expectedPreviewPath)
-	}
+	for _, useMultipart := range []bool{true, false} {
+		for _, tc := range tests {
+			if tc.skipMultipart && useMultipart || tc.skipSimplePost && !useMultipart {
+				continue
+			}
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
+			// Set the default values and title
+			client := th.Client
+			if tc.client != nil {
+				client = tc.client
+			}
+			channelId := channel.Id
+			if tc.channelId != "" {
+				channelId = tc.channelId
+			}
+			if tc.checkResponse == nil {
+				tc.checkResponse = CheckNoError
+			}
 
-	if err := th.cleanupTestFile(info); err != nil {
-		t.Fatal(err)
-	}
+			title := ""
+			if useMultipart {
+				title = "multipart "
+			} else {
+				title = "simple "
+			}
+			if tc.title != "" {
+				title += tc.title + " "
+			}
+			title += fmt.Sprintf("%v", tc.names)
 
-	_, resp := Client.UploadFileAsRequestBody(data, model.NewId(), "test.png")
-	CheckForbiddenStatus(t, resp)
+			// Apply any necessary config changes
+			var restoreConfig func(a *app.App)
+			if tc.setupConfig != nil {
+				restoreConfig = tc.setupConfig(th.App)
+			}
 
-	_, resp = Client.UploadFileAsRequestBody(data, "../../junk", "test.png")
-	if resp.StatusCode == 0 {
-		t.Log("file upload request failed completely")
-	} else if resp.StatusCode != http.StatusBadRequest {
-		// This should return an HTTP 400, but it occasionally causes the http client itself to error
-		t.Fatalf("should've returned HTTP 400 or failed completely, got %v instead", resp.StatusCode)
-	}
+			t.Run(title, func(t *testing.T) {
+				if len(tc.openers) == 0 {
+					for _, name := range tc.names {
+						tc.openers = append(tc.openers, op(name))
+					}
+				}
+				fileResp, resp := client.UploadFiles(channelId, tc.names,
+					tc.openers, nil, tc.clientIds, useMultipart,
+					tc.useChunkedInSimplePost)
+				tc.checkResponse(t, resp)
+				if tc.skipSuccessValidation {
+					return
+				}
 
-	_, resp = th.SystemAdminClient.UploadFileAsRequestBody(data, model.NewId(), "test.png")
-	CheckForbiddenStatus(t, resp)
+				if fileResp == nil || len(fileResp.FileInfos) == 0 || len(fileResp.FileInfos) != len(tc.names) {
+					t.Fatal("Empty or mismatched actual or expected FileInfos")
+				}
 
-	_, resp = th.SystemAdminClient.UploadFileAsRequestBody(data, "../../junk", "test.png")
-	if resp.StatusCode == 0 {
-		t.Log("file upload request failed completely")
-	} else if resp.StatusCode != http.StatusBadRequest {
-		// This should return an HTTP 400, but it occasionally causes the http client itself to error
-		t.Fatalf("should've returned HTTP 400 or failed completely, got %v instead", resp.StatusCode)
-	}
+				for i, ri := range fileResp.FileInfos {
+					// The returned file info from the upload call will be missing some fields that will be stored in the database
+					checkEq(t, ri.CreatorId, tc.expectedCreatorId, "File should be assigned to user")
+					checkEq(t, ri.PostId, "", "File shouldn't have a post Id")
+					checkEq(t, ri.Path, "", "File path should not be set on returned info")
+					checkEq(t, ri.ThumbnailPath, "", "File thumbnail path should not be set on returned info")
+					checkEq(t, ri.PreviewPath, "", "File preview path should not be set on returned info")
+					if len(tc.clientIds) > i {
+						checkCond(t, len(fileResp.ClientIds) == len(tc.clientIds),
+							fmt.Sprintf("Wrong number of clientIds returned, expected %v, got %v", len(tc.clientIds), len(fileResp.ClientIds)))
+						checkEq(t, fileResp.ClientIds[i], tc.clientIds[i],
+							fmt.Sprintf("Wrong clientId returned, expected %v, got %v", tc.clientIds[i], fileResp.ClientIds[i]))
+					}
 
-	_, resp = th.SystemAdminClient.UploadFileAsRequestBody(data, channel.Id, "test.png")
-	CheckNoError(t, resp)
+					var dbInfo *model.FileInfo
+					result := <-th.App.Srv.Store.FileInfo().Get(ri.Id)
+					if result.Err != nil {
+						t.Error(result.Err)
+					} else {
+						dbInfo = result.Data.(*model.FileInfo)
+					}
+					checkEq(t, dbInfo.Id, ri.Id, "File id from response should match one stored in database")
+					checkEq(t, dbInfo.CreatorId, tc.expectedCreatorId, "F ile should be assigned to user")
+					checkEq(t, dbInfo.PostId, "", "File shouldn't have a post")
+					checkNeq(t, dbInfo.Path, "", "File path should be set in database")
+					_, fname := filepath.Split(dbInfo.Path)
+					ext := filepath.Ext(fname)
+					name := fname[:len(fname)-len(ext)]
+					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FILE_TEAM_ID, channel.Id, ri.CreatorId, ri.Id)
+					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
+					checkEq(t, dbInfo.Path, expectedPath,
+						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))
+					if tc.expectImage {
+						expectedThumbnailPath := fmt.Sprintf("%s/%s_thumb.jpg", expectedDir, name)
+						expectedPreviewPath := fmt.Sprintf("%s/%s_preview.jpg", expectedDir, name)
+						checkEq(t, dbInfo.ThumbnailPath, expectedThumbnailPath,
+							fmt.Sprintf("Thumbnail for %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.ThumbnailPath, expectedThumbnailPath))
+						checkEq(t, dbInfo.PreviewPath, expectedPreviewPath,
+							fmt.Sprintf("Preview for %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.PreviewPath, expectedPreviewPath))
+					}
 
-	enableFileAttachments := *th.App.Config().FileSettings.EnableFileAttachments
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = enableFileAttachments })
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
+					if !tc.skipPayloadValidation {
+						compare := func(get func(string) ([]byte, *model.Response), name string) {
+							data, resp := get(ri.Id)
+							if resp.Error != nil {
+								t.Fatal(resp.Error)
+							}
 
-	_, resp = th.SystemAdminClient.UploadFileAsRequestBody(data, channel.Id, "test.png")
-	if resp.StatusCode == 0 {
-		t.Log("file upload request failed completely")
-	} else if resp.StatusCode != http.StatusNotImplemented {
-		// This should return an HTTP 501, but it occasionally causes the http client itself to error
-		t.Fatalf("should've returned HTTP 501 or failed completely, got %v instead", resp.StatusCode)
+							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
+							if err != nil {
+								t.Fatal(err)
+							}
+
+							if bytes.Compare(data, expected) != 0 {
+								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
+								if err != nil {
+									t.Fatal(err)
+								}
+								io.Copy(tf, bytes.NewReader(data))
+								tf.Close()
+								t.Errorf("Actual data mismatched %s, written to %q", name, tf.Name())
+							}
+						}
+						if len(tc.expectedPayloadNames) == 0 {
+							tc.expectedPayloadNames = tc.names
+						}
+
+						compare(client.GetFile, tc.expectedPayloadNames[i])
+						if len(tc.expectedThumbnailNames) > i {
+							compare(client.GetFileThumbnail, tc.expectedThumbnailNames[i])
+						}
+						if len(tc.expectedThumbnailNames) > i {
+							compare(client.GetFilePreview, tc.expectedPreviewNames[i])
+						}
+					}
+
+					th.cleanupTestFile(dbInfo)
+				}
+			})
+
+			if restoreConfig != nil {
+				restoreConfig(th.App)
+			}
+		}
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	_ "image/gif"
+	"image/gif"
 	"image/jpeg"
 	"io"
 	"mime/multipart"
@@ -30,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -53,7 +54,15 @@ const (
 	RotatedCCWMirrored = 7
 	RotatedCW          = 8
 
-	MaxImageSize                 = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+	MaxImageSize         = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+	ImageThumbnailWidth  = 120
+	ImageThumbnailHeight = 100
+	ImageThumbnailRatio  = float64(ImageThumbnailHeight) / float64(ImageThumbnailWidth)
+	ImagePreviewWidth    = 1920
+
+	MinUploadFileBufferSize = 2 * 1024 * 1024
+
+	// Deprecated
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
 	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
 	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
@@ -335,7 +344,8 @@ func (a *App) UploadMultipartFiles(teamId string, channelId string, userId strin
 	for i, fileHeader := range fileHeaders {
 		file, fileErr := fileHeader.Open()
 		if fileErr != nil {
-			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.bad_parse.app_error", nil, fileErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.read_request.app_error",
+				map[string]interface{}{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
 		}
 
 		// Will be closed after UploadFiles returns
@@ -353,7 +363,7 @@ func (a *App) UploadMultipartFiles(teamId string, channelId string, userId strin
 // The provided files should be closed by the caller so that they are not leaked.
 func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if len(filenames) != len(files) || (len(clientIds) > 0 && len(clientIds) != len(files)) {
@@ -419,6 +429,381 @@ func (a *App) UploadFile(data []byte, channelId string, filename string) (*model
 func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
 	info, _, err := a.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 	return info, err
+}
+
+// UploadFileTask encapsulates the file upload functionality. To upload a file
+// one should use App.NewUploadFileTask(), set optional parameters as needed,
+// then call its Do() method to perform the upload.
+type UploadFileTask struct {
+	//=============================================================
+	// Parameters initialized by NewUploadFileTask
+
+	TeamId    string
+	ChannelId string
+	UserId    string
+
+	// File name.
+	Name string
+
+	// Time stamp to use when creating the file.
+	Timestamp time.Time
+
+	// The value of the Content-Length http header, when available.
+	ContentLength int64
+
+	// The file data stream.
+	Input io.Reader
+
+	//=============================================================
+	// Optional parameters
+
+	// An optional, client-assigned Id field.
+	ClientId string
+
+	// If Raw, do not execute special processing for images, just upload
+	// the file.  Plugins are still invoked.
+	Raw bool
+
+	//=============================================================
+	// Internal state
+
+	buf          *bytes.Buffer
+	limit        int64
+	limitedInput io.Reader
+	teeInput     io.Reader
+	fileinfo     *model.FileInfo
+	maxFileSize  int64
+	driverName   string
+
+	// Cached image data that (may) get initialized in preprocessImage and
+	// is used in postprocessImage
+	decoded          image.Image
+	imageType        string
+	imageOrientation int
+
+	// Testing: overrideable dependency functions
+	pluginsReady       func() bool
+	runMultiPluginHook func(func(plugin.Hooks) bool, int)
+	writeFile          func(io.Reader, string) (int64, *model.AppError)
+	saveToDatabase     func(*model.FileInfo) store.StoreChannel
+}
+
+func (a *App) NewUploadFileTask(teamId, channelId, userId, name string,
+	timestamp time.Time, contentLength int64,
+	input io.Reader) *UploadFileTask {
+
+	t := &UploadFileTask{
+		TeamId:        filepath.Base(teamId),
+		ChannelId:     filepath.Base(channelId),
+		UserId:        filepath.Base(userId),
+		Name:          filepath.Base(name),
+		Timestamp:     timestamp,
+		ContentLength: contentLength,
+		Input:         input,
+
+		buf:         &bytes.Buffer{},
+		fileinfo:    model.NewInfo(filepath.Base(name)),
+		maxFileSize: *a.Config().FileSettings.MaxFileSize,
+		limit:       *a.Config().FileSettings.MaxFileSize,
+		driverName:  *a.Config().FileSettings.DriverName,
+	}
+
+	t.fileinfo.Id = model.NewId()
+	t.fileinfo.CreatorId = t.UserId
+	t.fileinfo.CreateAt = t.Timestamp.UnixNano() / int64(time.Millisecond)
+	t.fileinfo.Path = t.pathPrefix() + t.Name
+
+	// Prepare to read ContentLength if it is known, otherwise limit
+	// ourselves to MaxFileSize. Add an extra byte to check and fail if the
+	// client sent too many bytes.
+	if t.ContentLength > 0 {
+		t.limit = t.ContentLength
+		// Over-Grow the buffer to prevent bytes.ReadFrom from doing it
+		// at the very end.
+		t.buf.Grow(int(t.limit + 1 + bytes.MinRead))
+	} else {
+		// If we don't know the upload size, grow the buffer somewhat
+		// anyway to avoid extra reslicing.
+		t.buf.Grow(MinUploadFileBufferSize)
+	}
+	t.limitedInput = &io.LimitedReader{
+		R: t.Input,
+		N: t.limit + 1,
+	}
+	t.teeInput = io.TeeReader(t.limitedInput, t.buf)
+
+	t.writeFile = a.WriteFile
+	t.saveToDatabase = a.Srv.Store.FileInfo().Save
+	t.pluginsReady = a.PluginsReady
+	t.runMultiPluginHook = (func(func(plugin.Hooks) bool, int))(a.Srv.Plugins.RunMultiPluginHook)
+
+	return t
+}
+
+// Do uploads a single file as specified in t. It applies the upload
+// constraints, executes plugins and image processing logic as needed. It
+// returns a filled-out FileInfo and an optional error. A plugin may reject the
+// upload, returning a rejection error. In this case FileInfo would have
+// contained the last "good" FileInfo before the execution of that plugin.
+func (t *UploadFileTask) Do() (*model.FileInfo, *model.AppError) {
+	var aerr *model.AppError
+	if t.buf == nil {
+		return nil, t.newAppError("api.file.upload_file.read_request.app_error",
+			"UploadFileTask.Do: uninitialized task, use NewUploadFileTask?",
+			http.StatusInternalServerError)
+	}
+
+	if t.driverName == "" {
+		return nil, t.newAppError("api.file.upload_file.storage.app_error", "",
+			http.StatusNotImplemented)
+	}
+	if t.ContentLength > t.maxFileSize {
+		return nil, t.newAppError("api.file.upload_file.too_large.app_error",
+			fmt.Sprintf("Content-Length: %v, MaxFileSize:%v", t.ContentLength, t.maxFileSize),
+			http.StatusRequestEntityTooLarge)
+	}
+
+	if !t.Raw && t.fileinfo.IsImage() {
+		aerr = t.preprocessImage()
+		if aerr != nil {
+			return t.fileinfo, aerr
+		}
+	}
+
+	aerr = t.readAll()
+	if aerr != nil {
+		return t.fileinfo, aerr
+	}
+
+	aerr = t.runPlugins()
+	if aerr != nil {
+		return t.fileinfo, aerr
+	}
+
+	// Concurrently upload and update DB, and post-process the image.
+	wg := sync.WaitGroup{}
+
+	if !t.Raw && t.fileinfo.IsImage() {
+		wg.Add(1)
+		go func() {
+			t.postprocessImage()
+			wg.Done()
+		}()
+	}
+
+	if _, aerr := t.writeFile(t.newReader(), t.fileinfo.Path); aerr != nil {
+		return nil, aerr
+	}
+
+	if result := <-t.saveToDatabase(t.fileinfo); result.Err != nil {
+		return nil, result.Err
+	}
+
+	wg.Wait()
+
+	return t.fileinfo, nil
+}
+
+func (t *UploadFileTask) readAll() *model.AppError {
+	_, err := t.buf.ReadFrom(t.limitedInput)
+	if err != nil {
+		return t.newAppError("api.file.upload_file.read_request.app_error",
+			err.Error(), http.StatusInternalServerError)
+	}
+	if int64(t.buf.Len()) > t.limit {
+		return t.newAppError("api.file.upload_file.too_large.app_error",
+			fmt.Sprintf("read: %v, limit:%v", t.buf.Len(), t.limit),
+			http.StatusRequestEntityTooLarge)
+	}
+	t.fileinfo.Size = int64(t.buf.Len())
+
+	t.limitedInput = nil
+	t.teeInput = nil
+	return nil
+}
+
+func (t *UploadFileTask) runPlugins() *model.AppError {
+	if !t.pluginsReady() {
+		return nil
+	}
+
+	pluginContext := &plugin.Context{}
+	var rejectionError *model.AppError
+
+	t.runMultiPluginHook(func(hooks plugin.Hooks) bool {
+		buf := &bytes.Buffer{}
+		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext,
+			t.fileinfo, t.newReader(), buf)
+		if rejectionReason != "" {
+			rejectionError = t.newAppError("api.file.upload_file.read_request.app_error",
+				rejectionReason, http.StatusBadRequest)
+			return false
+		}
+		if replacementInfo != nil {
+			t.fileinfo = replacementInfo
+		}
+		if buf.Len() != 0 {
+			t.buf = buf
+			t.teeInput = nil
+			t.limitedInput = nil
+			t.fileinfo.Size = int64(buf.Len())
+		}
+
+		return true
+	}, plugin.FileWillBeUploadedId)
+
+	if rejectionError != nil {
+		return rejectionError
+	}
+
+	return nil
+}
+
+func (t *UploadFileTask) preprocessImage() *model.AppError {
+	// If we fail to decode, return "as is".
+	config, _, err := image.DecodeConfig(t.newReader())
+	if err != nil {
+		return nil
+	}
+
+	t.fileinfo.Width = config.Width
+	t.fileinfo.Height = config.Height
+
+	// Check dimensions before loading the whole thing into memory later on.
+	if t.fileinfo.Width*t.fileinfo.Height > MaxImageSize {
+		return t.newAppError("api.file.upload_file.large_image.app_error",
+			fmt.Sprintf("width:%v, height:%v", t.fileinfo.Width, t.fileinfo.Height),
+			http.StatusBadRequest)
+	}
+	t.fileinfo.HasPreviewImage = true
+	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
+	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview.jpg"
+	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb.jpg"
+
+	// check the image orientation with goexif; consume the bytes we
+	// already have first, then keep Tee-ing from input.
+	// TODO: try to reuse exif's .Raw buffer rather than Tee-ing
+	if t.imageOrientation, err = getImageOrientation(t.newReader()); err == nil &&
+		(t.imageOrientation == RotatedCWMirrored ||
+			t.imageOrientation == RotatedCCW ||
+			t.imageOrientation == RotatedCCWMirrored ||
+			t.imageOrientation == RotatedCW) {
+		t.fileinfo.Width, t.fileinfo.Height = t.fileinfo.Height, t.fileinfo.Width
+	}
+
+	// For animated GIFs disable the preview; since we have to Decode gifs
+	// anyway, cache the decoded image for later.
+	if t.fileinfo.MimeType == "image/gif" {
+		gifConfig, err := gif.DecodeAll(t.newReader())
+		if err == nil {
+			if len(gifConfig.Image) >= 1 {
+				t.fileinfo.HasPreviewImage = false
+
+			}
+			if len(gifConfig.Image) > 0 {
+				t.decoded = gifConfig.Image[0]
+				t.imageType = "gif"
+			}
+		}
+	}
+
+	return nil
+}
+
+func (t *UploadFileTask) postprocessImage() {
+	decoded, typ := t.decoded, t.imageType
+	if decoded == nil {
+		err := error(nil)
+		decoded, typ, err = image.Decode(t.newReader())
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
+			return
+		}
+	}
+
+	// Fill in the background of a potentially-transparent png file as
+	// white.
+	if typ == "png" {
+		dst := image.NewRGBA(decoded.Bounds())
+		draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
+		draw.Draw(dst, dst.Bounds(), decoded, decoded.Bounds().Min, draw.Over)
+		decoded = dst
+	}
+
+	decoded = makeImageUpright(decoded, t.imageOrientation)
+	if decoded == nil {
+		return
+	}
+
+	writeJPEG := func(img image.Image, path string) {
+		r, w := io.Pipe()
+		go func() {
+			_, aerr := t.writeFile(r, path)
+			if aerr != nil {
+				mlog.Error(fmt.Sprintf("Unable to upload path=%v err=%v", path, aerr))
+				return
+			}
+		}()
+
+		err := jpeg.Encode(w, img, &jpeg.Options{Quality: 90})
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to encode image as jpeg path=%v err=%v", path, err))
+			w.CloseWithError(err)
+		} else {
+			w.Close()
+		}
+	}
+
+	w := decoded.Bounds().Dx()
+	h := decoded.Bounds().Dy()
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		thumb := decoded
+		if h > ImageThumbnailHeight || w > ImageThumbnailWidth {
+			if float64(h)/float64(w) < ImageThumbnailRatio {
+				thumb = imaging.Resize(decoded, 0, ImageThumbnailHeight, imaging.Lanczos)
+			} else {
+				thumb = imaging.Resize(decoded, ImageThumbnailWidth, 0, imaging.Lanczos)
+			}
+		}
+		writeJPEG(thumb, t.fileinfo.ThumbnailPath)
+		wg.Done()
+	}()
+
+	go func() {
+		preview := decoded
+		if w > ImagePreviewWidth {
+			preview = imaging.Resize(decoded, ImagePreviewWidth, 0, imaging.Lanczos)
+		}
+		writeJPEG(preview, t.fileinfo.PreviewPath)
+		wg.Done()
+	}()
+	wg.Wait()
+}
+
+func (t UploadFileTask) newReader() io.Reader {
+	if t.teeInput != nil {
+		return io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)
+	} else {
+		return bytes.NewReader(t.buf.Bytes())
+	}
+}
+
+func (t UploadFileTask) pathPrefix() string {
+	return t.Timestamp.Format("20060102") +
+		"/teams/" + t.TeamId +
+		"/channels/" + t.ChannelId +
+		"/users/" + t.UserId +
+		"/" + t.fileinfo.Id + "/"
+}
+
+func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus int) *model.AppError {
+	params := map[string]interface{}{
+		"Filename": t.Name,
+	}
+	return model.NewAppError("UploadFileTask", id, params, fmt.Sprintf("%v", details), httpStatus)
 }
 
 func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
@@ -503,21 +888,21 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 		img, width, height := prepareImage(fileData[i])
 		if img != nil {
 			wg.Add(2)
-			go func(img *image.Image, path string, width int, height int) {
+			go func(img image.Image, path string, width int, height int) {
 				defer wg.Done()
-				a.generateThumbnailImage(*img, path, width, height)
+				a.generateThumbnailImage(img, path, width, height)
 			}(img, thumbnailPathList[i], width, height)
 
-			go func(img *image.Image, path string, width int) {
+			go func(img image.Image, path string, width int) {
 				defer wg.Done()
-				a.generatePreviewImage(*img, path, width)
+				a.generatePreviewImage(img, path, width)
 			}(img, previewPathList[i], width)
 		}
 	}
 	wg.Wait()
 }
 
-func prepareImage(fileData []byte) (*image.Image, int, int) {
+func prepareImage(fileData []byte) (image.Image, int, int) {
 	// Decode image bytes into Image object
 	img, imgType, err := image.Decode(bytes.NewReader(fileData))
 	if err != nil {
@@ -540,7 +925,7 @@ func prepareImage(fileData []byte) (*image.Image, int, int) {
 	orientation, _ := getImageOrientation(bytes.NewReader(fileData))
 	img = makeImageUpright(img, orientation)
 
-	return &img, width, height
+	return img, width, height
 }
 
 func makeImageUpright(img image.Image, orientation int) image.Image {

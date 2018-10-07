@@ -98,7 +98,7 @@ func TestDoUploadFile(t *testing.T) {
 	} else {
 		defer func() {
 			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
-			th.App.RemoveFile(info3.Path)
+			th.App.RemoveFile(info4.Path)
 		}()
 	}
 

@@ -1201,8 +1201,8 @@
     "translation": "Bad connection to S3 or minio."
   },
   {
-    "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Unable to upload file. Header cannot be parsed."
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Unable to upload file(s) ({{.Filename}}). Error reading or parsing request data."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
