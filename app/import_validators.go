@@ -281,6 +281,10 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_show_unread_section.error", nil, "", http.StatusBadRequest)
 	}
 
+	if data.EmailInterval != nil && !model.IsValidEmailBatchingInterval(*data.EmailInterval) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_email_interval.error", nil, "", http.StatusBadRequest)
+	}
+
 	if data.Teams != nil {
 		return validateUserTeamsImportData(data.Teams)
 	}

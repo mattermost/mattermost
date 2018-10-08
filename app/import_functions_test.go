@@ -1079,6 +1079,7 @@ func TestImportImportUser(t *testing.T) {
 		UseMarkdownPreview: ptrStr("true"),
 		UseFormatting:      ptrStr("true"),
 		ShowUnreadSection:  ptrStr("true"),
+		EmailInterval:      ptrStr("immediately"),
 	}
 	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
@@ -1099,6 +1100,7 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "formatting", *data.UseFormatting)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS, "show_unread_section", *data.ShowUnreadSection)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "30")
 
 	// Change those preferences.
 	data = UserImportData{
@@ -1110,6 +1112,7 @@ func TestImportImportUser(t *testing.T) {
 		MessageDisplay:     ptrStr("clean"),
 		ChannelDisplayMode: ptrStr("full"),
 		TutorialStep:       ptrStr("2"),
+		EmailInterval:      ptrStr("hour"),
 	}
 	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
@@ -1122,6 +1125,7 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "3600")
 
 	// Set Notify Props
 	data.NotifyProps = &UserNotifyPropsImportData{
