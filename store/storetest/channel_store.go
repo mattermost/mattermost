@@ -80,6 +80,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 			t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, ss, s) })
 			t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
 			t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
+			t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss) })
 		})
 	}
 }
@@ -2805,4 +2806,76 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, c1.Name, cmfe1.ChannelName)
 	assert.Equal(t, c1.Id, cmfe1.ChannelId)
 	assert.Equal(t, u1.Id, cmfe1.UserId)
+}
+
+func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
+	// Set up all the objects needed in the store.
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	c1 := model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&c1, -1))
+
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	u2 := model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u2))
+
+	u3 := model.User{}
+	u3.Email = MakeEmail()
+	u3.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u3))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = c1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = c1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m2))
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c1.Id
+	m3.UserId = u3.Id
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m3))
+
+	// Get all the channel members. Check there are 3.
+	r1 := <-ss.Channel().GetMembers(c1.Id, 0, 1000)
+	assert.Nil(t, r1.Err)
+	d1 := r1.Data.(*model.ChannelMembers)
+	assert.Len(t, *d1, 3)
+
+	// Deactivate users 1 & 2.
+	u1.DeleteAt = model.GetMillis()
+	u2.DeleteAt = model.GetMillis()
+	require.Nil(t, (<-ss.User().Update(&u1, true)).Err)
+	require.Nil(t, (<-ss.User().Update(&u2, true)).Err)
+
+	// Remove all deactivated users from the channel.
+	assert.Nil(t, (<-ss.Channel().RemoveAllDeactivatedMembers(c1.Id)).Err)
+
+	// Get all the channel members. Check there is now only 1: m3.
+	r2 := <-ss.Channel().GetMembers(c1.Id, 0, 1000)
+	assert.Nil(t, r1.Err)
+	d2 := r2.Data.(*model.ChannelMembers)
+	assert.Len(t, *d2, 1)
+	assert.Equal(t, (*d2)[0].UserId, u3.Id)
 }
