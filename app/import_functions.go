@@ -581,6 +581,30 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		})
 	}
 
+	if data.EmailInterval != nil || savedUser.NotifyProps[model.EMAIL_NOTIFY_PROP] == "false" {
+		var intervalSeconds string
+		if value := savedUser.NotifyProps[model.EMAIL_NOTIFY_PROP]; value == "false" {
+			intervalSeconds = "0"
+		} else {
+			switch *data.EmailInterval {
+			case model.PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY:
+				intervalSeconds = model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
+			case model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN:
+				intervalSeconds = model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN_AS_SECONDS
+			case model.PREFERENCE_EMAIL_INTERVAL_HOUR:
+				intervalSeconds = model.PREFERENCE_EMAIL_INTERVAL_HOUR_AS_SECONDS
+			}
+		}
+		if intervalSeconds != "" {
+			preferences = append(preferences, model.Preference{
+				UserId:   savedUser.Id,
+				Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+				Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+				Value:    intervalSeconds,
+			})
+		}
+	}
+
 	if len(preferences) > 0 {
 		if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, result.Err.Error(), http.StatusInternalServerError)
