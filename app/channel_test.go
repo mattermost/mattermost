@@ -98,7 +98,7 @@ func TestMoveChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser); err == nil {
+	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser, false); err == nil {
 		t.Fatal("Should have failed due to mismatched members.")
 	}
 
@@ -106,7 +106,34 @@ func TestMoveChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser); err != nil {
+	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser, false); err != nil {
+		t.Fatal(err)
+	}
+
+	// Test moving a channel with a deactivated user who isn't in the destination team.
+	// It should fail, unless removeDeactivatedMembers is true.
+	deacivatedUser := th.CreateUser()
+	channel2 := th.CreateChannel(sourceTeam)
+
+	if _, err := th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := th.App.AddUserToChannel(th.BasicUser, channel2); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := th.App.AddUserToChannel(deacivatedUser, channel2); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := th.App.UpdateActive(deacivatedUser, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := th.App.MoveChannel(targetTeam, channel2, th.BasicUser, false); err == nil {
+		t.Fatal("Should have failed due to mismatched deacivated member.")
+	}
+
+	if err := th.App.MoveChannel(targetTeam, channel2, th.BasicUser, true); err != nil {
 		t.Fatal(err)
 	}
 }

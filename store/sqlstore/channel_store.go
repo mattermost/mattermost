@@ -1478,6 +1478,32 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) store.Sto
 	})
 }
 
+func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := `
+			DELETE
+			FROM
+				ChannelMembers
+			WHERE 
+				UserId IN (
+					SELECT
+						Id
+					FROM
+						Users
+					WHERE
+						Users.DeleteAt != 0
+				)
+			AND
+				ChannelMembers.ChannelId = :ChannelId
+		`
+
+		_, err := s.GetMaster().Exec(query, map[string]interface{}{"ChannelId": channelId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.RemoveAllDeactivatedMembers", "store.sql_channel.remove_all_deactivated_members.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+		}
+	})
+}
+
 func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
