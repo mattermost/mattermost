@@ -183,6 +183,7 @@ type ChannelStore interface {
 	DisableExperimentalPublicChannelsMaterialization()
 	IsExperimentalPublicChannelsMaterializationEnabled() bool
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
+	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 }
 

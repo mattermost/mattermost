@@ -33,6 +33,10 @@ func (a *App) BulkExport(writer io.Writer) *model.AppError {
 		return err
 	}
 
+	if err := a.ExportAllDirectChannels(writer); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -159,6 +163,42 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 			userLine.User.Teams = members
 
 			if err := a.ExportWriteLine(writer, userLine); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
+	afterId := strings.Repeat("0", 26)
+	for {
+		result := <-a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+
+		if result.Err != nil {
+			return result.Err
+		}
+
+		channels := result.Data.([]*model.DirectChannelForExport)
+
+		if len(channels) == 0 {
+			break
+		}
+
+		for _, channel := range channels {
+			afterId = channel.Id
+
+			// Skip deleted.
+			if channel.DeleteAt != 0 {
+				continue
+			}
+
+			members := strings.Split(channel.Usernames, ",")
+			channel.Members = &members
+
+			channelLine := ImportLineFromDirectChannel(channel)
+			if err := a.ExportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
 		}
