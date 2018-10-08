@@ -240,6 +240,14 @@
     "translation": "%v 已從頻道中移除。"
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "無法更改直接訊息頻道名稱。"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "無法更改群組訊息頻道名稱。"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "頻道已被封存或刪除"
   },
@@ -413,7 +421,7 @@
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Error retrieving the current channel."
+    "translation": "取得當前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -620,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "找不到使用者。"
+    "translation": "找不到使用者。可能已被系統管理員停用。"
   },
   {
     "id": "api.command_invite.name",
@@ -828,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "找不到使用者。"
+    "translation": "找不到使用者。可能已被系統管理員停用。"
   },
   {
     "id": "api.command_remove.name",
@@ -4652,7 +4660,7 @@
   },
   {
     "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "無效的服務條款文字。"
+    "translation": "自訂使用條款文字過長。最多僅允許 {{.MaxLength}} 個字"
   },
   {
     "id": "model.service_terms.is_valid.user_id.app_error",
@@ -4729,6 +4737,66 @@
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "密碼最短必須有{{.Min}}個字元。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個數字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個大寫英文字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母和一個數字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個數字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個數字和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個數字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
   },
   {
     "id": "model.user.is_valid.username.app_error",
@@ -4993,6 +5061,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "找不到被釘選的訊息"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",

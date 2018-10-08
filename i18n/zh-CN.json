@@ -240,6 +240,14 @@
     "translation": "%v 已从频道移出。"
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "您不能重命名私信频道"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "您不能重命名群消息频道"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "该频道已归档或者被删除"
   },
@@ -413,7 +421,7 @@
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Error retrieving the current channel."
+    "translation": "获取当前频道错误。"
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -620,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "无法找到该用户。"
+    "translation": "我们无法找到该用户。他们可能已被系统管理员停用。"
   },
   {
     "id": "api.command_invite.name",
@@ -828,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "无法找到该用户"
+    "translation": "我们无法找到该用户。他们可能已被系统管理员停用。"
   },
   {
     "id": "api.command_remove.name",
@@ -940,7 +948,7 @@
   },
   {
     "id": "api.create_service_terms.empty_text.app_error",
-    "translation": "Please enter text for your Custom Terms of Service."
+    "translation": "请输入您的自定义服务条款文字。"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2196,7 +2204,7 @@
   },
   {
     "id": "api.user.register_service_terms_action.bad_value.app_error",
-    "translation": "Bad accepted value"
+    "translation": "接受值有问题"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2476,7 +2484,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "导出 JSON 数据时发生错误."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -4652,7 +4660,7 @@
   },
   {
     "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "无效的服务条款文字。"
+    "translation": "自定义服务条款文字过长。最多允许 {{.MaxLength}} 个字符。"
   },
   {
     "id": "model.service_terms.is_valid.user_id.app_error",
@@ -4729,6 +4737,66 @@
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "你的密码需要至少 {{.Min}} 字符。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 字符元且至少有一个小写字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母以及一个数字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个数字，以及一个符号（如\"~!@#$%^&*()\"）。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母以及一个符号（如\"~!@#$%^&*()\"）。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母以及一个大写字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个大写字母，以及一个数字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个大写字母，一个数字，以及一个符号（如\"~!@#$%^&*()\"）。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个大写字母，以及一个符号（如\"~!@#$%^&*()\"）。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个数字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个数字以及一个符号（如\"~!@#$%^&*()\"）。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个符号（如\"~!@#$%^&*()\"）。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个大写字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个大写字母以及一个数字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个大写字母，一个数字，以及一个符号（如\"~!@#$%^&*()\"）。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "您的密码必须包含至少 {{.Min}} 个字元且至少有一个大写字母以及一个符号（如\"~!@#$%^&*()\"）。"
   },
   {
     "id": "model.user.is_valid.username.app_error",
@@ -4993,6 +5061,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "无法找到指定消息"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5340,11 +5412,11 @@
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "我们无法以状态和类型获取任务数"
+    "translation": "无法以状态和类型获取任务数"
   },
   {
     "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "我们无法以状态和类型获取最新任务"
+    "translation": "无法以状态和类型获取最新任务"
   },
   {
     "id": "store.sql_job.save.app_error",
@@ -5392,7 +5464,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Unable to find the requested app"
+    "translation": "无法找到请求的应用"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -5488,7 +5560,7 @@
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts"
+    "translation": "无法获取用户的消息数量"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
@@ -5504,11 +5576,11 @@
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "无法获取频道数"
+    "translation": "无法获取被标记的消息"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "我们无法获取这个频道的父信息"
+    "translation": "无法获取这个频道的父消息"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -5520,11 +5592,11 @@
   },
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "我们无法获取这个频道的父信息"
+    "translation": "无法获取这个频道的父消息"
   },
   {
     "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "我们无法为索引获取批量消息"
+    "translation": "无法为索引获取批量消息"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -5560,15 +5632,15 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "无法删除方案"
+    "translation": "无法根据频道删除消息"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "我们不能为用户选择要删除的信息"
+    "translation": "无法删除该用户被选择的消息"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "我们不能为用户选择要删除的信息（数量太多），请重新运行"
+    "translation": "无法删除该用户被选择的信息(数量太多)，请重新运行"
   },
   {
     "id": "store.sql_post.query_max_post_size.error",
@@ -5792,19 +5864,19 @@
   },
   {
     "id": "store.sql_service_terms.save.app_error",
-    "translation": "无法保存服务条款"
+    "translation": "无法保存服务条款。"
   },
   {
     "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "无法获取服务条款"
+    "translation": "无法获取服务条款。"
   },
   {
     "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "未找到服务条款"
+    "translation": "未找到服务条款。"
   },
   {
     "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Must not call save for existing terms of service."
+    "translation": "不能为现有的服务条款调用保存。"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6080,7 +6152,7 @@
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "我们无法在请求时间内获取活动用户"
+    "translation": "无法在请求时间内获取活动用户"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -6120,7 +6192,7 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "我们没找到符合您的验证方式的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
+    "translation": "未找到符合您的验证方式的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
@@ -6128,11 +6200,11 @@
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "我们无法在这个团队中找到一个匹配您用户名的现有帐户。此团队或许需要从团队拥有者获得邀请才可加入。"
+    "translation": "未找到符合您的用户名的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "我们无法在这个团队中找到一个匹配您帐号的用户。此团队或许需要从团队拥有者获得邀请才可加入。"
+    "translation": "未找到符合您的凭证的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
@@ -6324,11 +6396,11 @@
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "无法使用 webhook"
+    "translation": "无法获得传入的 webhook 数"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "无法使用 webhook"
+    "translation": "无法获得传出的 webhook 数"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
