@@ -25,21 +25,29 @@ func TestGetTermsOfService(t *testing.T) {
 	assert.NotEmpty(t, termsOfService.CreateAt)
 }
 
-func TestCreateTermsOfService(t *testing.T) {
+func TestCreateServiceTerms(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	termsOfService, resp := Client.CreateTermsOfService("terms of service new", th.BasicUser.Id)
+	_, resp := Client.CreateTermsOfService("terms of service new", th.BasicUser.Id)
+	CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+}
+
+func TestCreateServiceTermsAdminUser(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.SystemAdminClient
+
+	serviceTerms, resp := Client.CreateTermsOfService("terms of service new", th.SystemAdminUser.Id)
 	CheckErrorMessage(t, resp, "api.create_terms_of_service.custom_terms_of_service_disabled.app_error")
 
-	// TODO refactor this to be terms of service
-	th.App.SetLicense(model.NewTestLicense("EnableCustomTermsOfService"))
+	th.App.SetLicense(model.NewTestLicense("EnableCustomServiceTerms"))
 
-	termsOfService, resp = Client.CreateTermsOfService("terms of service new", th.BasicUser.Id)
+	serviceTerms, resp = Client.CreateTermsOfService("terms of service new_2", th.SystemAdminUser.Id)
 	CheckNoError(t, resp)
-	assert.NotEmpty(t, termsOfService.Id)
-	assert.NotEmpty(t, termsOfService.CreateAt)
-	assert.Equal(t, "terms of service new", termsOfService.Text)
-	assert.Equal(t, th.BasicUser.Id, termsOfService.UserId)
+	assert.NotEmpty(t, serviceTerms.Id)
+	assert.NotEmpty(t, serviceTerms.CreateAt)
+	assert.Equal(t, "terms of service new_2", serviceTerms.Text)
+	assert.Equal(t, th.SystemAdminUser.Id, serviceTerms.UserId)
 }
