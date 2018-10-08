@@ -21,11 +21,11 @@ var termsOfServiceCache = utils.NewLru(model.TERMS_OF_SERVICE_CACHE_SIZE)
 
 const termsOfServiceCacheName = "TermsOfServiceStore"
 
-func NewSqlTermStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
+func NewSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
 	s := SqlTermsOfServiceStore{sqlStore, metrics}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.TermsOfService{}, "ServiceTerms").SetKeys(false, "Id")
+		table := db.AddTableWithName(model.TermsOfService{}, "TermsOfService").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Text").SetMaxSize(model.POST_MESSAGE_MAX_BYTES_V2)
@@ -94,7 +94,7 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) store.StoreChanne
 
 		var termsOfService *model.TermsOfService
 
-		err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM ServiceTerms ORDER BY CreateAt DESC LIMIT 1")
+		err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM TermsOfService ORDER BY CreateAt DESC LIMIT 1")
 		if err != nil {
 			if err == sql.ErrNoRows {
 				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
