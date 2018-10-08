@@ -30,16 +30,16 @@ func TestCreateTermsOfService(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	termsOfService, resp := Client.CreateTermsOfService("service terms new", th.BasicUser.Id)
-	CheckErrorMessage(t, resp, "api.create_service_terms.custom_service_terms_disabled.app_error")
+	termsOfService, resp := Client.CreateTermsOfService("terms of service new", th.BasicUser.Id)
+	CheckErrorMessage(t, resp, "api.create_terms_of_service.custom_terms_of_service_disabled.app_error")
 
 	// TODO refactor this to be terms of service
 	th.App.SetLicense(model.NewTestLicense("EnableCustomTermsOfService"))
 
-	termsOfService, resp = Client.CreateTermsOfService("service terms new", th.BasicUser.Id)
+	termsOfService, resp = Client.CreateTermsOfService("terms of service new", th.BasicUser.Id)
 	CheckNoError(t, resp)
 	assert.NotEmpty(t, termsOfService.Id)
 	assert.NotEmpty(t, termsOfService.CreateAt)
-	assert.Equal(t, "service terms new", termsOfService.Text)
+	assert.Equal(t, "terms of service new", termsOfService.Text)
 	assert.Equal(t, th.BasicUser.Id, termsOfService.UserId)
 }

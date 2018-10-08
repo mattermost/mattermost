@@ -1627,7 +1627,7 @@ func registerTermsOfServiceAction(c *Context, w http.ResponseWriter, r *http.Req
 
 	userId := c.Session.UserId
 	// TODO refactor this to be terms of service
-	termsOfServiceId := props["serviceTermsId"].(string)
+	termsOfServiceId := props["termsOfServiceId"].(string)
 	accepted := props["accepted"].(bool)
 
 	if _, err := c.App.GetTermsOfService(termsOfServiceId); err != nil {

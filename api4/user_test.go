@@ -3075,9 +3075,9 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 	Client := th.Client
 
 	success, resp := Client.RegisteTermsOfServiceAction(th.BasicUser.Id, "st_1", true)
-	CheckErrorMessage(t, resp, "store.sql_service_terms_store.get.no_rows.app_error")
+	CheckErrorMessage(t, resp, "store.sql_terms_of_service_store.get.no_rows.app_error")
 
-	termsOfService, err := th.App.CreateTermsOfService("service terms", th.BasicUser.Id)
+	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -3091,6 +3091,5 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// TODO refactor this to be terms of service
 	assert.Equal(t, user.AcceptedServiceTermsId, termsOfService.Id)
 }

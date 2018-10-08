@@ -3830,7 +3830,7 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 
 func (c *Client4) RegisteTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) (*bool, *Response) {
 	url := c.GetRegisterTermsOfServiceRoute(userId)
-	data := map[string]interface{}{"serviceTermsId": termsOfServiceId, "accepted": accepted}
+	data := map[string]interface{}{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
 
 	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)

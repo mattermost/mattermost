@@ -42,7 +42,7 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) store
 		if len(termsOfService.Id) > 0 {
 			result.Err = model.NewAppError(
 				"SqlTermsOfServiceStore.Save",
-				"store.sql_service_terms_store.save.existing.app_error",
+				"store.sql_terms_of_service_store.save.existing.app_error",
 				nil,
 				"id="+termsOfService.Id, http.StatusBadRequest,
 			)
@@ -58,9 +58,9 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) store
 		if err := s.GetMaster().Insert(termsOfService); err != nil {
 			result.Err = model.NewAppError(
 				"SqlTermsOfServiceStore.Save",
-				"store.sql_service_terms.save.app_error",
+				"store.sql_terms_of_service.save.app_error",
 				nil,
-				"service_term_id="+termsOfService.Id+",err="+err.Error(),
+				"terms_of_service_id="+termsOfService.Id+",err="+err.Error(),
 				http.StatusInternalServerError,
 			)
 		}
@@ -97,9 +97,9 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) store.StoreChanne
 		err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM ServiceTerms ORDER BY CreateAt DESC LIMIT 1")
 		if err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
+				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
 			} else {
-				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			result.Data = termsOfService
@@ -133,9 +133,9 @@ func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) store.StoreC
 		}
 
 		if obj, err := s.GetReplica().Get(model.TermsOfService{}, id); err != nil {
-			result.Err = model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_service_terms_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_service_terms_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
+			result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
 		} else {
 			result.Data = obj.(*model.TermsOfService)
 		}

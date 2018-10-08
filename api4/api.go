@@ -108,7 +108,7 @@ type Routes struct {
 
 	Webrtc *mux.Router // 'api/v4/webrtc'
 
-	TermsOfService *mux.Router // 'api/v4/service_terms
+	TermsOfService *mux.Router // 'api/v4/terms_of_service
 }
 
 type API struct {

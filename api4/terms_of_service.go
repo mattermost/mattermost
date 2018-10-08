@@ -25,22 +25,22 @@ func getTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
-		c.Err = model.NewAppError("createTermsOfService", "api.create_service_terms.custom_service_terms_disabled.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
+	//if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
+	//	c.Err = model.NewAppError("createTermsOfService", "api.create_terms_of_service.custom_terms_of_service_disabled.app_error", nil, "", http.StatusBadRequest)
+	//	return
+	//}
 
 	props := model.MapFromJson(r.Body)
 	text := props["text"]
 	userId := c.Session.UserId
 
 	if text == "" {
-		c.Err = model.NewAppError("Config.IsValid", "api.create_service_terms.empty_text.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Config.IsValid", "api.create_terms_of_service.empty_text.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	oldTermsOfService, err := c.App.GetLatestTermsOfService()
-	if err != nil && err.Id != app.ERROR_SERVICE_TERMS_NO_ROWS_FOUND {
+	if err != nil && err.Id != app.ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND {
 		c.Err = err
 		return
 	}

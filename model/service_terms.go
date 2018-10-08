@@ -11,7 +11,7 @@ import (
 	"unicode/utf8"
 )
 
-// we only ever need the latest version of service terms
+// we only ever need the latest version of terms of service
 const TERMS_OF_SERVICE_CACHE_SIZE = 1
 
 // TODO refactor this to be terms of service
@@ -54,10 +54,10 @@ func TermsOfServiceFromJson(data io.Reader) *TermsOfService {
 }
 
 func InvalidTermsOfServiceError(fieldName string, termsOfServiceId string) *AppError {
-	id := fmt.Sprintf("model.service_terms.is_valid.%s.app_error", fieldName)
+	id := fmt.Sprintf("model.terms_of_service.is_valid.%s.app_error", fieldName)
 	details := ""
 	if termsOfServiceId != "" {
-		details = "service_terms_id=" + termsOfServiceId
+		details = "terms_of_service_id=" + termsOfServiceId
 	}
 	return NewAppError("TermsOfServiceStore.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
 }

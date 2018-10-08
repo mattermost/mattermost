@@ -565,7 +565,7 @@ func TestRecordUserTermsOfServiceAction(t *testing.T) {
 
 	termsOfService, err := th.App.CreateTermsOfService("text", user.Id)
 	if err != nil {
-		t.Fatalf("failed to create service terms: %v", err)
+		t.Fatalf("failed to create terms of service: %v", err)
 	}
 
 	err = th.App.RecordUserTermsOfServiceAction(user.Id, termsOfService.Id, true)
