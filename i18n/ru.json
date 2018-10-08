@@ -1,7 +1,7 @@
 [
   {
     "id": "actiance.export.marshalToXml.appError",
-    "translation": "Не удалось преобразовать экспорт в XML."
+    "translation": "Не удалось экспортировать в XML."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -240,6 +240,14 @@
     "translation": "%v удален из канала."
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Вы не можете переименовать канал прямых сообщений"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Вы не можете переименовать канал групповых сообщений"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Канал был архивирован или удалён"
   },
@@ -413,7 +421,7 @@
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Error retrieving the current channel."
+    "translation": "Ошибка получения текущего канала."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -620,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Не удалось найти пользователя."
+    "translation": "Мы не смогли найти пользователя. Вероятно он заблокирован Системным администратором."
   },
   {
     "id": "api.command_invite.name",
@@ -828,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Не удалось найти пользователя"
+    "translation": "Мы не смогли найти пользователя. Вероятно он заблокирован Системным администратором."
   },
   {
     "id": "api.command_remove.name",
@@ -1114,11 +1122,11 @@
   },
   {
     "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Невозможно создать бакет."
+    "translation": "Невозможно создать bucket."
   },
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Ошибка проверки существования бакета."
+    "translation": "Ошибка проверки существования bucket."
   },
   {
     "id": "api.file.test_connection.s3.connection.app_error",
@@ -1392,11 +1400,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": " notified the channel."
+    "translation": " уведоми канал."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": " прокомментировал ваш пост."
+    "translation": "прокомментировал ваш пост."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
@@ -1420,7 +1428,7 @@
   },
   {
     "id": "api.post.update_post.find.app_error",
-    "translation": "Мы не смогли найти существующий пост или коментарий для обновления."
+    "translation": "Не удалось найти существующее сообщение или комментарий для обновления."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1452,11 +1460,11 @@
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "You cannot remove a reaction in an archived channel."
+    "translation": "Вы не можете удалить реакцию в архивном канале."
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
-    "translation": "You cannot react in an archived channel."
+    "translation": "Вы не можете реагировать на архивный канал."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1468,7 +1476,7 @@
   },
   {
     "id": "api.reaction.town_square_read_only",
-    "translation": "Reacting to posts is not possible in read-only channels."
+    "translation": "Невозможно реагировать на сообщения в каналах \"только для чтения\"."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1500,7 +1508,7 @@
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Не удается переправить порт 80 на порт 443 во время прослушивания порта %s: отключить переадресацию 80 до 443 при использовании прокси-сервера"
+    "translation": "Не удается переправить порт 80 на порт 443 во время прослушивания порта %s: отключите переадресацию порта 80 на 443 при использовании прокси-сервера"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
@@ -1648,7 +1656,7 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Email invitations are disabled."
+    "translation": "Приглашения по электронной почте отключены."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -1692,7 +1700,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "Произошла ошибка при подключении команды"
+    "translation": "Произошла ошибка при подключении Команды"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -1704,7 +1712,7 @@
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "Пустой массив 'image' в запросе"
+    "translation": "Запрос выдал пустой массив в переменной 'image'"
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -1756,7 +1764,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+    "translation": "Ограничения Команды на домене {{.Domain}} запрещены в настройках системы. Пожалуйста, обратитесь к системному администратору."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -1768,7 +1776,7 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}."
+    "translation": "Вы отключили свою учетную запись на {{.SiteURL}}."
   },
   {
     "id": "api.templates.deactivate_body.title",
@@ -1776,7 +1784,7 @@
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "Если это изменение не было инициировано вами или вы хотите повторно активировать свою учетную запись, обратитесь к системному администратору."
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -1784,7 +1792,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
+    "translation": "Ваш e-mail адрес для {{.TeamDisplayName}} был изменен на {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1816,15 +1824,15 @@
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Any questions at all, mail us any time: "
+    "translation": "По любым вопросам, пишите нам в любое время: "
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Best wishes,"
+    "translation": "С наилучшими пожеланиями,"
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "The {{.SiteName}} Team"
+    "translation": "Команда {{.SiteName}}"
   },
   {
     "id": "api.templates.email_organization",
@@ -1832,7 +1840,7 @@
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "If you did not make this change, please contact the system administrator."
+    "translation": "Если вы не вносили эти изменения, обратитесь к системному администратору."
   },
   {
     "id": "api.templates.invite_body.button",
@@ -1844,7 +1852,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "Команда {{.SenderStatus}} [[{.SenderName}}]] пригласила вас присоединиться к [[{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1856,7 +1864,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
+    "translation": "Многофакторная аутентификация была добавлена ​​в вашу учетную запись на {{.SiteURL}}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1868,7 +1876,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
+    "translation": "Многофакторная аутентификация была удалена из вашей учетной записи на {{.SiteURL}}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1876,7 +1884,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
+    "translation": "Ваш пароль был обновлен для {{.TeamDisplayName}} в {{.TeamURL}} {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1896,11 +1904,11 @@
   },
   {
     "id": "api.templates.reset_body.info1",
-    "translation": "To change your password, click \"Reset Password\" below."
+    "translation": "Чтобы изменить пароль, нажмите «Сбросить пароль» ниже."
   },
   {
     "id": "api.templates.reset_body.info2",
-    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
+    "translation": "Если вы не хотели сбросить свой пароль, пожалуйста, проигнорируйте это письмо, и ваш пароль останется прежним. Ссылка на сброс пароля истекает через 24 часа."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1912,7 +1920,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Вы обновили свой метод входа для {{ .SiteName }}"
+    "translation": "Вы изменили свой метод входа для {{ .SiteName }} на {{.Method}}."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1928,7 +1936,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
+    "translation": "В ваш аккаунт добавлен токен доступа для {{.SiteURL}}. Его можно использовать для доступа к {{.SiteName}} с вашей учетной записью."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -1940,7 +1948,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}."
+    "translation": "Ваш e-mail адрес для {{.TeamDisplayName}} был изменен на {{.NewEmail}}."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -3208,11 +3216,11 @@
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": "Не удалось получить post"
+    "translation": "Не удалось получить пользователей."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": "Не удалось получить post"
+    "translation": "Не удалось получить SAML пользователей."
   },
   {
     "id": "ent.cluster.config_changed.info",
@@ -4731,6 +4739,66 @@
     "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в нижнем регистре."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в нижнем регистре и одну цифру."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в нижнем регистре, одну цифру и один спец.символ (\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в нижнем регистре и один спец.символ (\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в нижнем и верхнем регистре."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в верхнем регистре и одну цифру."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в нижнем регистре, одну букву верхнем регистре, одну цифру и спец.символ (\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Ваш пароль должен содержать по крайней мере {{.Min}} символов, а так же одну букву в нижнем регистре, одну букву в верхнем регистре, одну цифру и спец.символ (\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Ваш пароль должен содержать как минимум {{.Min}} символов, по крайней мере один из которых должен быть цифрой."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Ваш пароль должен содержать как минимум {{.Min}} символов, включая по крайней мере одну цифру и один спецсимвол (напр., \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Ваш пароль должен содержать как минимум {{.Min}} символов, включая по крайней мере один спецсимвол (напр., \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Ваш пароль должен содержать как минимум {{.Min}} символов, включая по крайней мере одну заглавную букву."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Ваш пароль должен содержать как минимум {{.Min}} символов, включая по крайней мере одну заглавную букву и одну цифру."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Ваш пароль должен содержать как минимум {{.Min}} символов, включая по крайней мере одну заглавную букву, одну цифру и один спецсимвол (напр., \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Ваш пароль должен содержать как минимум {{.Min}} символов, включая по крайней мере одну заглавную букву и один спецсимвол (напр., \"~!@#$%^&*()\")."
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
     "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
   },
@@ -4995,6 +5063,10 @@
     "translation": "Unable to find the pinned posts"
   },
   {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
+  },
+  {
     "id": "store.sql_channel.remove_member.app_error",
     "translation": "Не удалось обновить заголовок канала"
   },
@@ -5024,7 +5096,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "Вы не можете реагировать на архивный канал."
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5120,7 +5192,7 @@
   },
   {
     "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "Вы не можете реагировать на архивный канал."
   },
   {
     "id": "store.sql_channel.update.commit_transaction.app_error",

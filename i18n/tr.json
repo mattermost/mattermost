@@ -240,6 +240,14 @@
     "translation": "%v kanaldan çıkarıldı."
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Bir doğrudan ileti kanalını yeniden adlandıramazsınız"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Bir grup ileti kanalını yeniden adlandıramazsınız"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Kanal arşivlenmiş ya da silinmiş"
   },
@@ -413,7 +421,7 @@
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Error retrieving the current channel."
+    "translation": "Geçerli kanal alınırken sorun çıktı."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -620,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kullanıcı bulunamadı."
+    "translation": "Kullanıcı bulunamadı. Sistem Yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_invite.name",
@@ -828,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Kullanıcı bulunamadı"
+    "translation": "Kullanıcı bulunamadı. Sistem Yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_remove.name",
@@ -4652,7 +4660,7 @@
   },
   {
     "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Hizmet koşulları metni geçersiz."
+    "translation": "Özel hizmet koşulları metni çok uzun. En çok {{.MaxLength}} karakter uzunluğunda olabilir."
   },
   {
     "id": "model.service_terms.is_valid.user_id.app_error",
@@ -4729,6 +4737,66 @@
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalıdır."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf ile bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük ile bir büyük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük, bir büyük harf ve bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir büyük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir büyük harf ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir rakam ile bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf ile bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf ile bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
   },
   {
     "id": "model.user.is_valid.username.app_error",
@@ -4993,6 +5061,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "Sabitlenmiş iletiler bulunamadı"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5792,19 +5864,19 @@
   },
   {
     "id": "store.sql_service_terms.save.app_error",
-    "translation": "Hizmet koşulları kaydedilemedi"
+    "translation": "Hizmet koşulları kaydedilemedi."
   },
   {
     "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Hizmet koşulları alınamadı"
+    "translation": "Hizmet koşulları alınamadı."
   },
   {
     "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "Herhangi bir hizmet koşulu bulunamadı."
+    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
   },
   {
     "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Var olan hizmet koşulları için kaydetme çağrısı yapılmamalıdır"
+    "translation": "Var olan hizmet koşulları için kaydetme çağrısı yapılmamalıdır."
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

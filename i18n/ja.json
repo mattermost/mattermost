@@ -240,6 +240,14 @@
     "translation": "%v はチャンネルから削除されました。"
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "ダイレクトメッセージチャンネルの名前は変更できません"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "グループメッセージチャンネルの名前は変更できません"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "チャンネルはアーカイブされているか削除されています"
   },
@@ -413,7 +421,7 @@
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Error retrieving the current channel."
+    "translation": "現在のチャンネルを取得する際にエラーが発生しました。"
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -620,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "ユーザーが見付かりませんでした。"
+    "translation": "ユーザーが見付かりませんでした。システム管理者によって無効化されている可能性があります。"
   },
   {
     "id": "api.command_invite.name",
@@ -828,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "ユーザーが見付かりませんでした"
+    "translation": "ユーザーが見つかりませんでした。システム管理者によって無効化されている可能性があります。"
   },
   {
     "id": "api.command_remove.name",
@@ -936,11 +944,11 @@
   },
   {
     "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
-    "translation": "Custom terms of service feature is disabled"
+    "translation": "カスタム利用規約機能は無効化されています"
   },
   {
     "id": "api.create_service_terms.empty_text.app_error",
-    "translation": "Please enter text for your Custom Terms of Service."
+    "translation": "カスタム利用規約のテキストを入力してください。"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2196,7 +2204,7 @@
   },
   {
     "id": "api.user.register_service_terms_action.bad_value.app_error",
-    "translation": "Bad accepted value"
+    "translation": "受け付けられた値が不正です"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -4644,19 +4652,19 @@
   },
   {
     "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "必須の投稿設定値 create_at が存在しません。"
+    "translation": "必須の利用規約属性 create_at が存在しません。"
   },
   {
     "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Invalid term of service id."
+    "translation": "不正な利用規約IDです。"
   },
   {
     "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+    "translation": "カスタム利用規約テキストが長すぎます。最大 {{.MaxLength}} 文字です。"
   },
   {
     "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "必須の投稿設定値 create_at が存在しません。"
+    "translation": "必須の利用規約属性 user_id が存在しません。"
   },
   {
     "id": "model.team.is_valid.characters.app_error",
@@ -4731,6 +4739,66 @@
     "translation": "パスワードは{{.Min}}文字以上に設定してください。"
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は英小文字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつ英小文字と英大文字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と英大文字、数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と英大文字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は数字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は記号(例: \"~!@#$%^&*()\")にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は英大文字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
     "translation": "ユーザー名は、英小文字、数字と \".\"、\"-\" と \"_\"を含む3文字から22文字で、最初は記号と数字以外である必要があります。"
   },
@@ -4760,7 +4828,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLabの使用条件が更新されました。gitlab.comで新しい使用条件に同意してから、もう一度Mattermostへログインしてみてください。"
+    "translation": "GitLabの利用規約が更新されました。gitlab.comで新しい利用規約に同意してから、もう一度Mattermostへログインしてみてください。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4993,6 +5061,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "ピン留めされた投稿が見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5792,19 +5864,19 @@
   },
   {
     "id": "store.sql_service_terms.save.app_error",
-    "translation": "Unable to save terms of service."
+    "translation": "利用規約を保存できませんでした。"
   },
   {
     "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
+    "translation": "利用規約を取得できませんでした。"
   },
   {
     "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
+    "translation": "利用規約が見付かりませんでした。"
   },
   {
     "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Must not call save for existing terms of service."
+    "translation": "既存の利用規約に対する保存処理を呼び出す必要はありません。"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
