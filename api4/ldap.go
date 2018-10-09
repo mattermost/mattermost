@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/utils"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -148,8 +146,11 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		status = http.StatusOK
 	} else {
+		// TODO: In a future phase of LDAP groups sync `Name` will be used for at-mentions and will be editable on
+		// the front-end so it will not have an initial value of `model.NewId()` but rather a slugified version of
+		// the LDAP group name with an appended duplicate-breaker.
 		newGroup := &model.Group{
-			Name:        utils.Slugify(ldapGroup.Name),
+			Name:        model.NewId(),
 			DisplayName: ldapGroup.Name,
 			RemoteId:    ldapGroup.PrimaryKey,
 			Type:        model.GroupTypeLdap,
