@@ -26,10 +26,10 @@ func TestListReminders(t *testing.T) {
 	th.App.InitReminders()
 	defer th.App.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
-	translateFunc := utils.GetUserTranslations(user.Locale)
+	T := utils.GetUserTranslations(user.Locale)
 
 	list := th.App.ListReminders(user.Id)
-	if list == translateFunc(model.REMIND_EXCEPTION_TEXT) {
+	if list == T(model.REMIND_EXCEPTION_TEXT) {
 		t.Fatal("exception text displayed")
 	}
 }
@@ -41,92 +41,124 @@ func TestScheduleReminders(t *testing.T) {
 	th.App.InitReminders()
 	defer th.App.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
-	translateFunc := utils.GetUserTranslations(user.Locale)
+	T := utils.GetUserTranslations(user.Locale)
 
 	request := &model.ReminderRequest{}
 	request.UserId = user.Id
 
-	request.Payload = "me foo in 2 seconds"
+	request.Payload = "me foo in 1 seconds"
 	response, err := th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
 	}
+
+	t2 := time.Now().Add(2 * time.Second).Format(time.Kitchen)
 	var responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "in 2 seconds",
+		"When":    "in 1 seconds at " + t2 + " today.",
 	}
-	expectedResponse := translateFunc("app.reminder.response", responseParameters)
+	expectedResponse := T("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	request.Payload = "@bob foo in 4 seconds"
+	request.Payload = "@bob foo in 1 seconds"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
 	}
+	t2 = time.Now().Add(time.Second).Format(time.Kitchen)
 	responseParameters = map[string]interface{}{
 		"Target":  "@bob",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "in 4 seconds",
+		"When":    "in 1 seconds at " + t2 + " today.",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = T("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	request.Payload = "~off-topic foo in 8 seconds"
+	request.Payload = "~off-topic foo in 1 seconds"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
 	}
+	t2 = time.Now().Add(time.Second).Format(time.Kitchen)
+
 	responseParameters = map[string]interface{}{
 		"Target":  "~off-topic",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "in 8 seconds",
+		"When":    "in 1 seconds at " + t2 + " today.",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = T("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	request.Payload = "me \"foo foo foo\" in 16 seconds"
+	request.Payload = "me \"foo foo foo\" in 1 seconds"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
 	}
+	t2 = time.Now().Add(time.Second).Format(time.Kitchen)
+
 	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo foo foo",
-		"When":    "in 16 seconds",
+		"When":    "in 1 seconds at " + t2 + " today.",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = T("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
-	request.Payload = "me foo in 32 seconds"
+	request.Payload = "me foo in 24 hours"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
 	}
+	t2 = time.Now().Add(time.Hour * time.Duration(24)).Format(time.Kitchen)
+
 	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "in 32 seconds",
+		"When":    "in 24 hours at " + t2 + " tomorrow.",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = T("app.reminder.response", responseParameters)
+	if response != expectedResponse {
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
+	}
+
+	request.Payload = "me foo in 3 days"
+	request.Occurrences = model.Occurrences{}
+	response, err = th.App.ScheduleReminder(request)
+	if err != nil {
+		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
+	}
+	t3 := time.Now().AddDate(0, 0, 3)
+	responseParameters = map[string]interface{}{
+		"Target":  "You",
+		"UseTo":   "",
+		"Message": "foo",
+		"When":    "in 3 days at " + t3.Format(time.Kitchen) + " " + t3.Weekday().String() + ", " + t3.Month().String() + " " + th.App.daySuffixFromInt(user, t3.Day()) + ".",
+	}
+	expectedResponse = T("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
 	request.Payload = "me foo at 2:04 pm"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
@@ -135,30 +167,40 @@ func TestScheduleReminders(t *testing.T) {
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "at 2:04 pm",
+		"When":    "at 2:04PM tomorrow.",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
-	if response != expectedResponse {
-		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
+	expectedResponse = T("app.reminder.response", responseParameters)
+	responseParameters = map[string]interface{}{
+		"Target":  "You",
+		"UseTo":   "",
+		"Message": "foo",
+		"When":    "at 2:04PM today.",
+	}
+	expectedResponse2 := T("app.reminder.response", responseParameters)
+	if response != expectedResponse && response != expectedResponse2 {
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\" or \"" + expectedResponse2 + "\"")
 	}
 
 	request.Payload = "me foo on monday at 12:30PM"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
 	}
+	t3, _ = time.Parse(time.RFC3339, request.Occurrences[0].Occurrence)
 	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "on monday at 12:30PM",
+		"When":    "at 12:30PM Monday, " + t3.Month().String() + " " + th.App.daySuffixFromInt(user, t3.Day()) + ".",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = T("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
 	request.Payload = "me foo every wednesday at 12:30PM"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
@@ -167,43 +209,54 @@ func TestScheduleReminders(t *testing.T) {
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "every wednesday at 12:30PM",
+		"When":    "at 12:30PM every Wednesday.",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = T("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
 	request.Payload = "me tuesday foo"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
 	}
+	t3, _ = time.Parse(time.RFC3339, request.Occurrences[0].Occurrence)
 	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "tuesday",
+		"When":    "at 9:00AM Tuesday, " + t3.Month().String() + " " + th.App.daySuffixFromInt(user, t3.Day()) + ".",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
+	expectedResponse = T("app.reminder.response", responseParameters)
 	if response != expectedResponse {
 		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
 	}
 
 	request.Payload = "me tomorrow foo"
+	request.Occurrences = model.Occurrences{}
 	response, err = th.App.ScheduleReminder(request)
 	if err != nil {
 		t.Fatal(UNABLE_TO_SCHEDULE_REMINDER)
 	}
+	t3, _ = time.Parse(time.RFC3339, request.Occurrences[0].Occurrence)
 	responseParameters = map[string]interface{}{
 		"Target":  "You",
 		"UseTo":   "",
 		"Message": "foo",
-		"When":    "tomorrow",
+		"When":    "at 9:00AM tomorrow.",
 	}
-	expectedResponse = translateFunc("app.reminder.response", responseParameters)
-	if response != expectedResponse {
-		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\"")
+	expectedResponse = T("app.reminder.response", responseParameters)
+	responseParameters = map[string]interface{}{
+		"Target":  "You",
+		"UseTo":   "",
+		"Message": "foo",
+		"When":    "at 9:00AM " + t3.Weekday().String() + ", " + t3.Month().String() + " " + th.App.daySuffixFromInt(user, t3.Day()) + ".",
+	}
+	expectedResponse2 = T("app.reminder.response", responseParameters)
+	if response != expectedResponse && response != expectedResponse2 {
+		t.Fatal("\"" + response + "\" doesn't match \"" + expectedResponse + "\" or \"" + expectedResponse2 + "\"")
 	}
 }
 
@@ -214,7 +267,7 @@ func TestFindWhen(t *testing.T) {
 	th.App.InitReminders()
 	defer th.App.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
-	//translateFunc := utils.GetUserTranslations(user.Locale)
+	//T := utils.GetUserTranslations(user.Locale)
 
 	request := &model.ReminderRequest{}
 	request.UserId = user.Id
@@ -378,7 +431,7 @@ func TestIn(t *testing.T) {
 	th.App.InitReminders()
 	defer th.App.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
-	//translateFunc := utils.GetUserTranslations(user.Locale)
+	//T := utils.GetUserTranslations(user.Locale)
 
 	when := "in one second"
 	times, iErr := th.App.in(when, user)
@@ -409,6 +462,16 @@ func TestIn(t *testing.T) {
 	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
 	if duration != time.Hour*time.Duration(3) {
 		t.Fatal("in three hours isn't correct")
+	}
+
+	when = "in 24 hours"
+	times, iErr = th.App.in(when, user)
+	if iErr != nil {
+		t.Fatal("in 24 hours doesn't parse")
+	}
+	duration = times[0].Round(time.Second).Sub(time.Now().Round(time.Second))
+	if duration != time.Hour*time.Duration(24) {
+		t.Fatal("in 24 hours isn't correct")
 	}
 
 	when = "in 2 days"
@@ -460,7 +523,7 @@ func TestAt(t *testing.T) {
 	th.App.InitReminders()
 	defer th.App.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
-	//translateFunc := utils.GetUserTranslations(user.Locale)
+	//T := utils.GetUserTranslations(user.Locale)
 
 	when := "at noon"
 	times, iErr := th.App.at(when, user)
@@ -624,7 +687,7 @@ func TestOn(t *testing.T) {
 	th.App.InitReminders()
 	defer th.App.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
-	//translateFunc := utils.GetUserTranslations(user.Locale)
+	//T := utils.GetUserTranslations(user.Locale)
 
 	when := "on Monday"
 	times, iErr := th.App.on(when, user)
@@ -966,7 +1029,7 @@ func TestEvery(t *testing.T) {
 	th.App.InitReminders()
 	defer th.App.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
-	//translateFunc := utils.GetUserTranslations(user.Locale)
+	//T := utils.GetUserTranslations(user.Locale)
 
 	when := "every Thursday"
 	times, iErr := th.App.every(when, user)
@@ -1138,7 +1201,7 @@ func TestFreeForm(t *testing.T) {
 	th.App.InitReminders()
 	defer th.App.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
-	//translateFunc := utils.GetUserTranslations(user.Locale)
+	//T := utils.GetUserTranslations(user.Locale)
 
 	when := "monday"
 	times, iErr := th.App.freeForm(when, user)
