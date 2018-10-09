@@ -1659,9 +1659,9 @@ func (a *App) RecordUserTermsOfServiceAction(userId, termsOfServiceId string, ac
 	}
 
 	if accepted {
-		user.AcceptedServiceTermsId = termsOfServiceId
+		user.AcceptedTermsOfServiceId = termsOfServiceId
 	} else {
-		user.AcceptedServiceTermsId = ""
+		user.AcceptedTermsOfServiceId = ""
 	}
 	_, err = a.UpdateUser(user, false)
 	if err != nil {

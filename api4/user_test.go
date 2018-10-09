@@ -3091,5 +3091,5 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, user.AcceptedServiceTermsId, termsOfService.Id)
+	assert.Equal(t, user.AcceptedTermsOfServiceId, termsOfService.Id)
 }
