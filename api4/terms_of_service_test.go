@@ -25,7 +25,7 @@ func TestGetTermsOfService(t *testing.T) {
 	assert.NotEmpty(t, termsOfService.CreateAt)
 }
 
-func TestCreateServiceTerms(t *testing.T) {
+func TestCreateTermsOfService(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
@@ -34,7 +34,7 @@ func TestCreateServiceTerms(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.context.permissions.app_error")
 }
 
-func TestCreateServiceTermsAdminUser(t *testing.T) {
+func TestCreateTermsOfServiceAdminUser(t *testing.T) {
 	th := Setup().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
