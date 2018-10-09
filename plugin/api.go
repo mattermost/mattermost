@@ -140,6 +140,9 @@ type API interface {
 	// GetChannelMember gets a channel membership for a user.
 	GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
+	// GetChannelMembers gets a channel membership for all users.
+	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 
@@ -195,6 +198,9 @@ type API interface {
 
 	// KVDelete will remove a key-value pair. Returns nil for non-existent keys.
 	KVDelete(key string) *model.AppError
+
+	// KVList will list all keys for a plugin.
+	KVList(page, perPage int) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_"

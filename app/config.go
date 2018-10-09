@@ -61,13 +61,12 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	if err != nil {
 		return err
 	}
+	*cfg.ServiceSettings.SiteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
+	a.config.Store(cfg)
 
 	a.configFile = configPath
-
-	a.config.Store(cfg)
 	a.envConfig = envConfig
-
-	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
+	a.siteURL = *cfg.ServiceSettings.SiteURL
 
 	a.InvokeConfigListeners(old, cfg)
 	return nil

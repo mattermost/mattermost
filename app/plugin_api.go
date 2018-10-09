@@ -262,6 +262,10 @@ func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.Channel
 	return api.app.GetChannelMember(channelId, userId)
 }
 
+func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersPage(channelId, page, perPage)
+}
+
 func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
 	return api.app.UpdateChannelMemberRoles(channelId, userId, newRoles)
 }
@@ -329,6 +333,10 @@ func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {
 
 func (api *PluginAPI) KVDelete(key string) *model.AppError {
 	return api.app.DeletePluginKey(api.id, key)
+}
+
+func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
+	return api.app.ListPluginKeys(api.id, page, perPage)
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {

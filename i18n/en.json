@@ -240,6 +240,14 @@
     "translation": "%v removed from the channel."
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "You cannot rename a direct message channel"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "You cannot rename a group message channel"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted"
   },
@@ -4715,6 +4723,66 @@
     "translation": "Your password must contain at least {{.Min}} characters."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Invalid description, must be 255 or less characters"
   },
@@ -4769,6 +4837,10 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql.convert_string_array",

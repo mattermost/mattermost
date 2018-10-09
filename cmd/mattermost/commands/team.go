@@ -6,6 +6,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -59,6 +60,15 @@ var ListTeamsCmd = &cobra.Command{
 	RunE:    listTeamsCmdF,
 }
 
+var SearchTeamCmd = &cobra.Command{
+	Use:     "search [teams]",
+	Short:   "Search for teams",
+	Long:    "Search for teams based on name",
+	Example: "  team search team1",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    searchTeamCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -73,6 +83,7 @@ func init() {
 		AddUsersCmd,
 		DeleteTeamsCmd,
 		ListTeamsCmd,
+		SearchTeamCmd,
 	)
 	RootCmd.AddCommand(TeamCmd)
 }
@@ -246,4 +257,46 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func searchTeamCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	var teams []*model.Team
+
+	for _, searchTerm := range args {
+		foundTeams, err := a.SearchAllTeams(searchTerm)
+		if err != nil {
+			return err
+		}
+		teams = append(teams, foundTeams...)
+	}
+
+	sortedTeams := removeDuplicatesAndSortTeams(teams)
+
+	for _, team := range sortedTeams {
+		CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")")
+	}
+
+	return nil
+}
+
+// Removes duplicates and sorts teams by name
+func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
+	keys := make(map[string]bool)
+	result := []*model.Team{}
+	for _, team := range teams {
+		if _, value := keys[team.Name]; !value {
+			keys[team.Name] = true
+			result = append(result, team)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name < result[j].Name
+	})
+	return result
 }

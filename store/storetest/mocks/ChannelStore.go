@@ -779,6 +779,22 @@ func (_m *ChannelStore) PermanentDeleteMembersByUser(userId string) store.StoreC
 	return r0
 }
 
+// RemoveAllDeactivatedMembers provides a mock function with given fields: channelId
+func (_m *ChannelStore) RemoveAllDeactivatedMembers(channelId string) store.StoreChannel {
+	ret := _m.Called(channelId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // RemoveMember provides a mock function with given fields: channelId, userId
 func (_m *ChannelStore) RemoveMember(channelId string, userId string) store.StoreChannel {
 	ret := _m.Called(channelId, userId)

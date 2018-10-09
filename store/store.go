@@ -184,6 +184,7 @@ type ChannelStore interface {
 	IsExperimentalPublicChannelsMaterializationEnabled() bool
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
+	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -502,6 +503,7 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+	List(pluginId string, page, perPage int) StoreChannel
 }
 
 type RoleStore interface {

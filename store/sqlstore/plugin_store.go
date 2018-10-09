@@ -12,6 +12,10 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
+const (
+	DEFAULT_PLUGIN_KEY_FETCH_LIMIT = 10
+)
+
 type SqlPluginStore struct {
 	SqlStore
 }
@@ -89,6 +93,26 @@ func (ps SqlPluginStore) Delete(pluginId, key string) store.StoreChannel {
 			result.Err = model.NewAppError("SqlPluginStore.Delete", "store.sql_plugin_store.delete.app_error", nil, fmt.Sprintf("plugin_id=%v, key=%v, err=%v", pluginId, key, err.Error()), http.StatusInternalServerError)
 		} else {
 			result.Data = true
+		}
+	})
+}
+
+func (ps SqlPluginStore) List(pluginId string, offset int, limit int) store.StoreChannel {
+	if limit <= 0 {
+		limit = DEFAULT_PLUGIN_KEY_FETCH_LIMIT
+	}
+
+	if offset <= 0 {
+		offset = 0
+	}
+
+	return store.Do(func(result *store.StoreResult) {
+		var keys []string
+		_, err := ps.GetReplica().Select(&keys, "SELECT PKey FROM PluginKeyValueStore WHERE PluginId = :PluginId order by PKey limit :Limit offset :Offset", map[string]interface{}{"PluginId": pluginId, "Limit": limit, "Offset": offset})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPluginStore.List", "store.sql_plugin_store.list.app_error", nil, fmt.Sprintf("plugin_id=%v, err=%v", pluginId, err.Error()), http.StatusInternalServerError)
+		} else {
+			result.Data = keys
 		}
 	})
 }

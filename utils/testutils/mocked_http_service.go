@@ -4,6 +4,7 @@
 package testutils
 
 import (
+	"github.com/mattermost/mattermost-server/services/httpservice"
 	"net/http"
 	"net/http/httptest"
 )
@@ -18,8 +19,8 @@ func MakeMockedHTTPService(handler http.Handler) *MockedHTTPService {
 	}
 }
 
-func (h *MockedHTTPService) MakeClient(trustURLs bool) *http.Client {
-	return h.Server.Client()
+func (h *MockedHTTPService) MakeClient(trustURLs bool) *httpservice.Client {
+	return &httpservice.Client{Client: h.Server.Client()}
 }
 
 func (h *MockedHTTPService) Close() {

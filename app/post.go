@@ -17,13 +17,9 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-)
-
-const (
-	MAX_LIMIT_POSTS_SINCE = 1000
-	PAGE_DEFAULT          = 0
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
@@ -889,7 +885,7 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 	req.Header.Set("Accept", "application/json")
 
 	// Allow access to plugin routes for action buttons
-	var httpClient *http.Client
+	var httpClient *httpservice.Client
 	url, _ := url.Parse(action.Integration.URL)
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())

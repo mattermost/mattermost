@@ -4,11 +4,11 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -117,6 +117,7 @@ func init() {
 	ChannelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
 
 	MoveChannelsCmd.Flags().String("username", "", "Required. Username who is moving the channel.")
+	MoveChannelsCmd.Flags().Bool("remove-deactivated-users", false, "Automatically remove any deactivated users from the channel before moving it.")
 
 	DeleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channels.")
 
@@ -366,6 +367,8 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	}
 	user := getUserFromUserArg(a, username)
 
+	removeDeactivatedMembers, _ := command.Flags().GetBool("remove-deactivated-users")
+
 	channels := getChannelsFromChannelArgs(a, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
@@ -373,7 +376,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 			continue
 		}
 		originTeamID := channel.TeamId
-		if err := moveChannel(a, team, channel, user); err != nil {
+		if err := moveChannel(a, team, channel, user, removeDeactivatedMembers); err != nil {
 			CommandPrintErrorln("Unable to move channel '" + channel.Name + "' error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Moved channel '" + channel.Name + "' to " + team.Name + "(" + team.Id + ") from " + originTeamID + ".")
@@ -383,10 +386,10 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
 	oldTeamId := channel.TeamId
 
-	if err := a.MoveChannel(team, channel, user); err != nil {
+	if err := a.MoveChannel(team, channel, user, removeDeactivatedMembers); err != nil {
 		return err
 	}
 
@@ -518,7 +521,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 
 	user := getUserFromUserArg(a, username)
 	if _, err := a.UpdateChannelPrivacy(channel, user); err != nil {
-		return errors.New("Failed to update channel ('" + args[0] + "') privacy - " + err.Error())
+		return errors.Wrapf(err, "Failed to update channel ('%s') privacy", args[0])
 	}
 
 	return nil
@@ -549,7 +552,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 
 	_, errch := a.RenameChannel(channel, newChannelName, newDisplayName)
 	if errch != nil {
-		return errors.New("Error in updating channel from " + channel.Name + " to " + newChannelName + err.Error())
+		return errors.Wrapf(errch, "Error in updating channel from %s to %s", channel.Name, newChannelName)
 	}
 
 	return nil

@@ -195,11 +195,16 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 
 	if mmplugin, ok := s.impl.(interface {
 		SetAPI(api API)
-		OnConfigurationChange() error
-	}); !ok {
-	} else {
+	}); ok {
 		mmplugin.SetAPI(s.apiRPCClient)
-		mmplugin.OnConfigurationChange()
+	}
+
+	if mmplugin, ok := s.impl.(interface {
+		OnConfigurationChange() error
+	}); ok {
+		if err := mmplugin.OnConfigurationChange(); err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] call to OnConfigurationChange failed, error: %v", err.Error())
+		}
 	}
 
 	// Capture output of standard logger because go-plugin
