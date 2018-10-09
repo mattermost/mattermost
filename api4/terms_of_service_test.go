@@ -39,15 +39,15 @@ func TestCreateTermsOfServiceAdminUser(t *testing.T) {
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
-	serviceTerms, resp := Client.CreateTermsOfService("terms of service new", th.SystemAdminUser.Id)
+	termsOfService, resp := Client.CreateTermsOfService("terms of service new", th.SystemAdminUser.Id)
 	CheckErrorMessage(t, resp, "api.create_terms_of_service.custom_terms_of_service_disabled.app_error")
 
 	th.App.SetLicense(model.NewTestLicense("EnableCustomServiceTerms"))
 
-	serviceTerms, resp = Client.CreateTermsOfService("terms of service new_2", th.SystemAdminUser.Id)
+	termsOfService, resp = Client.CreateTermsOfService("terms of service new_2", th.SystemAdminUser.Id)
 	CheckNoError(t, resp)
-	assert.NotEmpty(t, serviceTerms.Id)
-	assert.NotEmpty(t, serviceTerms.CreateAt)
-	assert.Equal(t, "terms of service new_2", serviceTerms.Text)
-	assert.Equal(t, th.SystemAdminUser.Id, serviceTerms.UserId)
+	assert.NotEmpty(t, termsOfService.Id)
+	assert.NotEmpty(t, termsOfService.CreateAt)
+	assert.Equal(t, "terms of service new_2", termsOfService.Text)
+	assert.Equal(t, th.SystemAdminUser.Id, termsOfService.UserId)
 }
