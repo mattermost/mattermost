@@ -197,6 +197,11 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 			members := strings.Split(channel.Usernames, ",")
 			channel.Members = &members
 
+			// Skip single member channel
+			if len(members) == 1 {
+				continue
+			}
+
 			channelLine := ImportLineFromDirectChannel(channel)
 			if err := a.ExportWriteLine(writer, channelLine); err != nil {
 				return err
