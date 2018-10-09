@@ -510,10 +510,7 @@ func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
 func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.5.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_4_0, VERSION_5_5_0) {
-	if sqlStore.DoesTableExist("ServiceTerms") {
-		sqlStore.GetMaster().Exec("INSERT INTO TermsOfService SELECT * FROM ServiceTerms")
-		sqlStore.GetMaster().Exec("DROP TABLE ServiceTerms")
-	}
+
 	// 	saveSchemaVersion(sqlStore, VERSION_5_5_0)
 	// }
 }
