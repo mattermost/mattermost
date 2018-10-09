@@ -4827,6 +4827,22 @@
     "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
   },
   {
+    "id": "model.user_terms_of_service.is_valid.id.app_error",
+    "translation": "Invalid user terms of service id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "Missing required user terms of service property: user_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.accepted_service_terms_id.app_error",
+    "translation": "Missing required user terms of service property: accepted_service_terms_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "Missing required user terms of service property: create_at."
+  },
+  {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },

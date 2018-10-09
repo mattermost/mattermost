@@ -173,6 +173,10 @@ func (s *LayeredStore) TermsOfService() TermsOfServiceStore {
 	return s.DatabaseLayer.TermsOfService()
 }
 
+func (s *LayeredStore) UserTermsOfService() UserTermsOfServiceStore {
+	return s.DatabaseLayer.UserTermsOfService()
+}
+
 func (s *LayeredStore) Scheme() SchemeStore {
 	return s.SchemeStore
 }
