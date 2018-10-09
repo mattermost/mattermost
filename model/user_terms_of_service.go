@@ -10,27 +10,22 @@ import (
 const USER_TERMS_OF_SERVICE_CACHE_SIZE = SESSION_CACHE_SIZE
 
 type UserTermsOfService struct {
-	Id                       string `json:"id"`
-	UserId                   string	`json:"user_id"`
-	AcceptedTermsOfServiceId string	`json:"accepted_service_terms_id,omitempty"`
-	CreateAt                 int64	`json:"create_at"`
+	UserId           string `json:"user_id"`
+	TermsOfServiceId string `json:"service_terms_id,omitempty"`
+	CreateAt         int64  `json:"create_at"`
 }
 
 func (ut *UserTermsOfService) IsValid() *AppError {
-	if len(ut.Id) != 26 {
-		return InvalidUserTermsOfServiceError("id", "")
-	}
-
 	if len(ut.UserId) != 26 {
-		return InvalidUserTermsOfServiceError("user_id", ut.Id)
+		return InvalidUserTermsOfServiceError("user_id", ut.UserId)
 	}
 
-	if len(ut.AcceptedTermsOfServiceId) != 26 {
-		return InvalidUserTermsOfServiceError("accepted_service_terms_id", ut.Id)
+	if len(ut.TermsOfServiceId) != 0 && len(ut.TermsOfServiceId) != 26  {
+		return InvalidUserTermsOfServiceError("service_terms_id", ut.UserId)
 	}
 
 	if ut.CreateAt == 0 {
-		return InvalidUserTermsOfServiceError("create_at", ut.Id)
+		return InvalidUserTermsOfServiceError("create_at", ut.UserId)
 	}
 
 	return nil
@@ -42,8 +37,8 @@ func (ut *UserTermsOfService) ToJson() string {
 }
 
 func (ut *UserTermsOfService) PreSave() {
-	if ut.Id == "" {
-		ut.Id = NewId()
+	if ut.UserId == "" {
+		ut.UserId = NewId()
 	}
 
 	ut.CreateAt = GetMillis()
@@ -59,7 +54,7 @@ func InvalidUserTermsOfServiceError(fieldName string, userTermsOfServiceId strin
 	id := fmt.Sprintf("model.user_terms_of_service.is_valid.%s.app_error", fieldName)
 	details := ""
 	if userTermsOfServiceId != "" {
-		details = "user_terms_of_service_id=" + userTermsOfServiceId
+		details = "user_terms_of_service_user_id=" + userTermsOfServiceId
 	}
 	return NewAppError("UserTermsOfService.IsValid", id, nil, details, http.StatusBadRequest)
 }

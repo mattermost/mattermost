@@ -568,7 +568,7 @@ func TestRecordUserTermsOfServiceAction(t *testing.T) {
 		t.Fatalf("failed to create terms of service: %v", err)
 	}
 
-	err = th.App.RecordUserTermsOfServiceAction(user.Id, termsOfService.Id, true)
+	err = th.App.SaveUserTermsOfService(user.Id, termsOfService.Id, true)
 	if err != nil {
 		t.Fatalf("failed to record user action: %v", err)
 	}
@@ -576,7 +576,7 @@ func TestRecordUserTermsOfServiceAction(t *testing.T) {
 	nuser, err := th.App.GetUser(user.Id)
 	assert.Equal(t, termsOfService.Id, nuser.AcceptedTermsOfServiceId)
 
-	err = th.App.RecordUserTermsOfServiceAction(user.Id, termsOfService.Id, false)
+	err = th.App.SaveUserTermsOfService(user.Id, termsOfService.Id, false)
 	if err != nil {
 		t.Fatalf("failed to record user action: %v", err)
 	}
