@@ -184,6 +184,7 @@ type ChannelStore interface {
 	IsExperimentalPublicChannelsMaterializationEnabled() bool
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
+	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
