@@ -873,9 +873,9 @@ func TestAutocompleteUsers(t *testing.T) {
 		t.Fatal("should not show first/last name")
 	}
 
-	t.Run("team id, if provided, must match channel's team id", func(t *testing.T) {
+	t.Run("user must have access to team id, especially when it does not match channel's team id", func(t *testing.T) {
 		rusers, resp = Client.AutocompleteUsersInChannel("otherTeamId", channelId, username, "")
-		CheckErrorMessage(t, resp, "api.user.autocomplete_users.invalid_team_id")
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
 	})
 }
 
