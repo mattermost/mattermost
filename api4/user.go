@@ -1626,7 +1626,6 @@ func registerTermsOfServiceAction(c *Context, w http.ResponseWriter, r *http.Req
 	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.Session.UserId
-	// TODO refactor this to be terms of service
 	termsOfServiceId := props["termsOfServiceId"].(string)
 	accepted := props["accepted"].(bool)
 

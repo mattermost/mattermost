@@ -14,7 +14,6 @@ import (
 // we only ever need the latest version of terms of service
 const TERMS_OF_SERVICE_CACHE_SIZE = 1
 
-// TODO refactor this to be terms of service
 type TermsOfService struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`

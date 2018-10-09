@@ -251,7 +251,6 @@ func (a *App) regenerateClientConfig() {
 		if err != nil {
 			mlog.Err(err)
 		} else {
-			// TODO refactor this to be terms of service
 			a.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
 		}
 	}
