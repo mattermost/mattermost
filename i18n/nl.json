@@ -240,6 +240,14 @@
     "translation": "%v was verwijdert van het kanaal."
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "You cannot rename a direct message channel"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "You cannot rename a group message channel"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Het kanaal is gearchiveerd of verwijderd"
   },
@@ -620,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.name",
@@ -828,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_remove.name",
@@ -4731,6 +4739,66 @@
     "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters en minimaal 1 kleine letter bestaan."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter en 1 cijfer bevatten"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 cijfer en 1 symbol bevatten (bijv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter met 1 symbool uit bijv. \"~!@#$%^&*()\" bevatten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter en 1 hoofdletter bevatten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter, 1 cijfer en 1 symbol bevatten (bijv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 symbol bevatten (bijv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 cijfer."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 cijfer en 1 karakter (bv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 karakter (bv. \"~!@#$%^&*()\"). "
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 hoofdletter bevatten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 hoofdletter en 1 cijfer."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 hoofdletter, minimaal 1 cijfer en minimaal een karakter (bv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 hoofdletter en 1 symbol bevatten (bijv. \"~!@#$%^&*()\")."
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
     "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
   },
@@ -4993,6 +5061,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "Unable to find the pinned posts"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",

@@ -240,6 +240,14 @@
     "translation": "%v è stato rimosso dal canale."
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Non puoi rinominare un canale di messaggio diretto"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Non puoi rinominare un canale di messaggio di gruppo"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Il canale è stato archiviato o eliminato"
   },
@@ -413,7 +421,7 @@
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Error retrieving the current channel."
+    "translation": "Errore nel caricamento del canale."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -620,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Impossibile trovare l'utente."
+    "translation": "Impossibile trovare l'utente. Può essere stato disattivato dall'Amministratore di Sistema."
   },
   {
     "id": "api.command_invite.name",
@@ -828,7 +836,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Impossibile trovare l'utente"
+    "translation": "Impossibile trovare l'utente. Può essere stato disattivato dall'Amministrator di Sistema."
   },
   {
     "id": "api.command_remove.name",
@@ -4652,7 +4660,7 @@
   },
   {
     "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Testo dei termini di servizio non valido."
+    "translation": "Il testo dei termini di servizio personalizzati è troppo lungo. Massimo {{.MaxLength}} caratteri."
   },
   {
     "id": "model.service_terms.is_valid.user_id.app_error",
@@ -4729,6 +4737,66 @@
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "La tua password deve contenere almeno {{.Min}} caratteri."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola ed un numero."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno un carattere minuscolo, un numero e da almeno un simbolo (es.: \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola e da almeno un simbolo (es.: \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola e da almeno una lettera maiuscola."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola, almeno una lettera maiuscola e da almeno un numero."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola, almeno una lettera maiuscola, almeno un numero ed almeno un simbolo (es.: \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola, almeno una lettera maiuscola, e da almeno un simbolo (es.: \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno un numero."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno un numero ed almeno un simbolo (es.: \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno un simbolo (es.: \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera maiuscola."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera minuscola e da almeno un numero."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera maiuscola, almeno un numero, e da almeno un simbolo (es.: \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "La tua password deve contenere almeno {{.Min}} caratteri e deve essere composta da almeno una lettera maiuscola e da almeno un simbolo (es.: \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.username.app_error",
@@ -4993,6 +5061,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "Impossibile trovare le pubblicazioni fissate"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5792,15 +5864,15 @@
   },
   {
     "id": "store.sql_service_terms.save.app_error",
-    "translation": "Impossibile salvare i termini di servizio"
+    "translation": "Impossibile salvare i termini di servizio."
   },
   {
     "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Impossibile caricare i termini di servizio"
+    "translation": "Impossibile recuperare i termini di servizio."
   },
   {
     "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "Termini di servizio non trovati"
+    "translation": "Termini di servizio non trovati."
   },
   {
     "id": "store.sql_service_terms_store.save.existing.app_error",
