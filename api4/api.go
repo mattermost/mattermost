@@ -108,7 +108,7 @@ type Routes struct {
 
 	Webrtc *mux.Router // 'api/v4/webrtc'
 
-	ServiceTerms *mux.Router // 'api/v4/service_terms
+	TermsOfService *mux.Router // 'api/v4/terms_of_service
 }
 
 type API struct {
@@ -205,7 +205,7 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	api.BaseRoutes.Image = api.BaseRoutes.ApiRoot.PathPrefix("/image").Subrouter()
 
-	api.BaseRoutes.ServiceTerms = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
+	api.BaseRoutes.TermsOfService = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
 
 	api.InitUser()
 	api.InitTeam()
@@ -235,7 +235,7 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.InitRole()
 	api.InitScheme()
 	api.InitImage()
-	api.InitServiceTerms()
+	api.InitTermsOfService()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
