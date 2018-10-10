@@ -20,7 +20,7 @@ func (ut *UserTermsOfService) IsValid() *AppError {
 		return InvalidUserTermsOfServiceError("user_id", ut.UserId)
 	}
 
-	if len(ut.TermsOfServiceId) != 0 && len(ut.TermsOfServiceId) != 26  {
+	if len(ut.TermsOfServiceId) != 26  {
 		return InvalidUserTermsOfServiceError("service_terms_id", ut.UserId)
 	}
 

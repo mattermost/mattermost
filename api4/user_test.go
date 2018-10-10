@@ -3093,3 +3093,29 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 
 	assert.Equal(t, user.AcceptedTermsOfServiceId, termsOfService.Id)
 }
+
+
+func TestGetUserTermsOfService(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	_, resp := Client.GetUserTermsOfService(th.BasicUser.Id, "")
+	CheckErrorMessage(t, resp, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error")
+
+	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	success, resp := Client.RegisteTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
+	CheckNoError(t, resp)
+	assert.True(t, *success)
+
+	userTermsOfService, resp := Client.GetUserTermsOfService(th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+
+	assert.Equal(t, th.BasicUser.Id, userTermsOfService.UserId)
+	assert.Equal(t, termsOfService.Id, userTermsOfService.TermsOfServiceId)
+	assert.NotEmpty(t, userTermsOfService.CreateAt)
+}
