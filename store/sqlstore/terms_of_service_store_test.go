@@ -5,6 +5,6 @@ import (
 	"testing"
 )
 
-func TestServiceTermsStore(t *testing.T) {
-	StoreTest(t, storetest.TestServiceTermsStore)
+func TestTermsOfServiceStore(t *testing.T) {
+	StoreTest(t, storetest.TestTermsOfServiceStore)
 }

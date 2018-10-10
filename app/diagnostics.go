@@ -417,7 +417,7 @@ func (a *App) trackConfig() {
 		"isdefault_help_link":             isDefault(*cfg.SupportSettings.HelpLink, model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK),
 		"isdefault_report_a_problem_link": isDefault(*cfg.SupportSettings.ReportAProblemLink, model.SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK),
 		"isdefault_support_email":         isDefault(*cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
-		"custom_service_terms_enabled":    *cfg.SupportSettings.CustomServiceTermsEnabled,
+		"custom_terms_of_service_enabled": *cfg.SupportSettings.CustomTermsOfServiceEnabled,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
