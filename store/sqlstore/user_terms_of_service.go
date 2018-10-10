@@ -51,30 +51,33 @@ func (s SqlUserTermsOfServiceStore) GetByUser(userId string, allowFromCache bool
 	})
 }
 
-func (s SqlUserTermsOfServiceStore) SaveOrUpdate(userTermsOfService *model.UserTermsOfService) store.StoreChannel {
+func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		userTermsOfService.PreSave()
+
 		if result.Err = userTermsOfService.IsValid(); result.Err != nil {
 			return
 		}
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			if rowsAffected, err := s.GetMaster().Update(userTermsOfService); err != nil {
-				result.Err = model.NewAppError("SqlUserTermsOfServiceStore.SaveOrUpdate", "store.sql_user_terms_of_service.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			} else if rowsAffected == 0 {
-				if err := s.GetMaster().Insert(userTermsOfService); err != nil {
-					result.Err = model.NewAppError("SqlUserTermsOfServiceStore.SaveOrUpdate", "store.sql_user_terms_of_service.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			if _, err := s.GetMaster().Exec("INSERT INTO UserTermsOfService VALUES(:UserId, :TermsOfServiceId, :CreateAt) ON DUPLICATE KEY UPDATE TermsOfServiceId = :TermsOfServiceId, CreateAt = :CreateAt", map[string]interface{}{"UserId": userTermsOfService.UserId, "TermsOfServiceId": userTermsOfService.TermsOfServiceId, "CreateAt": userTermsOfService.CreateAt}); err != nil {
-				result.Err = model.NewAppError("SqlUserTermsOfServiceStore.SaveOrUpdate", "store.sql_user_terms_of_service.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
+		if err := s.GetMaster().Insert(userTermsOfService); err != nil {
+			result.Err = model.NewAppError(
+				"SqlUserTermsOfServiceStore.Save",
+				"store.sql_user_terms_of_service.save.app_error",
+				nil,
+				"user_terms_of_service_user_id="+userTermsOfService.UserId+",user_terms_of_service_terms_of_service_id="+userTermsOfService.TermsOfServiceId+",err="+err.Error(),
+				http.StatusInternalServerError,
+			)
 		}
 
 		result.Data = userTermsOfService
+	})
+}
+
+func (s SqlUserTermsOfServiceStore) Delete(userId, termsOfServiceId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := s.GetMaster().Exec("DELETE FROM UserTermsOfService WHERE UserId = :UserId AND TermsOfServiceId = :TermsOfServiceId", map[string]interface{}{"UserId": userId, "TermsOfServiceId": termsOfServiceId}); err != nil {
+			result.Err = model.NewAppError("SqlUserTermsOfServiceStore.Delete", "store.sql_user_terms_of_service.delete.app_error", nil, "userId="+userId+", termsOfServiceId="+termsOfServiceId, http.StatusInternalServerError)
+			return
+		}
 	})
 }

@@ -11,16 +11,19 @@ func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *
 }
 
 func (a *App) SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError {
-	userTermsOfService := &model.UserTermsOfService{
-		UserId: userId,
-	}
-
 	if accepted {
-		userTermsOfService.TermsOfServiceId = termsOfServiceId
-	}
+		userTermsOfService := &model.UserTermsOfService{
+			UserId: userId,
+			TermsOfServiceId: termsOfServiceId,
+		}
 
-	if result := <-a.Srv.Store.UserTermsOfService().SaveOrUpdate(userTermsOfService); result.Err != nil {
-		return result.Err
+		if result := <-a.Srv.Store.UserTermsOfService().Save(userTermsOfService); result.Err != nil {
+			return result.Err
+		}
+	} else {
+		if result := <-a.Srv.Store.UserTermsOfService().Delete(userId, termsOfServiceId); result.Err != nil {
+			return result.Err
+		}
 	}
 
 	return nil
