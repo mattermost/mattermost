@@ -2,24 +2,17 @@ package sqlstore
 
 import (
 	"database/sql"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 	"net/http"
 )
 
 type SqlUserTermsOfServiceStore struct {
 	SqlStore
-	metrics einterfaces.MetricsInterface
 }
 
-var userTermsOfServiceCache = utils.NewLru(model.USER_TERMS_OF_SERVICE_CACHE_SIZE)
-
-const userTermsOfServiceCacheName = "UserTermsOfServiceStore"
-
-func NewSqlUserTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserTermsOfServiceStore {
-	s := SqlUserTermsOfServiceStore{sqlStore, metrics}
+func NewSqlUserTermsOfServiceStore(sqlStore SqlStore) store.UserTermsOfServiceStore {
+	s := SqlUserTermsOfServiceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.UserTermsOfService{}, "UserTermsOfService").SetKeys(false, "UserId")
@@ -34,7 +27,7 @@ func (s SqlUserTermsOfServiceStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_user_terms_of_service_user_id", "UserTermsOfService", "UserId")
 }
 
-func (s SqlUserTermsOfServiceStore) GetByUser(userId string, allowFromCache bool) store.StoreChannel {
+func (s SqlUserTermsOfServiceStore) GetByUser(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var userTermsOfService *model.UserTermsOfService
 

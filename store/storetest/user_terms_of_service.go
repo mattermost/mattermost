@@ -41,7 +41,7 @@ func testGetByUserTermsOfService(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId, true)
+	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
 	if r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
@@ -63,7 +63,7 @@ func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId, true)
+	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
 	if r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
@@ -73,6 +73,6 @@ func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId, true)
+	r1 = <-ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
 	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", r1.Err.Id)
 }

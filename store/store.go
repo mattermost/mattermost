@@ -531,7 +531,7 @@ type TermsOfServiceStore interface {
 }
 
 type UserTermsOfServiceStore interface {
-	GetByUser(userId string, allowFromCache bool) StoreChannel
+	GetByUser(userId string) StoreChannel
 	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
 	Delete(userId, termsOfServiceId string) StoreChannel
 }

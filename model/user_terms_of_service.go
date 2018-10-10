@@ -7,8 +7,6 @@ import (
 	"net/http"
 )
 
-const USER_TERMS_OF_SERVICE_CACHE_SIZE = SESSION_CACHE_SIZE
-
 type UserTermsOfService struct {
 	UserId           string `json:"user_id"`
 	TermsOfServiceId string `json:"service_terms_id,omitempty"`

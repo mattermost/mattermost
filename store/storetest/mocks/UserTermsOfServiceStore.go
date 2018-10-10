@@ -29,13 +29,13 @@ func (_m *UserTermsOfServiceStore) Delete(userId string, termsOfServiceId string
 	return r0
 }
 
-// GetByUser provides a mock function with given fields: userId, allowFromCache
-func (_m *UserTermsOfServiceStore) GetByUser(userId string, allowFromCache bool) store.StoreChannel {
-	ret := _m.Called(userId, allowFromCache)
+// GetByUser provides a mock function with given fields: userId
+func (_m *UserTermsOfServiceStore) GetByUser(userId string) store.StoreChannel {
+	ret := _m.Called(userId)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
-		r0 = rf(userId, allowFromCache)
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
