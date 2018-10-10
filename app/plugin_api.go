@@ -307,6 +307,10 @@ func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
 	return api.app.GetSinglePost(postId)
 }
 
+func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsPage(channelId, page, perPage)
+}
+
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return api.app.UpdatePost(post, false)
 }
