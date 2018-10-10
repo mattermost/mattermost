@@ -29,6 +29,38 @@ func (_m *PluginStore) Delete(pluginId string, key string) store.StoreChannel {
 	return r0
 }
 
+// DeleteAllExpired provides a mock function with given fields:
+func (_m *PluginStore) DeleteAllExpired() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// DeleteAllForPlugin provides a mock function with given fields: PluginId
+func (_m *PluginStore) DeleteAllForPlugin(PluginId string) store.StoreChannel {
+	ret := _m.Called(PluginId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(PluginId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: pluginId, key
 func (_m *PluginStore) Get(pluginId string, key string) store.StoreChannel {
 	ret := _m.Called(pluginId, key)

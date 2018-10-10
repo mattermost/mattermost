@@ -1021,6 +1021,22 @@ func (_m *API) KVDelete(key string) *model.AppError {
 	return r0
 }
 
+// KVDeleteAll provides a mock function with given fields:
+func (_m *API) KVDeleteAll() *model.AppError {
+	ret := _m.Called()
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // KVGet provides a mock function with given fields: key
 func (_m *API) KVGet(key string) ([]byte, *model.AppError) {
 	ret := _m.Called(key)
@@ -1078,6 +1094,22 @@ func (_m *API) KVSet(key string, value []byte) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
 		r0 = rf(key, value)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// KVSetWithExpiry provides a mock function with given fields: key, value, expireInSeconds
+func (_m *API) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
+	ret := _m.Called(key, value, expireInSeconds)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte, int64) *model.AppError); ok {
+		r0 = rf(key, value, expireInSeconds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

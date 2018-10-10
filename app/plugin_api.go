@@ -331,12 +331,20 @@ func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }
 
+func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
+	return api.app.SetPluginKeyWithExpiry(api.id, key, value, expireInSeconds)
+}
+
 func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {
 	return api.app.GetPluginKey(api.id, key)
 }
 
 func (api *PluginAPI) KVDelete(key string) *model.AppError {
 	return api.app.DeletePluginKey(api.id, key)
+}
+
+func (api *PluginAPI) KVDeleteAll() *model.AppError {
+	return api.app.DeleteAllKeysForPlugin(api.id)
 }
 
 func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {

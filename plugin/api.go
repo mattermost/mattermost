@@ -196,11 +196,17 @@ type API interface {
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
 
+	// KVSet will store a key-value pair, unique per plugin with an expiry time
+	KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError
+
 	// KVGet will retrieve a value based on the key. Returns nil for non-existent keys.
 	KVGet(key string) ([]byte, *model.AppError)
 
 	// KVDelete will remove a key-value pair. Returns nil for non-existent keys.
 	KVDelete(key string) *model.AppError
+
+	// KVDeleteAll will remove all key-value pairs for a plugin.
+	KVDeleteAll() *model.AppError
 
 	// KVList will list all keys for a plugin.
 	KVList(page, perPage int) ([]string, *model.AppError)
