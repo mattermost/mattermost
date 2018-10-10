@@ -1,3 +1,6 @@
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package model
 
 import (
@@ -18,7 +21,7 @@ func (ut *UserTermsOfService) IsValid() *AppError {
 		return InvalidUserTermsOfServiceError("user_id", ut.UserId)
 	}
 
-	if len(ut.TermsOfServiceId) != 26  {
+	if len(ut.TermsOfServiceId) != 26 {
 		return InvalidUserTermsOfServiceError("service_terms_id", ut.UserId)
 	}
 

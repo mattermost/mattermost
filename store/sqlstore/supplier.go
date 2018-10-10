@@ -93,7 +93,7 @@ type SqlSupplierOldStores struct {
 	role                 store.RoleStore
 	scheme               store.SchemeStore
 	TermsOfService       store.TermsOfServiceStore
-	UserTermsOfService	 store.UserTermsOfServiceStore
+	UserTermsOfService   store.UserTermsOfServiceStore
 }
 
 type SqlSupplier struct {
@@ -148,7 +148,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.channelMemberHistory = NewSqlChannelMemberHistoryStore(supplier)
 	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
 	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
-	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier, metrics)
+	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)

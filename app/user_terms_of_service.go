@@ -1,9 +1,12 @@
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package app
 
 import "github.com/mattermost/mattermost-server/model"
 
 func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *model.AppError) {
-	if result := <-a.Srv.Store.UserTermsOfService().GetByUser(userId, true); result.Err != nil {
+	if result := <-a.Srv.Store.UserTermsOfService().GetByUser(userId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.UserTermsOfService), nil
@@ -13,7 +16,7 @@ func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *
 func (a *App) SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError {
 	if accepted {
 		userTermsOfService := &model.UserTermsOfService{
-			UserId: userId,
+			UserId:           userId,
 			TermsOfServiceId: termsOfServiceId,
 		}
 

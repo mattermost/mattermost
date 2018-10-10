@@ -1,3 +1,6 @@
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package storetest
 
 import (
@@ -15,7 +18,7 @@ func TestUserTermsOfServiceStore(t *testing.T, ss store.Store) {
 
 func testSaveUserTermsOfService(t *testing.T, ss store.Store) {
 	userTermsOfService := &model.UserTermsOfService{
-		UserId: model.NewId(),
+		UserId:           model.NewId(),
 		TermsOfServiceId: model.NewId(),
 	}
 
@@ -32,7 +35,7 @@ func testSaveUserTermsOfService(t *testing.T, ss store.Store) {
 
 func testGetByUserTermsOfService(t *testing.T, ss store.Store) {
 	userTermsOfService := &model.UserTermsOfService{
-		UserId: model.NewId(),
+		UserId:           model.NewId(),
 		TermsOfServiceId: model.NewId(),
 	}
 
@@ -54,7 +57,7 @@ func testGetByUserTermsOfService(t *testing.T, ss store.Store) {
 
 func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
 	userTermsOfService := &model.UserTermsOfService{
-		UserId: model.NewId(),
+		UserId:           model.NewId(),
 		TermsOfServiceId: model.NewId(),
 	}
 
