@@ -401,11 +401,11 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
-func (c *Client4) GetRegisterServiceTermsRoute(userId string) string {
+func (c *Client4) GetRegisterTermsOfServiceRoute(userId string) string {
 	return c.GetUserRoute(userId) + "/terms_of_service"
 }
 
-func (c *Client4) GetServiceTermsRoute() string {
+func (c *Client4) GetTermsOfServiceRoute() string {
 	return "/terms_of_service"
 }
 
@@ -3828,9 +3828,9 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	}
 }
 
-func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId string, accepted bool) (*bool, *Response) {
-	url := c.GetRegisterServiceTermsRoute(userId)
-	data := map[string]interface{}{"serviceTermsId": serviceTermsId, "accepted": accepted}
+func (c *Client4) RegisteTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) (*bool, *Response) {
+	url := c.GetRegisterTermsOfServiceRoute(userId)
+	data := map[string]interface{}{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
 
 	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -3840,25 +3840,25 @@ func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId string, acce
 	}
 }
 
-func (c *Client4) GetServiceTerms(etag string) (*ServiceTerms, *Response) {
-	url := c.GetServiceTermsRoute()
+func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response) {
+	url := c.GetTermsOfServiceRoute()
 
 	if r, err := c.DoApiGet(url, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return ServiceTermsFromJson(r.Body), BuildResponse(r)
+		return TermsOfServiceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
-func (c *Client4) CreateServiceTerms(text, userId string) (*ServiceTerms, *Response) {
-	url := c.GetServiceTermsRoute()
+func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response) {
+	url := c.GetTermsOfServiceRoute()
 
 	data := map[string]string{"text": text}
 	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return ServiceTermsFromJson(r.Body), BuildResponse(r)
+		return TermsOfServiceFromJson(r.Body), BuildResponse(r)
 	}
 }

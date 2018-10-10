@@ -41,7 +41,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
-	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(registerServiceTermsAction)).Methods("POST")
+	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(registerTermsOfServiceAction)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
@@ -1615,23 +1615,23 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Request) {
+func registerTermsOfServiceAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.Session.UserId
-	serviceTermsId := props["serviceTermsId"].(string)
+	termsOfServiceId := props["termsOfServiceId"].(string)
 	accepted := props["accepted"].(bool)
 
-	if _, err := c.App.GetServiceTerms(serviceTermsId); err != nil {
+	if _, err := c.App.GetTermsOfService(termsOfServiceId); err != nil {
 		c.Err = err
 		return
 	}
 
-	if err := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted); err != nil {
+	if err := c.App.RecordUserTermsOfServiceAction(userId, termsOfServiceId, accepted); err != nil {
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("ServiceTermsId=" + serviceTermsId + ", accepted=" + strconv.FormatBool(accepted))
+	c.LogAudit("TermsOfServiceId=" + termsOfServiceId + ", accepted=" + strconv.FormatBool(accepted))
 	ReturnStatusOK(w)
 }
