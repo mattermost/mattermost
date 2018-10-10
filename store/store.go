@@ -502,6 +502,8 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+	DeleteAllForPlugin(PluginId string) StoreChannel
+	DeleteAllExpired() StoreChannel
 	List(pluginId string, page, perPage int) StoreChannel
 }
 
