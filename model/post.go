@@ -126,6 +126,13 @@ type ReplyForExport struct {
 	Username string
 }
 
+type DirectPostForExport struct {
+	Post
+	UserIds        string
+	Username       string
+	ChannelMembers *[]string
+}
+
 type PostForIndexing struct {
 	Post
 	TeamId         string `json:"team_id"`

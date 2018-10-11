@@ -2272,7 +2272,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 				Id
 			LIMIT :Limit`,
 			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
