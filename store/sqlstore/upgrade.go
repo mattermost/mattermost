@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	VERSION_5_6_0			 = "5.6.0"
+	VERSION_5_6_0            = "5.6.0"
 	VERSION_5_5_0            = "5.5.0"
 	VERSION_5_4_0            = "5.4.0"
 	VERSION_5_3_0            = "5.3.0"
