@@ -131,14 +131,14 @@ func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, g
 	return result
 }
 
-func (s *SqlSupplier) GroupGetAllPage(ctx context.Context, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) GroupGetAllByType(ctx context.Context, groupType model.GroupType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
 	var groups []*model.Group
 
-	if _, err := s.GetReplica().Select(&groups, "SELECT * from Groups WHERE DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
+	if _, err := s.GetReplica().Select(&groups, "SELECT * from Groups WHERE DeleteAt = 0 AND Type = :Type", map[string]interface{}{"Type": groupType}); err != nil {
 		if err != sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupGetAllPage", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
 			return result
 		}
 	}
@@ -219,6 +219,30 @@ func (s *SqlSupplier) GroupDelete(ctx context.Context, groupID string, hints ...
 	} else {
 		result.Data = group
 	}
+
+	return result
+}
+
+func (s *SqlSupplier) GroupGetMemberUsers(stc context.Context, groupID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	var groupMembers []*model.User
+
+	query := `SELECT Users.* 
+		FROM GroupMembers 
+		JOIN Users ON Users.Id = GroupMembers.UserId 
+		WHERE GroupMembers.DeleteAt = 0 
+		AND Users.DeleteAt = 0
+		AND GroupId = :GroupId`
+
+	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID}); err != nil {
+		if err != sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
+			return result
+		}
+	}
+
+	result.Data = groupMembers
 
 	return result
 }

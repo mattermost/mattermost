@@ -37,8 +37,8 @@ func (s *LocalCacheSupplier) GroupGetByRemoteID(ctx context.Context, remoteID st
 	return s.Next().GroupGetByRemoteID(ctx, remoteID, groupType, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupGetAllPage(ctx context.Context, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupGetAllPage(ctx, offset, limit, hints...)
+func (s *LocalCacheSupplier) GroupGetAllByType(ctx context.Context, groupType model.GroupType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupGetAllByType(ctx, groupType, hints...)
 }
 
 func (s *LocalCacheSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
@@ -51,6 +51,10 @@ func (s *LocalCacheSupplier) GroupDelete(ctx context.Context, groupID string, hi
 	defer s.doClearCacheCluster(s.roleCache)
 
 	return s.Next().GroupDelete(ctx, groupID, hints...)
+}
+
+func (s *LocalCacheSupplier) GroupGetMemberUsers(ctx context.Context, groupID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupGetMemberUsers(ctx, groupID, hints...)
 }
 
 func (s *LocalCacheSupplier) GroupCreateMember(ctx context.Context, groupID string, userID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {

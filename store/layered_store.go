@@ -351,9 +351,9 @@ func (s *LayeredGroupStore) GetByRemoteID(remoteID string, groupType model.Group
 	})
 }
 
-func (s *LayeredGroupStore) GetAllPage(offset int, limit int) StoreChannel {
+func (s *LayeredGroupStore) GetAllByType(groupType model.GroupType) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGetAllPage(s.TmpContext, offset, limit)
+		return supplier.GroupGetAllByType(s.TmpContext, groupType)
 	})
 }
 
@@ -366,6 +366,12 @@ func (s *LayeredGroupStore) Update(group *model.Group) StoreChannel {
 func (s *LayeredGroupStore) Delete(groupID string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.GroupDelete(s.TmpContext, groupID)
+	})
+}
+
+func (s *LayeredGroupStore) GetMemberUsers(groupID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetMemberUsers(s.TmpContext, groupID)
 	})
 }
 

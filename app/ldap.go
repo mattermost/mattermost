@@ -59,12 +59,12 @@ func (a *App) GetChildLdapGroups(parentDN string) ([]*model.SCIMGroup, *model.Ap
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given DN.
-func (a *App) GetLdapGroup(id string) (*model.SCIMGroup, *model.AppError) {
+func (a *App) GetLdapGroup(uid string) (*model.SCIMGroup, *model.AppError) {
 	var group *model.SCIMGroup
 
 	if a.Ldap != nil {
 		var err *model.AppError
-		group, err = a.Ldap.GetGroup(id)
+		group, err = a.Ldap.GetGroup(uid)
 		if err != nil {
 			return nil, err
 		}
@@ -97,12 +97,12 @@ func (a *App) GetAllLdapGroups() ([]*model.SCIMGroup, *model.AppError) {
 
 // GetUserIDsInLdapGroupRecursive recursively retrieves the unique identifiers of all of the members of a given
 // group.
-func (a *App) GetUserIDsInLdapGroupRecursive(groupDN string) ([]string, *model.AppError) {
+func (a *App) GetUserIDsInLdapGroupRecursive(groupUID string) ([]string, *model.AppError) {
 	var uids []string
 
 	if a.Ldap != nil {
 		var err *model.AppError
-		uids, err = a.Ldap.GetUserIDsInGroupRecursive(groupDN)
+		uids, err = a.Ldap.GetUserIDsInGroupRecursive(groupUID)
 		if err != nil {
 			return nil, err
 		}

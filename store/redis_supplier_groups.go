@@ -24,9 +24,9 @@ func (s *RedisSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string,
 	return s.Next().GroupGetByRemoteID(ctx, remoteID, groupType, hints...)
 }
 
-func (s *RedisSupplier) GroupGetAllPage(ctx context.Context, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GroupGetAllByType(ctx context.Context, groupType model.GroupType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GroupGetAllPage(ctx, offset, limit, hints...)
+	return s.Next().GroupGetAllByType(ctx, groupType, hints...)
 }
 
 func (s *RedisSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
@@ -37,6 +37,11 @@ func (s *RedisSupplier) GroupUpdate(ctx context.Context, group *model.Group, hin
 func (s *RedisSupplier) GroupDelete(ctx context.Context, groupID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
 	return s.Next().GroupDelete(ctx, groupID, hints...)
+}
+
+func (s *RedisSupplier) GroupGetMemberUsers(ctx context.Context, groupID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().GroupGetMemberUsers(ctx, groupID, hints...)
 }
 
 func (s *RedisSupplier) GroupCreateMember(ctx context.Context, groupID string, userID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {

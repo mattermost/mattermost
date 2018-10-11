@@ -23,8 +23,8 @@ func (a *App) GetGroupByRemoteID(remoteID string, groupType model.GroupType) (*m
 	return result.Data.(*model.Group), nil
 }
 
-func (a *App) GetGroupsPage(page int, perPage int) ([]*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllPage(page*perPage, perPage)
+func (a *App) GetGroupsByType(groupType model.GroupType) ([]*model.Group, *model.AppError) {
+	result := <-a.Srv.Store.Group().GetAllByType(groupType)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -53,6 +53,14 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 		return nil, result.Err
 	}
 	return result.Data.(*model.Group), nil
+}
+
+func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.Group().GetMemberUsers(groupID)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
 }
 
 func (a *App) CreateGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {

@@ -538,10 +538,11 @@ type GroupStore interface {
 	Create(group *model.Group) StoreChannel
 	Get(groupID string) StoreChannel
 	GetByRemoteID(remoteID string, groupType model.GroupType) StoreChannel
-	GetAllPage(offset int, limit int) StoreChannel
+	GetAllByType(groupType model.GroupType) StoreChannel
 	Update(group *model.Group) StoreChannel
 	Delete(groupID string) StoreChannel
 
+	GetMemberUsers(groupID string) StoreChannel
 	CreateMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 

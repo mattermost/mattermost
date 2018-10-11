@@ -29,24 +29,24 @@ func TestGetGroupByRemoteID(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	if _, err := th.App.GetGroupByRemoteID(group.RemoteId); err != nil {
+	if _, err := th.App.GetGroupByRemoteID(group.RemoteId, model.GroupTypeLdap); err != nil {
 		t.Log(err)
 		t.Fatal("Should get the group")
 	}
 
-	if _, err := th.App.GetGroupByRemoteID(model.NewId()); err == nil {
+	if _, err := th.App.GetGroupByRemoteID(model.NewId(), model.GroupTypeLdap); err == nil {
 		t.Fatal("Should not have found a group")
 	}
 }
 
-func TestGetGroupsPage(t *testing.T) {
+func TestGetGroupsByType(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	th.CreateGroup()
 	th.CreateGroup()
 	th.CreateGroup()
 
-	groups, err := th.App.GetGroupsPage(1, 2)
+	groups, err := th.App.GetGroupsByType(model.GroupTypeLdap)
 	if err != nil {
 		t.Log(err)
 		t.Fatal("Should have groups")
@@ -56,7 +56,7 @@ func TestGetGroupsPage(t *testing.T) {
 		t.Fatal("Should have retrieved at least one group")
 	}
 
-	if groups, _ = th.App.GetGroupsPage(999, 1); len(groups) > 0 {
+	if groups, _ = th.App.GetGroupsByType(model.GroupTypeLdap); len(groups) > 0 {
 		t.Fatal("Should not have groups.")
 	}
 }

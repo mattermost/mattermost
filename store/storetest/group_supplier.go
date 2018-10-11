@@ -17,10 +17,11 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Create", func(t *testing.T) { testGroupStoreCreate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testGroupStoreGet(t, ss) })
 	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, ss) })
-	t.Run("GetAllPage", func(t *testing.T) { testGroupStoreGetAllPage(t, ss) })
+	t.Run("GetAllByType", func(t *testing.T) { testGroupStoreGetAllByType(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
 
+	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
 	t.Run("CreateMember", func(t *testing.T) { testGroupCreateMember(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
 
@@ -208,7 +209,7 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 	assert.Equal(t, res3.Err.Id, "store.sql_group.no_rows")
 }
 
-func testGroupStoreGetAllPage(t *testing.T, ss store.Store) {
+func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 	numGroups := 10
 
 	groups := []*model.Group{}
@@ -228,7 +229,7 @@ func testGroupStoreGetAllPage(t *testing.T, ss store.Store) {
 	}
 
 	// Returns all the groups
-	res1 := <-ss.Group().GetAllPage(0, 999)
+	res1 := <-ss.Group().GetAllByType(model.GroupTypeLdap)
 	d1 := res1.Data.([]*model.Group)
 	assert.Condition(t, func() bool { return len(d1) >= numGroups })
 	for _, expectedGroup := range groups {
@@ -240,24 +241,6 @@ func testGroupStoreGetAllPage(t *testing.T, ss store.Store) {
 			}
 		}
 		assert.True(t, present)
-	}
-
-	// Returns the correct number based on limit
-	res2 := <-ss.Group().GetAllPage(0, 2)
-	d2 := res2.Data.([]*model.Group)
-	assert.Len(t, d2, 2)
-
-	// Check that result sets are different using an offset
-	res3 := <-ss.Group().GetAllPage(0, 5)
-	d3 := res3.Data.([]*model.Group)
-	res4 := <-ss.Group().GetAllPage(5, 5)
-	d4 := res4.Data.([]*model.Group)
-	for _, d3i := range d3 {
-		for _, d4i := range d4 {
-			if d4i.Id == d3i.Id {
-				t.Error("Expected results to be unique.")
-			}
-		}
 	}
 }
 
@@ -387,7 +370,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	assert.Nil(t, res2.Err)
 
 	// Get the before count
-	res7 := <-ss.Group().GetAllPage(0, 999)
+	res7 := <-ss.Group().GetAllByType(model.GroupTypeLdap)
 	d7 := res7.Data.([]*model.Group)
 	beforeCount := len(d7)
 
@@ -401,7 +384,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	assert.NotZero(t, d4.DeleteAt)
 
 	// Check the after count
-	res5 := <-ss.Group().GetAllPage(0, 999)
+	res5 := <-ss.Group().GetAllByType(model.GroupTypeLdap)
 	d5 := res5.Data.([]*model.Group)
 	afterCount := len(d5)
 	assert.Condition(t, func() bool { return beforeCount == afterCount+1 })
@@ -414,6 +397,60 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	// Cannot delete again
 	res8 := <-ss.Group().Delete(d1.Id)
 	assert.Equal(t, res8.Err.Id, "store.sql_group.no_rows")
+}
+
+func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Type:        model.GroupTypeLdap,
+		RemoteId:    model.NewId(),
+	}
+	res := <-ss.Group().Create(g1)
+	assert.Nil(t, res.Err)
+	group := res.Data.(*model.Group)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(u1)
+	assert.Nil(t, res.Err)
+	user1 := res.Data.(*model.User)
+
+	res = <-ss.Group().CreateMember(group.Id, user1.Id)
+	assert.Nil(t, res.Err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(u2)
+	assert.Nil(t, res.Err)
+	user2 := res.Data.(*model.User)
+
+	res = <-ss.Group().CreateMember(group.Id, user2.Id)
+	assert.Nil(t, res.Err)
+
+	// Check returns members
+	res = <-ss.Group().GetMemberUsers(group.Id)
+	assert.Nil(t, res.Err)
+	groupMembers := res.Data.([]*model.User)
+	assert.Equal(t, 2, len(groupMembers))
+
+	// Check madeup id
+	res = <-ss.Group().GetMemberUsers(model.NewId())
+	assert.Equal(t, 0, len(res.Data.([]*model.User)))
+
+	// Delete a member
+	<-ss.Group().DeleteMember(group.Id, user1.Id)
+
+	// Should not return deleted members
+	res = <-ss.Group().GetMemberUsers(group.Id)
+	groupMembers = res.Data.([]*model.User)
+	assert.Equal(t, 1, len(groupMembers))
 }
 
 func testGroupCreateMember(t *testing.T, ss store.Store) {
