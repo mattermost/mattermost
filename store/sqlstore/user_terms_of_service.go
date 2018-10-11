@@ -55,7 +55,7 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 			return
 		}
 
-		if err := s.GetMaster().Insert(userTermsOfService); err != nil {
+		if c, err := s.GetMaster().Update(userTermsOfService); err != nil {
 			result.Err = model.NewAppError(
 				"SqlUserTermsOfServiceStore.Save",
 				"store.sql_user_terms_of_service.save.app_error",
@@ -63,6 +63,16 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 				"user_terms_of_service_user_id="+userTermsOfService.UserId+",user_terms_of_service_terms_of_service_id="+userTermsOfService.TermsOfServiceId+",err="+err.Error(),
 				http.StatusInternalServerError,
 			)
+		} else if c == 0 {
+			if err := s.GetMaster().Insert(userTermsOfService); err != nil {
+				result.Err = model.NewAppError(
+					"SqlUserTermsOfServiceStore.Save",
+					"store.sql_user_terms_of_service.save.app_error",
+					nil,
+					"user_terms_of_service_user_id="+userTermsOfService.UserId+",user_terms_of_service_terms_of_service_id="+userTermsOfService.TermsOfServiceId+",err="+err.Error(),
+					http.StatusInternalServerError,
+				)
+			}
 		}
 
 		result.Data = userTermsOfService
