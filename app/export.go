@@ -279,7 +279,15 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 	replyPosts := result.Data.([]*model.ReplyForExport)
 
 	for _, reply := range replyPosts {
-		replies = append(replies, *ImportReplyFromPost(reply))
+		replyImportObject := ImportReplyFromPost(reply)
+		if reply.HasReactions == true {
+			reactionsOfReply, err := a.buildPostReactions(reply.Id)
+			if err != nil {
+				return nil, err
+			}
+			replyImportObject.Reactions = reactionsOfReply
+		}
+		replies = append(replies, *replyImportObject)
 	}
 
 	return &replies, nil
