@@ -3086,7 +3086,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 	CheckNoError(t, resp)
 
 	assert.True(t, *success)
-	user, err := th.App.GetUser(th.BasicUser.Id)
+	_, err = th.App.GetUser(th.BasicUser.Id)
 	if err != nil {
 		t.Fatal(err)
 	}

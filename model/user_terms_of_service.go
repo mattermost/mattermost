@@ -12,7 +12,7 @@ import (
 
 type UserTermsOfService struct {
 	UserId           string `json:"user_id"`
-	TermsOfServiceId string `json:"service_terms_id,omitempty"`
+	TermsOfServiceId string `json:"service_terms_id"`
 	CreateAt         int64  `json:"create_at"`
 }
 
