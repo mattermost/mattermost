@@ -23,7 +23,7 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u1))
 
-	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
+	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id, Mandatory: true}
 	r1 := <-ss.TermsOfService().Save(termsOfService)
 
 	if r1.Err != nil {
@@ -47,7 +47,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u1))
 
-	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
+	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id, Mandatory: false}
 	store.Must(ss.TermsOfService().Save(termsOfService))
 
 	r1 := <-ss.TermsOfService().GetLatest(true)
@@ -58,6 +58,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	fetchedTermsOfService := r1.Data.(*model.TermsOfService)
 	assert.Equal(t, termsOfService.Text, fetchedTermsOfService.Text)
 	assert.Equal(t, termsOfService.UserId, fetchedTermsOfService.UserId)
+	assert.False(t, termsOfService.Mandatory)
 }
 
 func testGetTermsOfService(t *testing.T, ss store.Store) {
@@ -67,7 +68,7 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	u1.Nickname = model.NewId()
 	store.Must(ss.User().Save(&u1))
 
-	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
+	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id, Mandatory: true}
 	store.Must(ss.TermsOfService().Save(termsOfService))
 
 	r1 := <-ss.TermsOfService().Get("an_invalid_id", true)
@@ -79,4 +80,5 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 
 	receivedTermsOfService := r1.Data.(*model.TermsOfService)
 	assert.Equal(t, "terms of service", receivedTermsOfService.Text)
+	assert.True(t, receivedTermsOfService.Mandatory)
 }

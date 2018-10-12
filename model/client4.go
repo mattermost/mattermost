@@ -3862,11 +3862,11 @@ func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfServic
 	}
 }
 
-func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response) {
+func (c *Client4) CreateTermsOfService(text, userId string, mandatory bool) (*TermsOfService, *Response) {
 	url := c.GetTermsOfServiceRoute()
 
-	data := map[string]string{"text": text}
-	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
+	data := map[string]interface{}{"text": text, "mandatory": mandatory}
+	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
