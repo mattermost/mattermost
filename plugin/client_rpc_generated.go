@@ -827,6 +827,37 @@ func (s *apiRPCServer) GetUserByUsername(args *Z_GetUserByUsernameArgs, returns 
 	return nil
 }
 
+type Z_GetUsersInTeamArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetUsersInTeamReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersInTeamArgs{teamId, page, perPage}
+	_returns := &Z_GetUsersInTeamReturns{}
+	if err := g.client.Call("Plugin.GetUsersInTeam", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsersInTeam API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_GetUsersInTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetUsersInTeam(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsersInTeam called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateUserArgs struct {
 	A *model.User
 }
