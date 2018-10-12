@@ -15,10 +15,11 @@ import (
 const TERMS_OF_SERVICE_CACHE_SIZE = 1
 
 type TermsOfService struct {
-	Id       string `json:"id"`
-	CreateAt int64  `json:"create_at"`
-	UserId   string `json:"user_id"`
-	Text     string `json:"text"`
+	Id        string `json:"id"`
+	CreateAt  int64  `json:"create_at"`
+	UserId    string `json:"user_id"`
+	Text      string `json:"text"`
+	Mandatory bool   `json:"mandatory"`
 }
 
 func (t *TermsOfService) IsValid() *AppError {

@@ -17,7 +17,7 @@ func TestUserTermsOfService(t *testing.T) {
 	assert.Nil(t, userTermsOfService)
 	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", err.Id)
 
-	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id, true)
 	checkNoError(t, err)
 
 	err = th.App.SaveUserTermsOfService(th.BasicUser.Id, termsOfService.Id, true)

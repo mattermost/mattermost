@@ -11,7 +11,7 @@ func TestGetTermsOfService(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	_, err := th.App.CreateTermsOfService("abc", th.BasicUser.Id)
+	_, err := th.App.CreateTermsOfService("abc", th.BasicUser.Id, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,6 +23,7 @@ func TestGetTermsOfService(t *testing.T) {
 	assert.Equal(t, "abc", termsOfService.Text)
 	assert.NotEmpty(t, termsOfService.Id)
 	assert.NotEmpty(t, termsOfService.CreateAt)
+	assert.True(t, termsOfService.Mandatory)
 }
 
 func TestCreateTermsOfService(t *testing.T) {

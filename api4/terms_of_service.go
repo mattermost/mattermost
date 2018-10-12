@@ -35,8 +35,20 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
-	text := props["text"]
+	props := model.StringInterfaceFromJson(r.Body)
+
+	text, ok := props["text"].(string)
+	if !ok {
+		c.SetInvalidParam("text")
+		return
+	}
+
+	mandatory, ok := props["mandatory"].(bool)
+	if !ok {
+		c.SetInvalidParam("mandatory")
+		return
+	}
+
 	userId := c.Session.UserId
 
 	if text == "" {
@@ -50,8 +62,8 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldTermsOfService == nil || oldTermsOfService.Text != text {
-		termsOfService, err := c.App.CreateTermsOfService(text, userId)
+	if oldTermsOfService == nil || oldTermsOfService.Text != text || oldTermsOfService.Mandatory != mandatory {
+		termsOfService, err := c.App.CreateTermsOfService(text, userId, mandatory)
 		if err != nil {
 			c.Err = err
 			return
