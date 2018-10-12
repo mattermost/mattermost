@@ -1004,6 +1004,38 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	return nil
 }
 
+type Z_GetUsersInChannelByStatusArgs struct {
+	A string
+	B int
+	C int
+	D string
+}
+
+type Z_GetUsersInChannelByStatusReturns struct {
+	A []*model.User
+	B *model.Response
+}
+
+func (g *apiRPCClient) GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.Response) {
+	_args := &Z_GetUsersInChannelByStatusArgs{channelId, page, perPage, etag}
+	_returns := &Z_GetUsersInChannelByStatusReturns{}
+	if err := g.client.Call("Plugin.GetUsersInChannelByStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsersInChannelByStatus API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsersInChannelByStatus(args *Z_GetUsersInChannelByStatusArgs, returns *Z_GetUsersInChannelByStatusReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.Response)
+	}); ok {
+		returns.A, returns.B = hook.GetUsersInChannelByStatus(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsersInChannelByStatus called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetLDAPUserAttributesArgs struct {
 	A string
 	B []string
