@@ -190,6 +190,9 @@ type API interface {
 	// GetFileInfo gets a File Info for a specific fileId
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
+	// GetFilePreview gets the bytes for a file by id.
+	GetFilePreview(fileId string) ([]byte, *model.AppError)
+
 	// ReadFileAtPath reads the file from the backend for a specific path
 	ReadFile(path string) ([]byte, *model.AppError)
 

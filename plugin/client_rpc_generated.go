@@ -2098,6 +2098,35 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 	return nil
 }
 
+type Z_GetFilePreviewArgs struct {
+	A string
+}
+
+type Z_GetFilePreviewReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetFilePreview(fileId string) ([]byte, *model.AppError) {
+	_args := &Z_GetFilePreviewArgs{fileId}
+	_returns := &Z_GetFilePreviewReturns{}
+	if err := g.client.Call("Plugin.GetFilePreview", _args, _returns); err != nil {
+		log.Printf("RPC call to GetFilePreview API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetFilePreview(args *Z_GetFilePreviewArgs, returns *Z_GetFilePreviewReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetFilePreview(fileId string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetFilePreview(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetFilePreview called but not implemented."))
+	}
+	return nil
+}
+
 type Z_ReadFileArgs struct {
 	A string
 }
