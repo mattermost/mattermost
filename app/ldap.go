@@ -41,8 +41,8 @@ func (a *App) TestLdap() *model.AppError {
 }
 
 // GetLdapGroupsTree retrieves all of the immediate child groups of the given parent DN.
-func (a *App) GetLdapGroupsTree() (*model.GroupTree, *model.AppError) {
-	var tree *model.GroupTree
+func (a *App) GetLdapGroupsTree() ([]*model.SCIMGroup, *model.AppError) {
+	var tree []*model.SCIMGroup
 
 	if a.Ldap != nil {
 		var err *model.AppError
