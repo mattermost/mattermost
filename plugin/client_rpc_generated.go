@@ -1979,6 +1979,37 @@ func (s *apiRPCServer) GetPost(args *Z_GetPostArgs, returns *Z_GetPostReturns) e
 	return nil
 }
 
+type Z_GetPostsForChannelArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetPostsForChannelReturns struct {
+	A *model.PostList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
+	_args := &Z_GetPostsForChannelArgs{channelId, page, perPage}
+	_returns := &Z_GetPostsForChannelReturns{}
+	if err := g.client.Call("Plugin.GetPostsForChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPostsForChannel API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPostsForChannel(args *Z_GetPostsForChannelArgs, returns *Z_GetPostsForChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPostsForChannel(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetPostsForChannel called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdatePostArgs struct {
 	A *model.Post
 }
@@ -2125,6 +2156,36 @@ func (s *apiRPCServer) KVSet(args *Z_KVSetArgs, returns *Z_KVSetReturns) error {
 	return nil
 }
 
+type Z_KVSetWithExpiryArgs struct {
+	A string
+	B []byte
+	C int64
+}
+
+type Z_KVSetWithExpiryReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
+	_args := &Z_KVSetWithExpiryArgs{key, value, expireInSeconds}
+	_returns := &Z_KVSetWithExpiryReturns{}
+	if err := g.client.Call("Plugin.KVSetWithExpiry", _args, _returns); err != nil {
+		log.Printf("RPC call to KVSetWithExpiry API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) KVSetWithExpiry(args *Z_KVSetWithExpiryArgs, returns *Z_KVSetWithExpiryReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError
+	}); ok {
+		returns.A = hook.KVSetWithExpiry(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API KVSetWithExpiry called but not implemented."))
+	}
+	return nil
+}
+
 type Z_KVGetArgs struct {
 	A string
 }
@@ -2178,6 +2239,33 @@ func (s *apiRPCServer) KVDelete(args *Z_KVDeleteArgs, returns *Z_KVDeleteReturns
 		returns.A = hook.KVDelete(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API KVDelete called but not implemented."))
+	}
+	return nil
+}
+
+type Z_KVDeleteAllArgs struct {
+}
+
+type Z_KVDeleteAllReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) KVDeleteAll() *model.AppError {
+	_args := &Z_KVDeleteAllArgs{}
+	_returns := &Z_KVDeleteAllReturns{}
+	if err := g.client.Call("Plugin.KVDeleteAll", _args, _returns); err != nil {
+		log.Printf("RPC call to KVDeleteAll API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) KVDeleteAll(args *Z_KVDeleteAllArgs, returns *Z_KVDeleteAllReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVDeleteAll() *model.AppError
+	}); ok {
+		returns.A = hook.KVDeleteAll()
+	} else {
+		return encodableError(fmt.Errorf("API KVDeleteAll called but not implemented."))
 	}
 	return nil
 }

@@ -41,7 +41,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
-	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(registerServiceTermsAction)).Methods("POST")
+	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(registerTermsOfServiceAction)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
@@ -594,21 +594,19 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
+	}
 
-		// If a teamId is provided, require it to match the channel's team id.
-		if teamId != "" {
-			channel, err := c.App.GetChannel(channelId)
-			if err != nil {
-				c.Err = err
-				return
-			}
-
-			if channel.TeamId != teamId {
-				c.Err = model.NewAppError("autocompleteUsers", "api.user.autocomplete_users.invalid_team_id", nil, "", http.StatusUnauthorized)
-				return
-			}
+	if len(teamId) > 0 {
+		if !c.App.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
 		}
+	}
 
+	if len(channelId) > 0 {
+		// Applying the provided teamId here is useful for DMs and GMs which don't belong
+		// to a team. Applying it when the channel does belong to a team makes less sense,
+		//t but the permissions are checked above regardless.
 		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
 		if err != nil {
 			c.Err = err
@@ -618,11 +616,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
-		if !c.App.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-			return
-		}
-
 		result, err := c.App.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
 		if err != nil {
 			c.Err = err
@@ -1622,23 +1615,23 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func registerServiceTermsAction(c *Context, w http.ResponseWriter, r *http.Request) {
+func registerTermsOfServiceAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.Session.UserId
-	serviceTermsId := props["serviceTermsId"].(string)
+	termsOfServiceId := props["termsOfServiceId"].(string)
 	accepted := props["accepted"].(bool)
 
-	if _, err := c.App.GetServiceTerms(serviceTermsId); err != nil {
+	if _, err := c.App.GetTermsOfService(termsOfServiceId); err != nil {
 		c.Err = err
 		return
 	}
 
-	if err := c.App.RecordUserServiceTermsAction(userId, serviceTermsId, accepted); err != nil {
+	if err := c.App.RecordUserTermsOfServiceAction(userId, termsOfServiceId, accepted); err != nil {
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("ServiceTermsId=" + serviceTermsId + ", accepted=" + strconv.FormatBool(accepted))
+	c.LogAudit("TermsOfServiceId=" + termsOfServiceId + ", accepted=" + strconv.FormatBool(accepted))
 	ReturnStatusOK(w)
 }

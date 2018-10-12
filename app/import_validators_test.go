@@ -660,6 +660,24 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.CommentsTrigger = ptrStr(model.COMMENTS_NOTIFY_ROOT)
 	data.NotifyProps.MentionKeys = ptrStr("valid")
 	checkNoError(t, validateUserImportData(&data))
+
+	//Test the emai batching interval validators
+	//Happy paths
+	data.EmailInterval = ptrStr("immediately")
+	checkNoError(t, validateUserImportData(&data))
+
+	data.EmailInterval = ptrStr("fifteen")
+	checkNoError(t, validateUserImportData(&data))
+
+	data.EmailInterval = ptrStr("hour")
+	checkNoError(t, validateUserImportData(&data))
+
+	//Invalid values
+	data.EmailInterval = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.EmailInterval = ptrStr("")
+	checkError(t, validateUserImportData(&data))
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {

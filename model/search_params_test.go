@@ -5,6 +5,9 @@ package model
 
 import (
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSplitWords(t *testing.T) {
@@ -299,5 +302,116 @@ func TestParseSearchParams(t *testing.T) {
 
 	if sp := ParseSearchParams("after:2018-8-1", 0); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
+	}
+}
+
+func TestGetOnDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Name        string
+		Input       string
+		StartOnDate int64
+		EndOnDate   int64
+	}{
+		{
+			Name:        "Valid date",
+			Input:       "2018-08-01",
+			StartOnDate: 1533081600000,
+			EndOnDate:   1533167999999,
+		},
+		{
+			Name:        "Valid date but requires padding of zero",
+			Input:       "2018-8-1",
+			StartOnDate: 1533081600000,
+			EndOnDate:   1533167999999,
+		},
+		{
+			Name:        "Invalid date, date not exist",
+			Input:       "2018-02-29",
+			StartOnDate: 0,
+			EndOnDate:   0,
+		},
+		{
+			Name:        "Invalid date, not date format",
+			Input:       "holiday",
+			StartOnDate: 0,
+			EndOnDate:   0,
+		},
+	} {
+		t.Run(testCase.Name, func(t *testing.T) {
+			sp := &SearchParams{OnDate: testCase.Input, TimeZoneOffset: 0}
+			startOnDate, endOnDate := sp.GetOnDateMillis()
+			assert.Equal(t, testCase.StartOnDate, startOnDate)
+			assert.Equal(t, testCase.EndOnDate, endOnDate)
+		})
+	}
+}
+
+func TestGetBeforeDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Name       string
+		Input      string
+		BeforeDate int64
+	}{
+		{
+			Name:       "Valid date",
+			Input:      "2018-08-01",
+			BeforeDate: 1533081599999,
+		},
+		{
+			Name:       "Valid date but requires padding of zero",
+			Input:      "2018-8-1",
+			BeforeDate: 1533081599999,
+		},
+		{
+			Name:       "Invalid date, date not exist",
+			Input:      "2018-02-29",
+			BeforeDate: 0,
+		},
+		{
+			Name:       "Invalid date, not date format",
+			Input:      "holiday",
+			BeforeDate: 0,
+		},
+	} {
+		t.Run(testCase.Name, func(t *testing.T) {
+			sp := &SearchParams{BeforeDate: testCase.Input, TimeZoneOffset: 0}
+			beforeDate := sp.GetBeforeDateMillis()
+			assert.Equal(t, testCase.BeforeDate, beforeDate)
+		})
+	}
+}
+
+func TestGetAfterDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Name      string
+		Input     string
+		AfterDate int64
+	}{
+		{
+			Name:      "Valid date",
+			Input:     "2018-08-01",
+			AfterDate: 1533168000000,
+		},
+		{
+			Name:      "Valid date but requires padding of zero",
+			Input:     "2018-8-1",
+			AfterDate: 1533168000000,
+		},
+		{
+			Name:      "Invalid date, date not exist",
+			Input:     "2018-02-29",
+			AfterDate: GetStartOfDayMillis(time.Now().Add(time.Hour*24), 0),
+		},
+		{
+			Name:      "Invalid date, not date format",
+			Input:     "holiday",
+			AfterDate: GetStartOfDayMillis(time.Now().Add(time.Hour*24), 0),
+		},
+	} {
+		t.Run(testCase.Name, func(t *testing.T) {
+			sp := &SearchParams{AfterDate: testCase.Input, TimeZoneOffset: 0}
+			afterDate := sp.GetAfterDateMillis()
+			assert.Equal(t, testCase.AfterDate, afterDate)
+		})
 	}
 }

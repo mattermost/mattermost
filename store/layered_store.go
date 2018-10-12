@@ -169,8 +169,8 @@ func (s *LayeredStore) Role() RoleStore {
 	return s.RoleStore
 }
 
-func (s *LayeredStore) ServiceTerms() ServiceTermsStore {
-	return s.DatabaseLayer.ServiceTerms()
+func (s *LayeredStore) TermsOfService() TermsOfServiceStore {
+	return s.DatabaseLayer.TermsOfService()
 }
 
 func (s *LayeredStore) Scheme() SchemeStore {

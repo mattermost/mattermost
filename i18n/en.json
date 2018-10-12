@@ -2371,7 +2371,7 @@
     "translation": "Bad verify email token type."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "Bad accepted value"
   },
   {
@@ -2435,11 +2435,11 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "Custom terms of service feature is disabled"
   },
   {
@@ -4719,6 +4719,66 @@
     "translation": "Your password must contain at least {{.Min}} characters."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one number and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one number."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Invalid description, must be 255 or less characters"
   },
@@ -4751,19 +4811,19 @@
     "translation": "Unable to connect to the WebSocket server."
   },
   {
-    "id": "model.service_terms.is_valid.id.app_error",
+    "id": "model.terms_of_service.is_valid.id.app_error",
     "translation": "Invalid term of service id."
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
     "translation": "Missing required term of service property: create_at."
   },
   {
-    "id": "model.service_terms.is_valid.user_id.app_error",
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
     "translation": "Missing required terms of service property: user_id."
   },
   {
-    "id": "model.service_terms.is_valid.text.app_error",
+    "id": "model.terms_of_service.is_valid.text.app_error",
     "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
   },
   {
@@ -4773,6 +4833,10 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -6395,19 +6459,19 @@
     "translation": "Unable to update the webhook"
   },
   {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
     "translation": "Must not call save for existing terms of service."
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
+    "id": "store.sql_terms_of_service.save.app_error",
     "translation": "Unable to save terms of service."
   },
   {
-    "id": "store.sql_service_terms_store.get.app_error",
+    "id": "store.sql_terms_of_service_store.get.app_error",
     "translation": "Unable to fetch terms of service."
   },
   {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "No terms of service found."
   },
   {

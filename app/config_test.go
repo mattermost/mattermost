@@ -4,16 +4,44 @@
 package app
 
 import (
+	"io/ioutil"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
+
+func TestLoadConfig(t *testing.T) {
+	tempConfig, err := ioutil.TempFile("", "")
+	require.Nil(t, err)
+
+	input, err := ioutil.ReadFile(utils.FindConfigFile("config.json"))
+	require.Nil(t, err)
+	lines := strings.Split(string(input), "\n")
+	for i, line := range lines {
+		if strings.Contains(line, "SiteURL") {
+			lines[i] = `        "SiteURL": "http://localhost:8065/",`
+		}
+	}
+	output := strings.Join(lines, "\n")
+	err = ioutil.WriteFile(tempConfig.Name(), []byte(output), 0644)
+	require.Nil(t, err)
+	tempConfig.Close()
+
+	a := App{}
+	appErr := a.LoadConfig(tempConfig.Name())
+	require.Nil(t, appErr)
+
+	assert.Equal(t, "http://localhost:8065", a.siteURL)
+	assert.Equal(t, "http://localhost:8065", *a.GetConfig().ServiceSettings.SiteURL)
+}
 
 func TestConfigListener(t *testing.T) {
 	th := Setup().InitBasic()
