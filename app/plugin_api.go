@@ -201,10 +201,6 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 	return api.app.GetStatus(userId)
 }
 
-func (api *PluginAPI) GetUsersInChannelByStatus(channelId string, page, perPage int) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersInChannelByStatus(channelId, page*perPage, perPage)
-}
-
 func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
 	if api.app.Ldap == nil {
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
