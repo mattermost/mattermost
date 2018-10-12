@@ -65,6 +65,9 @@ type API interface {
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
+	// GetUsersInChannelByStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status.
+	GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.Response)
+
 	// GetLDAPUserAttributes will return LDAP attributes for a user.
 	// The attributes parameter should be a list of attributes to pull.
 	// Returns a map with attribute names as keys and the user's attributes as values.
