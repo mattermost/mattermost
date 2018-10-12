@@ -939,7 +939,7 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.A
 }
 
 // GetUsersInChannelByStatus provides a mock function with given fields: channelId, page, perPage, etag
-func (_m *API) GetUsersInChannelByStatus(channelId string, page int, perPage int, etag string) ([]*model.User, *model.Response) {
+func (_m *API) GetUsersInChannelByStatus(channelId string, page int, perPage int, etag string) ([]*model.User, *model.AppError) {
 	ret := _m.Called(channelId, page, perPage, etag)
 
 	var r0 []*model.User
@@ -951,12 +951,12 @@ func (_m *API) GetUsersInChannelByStatus(channelId string, page int, perPage int
 		}
 	}
 
-	var r1 *model.Response
-	if rf, ok := ret.Get(1).(func(string, int, int, string) *model.Response); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int, string) *model.AppError); ok {
 		r1 = rf(channelId, page, perPage, etag)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.Response)
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 

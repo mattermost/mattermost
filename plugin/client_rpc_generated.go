@@ -953,10 +953,10 @@ type Z_GetUsersInChannelByStatusArgs struct {
 
 type Z_GetUsersInChannelByStatusReturns struct {
 	A []*model.User
-	B *model.Response
+	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.Response) {
+func (g *apiRPCClient) GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.AppError) {
 	_args := &Z_GetUsersInChannelByStatusArgs{channelId, page, perPage, etag}
 	_returns := &Z_GetUsersInChannelByStatusReturns{}
 	if err := g.client.Call("Plugin.GetUsersInChannelByStatus", _args, _returns); err != nil {
@@ -967,7 +967,7 @@ func (g *apiRPCClient) GetUsersInChannelByStatus(channelId string, page, perPage
 
 func (s *apiRPCServer) GetUsersInChannelByStatus(args *Z_GetUsersInChannelByStatusArgs, returns *Z_GetUsersInChannelByStatusReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.Response)
+		GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUsersInChannelByStatus(args.A, args.B, args.C, args.D)
 	} else {
