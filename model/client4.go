@@ -2966,11 +2966,11 @@ func (c *Client4) TestLdap() (bool, *Response) {
 	}
 }
 
-// GetChildLdapGroups retrieves the immediate child groups of the given parent group.
-func (c *Client4) GetChildLdapGroups(parentDN string) ([]*SCIMGroup, *Response) {
-	pathAndParams := fmt.Sprintf("%s/groups?parent_dn=%s", c.GetLdapRoute(), parentDN)
+// GetLdapGroups retrieves the immediate child groups of the given parent group.
+func (c *Client4) GetLdapGroups() ([]*SCIMGroup, *Response) {
+	path := fmt.Sprintf("%s/groups", c.GetLdapRoute())
 
-	if r, err := c.DoApiGet(pathAndParams, ""); err != nil {
+	if r, err := c.DoApiGet(path, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

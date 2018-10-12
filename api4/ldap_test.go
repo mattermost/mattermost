@@ -29,15 +29,13 @@ func TestSyncLdap(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
-func TestGetChildLdapGroups(t *testing.T) {
-	const testDN string = "cn=developers,ou=testusers,dc=mm,dc=test,dc=com"
-
+func TestGetLdapGroups(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
-	_, resp := th.Client.GetChildLdapGroups(testDN)
+	_, resp := th.Client.GetLdapGroups()
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChildLdapGroups(testDN)
+	_, resp = th.SystemAdminClient.GetLdapGroups()
 	CheckNotImplementedStatus(t, resp)
 }
 

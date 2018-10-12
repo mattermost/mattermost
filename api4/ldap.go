@@ -16,7 +16,7 @@ func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
 
 	// GET /api/v4/ldap/groups
-	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getChildLdapGroups)).Methods("GET")
+	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getLdapGroups)).Methods("GET")
 
 	// POST /api/v4/ldap/groups/:remote_id/link
 	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.ApiSessionRequired(linkLdapGroup)).Methods("POST")
@@ -50,45 +50,26 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func getChildLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	const paramParentDN string = "parent_dn"
-
+func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
 	if c.App.License() == nil || !*c.App.License().Features.LDAP {
-		c.Err = model.NewAppError("Api4.getChildLdapGroups", "api.ldap.license.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	parentDN := r.URL.Query().Get(paramParentDN)
-	if parentDN == "" {
-		c.SetInvalidParam(paramParentDN)
-		return
-	}
-
-	scimGroups, err := c.App.GetChildLdapGroups(parentDN)
+	tree, err := c.App.GetLdapGroupsTree()
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	for _, scimGroup := range scimGroups {
-		group, _ := c.App.GetGroupByRemoteID(scimGroup.PrimaryKey, model.GroupTypeLdap)
-		if group != nil && group.DeleteAt == 0 {
-			scimGroup.MattermostGroupID = &group.Id
-		}
-	}
-
-	if len(scimGroups) == 0 {
-		scimGroups = make([]*model.SCIMGroup, 0)
-	}
-
-	b, marshalErr := json.Marshal(scimGroups)
+	b, marshalErr := json.Marshal(tree)
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getChildLdapGroups", "api.ldap.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

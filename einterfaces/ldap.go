@@ -20,7 +20,7 @@ type LdapInterface interface {
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error
 	GetGroup(groupUID string) (*model.SCIMGroup, *model.AppError)
-	GetChildGroups(parentDN string) ([]*model.SCIMGroup, *model.AppError)
+	GetAllGroupsNested() (*model.GroupTree, *model.AppError)
 	GetAllGroups() ([]*model.SCIMGroup, *model.AppError)
 	GetUserIDsInGroupRecursive(groupUID string) ([]string, *model.AppError)
 }

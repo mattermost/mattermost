@@ -10,3 +10,10 @@ type SCIMGroup struct {
 	Name              string  `json:"name"`
 	MattermostGroupID *string `json:"mattermost_group_id"`
 }
+
+type GroupTree []*GroupTreeNode
+
+type GroupTreeNode struct {
+	Value    *SCIMGroup       `json:"group"`
+	Children []*GroupTreeNode `json:"children"`
+}
