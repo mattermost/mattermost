@@ -36,6 +36,15 @@ func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	}
 }
 
+func (a *App) GetLatestMandatoryTermsOfService() (*model.TermsOfService, *model.AppError) {
+	if result := <-a.Srv.Store.TermsOfService().GetLatestMandatory(true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		termsOfService := result.Data.(*model.TermsOfService)
+		return termsOfService, nil
+	}
+}
+
 func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
 	if result := <-a.Srv.Store.TermsOfService().Get(id, true); result.Err != nil {
 		return nil, result.Err

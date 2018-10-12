@@ -11,8 +11,8 @@ import (
 	"unicode/utf8"
 )
 
-// we only ever need the latest version of terms of service
-const TERMS_OF_SERVICE_CACHE_SIZE = 1
+// we only ever need the latest and the latest mandatory version of terms of service
+const TERMS_OF_SERVICE_CACHE_SIZE = 2
 
 type TermsOfService struct {
 	Id        string `json:"id"`
