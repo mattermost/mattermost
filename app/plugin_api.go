@@ -201,8 +201,8 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 	return api.app.GetStatus(userId)
 }
 
-func (api *PluginAPI) GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.Response) {
-	return api.app.GetUsersInChannelByStatus(channelId, page, perPage, etag)
+func (api *PluginAPI) GetUsersInChannelByStatus(channelId string, page, perPage int, etag string) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersInChannelByStatus(channelId, page, perPage)
 }
 
 func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
