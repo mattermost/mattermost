@@ -262,7 +262,8 @@ func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDe
 }
 
 func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
-	return api.app.GetChannelStats(channelId)
+	memberCount, err := api.app.GetChannelMemberCount(channelId)
+	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount}, err
 }
 
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
