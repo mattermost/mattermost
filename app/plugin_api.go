@@ -290,6 +290,10 @@ func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppEr
 	return api.app.LeaveChannel(channelId, userId)
 }
 
+func (api *PluginAPI) GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersInChannel(channelId, page, perPage)
+}
+
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return api.app.CreatePostMissingChannel(post, true)
 }

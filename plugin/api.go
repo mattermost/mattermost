@@ -161,6 +161,9 @@ type API interface {
 	// DeleteChannelMember deletes a channel membership for a user.
 	DeleteChannelMember(channelId, userId string) *model.AppError
 
+	// GetUsersInChannel gets users in given channel.
+	GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError)
+
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
 
