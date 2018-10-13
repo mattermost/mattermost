@@ -377,6 +377,10 @@ func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError
 	return api.app.GetEmojiByName(name)
 }
 
+func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+	return api.app.GetEmoji(emojiId)
+}
+
 func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
 	return api.app.CopyFileInfos(userId, fileIds)
 }
