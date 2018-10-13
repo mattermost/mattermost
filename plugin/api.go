@@ -188,6 +188,9 @@ type API interface {
 	// GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
 	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
 
+	// GetPostsBefore gets a page of posts that were posted before the post provided.
+	GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+
 	// GetPostsForChannel gets a list of posts for a channel.
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
 
