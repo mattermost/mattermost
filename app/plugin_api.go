@@ -245,6 +245,10 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.UpdateChannel(channel)
 }
 
+func (api *PluginAPI) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	return api.app.SearchChannels(teamId, term)
+}
+
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	// For now, don't allow overriding these via the plugin API.
 	userRequestorId := ""
