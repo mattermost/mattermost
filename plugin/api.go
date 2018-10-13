@@ -190,7 +190,7 @@ type API interface {
 	// GetFileInfo gets a File Info for a specific fileId
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
-	// GetFileThumbnail gets file's thumbnail by its id.
+	// GetFileThumbnail gets a file's thumbnail for a specific fileId.
 	GetFileThumbnail(fileId string) (*model.FileInfo, *model.AppError)
 
 	// ReadFileAtPath reads the file from the backend for a specific path
