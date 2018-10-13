@@ -38,7 +38,13 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 	}
 }
 
-func ImportLineFromUser(user *model.User) *LineImportData {
+func ImportLineFromUser(user *model.User, exportedPrefs map[string]string) *LineImportData {
+	// Bulk Importer doesn't accept "empty string" for AuthService.
+	var authService *string
+	if user.AuthService != "" {
+		authService = &user.AuthService
+	}
+
 	return &LineImportData{
 		Type: "user",
 		User: &UserImportData{

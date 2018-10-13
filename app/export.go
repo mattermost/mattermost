@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"github.com/mattermost/mattermost-server/mlog"
 	"io"
 	"net/http"
 	"os"
@@ -16,6 +17,62 @@ import (
 )
 
 func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+//We use this map to identify the exportable preferences.
+//Here we link the preference category and name, to the name of the relevant filed in the import struct.
+var exportablePreferences = map[ComparablePreference]string{
+	//Theme
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_THEME,
+		Name:     "",
+	}: "Theme",
+	//UseMarkDownPreview
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+		Name:     "feature_enabled_markdown_preview",
+	}: "UseMarkdownPreview",
+	//UseFormatting
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+		Name:     "formatting",
+	}: "UseFormatting",
+	//ShowUnreadSection
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS,
+		Name:     "show_unread_section",
+	}: "ShowUnreadSection",
+	//UseMilitaryTime
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_USE_MILITARY_TIME,
+	}: "UseMilitaryTime",
+	//CollapsePreviews
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
+	}: "CollapsePreviews",
+	//MessageDisplay
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_MESSAGE_DISPLAY,
+	}: "MessageDisplay",
+	//ChannelDisplayMode
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     "channel_display_mode",
+	}: "ChannelDisplayMode",
+	//TutorialStep
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
+		Name:     "",
+	}: "TutorialStep",
+	//EmailInterval
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+	}: "EmailInterval",
+}
+
+func (a *App) BulkExport(writer io.Writer) *model.AppError {
 	if err := a.ExportVersion(writer); err != nil {
 		return err
 	}
@@ -154,7 +211,41 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			userLine := ImportLineFromUser(user)
+			//Gathering here the exportable preferences to pass them on to ImportLineFromUser
+			exportedPrefs := make(map[string]string)
+			allPrefs, err := a.GetPreferencesForUser(user.Id)
+			if err != nil {
+				return err
+			}
+			for _, pref := range allPrefs {
+				//We need to manage the special cases
+				//Here we manage Tutorial steps
+				if pref.Category == model.PREFERENCE_CATEGORY_TUTORIAL_STEPS {
+					pref.Name = ""
+					//Then the email interval
+				} else if pref.Category == model.PREFERENCE_CATEGORY_NOTIFICATIONS && pref.Name == model.PREFERENCE_NAME_EMAIL_INTERVAL {
+					switch pref.Value {
+					case model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS:
+						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY
+					case model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN_AS_SECONDS:
+						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN
+					case model.PREFERENCE_EMAIL_INTERVAL_HOUR_AS_SECONDS:
+						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_HOUR
+					case "0":
+						pref.Value = ""
+					}
+				}
+				id, ok := exportablePreferences[ComparablePreference{
+					Category: pref.Category,
+					Name:     pref.Name,
+				}]
+				if ok {
+					mlog.Debug(id + " : " + pref.Value)
+					exportedPrefs[id] = pref.Value
+				}
+			}
+
+			userLine := ImportLineFromUser(user, exportedPrefs)
 
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
