@@ -205,6 +205,15 @@ func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) 
 	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
 }
 
+func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
+	if result := api.app.GetUsersByUsernames(usernames, ""); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users := result.Data.([]*model.User)
+		return a.sanitizeProfiles(users, asAdmin), nil
+	}
+}
+
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	return api.app.CreateChannel(channel, false)
 }
