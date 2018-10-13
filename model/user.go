@@ -499,11 +499,7 @@ func (u *User) IsSAMLUser() bool {
 }
 
 func (u *User) GetPreferredTimezone() string {
-	if u.Timezone["useAutomaticTimezone"] == "true" {
-		return u.Timezone["automaticTimezone"]
-	}
-
-	return u.Timezone["manualTimezone"]
+	return GetPreferredTimezone(u.Timezone)
 }
 
 // UserFromJson will decode the input and return a User
