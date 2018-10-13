@@ -674,6 +674,31 @@ func (_m *API) GetPostsSince(channelId string, time int64) (*model.PostList, *mo
 	return r0, r1
 }
 
+// GetProfileImage provides a mock function with given fields: userId
+func (_m *API) GetProfileImage(userId string) ([]byte, *model.AppError) {
+	ret := _m.Called(userId)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPublicChannelsForTeam provides a mock function with given fields: teamId, offset, limit
 func (_m *API) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(teamId, offset, limit)

@@ -2098,6 +2098,35 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 	return nil
 }
 
+type Z_GetProfileImageArgs struct {
+	A string
+}
+
+type Z_GetProfileImageReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetProfileImage(userId string) ([]byte, *model.AppError) {
+	_args := &Z_GetProfileImageArgs{userId}
+	_returns := &Z_GetProfileImageReturns{}
+	if err := g.client.Call("Plugin.GetProfileImage", _args, _returns); err != nil {
+		log.Printf("RPC call to GetProfileImage API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetProfileImage(args *Z_GetProfileImageArgs, returns *Z_GetProfileImageReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetProfileImage(userId string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetProfileImage(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetProfileImage called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CopyFileInfosArgs struct {
 	A string
 	B []string
