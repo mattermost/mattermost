@@ -71,6 +71,9 @@ type API interface {
 	// Requires an enterprise license, LDAP to be configured and for the user to use LDAP as an authentication method.
 	GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError)
 
+	// GetUsersByUsernames gets a list of users based on the provided slice of username.
+	GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError)
+
 	// CreateTeam creates a team.
 	CreateTeam(team *model.Team) (*model.Team, *model.AppError)
 
