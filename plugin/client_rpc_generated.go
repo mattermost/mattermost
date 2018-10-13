@@ -2098,6 +2098,35 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 	return nil
 }
 
+type Z_GetFileThumbnailArgs struct {
+	A string
+}
+
+type Z_GetFileThumbnailReturns struct {
+	A *model.FileInfo
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetFileThumbnail(fileId string) (*model.FileInfo, *model.AppError) {
+	_args := &Z_GetFileThumbnailArgs{fileId}
+	_returns := &Z_GetFileThumbnailReturns{}
+	if err := g.client.Call("Plugin.GetFileThumbnail", _args, _returns); err != nil {
+		log.Printf("RPC call to GetFileThumbnail API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetFileThumbnail(args *Z_GetFileThumbnailArgs, returns *Z_GetFileThumbnailReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetFileThumbnail(fileId string) (*model.FileInfo, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetFileThumbnail(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetFileThumbnail called but not implemented."))
+	}
+	return nil
+}
+
 type Z_ReadFileArgs struct {
 	A string
 }
