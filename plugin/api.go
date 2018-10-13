@@ -170,6 +170,9 @@ type API interface {
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
 
+	// GetPostThread gets a post with all the other posts in the same thread.
+	GetPostThread(postId string) (*model.PostList, *model.AppError)
+
 	// GetPost gets a post.
 	GetPost(postId string) (*model.Post, *model.AppError)
 
