@@ -337,6 +337,8 @@ func (api *PluginAPI) GetFilePreview(fileId string) ([]byte, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
+
+	return nil, nil
 }
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
