@@ -324,7 +324,19 @@ func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppErr
 }
 
 func (api *PluginAPI) GetFilePreview(fileId string) ([]byte, *model.AppError) {
-	return api.app.GetFilePreview(fileId)
+	info, err := api.app.GetFileInfo(fileId)
+	if err != nil {
+		return nil, err
+	}
+
+	if info.PreviewPath == "" {
+		return nil, model.NewAppError("GetFilePreview", "plugin_api.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+	}
+
+	fileReader, err := api.app.FileReader(info.PreviewPath)
+	if err != nil {
+		return nil, err
+	}
 }
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
