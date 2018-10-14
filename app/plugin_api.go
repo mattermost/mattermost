@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -335,12 +336,15 @@ func (api *PluginAPI) GetFilePreview(fileId string) ([]byte, *model.AppError) {
 
 	fileReader, err := api.app.FileReader(info.PreviewPath)
 	if err != nil {
+		err.StatusCode = http.StatusNotFound
 		return nil, err
 	}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(fileReader)
 
 	defer fileReader.Close()
 
-	return nil, nil
+	return buf.Bytes(), nil
 }
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
