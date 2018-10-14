@@ -323,7 +323,7 @@ func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppErr
 	return api.app.GetFileInfo(fileId)
 }
 
-func (api *PluginAPI) GetFileThumbnail(fileId string) (*model.FileInfo, *model.AppError) {
+func (api *PluginAPI) GetFileThumbnail(fileId string) ([]byte, *model.AppError) {
 	return api.app.GetFileThumbnail(fileId)
 }
 
