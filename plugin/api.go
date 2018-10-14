@@ -88,7 +88,7 @@ type API interface {
 
 	// GetTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount
 	// of unread messages and mentions the current user has for the teams it belongs to.
-	// An optional team ID can be set to exclude that team from the results. Must be authenticated.
+	// An optional team ID can be set to exclude that team from the results.
 	GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*model.TeamUnread, *model.AppError)
 
 	// UpdateTeam updates a team.
