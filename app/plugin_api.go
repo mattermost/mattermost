@@ -338,6 +338,8 @@ func (api *PluginAPI) GetFilePreview(fileId string) ([]byte, *model.AppError) {
 		return nil, err
 	}
 
+	defer fileReader.Close()
+
 	return nil, nil
 }
 
