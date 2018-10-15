@@ -185,6 +185,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
+	// GetChannelMembersByIds gets a channel membership for a particular User
+	//
+	// Minimum server version: 5.6
+	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 

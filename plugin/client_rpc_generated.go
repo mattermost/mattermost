@@ -1898,6 +1898,36 @@ func (s *apiRPCServer) GetChannelMembers(args *Z_GetChannelMembersArgs, returns 
 	return nil
 }
 
+type Z_GetChannelMembersByIdsArgs struct {
+	A string
+	B []string
+}
+
+type Z_GetChannelMembersByIdsReturns struct {
+	A *model.ChannelMembers
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+	_args := &Z_GetChannelMembersByIdsArgs{channelId, userIds}
+	_returns := &Z_GetChannelMembersByIdsReturns{}
+	if err := g.client.Call("Plugin.GetChannelMembersByIds", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelMembersByIds API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelMembersByIds(args *Z_GetChannelMembersByIdsArgs, returns *Z_GetChannelMembersByIdsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelMembersByIds(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelMembersByIds called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateChannelMemberRolesArgs struct {
 	A string
 	B string
