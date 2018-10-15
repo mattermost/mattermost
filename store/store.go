@@ -543,7 +543,7 @@ type GroupStore interface {
 	Delete(groupID string) StoreChannel
 
 	GetMemberUsers(groupID string) StoreChannel
-	CreateMember(groupID string, userID string) StoreChannel
+	CreateOrRestoreMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 
 	CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel

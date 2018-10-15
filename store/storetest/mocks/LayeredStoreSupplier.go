@@ -60,8 +60,8 @@ func (_m *LayeredStoreSupplier) GroupCreateGroupSyncable(ctx context.Context, gr
 	return r0
 }
 
-// GroupCreateMember provides a mock function with given fields: ctx, groupID, userID, hints
-func (_m *LayeredStoreSupplier) GroupCreateMember(ctx context.Context, groupID string, userID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupCreateOrRestoreMember provides a mock function with given fields: ctx, groupID, userID, hints
+func (_m *LayeredStoreSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID string, userID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]

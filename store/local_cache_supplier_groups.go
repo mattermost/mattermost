@@ -57,8 +57,8 @@ func (s *LocalCacheSupplier) GroupGetMemberUsers(ctx context.Context, groupID st
 	return s.Next().GroupGetMemberUsers(ctx, groupID, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupCreateMember(ctx context.Context, groupID string, userID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupCreateMember(ctx, groupID, userID, hints...)
+func (s *LocalCacheSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID string, userID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupCreateOrRestoreMember(ctx, groupID, userID, hints...)
 }
 
 func (s *LocalCacheSupplier) GroupDeleteMember(ctx context.Context, groupID string, userID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {

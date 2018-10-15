@@ -110,17 +110,17 @@ func TestDeleteGroup(t *testing.T) {
 	}
 }
 
-func TestCreateGroupMember(t *testing.T) {
+func TestCreateOrRestoreGroupMember(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	if _, err := th.App.CreateGroupMember(group.Id, th.BasicUser.Id); err != nil {
+	if _, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id); err != nil {
 		t.Log(err)
 		t.Fatal("Should create a group member")
 	}
 
-	if _, err := th.App.CreateGroupMember(group.Id, th.BasicUser.Id); err == nil {
+	if _, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id); err == nil {
 		t.Fatal("Should not create a new group member - group member already exist")
 	}
 }
@@ -129,7 +129,7 @@ func TestDeleteGroupMember(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupMember, err := th.App.CreateGroupMember(group.Id, th.BasicUser.Id)
+	groupMember, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
 	if err != nil {
 		t.Log(err)
 		t.Fatal("Should create a group member")

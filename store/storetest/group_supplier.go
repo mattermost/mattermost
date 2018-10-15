@@ -7,10 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGroupStore(t *testing.T, ss store.Store) {
@@ -22,7 +21,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
-	t.Run("CreateMember", func(t *testing.T) { testGroupCreateMember(t, ss) })
+	t.Run("CreateOrRestoreMember", func(t *testing.T) { testGroupCreateOrRestoreMember(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
 
 	t.Run("CreateGroupSyncable", func(t *testing.T) { testCreateGroupSyncable(t, ss) })
@@ -420,7 +419,7 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 	assert.Nil(t, res.Err)
 	user1 := res.Data.(*model.User)
 
-	res = <-ss.Group().CreateMember(group.Id, user1.Id)
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user1.Id)
 	assert.Nil(t, res.Err)
 
 	u2 := &model.User{
@@ -431,7 +430,7 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 	assert.Nil(t, res.Err)
 	user2 := res.Data.(*model.User)
 
-	res = <-ss.Group().CreateMember(group.Id, user2.Id)
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user2.Id)
 	assert.Nil(t, res.Err)
 
 	// Check returns members
@@ -453,7 +452,7 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 	assert.Equal(t, 1, len(groupMembers))
 }
 
-func testGroupCreateMember(t *testing.T, ss store.Store) {
+func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
 	// Create group
 	g1 := &model.Group{
 		Name:        model.NewId(),
@@ -475,7 +474,7 @@ func testGroupCreateMember(t *testing.T, ss store.Store) {
 	user := res2.Data.(*model.User)
 
 	// Happy path
-	res3 := <-ss.Group().CreateMember(group.Id, user.Id)
+	res3 := <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
 	assert.Nil(t, res3.Err)
 	d2 := res3.Data.(*model.GroupMember)
 	assert.Equal(t, d2.GroupId, group.Id)
@@ -484,16 +483,34 @@ func testGroupCreateMember(t *testing.T, ss store.Store) {
 	assert.Zero(t, d2.DeleteAt)
 
 	// Duplicate composite key (GroupId, UserId)
-	res4 := <-ss.Group().CreateMember(group.Id, user.Id)
+	res4 := <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
 	assert.Equal(t, res4.Err.Id, "store.sql_group.uniqueness_error")
 
 	// Invalid UserId
-	res5 := <-ss.Group().CreateMember(group.Id, model.NewId())
+	res5 := <-ss.Group().CreateOrRestoreMember(group.Id, model.NewId())
 	assert.Equal(t, res5.Err.Id, "store.sql_group.insert_error")
 
 	// Invalid GroupId
-	res6 := <-ss.Group().CreateMember(model.NewId(), user.Id)
+	res6 := <-ss.Group().CreateOrRestoreMember(model.NewId(), user.Id)
 	assert.Equal(t, res6.Err.Id, "store.sql_group.insert_error")
+
+	// Restores a deleted member
+	res := <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
+	assert.NotNil(t, res.Err)
+
+	res = <-ss.Group().DeleteMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+
+	res = <-ss.Group().GetMemberUsers(group.Id)
+	beforeRestoreCount := len(res.Data.([]*model.User))
+
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+
+	res = <-ss.Group().GetMemberUsers(group.Id)
+	afterRestoreCount := len(res.Data.([]*model.User))
+
+	assert.Equal(t, beforeRestoreCount+1, afterRestoreCount)
 }
 
 func testGroupDeleteMember(t *testing.T, ss store.Store) {
@@ -518,7 +535,7 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 	user := res2.Data.(*model.User)
 
 	// Create member
-	res3 := <-ss.Group().CreateMember(group.Id, user.Id)
+	res3 := <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
 	assert.Nil(t, res3.Err)
 	d1 := res3.Data.(*model.GroupMember)
 

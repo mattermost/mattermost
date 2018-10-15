@@ -375,9 +375,9 @@ func (s *LayeredGroupStore) GetMemberUsers(groupID string) StoreChannel {
 	})
 }
 
-func (s *LayeredGroupStore) CreateMember(groupID string, userID string) StoreChannel {
+func (s *LayeredGroupStore) CreateOrRestoreMember(groupID string, userID string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupCreateMember(s.TmpContext, groupID, userID)
+		return supplier.GroupCreateOrRestoreMember(s.TmpContext, groupID, userID)
 	})
 }
 

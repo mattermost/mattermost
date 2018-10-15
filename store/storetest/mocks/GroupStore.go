@@ -45,8 +45,8 @@ func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) st
 	return r0
 }
 
-// CreateMember provides a mock function with given fields: groupID, userID
-func (_m *GroupStore) CreateMember(groupID string, userID string) store.StoreChannel {
+// CreateOrRestoreMember provides a mock function with given fields: groupID, userID
+func (_m *GroupStore) CreateOrRestoreMember(groupID string, userID string) store.StoreChannel {
 	ret := _m.Called(groupID, userID)
 
 	var r0 store.StoreChannel
