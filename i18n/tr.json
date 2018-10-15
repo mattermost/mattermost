@@ -943,11 +943,11 @@
     "translation": "Oturum OAuth olmadığı halde sorgu dizgesinde kod belirtilmiş"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "Özel hizmet koşulları özelliği devre dışı"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Lütfen Özel Hizmet Koşulları metnini yazın."
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "Kimlik Doğrulama Aktarımı yapılandırılmamış ya da bu sunucu üzerinde kullanılamıyor."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "Onaylanan değer hatalı"
   },
   {
@@ -4651,22 +4651,6 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "Zorunlu hizmet koşulları özelliği eksik: olusturulma_zamani."
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Hizmet koşulları kodu geçersiz."
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Özel hizmet koşulları metni çok uzun. En çok {{.MaxLength}} karakter uzunluğunda olabilir."
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "Zorunlu hizmet koşulları özelliği eksik: kullanici_kodu."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Ad içinde 2 ya da daha fazla küçük alfasayısal karakter bulunmalıdır"
   },
@@ -4721,6 +4705,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Kullanıcı kodu geçersiz"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: olusturulma_zamani."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Hizmet koşulları kodu geçersiz."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Özel hizmet koşulları metni çok uzun. En çok {{.MaxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: kullanici_kodu."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5863,22 +5863,6 @@
     "translation": "Şemayı kaydedecek hareket işlenemedi"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "Hizmet koşulları kaydedilemedi."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Hizmet koşulları alınamadı."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Var olan hizmet koşulları için kaydetme çağrısı yapılmamalıdır."
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "Oturumlar sayılamadı"
   },
@@ -6149,6 +6133,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Son takım simgesi güncelleme tarihi güncellenemedi"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Hizmet koşulları kaydedilemedi."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Hizmet koşulları alınamadı."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Var olan hizmet koşulları için kaydetme çağrısı yapılmamalıdır."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
