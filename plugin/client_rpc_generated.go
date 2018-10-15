@@ -1596,6 +1596,36 @@ func (s *apiRPCServer) UpdateChannel(args *Z_UpdateChannelArgs, returns *Z_Updat
 	return nil
 }
 
+type Z_SearchChannelsArgs struct {
+	A string
+	B string
+}
+
+type Z_SearchChannelsReturns struct {
+	A *model.ChannelList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	_args := &Z_SearchChannelsArgs{teamId, term}
+	_returns := &Z_SearchChannelsReturns{}
+	if err := g.client.Call("Plugin.SearchChannels", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchChannels API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchChannels(args *Z_SearchChannelsArgs, returns *Z_SearchChannelsReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchChannels(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SearchChannels called but not implemented."))
+	}
+	return nil
+}
+
 type Z_AddChannelMemberArgs struct {
 	A string
 	B string
