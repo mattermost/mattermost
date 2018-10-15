@@ -134,6 +134,9 @@ type API interface {
 	// UpdateChannel updates a channel.
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
+	// SearchChannels returns the channels on a team matching the provided search term.
+	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
+
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 

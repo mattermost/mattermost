@@ -1316,6 +1316,31 @@ func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	return r0
 }
 
+// SearchChannels provides a mock function with given fields: teamId, term
+func (_m *API) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(teamId, term)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, string) *model.ChannelList); ok {
+		r0 = rf(teamId, term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(teamId, term)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SendEphemeralPost provides a mock function with given fields: userId, post
 func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	ret := _m.Called(userId, post)
