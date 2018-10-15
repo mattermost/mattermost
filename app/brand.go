@@ -77,3 +77,19 @@ func (a *App) GetBrandImage() ([]byte, *model.AppError) {
 
 	return img, nil
 }
+
+func (a *App) DeleteBrandImage() *model.AppError {
+	filePath := BRAND_FILE_PATH + BRAND_FILE_NAME
+
+	fileExists, err := a.FileExists(filePath)
+
+	if err != nil {
+		return err
+	}
+
+	if !fileExists {
+		return model.NewAppError("DeleteBrandImage", "api.admin.delete_brand_image.storage.not_found", nil, "", http.StatusNotFound)
+	}
+
+	return a.RemoveFile(filePath)
+}
