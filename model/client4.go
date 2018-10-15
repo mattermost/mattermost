@@ -2997,6 +2997,16 @@ func (c *Client4) GetBrandImage() ([]byte, *Response) {
 	}
 }
 
+func (c *Client4) DeleteBrandImage() *Response {
+	r, err := c.DoApiDelete(c.GetBrandRoute() + "/image")
+
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+
+	return BuildResponse(r)
+}
+
 // UploadBrandImage sets the brand image for the system.
 func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 	body := &bytes.Buffer{}
