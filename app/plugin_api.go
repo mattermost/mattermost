@@ -323,6 +323,16 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	return api.app.UpdatePost(post, false)
 }
 
+func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
+	user, err := api.app.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	data, _, err := api.app.GetProfileImage(user)
+	return data, err
+}
+
 func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
 	return api.app.CopyFileInfos(userId, fileIds)
 }
