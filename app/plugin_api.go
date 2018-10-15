@@ -349,6 +349,10 @@ func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
 	return data, err
 }
 
+func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
+	return api.app.GetEmojiByName(name)
+}
+
 func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
 	return api.app.CopyFileInfos(userId, fileIds)
 }
