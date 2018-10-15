@@ -1242,7 +1242,7 @@ func (_m *API) GetUsersInChannel(channelId string, page int, perPage int) ([]*mo
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
-		r0 = rf(channelId, limit, perPage)
+		r0 = rf(channelId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1251,7 +1251,7 @@ func (_m *API) GetUsersInChannel(channelId string, page int, perPage int) ([]*mo
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(channelId, limit, perPage)
+		r1 = rf(channelId, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
