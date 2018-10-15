@@ -327,6 +327,10 @@ func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostLi
 	return api.app.GetPostsSince(channelId, time)
 }
 
+func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsBeforePost(channelId, postId, page, perPage)
+}
+
 func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
 	return api.app.GetPostsPage(channelId, page, perPage)
 }
