@@ -660,6 +660,8 @@ func (s SqlChannelStore) Restore(channelId string, time int64) store.StoreChanne
 // @see ChannelStoreExperimental for how this update propagates to the PublicChannels table.
 func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		defer s.InvalidateChannel(channelId)
+
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
