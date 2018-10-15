@@ -1038,6 +1038,31 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.A
 	return r0, r1
 }
 
+// GetUsersInTeam provides a mock function with given fields: teamId, page, perPage
+func (_m *API) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	ret := _m.Called(teamId, page, perPage)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
+		r0 = rf(teamId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(teamId, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // HasPermissionTo provides a mock function with given fields: userId, permission
 func (_m *API) HasPermissionTo(userId string, permission *model.Permission) bool {
 	ret := _m.Called(userId, permission)

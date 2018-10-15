@@ -52,6 +52,9 @@ type API interface {
 	// GetUserByUsername gets a user by their username.
 	GetUserByUsername(name string) (*model.User, *model.AppError)
 
+	// GetUsersInTeam gets users in team.
+	GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
+
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
 
