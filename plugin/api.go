@@ -78,7 +78,7 @@ type API interface {
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
 	// GetUsersInChannelByStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status.
-	GetUsersInChannelByStatus(channelId string, page, perPage int) ([]*model.User, *model.AppError)
+	GetUsersInChannelByStatus(channelId string, limit, perPage int) ([]*model.User, *model.AppError)
 
 	// GetLDAPUserAttributes will return LDAP attributes for a user.
 	// The attributes parameter should be a list of attributes to pull.
