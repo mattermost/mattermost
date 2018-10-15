@@ -1539,6 +1539,37 @@ func (s *apiRPCServer) GetChannelByNameForTeamName(args *Z_GetChannelByNameForTe
 	return nil
 }
 
+type Z_GetChannelsForTeamForUserArgs struct {
+	A string
+	B string
+	C bool
+}
+
+type Z_GetChannelsForTeamForUserReturns struct {
+	A *model.ChannelList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	_args := &Z_GetChannelsForTeamForUserArgs{teamId, userId, includeDeleted}
+	_returns := &Z_GetChannelsForTeamForUserReturns{}
+	if err := g.client.Call("Plugin.GetChannelsForTeamForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelsForTeamForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelsForTeamForUser(args *Z_GetChannelsForTeamForUserArgs, returns *Z_GetChannelsForTeamForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelsForTeamForUser(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelsForTeamForUser called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetDirectChannelArgs struct {
 	A string
 	B string
