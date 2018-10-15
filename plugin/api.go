@@ -256,6 +256,9 @@ type API interface {
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
+	// GetFileLink gets the public link to a file by fileId.
+	GetFileLink(fileId string) (string, *model.AppError)
+
 	// ReadFileAtPath reads the file from the backend for a specific path
 	//
 	// Minimum server version: 5.3
