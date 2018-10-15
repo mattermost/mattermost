@@ -401,5 +401,20 @@ func TestPrintConfigValues(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigShow(t *testing.T) {
+
+	// error
+	assert.Error(t, RunCommand(t, "config", "show", "abc"))
+
+	// no error
+	assert.NoError(t, RunCommand(t, "config", "show"))
+
+	// check the output
+	output := CheckCommand(t, "config", "show")
+	assert.Contains(t, string(output), "SqlSettings")
+	assert.Contains(t, string(output), "MessageExportSettings")
+	assert.Contains(t, string(output), "AnnouncementSettings")
 
 }
