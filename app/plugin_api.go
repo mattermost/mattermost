@@ -291,7 +291,7 @@ func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppEr
 }
 
 func (api *PluginAPI) GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersInChannel(channelId, page, perPage)
+	return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
