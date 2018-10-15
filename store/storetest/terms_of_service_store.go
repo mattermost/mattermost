@@ -14,6 +14,7 @@ func TestTermsOfServiceStore(t *testing.T, ss store.Store) {
 	t.Run("TestSaveTermsOfService", func(t *testing.T) { testSaveTermsOfService(t, ss) })
 	t.Run("TestGetLatestTermsOfService", func(t *testing.T) { testGetLatestTermsOfService(t, ss) })
 	t.Run("TestGetTermsOfService", func(t *testing.T) { testGetTermsOfService(t, ss) })
+	t.Run("TestGetLatestMandatoryTermsOfService", func(t *testing.T) { testGetLatestMandatoryTermsOfService(t, ss) })
 }
 
 func testSaveTermsOfService(t *testing.T, ss store.Store) {
@@ -81,4 +82,32 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	receivedTermsOfService := r1.Data.(*model.TermsOfService)
 	assert.Equal(t, "terms of service", receivedTermsOfService.Text)
 	assert.True(t, receivedTermsOfService.Mandatory)
+}
+
+func testGetLatestMandatoryTermsOfService(t *testing.T, ss store.Store) {
+	u1 := model.User{}
+	u1.Username = model.NewId()
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id, Mandatory: true}
+	store.Must(ss.TermsOfService().Save(termsOfService))
+
+	r1 := <-ss.TermsOfService().GetLatestMandatory(false)
+	assert.Nil(t, r1.Err)
+	latestMandatoryTermsOfService := r1.Data.(*model.TermsOfService)
+	assert.True(t, latestMandatoryTermsOfService.Mandatory)
+	assert.Equal(t, "terms of service", latestMandatoryTermsOfService.Text)
+
+	termsOfService = &model.TermsOfService{Text: "new terms of service", UserId: u1.Id, Mandatory: false}
+	store.Must(ss.TermsOfService().Save(termsOfService))
+
+	r1 = <-ss.TermsOfService().GetLatestMandatory(false)
+	assert.Nil(t, r1.Err)
+
+	// latestMandatoryTermsOfService should still point to previously created TOS as latest one is not mandatory
+	latestMandatoryTermsOfService = r1.Data.(*model.TermsOfService)
+	assert.True(t, latestMandatoryTermsOfService.Mandatory)
+	assert.Equal(t, "terms of service", latestMandatoryTermsOfService.Text)
 }
