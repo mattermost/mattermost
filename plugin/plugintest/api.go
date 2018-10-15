@@ -599,6 +599,31 @@ func (_m *API) GetPost(postId string) (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
+// GetPostThread provides a mock function with given fields: postId
+func (_m *API) GetPostThread(postId string) (*model.PostList, *model.AppError) {
+	ret := _m.Called(postId)
+
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string) *model.PostList); ok {
+		r0 = rf(postId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(postId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPostsForChannel provides a mock function with given fields: channelId, page, perPage
 func (_m *API) GetPostsForChannel(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
 	ret := _m.Called(channelId, page, perPage)

@@ -1950,6 +1950,35 @@ func (s *apiRPCServer) DeletePost(args *Z_DeletePostArgs, returns *Z_DeletePostR
 	return nil
 }
 
+type Z_GetPostThreadArgs struct {
+	A string
+}
+
+type Z_GetPostThreadReturns struct {
+	A *model.PostList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPostThread(postId string) (*model.PostList, *model.AppError) {
+	_args := &Z_GetPostThreadArgs{postId}
+	_returns := &Z_GetPostThreadReturns{}
+	if err := g.client.Call("Plugin.GetPostThread", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPostThread API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPostThread(args *Z_GetPostThreadArgs, returns *Z_GetPostThreadReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPostThread(postId string) (*model.PostList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPostThread(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPostThread called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPostArgs struct {
 	A string
 }
