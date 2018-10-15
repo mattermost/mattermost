@@ -524,6 +524,31 @@ func (_m *API) GetDirectChannel(userId1 string, userId2 string) (*model.Channel,
 	return r0, r1
 }
 
+// GetEmojiByName provides a mock function with given fields: name
+func (_m *API) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
+	ret := _m.Called(name)
+
+	var r0 *model.Emoji
+	if rf, ok := ret.Get(0).(func(string) *model.Emoji); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Emoji)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetFileInfo provides a mock function with given fields: fileId
 func (_m *API) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	ret := _m.Called(fileId)
