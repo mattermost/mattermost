@@ -185,6 +185,9 @@ type API interface {
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
+	// GetProfileImage gets user's profile image
+	GetProfileImage(userId string) ([]byte, *model.AppError)
+
 	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
 	// recording the given user id as the new creator and returning the new set of file ids.
 	//
