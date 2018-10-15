@@ -943,11 +943,11 @@
     "translation": "La sessione non è OAuth ma il token è presente nella stringa di query"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "La funzione termini di servizio personalizzati è disattivata"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Inserire il testo dei Termini di Servizio personalizzati."
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "Autenticazione sul Trasferimento non configurata o non disponibile su questo server."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "Accettato valore invalido"
   },
   {
@@ -4651,22 +4651,6 @@
     "translation": "Id utente non valido"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "Manca una proprietà obbligatoria dei termini di servizio: create_at."
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Id dei termini di servizio non valido."
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Il testo dei termini di servizio personalizzati è troppo lungo. Massimo {{.MaxLength}} caratteri."
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "Manca una proprietà obbligatoria dei termini di servizio: user_id."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Nome deve essere composto da 2 o più lettere minuscole alfanumeriche"
   },
@@ -4721,6 +4705,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Id utente non valido"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Manca una proprietà obbligatoria dei termini di servizio: create_at."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Id dei termini di servizio non valido."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Il testo dei termini di servizio personalizzati è troppo lungo. Massimo {{.MaxLength}} caratteri."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Manca una proprietà obbligatoria dei termini di servizio: user_id."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5863,22 +5863,6 @@
     "translation": "Impossibile confermare la transazione per salvare lo schema"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "Impossibile salvare i termini di servizio."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Impossibile recuperare i termini di servizio."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "Termini di servizio non trovati."
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Non deve chiamare salva per i termini di servizio esistenti"
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "Impossibile contare le sessioni"
   },
@@ -6149,6 +6133,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Impossibile aggiornare la data dell'ultimo aggiornamento all'icona del gruppo"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Impossibile salvare i termini di servizio."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Impossibile recuperare i termini di servizio."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "Termini di servizio non trovati."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Non deve chiamare salva per i termini di servizio esistenti"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",

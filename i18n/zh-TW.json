@@ -943,11 +943,11 @@
     "translation": "工作階段並非使用 OAuth 協定，查詢字串中卻出現了 Token"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "已停用自訂服務條款"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "請輸入自訂服務條款的文字。"
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "此伺服器尚未設定或不支援認證轉移。"
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "已接收的值有問題"
   },
   {
@@ -4651,22 +4651,6 @@
     "translation": "無效的使用者 ID"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "缺少必要的服務條款屬性：建立日期。"
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "無效的服務條款 ID。"
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "自訂使用條款文字過長。最多僅允許 {{.MaxLength}} 個字"
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "缺少必要的服務條款屬性：使用者 ID。"
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "名稱必須是2個以上的小寫英數字元"
   },
@@ -4721,6 +4705,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "無效的使用者 ID"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "缺少必要的服務條款屬性：建立日期。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "無效的服務條款 ID。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "自訂使用條款文字過長。最多僅允許 {{.MaxLength}} 個字"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "缺少必要的服務條款屬性：使用者 ID。"
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5863,22 +5863,6 @@
     "translation": "認可交易以儲存配置時失敗"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "無法儲存使用條款"
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "無法取得使用條款"
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "找不到使用條款"
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "不能對現有的使用條款呼叫儲存"
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "無法計算工作階段數量"
   },
@@ -6149,6 +6133,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "無法更新最後一次團隊圖示更新的日期"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "無法儲存使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "無法取得使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "找不到使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "不能對現有的使用條款呼叫儲存"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",

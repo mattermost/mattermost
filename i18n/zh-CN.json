@@ -943,11 +943,11 @@
     "translation": "会话不是OAuth但是查询字符串中提供的令牌"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "已停用自定义服务条款"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "请输入您的自定义服务条款文字。"
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "此服务器未配置验证转移。"
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "接受值有问题"
   },
   {
@@ -4651,22 +4651,6 @@
     "translation": "无效用户id"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "服务条款缺少消息必须属性：create_at。"
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "无效的服务条款 id。"
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "自定义服务条款文字过长。最多允许 {{.MaxLength}} 个字符。"
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "服务条款缺少消息必须属性：user_id。"
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "名称必须是2个或以上的小写字母"
   },
@@ -4721,6 +4705,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "无效用户id"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "服务条款缺少必须属性：create_at。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "无效的服务条款 id。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "自定义服务条款文字过长。最多允许 {{.MaxLength}} 个字符。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "服务条款缺少必须属性：user_id。"
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5064,7 +5064,7 @@
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
+    "translation": "我们无法从频道移除已停用的用户"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5863,22 +5863,6 @@
     "translation": "提交事务以保存方案失败"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "无法保存服务条款。"
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "无法获取服务条款。"
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "未找到服务条款。"
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "不能为现有的服务条款调用保存。"
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "无法会话计数"
   },
@@ -6149,6 +6133,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "无法更新团队图标更新日期"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "无法保存服务条款。"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "无法获取服务条款。"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "未找到服务条款。"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "不能为现有的服务条款调用保存。"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",

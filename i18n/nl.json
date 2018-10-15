@@ -943,11 +943,11 @@
     "translation": "Sessie is niet OAuth, maar token was doorgegeven in de query string"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "Custom terms of service feature is disabled"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "Bad accepted value"
   },
   {
@@ -4651,22 +4651,6 @@
     "translation": "Ongeldige gebruikers id"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "Mist vereiste team kenmerk: naam."
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Invalid term of service id."
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "Mist vereiste team kenmerk: naam."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Naam oet 2 of meer kleine letters bevatten"
   },
@@ -4721,6 +4705,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Ongeldige gebruikers id"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Mist vereiste team kenmerk: naam."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5863,22 +5863,6 @@
     "translation": "Failed to commit the transaction to save the scheme"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "Unable to save terms of service."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Must not call save for existing terms of service."
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "Bericht kan niet opgehaald worden"
   },
@@ -6149,6 +6133,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Unable to update the date of the last team icon update"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
