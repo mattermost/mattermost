@@ -14,6 +14,7 @@ import (
 func (api *API) InitBrand() {
 	api.BaseRoutes.Brand.Handle("/image", api.ApiHandlerTrustRequester(getBrandImage)).Methods("GET")
 	api.BaseRoutes.Brand.Handle("/image", api.ApiSessionRequired(uploadBrandImage)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/image", api.ApiSessionRequired(deleteBrandImage)).Methods("DELETE")
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -69,5 +70,19 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	w.WriteHeader(http.StatusCreated)
+	ReturnStatusOK(w)
+}
+
+func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.DeleteBrandImage(); err != nil {
+		c.Err = err
+		return
+	}
+
 	ReturnStatusOK(w)
 }

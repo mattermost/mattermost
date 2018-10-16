@@ -121,6 +121,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	}
 
 	a.Plugins.Deactivate(id)
+	a.UnregisterPluginCommands(id)
 
 	err = os.RemoveAll(pluginPath)
 	if err != nil {

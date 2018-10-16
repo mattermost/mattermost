@@ -729,22 +729,6 @@ func (_m *LayeredStoreDatabaseLayer) SchemeSave(ctx context.Context, scheme *mod
 	return r0
 }
 
-// ServiceTerms provides a mock function with given fields:
-func (_m *LayeredStoreDatabaseLayer) ServiceTerms() store.ServiceTermsStore {
-	ret := _m.Called()
-
-	var r0 store.ServiceTermsStore
-	if rf, ok := ret.Get(0).(func() store.ServiceTermsStore); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.ServiceTermsStore)
-		}
-	}
-
-	return r0
-}
-
 // Session provides a mock function with given fields:
 func (_m *LayeredStoreDatabaseLayer) Session() store.SessionStore {
 	ret := _m.Called()
@@ -808,6 +792,22 @@ func (_m *LayeredStoreDatabaseLayer) Team() store.TeamStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.TeamStore)
+		}
+	}
+
+	return r0
+}
+
+// TermsOfService provides a mock function with given fields:
+func (_m *LayeredStoreDatabaseLayer) TermsOfService() store.TermsOfServiceStore {
+	ret := _m.Called()
+
+	var r0 store.TermsOfServiceStore
+	if rf, ok := ret.Get(0).(func() store.TermsOfServiceStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.TermsOfServiceStore)
 		}
 	}
 

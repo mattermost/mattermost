@@ -283,6 +283,8 @@ func (s SqlChannelStoreExperimental) SetDeleteAt(channelId string, deleteAt, upd
 	}
 
 	return store.Do(func(result *store.StoreResult) {
+		defer s.InvalidateChannel(channelId)
+
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStoreExperimental.SetDeleteAt", "store.sql_channel.set_delete_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)

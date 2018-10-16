@@ -69,6 +69,15 @@ var SearchTeamCmd = &cobra.Command{
 	RunE:    searchTeamCmdF,
 }
 
+var ArchiveTeamCmd = &cobra.Command{
+	Use:     "archive [teams]",
+	Short:   "Archive teams",
+	Long:    "Archive teams based on name",
+	Example: "  team archive team1",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    archiveTeamCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -84,6 +93,7 @@ func init() {
 		DeleteTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
+		ArchiveTeamCmd,
 	)
 	RootCmd.AddCommand(TeamCmd)
 }
@@ -253,7 +263,11 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 	}
 
 	for _, team := range teams {
-		CommandPrettyPrintln(team.Name)
+		if team.DeleteAt > 0 {
+			CommandPrettyPrintln(team.Name + " (archived)")
+		} else {
+			CommandPrettyPrintln(team.Name)
+		}
 	}
 
 	return nil
@@ -279,7 +293,11 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	sortedTeams := removeDuplicatesAndSortTeams(teams)
 
 	for _, team := range sortedTeams {
-		CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")")
+		if team.DeleteAt > 0 {
+			CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")" + " (archived)")
+		} else {
+			CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")")
+		}
 	}
 
 	return nil
@@ -299,4 +317,25 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 		return result[i].Name < result[j].Name
 	})
 	return result
+}
+
+func archiveTeamCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	foundTeams := getTeamsFromTeamArgs(a, args)
+	for i, team := range foundTeams {
+		if team == nil {
+			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		if err := a.SoftDeleteTeam(team.Id); err != nil {
+			CommandPrintErrorln("Unable to archive team '"+team.Name+"' error: ", err)
+		}
+	}
+
+	return nil
 }

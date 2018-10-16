@@ -545,7 +545,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	}
 }
 
-func TestRecordUserServiceTermsAction(t *testing.T) {
+func TestRecordUserTermsOfServiceAction(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -563,24 +563,24 @@ func TestRecordUserServiceTermsAction(t *testing.T) {
 
 	defer th.App.PermanentDeleteUser(user)
 
-	serviceTerms, err := th.App.CreateServiceTerms("text", user.Id)
+	termsOfService, err := th.App.CreateTermsOfService("text", user.Id)
 	if err != nil {
-		t.Fatalf("failed to create service terms: %v", err)
+		t.Fatalf("failed to create terms of service: %v", err)
 	}
 
-	err = th.App.RecordUserServiceTermsAction(user.Id, serviceTerms.Id, true)
+	err = th.App.RecordUserTermsOfServiceAction(user.Id, termsOfService.Id, true)
 	if err != nil {
 		t.Fatalf("failed to record user action: %v", err)
 	}
 
 	nuser, err := th.App.GetUser(user.Id)
-	assert.Equal(t, serviceTerms.Id, nuser.AcceptedServiceTermsId)
+	assert.Equal(t, termsOfService.Id, nuser.AcceptedTermsOfServiceId)
 
-	err = th.App.RecordUserServiceTermsAction(user.Id, serviceTerms.Id, false)
+	err = th.App.RecordUserTermsOfServiceAction(user.Id, termsOfService.Id, false)
 	if err != nil {
 		t.Fatalf("failed to record user action: %v", err)
 	}
 
 	nuser, err = th.App.GetUser(user.Id)
-	assert.Empty(t, nuser.AcceptedServiceTermsId)
+	assert.Empty(t, nuser.AcceptedTermsOfServiceId)
 }
