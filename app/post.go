@@ -22,6 +22,11 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+const (
+	MAX_LIMIT_POSTS_SINCE = 1000
+	PAGE_DEFAULT          = 0
+)
+
 func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	var channel *model.Channel
