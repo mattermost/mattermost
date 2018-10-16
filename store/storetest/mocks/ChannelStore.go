@@ -442,6 +442,21 @@ func (_m *ChannelStore) GetMember(channelId string, userId string) store.StoreCh
 	return r0
 }
 
+func (_m *ChannelStore) GetChannelMembersTimezones(channelId string) store.StoreChannel {
+	ret := _m.Called(channelId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetMemberCount provides a mock function with given fields: channelId, allowFromCache
 func (_m *ChannelStore) GetMemberCount(channelId string, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(channelId, allowFromCache)

@@ -2335,3 +2335,52 @@ func TestUpdateChannelScheme(t *testing.T) {
 	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestGetChannelMembersTimezones(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	user.Timezone["useAutomaticTimezone"] = "false"
+	user.Timezone["manualTimezone"] = "XOXO/BLABLA"
+	_, resp := Client.UpdateUser(user)
+	CheckNoError(t, resp)
+
+	user2 := th.BasicUser2
+	user2.Timezone["automaticTimezone"] = "NoWhere/Island"
+	_, resp = th.SystemAdminClient.UpdateUser(user2)
+	CheckNoError(t, resp)
+
+	timezone, resp := Client.GetChannelMembersTimezones(th.BasicChannel.Id)
+	CheckNoError(t, resp)
+	if len(timezone) != 2 {
+		t.Fatal("should return 2 timezones")
+	}
+
+	//both users have same timezone
+	user2.Timezone["automaticTimezone"] = "XOXO/BLABLA"
+	_, resp = th.SystemAdminClient.UpdateUser(user2)
+	CheckNoError(t, resp)
+
+	timezone, resp = Client.GetChannelMembersTimezones(th.BasicChannel.Id)
+	CheckNoError(t, resp)
+	if len(timezone) != 1 {
+		t.Fatal("should return 1 timezone")
+	}
+
+	//no timezone set should return empty
+	user2.Timezone["automaticTimezone"] = ""
+	_, resp = th.SystemAdminClient.UpdateUser(user2)
+	CheckNoError(t, resp)
+
+	user.Timezone["manualTimezone"] = ""
+	_, resp = Client.UpdateUser(user)
+
+	timezone, resp = Client.GetChannelMembersTimezones(th.BasicChannel.Id)
+	CheckNoError(t, resp)
+	if len(timezone) > 0 {
+		t.Fatal("should return 0 timezone")
+	}
+
+}

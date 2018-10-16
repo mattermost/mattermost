@@ -567,7 +567,7 @@ func IsDomainName(s string) bool {
 
 func RemoveDuplicateStrings(in []string) []string {
 	out := []string{}
-	seen := make(map[string]bool)
+	seen := make(map[string]bool, len(in))
 
 	for _, item := range in {
 		if !seen[item] {
@@ -578,4 +578,12 @@ func RemoveDuplicateStrings(in []string) []string {
 	}
 
 	return out
+}
+
+func GetPreferredTimezone(timezone StringMap) string {
+	if timezone["useAutomaticTimezone"] == "true" {
+		return timezone["automaticTimezone"]
+	}
+
+	return timezone["manualTimezone"]
 }

@@ -65,7 +65,7 @@ type Store interface {
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
-	ServiceTerms() ServiceTermsStore
+	TermsOfService() TermsOfServiceStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -147,6 +147,7 @@ type ChannelStore interface {
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
+	GetChannelMembersTimezones(channelId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
@@ -503,6 +504,8 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+	DeleteAllForPlugin(PluginId string) StoreChannel
+	DeleteAllExpired() StoreChannel
 	List(pluginId string, page, perPage int) StoreChannel
 }
 
@@ -524,8 +527,8 @@ type SchemeStore interface {
 	PermanentDeleteAll() StoreChannel
 }
 
-type ServiceTermsStore interface {
-	Save(serviceTerms *model.ServiceTerms) StoreChannel
+type TermsOfServiceStore interface {
+	Save(termsOfService *model.TermsOfService) StoreChannel
 	GetLatest(allowFromCache bool) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 }

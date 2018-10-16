@@ -401,11 +401,11 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
-func (c *Client4) GetRegisterServiceTermsRoute(userId string) string {
+func (c *Client4) GetRegisterTermsOfServiceRoute(userId string) string {
 	return c.GetUserRoute(userId) + "/terms_of_service"
 }
 
-func (c *Client4) GetServiceTermsRoute() string {
+func (c *Client4) GetTermsOfServiceRoute() string {
 	return "/terms_of_service"
 }
 
@@ -1746,6 +1746,17 @@ func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats,
 	}
 }
 
+// GetChannelMembersTimezones gets a list of timezones for a channel.
+func (c *Client4) GetChannelMembersTimezones(channelId string) ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/timezones", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
 // GetPinnedPosts gets a list of pinned posts.
 func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/pinned", etag); err != nil {
@@ -2997,6 +3008,16 @@ func (c *Client4) GetBrandImage() ([]byte, *Response) {
 	}
 }
 
+func (c *Client4) DeleteBrandImage() *Response {
+	r, err := c.DoApiDelete(c.GetBrandRoute() + "/image")
+
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+
+	return BuildResponse(r)
+}
+
 // UploadBrandImage sets the brand image for the system.
 func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 	body := &bytes.Buffer{}
@@ -3839,9 +3860,9 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	}
 }
 
-func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId string, accepted bool) (*bool, *Response) {
-	url := c.GetRegisterServiceTermsRoute(userId)
-	data := map[string]interface{}{"serviceTermsId": serviceTermsId, "accepted": accepted}
+func (c *Client4) RegisteTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) (*bool, *Response) {
+	url := c.GetRegisterTermsOfServiceRoute(userId)
+	data := map[string]interface{}{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
 
 	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -3851,25 +3872,25 @@ func (c *Client4) RegisterServiceTermsAction(userId, serviceTermsId string, acce
 	}
 }
 
-func (c *Client4) GetServiceTerms(etag string) (*ServiceTerms, *Response) {
-	url := c.GetServiceTermsRoute()
+func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response) {
+	url := c.GetTermsOfServiceRoute()
 
 	if r, err := c.DoApiGet(url, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return ServiceTermsFromJson(r.Body), BuildResponse(r)
+		return TermsOfServiceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
-func (c *Client4) CreateServiceTerms(text, userId string) (*ServiceTerms, *Response) {
-	url := c.GetServiceTermsRoute()
+func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response) {
+	url := c.GetTermsOfServiceRoute()
 
 	data := map[string]string{"text": text}
 	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return ServiceTermsFromJson(r.Body), BuildResponse(r)
+		return TermsOfServiceFromJson(r.Body), BuildResponse(r)
 	}
 }
