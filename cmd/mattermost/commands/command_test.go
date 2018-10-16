@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/api4"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -127,32 +128,32 @@ func TestCreateCommand(t *testing.T) {
 	}
 }
 
-// func TestDeleteCommand(t *testing.T) {
-// 	th := api4.Setup().InitBasic()
-// 	defer th.TearDown()
-// 	url := "http://localhost:8000/test-command"
-// 	team := th.BasicTeam
-// 	user := th.BasicUser
-// 	th.LinkUserToTeam(user, team)
+func TestDeleteCommand(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+	url := "http://localhost:8000/test-command"
+	team := th.BasicTeam
+	user := th.BasicUser
+	th.LinkUserToTeam(user, team)
 
-// 	// Check the appropriate permissions are enforced.
-// 	defaultRolePermissions := th.SaveDefaultRolePermissions()
-// 	defer func() {
-// 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-// 	}()
-// 	id := model.NewId()
-// 	c := &model.Command{
-// 		DisplayName: "dn_" + id,
-// 		Method:      "G",
-// 		TeamId:      team.Id,
-// 		Username:    user.Username,
-// 		URL:         url,
-// 		Trigger:     "test",
-// 	}
-// 	th.AddPermissionToRole(model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, model.TEAM_USER_ROLE_ID)
-// 	command, _ := th.Client.CreateCommand(c)
-// 	CheckCommand(t, "command", "delete", command.Id)
-// 	require.Error(t, RunCommand(t, "command", "delete", "randomid"))
-// 	commands, _ := th.Client.ListCommands(team.Id, true)
-// 	assert.Equal(t, len(commands), 0)
-// }
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	id := model.NewId()
+	c := &model.Command{
+		DisplayName: "dn_" + id,
+		Method:      "G",
+		TeamId:      team.Id,
+		Username:    user.Username,
+		URL:         url,
+		Trigger:     "test",
+	}
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, model.TEAM_USER_ROLE_ID)
+	command, _ := th.Client.CreateCommand(c)
+	CheckCommand(t, "command", "delete", command.Id)
+	require.Error(t, RunCommand(t, "command", "delete", "randomid"))
+	commands, _ := th.Client.ListCommands(team.Id, true)
+	assert.Equal(t, len(commands), 0)
+}
