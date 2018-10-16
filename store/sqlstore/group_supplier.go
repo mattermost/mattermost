@@ -235,8 +235,6 @@ func (s *SqlSupplier) GroupGetMemberUsers(stc context.Context, groupID string, h
 		AND Users.DeleteAt = 0
 		AND GroupId = :GroupId`
 
-	fmt.Printf("query: %s\n", query)
-
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID}); err != nil {
 		if err != sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)

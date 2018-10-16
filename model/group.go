@@ -33,7 +33,7 @@ const (
 	GroupTypeMaxLength        = 64
 	GroupDisplayNameMaxLength = 128
 	GroupDescriptionMaxLength = 1024
-	GroupRemoteIDMaxLength    = 36
+	GroupRemoteIDMaxLength    = 48
 )
 
 var groupTypesRequiringRemoteID = []GroupType{
