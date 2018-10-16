@@ -524,6 +524,31 @@ func (_m *API) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return r0, r1
 }
 
+// GetFileThumbnail provides a mock function with given fields: fileId
+func (_m *API) GetFileThumbnail(fileId string) ([]byte, *model.AppError) {
+	ret := _m.Called(fileId)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(fileId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(fileId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGroupChannel provides a mock function with given fields: userIds
 func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userIds)
