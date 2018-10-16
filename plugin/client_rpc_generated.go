@@ -1119,7 +1119,6 @@ func (s *apiRPCServer) GetTeamByName(args *Z_GetTeamByNameArgs, returns *Z_GetTe
 
 type Z_GetTeamsUnreadForUserArgs struct {
 	A string
-	B string
 }
 
 type Z_GetTeamsUnreadForUserReturns struct {
@@ -1127,8 +1126,8 @@ type Z_GetTeamsUnreadForUserReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*model.TeamUnread, *model.AppError) {
-	_args := &Z_GetTeamsUnreadForUserArgs{userId, teamIdToExclude}
+func (g *apiRPCClient) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
+	_args := &Z_GetTeamsUnreadForUserArgs{userId}
 	_returns := &Z_GetTeamsUnreadForUserReturns{}
 	if err := g.client.Call("Plugin.GetTeamsUnreadForUser", _args, _returns); err != nil {
 		log.Printf("RPC call to GetTeamsUnreadForUser API failed: %s", err.Error())
@@ -1138,9 +1137,9 @@ func (g *apiRPCClient) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]
 
 func (s *apiRPCServer) GetTeamsUnreadForUser(args *Z_GetTeamsUnreadForUserArgs, returns *Z_GetTeamsUnreadForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*model.TeamUnread, *model.AppError)
+		GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetTeamsUnreadForUser(args.A, args.B)
+		returns.A, returns.B = hook.GetTeamsUnreadForUser(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetTeamsUnreadForUser called but not implemented."))
 	}

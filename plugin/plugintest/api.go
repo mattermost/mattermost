@@ -838,13 +838,13 @@ func (_m *API) GetTeams() ([]*model.Team, *model.AppError) {
 	return r0, r1
 }
 
-// GetTeamsUnreadForUser provides a mock function with given fields: userId, teamIdToExclude
-func (_m *API) GetTeamsUnreadForUser(userId string, teamIdToExclude string) ([]*model.TeamUnread, *model.AppError) {
-	ret := _m.Called(userId, teamIdToExclude)
+// GetTeamsUnreadForUser provides a mock function with given fields: userId
+func (_m *API) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
+	ret := _m.Called(userId)
 
 	var r0 []*model.TeamUnread
-	if rf, ok := ret.Get(0).(func(string, string) []*model.TeamUnread); ok {
-		r0 = rf(userId, teamIdToExclude)
+	if rf, ok := ret.Get(0).(func(string) []*model.TeamUnread); ok {
+		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamUnread)
@@ -852,8 +852,8 @@ func (_m *API) GetTeamsUnreadForUser(userId string, teamIdToExclude string) ([]*
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
-		r1 = rf(userId, teamIdToExclude)
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

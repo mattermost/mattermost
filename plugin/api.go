@@ -86,10 +86,8 @@ type API interface {
 	// GetTeamByName gets a team by its name.
 	GetTeamByName(name string) (*model.Team, *model.AppError)
 
-	// GetTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount
-	// of unread messages and mentions the current user has for the teams it belongs to.
-	// An optional team ID can be set to exclude that team from the results.
-	GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*model.TeamUnread, *model.AppError)
+	// GetTeamsUnreadForUser gets the unread message and mention counts for each team to which the given user belongs.
+	GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError)
 
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
