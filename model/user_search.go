@@ -11,6 +11,7 @@ import (
 const USER_SEARCH_MAX_LIMIT = 1000
 const USER_SEARCH_DEFAULT_LIMIT = 100
 
+// UserSearch captures the parameters provided by a client for initiating a user search.
 type UserSearch struct {
 	Term           string `json:"term"`
 	TeamId         string `json:"team_id"`
@@ -38,4 +39,19 @@ func UserSearchFromJson(data io.Reader) *UserSearch {
 	}
 
 	return us
+}
+
+// UserSearchOptions captures internal parameters derived from the user's permissions and a
+// UserSearch request.
+type UserSearchOptions struct {
+	// IsAdmin tracks whether or not the search is being conducted by an administrator.
+	IsAdmin bool
+	// AllowEmails allows search to examine the emails of users.
+	AllowEmails bool
+	// AllowFullNames allows search to examine the full names of users, vs. just usernames and nicknames.
+	AllowFullNames bool
+	// AllowInactive configures whether or not to return inactive users in the search results.
+	AllowInactive bool
+	// Limit limits the total number of results returned.
+	Limit int
 }

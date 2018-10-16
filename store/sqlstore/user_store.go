@@ -970,7 +970,7 @@ func (us SqlUserStore) GetAnyUnreadPostCountForChannel(userId string, channelId 
 	})
 }
 
-func (us SqlUserStore) Search(teamId string, term string, options map[string]bool, limit int) store.StoreChannel {
+func (us SqlUserStore) Search(teamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := ""
 
@@ -1005,13 +1005,13 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 
 		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
 			"TeamId": teamId,
-			"Limit":  limit,
+			"Limit":  options.Limit,
 		})
 
 	})
 }
 
-func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool, limit int) store.StoreChannel {
+func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 		SELECT
@@ -1032,13 +1032,13 @@ func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool, l
 		LIMIT :Limit`
 
 		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
-			"Limit": limit,
+			"Limit": options.Limit,
 		})
 
 	})
 }
 
-func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options map[string]bool, limit int) store.StoreChannel {
+func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 			SELECT
@@ -1056,13 +1056,13 @@ func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options 
 
 		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
 			"NotInTeamId": notInTeamId,
-			"Limit":       limit,
+			"Limit":       options.Limit,
 		})
 
 	})
 }
 
-func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool, limit int) store.StoreChannel {
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := ""
 		if teamId == "" {
@@ -1102,12 +1102,12 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
 			"TeamId":    teamId,
 			"ChannelId": channelId,
-			"Limit":     limit,
+			"Limit":     options.Limit,
 		})
 	})
 }
 
-func (us SqlUserStore) SearchInChannel(channelId string, term string, options map[string]bool, limit int) store.StoreChannel {
+func (us SqlUserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 			SELECT
@@ -1125,7 +1125,7 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options ma
 
 		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
 			"ChannelId": channelId,
-			"Limit":     limit,
+			"Limit":     options.Limit,
 		})
 
 	})
@@ -1174,7 +1174,7 @@ func generateSearchQuery(searchQuery string, terms []string, fields []string, pa
 	return strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", searchClause), 1)
 }
 
-func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) store.StoreResult {
+func (us SqlUserStore) performSearch(searchQuery string, term string, options *model.UserSearchOptions, parameters map[string]interface{}) store.StoreResult {
 	result := store.StoreResult{}
 
 	// These chars must be removed from the like query.
@@ -1187,16 +1187,22 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		term = strings.Replace(term, c, "*"+c, -1)
 	}
 
-	searchType := USER_SEARCH_TYPE_ALL
-	if ok := options[store.USER_SEARCH_OPTION_NAMES_ONLY]; ok {
-		searchType = USER_SEARCH_TYPE_NAMES
-	} else if ok = options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME]; ok {
-		searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
-	} else if ok = options[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME]; ok {
-		searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
+	searchType := USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+	if options.AllowEmails {
+		if options.AllowFullNames {
+			searchType = USER_SEARCH_TYPE_ALL
+		} else {
+			searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
+		}
+	} else {
+		if options.AllowFullNames {
+			searchType = USER_SEARCH_TYPE_NAMES
+		} else {
+			searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+		}
 	}
 
-	if ok := options[store.USER_SEARCH_OPTION_ALLOW_INACTIVE]; ok {
+	if ok := options.AllowInactive; ok {
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "", 1)
 	} else {
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "AND Users.DeleteAt = 0", 1)
