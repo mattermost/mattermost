@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 )
 
 func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
@@ -55,7 +54,6 @@ func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, 
 }
 
 func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
-
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
@@ -146,7 +144,6 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
-
 	result := <-a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
 	if result.Err != nil {
 		return nil, result.Err
@@ -159,8 +156,7 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 		return nil
 	}
 
-	result := <-a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
-	if result.Err != nil {
+	if result := <-a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); result.Err != nil {
 		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, result.Err.Error(), http.StatusNotImplemented)
 	}
 
@@ -172,8 +168,7 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 func (a *App) SchemesIterator(batchSize int) func() []*model.Scheme {
 	offset := 0
 	return func() []*model.Scheme {
-		var result store.StoreResult
-		result = <-a.Srv.Store.Scheme().GetAllPage("", offset, batchSize)
+		result := <-a.Srv.Store.Scheme().GetAllPage("", offset, batchSize)
 		if result.Err != nil {
 			return []*model.Scheme{}
 		}
