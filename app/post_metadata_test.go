@@ -41,20 +41,22 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.NotEqual(t, clientPost, post, "should've returned a new post")
-		assert.Equal(t, message, post.Message, "shouldn't have mutated post.Message")
-		assert.NotEqual(t, nil, post.ReactionCounts, "shouldn't have mutated post.ReactionCounts")
-		assert.NotEqual(t, nil, post.FileInfos, "shouldn't have mutated post.FileInfos")
-		assert.NotEqual(t, nil, post.Emojis, "shouldn't have mutated post.Emojis")
-		assert.NotEqual(t, nil, post.ImageDimensions, "shouldn't have mutated post.ImageDimensions")
-		assert.NotEqual(t, nil, post.OpenGraphData, "shouldn't have mutated post.OpenGraphData")
+		t.Run("doesn't mutate provided post", func(t *testing.T) {
+			assert.NotEqual(t, clientPost, post, "should've returned a new post")
 
-		assert.Equal(t, clientPost.Message, post.Message, "shouldn't have changed Message")
-		assert.Len(t, post.ReactionCounts, 0, "should've populated ReactionCounts")
-		assert.Len(t, post.FileInfos, 0, "should've populated FileInfos")
-		assert.Len(t, post.Emojis, 0, "should've populated Emojis")
-		assert.Len(t, post.ImageDimensions, 0, "should've populated ImageDimensions")
-		assert.Len(t, post.OpenGraphData, 0, "should've populated OpenGraphData")
+			assert.Equal(t, message, post.Message, "shouldn't have mutated post.Message")
+			assert.Equal(t, (*model.PostMetadata)(nil), post.Metadata, "shouldn't have mutated post.Metadata")
+		})
+
+		t.Run("populates all fields", func(t *testing.T) {
+			assert.Equal(t, message, clientPost.Message, "shouldn't have changed Message")
+			assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata")
+			assert.Len(t, clientPost.Metadata.Embeds, 0, "should've populated Embeds")
+			assert.Len(t, clientPost.Metadata.ReactionCounts, 0, "should've populated ReactionCounts")
+			assert.Len(t, clientPost.Metadata.FileInfos, 0, "should've populated FileInfos")
+			assert.Len(t, clientPost.Metadata.Emojis, 0, "should've populated Emojis")
+			assert.Len(t, clientPost.Metadata.ImageDimensions, 0, "should've populated ImageDimensions")
+		})
 	})
 
 	t.Run("metadata already set", func(t *testing.T) {
@@ -83,7 +85,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		assert.Equal(t, model.ReactionCounts{
 			"smile": 1,
-		}, clientPost.ReactionCounts, "should've populated post.ReactionCounts")
+		}, clientPost.Metadata.ReactionCounts, "should've populated ReactionCounts")
 	})
 
 	t.Run("file infos", func(t *testing.T) {
@@ -105,7 +107,7 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.FileInfos, "should've populated post.FileInfos")
+		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.FileInfos, "should've populated FileInfos")
 	})
 
 	t.Run("emojis without custom emojis enabled", func(t *testing.T) {
@@ -132,10 +134,16 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Len(t, clientPost.ReactionCounts, 2, "should've populated post.ReactionCounts")
-		assert.Equal(t, 1, clientPost.ReactionCounts["smile"], "should've populated post.ReactionCounts for smile")
-		assert.Equal(t, 2, clientPost.ReactionCounts["angry"], "should've populated post.ReactionCounts for angry")
-		assert.ElementsMatch(t, []*model.Emoji{}, clientPost.Emojis, "should've populated empty post.Emojis")
+		t.Run("populates emojis", func(t *testing.T) {
+			assert.ElementsMatch(t, []*model.Emoji{}, clientPost.Metadata.Emojis, "should've populated empty Emojis")
+		})
+
+		t.Run("populates reaction counts", func(t *testing.T) {
+			reactionCounts := clientPost.Metadata.ReactionCounts
+			assert.Len(t, reactionCounts, 2, "should've populated ReactionCounts")
+			assert.Equal(t, 1, reactionCounts["smile"], "should've included 'smile' in ReactionCounts")
+			assert.Equal(t, 2, reactionCounts["angry"], "should've included 'angry' in ReactionCounts")
+		})
 	})
 
 	t.Run("emojis with custom emojis enabled", func(t *testing.T) {
@@ -165,11 +173,17 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Len(t, clientPost.ReactionCounts, 3, "should've populated post.ReactionCounts")
-		assert.Equal(t, 1, clientPost.ReactionCounts[emoji1.Name], "should've populated post.ReactionCounts for emoji1")
-		assert.Equal(t, 2, clientPost.ReactionCounts[emoji2.Name], "should've populated post.ReactionCounts for emoji2")
-		assert.Equal(t, 1, clientPost.ReactionCounts["angry"], "should've populated post.ReactionCounts for angry")
-		assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3}, clientPost.Emojis, "should've populated post.Emojis")
+		t.Run("pupulates emojis", func(t *testing.T) {
+			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
+		})
+
+		t.Run("populates reaction counts", func(t *testing.T) {
+			reactionCounts := clientPost.Metadata.ReactionCounts
+			assert.Len(t, reactionCounts, 3, "should've populated ReactionCounts")
+			assert.Equal(t, 1, reactionCounts[emoji1.Name], "should've included emoji1 in ReactionCounts")
+			assert.Equal(t, 2, reactionCounts[emoji2.Name], "should've included emoji2 in ReactionCounts")
+			assert.Equal(t, 1, reactionCounts["angry"], "should've included angry in ReactionCounts")
+		})
 	})
 
 	t.Run("markdown image dimensions", func(t *testing.T) {
@@ -186,20 +200,35 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Len(t, clientPost.ImageDimensions, 2)
-		assert.Equal(t, &model.PostImageDimensions{
-			URL:    "https://github.com/hmhealey/test-files/raw/master/logoVertical.png",
-			Width:  1068,
-			Height: 552,
-		}, clientPost.ImageDimensions[0])
-		assert.Equal(t, &model.PostImageDimensions{
-			URL:    "https://github.com/hmhealey/test-files/raw/master/icon.png",
-			Width:  501,
-			Height: 501,
-		}, clientPost.ImageDimensions[1])
+		t.Run("populates image dimensions", func(t *testing.T) {
+			imageDimensions := clientPost.Metadata.ImageDimensions
+			assert.Len(t, imageDimensions, 2)
+			assert.Equal(t, &model.PostImageDimensions{
+				Width:  1068,
+				Height: 552,
+			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/logoVertical.png"])
+			assert.Equal(t, &model.PostImageDimensions{
+				Width:  501,
+				Height: 501,
+			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
+		})
 	})
 
-	t.Run("linked image dimensions", func(t *testing.T) {
+	t.Run("proxy linked images", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		testProxyLinkedImage(t, th, false)
+	})
+
+	t.Run("proxy opengraph images", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		testProxyOpenGraphImage(t, th, false)
+	})
+
+	t.Run("image embed", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
@@ -214,23 +243,28 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		// Reminder that only the first link gets dimensions
-		assert.Len(t, clientPost.ImageDimensions, 1)
-		assert.Equal(t, &model.PostImageDimensions{
-			URL:    "https://github.com/hmhealey/test-files/raw/master/logoVertical.png",
-			Width:  1068,
-			Height: 552,
-		}, clientPost.ImageDimensions[0])
+		// Reminder that only the first link gets an embed and dimensions
+
+		t.Run("populates embeds", func(t *testing.T) {
+			assert.ElementsMatch(t, []*model.PostEmbed{
+				{
+					Type: model.POST_EMBED_IMAGE,
+					URL:  "https://github.com/hmhealey/test-files/raw/master/logoVertical.png",
+				},
+			}, clientPost.Metadata.Embeds)
+		})
+
+		t.Run("populates image dimensions", func(t *testing.T) {
+			imageDimensions := clientPost.Metadata.ImageDimensions
+			assert.Len(t, imageDimensions, 1)
+			assert.Equal(t, &model.PostImageDimensions{
+				Width:  1068,
+				Height: 552,
+			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/logoVertical.png"])
+		})
 	})
 
-	t.Run("proxy linked images", func(t *testing.T) {
-		th := setup()
-		defer th.TearDown()
-
-		testProxyLinkedImage(t, th, false)
-	})
-
-	t.Run("opengraph", func(t *testing.T) {
+	t.Run("opengraph embed", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
@@ -244,30 +278,73 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Len(t, clientPost.OpenGraphData, 1)
-		assert.Equal(t, &opengraph.OpenGraph{
-			Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
-			SiteName:    "GitHub",
-			Title:       "hmhealey/test-files",
-			Type:        "object",
-			URL:         "https://github.com/hmhealey/test-files",
-			Images: []*opengraph.Image{
+		t.Run("populates embeds", func(t *testing.T) {
+			assert.ElementsMatch(t, []*model.PostEmbed{
 				{
-					URL: "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4",
+					Type: model.POST_EMBED_OPENGRAPH,
+					URL:  "https://github.com/hmhealey/test-files",
+					Data: &opengraph.OpenGraph{
+						Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
+						SiteName:    "GitHub",
+						Title:       "hmhealey/test-files",
+						Type:        "object",
+						URL:         "https://github.com/hmhealey/test-files",
+						Images: []*opengraph.Image{
+							{
+								URL: "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4",
+							},
+						},
+					},
 				},
-			},
-		}, clientPost.OpenGraphData[0])
+			}, clientPost.Metadata.Embeds)
+		})
+
+		t.Run("populates image dimensions", func(t *testing.T) {
+			imageDimensions := clientPost.Metadata.ImageDimensions
+			assert.Len(t, imageDimensions, 1)
+			assert.Equal(t, &model.PostImageDimensions{
+				Width:  420,
+				Height: 420,
+			}, imageDimensions["https://avatars1.githubusercontent.com/u/3277310?s=400&v=4"])
+		})
 	})
 
-	t.Run("opengraph image dimensions", func(t *testing.T) {
-		// TODO
-	})
-
-	t.Run("proxy opengraph images", func(t *testing.T) {
+	t.Run("message attachment embed", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
-		testProxyOpenGraphImage(t, th, false)
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Props: map[string]interface{}{
+				"attachments": []interface{}{
+					map[string]interface{}{
+						"text": "![icon](https://github.com/hmhealey/test-files/raw/master/icon.png)",
+					},
+				},
+			},
+		}, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		clientPost, err := th.App.PreparePostForClient(post)
+		require.Nil(t, err)
+
+		t.Run("populates embeds", func(t *testing.T) {
+			assert.ElementsMatch(t, []*model.PostEmbed{
+				{
+					Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+				},
+			}, clientPost.Metadata.Embeds)
+		})
+
+		t.Run("populates image dimensions", func(t *testing.T) {
+			imageDimensions := clientPost.Metadata.ImageDimensions
+			assert.Len(t, imageDimensions, 1)
+			assert.Equal(t, &model.PostImageDimensions{
+				Width:  501,
+				Height: 501,
+			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
+		})
 	})
 }
 
@@ -346,15 +423,20 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		image.URL = "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4"
 	}
 
-	assert.Len(t, clientPost.OpenGraphData, 1)
-	assert.Equal(t, &opengraph.OpenGraph{
-		Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
-		SiteName:    "GitHub",
-		Title:       "hmhealey/test-files",
-		Type:        "object",
-		URL:         "https://github.com/hmhealey/test-files",
-		Images:      []*opengraph.Image{image},
-	}, clientPost.OpenGraphData[0])
+	assert.ElementsMatch(t, []*model.PostEmbed{
+		{
+			Type: model.POST_EMBED_OPENGRAPH,
+			URL:  "https://github.com/hmhealey/test-files",
+			Data: &opengraph.OpenGraph{
+				Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
+				SiteName:    "GitHub",
+				Title:       "hmhealey/test-files",
+				Type:        "object",
+				URL:         "https://github.com/hmhealey/test-files",
+				Images:      []*opengraph.Image{image},
+			},
+		},
+	}, clientPost.Metadata.Embeds)
 }
 
 func TestGetCustomEmojisForPost_Message(t *testing.T) {
@@ -534,6 +616,10 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 	}
 }
 
+func TestGetImagesInPostAttachments(t *testing.T) {
+	// TODO
+}
+
 func TestParseLinkMetadata(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -566,7 +652,6 @@ func TestParseLinkMetadata(t *testing.T) {
 
 		assert.Nil(t, og)
 		assert.Equal(t, &model.PostImageDimensions{
-			URL:    imageURL,
 			Width:  408,
 			Height: 336,
 		}, dimensions)
@@ -611,26 +696,22 @@ func TestParseLinkMetadata(t *testing.T) {
 func TestParseImageDimensions(t *testing.T) {
 	for name, testCase := range map[string]struct {
 		FileName       string
-		URL            string
 		ExpectedWidth  int
 		ExpectedHeight int
 		ExpectError    bool
 	}{
 		"png": {
 			FileName:       "test.png",
-			URL:            "https://example.com/test.png",
 			ExpectedWidth:  408,
 			ExpectedHeight: 336,
 		},
 		"animated gif": {
 			FileName:       "testgif.gif",
-			URL:            "http://example.com/test.gif?foo=bar",
 			ExpectedWidth:  118,
 			ExpectedHeight: 118,
 		},
 		"not an image": {
 			FileName:    "README.md",
-			URL:         "https://example.com/test.png",
 			ExpectError: true,
 		},
 	} {
@@ -638,14 +719,13 @@ func TestParseImageDimensions(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
 			require.Nil(t, err)
 
-			dimensions, err := parseImageDimensions(testCase.URL, bytes.NewReader(file))
+			dimensions, err := parseImageDimensions(bytes.NewReader(file))
 			if testCase.ExpectError {
 				require.NotNil(t, err)
 			} else {
 				require.Nil(t, err)
 
 				require.NotNil(t, dimensions)
-				require.Equal(t, testCase.URL, dimensions.URL)
 				require.Equal(t, testCase.ExpectedWidth, dimensions.Width)
 				require.Equal(t, testCase.ExpectedHeight, dimensions.Height)
 			}
