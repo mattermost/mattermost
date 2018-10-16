@@ -1746,6 +1746,17 @@ func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats,
 	}
 }
 
+// GetChannelMembersTimezones gets a list of timezones for a channel.
+func (c *Client4) GetChannelMembersTimezones(channelId string) ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/timezones", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
 // GetPinnedPosts gets a list of pinned posts.
 func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/pinned", etag); err != nil {
@@ -2984,6 +2995,16 @@ func (c *Client4) GetBrandImage() ([]byte, *Response) {
 			return data, BuildResponse(r)
 		}
 	}
+}
+
+func (c *Client4) DeleteBrandImage() *Response {
+	r, err := c.DoApiDelete(c.GetBrandRoute() + "/image")
+
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+
+	return BuildResponse(r)
 }
 
 // UploadBrandImage sets the brand image for the system.

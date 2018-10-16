@@ -1153,6 +1153,24 @@ func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model
 	return result.Data.(*model.ChannelMembers), nil
 }
 
+func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
+	result := <-a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	membersTimezones := result.Data.([]map[string]string)
+
+	var timezones []string
+	for _, membersTimezone := range membersTimezones {
+		if membersTimezone["automaticTimezone"] == "" && membersTimezone["manualTimezone"] == "" {
+			continue
+		}
+		timezones = append(timezones, model.GetPreferredTimezone(membersTimezone))
+	}
+
+	return model.RemoveDuplicateStrings(timezones), nil
+}
+
 func (a *App) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
 	result := <-a.Srv.Store.Channel().GetMembersByIds(channelId, userIds)
 	if result.Err != nil {

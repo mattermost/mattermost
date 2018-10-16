@@ -22,6 +22,7 @@ type Workers struct {
 	ElasticsearchAggregation model.Worker
 	LdapSync                 model.Worker
 	Migrations               model.Worker
+	Plugins                  model.Worker
 
 	listenerId string
 }
@@ -54,6 +55,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 
 	if migrationsInterface := srv.Migrations; migrationsInterface != nil {
 		workers.Migrations = migrationsInterface.MakeWorker()
+	}
+
+	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
+		workers.Migrations = pluginsInterface.MakeWorker()
 	}
 
 	return workers
