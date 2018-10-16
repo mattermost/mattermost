@@ -56,6 +56,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, migrationsInterface.MakeScheduler())
 	}
 
+	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, pluginsInterface.MakeScheduler())
+	}
+
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }

@@ -146,6 +146,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	})
 
 	a.SyncPluginsActiveState()
+
 }
 
 func (a *App) ShutDownPlugins() {
