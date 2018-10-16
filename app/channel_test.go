@@ -4,6 +4,7 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -708,4 +709,41 @@ func TestRenameChannel(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetChannelMembersTimezones(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	userRequestorId := ""
+	postRootId := ""
+	if _, err := th.App.AddChannelMember(th.BasicUser2.Id, th.BasicChannel, userRequestorId, postRootId, false); err != nil {
+		t.Fatal("Failed to add user to channel. Error: " + err.Message)
+	}
+
+	user := th.BasicUser
+	user.Timezone["useAutomaticTimezone"] = "false"
+	user.Timezone["manualTimezone"] = "XOXO/BLABLA"
+	th.App.UpdateUser(user, false)
+
+	user2 := th.BasicUser2
+	user2.Timezone["automaticTimezone"] = "NoWhere/Island"
+	th.App.UpdateUser(user2, false)
+
+	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ := th.App.CreateUser(&user3)
+	th.App.AddUserToChannel(ruser, th.BasicChannel)
+
+	ruser.Timezone["automaticTimezone"] = "NoWhere/Island"
+	th.App.UpdateUser(ruser, false)
+
+	user4 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ = th.App.CreateUser(&user4)
+	th.App.AddUserToChannel(ruser, th.BasicChannel)
+
+	timezones, err := th.App.GetChannelMembersTimezones(th.BasicChannel.Id)
+	if err != nil {
+		t.Fatal("Failed to get the timezones for a channel. Error: " + err.Error())
+	}
+	assert.Equal(t, 2, len(timezones))
 }

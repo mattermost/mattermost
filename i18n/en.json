@@ -4987,6 +4987,10 @@
     "translation": "Unable to get the channel members"
   },
   {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "We couldn't get the channel members timezones"
+  },
+  {
     "id": "store.sql_channel.get_members_by_ids.app_error",
     "translation": "Unable to get the channel members"
   },
