@@ -193,6 +193,9 @@ type API interface {
 	// ReadFileAtPath reads the file from the backend for a specific path
 	ReadFile(path string) ([]byte, *model.AppError)
 
+	// UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
+	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
+
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
 

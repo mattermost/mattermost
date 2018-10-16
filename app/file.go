@@ -397,6 +397,25 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 	return resStruct, nil
 }
 
+// UploadFile uploads a single file in form of a completely constructed byte array for a channel.
+func (a *App) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelId, "nouser", filename, data)
+
+	if appError != nil {
+		return nil, appError
+	}
+
+	if info.PreviewPath != "" || info.ThumbnailPath != "" {
+		previewPathList := []string{info.PreviewPath}
+		thumbnailPathList := []string{info.ThumbnailPath}
+		imageDataList := [][]byte{data}
+
+		a.HandleImages(previewPathList, thumbnailPathList, imageDataList)
+	}
+
+	return info, nil
+}
+
 func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
 	info, _, err := a.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 	return info, err

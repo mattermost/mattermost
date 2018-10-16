@@ -6,11 +6,10 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strings"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"net/http"
+	"strings"
 )
 
 type PluginAPI struct {
@@ -325,6 +324,10 @@ func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppErr
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
+}
+
+func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	return api.app.UploadFile(data, channelId, filename)
 }
 
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
