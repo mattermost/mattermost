@@ -616,8 +616,164 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 	}
 }
 
-func TestGetImagesInPostAttachments(t *testing.T) {
-	// TODO
+func TestGetImagesInMessageAttachments(t *testing.T) {
+	for _, test := range []struct {
+		Name     string
+		Post     *model.Post
+		Expected []string
+	}{
+		{
+			Name:     "no attachments",
+			Post:     &model.Post{},
+			Expected: []string{},
+		},
+		{
+			Name: "empty attachments",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{},
+				},
+			},
+			Expected: []string{},
+		},
+		{
+			Name: "attachment with no fields that can contain images",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Title: "This is the title",
+						},
+					},
+				},
+			},
+			Expected: []string{},
+		},
+		{
+			Name: "images in text",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text: "![logo](https://example.com/logo) and ![icon](https://example.com/icon)",
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
+		},
+		{
+			Name: "images in pretext",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Pretext: "![logo](https://example.com/logo1) and ![icon](https://example.com/icon1)",
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/logo1", "https://example.com/icon1"},
+		},
+		{
+			Name: "images in fields",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Fields: []*model.SlackAttachmentField{
+								{
+									Value: "![logo](https://example.com/logo2) and ![icon](https://example.com/icon2)",
+								},
+							},
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/logo2", "https://example.com/icon2"},
+		},
+		{
+			Name: "images in multiple fields",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Fields: []*model.SlackAttachmentField{
+								{
+									Value: "![logo](https://example.com/logo)",
+								},
+								{
+									Value: "![icon](https://example.com/icon)",
+								},
+							},
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
+		},
+		{
+			Name: "non-string field",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Fields: []*model.SlackAttachmentField{
+								{
+									Value: 77,
+								},
+							},
+						},
+					},
+				},
+			},
+			Expected: []string{},
+		},
+		{
+			Name: "images in multiple locations",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text:    "![text](https://example.com/text)",
+							Pretext: "![pretext](https://example.com/pretext)",
+							Fields: []*model.SlackAttachmentField{
+								{
+									Value: "![field1](https://example.com/field1)",
+								},
+								{
+									Value: "![field2](https://example.com/field2)",
+								},
+							},
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/text", "https://example.com/pretext", "https://example.com/field1", "https://example.com/field2"},
+		},
+		{
+			Name: "multiple attachments",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text: "![logo](https://example.com/logo)",
+						},
+						{
+							Text: "![icon](https://example.com/icon)",
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			images := getImagesInMessageAttachments(test.Post)
+
+			assert.ElementsMatch(t, images, test.Expected)
+		})
+	}
 }
 
 func TestParseLinkMetadata(t *testing.T) {

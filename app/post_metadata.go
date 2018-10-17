@@ -147,7 +147,7 @@ func (a *App) getImageDimensionsForPost(post *model.Post, images []string) map[s
 			images = append(images, embed.URL)
 
 		case model.POST_EMBED_MESSAGE_ATTACHMENT:
-			images = append(images, getImagesInPostAttachments(post)...)
+			images = append(images, getImagesInMessageAttachments(post)...)
 
 		case model.POST_EMBED_OPENGRAPH:
 			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
@@ -232,7 +232,7 @@ func getFirstLinkAndImages(str string) (string, []string) {
 	return firstLink, images
 }
 
-func getImagesInPostAttachments(post *model.Post) []string {
+func getImagesInMessageAttachments(post *model.Post) []string {
 	var images []string
 
 	for _, attachment := range post.Attachments() {
