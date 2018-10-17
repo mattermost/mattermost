@@ -165,6 +165,11 @@ func (a *App) getImageDimensionsForPost(post *model.Post, images []string) map[s
 		}
 	}
 
+	// Removing duplicates isn't strictly since allDimensions is a map, but it feels safer to do it beforehand
+	if len(images) > 1 {
+		images = model.RemoveDuplicateStrings(images)
+	}
+
 	for _, imageURL := range images {
 		if _, dimensions, err := a.getLinkMetadata(imageURL, true); err != nil {
 			mlog.Warn("Failed to get dimensions of an image in a post",
@@ -223,10 +228,6 @@ func getFirstLinkAndImages(str string) (string, []string) {
 
 		return true
 	})
-
-	if len(images) > 1 {
-		images = model.RemoveDuplicateStrings(images)
-	}
 
 	return firstLink, images
 }

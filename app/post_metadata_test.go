@@ -585,7 +585,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		"multiple images with duplicate": {
 			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo which is their logo](http://example.com/logo2)",
 			ExpectedFirstLink: "",
-			ExpectedImages:    []string{"http://example.com/logo", "http://example.com/logo2"},
+			ExpectedImages:    []string{"http://example.com/logo", "http://example.com/logo2", "http://example.com/logo2"},
 		},
 		"reference image": {
 			Input: `this is a ![our logo][logo]
