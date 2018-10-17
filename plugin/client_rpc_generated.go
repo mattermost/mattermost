@@ -1004,33 +1004,34 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	return nil
 }
 
-type Z_GetUsersInChannelByStatusArgs struct {
+type Z_GetUsersInChannelArgs struct {
 	A string
-	B int
+	B string
 	C int
+	D int
 }
 
-type Z_GetUsersInChannelByStatusReturns struct {
+type Z_GetUsersInChannelReturns struct {
 	A []*model.User
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsersInChannelByStatus(channelId string, page, perPage int) ([]*model.User, *model.AppError) {
-	_args := &Z_GetUsersInChannelByStatusArgs{channelId, page, perPage}
-	_returns := &Z_GetUsersInChannelByStatusReturns{}
-	if err := g.client.Call("Plugin.GetUsersInChannelByStatus", _args, _returns); err != nil {
-		log.Printf("RPC call to GetUsersInChannelByStatus API failed: %s", err.Error())
+func (g *apiRPCClient) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersInChannelArgs{channelId, sortBy, page, perPage}
+	_returns := &Z_GetUsersInChannelReturns{}
+	if err := g.client.Call("Plugin.GetUsersInChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsersInChannel API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) GetUsersInChannelByStatus(args *Z_GetUsersInChannelByStatusArgs, returns *Z_GetUsersInChannelByStatusReturns) error {
+func (s *apiRPCServer) GetUsersInChannel(args *Z_GetUsersInChannelArgs, returns *Z_GetUsersInChannelReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUsersInChannelByStatus(channelId string, page, perPage int) ([]*model.User, *model.AppError)
+		GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetUsersInChannelByStatus(args.A, args.B, args.C)
+		returns.A, returns.B = hook.GetUsersInChannel(args.A, args.B, args.C, args.D)
 	} else {
-		return encodableError(fmt.Errorf("API GetUsersInChannelByStatus called but not implemented."))
+		return encodableError(fmt.Errorf("API GetUsersInChannel called but not implemented."))
 	}
 	return nil
 }
