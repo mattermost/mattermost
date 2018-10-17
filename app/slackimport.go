@@ -10,14 +10,13 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
-
-	"net/http"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -97,9 +96,8 @@ func SlackConvertChannelName(channelName string, channelId string) string {
 
 	if isValidChannelNameCharacters(newName) {
 		return newName
-	} else {
-		return strings.ToLower(channelId)
 	}
+	return strings.ToLower(channelId)
 }
 
 func SlackParseChannels(data io.Reader) ([]SlackChannel, error) {
@@ -143,13 +141,12 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 	addedUsers := make(map[string]*model.User)
 
 	// Need the team
-	var team *model.Team
-	if result := <-a.Srv.Store.Team().Get(teamId); result.Err != nil {
+	result := <-a.Srv.Store.Team().Get(teamId)
+	if result.Err != nil {
 		importerLog.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return addedUsers
-	} else {
-		team = result.Data.(*model.Team)
 	}
+	team := result.Data.(*model.Team)
 
 	for _, sUser := range slackusers {
 		firstName := sUser.Profile.FirstName
@@ -164,7 +161,8 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 		password := model.NewId()
 
 		// Check for email conflict and use existing user if found
-		if result := <-a.Srv.Store.User().GetByEmail(email); result.Err == nil {
+		result = <-a.Srv.Store.User().GetByEmail(email)
+		if result.Err == nil {
 			existingUser := result.Data.(*model.User)
 			addedUsers[sUser.Id] = existingUser
 			if err := a.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
@@ -195,13 +193,12 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 }
 
 func (a *App) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
-	var team *model.Team
-	if result := <-a.Srv.Store.Team().Get(teamId); result.Err != nil {
+	result := <-a.Srv.Store.Team().Get(teamId)
+	if result.Err != nil {
 		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return nil
-	} else {
-		team = result.Data.(*model.Team)
 	}
+	team := result.Data.(*model.Team)
 
 	password := model.NewId()
 	username := "slackimportuser_" + model.NewId()
@@ -218,10 +215,9 @@ func (a *App) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
 	if mUser := a.OldImportUser(team, &botUser); mUser != nil {
 		log.WriteString(utils.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]interface{}{"Email": botUser.Email, "Password": password}))
 		return mUser
-	} else {
-		log.WriteString(utils.T("api.slackimport.slack_add_bot_user.unable_import", map[string]interface{}{"Username": username}))
-		return nil
 	}
+	log.WriteString(utils.T("api.slackimport.slack_add_bot_user.unable_import", map[string]interface{}{"Username": username}))
+	return nil
 }
 
 func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
@@ -231,7 +227,8 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if sPost.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
 				continue
-			} else if users[sPost.User] == nil {
+			}
+			if users[sPost.User] == nil {
 				mlog.Debug(fmt.Sprintf("Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost.", sPost.User))
 				continue
 			}
@@ -258,10 +255,12 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if sPost.Comment == nil {
 				mlog.Debug("Slack Import: Unable to import the message as it has no comments.")
 				continue
-			} else if sPost.Comment.User == "" {
+			}
+			if sPost.Comment.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
 				continue
-			} else if users[sPost.Comment.User] == nil {
+			}
+			if users[sPost.Comment.User] == nil {
 				mlog.Debug(fmt.Sprintf("Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost.", sPost.User))
 				continue
 			}
@@ -276,7 +275,8 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if botUser == nil {
 				mlog.Warn("Slack Import: Unable to import the bot message as the bot user does not exist.")
 				continue
-			} else if sPost.BotId == "" {
+			}
+			if sPost.BotId == "" {
 				mlog.Warn("Slack Import: Unable to import bot message as the BotId field is missing.")
 				continue
 			}
@@ -300,7 +300,8 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if sPost.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
 				continue
-			} else if users[sPost.User] == nil {
+			}
+			if users[sPost.User] == nil {
 				mlog.Debug(fmt.Sprintf("Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost.", sPost.User))
 				continue
 			}
@@ -327,7 +328,8 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if sPost.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
 				continue
-			} else if users[sPost.User] == nil {
+			}
+			if users[sPost.User] == nil {
 				mlog.Debug(fmt.Sprintf("Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost.", sPost.User))
 				continue
 			}
@@ -342,7 +344,8 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if sPost.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
 				continue
-			} else if users[sPost.User] == nil {
+			}
+			if users[sPost.User] == nil {
 				mlog.Debug(fmt.Sprintf("Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost.", sPost.User))
 				continue
 			}
@@ -358,7 +361,8 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if sPost.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
 				continue
-			} else if users[sPost.User] == nil {
+			}
+			if users[sPost.User] == nil {
 				mlog.Debug(fmt.Sprintf("Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost.", sPost.User))
 				continue
 			}
@@ -374,7 +378,8 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if sPost.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
 				continue
-			} else if users[sPost.User] == nil {
+			}
+			if users[sPost.User] == nil {
 				mlog.Debug(fmt.Sprintf("Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost.", sPost.User))
 				continue
 			}
@@ -393,48 +398,47 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 }
 
 func (a *App) SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId string, channelId string, userId string) (*model.FileInfo, bool) {
-	if sPost.File != nil {
-		if file, ok := uploads[sPost.File.Id]; ok {
-			openFile, err := file.Open()
-			if err != nil {
-				mlog.Warn(fmt.Sprintf("Slack Import: Unable to open the file %v from the Slack export: %v.", sPost.File.Id, err.Error()))
-				return nil, false
-			}
-			defer openFile.Close()
-
-			timestamp := utils.TimeFromMillis(SlackConvertTimeStamp(sPost.TimeStamp))
-			uploadedFile, err := a.OldImportFile(timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
-			if err != nil {
-				mlog.Warn(fmt.Sprintf("Slack Import: An error occurred when uploading file %v: %v.", sPost.File.Id, err.Error()))
-				return nil, false
-			}
-
-			return uploadedFile, true
-		} else {
-			mlog.Warn(fmt.Sprintf("Slack Import: Unable to import file %v as the file is missing from the Slack export zip file.", sPost.File.Id))
-			return nil, false
-		}
-	} else {
+	if sPost.File == nil {
 		mlog.Warn("Slack Import: Unable to attach the file to the post as the latter has no file section present in Slack export.")
 		return nil, false
 	}
+	file, ok := uploads[sPost.File.Id]
+	if !ok {
+		mlog.Warn(fmt.Sprintf("Slack Import: Unable to import file %v as the file is missing from the Slack export zip file.", sPost.File.Id))
+		return nil, false
+	}
+	openFile, err := file.Open()
+	if err != nil {
+		mlog.Warn(fmt.Sprintf("Slack Import: Unable to open the file %v from the Slack export: %v.", sPost.File.Id, err.Error()))
+		return nil, false
+	}
+	defer openFile.Close()
+
+	timestamp := utils.TimeFromMillis(SlackConvertTimeStamp(sPost.TimeStamp))
+	uploadedFile, err := a.OldImportFile(timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
+	if err != nil {
+		mlog.Warn(fmt.Sprintf("Slack Import: An error occurred when uploading file %v: %v.", sPost.File.Id, err.Error()))
+		return nil, false
+	}
+
+	return uploadedFile, true
 }
 
 func (a *App) deactivateSlackBotUser(user *model.User) {
-	_, err := a.UpdateActive(user, false)
-	if err != nil {
+	if _, err := a.UpdateActive(user, false); err != nil {
 		mlog.Warn("Slack Import: Unable to deactivate the user account used for the bot.")
 	}
 }
 
 func (a *App) addSlackUsersToChannel(members []string, users map[string]*model.User, channel *model.Channel, log *bytes.Buffer) {
 	for _, member := range members {
-		if user, ok := users[member]; !ok {
+		user, ok := users[member]
+		if !ok {
 			log.WriteString(utils.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": "?"}))
-		} else {
-			if _, err := a.AddUserToChannel(user, channel); err != nil {
-				log.WriteString(utils.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": user.Username}))
-			}
+			continue
+		}
+		if _, err := a.AddUserToChannel(user, channel); err != nil {
+			log.WriteString(utils.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": user.Username}))
 		}
 	}
 }
@@ -659,7 +663,9 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 				} else {
 					posts[channel] = append(posts[channel], newposts...)
 				}
-			} else if len(spl) == 3 && spl[0] == "__uploads" {
+				continue
+			}
+			if len(spl) == 3 && spl[0] == "__uploads" {
 				uploads[spl[1]] = file
 			}
 		}
@@ -733,32 +739,32 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 
 	user.Roles = model.SYSTEM_USER_ROLE_ID
 
-	if result := <-a.Srv.Store.User().Save(user); result.Err != nil {
+	result := <-a.Srv.Store.User().Save(user)
+	if result.Err != nil {
 		mlog.Error(fmt.Sprintf("Error saving user. err=%v", result.Err))
 		return nil
-	} else {
-		ruser := result.Data.(*model.User)
-
-		if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
-			mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
-		}
-
-		if err := a.JoinUserToTeam(team, user, ""); err != nil {
-			mlog.Error(fmt.Sprintf("Failed to join team when importing err=%v", err))
-		}
-
-		return ruser
 	}
+	ruser := result.Data.(*model.User)
+
+	if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
+		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
+	}
+
+	if err := a.JoinUserToTeam(team, user, ""); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to join team when importing err=%v", err))
+	}
+
+	return ruser
 }
 
 func (a *App) OldImportChannel(channel *model.Channel) *model.Channel {
-	if result := <-a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam); result.Err != nil {
+	result := <-a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if result.Err != nil {
 		return nil
-	} else {
-		sc := result.Data.(*model.Channel)
-
-		return sc
 	}
+	sc := result.Data.(*model.Channel)
+
+	return sc
 }
 
 func (a *App) OldImportFile(timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
@@ -798,7 +804,9 @@ func (a *App) OldImportIncomingWebhookPost(post *model.Post, props model.StringI
 				if attachments, success := val.([]*model.SlackAttachment); success {
 					model.ParseSlackAttachment(post, attachments)
 				}
-			} else if key != "from_webhook" {
+				continue
+			}
+			if key != "from_webhook" {
 				post.AddProp(key, val)
 			}
 		}
