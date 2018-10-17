@@ -135,9 +135,6 @@ const (
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
 
-	WEBRTC_SETTINGS_DEFAULT_STUN_URI = ""
-	WEBRTC_SETTINGS_DEFAULT_TURN_URI = ""
-
 	ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS = 2500
 
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
@@ -1671,51 +1668,6 @@ func (s *NativeAppSettings) SetDefaults() {
 	}
 }
 
-type WebrtcSettings struct {
-	Enable              *bool
-	GatewayWebsocketUrl *string
-	GatewayAdminUrl     *string
-	GatewayAdminSecret  *string
-	StunURI             *string
-	TurnURI             *string
-	TurnUsername        *string
-	TurnSharedKey       *string
-}
-
-func (s *WebrtcSettings) SetDefaults() {
-	if s.Enable == nil {
-		s.Enable = NewBool(false)
-	}
-
-	if s.GatewayWebsocketUrl == nil {
-		s.GatewayWebsocketUrl = NewString("")
-	}
-
-	if s.GatewayAdminUrl == nil {
-		s.GatewayAdminUrl = NewString("")
-	}
-
-	if s.GatewayAdminSecret == nil {
-		s.GatewayAdminSecret = NewString("")
-	}
-
-	if s.StunURI == nil {
-		s.StunURI = NewString(WEBRTC_SETTINGS_DEFAULT_STUN_URI)
-	}
-
-	if s.TurnURI == nil {
-		s.TurnURI = NewString(WEBRTC_SETTINGS_DEFAULT_TURN_URI)
-	}
-
-	if s.TurnUsername == nil {
-		s.TurnUsername = NewString("")
-	}
-
-	if s.TurnSharedKey == nil {
-		s.TurnSharedKey = NewString("")
-	}
-}
-
 type ElasticsearchSettings struct {
 	ConnectionUrl                 *string
 	Username                      *string
@@ -2006,7 +1958,6 @@ type Config struct {
 	MetricsSettings       MetricsSettings
 	ExperimentalSettings  ExperimentalSettings
 	AnalyticsSettings     AnalyticsSettings
-	WebrtcSettings        WebrtcSettings
 	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
 	MessageExportSettings MessageExportSettings
@@ -2082,7 +2033,6 @@ func (o *Config) SetDefaults() {
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
-	o.WebrtcSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.TimezoneSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
@@ -2131,10 +2081,6 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.RateLimitSettings.isValid(); err != nil {
-		return err
-	}
-
-	if err := o.WebrtcSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -2363,31 +2309,6 @@ func (ss *SamlSettings) isValid() *AppError {
 
 		if len(*ss.EmailAttribute) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-
-	return nil
-}
-
-func (ws *WebrtcSettings) isValid() *AppError {
-	if *ws.Enable {
-		if len(*ws.GatewayWebsocketUrl) == 0 || !IsValidWebsocketUrl(*ws.GatewayWebsocketUrl) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_ws_url.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.GatewayAdminUrl) == 0 || !IsValidHttpUrl(*ws.GatewayAdminUrl) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_url.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.GatewayAdminSecret) == 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_secret.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.StunURI) != 0 && !IsValidTurnOrStunServer(*ws.StunURI) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_stun_uri.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.TurnURI) != 0 {
-			if !IsValidTurnOrStunServer(*ws.TurnURI) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_uri.app_error", nil, "", http.StatusBadRequest)
-			}
-			if len(*ws.TurnUsername) == 0 {
-				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_username.app_error", nil, "", http.StatusBadRequest)
-			} else if len(*ws.TurnSharedKey) == 0 {
-				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_shared_key.app_error", nil, "", http.StatusBadRequest)
-			}
 		}
 	}
 
