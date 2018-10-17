@@ -273,6 +273,7 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 		f, ferr := os.Open(path)
 		if ferr != nil {
 			if !os.IsNotExist(ferr) {
+				path = ""
 				err = ferr
 				return
 			}
