@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +22,14 @@ var WebhookListCmd = &cobra.Command{
 	Long:    "list all webhooks",
 	Example: "  webhook list myteam",
 	RunE:    listWebhookCmdF,
+}
+
+var WebhookCreateIncomingCmd = &cobra.Command{
+	Use:     "create-incoming",
+	Short:   "Create incoming webhook",
+	Long:    "create incoming webhook which allows external posting of messages to specific channel",
+	Example: "  webhook create-incoming --channel [channelID] --user [userID] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
+	RunE:    createIncomingWebhookCmdF,
 }
 
 func listWebhookCmdF(command *cobra.Command, args []string) error {
@@ -75,9 +84,52 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	channelArg, _ := command.Flags().GetString("channel")
+	channel := getChannelFromChannelArg(app, channelArg)
+	if channel == nil {
+		return errors.New("Unable to find channel '" + channelArg + "'")
+	}
+
+	userArg, _ := command.Flags().GetString("user")
+	user := getUserFromUserArg(app, userArg)
+	displayName, _ := command.Flags().GetString("display-name")
+	description, _ := command.Flags().GetString("description")
+	iconUrl, _ := command.Flags().GetString("icon")
+	channelLocked, _ := command.Flags().GetBool("lock-to-channel")
+
+	incomingWebhook := &model.IncomingWebhook{
+		ChannelId:     channel.Id,
+		DisplayName:   displayName,
+		Description:   description,
+		IconURL:       iconUrl,
+		ChannelLocked: channelLocked,
+	}
+
+	if _, err := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func init() {
+	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID")
+	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID")
+	WebhookCreateIncomingCmd.Flags().String("display-name", "", "Incoming webhook display name")
+	WebhookCreateIncomingCmd.Flags().String("description", "", "Incoming webhook description")
+	WebhookCreateIncomingCmd.Flags().String("icon", "", "Icon URL")
+	WebhookCreateIncomingCmd.Flags().Bool("lock-to-channel", false, "Lock to channel")
+
 	WebhookCmd.AddCommand(
 		WebhookListCmd,
+		WebhookCreateIncomingCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)
