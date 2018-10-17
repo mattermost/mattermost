@@ -76,7 +76,6 @@
         "ImageProxyURL": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "ExperimentalLimitClientConfig": false,
         "EnableEmailInvitations": false
     },
     "TeamSettings": {
