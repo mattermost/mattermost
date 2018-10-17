@@ -417,6 +417,10 @@ func (c *Client4) DoApiPost(url string, data string) (*http.Response, *AppError)
 	return c.DoApiRequest(http.MethodPost, c.ApiUrl+url, data, "")
 }
 
+func (c *Client4) doApiPostBytes(url string, data []byte) (*http.Response, *AppError) {
+	return c.doApiRequestBytes(http.MethodPost, c.ApiUrl+url, data, "")
+}
+
 func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodPut, c.ApiUrl+url, data, "")
 }
@@ -426,7 +430,15 @@ func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 }
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
-	rq, _ := http.NewRequest(method, url, strings.NewReader(data))
+	return c.doApiRequestReader(method, url, strings.NewReader(data), etag)
+}
+
+func (c *Client4) doApiRequestBytes(method, url string, data []byte, etag string) (*http.Response, *AppError) {
+	return c.doApiRequestReader(method, url, bytes.NewReader(data), etag)
+}
+
+func (c *Client4) doApiRequestReader(method, url string, data io.Reader, etag string) (*http.Response, *AppError) {
+	rq, _ := http.NewRequest(method, url, data)
 
 	if len(etag) > 0 {
 		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
@@ -691,8 +703,8 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response) {
 }
 
 // AutocompleteUsersInTeam returns the users on a team based on search term.
-func (c *Client4) AutocompleteUsersInTeam(teamId string, username string, etag string) (*UserAutocomplete, *Response) {
-	query := fmt.Sprintf("?in_team=%v&name=%v", teamId, username)
+func (c *Client4) AutocompleteUsersInTeam(teamId string, username string, limit int, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?in_team=%v&name=%v&limit=%d", teamId, username, limit)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
@@ -702,8 +714,8 @@ func (c *Client4) AutocompleteUsersInTeam(teamId string, username string, etag s
 }
 
 // AutocompleteUsersInChannel returns the users in a channel based on search term.
-func (c *Client4) AutocompleteUsersInChannel(teamId string, channelId string, username string, etag string) (*UserAutocomplete, *Response) {
-	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v", teamId, channelId, username)
+func (c *Client4) AutocompleteUsersInChannel(teamId string, channelId string, username string, limit int, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v&limit=%d", teamId, channelId, username, limit)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
@@ -713,8 +725,8 @@ func (c *Client4) AutocompleteUsersInChannel(teamId string, channelId string, us
 }
 
 // AutocompleteUsers returns the users in the system based on search term.
-func (c *Client4) AutocompleteUsers(username string, etag string) (*UserAutocomplete, *Response) {
-	query := fmt.Sprintf("?name=%v", username)
+func (c *Client4) AutocompleteUsers(username string, limit int, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?name=%v&limit=%d", username, limit)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
@@ -875,7 +887,7 @@ func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response) {
 
 // SearchUsers returns a list of users based on some search criteria.
 func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
-	if r, err := c.DoApiPost(c.GetUsersRoute()+"/search", search.ToJson()); err != nil {
+	if r, err := c.doApiPostBytes(c.GetUsersRoute()+"/search", search.ToJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

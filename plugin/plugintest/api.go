@@ -988,6 +988,31 @@ func (_m *API) GetTeams() ([]*model.Team, *model.AppError) {
 	return r0, r1
 }
 
+// GetTeamsForUser provides a mock function with given fields: userId
+func (_m *API) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+	ret := _m.Called(userId)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUser provides a mock function with given fields: userId
 func (_m *API) GetUser(userId string) (*model.User, *model.AppError) {
 	ret := _m.Called(userId)

@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 )
 
 func (api *API) InitUser() {
@@ -547,23 +546,26 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	searchOptions := map[string]bool{}
-	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
-
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		hideFullName := !c.App.Config().PrivacySettings.ShowFullName
-		hideEmail := !c.App.Config().PrivacySettings.ShowEmailAddress
-
-		if hideFullName && hideEmail {
-			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
-		} else if hideFullName {
-			searchOptions[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME] = true
-		} else if hideEmail {
-			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
-		}
+	if props.Limit <= 0 || props.Limit > model.USER_SEARCH_MAX_LIMIT {
+		c.SetInvalidParam("limit")
+		return
 	}
 
-	profiles, err := c.App.SearchUsers(props, searchOptions, c.IsSystemAdmin())
+	options := &model.UserSearchOptions{
+		IsAdmin:       c.IsSystemAdmin(),
+		AllowInactive: props.AllowInactive,
+		Limit:         props.Limit,
+	}
+
+	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		options.AllowEmails = true
+		options.AllowFullNames = true
+	} else {
+		options.AllowEmails = c.App.Config().PrivacySettings.ShowEmailAddress
+		options.AllowFullNames = c.App.Config().PrivacySettings.ShowFullName
+	}
+
+	profiles, err := c.App.SearchUsers(props, options)
 	if err != nil {
 		c.Err = err
 		return
@@ -576,17 +578,26 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelId := r.URL.Query().Get("in_channel")
 	teamId := r.URL.Query().Get("in_team")
 	name := r.URL.Query().Get("name")
+	limitStr := r.URL.Query().Get("limit")
+	limit, _ := strconv.Atoi(limitStr)
+	if limitStr == "" {
+		limit = model.USER_SEARCH_DEFAULT_LIMIT
+	}
 
 	autocomplete := new(model.UserAutocomplete)
 	var err *model.AppError
 
-	searchOptions := map[string]bool{}
+	options := &model.UserSearchOptions{
+		IsAdmin: c.IsSystemAdmin(),
+		// Never autocomplete on emails.
+		AllowEmails: false,
+		Limit:       limit,
+	}
 
-	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
-	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		options.AllowFullNames = true
 	} else {
-		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+		options.AllowFullNames = c.App.Config().PrivacySettings.ShowFullName
 	}
 
 	if len(channelId) > 0 {
@@ -606,8 +617,8 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(channelId) > 0 {
 		// Applying the provided teamId here is useful for DMs and GMs which don't belong
 		// to a team. Applying it when the channel does belong to a team makes less sense,
-		//t but the permissions are checked above regardless.
-		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
+		// but the permissions are checked above regardless.
+		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -616,7 +627,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
-		result, err := c.App.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
+		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -625,7 +636,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InTeam
 	} else {
 		// No permission check required
-		result, err := c.App.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin())
+		result, err := c.App.SearchUsersInTeam("", name, options)
 		if err != nil {
 			c.Err = err
 			return
