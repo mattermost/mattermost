@@ -189,8 +189,13 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 	return api.app.GetStatus(userId)
 }
 
-func (api *PluginAPI) GetUsersInChannelByStatus(channelId string, page, perPage int) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersInChannelByStatus(channelId, page*perPage, perPage)
+func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+	switch sortBy {
+	case "status":
+		return api.app.GetUsersInChannelByStatus(channelId, page*perPage, perPage)
+	default:
+		return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
+	}
 }
 
 func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
