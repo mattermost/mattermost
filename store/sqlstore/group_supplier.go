@@ -643,17 +643,25 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 func (s *SqlSupplier) PendingAutoAddTeamMemberships(ctx context.Context, minGroupMembersCreateAt int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	sql := `SELECT GroupMembers.UserId, GroupTeams.SyncableId
-			FROM GroupMembers
-			JOIN GroupTeams ON GroupTeams.GroupId = GroupMembers.GroupId
-			JOIN Groups ON Groups.Id = GroupMembers.GroupId
-			FULL JOIN TeamMembers ON TeamMembers.SyncableId = GroupTeams.SyncableId AND TeamMembers.UserId = GroupMembers.UserId
-			WHERE TeamMembers.UserId IS NULL
-			AND Groups.DeleteAt = 0
-			AND GroupTeams.DeleteAt = 0
-			AND GroupTeams.AutoAdd = true
-			AND GroupMembers.DeleteAt = 0
-			AND GroupMembers.CreateAt >= :MinGroupMembersCreateAt`
+	sql := `SELECT 
+				GroupMembers.UserId, GroupTeams.TeamId
+			FROM 
+				GroupMembers
+				JOIN GroupTeams 
+				ON GroupTeams.GroupId = GroupMembers.GroupId
+				JOIN Groups ON Groups.Id = GroupMembers.GroupId
+				JOIN Teams ON Teams.Id = GroupTeams.TeamId
+				FULL JOIN TeamMembers 
+				ON 
+					TeamMembers.TeamId = GroupTeams.TeamId 
+					AND TeamMembers.UserId = GroupMembers.UserId
+			WHERE 
+				TeamMembers.UserId IS NULL
+				AND Groups.DeleteAt = 0
+				AND GroupTeams.DeleteAt = 0
+				AND GroupTeams.AutoAdd = true
+				AND GroupMembers.DeleteAt = 0
+				AND GroupMembers.CreateAt >= :MinGroupMembersCreateAt`
 
 	sqlResult, err := s.GetMaster().Exec(sql, map[string]interface{}{"MinGroupMembersCreateAt": minGroupMembersCreateAt})
 	if err != nil {
@@ -672,21 +680,25 @@ func (s *SqlSupplier) PendingAutoAddTeamMemberships(ctx context.Context, minGrou
 func (s *SqlSupplier) PendingAutoAddChannelMemberships(minGroupMembersCreateAt int) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	sql := `SELECT GroupMembers.UserId, GroupChannels.ChannelId
-			FROM GroupMembers
-			JOIN GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId
-			JOIN Groups ON Groups.Id = GroupMembers.GroupId
-			JOIN Channels ON Channels.Id = GroupChannels.ChannelId
-			JOIN Teams ON Teams.Id = Channels.SyncableId
-			JOIN TeamMembers ON TeamMembers.SyncableId = Teams.Id AND TeamMembers.UserId = GroupMembers.UserId
-			FULL JOIN ChannelMemberHistory ON ChannelMemberHistory.ChannelId = GroupChannels.ChannelId AND ChannelMemberHistory.UserId = GroupMembers.UserId
-			WHERE ChannelMemberHistory.UserId IS NULL
-			AND ChannelMemberHistory.LeaveTime IS NULL
-			AND Groups.DeleteAt = 0
-			AND GroupChannels.DeleteAt = 0
-			AND GroupChannels.AutoAdd = true
-			AND GroupMembers.DeleteAt = 0
-			AND GroupMembers.CreateAt >= :MinGroupMembersCreateAt`
+	sql := `SELECT 
+				GroupMembers.UserId, GroupChannels.ChannelId
+			FROM 
+				GroupMembers
+				JOIN GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId
+				JOIN Groups ON Groups.Id = GroupMembers.GroupId
+				JOIN Channels ON Channels.Id = GroupChannels.ChannelId
+				FULL JOIN ChannelMemberHistory 
+				ON 
+					ChannelMemberHistory.ChannelId = GroupChannels.ChannelId 
+					AND ChannelMemberHistory.UserId = GroupMembers.UserId
+			WHERE 
+				ChannelMemberHistory.UserId IS NULL
+				AND ChannelMemberHistory.LeaveTime IS NULL
+				AND Groups.DeleteAt = 0
+				AND GroupChannels.DeleteAt = 0
+				AND GroupChannels.AutoAdd = true
+				AND GroupMembers.DeleteAt = 0
+				AND GroupMembers.CreateAt >= :MinGroupMembersCreateAt`
 
 	sqlResult, err := s.GetMaster().Exec(sql, map[string]interface{}{"MinGroupMembersCreateAt": minGroupMembersCreateAt})
 	if err != nil {
