@@ -3,8 +3,9 @@ package app
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,7 +61,7 @@ func TestExportUserNotifyProps(t *testing.T) {
 	require.Equal(t, userNotifyProps[model.MENTION_KEYS_NOTIFY_PROP], *exportNotifyProps.MentionKeys)
 }
 
-func TestExportUserChannelsNotifyProps(t *testing.T) {
+func TestExportUserChannels(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	channel := th.BasicChannel
@@ -71,22 +72,34 @@ func TestExportUserChannelsNotifyProps(t *testing.T) {
 		model.DESKTOP_NOTIFY_PROP: model.USER_NOTIFY_ALL,
 		model.PUSH_NOTIFY_PROP:    model.USER_NOTIFY_NONE,
 	}
+	preference := model.Preference{
+		UserId:   user.Id,
+		Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+		Name:     channel.Id,
+		Value:    "true",
+	}
+	var preferences model.Preferences
+	preferences = append(preferences, preference)
 	channelMember := model.ChannelMember{
 		ChannelId: channel.Id,
 		UserId:    user.Id,
 	}
 	th.App.Srv.Store.Channel().SaveMember(&channelMember)
+	th.App.Srv.Store.Preference().Save(&preferences)
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
 	exportData, _ := th.App.buildUserChannelMemberships(user.Id, team.Id)
+	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
 		if *data.Name == channelName {
 			assert.Equal(t, *data.NotifyProps.Desktop, "all")
 			assert.Equal(t, *data.NotifyProps.Mobile, "none")
 			assert.Equal(t, *data.NotifyProps.MarkUnread, "all") // default value
+			assert.True(t, *data.Favorite)
 		} else { // default values
 			assert.Equal(t, *data.NotifyProps.Desktop, "default")
 			assert.Equal(t, *data.NotifyProps.Mobile, "default")
 			assert.Equal(t, *data.NotifyProps.MarkUnread, "all")
+			assert.False(t, *data.Favorite)
 		}
 	}
 }
