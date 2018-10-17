@@ -33,8 +33,7 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 		mobile   bool
 		redirect bool
 	}{
-		// TODO: Fixme for go1.11
-		//{"redirect on destkop non-api endpoint", "/login/sso/saml", false, true},
+		{"redirect on destkop non-api endpoint", "/login/sso/saml", false, true},
 		{"not redirect on destkop api endpoint", "/api/v4/test", false, false},
 		{"not redirect on mobile non-api endpoint", "/login/sso/saml", true, false},
 		{"not redirect on mobile api endpoint", "/api/v4/test", true, false},
@@ -50,7 +49,7 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 			handler.ServeHTTP(response, request)
 
 			if tt.redirect {
-				assert.Contains(t, response.Body.String(), "/error?message=")
+				assert.Equal(t, response.Code, http.StatusFound)
 			} else {
 				assert.NotContains(t, response.Body.String(), "/error?message=")
 			}
