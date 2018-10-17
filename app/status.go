@@ -44,9 +44,7 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 	statusMap := map[string]*model.Status{}
 
 	for _, userId := range userIds {
-		if id, ok := userId.(string); !ok {
-			continue
-		} else {
+		if id, ok := userId.(string); ok {
 			status := GetStatusFromCache(id)
 			if status != nil {
 				statusMap[id] = status
@@ -81,16 +79,17 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		if result := <-a.Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
+		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
+		if result.Err != nil {
 			return nil, result.Err
-		} else {
-			statuses := result.Data.([]*model.Status)
-
-			for _, s := range statuses {
-				a.AddStatusCacheSkipClusterSend(s)
-				statusMap[s.UserId] = s.Status
-			}
 		}
+		statuses := result.Data.([]*model.Status)
+
+		for _, s := range statuses {
+			a.AddStatusCacheSkipClusterSend(s)
+			statusMap[s.UserId] = s.Status
+		}
+
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
@@ -128,17 +127,18 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		if result := <-a.Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
+		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
+		if result.Err != nil {
 			return nil, result.Err
-		} else {
-			statuses := result.Data.([]*model.Status)
-
-			for _, s := range statuses {
-				a.AddStatusCacheSkipClusterSend(s)
-			}
-
-			statusMap = append(statusMap, statuses...)
 		}
+		statuses := result.Data.([]*model.Status)
+
+		for _, s := range statuses {
+			a.AddStatusCacheSkipClusterSend(s)
+		}
+
+		statusMap = append(statusMap, statuses...)
+
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
@@ -185,8 +185,8 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	broadcast := false
 
 	var oldStatus string = model.STATUS_OFFLINE
-	var oldTime int64 = 0
-	var oldManual bool = false
+	var oldTime int64
+	var oldManual bool
 	var status *model.Status
 	var err *model.AppError
 
@@ -353,11 +353,11 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	if result := <-a.Srv.Store.Status().Get(userId); result.Err != nil {
+	result := <-a.Srv.Store.Status().Get(userId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Status), nil
 	}
+	return result.Data.(*model.Status), nil
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {
