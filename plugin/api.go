@@ -154,6 +154,8 @@ type API interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
 	// SearchChannels returns the channels on a team matching the provided search term.
+	//
+	// Minimum server version: 5.6
 	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
