@@ -111,6 +111,10 @@ func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError
 	return api.app.UpdateTeam(team)
 }
 
+func (api *PluginAPI) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+	return api.app.GetTeamsForUser(userId)
+}
+
 func (api *PluginAPI) CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
 	return api.app.AddTeamMember(teamId, userId)
 }

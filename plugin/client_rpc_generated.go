@@ -1177,6 +1177,35 @@ func (s *apiRPCServer) UpdateTeam(args *Z_UpdateTeamArgs, returns *Z_UpdateTeamR
 	return nil
 }
 
+type Z_GetTeamsForUserArgs struct {
+	A string
+}
+
+type Z_GetTeamsForUserReturns struct {
+	A []*model.Team
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+	_args := &Z_GetTeamsForUserArgs{userId}
+	_returns := &Z_GetTeamsForUserReturns{}
+	if err := g.client.Call("Plugin.GetTeamsForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetTeamsForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetTeamsForUser(args *Z_GetTeamsForUserArgs, returns *Z_GetTeamsForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamsForUser(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetTeamsForUser called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CreateTeamMemberArgs struct {
 	A string
 	B string

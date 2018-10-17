@@ -98,6 +98,11 @@ type API interface {
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 
+	// GetTeamsForUser returns list of teams of given user ID.
+	//
+	// Minimum server version: 5.6
+	GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
+
 	// CreateTeamMember creates a team membership.
 	CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
 
