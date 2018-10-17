@@ -622,27 +622,11 @@ func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 }
 
 func (a *App) GetFileThumbnail(fileId string) ([]byte, *model.AppError) {
-
 	fileInfo, err := a.GetFileInfo(fileId)
 	if err != nil {
-		mlog.Error(
-			fmt.Sprintf("File not found when getting file thumbnails, err=%v", err),
-			mlog.String("file_id", fileId),
-		)
 		return nil, err
 	}
-
-	thumbnailPath := fileInfo.ThumbnailPath
-	data, err := a.ReadFile(thumbnailPath)
-	if err != nil {
-		mlog.Error(
-			fmt.Sprintf("File not found when getting file thumbnails, err=%v", err),
-			mlog.String("file_id", fileId),
-			mlog.String("path", thumbnailPath),
-		)
-		return nil, err
-	}
-	return data, nil
+	return a.ReadFile(fileInfo.ThumbnailPath)
 }
 
 func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
