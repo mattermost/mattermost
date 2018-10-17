@@ -112,8 +112,8 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
-	description := "myhookinc"
-	displayName := "myhookinc"
+	description := "myhookincdesc"
+	displayName := "myhookincname"
 
 	incomingWebhook := &model.IncomingWebhook{
 		ChannelId:     th.BasicChannel.Id,
@@ -134,9 +134,9 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	// should fail because you need to specify valid channel
 	require.Error(t, RunCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", th.BasicTeam.Name+":doesnotexist"))
 
-	modifiedDescription := "myhookinc2"
-	modifiedDisplayName := "myhookinc2"
-	modifiedIconUrl := "myhookinc2"
+	modifiedDescription := "myhookincdesc2"
+	modifiedDisplayName := "myhookincname2"
+	modifiedIconUrl := "myhookincicon2"
 	modifiedChannelLocked := true
 	modifiedChannelId := th.BasicChannel2.Id
 

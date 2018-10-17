@@ -28,15 +28,15 @@ var WebhookCreateIncomingCmd = &cobra.Command{
 	Use:     "create-incoming",
 	Short:   "Create incoming webhook",
 	Long:    "create incoming webhook which allows external posting of messages to specific channel",
-	Example: "  webhook create-incoming --channel [channelID] --user [userID] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
+	Example: "  webhook create-incoming --channel [channelID] --user [userID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
 	RunE:    createIncomingWebhookCmdF,
 }
 
 var WebhookModifyIncomingCmd = &cobra.Command{
 	Use:     "modify-incoming",
 	Short:   "Modify incoming webhook",
-	Long:    "Modify existing incoming webhook by changing it's title, description, channel or icon url",
-	Example: "  webhook modify-incoming [webhookID] --channel [channelID] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
+	Long:    "Modify existing incoming webhook by changing its title, description, channel or icon url",
+	Example: "  webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
 	RunE:    modifyIncomingWebhookCmdF,
 }
 
