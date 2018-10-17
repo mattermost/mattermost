@@ -203,10 +203,12 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 
 func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
-	case "status":
+	case model.CHANNEL_SORT_BY_USERNAME:
+		return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
+	case model.CHANNEL_SORT_BY_STATUS:
 		return api.app.GetUsersInChannelByStatus(channelId, page*perPage, perPage)
 	default:
-		return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
+		return nil, model.NewAppError("GetUsersInChannel", "plugin.api.get_users_in_channel", nil, "invalid sort option", http.StatusBadRequest)
 	}
 }
 
