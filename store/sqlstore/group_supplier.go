@@ -33,6 +33,7 @@ func initSqlSupplierGroups(sqlStore SqlStore) {
 		groups.ColMap("Description").SetMaxSize(model.GroupDescriptionMaxLength)
 		groups.ColMap("Type").SetMaxSize(model.GroupTypeMaxLength)
 		groups.ColMap("RemoteId").SetMaxSize(model.GroupRemoteIDMaxLength)
+		groups.SetUniqueTogether("Type", "RemoteId")
 
 		groupMembers := db.AddTableWithName(model.GroupMember{}, "GroupMembers").SetKeys(false, "GroupId", "UserId")
 		groupMembers.ColMap("GroupId").SetMaxSize(26)

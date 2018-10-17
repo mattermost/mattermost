@@ -7,7 +7,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
-
 	"github.com/mattermost/mattermost-server/store"
 )
 
@@ -59,7 +58,7 @@ type SqlStore interface {
 	RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool
 	GetMaxLengthOfColumnIfExists(tableName string, columnName string) string
 	AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool
-	CreateUniqueIndexIfNotExists(indexName string, tableName string, columnNames []string) bool
+	CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool
 	CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool

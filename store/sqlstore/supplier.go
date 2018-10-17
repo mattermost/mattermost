@@ -681,8 +681,8 @@ func (ss *SqlSupplier) AlterColumnTypeIfExists(tableName string, columnName stri
 	return true
 }
 
-func (ss *SqlSupplier) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, true)
+func (ss *SqlSupplier) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, true)
 }
 
 func (ss *SqlSupplier) CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool {
