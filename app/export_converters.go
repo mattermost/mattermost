@@ -111,3 +111,11 @@ func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
 		CreateAt: &post.CreateAt,
 	}
 }
+
+func ImportReactionFromPost(reaction *model.Reaction) *ReactionImportData {
+	return &ReactionImportData{
+		User:      &reaction.UserId,
+		EmojiName: &reaction.EmojiName,
+		CreateAt:  &reaction.CreateAt,
+	}
+}
