@@ -14,15 +14,15 @@ import (
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
 	session.Token = ""
 
-	if result := <-a.Srv.Store.Session().Save(session); result.Err != nil {
+	result := <-a.Srv.Store.Session().Save(session)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		session := result.Data.(*model.Session)
-
-		a.AddSessionToCache(session)
-
-		return session, nil
 	}
+	session = result.Data.(*model.Session)
+
+	a.AddSessionToCache(session)
+
+	return session, nil
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
@@ -93,30 +93,31 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 }
 
 func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
-	if result := <-a.Srv.Store.Session().GetSessions(userId); result.Err != nil {
+	result := <-a.Srv.Store.Session().GetSessions(userId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Session), nil
 	}
+	return result.Data.([]*model.Session), nil
+
 }
 
 func (a *App) RevokeAllSessions(userId string) *model.AppError {
-	if result := <-a.Srv.Store.Session().GetSessions(userId); result.Err != nil {
+	result := <-a.Srv.Store.Session().GetSessions(userId)
+	if result.Err != nil {
 		return result.Err
-	} else {
-		sessions := result.Data.([]*model.Session)
+	}
+	sessions := result.Data.([]*model.Session)
 
-		for _, session := range sessions {
-			if session.IsOAuth {
-				a.RevokeAccessToken(session.Token)
-			} else {
-				if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-					return result.Err
-				}
+	for _, session := range sessions {
+		if session.IsOAuth {
+			a.RevokeAccessToken(session.Token)
+		} else {
+			if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
+				return result.Err
 			}
-
-			a.RevokeWebrtcToken(session.Id)
 		}
+
+		a.RevokeWebrtcToken(session.Id)
 	}
 
 	a.ClearSessionCacheForUser(userId)
@@ -164,17 +165,17 @@ func (a *App) SessionCacheLength() int {
 }
 
 func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
-	if result := <-a.Srv.Store.Session().GetSessions(userId); result.Err != nil {
+	result := <-a.Srv.Store.Session().GetSessions(userId)
+	if result.Err != nil {
 		return result.Err
-	} else {
-		sessions := result.Data.([]*model.Session)
-		for _, session := range sessions {
-			if session.DeviceId == deviceId && session.Id != currentSessionId {
-				mlog.Debug(fmt.Sprintf("Revoking sessionId=%v for userId=%v re-login with same device Id", session.Id, userId), mlog.String("user_id", userId))
-				if err := a.RevokeSession(session); err != nil {
-					// Soft error so we still remove the other sessions
-					mlog.Error(err.Error())
-				}
+	}
+	sessions := result.Data.([]*model.Session)
+	for _, session := range sessions {
+		if session.DeviceId == deviceId && session.Id != currentSessionId {
+			mlog.Debug(fmt.Sprintf("Revoking sessionId=%v for userId=%v re-login with same device Id", session.Id, userId), mlog.String("user_id", userId))
+			if err := a.RevokeSession(session); err != nil {
+				// Soft error so we still remove the other sessions
+				mlog.Error(err.Error())
 			}
 		}
 	}
@@ -183,21 +184,22 @@ func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentS
 }
 
 func (a *App) GetSessionById(sessionId string) (*model.Session, *model.AppError) {
-	if result := <-a.Srv.Store.Session().Get(sessionId); result.Err != nil {
+	result := <-a.Srv.Store.Session().Get(sessionId)
+	if result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Session), nil
 	}
+	return result.Data.(*model.Session), nil
 }
 
 func (a *App) RevokeSessionById(sessionId string) *model.AppError {
-	if result := <-a.Srv.Store.Session().Get(sessionId); result.Err != nil {
+	result := <-a.Srv.Store.Session().Get(sessionId)
+	if result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return result.Err
-	} else {
-		return a.RevokeSession(result.Data.(*model.Session))
 	}
+	return a.RevokeSession(result.Data.(*model.Session))
+
 }
 
 func (a *App) RevokeSession(session *model.Session) *model.AppError {
@@ -251,11 +253,11 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	uchan := a.Srv.Store.User().Get(token.UserId)
 
-	if result := <-a.Srv.Store.UserAccessToken().Save(token); result.Err != nil {
+	result := <-a.Srv.Store.UserAccessToken().Save(token)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		token = result.Data.(*model.UserAccessToken)
 	}
+	token = result.Data.(*model.UserAccessToken)
 
 	if result := <-uchan; result.Err != nil {
 		mlog.Error(result.Err.Error())
@@ -276,22 +278,22 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	}
 
 	var token *model.UserAccessToken
-	if result := <-a.Srv.Store.UserAccessToken().GetByToken(tokenString); result.Err != nil {
+	result := <-a.Srv.Store.UserAccessToken().GetByToken(tokenString)
+	if result.Err != nil {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, result.Err.Error(), http.StatusUnauthorized)
-	} else {
-		token = result.Data.(*model.UserAccessToken)
+	}
+	token = result.Data.(*model.UserAccessToken)
 
-		if !token.IsActive {
-			return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
-		}
+	if !token.IsActive {
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
 	var user *model.User
-	if result := <-a.Srv.Store.User().Get(token.UserId); result.Err != nil {
+	result = <-a.Srv.Store.User().Get(token.UserId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		user = result.Data.(*model.User)
 	}
+	user = result.Data.(*model.User)
 
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
@@ -308,15 +310,16 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
-	if result := <-a.Srv.Store.Session().Save(session); result.Err != nil {
+	result = <-a.Srv.Store.Session().Save(session)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		session := result.Data.(*model.Session)
-
-		a.AddSessionToCache(session)
-
-		return session, nil
 	}
+	session = result.Data.(*model.Session)
+
+	a.AddSessionToCache(session)
+
+	return session, nil
+
 }
 
 func (a *App) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppError {
@@ -371,51 +374,55 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 }
 
 func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	if result := <-a.Srv.Store.UserAccessToken().GetAll(page*perPage, perPage); result.Err != nil {
+	result := <-a.Srv.Store.UserAccessToken().GetAll(page*perPage, perPage)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		tokens := result.Data.([]*model.UserAccessToken)
-		for _, token := range tokens {
-			token.Token = ""
-		}
-
-		return tokens, nil
 	}
+	tokens := result.Data.([]*model.UserAccessToken)
+	for _, token := range tokens {
+		token.Token = ""
+	}
+
+	return tokens, nil
+
 }
 
 func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	if result := <-a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage); result.Err != nil {
+	result := <-a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		tokens := result.Data.([]*model.UserAccessToken)
-		for _, token := range tokens {
-			token.Token = ""
-		}
-
-		return tokens, nil
 	}
+	tokens := result.Data.([]*model.UserAccessToken)
+	for _, token := range tokens {
+		token.Token = ""
+	}
+
+	return tokens, nil
+
 }
 
 func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
-	if result := <-a.Srv.Store.UserAccessToken().Get(tokenId); result.Err != nil {
+	result := <-a.Srv.Store.UserAccessToken().Get(tokenId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		token := result.Data.(*model.UserAccessToken)
-		if sanitize {
-			token.Token = ""
-		}
-		return token, nil
 	}
+	token := result.Data.(*model.UserAccessToken)
+	if sanitize {
+		token.Token = ""
+	}
+	return token, nil
+
 }
 
 func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
-	if result := <-a.Srv.Store.UserAccessToken().Search(term); result.Err != nil {
+	result := <-a.Srv.Store.UserAccessToken().Search(term)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		tokens := result.Data.([]*model.UserAccessToken)
-		for _, token := range tokens {
-			token.Token = ""
-		}
-		return tokens, nil
 	}
+	tokens := result.Data.([]*model.UserAccessToken)
+	for _, token := range tokens {
+		token.Token = ""
+	}
+	return tokens, nil
+
 }

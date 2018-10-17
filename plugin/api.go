@@ -52,6 +52,9 @@ type API interface {
 	// GetUserByUsername gets a user by their username.
 	GetUserByUsername(name string) (*model.User, *model.AppError)
 
+	// GetUsersInTeam gets users in team.
+	GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
+
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
 
@@ -129,6 +132,9 @@ type API interface {
 	// GetChannelByNameForTeamName gets a channel by its name, given a team name.
 	GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError)
 
+	// GetChannelsForTeamForUser gets a list of channels for given user ID in given team ID.
+	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
@@ -137,6 +143,9 @@ type API interface {
 
 	// UpdateChannel updates a channel.
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
+
+	// SearchChannels returns the channels on a team matching the provided search term.
+	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
@@ -174,14 +183,29 @@ type API interface {
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
 
+	// GetPostThread gets a post with all the other posts in the same thread.
+	GetPostThread(postId string) (*model.PostList, *model.AppError)
+
 	// GetPost gets a post.
 	GetPost(postId string) (*model.Post, *model.AppError)
+
+	// GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
+	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
+
+	// GetPostsBefore gets a page of posts that were posted before the post provided.
+	GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
 
 	// GetPostsForChannel gets a list of posts for a channel.
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
 
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// GetProfileImage gets user's profile image
+	GetProfileImage(userId string) ([]byte, *model.AppError)
+
+	// GetEmojiByName gets an emoji by it's name.
+	GetEmojiByName(name string) (*model.Emoji, *model.AppError)
 
 	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
 	// recording the given user id as the new creator and returning the new set of file ids.
