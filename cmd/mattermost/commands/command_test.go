@@ -152,8 +152,9 @@ func TestDeleteCommand(t *testing.T) {
 	}
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, model.TEAM_USER_ROLE_ID)
 	command, _ := th.Client.CreateCommand(c)
-	CheckCommand(t, "command", "delete", command.Id)
-	require.Error(t, RunCommand(t, "command", "delete", "randomid"))
 	commands, _ := th.Client.ListCommands(team.Id, true)
+	assert.Equal(t, len(commands), 1)
+	CheckCommand(t, "command", "delete", command.Id)
+	commands, _ = th.Client.ListCommands(team.Id, true)
 	assert.Equal(t, len(commands), 0)
 }

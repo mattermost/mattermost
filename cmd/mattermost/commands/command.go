@@ -223,10 +223,11 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	commandID := args[0]
-	err = a.DeleteCommand(commandID)
-	if err != nil {
-		CommandPrintErrorln("Unable to delete command '" + commandID + "' error: " + err.Error())
-		return err
+
+	deleteErr := a.DeleteCommand(commandID)
+	if deleteErr != nil {
+		CommandPrintErrorln("Unable to delete command '" + commandID + "' error: " + deleteErr.Error())
+		return deleteErr
 	}
 	CommandPrettyPrintln("Deleted command '" + commandID + "'")
 	return nil
