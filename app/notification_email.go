@@ -151,26 +151,17 @@ func getNotificationEmailSubject(user *model.User, post *model.Post, translateFu
  */
 func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, channelName string, emailNotificationContentsType string, useMilitaryTime bool) string {
 	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
-	var subjectText string
-	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		var subjectParameters = map[string]interface{}{
-			"SiteName":    siteName,
-			"ChannelName": channelName,
-			"Month":       t.Month,
-			"Day":         t.Day,
-			"Year":        t.Year,
-		}
-		subjectText = translateFunc("app.notification.subject.group_message.full", subjectParameters)
-	} else {
-		var subjectParameters = map[string]interface{}{
-			"SiteName": siteName,
-			"Month":    t.Month,
-			"Day":      t.Day,
-			"Year":     t.Year,
-		}
-		subjectText = translateFunc("app.notification.subject.group_message.generic", subjectParameters)
+	var subjectParameters = map[string]interface{}{
+		"SiteName": siteName,
+		"Month":    t.Month,
+		"Day":      t.Day,
+		"Year":     t.Year,
 	}
-	return subjectText
+	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+		subjectParameters["ChannelName"] = channelName
+		return translateFunc("app.notification.subject.group_message.full", subjectParameters)
+	}
+	return translateFunc("app.notification.subject.group_message.generic", subjectParameters)
 }
 
 /**
@@ -195,31 +186,24 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 
 	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
 
+	info := map[string]interface{}{
+		"Hour":     t.Hour,
+		"Minute":   t.Minute,
+		"TimeZone": t.TimeZone,
+		"Month":    t.Month,
+		"Day":      t.Day,
+	}
 	if channel.Type == model.CHANNEL_DIRECT {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.direct.full")
 			bodyPage.Props["Info1"] = ""
-			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.direct.full",
-				map[string]interface{}{
-					"SenderName": senderName,
-					"Hour":       t.Hour,
-					"Minute":     t.Minute,
-					"TimeZone":   t.TimeZone,
-					"Month":      t.Month,
-					"Day":        t.Day,
-				})
+			info["SenderName"] = senderName
+			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.direct.full", info)
 		} else {
 			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.direct.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.direct.generic",
-				map[string]interface{}{
-					"Hour":     t.Hour,
-					"Minute":   t.Minute,
-					"TimeZone": t.TimeZone,
-					"Month":    t.Month,
-					"Day":      t.Day,
-				})
+			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.direct.generic", info)
 		}
 	} else if channel.Type == model.CHANNEL_GROUP {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
@@ -228,27 +212,13 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 				map[string]interface{}{
 					"ChannelName": channelName,
 				})
-			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.group_message.full2",
-				map[string]interface{}{
-					"SenderName": senderName,
-					"Hour":       t.Hour,
-					"Minute":     t.Minute,
-					"TimeZone":   t.TimeZone,
-					"Month":      t.Month,
-					"Day":        t.Day,
-				})
+			info["SenderName"] = senderName
+			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.group_message.full2", info)
 		} else {
 			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.group_message.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.group_message.generic",
-				map[string]interface{}{
-					"Hour":     t.Hour,
-					"Minute":   t.Minute,
-					"TimeZone": t.TimeZone,
-					"Month":    t.Month,
-					"Day":      t.Day,
-				})
+			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.group_message.generic", info)
 		}
 	} else {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
@@ -257,27 +227,13 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 				map[string]interface{}{
 					"ChannelName": channelName,
 				})
-			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.notification.full2",
-				map[string]interface{}{
-					"SenderName": senderName,
-					"Hour":       t.Hour,
-					"Minute":     t.Minute,
-					"TimeZone":   t.TimeZone,
-					"Month":      t.Month,
-					"Day":        t.Day,
-				})
+			info["SenderName"] = senderName
+			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.notification.full2", info)
 		} else {
 			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.notification.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.notification.generic",
-				map[string]interface{}{
-					"Hour":     t.Hour,
-					"Minute":   t.Minute,
-					"TimeZone": t.TimeZone,
-					"Month":    t.Month,
-					"Day":      t.Day,
-				})
+			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.notification.generic", info)
 		}
 	}
 
@@ -334,12 +290,11 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
-	var infos []*model.FileInfo
-	if result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, true); result.Err != nil {
+	result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+	if result.Err != nil {
 		mlog.Warn(fmt.Sprintf("Encountered error when getting files for notification message, post_id=%v, err=%v", post.Id, result.Err), mlog.String("post_id", post.Id))
-	} else {
-		infos = result.Data.([]*model.FileInfo)
 	}
+	infos := result.Data.([]*model.FileInfo)
 
 	filenames := make([]string, len(infos))
 	onlyImages := true

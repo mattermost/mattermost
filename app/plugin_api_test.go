@@ -83,7 +83,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		}
 
 		type MyPlugin struct {
-			plugin.MattermostPlugin	
+			plugin.MattermostPlugin
 
 			configuration configuration
 		}
@@ -198,4 +198,20 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "override35true", ret)
+}
+
+func TestPluginAPIGetProfileImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// check existing user first
+	data, err := api.GetProfileImage(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, data)
+
+	// then unknown user
+	data, err = api.GetProfileImage(model.NewId())
+	require.NotNil(t, err)
+	require.Nil(t, data)
 }

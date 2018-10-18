@@ -12,27 +12,28 @@ import (
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
-	if result := <-a.Srv.Store.Role().Get(id); result.Err != nil {
+	result := <-a.Srv.Store.Role().Get(id)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Role), nil
 	}
+	return result.Data.(*model.Role), nil
+
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	if result := <-a.Srv.Store.Role().GetByName(name); result.Err != nil {
+	result := <-a.Srv.Store.Role().GetByName(name)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Role), nil
 	}
+	return result.Data.(*model.Role), nil
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	if result := <-a.Srv.Store.Role().GetByNames(names); result.Err != nil {
+	result := <-a.Srv.Store.Role().GetByNames(names)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Role), nil
 	}
+	return result.Data.([]*model.Role), nil
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
@@ -58,21 +59,23 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.BuiltIn = false
 	role.SchemeManaged = false
 
-	if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+	result := <-a.Srv.Store.Role().Save(role)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Role), nil
 	}
+	return result.Data.(*model.Role), nil
+
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+	result := <-a.Srv.Store.Role().Save(role)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		a.sendUpdatedRoleEvent(role)
-
-		return role, nil
 	}
+	a.sendUpdatedRoleEvent(role)
+
+	return role, nil
+
 }
 
 func (a *App) CheckRolesExist(roleNames []string) *model.AppError {

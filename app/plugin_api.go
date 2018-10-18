@@ -115,6 +115,10 @@ func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError
 	return api.app.UpdateTeam(team)
 }
 
+func (api *PluginAPI) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+	return api.app.GetTeamsForUser(userId)
+}
+
 func (api *PluginAPI) CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
 	return api.app.AddTeamMember(teamId, userId)
 }
@@ -162,6 +166,10 @@ func (api *PluginAPI) GetUserByEmail(email string) (*model.User, *model.AppError
 
 func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppError) {
 	return api.app.GetUserByUsername(name)
+}
+
+func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersInTeam(teamId, page, perPage)
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
@@ -237,6 +245,10 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 	return api.app.GetChannelByNameForTeamName(channelName, teamName, includeDeleted)
 }
 
+func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	return api.app.GetChannelsForUser(teamId, userId, includeDeleted)
+}
+
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
 	return api.app.GetDirectChannel(userId1, userId2)
 }
@@ -247,6 +259,10 @@ func (api *PluginAPI) GetGroupChannel(userIds []string) (*model.Channel, *model.
 
 func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	return api.app.UpdateChannel(channel)
+}
+
+func (api *PluginAPI) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	return api.app.SearchChannels(teamId, term)
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
@@ -282,6 +298,10 @@ func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppEr
 	return api.app.LeaveChannel(channelId, userId)
 }
 
+func (api *PluginAPI) GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
+}
+
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return api.app.CreatePostMissingChannel(post, true)
 }
@@ -307,8 +327,20 @@ func (api *PluginAPI) DeletePost(postId string) *model.AppError {
 	return err
 }
 
+func (api *PluginAPI) GetPostThread(postId string) (*model.PostList, *model.AppError) {
+	return api.app.GetPostThread(postId)
+}
+
 func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
 	return api.app.GetSinglePost(postId)
+}
+
+func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsSince(channelId, time)
+}
+
+func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsBeforePost(channelId, postId, page, perPage)
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
@@ -319,12 +351,43 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	return api.app.UpdatePost(post, false)
 }
 
+func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
+	user, err := api.app.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	data, _, err := api.app.GetProfileImage(user)
+	return data, err
+}
+
+func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
+	return api.app.GetEmojiByName(name)
+}
+
 func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
 	return api.app.CopyFileInfos(userId, fileIds)
 }
 
 func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfo(fileId)
+}
+
+func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
+	if !api.app.Config().FileSettings.EnablePublicLink {
+		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	info, err := api.app.GetFileInfo(fileId)
+	if err != nil {
+		return "", err
+	}
+
+	if len(info.PostId) == 0 {
+		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+	}
+
+	return api.app.GeneratePublicLink(api.app.GetSiteURL(), info), nil
 }
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {

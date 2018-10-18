@@ -45,6 +45,8 @@ type PluginSetting struct {
 	//
 	// "text" will result in a string setting that can be typed in manually.
 	//
+	// "longtext" will result in a multi line string that can be typed in manually.
+	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	Type string `json:"type" yaml:"type"`
 

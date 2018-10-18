@@ -46,7 +46,7 @@ type Server struct {
 	didFinishListen chan struct{}
 }
 
-var corsAllowedMethods []string = []string{
+var corsAllowedMethods = []string{
 	"POST",
 	"GET",
 	"OPTIONS",
@@ -199,26 +199,75 @@ func (a *App) StartServer() error {
 	go func() {
 		var err error
 		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
-			if *a.Config().ServiceSettings.UseLetsEncrypt {
 
-				tlsConfig := &tls.Config{
-					GetCertificate: m.GetCertificate,
+			tlsConfig := &tls.Config{
+				PreferServerCipherSuites: true,
+				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+			}
+
+			switch *a.Config().ServiceSettings.TLSMinVer {
+			case "1.0":
+				tlsConfig.MinVersion = tls.VersionTLS10
+			case "1.1":
+				tlsConfig.MinVersion = tls.VersionTLS11
+			default:
+				tlsConfig.MinVersion = tls.VersionTLS12
+			}
+
+			defaultCiphers := []uint16{
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			}
+
+			if len(a.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
+				tlsConfig.CipherSuites = defaultCiphers
+			} else {
+				var cipherSuites []uint16
+				for _, cipher := range a.Config().ServiceSettings.TLSOverwriteCiphers {
+					value, ok := model.ServerTLSSupportedCiphers[cipher]
+
+					if !ok {
+						mlog.Warn("Unsupported cipher passed", mlog.String("cipher", cipher))
+						continue
+					}
+
+					cipherSuites = append(cipherSuites, value)
 				}
 
-				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
+				if len(cipherSuites) == 0 {
+					mlog.Warn("No supported ciphers passed, fallback to default cipher suite")
+					cipherSuites = defaultCiphers
+				}
 
-				a.Srv.Server.TLSConfig = tlsConfig
-				err = a.Srv.Server.ServeTLS(listener, "", "")
-			} else {
-				err = a.Srv.Server.ServeTLS(listener, *a.Config().ServiceSettings.TLSCertFile, *a.Config().ServiceSettings.TLSKeyFile)
+				tlsConfig.CipherSuites = cipherSuites
 			}
+
+			certFile := ""
+			keyFile := ""
+
+			if *a.Config().ServiceSettings.UseLetsEncrypt {
+				tlsConfig.GetCertificate = m.GetCertificate
+				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
+			} else {
+				certFile = *a.Config().ServiceSettings.TLSCertFile
+				keyFile = *a.Config().ServiceSettings.TLSKeyFile
+			}
+
+			a.Srv.Server.TLSConfig = tlsConfig
+			err = a.Srv.Server.ServeTLS(listener, certFile, keyFile)
 		} else {
 			err = a.Srv.Server.Serve(listener)
 		}
+
 		if err != nil && err != http.ErrServerClosed {
 			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
 			time.Sleep(time.Second)
 		}
+
 		close(a.Srv.didFinishListen)
 	}()
 
