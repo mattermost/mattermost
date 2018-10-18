@@ -249,7 +249,14 @@ func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 				return err
 			}
 
+			reactions, err := a.BuildPostReactions(post.Id)
+			if err != nil {
+				return err
+			}
+
 			postLine.Post.Replies = replies
+
+			postLine.Post.Reactions = reactions
 
 			if err := a.ExportWriteLine(writer, postLine); err != nil {
 				return err
@@ -272,8 +279,35 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 	replyPosts := result.Data.([]*model.ReplyForExport)
 
 	for _, reply := range replyPosts {
-		replies = append(replies, *ImportReplyFromPost(reply))
+		replyImportObject := ImportReplyFromPost(reply)
+		if reply.HasReactions == true {
+			reactionsOfReply, err := a.BuildPostReactions(reply.Id)
+			if err != nil {
+				return nil, err
+			}
+			replyImportObject.Reactions = reactionsOfReply
+		}
+		replies = append(replies, *replyImportObject)
 	}
 
 	return &replies, nil
+}
+
+func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
+	var reactionsOfPost []ReactionImportData
+
+	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
+
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	reactions := result.Data.([]*model.Reaction)
+
+	for _, reaction := range reactions {
+		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(reaction))
+	}
+
+	return &reactionsOfPost, nil
+
 }

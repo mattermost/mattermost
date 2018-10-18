@@ -2423,14 +2423,6 @@
     "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
   },
   {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "WebRTC is not enabled in this server."
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "We encountered an error trying to register the WebRTC Token"
-  },
-  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
   },
@@ -2929,10 +2921,6 @@
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "User AuthData is too long."
-  },
-  {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "User AuthService should not be empty if it is provided."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
@@ -4283,36 +4271,20 @@
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "WebRTC Gateway Admin Secret must be set."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC Gateway Admin URL must be a valid URL starting with http:// or https://."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Gateway Websocket URL must be a valid URL starting with ws:// or wss://."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URI must be a valid URL starting with stun:"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
-  },
-  {
     "id": "model.config.is_valid.webserver_security.app_error",
     "translation": "Invalid value for webserver connection security."
+  },
+  {
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+  },
+  {
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+  },
+  {
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
@@ -4831,6 +4803,14 @@
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Public links have been disabled"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read."
+  },
+  {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
   },
@@ -4985,6 +4965,10 @@
   {
     "id": "store.sql_channel.get_members.app_error",
     "translation": "Unable to get the channel members"
+  },
+  {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "We couldn't get the channel members timezones"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",

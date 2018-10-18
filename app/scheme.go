@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 )
 
 func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
@@ -15,11 +14,11 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.Scheme().Get(id); result.Err != nil {
+	result := <-a.Srv.Store.Scheme().Get(id)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Scheme), nil
 	}
+	return result.Data.(*model.Scheme), nil
 }
 
 func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
@@ -27,11 +26,11 @@ func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.Scheme().GetByName(name); result.Err != nil {
+	result := <-a.Srv.Store.Scheme().GetByName(name)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Scheme), nil
 	}
+	return result.Data.(*model.Scheme), nil
 }
 
 func (a *App) GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError) {
@@ -47,11 +46,11 @@ func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, 
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.Scheme().GetAllPage(scope, offset, limit); result.Err != nil {
+	result := <-a.Srv.Store.Scheme().GetAllPage(scope, offset, limit)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Scheme), nil
 	}
+	return result.Data.([]*model.Scheme), nil
 }
 
 func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
@@ -68,11 +67,11 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 	scheme.UpdateAt = 0
 	scheme.DeleteAt = 0
 
-	if result := <-a.Srv.Store.Scheme().Save(scheme); result.Err != nil {
+	result := <-a.Srv.Store.Scheme().Save(scheme)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return scheme, nil
 	}
+	return scheme, nil
 }
 
 func (a *App) PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError) {
@@ -94,11 +93,11 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.Scheme().Save(scheme); result.Err != nil {
+	result := <-a.Srv.Store.Scheme().Save(scheme)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return scheme, nil
 	}
+	return scheme, nil
 }
 
 func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
@@ -106,11 +105,11 @@ func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.Scheme().Delete(schemeId); result.Err != nil {
+	result := <-a.Srv.Store.Scheme().Delete(schemeId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Scheme), nil
 	}
+	return result.Data.(*model.Scheme), nil
 }
 
 func (a *App) GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError) {
@@ -126,11 +125,11 @@ func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.Team().GetTeamsByScheme(scheme.Id, offset, limit); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Team), nil
 	}
+	return result.Data.([]*model.Team), nil
 }
 
 func (a *App) GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError) {
@@ -145,12 +144,11 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
-
-	if result := <-a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit); result.Err != nil {
+	result := <-a.Srv.Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(model.ChannelList), nil
 	}
+	return result.Data.(model.ChannelList), nil
 }
 
 func (a *App) IsPhase2MigrationCompleted() *model.AppError {
@@ -170,8 +168,8 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 func (a *App) SchemesIterator(batchSize int) func() []*model.Scheme {
 	offset := 0
 	return func() []*model.Scheme {
-		var result store.StoreResult
-		if result = <-a.Srv.Store.Scheme().GetAllPage("", offset, batchSize); result.Err != nil {
+		result := <-a.Srv.Store.Scheme().GetAllPage("", offset, batchSize)
+		if result.Err != nil {
 			return []*model.Scheme{}
 		}
 		offset += batchSize

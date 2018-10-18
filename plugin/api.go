@@ -35,6 +35,8 @@ type API interface {
 	SaveConfig(config *model.Config) *model.AppError
 
 	// GetServerVersion return the current Mattermost server version
+	//
+	// Minimum server version: 5.4
 	GetServerVersion() string
 
 	// CreateUser creates a user.
@@ -51,6 +53,16 @@ type API interface {
 
 	// GetUserByUsername gets a user by their username.
 	GetUserByUsername(name string) (*model.User, *model.AppError)
+
+	// GetUsersByUsernames gets users by their usernames.
+	//
+	// Minimum server version: 5.6
+	GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError)
+
+	// GetUsersInTeam gets users in team.
+	//
+	// Minimum server version: 5.6
+	GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
 
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
@@ -69,6 +81,8 @@ type API interface {
 	// The attributes parameter should be a list of attributes to pull.
 	// Returns a map with attribute names as keys and the user's attributes as values.
 	// Requires an enterprise license, LDAP to be configured and for the user to use LDAP as an authentication method.
+	//
+	// Minimum server version: 5.3
 	GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError)
 
 	// CreateTeam creates a team.
@@ -88,6 +102,11 @@ type API interface {
 
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
+
+	// GetTeamsForUser returns list of teams of given user ID.
+	//
+	// Minimum server version: 5.6
+	GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
 
 	// CreateTeamMember creates a team membership.
 	CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
@@ -125,6 +144,11 @@ type API interface {
 	// GetChannelByNameForTeamName gets a channel by its name, given a team name.
 	GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError)
 
+	// GetChannelsForTeamForUser gets a list of channels for given user ID in given team ID.
+	//
+	// Minimum server version: 5.6
+	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
@@ -134,6 +158,11 @@ type API interface {
 	// UpdateChannel updates a channel.
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
+	// SearchChannels returns the channels on a team matching the provided search term.
+	//
+	// Minimum server version: 5.6
+	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
+
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
@@ -141,6 +170,8 @@ type API interface {
 	GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
 	// GetChannelMembers gets a channel membership for all users.
+	//
+	// Minimum server version: 5.6
 	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
@@ -152,16 +183,27 @@ type API interface {
 	// DeleteChannelMember deletes a channel membership for a user.
 	DeleteChannelMember(channelId, userId string) *model.AppError
 
+	// GetUsersInChannel gets users in given channel.
+	//
+	// Minimum server version: 5.6
+	GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError)
+
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
 
 	// AddReaction add a reaction to a post.
+	//
+	// Minimum server version: 5.3
 	AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 
 	// RemoveReaction remove a reaction from a post.
+	//
+	// Minimum server version: 5.3
 	RemoveReaction(reaction *model.Reaction) *model.AppError
 
 	// GetReaction get the reactions of a post.
+	//
+	// Minimum server version: 5.3
 	GetReactions(postId string) ([]*model.Reaction, *model.AppError)
 
 	// SendEphemeralPost creates an ephemeral post.
@@ -170,14 +212,46 @@ type API interface {
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
 
+	// GetPostThread gets a post with all the other posts in the same thread.
+	//
+	// Minimum server version: 5.6
+	GetPostThread(postId string) (*model.PostList, *model.AppError)
+
 	// GetPost gets a post.
 	GetPost(postId string) (*model.Post, *model.AppError)
 
+	// GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
+	//
+	// Minimum server version: 5.6
+	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
+
+	// GetPostsAfter gets a page of posts that were posted after the post provided.
+	//
+	// Minimum server version: 5.6
+	GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+
+	// GetPostsBefore gets a page of posts that were posted before the post provided.
+	//
+	// Minimum server version: 5.6
+	GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+
 	// GetPostsForChannel gets a list of posts for a channel.
+	//
+	// Minimum server version: 5.6
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
 
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// GetProfileImage gets user's profile image.
+	//
+	// Minimum server version: 5.6
+	GetProfileImage(userId string) ([]byte, *model.AppError)
+
+	// GetEmojiByName gets an emoji by it's name.
+	//
+	// Minimum server version: 5.6
+	GetEmojiByName(name string) (*model.Emoji, *model.AppError)
 
 	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
 	// recording the given user id as the new creator and returning the new set of file ids.
@@ -188,15 +262,26 @@ type API interface {
 	CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError)
 
 	// GetFileInfo gets a File Info for a specific fileId
+	//
+	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
+	// GetFileLink gets the public link to a file by fileId.
+	//
+	// Minimum server version: 5.6
+	GetFileLink(fileId string) (string, *model.AppError)
+
 	// ReadFileAtPath reads the file from the backend for a specific path
+	//
+	// Minimum server version: 5.3
 	ReadFile(path string) ([]byte, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
 
 	// KVSet will store a key-value pair, unique per plugin with an expiry time
+	//
+	// Minimum server version: 5.6
 	KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError
 
 	// KVGet will retrieve a value based on the key. Returns nil for non-existent keys.
@@ -206,9 +291,13 @@ type API interface {
 	KVDelete(key string) *model.AppError
 
 	// KVDeleteAll will remove all key-value pairs for a plugin.
+	//
+	// Minimum server version: 5.6
 	KVDeleteAll() *model.AppError
 
 	// KVList will list all keys for a plugin.
+	//
+	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
@@ -218,12 +307,18 @@ type API interface {
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 
 	// HasPermissionTo check if the user has the permission at system scope.
+	//
+	// Minimum server version: 5.3
 	HasPermissionTo(userId string, permission *model.Permission) bool
 
 	// HasPermissionToTeam check if the user has the permission at team scope.
+	//
+	// Minimum server version: 5.3
 	HasPermissionToTeam(userId, teamId string, permission *model.Permission) bool
 
 	// HasPermissionToChannel check if the user has the permission at channel scope.
+	//
+	// Minimum server version: 5.3
 	HasPermissionToChannel(userId, channelId string, permission *model.Permission) bool
 
 	// LogDebug writes a log message to the Mattermost server log file.
