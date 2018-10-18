@@ -54,6 +54,11 @@ type API interface {
 	// GetUserByUsername gets a user by their username.
 	GetUserByUsername(name string) (*model.User, *model.AppError)
 
+	// GetUsersByUsernames gets users by their usernames.
+	//
+	// Minimum server version: 5.6
+	GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError)
+
 	// GetUsersInTeam gets users in team.
 	//
 	// Minimum server version: 5.6
