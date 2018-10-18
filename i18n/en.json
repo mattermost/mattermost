@@ -2423,14 +2423,6 @@
     "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
   },
   {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "WebRTC is not enabled in this server."
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "We encountered an error trying to register the WebRTC Token"
-  },
-  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
   },
@@ -4277,34 +4269,6 @@
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "WebRTC Gateway Admin Secret must be set."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC Gateway Admin URL must be a valid URL starting with http:// or https://."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Gateway Websocket URL must be a valid URL starting with ws:// or wss://."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URI must be a valid URL starting with stun:"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "WebRTC TURN Shared Key cannot be empty if the TURN URI has been set."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "WebRTC TURN Username cannot be empty if the TURN URI has been set."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",

@@ -367,16 +367,6 @@
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
     },
-    "WebrtcSettings": {
-        "Enable": false,
-        "GatewayWebsocketUrl": "",
-        "GatewayAdminUrl": "",
-        "GatewayAdminSecret": "",
-        "StunURI": "",
-        "TurnURI": "",
-        "TurnUsername": "",
-        "TurnSharedKey": ""
-    },
     "ElasticsearchSettings": {
         "ConnectionUrl": "http://dockerhost:9200",
         "Username": "elastic",
