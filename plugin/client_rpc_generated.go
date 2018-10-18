@@ -1899,6 +1899,37 @@ func (s *apiRPCServer) DeleteChannelMember(args *Z_DeleteChannelMemberArgs, retu
 	return nil
 }
 
+type Z_GetUsersInChannelArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetUsersInChannelReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersInChannelArgs{channelId, page, perPage}
+	_returns := &Z_GetUsersInChannelReturns{}
+	if err := g.client.Call("Plugin.GetUsersInChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsersInChannel API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsersInChannel(args *Z_GetUsersInChannelArgs, returns *Z_GetUsersInChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetUsersInChannel(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsersInChannel called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CreatePostArgs struct {
 	A *model.Post
 }
@@ -2393,6 +2424,35 @@ func (s *apiRPCServer) GetFileThumbnail(args *Z_GetFileThumbnailArgs, returns *Z
 		returns.A, returns.B = hook.GetFileThumbnail(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetFileThumbnail called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetFileLinkArgs struct {
+	A string
+}
+
+type Z_GetFileLinkReturns struct {
+	A string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetFileLink(fileId string) (string, *model.AppError) {
+	_args := &Z_GetFileLinkArgs{fileId}
+	_returns := &Z_GetFileLinkReturns{}
+	if err := g.client.Call("Plugin.GetFileLink", _args, _returns); err != nil {
+		log.Printf("RPC call to GetFileLink API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetFileLink(args *Z_GetFileLinkArgs, returns *Z_GetFileLinkReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetFileLink(fileId string) (string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetFileLink(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetFileLink called but not implemented."))
 	}
 	return nil
 }

@@ -154,6 +154,8 @@ type API interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
 	// SearchChannels returns the channels on a team matching the provided search term.
+	//
+	// Minimum server version: 5.6
 	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
@@ -175,6 +177,11 @@ type API interface {
 
 	// DeleteChannelMember deletes a channel membership for a user.
 	DeleteChannelMember(channelId, userId string) *model.AppError
+
+	// GetUsersInChannel gets users in given channel.
+	//
+	// Minimum server version: 5.6
+	GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError)
 
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
@@ -253,6 +260,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetFileThumbnail(fileId string) ([]byte, *model.AppError)
+
+	// GetFileLink gets the public link to a file by fileId.
+	//
+	// Minimum server version: 5.6
+	GetFileLink(fileId string) (string, *model.AppError)
 
 	// ReadFileAtPath reads the file from the backend for a specific path
 	//
