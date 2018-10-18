@@ -12,8 +12,8 @@ import (
 type PostList struct {
 	Order          []string         `json:"order"`
 	Posts          map[string]*Post `json:"posts"`
-	NextPostId     string           `json:"next_post_id,omitempty"`
-	PreviousPostId string           `json:"previous_post_id,omitempty"`
+	NextPostId     string           `json:"next_post_id"`
+	PreviousPostId string           `json:"previous_post_id"`
 }
 
 func NewPostList() *PostList {

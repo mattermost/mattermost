@@ -713,15 +713,15 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, numPosts 
 	})
 }
 
-func (s *SqlPostStore) GetPostBefore(channelId, postId string) store.StoreChannel {
-	return s.getPostAround(channelId, postId, true)
+func (s *SqlPostStore) GetPostBefore(channelId string, time int64) store.StoreChannel {
+	return s.getPostAround(channelId, time, true)
 }
 
-func (s *SqlPostStore) GetPostAfter(channelId, postId string) store.StoreChannel {
-	return s.getPostAround(channelId, postId, false)
+func (s *SqlPostStore) GetPostAfter(channelId string, time int64) store.StoreChannel {
+	return s.getPostAround(channelId, time, false)
 }
 
-func (s *SqlPostStore) getPostAround(channelId string, postId string, before bool) store.StoreChannel {
+func (s *SqlPostStore) getPostAround(channelId string, time int64, before bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var direction string
 		var sort string
@@ -736,18 +736,17 @@ func (s *SqlPostStore) getPostAround(channelId string, postId string, before boo
 		var post *model.Post
 		err := s.GetReplica().SelectOne(
 			&post,
-			`(SELECT
-			    *
+			`SELECT
+				*
 			FROM
-			    Posts
+				Posts
 			WHERE
-				(CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
-			        AND ChannelId = :ChannelId
-					AND DeleteAt = 0)
-				ORDER BY CreateAt `+sort+`
-				LIMIT 1
-				OFFSET 0)`,
-			map[string]interface{}{"ChannelId": channelId, "PostId": postId})
+				CreateAt `+direction+` :Time
+				AND ChannelId = :ChannelId
+				AND DeleteAt = 0
+			ORDER BY CreateAt `+sort+`
+			LIMIT 1`,
+			map[string]interface{}{"ChannelId": channelId, "Time": time})
 		if err != nil {
 			if err != sql.ErrNoRows {
 				result.Err = model.NewAppError("SqlPostStore.getPostAround", "store.sql_post.get_post_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
