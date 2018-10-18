@@ -2219,6 +2219,38 @@ func (s *apiRPCServer) GetPostsSince(args *Z_GetPostsSinceArgs, returns *Z_GetPo
 	return nil
 }
 
+type Z_GetPostsAfterArgs struct {
+	A string
+	B string
+	C int
+	D int
+}
+
+type Z_GetPostsAfterReturns struct {
+	A *model.PostList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	_args := &Z_GetPostsAfterArgs{channelId, postId, page, perPage}
+	_returns := &Z_GetPostsAfterReturns{}
+	if err := g.client.Call("Plugin.GetPostsAfter", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPostsAfter API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPostsAfter(args *Z_GetPostsAfterArgs, returns *Z_GetPostsAfterReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPostsAfter(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API GetPostsAfter called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPostsBeforeArgs struct {
 	A string
 	B string

@@ -225,6 +225,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
 
+	// GetPostsAfter gets a page of posts that were posted after the post provided.
+	//
+	// Minimum server version: 5.6
+	GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+
 	// GetPostsBefore gets a page of posts that were posted before the post provided.
 	//
 	// Minimum server version: 5.6
