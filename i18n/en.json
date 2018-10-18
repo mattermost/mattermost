@@ -2931,10 +2931,6 @@
     "translation": "User AuthData is too long."
   },
   {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "User AuthService should not be empty if it is provided."
-  },
-  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "User email has an invalid length."
   },

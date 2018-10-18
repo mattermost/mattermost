@@ -199,10 +199,6 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.email_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.AuthService != nil && len(*data.AuthService) == 0 {
-		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_service_length.error", nil, "", http.StatusBadRequest)
-	}
-
 	if data.AuthData != nil && data.Password != nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_password.error", nil, "", http.StatusBadRequest)
 	}

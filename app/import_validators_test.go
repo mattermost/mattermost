@@ -556,10 +556,9 @@ func TestImportValidateUserImportData(t *testing.T) {
 
 	data.Email = ptrStr("bob@example.com")
 
+	// Empty AuthService indicates user/password auth.
 	data.AuthService = ptrStr("")
-	if err := validateUserImportData(&data); err == nil {
-		t.Fatal("Validation should have failed due to 0-length auth service.")
-	}
+	checkNoError(t, validateUserImportData(&data))
 
 	data.AuthService = ptrStr("saml")
 	data.AuthData = ptrStr(strings.Repeat("abcdefghij", 15))
