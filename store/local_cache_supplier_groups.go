@@ -84,3 +84,11 @@ func (s *LocalCacheSupplier) GroupUpdateGroupSyncable(ctx context.Context, group
 func (s *LocalCacheSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	return s.Next().GroupDeleteGroupSyncable(ctx, groupID, syncableID, syncableType, hints...)
 }
+
+func (s *LocalCacheSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().PendingAutoAddTeamMembers(ctx, minGroupMembersCreateAt, hints...)
+}
+
+func (s *LocalCacheSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().PendingAutoAddChannelMembers(ctx, minGroupMembersCreateAt, hints...)
+}

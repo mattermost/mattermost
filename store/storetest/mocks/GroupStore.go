@@ -205,6 +205,38 @@ func (_m *GroupStore) GetMemberUsers(groupID string) store.StoreChannel {
 	return r0
 }
 
+// PendingAutoAddChannelMembers provides a mock function with given fields: minGroupMembersCreateAt
+func (_m *GroupStore) PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) store.StoreChannel {
+	ret := _m.Called(minGroupMembersCreateAt)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int64) store.StoreChannel); ok {
+		r0 = rf(minGroupMembersCreateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// PendingAutoAddTeamMembers provides a mock function with given fields: minGroupMembersCreateAt
+func (_m *GroupStore) PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) store.StoreChannel {
+	ret := _m.Called(minGroupMembersCreateAt)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int64) store.StoreChannel); ok {
+		r0 = rf(minGroupMembersCreateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: group
 func (_m *GroupStore) Update(group *model.Group) store.StoreChannel {
 	ret := _m.Called(group)

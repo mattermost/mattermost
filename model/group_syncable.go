@@ -110,3 +110,13 @@ func (syncable *GroupSyncable) Patch(patch *GroupSyncablePatch) {
 		syncable.AutoAdd = *patch.AutoAdd
 	}
 }
+
+type UserTeamIDPair struct {
+	UserID string
+	TeamID string
+}
+
+type UserChannelIDPair struct {
+	UserID    string
+	ChannelID string
+}

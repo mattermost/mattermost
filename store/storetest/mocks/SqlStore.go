@@ -199,7 +199,7 @@ func (_m *SqlStore) CreateIndexIfNotExists(indexName string, tableName string, c
 	return r0
 }
 
-// CreateUniqueIndexIfNotExists provides a mock function with given fields: indexName, tableName, columnNames
+// CreateUniqueIndexIfNotExists provides a mock function with given fields: indexName, tableName, columnName
 func (_m *SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool {
 	ret := _m.Called(indexName, tableName, columnName)
 

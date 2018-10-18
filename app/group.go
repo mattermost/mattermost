@@ -118,3 +118,19 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 	}
 	return result.Data.(*model.GroupSyncable), nil
 }
+
+func (a *App) PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) ([]*model.UserTeamIDPair, *model.AppError) {
+	result := <-a.Srv.Store.Group().PendingAutoAddTeamMembers(minGroupMembersCreateAt)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.UserTeamIDPair), nil
+}
+
+func (a *App) PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) ([]*model.UserChannelIDPair, *model.AppError) {
+	result := <-a.Srv.Store.Group().PendingAutoAddChannelMembers(minGroupMembersCreateAt)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.UserChannelIDPair), nil
+}

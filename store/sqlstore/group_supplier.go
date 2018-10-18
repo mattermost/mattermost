@@ -636,11 +636,11 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 	return result
 }
 
-// PendingAutoAddTeamMemberships returns a slice of [UserIds, TeamIds] tuples that need newly created
+// PendingAutoAddTeamMembers returns a slice of [UserIds, TeamIds] tuples that need newly created
 // memberships as configured by groups.
 //
 // Typically minGroupMembersCreateAt will be the last successful group sync time.
-func (s *SqlSupplier) PendingAutoAddTeamMemberships(ctx context.Context, minGroupMembersCreateAt int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
 	sql := `SELECT 
@@ -661,23 +661,25 @@ func (s *SqlSupplier) PendingAutoAddTeamMemberships(ctx context.Context, minGrou
 				AND GroupTeams.DeleteAt = 0
 				AND GroupTeams.AutoAdd = true
 				AND GroupMembers.DeleteAt = 0
-				AND GroupMembers.CreateAt >= :MinGroupMembersCreateAt`
+				AND GroupTeams.CreateAt >= :MinGroupMembersCreateAt`
 
-	sqlResult, err := s.GetMaster().Exec(sql, map[string]interface{}{"MinGroupMembersCreateAt": minGroupMembersCreateAt})
+	var userTeamIDs []*model.UserTeamIDPair
+
+	_, err := s.GetMaster().Select(&userTeamIDs, sql, map[string]interface{}{"MinGroupMembersCreateAt": minGroupMembersCreateAt})
 	if err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.PendingAutoAddTeamMemberships", "store.sql_group.select_error", nil, "", http.StatusInternalServerError)
+		result.Err = model.NewAppError("SqlGroupStore.PendingAutoAddTeamMembers", "store.sql_group.select_error", nil, "", http.StatusInternalServerError)
 	}
 
-	result.Data = sqlResult
+	result.Data = userTeamIDs
 
 	return result
 }
 
-// PendingAutoAddChannelMemberships returns a slice [UserIds, ChannelIds] tuples that need newly created
+// PendingAutoAddChannelMembers returns a slice [UserIds, ChannelIds] tuples that need newly created
 // memberships as configured by groups.
 //
 // Typically minGroupMembersCreateAt will be the last successful group sync time.
-func (s *SqlSupplier) PendingAutoAddChannelMemberships(minGroupMembersCreateAt int) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
 	sql := `SELECT 
@@ -698,14 +700,16 @@ func (s *SqlSupplier) PendingAutoAddChannelMemberships(minGroupMembersCreateAt i
 				AND GroupChannels.DeleteAt = 0
 				AND GroupChannels.AutoAdd = true
 				AND GroupMembers.DeleteAt = 0
-				AND GroupMembers.CreateAt >= :MinGroupMembersCreateAt`
+				AND GroupChannels.CreateAt >= :MinGroupMembersCreateAt`
 
-	sqlResult, err := s.GetMaster().Exec(sql, map[string]interface{}{"MinGroupMembersCreateAt": minGroupMembersCreateAt})
+	var userChannelIDs []*model.UserChannelIDPair
+
+	_, err := s.GetMaster().Select(&userChannelIDs, sql, map[string]interface{}{"MinGroupMembersCreateAt": minGroupMembersCreateAt})
 	if err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.PendingAutoAddChannelMemberships", "store.sql_group.select_error", nil, "", http.StatusInternalServerError)
+		result.Err = model.NewAppError("SqlGroupStore.PendingAutoAddChannelMembers", "store.sql_group.select_error", nil, "", http.StatusInternalServerError)
 	}
 
-	result.Data = sqlResult
+	result.Data = userChannelIDs
 
 	return result
 }
