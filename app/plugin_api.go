@@ -85,7 +85,7 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 	cfg := api.app.GetConfig()
-	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk{
+	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
 		return pluginConfig
 	}
 	return map[string]interface{}{}
