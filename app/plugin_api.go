@@ -111,6 +111,10 @@ func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError
 	return api.app.UpdateTeam(team)
 }
 
+func (api *PluginAPI) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+	return api.app.GetTeamsForUser(userId)
+}
+
 func (api *PluginAPI) CreateTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
 	return api.app.AddTeamMember(teamId, userId)
 }
@@ -290,6 +294,10 @@ func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppEr
 	return api.app.LeaveChannel(channelId, userId)
 }
 
+func (api *PluginAPI) GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
+}
+
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return api.app.CreatePostMissingChannel(post, true)
 }
@@ -372,6 +380,23 @@ func (api *PluginAPI) GetFilePreview(fileId string) ([]byte, *model.AppError) {
 	}
 
 	return api.app.ReadFile(info.PreviewPath)
+}
+
+func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
+	if !api.app.Config().FileSettings.EnablePublicLink {
+		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	info, err := api.app.GetFileInfo(fileId)
+	if err != nil {
+		return "", err
+	}
+
+	if len(info.PostId) == 0 {
+		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+	}
+
+	return api.app.GeneratePublicLink(api.app.GetSiteURL(), info), nil
 }
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {

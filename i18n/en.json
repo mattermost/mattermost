@@ -4315,6 +4315,18 @@
     "translation": "Invalid value for webserver connection security."
   },
   {
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+  },
+  {
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+  },
+  {
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+  },
+  {
     "id": "model.config.is_valid.websocket_url.app_error",
     "translation": "Websocket URL must be a valid URL and start with ws:// or wss://"
   },
@@ -4829,6 +4841,14 @@
   {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Public links have been disabled"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",

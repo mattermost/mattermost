@@ -599,6 +599,29 @@ func (_m *API) GetFilePreview(fileId string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
+// GetFileLink provides a mock function with given fields: fileId
+func (_m *API) GetFileLink(fileId string) (string, *model.AppError) {
+	ret := _m.Called(fileId)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(fileId)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(fileId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGroupChannel provides a mock function with given fields: userIds
 func (_m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userIds)
@@ -1013,6 +1036,31 @@ func (_m *API) GetTeams() ([]*model.Team, *model.AppError) {
 	return r0, r1
 }
 
+// GetTeamsForUser provides a mock function with given fields: userId
+func (_m *API) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+	ret := _m.Called(userId)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUser provides a mock function with given fields: userId
 func (_m *API) GetUser(userId string) (*model.User, *model.AppError) {
 	ret := _m.Called(userId)
@@ -1154,6 +1202,31 @@ func (_m *API) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.Us
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
 		r1 = rf(teamId, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetUsersInChannel provides a mock function with given fields: channelId, page, perPage
+func (_m *API) GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	ret := _m.Called(channelId, page, perPage)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
+		r0 = rf(channelId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(channelId, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
