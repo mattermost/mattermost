@@ -626,11 +626,11 @@ func (_m *UserStore) Save(user *model.User) store.StoreChannel {
 }
 
 // Search provides a mock function with given fields: teamId, term, options
-func (_m *UserStore) Search(teamId string, term string, options map[string]bool) store.StoreChannel {
+func (_m *UserStore) Search(teamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	ret := _m.Called(teamId, term, options)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, map[string]bool) store.StoreChannel); ok {
+	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) store.StoreChannel); ok {
 		r0 = rf(teamId, term, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -642,11 +642,11 @@ func (_m *UserStore) Search(teamId string, term string, options map[string]bool)
 }
 
 // SearchInChannel provides a mock function with given fields: channelId, term, options
-func (_m *UserStore) SearchInChannel(channelId string, term string, options map[string]bool) store.StoreChannel {
+func (_m *UserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	ret := _m.Called(channelId, term, options)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, map[string]bool) store.StoreChannel); ok {
+	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) store.StoreChannel); ok {
 		r0 = rf(channelId, term, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -658,11 +658,11 @@ func (_m *UserStore) SearchInChannel(channelId string, term string, options map[
 }
 
 // SearchNotInChannel provides a mock function with given fields: teamId, channelId, term, options
-func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) store.StoreChannel {
+func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	ret := _m.Called(teamId, channelId, term, options)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, string, map[string]bool) store.StoreChannel); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string, *model.UserSearchOptions) store.StoreChannel); ok {
 		r0 = rf(teamId, channelId, term, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -674,11 +674,11 @@ func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term st
 }
 
 // SearchNotInTeam provides a mock function with given fields: notInTeamId, term, options
-func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options map[string]bool) store.StoreChannel {
+func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	ret := _m.Called(notInTeamId, term, options)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, map[string]bool) store.StoreChannel); ok {
+	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) store.StoreChannel); ok {
 		r0 = rf(notInTeamId, term, options)
 	} else {
 		if ret.Get(0) != nil {
@@ -690,11 +690,11 @@ func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options ma
 }
 
 // SearchWithoutTeam provides a mock function with given fields: term, options
-func (_m *UserStore) SearchWithoutTeam(term string, options map[string]bool) store.StoreChannel {
+func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) store.StoreChannel {
 	ret := _m.Called(term, options)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, map[string]bool) store.StoreChannel); ok {
+	if rf, ok := ret.Get(0).(func(string, *model.UserSearchOptions) store.StoreChannel); ok {
 		r0 = rf(term, options)
 	} else {
 		if ret.Get(0) != nil {
