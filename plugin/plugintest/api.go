@@ -585,6 +585,18 @@ func (_m *API) GetFileThumbnail(fileId string) ([]byte, *model.AppError) {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
 		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(fileId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
   
 // GetFileLink provides a mock function with given fields: fileId
