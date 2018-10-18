@@ -827,6 +827,35 @@ func (s *apiRPCServer) GetUserByUsername(args *Z_GetUserByUsernameArgs, returns 
 	return nil
 }
 
+type Z_GetUsersByUsernamesArgs struct {
+	A []string
+}
+
+type Z_GetUsersByUsernamesReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersByUsernamesArgs{usernames}
+	_returns := &Z_GetUsersByUsernamesReturns{}
+	if err := g.client.Call("Plugin.GetUsersByUsernames", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsersByUsernames API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsersByUsernames(args *Z_GetUsersByUsernamesArgs, returns *Z_GetUsersByUsernamesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetUsersByUsernames(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsersByUsernames called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetUsersInTeamArgs struct {
 	A string
 	B int
@@ -2190,6 +2219,38 @@ func (s *apiRPCServer) GetPostsSince(args *Z_GetPostsSinceArgs, returns *Z_GetPo
 	return nil
 }
 
+type Z_GetPostsAfterArgs struct {
+	A string
+	B string
+	C int
+	D int
+}
+
+type Z_GetPostsAfterReturns struct {
+	A *model.PostList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	_args := &Z_GetPostsAfterArgs{channelId, postId, page, perPage}
+	_returns := &Z_GetPostsAfterReturns{}
+	if err := g.client.Call("Plugin.GetPostsAfter", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPostsAfter API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPostsAfter(args *Z_GetPostsAfterArgs, returns *Z_GetPostsAfterReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPostsAfter(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API GetPostsAfter called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPostsBeforeArgs struct {
 	A string
 	B string
@@ -2453,6 +2514,36 @@ func (s *apiRPCServer) ReadFile(args *Z_ReadFileArgs, returns *Z_ReadFileReturns
 		returns.A, returns.B = hook.ReadFile(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API ReadFile called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetEmojiImageArgs struct {
+	A string
+}
+
+type Z_GetEmojiImageReturns struct {
+	A []byte
+	B string
+	C *model.AppError
+}
+
+func (g *apiRPCClient) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+	_args := &Z_GetEmojiImageArgs{emojiId}
+	_returns := &Z_GetEmojiImageReturns{}
+	if err := g.client.Call("Plugin.GetEmojiImage", _args, _returns); err != nil {
+		log.Printf("RPC call to GetEmojiImage API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B, _returns.C
+}
+
+func (s *apiRPCServer) GetEmojiImage(args *Z_GetEmojiImageArgs, returns *Z_GetEmojiImageReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
+	}); ok {
+		returns.A, returns.B, returns.C = hook.GetEmojiImage(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetEmojiImage called but not implemented."))
 	}
 	return nil
 }

@@ -54,6 +54,11 @@ type API interface {
 	// GetUserByUsername gets a user by their username.
 	GetUserByUsername(name string) (*model.User, *model.AppError)
 
+	// GetUsersByUsernames gets users by their usernames.
+	//
+	// Minimum server version: 5.6
+	GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError)
+
 	// GetUsersInTeam gets users in team.
 	//
 	// Minimum server version: 5.6
@@ -220,6 +225,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
 
+	// GetPostsAfter gets a page of posts that were posted after the post provided.
+	//
+	// Minimum server version: 5.6
+	GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+
 	// GetPostsBefore gets a page of posts that were posted before the post provided.
 	//
 	// Minimum server version: 5.6
@@ -265,6 +275,11 @@ type API interface {
 	//
 	// Minimum server version: 5.3
 	ReadFile(path string) ([]byte, *model.AppError)
+
+	// GetEmojiImage returns the emoji image.
+	//
+	// Minimum server version: 5.6
+	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError

@@ -164,6 +164,10 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 	return api.app.GetUserByUsername(name)
 }
 
+func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersByUsernames(usernames, true)
+}
+
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
 	return api.app.GetUsersInTeam(teamId, page, perPage)
 }
@@ -335,6 +339,10 @@ func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostLi
 	return api.app.GetPostsSince(channelId, time)
 }
 
+func (api *PluginAPI) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsAfterPost(channelId, postId, page, perPage)
+}
+
 func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
 	return api.app.GetPostsBeforePost(channelId, postId, page, perPage)
 }
@@ -388,6 +396,10 @@ func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
+}
+
+func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+	return api.app.GetEmojiImage(emojiId)
 }
 
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
