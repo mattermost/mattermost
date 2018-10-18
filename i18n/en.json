@@ -4843,6 +4843,14 @@
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Public links have been disabled"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Unable to get public link for file. File must be attached to a post that can be read."
+  },
+  {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
   },
