@@ -574,17 +574,15 @@ func (_m *API) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return r0, r1
 }
 
-// GetFileThumbnail provides a mock function with given fields: fileId
-func (_m *API) GetFileThumbnail(fileId string) ([]byte, *model.AppError) {
+// GetFileLink provides a mock function with given fields: fileId
+func (_m *API) GetFileLink(fileId string) (string, *model.AppError) {
 	ret := _m.Called(fileId)
 
-	var r0 []byte
-	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
 		r0 = rf(fileId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *model.AppError
@@ -598,16 +596,18 @@ func (_m *API) GetFileThumbnail(fileId string) ([]byte, *model.AppError) {
 
 	return r0, r1
 }
-  
-// GetFileLink provides a mock function with given fields: fileId
-func (_m *API) GetFileLink(fileId string) (string, *model.AppError) {
+
+// GetFileThumbnail provides a mock function with given fields: fileId
+func (_m *API) GetFileThumbnail(fileId string) ([]byte, *model.AppError) {
 	ret := _m.Called(fileId)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string) string); ok {
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
 		r0 = rf(fileId)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
 	}
 
 	var r1 *model.AppError
@@ -1186,31 +1186,6 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.A
 	return r0, r1
 }
 
-// GetUsersInTeam provides a mock function with given fields: teamId, page, perPage
-func (_m *API) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
-	ret := _m.Called(teamId, page, perPage)
-
-	var r0 []*model.User
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
-		r0 = rf(teamId, page, perPage)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.User)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(teamId, page, perPage)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // GetUsersInChannel provides a mock function with given fields: channelId, page, perPage
 func (_m *API) GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError) {
 	ret := _m.Called(channelId, page, perPage)
@@ -1227,6 +1202,31 @@ func (_m *API) GetUsersInChannel(channelId string, page int, perPage int) ([]*mo
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
 		r1 = rf(channelId, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetUsersInTeam provides a mock function with given fields: teamId, page, perPage
+func (_m *API) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
+	ret := _m.Called(teamId, page, perPage)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
+		r0 = rf(teamId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
