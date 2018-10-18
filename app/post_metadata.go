@@ -84,7 +84,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 			post.Metadata.Embeds = []*model.PostEmbed{embed}
 		}
 
-		post.Metadata.ImageDimensions = a.getImageDimensionsForPost(post, images)
+		post.Metadata.Images = a.getImagesForPost(post, images)
 	}
 
 	return post, nil
@@ -112,7 +112,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string) (*model.PostEm
 	}
 
 	if firstLink != "" {
-		og, dimensions, err := a.getLinkMetadata(firstLink, true)
+		og, image, err := a.getLinkMetadata(firstLink, true)
 		if err != nil {
 			return nil, err
 		}
@@ -125,8 +125,8 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string) (*model.PostEm
 			}, nil
 		}
 
-		if dimensions != nil {
-			// Note that we're not passing the dimensions here since they'll be part of the PostMetadata.ImageDimensions field
+		if image != nil {
+			// Note that we're not passing the image info here since they'll be part of the PostMetadata.Images field
 			return &model.PostEmbed{
 				Type: model.POST_EMBED_IMAGE,
 				URL:  firstLink,
@@ -137,49 +137,49 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string) (*model.PostEm
 	return nil, nil
 }
 
-func (a *App) getImageDimensionsForPost(post *model.Post, images []string) map[string]*model.PostImageDimensions {
-	allDimensions := map[string]*model.PostImageDimensions{}
+func (a *App) getImagesForPost(post *model.Post, imageURLs []string) map[string]*model.PostImage {
+	images := map[string]*model.PostImage{}
 
 	for _, embed := range post.Metadata.Embeds {
 		switch embed.Type {
 		case model.POST_EMBED_IMAGE:
 			// These dimensions will generally be cached by a previous call to getEmbedForPost
-			images = append(images, embed.URL)
+			imageURLs = append(imageURLs, embed.URL)
 
 		case model.POST_EMBED_MESSAGE_ATTACHMENT:
-			images = append(images, getImagesInMessageAttachments(post)...)
+			imageURLs = append(imageURLs, getImagesInMessageAttachments(post)...)
 
 		case model.POST_EMBED_OPENGRAPH:
 			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
 				if image.Width != 0 || image.Height != 0 {
 					// The site has already told us the image dimensions
-					allDimensions[image.URL] = &model.PostImageDimensions{
+					images[image.URL] = &model.PostImage{
 						Width:  int(image.Width),
 						Height: int(image.Height),
 					}
 				} else {
 					// The site did not specify its image dimensions
-					images = append(images, image.URL)
+					imageURLs = append(imageURLs, image.URL)
 				}
 			}
 		}
 	}
 
-	// Removing duplicates isn't strictly since allDimensions is a map, but it feels safer to do it beforehand
-	if len(images) > 1 {
-		images = model.RemoveDuplicateStrings(images)
+	// Removing duplicates isn't strictly since images is a map, but it feels safer to do it beforehand
+	if len(imageURLs) > 1 {
+		imageURLs = model.RemoveDuplicateStrings(imageURLs)
 	}
 
-	for _, imageURL := range images {
-		if _, dimensions, err := a.getLinkMetadata(imageURL, true); err != nil {
+	for _, imageURL := range imageURLs {
+		if _, image, err := a.getLinkMetadata(imageURL, true); err != nil {
 			mlog.Warn("Failed to get dimensions of an image in a post",
 				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Any("err", err))
 		} else {
-			allDimensions[imageURL] = dimensions
+			images[imageURL] = image
 		}
 	}
 
-	return allDimensions
+	return images
 }
 
 func (a *App) getCustomEmojisForPost(message string, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
@@ -253,13 +253,13 @@ func getImagesInMessageAttachments(post *model.Post) []string {
 	return images
 }
 
-func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.OpenGraph, *model.PostImageDimensions, error) {
+func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.OpenGraph, *model.PostImage, error) {
 	// Check cache
 	if useCache {
-		og, dimensions, ok := getLinkMetadataFromCache(requestURL)
+		og, image, ok := getLinkMetadataFromCache(requestURL)
 
 		if ok {
-			return og, dimensions, nil
+			return og, image, nil
 		}
 	}
 
@@ -278,17 +278,17 @@ func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.Open
 	defer consumeAndClose(res)
 
 	// Parse the data
-	og, dimensions, err := a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+	og, image, err := a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
 
 	// Write back to cache
 	if useCache {
-		cacheLinkMetadata(requestURL, og, dimensions)
+		cacheLinkMetadata(requestURL, og, image)
 	}
 
-	return og, dimensions, err
+	return og, image, err
 }
 
-func getLinkMetadataFromCache(requestURL string) (*opengraph.OpenGraph, *model.PostImageDimensions, bool) {
+func getLinkMetadataFromCache(requestURL string) (*opengraph.OpenGraph, *model.PostImage, bool) {
 	cached, ok := linkCache.Get(requestURL)
 	if !ok {
 		return nil, nil, false
@@ -297,28 +297,28 @@ func getLinkMetadataFromCache(requestURL string) (*opengraph.OpenGraph, *model.P
 	switch v := cached.(type) {
 	case *opengraph.OpenGraph:
 		return v, nil, true
-	case *model.PostImageDimensions:
+	case *model.PostImage:
 		return nil, v, true
 	default:
 		return nil, nil, true
 	}
 }
 
-func cacheLinkMetadata(requestURL string, og *opengraph.OpenGraph, dimensions *model.PostImageDimensions) {
+func cacheLinkMetadata(requestURL string, og *opengraph.OpenGraph, image *model.PostImage) {
 	var val interface{}
 	if og != nil {
 		val = og
-	} else if dimensions != nil {
-		val = dimensions
+	} else if image != nil {
+		val = image
 	}
 
 	linkCache.AddWithExpiresInSecs(requestURL, val, LINK_CACHE_DURATION)
 }
 
-func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImageDimensions, error) {
+func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
 	if strings.HasPrefix(contentType, "image") {
-		dimensions, err := parseImageDimensions(body)
-		return nil, dimensions, err
+		image, err := parseImages(body)
+		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
 		og := a.ParseOpenGraphMetadata(requestURL, body, contentType)
 
@@ -335,16 +335,16 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 	}
 }
 
-func parseImageDimensions(body io.Reader) (*model.PostImageDimensions, error) {
+func parseImages(body io.Reader) (*model.PostImage, error) {
 	config, _, err := image.DecodeConfig(body)
 	if err != nil {
 		return nil, err
 	}
 
-	dimensions := &model.PostImageDimensions{
+	image := &model.PostImage{
 		Width:  config.Width,
 		Height: config.Height,
 	}
 
-	return dimensions, nil
+	return image, nil
 }

@@ -55,7 +55,7 @@ func TestPreparePostForClient(t *testing.T) {
 			assert.Len(t, clientPost.Metadata.ReactionCounts, 0, "should've populated ReactionCounts")
 			assert.Len(t, clientPost.Metadata.Files, 0, "should've populated Files")
 			assert.Len(t, clientPost.Metadata.Emojis, 0, "should've populated Emojis")
-			assert.Len(t, clientPost.Metadata.ImageDimensions, 0, "should've populated ImageDimensions")
+			assert.Len(t, clientPost.Metadata.Images, 0, "should've populated Images")
 		})
 	})
 
@@ -201,13 +201,13 @@ func TestPreparePostForClient(t *testing.T) {
 		require.Nil(t, err)
 
 		t.Run("populates image dimensions", func(t *testing.T) {
-			imageDimensions := clientPost.Metadata.ImageDimensions
+			imageDimensions := clientPost.Metadata.Images
 			assert.Len(t, imageDimensions, 2)
-			assert.Equal(t, &model.PostImageDimensions{
+			assert.Equal(t, &model.PostImage{
 				Width:  1068,
 				Height: 552,
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/logoVertical.png"])
-			assert.Equal(t, &model.PostImageDimensions{
+			assert.Equal(t, &model.PostImage{
 				Width:  501,
 				Height: 501,
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
@@ -255,9 +255,9 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 
 		t.Run("populates image dimensions", func(t *testing.T) {
-			imageDimensions := clientPost.Metadata.ImageDimensions
+			imageDimensions := clientPost.Metadata.Images
 			assert.Len(t, imageDimensions, 1)
-			assert.Equal(t, &model.PostImageDimensions{
+			assert.Equal(t, &model.PostImage{
 				Width:  1068,
 				Height: 552,
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/logoVertical.png"])
@@ -300,9 +300,9 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 
 		t.Run("populates image dimensions", func(t *testing.T) {
-			imageDimensions := clientPost.Metadata.ImageDimensions
+			imageDimensions := clientPost.Metadata.Images
 			assert.Len(t, imageDimensions, 1)
-			assert.Equal(t, &model.PostImageDimensions{
+			assert.Equal(t, &model.PostImage{
 				Width:  420,
 				Height: 420,
 			}, imageDimensions["https://avatars1.githubusercontent.com/u/3277310?s=400&v=4"])
@@ -338,9 +338,9 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 
 		t.Run("populates image dimensions", func(t *testing.T) {
-			imageDimensions := clientPost.Metadata.ImageDimensions
+			imageDimensions := clientPost.Metadata.Images
 			assert.Len(t, imageDimensions, 1)
-			assert.Equal(t, &model.PostImageDimensions{
+			assert.Equal(t, &model.PostImage{
 				Width:  501,
 				Height: 501,
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
@@ -807,7 +807,7 @@ func TestParseLinkMetadata(t *testing.T) {
 		assert.Nil(t, err)
 
 		assert.Nil(t, og)
-		assert.Equal(t, &model.PostImageDimensions{
+		assert.Equal(t, &model.PostImage{
 			Width:  408,
 			Height: 336,
 		}, dimensions)
@@ -849,7 +849,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 }
 
-func TestParseImageDimensions(t *testing.T) {
+func TestParseImages(t *testing.T) {
 	for name, testCase := range map[string]struct {
 		FileName       string
 		ExpectedWidth  int
@@ -875,7 +875,7 @@ func TestParseImageDimensions(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
 			require.Nil(t, err)
 
-			dimensions, err := parseImageDimensions(bytes.NewReader(file))
+			dimensions, err := parseImages(bytes.NewReader(file))
 			if testCase.ExpectError {
 				require.NotNil(t, err)
 			} else {

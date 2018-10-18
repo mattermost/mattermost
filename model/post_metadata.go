@@ -13,16 +13,16 @@ type PostMetadata struct {
 	// An array of information about the file attachments on the post.
 	Files []*FileInfo `json:"files,omitempty"`
 
-	// A map of image URL to dimensions for all external images in the post. This includes image embeds,
+	// A map of image URL to information about  all external images in the post. This includes image embeds,
 	// inline Markdown images, OpenGraph images, and message attachment images, but it does not contain the dimensions
 	// of file attachments which are contained in PostMetadata.FileInfos.
-	ImageDimensions map[string]*PostImageDimensions `json:"images_dimensions,omitempty"`
+	Images map[string]*PostImage `json:"images,omitempty"`
 
 	// A map of emoji names to a count of users that reacted with the given emoji.
 	ReactionCounts ReactionCounts `json:"reaction_counts,omitempty"`
 }
 
-type PostImageDimensions struct {
+type PostImage struct {
 	Width  int `json:"width"`
 	Height int `json:"height"`
 }
