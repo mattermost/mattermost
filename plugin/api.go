@@ -34,6 +34,12 @@ type API interface {
 	// SaveConfig sets the given config and persists the changes
 	SaveConfig(config *model.Config) *model.AppError
 
+	// GetPluginConfig fetches the currently persisted config of plugin
+	GetPluginConfig() map[string]interface{}
+
+	// SavePluginConfig sets the given config for plugin and persists the changes
+	SavePluginConfig(config map[string]interface{}) *model.AppError
+
 	// GetServerVersion return the current Mattermost server version
 	//
 	// Minimum server version: 5.4
