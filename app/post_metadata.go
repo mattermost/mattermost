@@ -70,7 +70,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 		if fileInfos, err := a.GetFileInfosForPost(post.Id, false); err != nil {
 			mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
 		} else {
-			post.Metadata.FileInfos = fileInfos
+			post.Metadata.Files = fileInfos
 		}
 
 		// Embeds and image dimensions

@@ -53,7 +53,7 @@ func TestPreparePostForClient(t *testing.T) {
 			assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata")
 			assert.Len(t, clientPost.Metadata.Embeds, 0, "should've populated Embeds")
 			assert.Len(t, clientPost.Metadata.ReactionCounts, 0, "should've populated ReactionCounts")
-			assert.Len(t, clientPost.Metadata.FileInfos, 0, "should've populated FileInfos")
+			assert.Len(t, clientPost.Metadata.Files, 0, "should've populated Files")
 			assert.Len(t, clientPost.Metadata.Emojis, 0, "should've populated Emojis")
 			assert.Len(t, clientPost.Metadata.ImageDimensions, 0, "should've populated ImageDimensions")
 		})
@@ -88,7 +88,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, clientPost.Metadata.ReactionCounts, "should've populated ReactionCounts")
 	})
 
-	t.Run("file infos", func(t *testing.T) {
+	t.Run("files", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
@@ -107,7 +107,7 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.FileInfos, "should've populated FileInfos")
+		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
 
 	t.Run("emojis without custom emojis enabled", func(t *testing.T) {

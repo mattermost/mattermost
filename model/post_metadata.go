@@ -10,8 +10,8 @@ type PostMetadata struct {
 	// An arrayof the  custom emojis used in the post or in reactions to the post.
 	Emojis []*Emoji `json:"emojis,omitempty"`
 
-	// An array of information about the files attached to the post.
-	FileInfos []*FileInfo `json:"files_infos,omitempty"`
+	// An array of information about the file attachments on the post.
+	Files []*FileInfo `json:"files,omitempty"`
 
 	// A map of image URL to dimensions for all external images in the post. This includes image embeds,
 	// inline Markdown images, OpenGraph images, and message attachment images, but it does not contain the dimensions
