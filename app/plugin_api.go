@@ -164,6 +164,10 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 	return api.app.GetUserByUsername(name)
 }
 
+func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersByUsernames(usernames, true)
+}
+
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
 	return api.app.GetUsersInTeam(teamId, page, perPage)
 }

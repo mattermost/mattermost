@@ -827,6 +827,35 @@ func (s *apiRPCServer) GetUserByUsername(args *Z_GetUserByUsernameArgs, returns 
 	return nil
 }
 
+type Z_GetUsersByUsernamesArgs struct {
+	A []string
+}
+
+type Z_GetUsersByUsernamesReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersByUsernamesArgs{usernames}
+	_returns := &Z_GetUsersByUsernamesReturns{}
+	if err := g.client.Call("Plugin.GetUsersByUsernames", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsersByUsernames API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsersByUsernames(args *Z_GetUsersByUsernamesArgs, returns *Z_GetUsersByUsernamesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetUsersByUsernames(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsersByUsernames called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetUsersInTeamArgs struct {
 	A string
 	B int
