@@ -161,8 +161,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 		password := model.NewId()
 
 		// Check for email conflict and use existing user if found
-		result = <-a.Srv.Store.User().GetByEmail(email)
-		if result.Err == nil {
+		if result := <-a.Srv.Store.User().GetByEmail(email); result.Err == nil {
 			existingUser := result.Data.(*model.User)
 			addedUsers[sUser.Id] = existingUser
 			if err := a.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
