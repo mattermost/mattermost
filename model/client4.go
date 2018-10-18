@@ -2206,9 +2206,9 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 }
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
-func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int) (*PostList, *Response) {
+func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int, etag string) (*PostList, *Response) {
 	query := fmt.Sprintf("?limit_before=%v&limit_after=%v", limitBefore, limitAfter)
-	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, ""); err != nil {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

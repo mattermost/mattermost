@@ -212,15 +212,12 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(channelId)
-
-		if c.HandleEtag(etag, "Get Posts", w, r) {
-			return
-		}
-
 		postList, err = c.App.GetPostsPage(channelId, app.PAGE_DEFAULT, c.Params.LimitBefore)
+	}
+
+	if c.HandleEtag(postList.Etag(), "Get Posts Around Last Unread", w, r) {
+		return
 	}
 
 	clientPostList, err := c.App.PreparePostListForClient(postList)
@@ -228,9 +225,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		mlog.Error("Failed to prepare posts for getPostsForChannelAroundLastUnread response", mlog.Any("err", err))
 	}
 
-	if len(etag) > 0 {
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	}
+	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
 	w.Write([]byte(clientPostList.ToJson()))
 }
 
