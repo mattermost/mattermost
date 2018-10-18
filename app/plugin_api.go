@@ -398,6 +398,10 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
 }
 
+func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+	return api.app.GetEmojiImage(emojiId)
+}
+
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }

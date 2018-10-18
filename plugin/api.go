@@ -276,6 +276,11 @@ type API interface {
 	// Minimum server version: 5.3
 	ReadFile(path string) ([]byte, *model.AppError)
 
+	// GetEmojiImage returns the emoji image.
+	//
+	// Minimum server version: 5.6
+	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
+
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
 
