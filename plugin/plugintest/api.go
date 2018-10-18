@@ -524,7 +524,6 @@ func (_m *API) GetDirectChannel(userId1 string, userId2 string) (*model.Channel,
 	return r0, r1
 }
 
-<<<<<<< e8c9ccaa7e47f1cba3d2b126f6ebbb092fa43235
 // GetEmojiByName provides a mock function with given fields: name
 func (_m *API) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
 	ret := _m.Called(name)
@@ -548,7 +547,8 @@ func (_m *API) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
 	}
 
 	return r0, r1
-=======
+}
+
 // GetEmojiImage provides a mock function with given fields: emojiId
 func (_m *API) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 	ret := _m.Called(emojiId)
@@ -579,7 +579,6 @@ func (_m *API) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 	}
 
 	return r0, r1, r2
->>>>>>> GH-9619 GetEmojiImage added to plugin API
 }
 
 // GetFileInfo provides a mock function with given fields: fileId
