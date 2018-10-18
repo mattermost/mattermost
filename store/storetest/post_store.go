@@ -878,32 +878,32 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	o2a.RootId = o2.Id
 	o2a = (<-ss.Post().Save(o2a)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPostBefore(channelId, o0a.Id))
+	r1 := (<-ss.Post().GetPostBefore(channelId, o0a.CreateAt))
 	if r1.Data.(*model.Post).Id != o1.Id || r1.Err != nil {
 		t.Fatal("should return before post o1")
 	}
 
-	r1 = (<-ss.Post().GetPostAfter(channelId, o0b.Id))
+	r1 = (<-ss.Post().GetPostAfter(channelId, o0b.CreateAt))
 	if r1.Data.(*model.Post).Id != o2.Id || r1.Err != nil {
 		t.Fatal("should return before post o2")
 	}
 
-	r2 := (<-ss.Post().GetPostBefore(channelId, o0.Id))
+	r2 := (<-ss.Post().GetPostBefore(channelId, o0.CreateAt))
 	if r2.Data.(*model.Post) != nil || r2.Err != nil {
 		t.Fatal("should return no post")
 	}
 
-	r2 = (<-ss.Post().GetPostAfter(channelId, o0.Id))
+	r2 = (<-ss.Post().GetPostAfter(channelId, o0.CreateAt))
 	if r2.Data.(*model.Post).Id != o1.Id || r2.Err != nil {
 		t.Fatal("should return before post o1")
 	}
 
-	r3 := (<-ss.Post().GetPostBefore(channelId, o2a.Id))
+	r3 := (<-ss.Post().GetPostBefore(channelId, o2a.CreateAt))
 	if r3.Data.(*model.Post).Id != o2.Id || r2.Err != nil {
 		t.Fatal("should return before post o2")
 	}
 
-	r3 = (<-ss.Post().GetPostAfter(channelId, o2a.Id))
+	r3 = (<-ss.Post().GetPostAfter(channelId, o2a.CreateAt))
 	if r3.Data.(*model.Post) != nil || r3.Err != nil {
 		t.Fatal("should return no post")
 	}
