@@ -180,12 +180,13 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 			Password:  password,
 		}
 
-		if mUser := a.OldImportUser(team, &newUser); mUser != nil {
-			addedUsers[sUser.Id] = mUser
-			importerLog.WriteString(utils.T("api.slackimport.slack_add_users.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
-		} else {
+		mUser := a.OldImportUser(team, &newUser)
+		if mUser == nil {
 			importerLog.WriteString(utils.T("api.slackimport.slack_add_users.unable_import", map[string]interface{}{"Username": sUser.Username}))
+			continue
 		}
+		addedUsers[sUser.Id] = mUser
+		importerLog.WriteString(utils.T("api.slackimport.slack_add_users.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
 	}
 
 	return addedUsers
@@ -211,12 +212,14 @@ func (a *App) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
 		Password:  password,
 	}
 
-	if mUser := a.OldImportUser(team, &botUser); mUser != nil {
-		log.WriteString(utils.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]interface{}{"Email": botUser.Email, "Password": password}))
-		return mUser
+	mUser := a.OldImportUser(team, &botUser)
+	if mUser == nil {
+		log.WriteString(utils.T("api.slackimport.slack_add_bot_user.unable_import", map[string]interface{}{"Username": username}))
+		return nil
 	}
-	log.WriteString(utils.T("api.slackimport.slack_add_bot_user.unable_import", map[string]interface{}{"Username": username}))
-	return nil
+
+	log.WriteString(utils.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]interface{}{"Email": botUser.Email, "Password": password}))
+	return mUser
 }
 
 func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
@@ -662,9 +665,7 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 				} else {
 					posts[channel] = append(posts[channel], newposts...)
 				}
-				continue
-			}
-			if len(spl) == 3 && spl[0] == "__uploads" {
+			} else if len(spl) == 3 && spl[0] == "__uploads" {
 				uploads[spl[1]] = file
 			}
 		}
@@ -803,9 +804,7 @@ func (a *App) OldImportIncomingWebhookPost(post *model.Post, props model.StringI
 				if attachments, success := val.([]*model.SlackAttachment); success {
 					model.ParseSlackAttachment(post, attachments)
 				}
-				continue
-			}
-			if key != "from_webhook" {
+			} else if key != "from_webhook" {
 				post.AddProp(key, val)
 			}
 		}
