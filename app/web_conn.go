@@ -8,10 +8,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-
-	"github.com/gorilla/websocket"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -143,11 +142,9 @@ func (c *WebConn) readPump() {
 			} else {
 				mlog.Debug(fmt.Sprintf("websocket.read: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
 			}
-
 			return
-		} else {
-			c.App.Srv.WebSocketRouter.ServeWebSocket(c, &req)
 		}
+		c.App.Srv.WebSocketRouter.ServeWebSocket(c, &req)
 	}
 }
 
@@ -211,7 +208,6 @@ func (c *WebConn) writePump() {
 					} else {
 						mlog.Debug(fmt.Sprintf("websocket.send: closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
 					}
-
 					return
 				}
 
@@ -220,8 +216,8 @@ func (c *WebConn) writePump() {
 						c.App.Metrics.IncrementWebSocketBroadcast(msg.EventType())
 					})
 				}
-
 			}
+
 		case <-ticker.C:
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
@@ -231,11 +227,12 @@ func (c *WebConn) writePump() {
 				} else {
 					mlog.Debug(fmt.Sprintf("websocket.ticker: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
 				}
-
 				return
 			}
+
 		case <-c.endWritePump:
 			return
+
 		case <-authTicker.C:
 			if c.GetSessionToken() == "" {
 				mlog.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
@@ -314,9 +311,8 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	if len(msg.Broadcast.UserId) > 0 {
 		if webCon.UserId == msg.Broadcast.UserId {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 
 	// if the user is omitted don't send the message
@@ -334,33 +330,30 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if webCon.AllChannelMembers == nil {
-			if result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false); result.Err != nil {
+			result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
+			if result.Err != nil {
 				mlog.Error("webhub.shouldSendEvent: " + result.Err.Error())
 				return false
-			} else {
-				webCon.AllChannelMembers = result.Data.(map[string]string)
-				webCon.LastAllChannelMembersTime = model.GetMillis()
 			}
+			webCon.AllChannelMembers = result.Data.(map[string]string)
+			webCon.LastAllChannelMembersTime = model.GetMillis()
 		}
 
 		if _, ok := webCon.AllChannelMembers[msg.Broadcast.ChannelId]; ok {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}
 
 	// Only report events to users who are in the team for the event
 	if len(msg.Broadcast.TeamId) > 0 {
 		return webCon.IsMemberOfTeam(msg.Broadcast.TeamId)
-
 	}
 
 	return true
 }
 
 func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
-
 	currentSession := webCon.GetSession()
 
 	if currentSession == nil || len(currentSession.Token) == 0 {
@@ -368,17 +361,15 @@ func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Invalid session err=%v", err.Error()))
 			return false
-		} else {
-			webCon.SetSession(session)
-			currentSession = session
 		}
+		webCon.SetSession(session)
+		currentSession = session
 	}
 
 	member := currentSession.GetTeamByTeamId(teamId)
 
 	if member != nil {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
