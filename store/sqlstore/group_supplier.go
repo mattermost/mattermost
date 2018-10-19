@@ -229,12 +229,16 @@ func (s *SqlSupplier) GroupGetMemberUsers(stc context.Context, groupID string, h
 
 	var groupMembers []*model.User
 
-	query := `SELECT Users.* 
-		FROM GroupMembers 
-		JOIN Users ON Users.Id = GroupMembers.UserId 
-		WHERE GroupMembers.DeleteAt = 0 
-		AND Users.DeleteAt = 0
-		AND GroupId = :GroupId`
+	query := `
+		SELECT 
+			Users.* 
+		FROM 
+			GroupMembers 
+			JOIN Users ON Users.Id = GroupMembers.UserId
+		WHERE 
+			GroupMembers.DeleteAt = 0 
+			AND Users.DeleteAt = 0
+			AND GroupId = :GroupId`
 
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID}); err != nil {
 		if err != sql.ErrNoRows {
@@ -412,27 +416,27 @@ func (s *SqlSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string,
 
 func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	var err error
-	var getResult interface{}
+	var result interface{}
 
 	switch syncableType {
 	case model.GSTeam:
-		getResult, err = s.GetMaster().Get(GroupTeam{}, groupID, syncableID)
+		result, err = s.GetMaster().Get(GroupTeam{}, groupID, syncableID)
 	case model.GSChannel:
-		getResult, err = s.GetMaster().Get(GroupChannel{}, groupID, syncableID)
+		result, err = s.GetMaster().Get(GroupChannel{}, groupID, syncableID)
 	default:
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	if getResult == nil {
+	if result == nil {
 		return nil, sql.ErrNoRows
 	}
 
 	groupSyncable := model.GroupSyncable{}
 	switch syncableType {
 	case model.GSTeam:
-		groupTeam := getResult.(*GroupTeam)
+		groupTeam := result.(*GroupTeam)
 		groupSyncable.SyncableId = groupTeam.TeamId
 		groupSyncable.GroupId = groupTeam.GroupId
 		groupSyncable.CanLeave = groupTeam.CanLeave
@@ -442,7 +446,7 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 		groupSyncable.UpdateAt = groupTeam.UpdateAt
 		groupSyncable.Type = syncableType
 	case model.GSChannel:
-		groupChannel := getResult.(*GroupChannel)
+		groupChannel := result.(*GroupChannel)
 		groupSyncable.SyncableId = groupChannel.ChannelId
 		groupSyncable.GroupId = groupChannel.GroupId
 		groupSyncable.CanLeave = groupChannel.CanLeave
@@ -461,44 +465,58 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, groupID string, syncableType model.GroupSyncableType, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	type GroupSyncableScanner struct {
-		model.GroupSyncable
-		TeamId    string
-		ChannelId string
-	}
-
-	var groupSyncableScanners []*GroupSyncableScanner
-	groupSyncables := []*model.GroupSyncable{}
-
 	sqlQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", syncableType.String())
 
-	if _, err := s.GetReplica().Select(&groupSyncableScanners, sqlQuery, map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}); err != nil {
-		if err == sql.ErrNoRows {
-			result.Data = groupSyncables
-			return result
-		}
-		result.Err = model.NewAppError("SqlGroupStore.GroupGetAllGroupSyncablesByGroupPage", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
-		return result
+	args := map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}
+
+	appErrF := func(msg string) *model.AppError {
+		return model.NewAppError("SqlGroupStore.GroupGetAllGroupSyncablesByGroupPage", "store.sql_group.select_error", nil, msg, http.StatusInternalServerError)
 	}
 
-	for _, gsScan := range groupSyncableScanners {
-		gs := &model.GroupSyncable{
-			GroupId:  gsScan.GroupId,
-			CanLeave: gsScan.CanLeave,
-			AutoAdd:  gsScan.AutoAdd,
-			CreateAt: gsScan.CreateAt,
-			UpdateAt: gsScan.UpdateAt,
-			DeleteAt: gsScan.DeleteAt,
+	groupSyncables := []*model.GroupSyncable{}
+
+	switch syncableType {
+	case model.GSTeam:
+		results := []*GroupTeam{}
+		_, err := s.GetMaster().Select(&results, sqlQuery, args)
+		if err != nil {
+			result.Err = appErrF(err.Error())
+			return result
 		}
-		switch syncableType {
-		case model.GSTeam:
-			gs.SyncableId = gsScan.TeamId
-		case model.GSChannel:
-			gs.SyncableId = gsScan.ChannelId
-		default:
-			continue
+		for _, result := range results {
+			groupSyncable := &model.GroupSyncable{
+				SyncableId: result.TeamId,
+				GroupId:    result.GroupId,
+				CanLeave:   result.CanLeave,
+				AutoAdd:    result.AutoAdd,
+				CreateAt:   result.CreateAt,
+				DeleteAt:   result.DeleteAt,
+				UpdateAt:   result.UpdateAt,
+				Type:       result.Type,
+			}
+			groupSyncables = append(groupSyncables, groupSyncable)
 		}
-		groupSyncables = append(groupSyncables, gs)
+	case model.GSChannel:
+		results := []*GroupChannel{}
+		_, err := s.GetMaster().Select(&results, sqlQuery, args)
+		if err != nil {
+			result.Err = appErrF(err.Error())
+			return result
+		}
+		for _, result := range results {
+			groupSyncable := &model.GroupSyncable{
+				SyncableId: result.ChannelId,
+				GroupId:    result.GroupId,
+				CanLeave:   result.CanLeave,
+				AutoAdd:    result.AutoAdd,
+				CreateAt:   result.CreateAt,
+				DeleteAt:   result.DeleteAt,
+				UpdateAt:   result.UpdateAt,
+				Type:       result.Type,
+			}
+			groupSyncables = append(groupSyncables, groupSyncable)
+		}
+	default:
 	}
 
 	result.Data = groupSyncables
@@ -643,25 +661,26 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	sql := `SELECT 
-				GroupMembers.UserId, GroupTeams.TeamId
-			FROM 
-				GroupMembers
-				JOIN GroupTeams 
-				ON GroupTeams.GroupId = GroupMembers.GroupId
-				JOIN Groups ON Groups.Id = GroupMembers.GroupId
-				JOIN Teams ON Teams.Id = GroupTeams.TeamId
-				FULL JOIN TeamMembers 
-				ON 
-					TeamMembers.TeamId = GroupTeams.TeamId 
-					AND TeamMembers.UserId = GroupMembers.UserId
-			WHERE 
-				TeamMembers.UserId IS NULL
-				AND Groups.DeleteAt = 0
-				AND GroupTeams.DeleteAt = 0
-				AND GroupTeams.AutoAdd = true
-				AND GroupMembers.DeleteAt = 0
-				AND GroupTeams.CreateAt >= :MinGroupMembersCreateAt`
+	sql := `
+		SELECT 
+			GroupMembers.UserId, GroupTeams.TeamId
+		FROM 
+			GroupMembers
+			JOIN GroupTeams 
+			ON GroupTeams.GroupId = GroupMembers.GroupId
+			JOIN Groups ON Groups.Id = GroupMembers.GroupId
+			JOIN Teams ON Teams.Id = GroupTeams.TeamId
+			FULL JOIN TeamMembers 
+			ON 
+				TeamMembers.TeamId = GroupTeams.TeamId 
+				AND TeamMembers.UserId = GroupMembers.UserId
+		WHERE 
+			TeamMembers.UserId IS NULL
+			AND Groups.DeleteAt = 0
+			AND GroupTeams.DeleteAt = 0
+			AND GroupTeams.AutoAdd = true
+			AND GroupMembers.DeleteAt = 0
+			AND GroupMembers.CreateAt >= :MinGroupMembersCreateAt`
 
 	var userTeamIDs []*model.UserTeamIDPair
 
@@ -682,25 +701,26 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMem
 func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	sql := `SELECT 
-				GroupMembers.UserId, GroupChannels.ChannelId
-			FROM 
-				GroupMembers
-				JOIN GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId
-				JOIN Groups ON Groups.Id = GroupMembers.GroupId
-				JOIN Channels ON Channels.Id = GroupChannels.ChannelId
-				FULL JOIN ChannelMemberHistory 
-				ON 
-					ChannelMemberHistory.ChannelId = GroupChannels.ChannelId 
-					AND ChannelMemberHistory.UserId = GroupMembers.UserId
-			WHERE 
-				ChannelMemberHistory.UserId IS NULL
-				AND ChannelMemberHistory.LeaveTime IS NULL
-				AND Groups.DeleteAt = 0
-				AND GroupChannels.DeleteAt = 0
-				AND GroupChannels.AutoAdd = true
-				AND GroupMembers.DeleteAt = 0
-				AND GroupChannels.CreateAt >= :MinGroupMembersCreateAt`
+	sql := `
+		SELECT 
+			GroupMembers.UserId, GroupChannels.ChannelId
+		FROM 
+			GroupMembers
+			JOIN GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId
+			JOIN Groups ON Groups.Id = GroupMembers.GroupId
+			JOIN Channels ON Channels.Id = GroupChannels.ChannelId
+			FULL JOIN ChannelMemberHistory 
+			ON 
+				ChannelMemberHistory.ChannelId = GroupChannels.ChannelId 
+				AND ChannelMemberHistory.UserId = GroupMembers.UserId
+		WHERE 
+			ChannelMemberHistory.UserId IS NULL
+			AND ChannelMemberHistory.LeaveTime IS NULL
+			AND Groups.DeleteAt = 0
+			AND GroupChannels.DeleteAt = 0
+			AND GroupChannels.AutoAdd = true
+			AND GroupMembers.DeleteAt = 0
+			AND GroupMembers.CreateAt >= :MinGroupMembersCreateAt`
 
 	var userChannelIDs []*model.UserChannelIDPair
 

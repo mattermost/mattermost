@@ -296,6 +296,10 @@ func getGroupSyncables(syncableType model.GroupSyncableType) func(*Context, http
 			return
 		}
 
+		if b == nil {
+			w.Write([]byte("[]"))
+		}
+
 		w.Write(b)
 	}
 }
