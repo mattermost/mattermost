@@ -492,7 +492,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, 
 				CreateAt:   result.CreateAt,
 				DeleteAt:   result.DeleteAt,
 				UpdateAt:   result.UpdateAt,
-				Type:       result.Type,
+				Type:       syncableType,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
@@ -512,7 +512,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, 
 				CreateAt:   result.CreateAt,
 				DeleteAt:   result.DeleteAt,
 				UpdateAt:   result.UpdateAt,
-				Type:       result.Type,
+				Type:       syncableType,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
