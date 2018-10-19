@@ -46,7 +46,7 @@ Receive notifications of critical security updates. The sophistication of online
 
 ## Get Involved
 
-- [Contribute Code](http://docs.mattermost.com/developer/contribution-guide.html)
+- [Contribute Code](https://developers.mattermost.com/contribute/getting-started/)
 - [Find "Help Wanted" projects](https://github.com/mattermost/mattermost-server/issues?page=1&q=is%3Aissue+is%3Aopen+%22Help+Wanted%22&utf8=%E2%9C%93)
 - [Join Developer Discussion on a Mattermost Server for contributors](https://pre-release.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
 - [File Bugs](http://www.mattermost.org/filing-issues/)
