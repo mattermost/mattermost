@@ -194,6 +194,8 @@ type API interface {
 	ReadFile(path string) ([]byte, *model.AppError)
 
 	// UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
+	//
+	// Minimum server version: 5.6
 	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin.
