@@ -1319,7 +1319,6 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 			if pErr != nil {
 				return []time.Time{}, pErr
 			}
-			mlog.Debug("BUTTERMILK BISQUITS "+timeUnit)
 
 			nextDay := time.Now().AddDate(0, 0, d)
 			occurrence := wallClock.AddDate(nextDay.Year(), int(nextDay.Month())-1, nextDay.Day()-1)
