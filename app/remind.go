@@ -92,10 +92,7 @@ func (a *App) triggerReminders() {
 				reminder = result.Data.(model.Reminders)[0]
 			}
 
-			user, _, T, sErr := a.shared(reminder.UserId)
-			if sErr != nil {
-				continue
-			}
+			user, _, _, T := a.shared(reminder.UserId)
 
 			if strings.HasPrefix(reminder.Target, "@") || strings.HasPrefix(reminder.Target, T("app.reminder.me")) {
 
@@ -212,11 +209,7 @@ func (a *App) triggerReminders() {
 
 func (a *App) ListReminders(userId string) string {
 
-	_, _, T, sErr := a.shared(userId)
-
-	if sErr != nil {
-		return T(model.REMIND_EXCEPTION_TEXT)
-	}
+	_, _, _, T := a.shared(userId)
 
 	reminders := a.getReminders(userId)
 
@@ -300,8 +293,7 @@ func (a *App) ListReminders(userId string) string {
 
 func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, reminders *[]model.Reminder) string {
 
-	_, location, T, _ := a.shared(userId)
-	cfg := a.Config()
+	_, cfg, location, T := a.shared(userId)
 
 	var output string
 	output = ""
@@ -343,7 +335,7 @@ func (a *App) findReminder(reminderId string, reminders *[]model.Reminder) *mode
 
 func (a *App) DeleteReminders(userId string) string {
 
-	_, _, T, _ := a.shared(userId)
+	_, _, _, T := a.shared(userId)
 
 	schan := a.Srv.Store.Remind().DeleteForUser(userId)
 	if result := <-schan; result.Err != nil {
@@ -364,7 +356,7 @@ func (a *App) getReminders(userId string) []model.Reminder {
 
 func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 
-	_, _, T, _ := a.shared(request.UserId)
+	_, _, _, T := a.shared(request.UserId)
 
 	if pErr := a.parseRequest(request); pErr != nil {
 		mlog.Error(pErr.Error())
@@ -412,7 +404,7 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 
 func (a *App) formatWhen(request *model.ReminderRequest) string {
 
-	user, _, T, _ := a.shared(request.UserId)
+	user, _, _, T := a.shared(request.UserId)
 
 	if strings.HasPrefix(request.Reminder.When, T("app.reminder.chrono.in")) {
 
@@ -484,7 +476,7 @@ func (a *App) formatWhen(request *model.ReminderRequest) string {
 
 func (a *App) parseRequest(request *model.ReminderRequest) error {
 
-	_, _, T, _ := a.shared(request.UserId)
+	_, _, _, T := a.shared(request.UserId)
 
 	commandSplit := strings.Split(request.Payload, " ")
 
@@ -531,7 +523,7 @@ func (a *App) parseRequest(request *model.ReminderRequest) error {
 
 func (a *App) createOccurrences(request *model.ReminderRequest) error {
 
-	user, _, T, _ := a.shared(request.UserId)
+	user, _, _, T := a.shared(request.UserId)
 
 	if strings.HasPrefix(request.Reminder.When, T("app.reminder.chrono.in")) {
 		if occurrences, inErr := a.in(request.Reminder.When, user); inErr != nil {
@@ -607,7 +599,7 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 
 func (a *App) isRepeating(request *model.ReminderRequest) bool {
 
-	_, _, T, _ := a.shared(request.UserId)
+	_, _, _, T := a.shared(request.UserId)
 
 	return strings.Contains(request.Reminder.When, T("app.reminder.chrono.every")) ||
 		strings.Contains(request.Reminder.When, T("app.reminder.chrono.sundays")) ||
@@ -622,7 +614,7 @@ func (a *App) isRepeating(request *model.ReminderRequest) bool {
 
 func (a *App) findWhen(request *model.ReminderRequest) error {
 
-	user, _, T, _ := a.shared(request.UserId)
+	user, _, _, T:= a.shared(request.UserId)
 
 	inIndex := strings.Index(request.Payload, " "+T("app.reminder.chrono.in")+" ")
 	if inIndex > -1 {
@@ -797,8 +789,7 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 
 func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
-	_, location, T, _ := a.shared(user.Id)
-	cfg := a.Config()
+	_, cfg, location, T := a.shared(user.Id)
 
 	whenSplit := strings.Split(when, " ")
 	value := whenSplit[1]
@@ -980,7 +971,7 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
@@ -1160,7 +1151,7 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
 func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
@@ -1268,7 +1259,7 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
 func (a *App) every(when string, user *model.User) (times []time.Time, err error) {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	whenTrim := strings.Trim(when, " ")
 	whenSplit := strings.Split(whenTrim, " ")
@@ -1328,6 +1319,7 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 			if pErr != nil {
 				return []time.Time{}, pErr
 			}
+			mlog.Debug("BUTTERMILK BISQUITS "+timeUnit)
 
 			nextDay := time.Now().AddDate(0, 0, d)
 			occurrence := wallClock.AddDate(nextDay.Year(), int(nextDay.Month())-1, nextDay.Day()-1)
@@ -1403,7 +1395,7 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 
 func (a *App) freeForm(when string, user *model.User) (times []time.Time, err error) {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	whenTrim := strings.Trim(when, " ")
 	chronoUnit := strings.ToLower(whenTrim)
@@ -1422,9 +1414,7 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 	if ntErr != nil {
 		return []time.Time{}, ntErr
 	}
-
-	//remove seconds for internal function calls
-	timeUnit = timeUnit[:len(timeUnit)-3]
+	timeUnit = chronoTime
 
 	switch dateUnit {
 	case T("app.reminder.chrono.today"):
@@ -1483,7 +1473,7 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 
 func (a *App) normalizeTime(text string, user *model.User) (string, error) {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	switch text {
 	case T("app.reminder.chrono.noon"):
@@ -1649,8 +1639,7 @@ func (a *App) normalizeTime(text string, user *model.User) (string, error) {
 
 func (a *App) normalizeDate(text string, user *model.User) (string, error) {
 
-	_, location, T, _ := a.shared(user.Id)
-	cfg := a.Config()
+	_, cfg, location, T := a.shared(user.Id)
 
 	date := strings.ToLower(text)
 	if strings.EqualFold(T("app.reminder.chrono.day"), date) {
@@ -1903,7 +1892,7 @@ func (a *App) normalizeDate(text string, user *model.User) (string, error) {
 
 func (a *App) daySuffixFromInt(user *model.User, day int) string {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	daySuffixes := []string{
 		T("app.reminder.chrono.0th"),
@@ -1945,7 +1934,7 @@ func (a *App) daySuffixFromInt(user *model.User, day int) string {
 
 func (a *App) daySuffix(user *model.User, day string) string {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	daySuffixes := []string{
 		T("app.reminder.chrono.0th"),
@@ -1992,7 +1981,7 @@ func (a *App) daySuffix(user *model.User, day string) string {
 
 func (a *App) weekDayNumber(day string, user *model.User) int {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	switch day {
 	case T("app.reminder.chrono.sunday"):
@@ -2030,7 +2019,7 @@ func (a *App) regSplit(text string, delimeter string) []string {
 
 func (a *App) wordToNumber(word string, user *model.User) (int, error) {
 
-	_, _, T, _ := a.shared(user.Id)
+	_, _, _, T := a.shared(user.Id)
 
 	var sum int
 	var temp int
@@ -2137,8 +2126,7 @@ func (a *App) wordToNumber(word string, user *model.User) (int, error) {
 
 func (a *App) chooseClosest(user *model.User, chosen *time.Time, dayInterval bool) time.Time {
 
-	_, location, _, _ := a.shared(user.Id)
-	cfg := a.Config()
+	_, cfg, location, _ := a.shared(user.Id)
 
 	if dayInterval {
 		if chosen.Before(time.Now()) {
@@ -2171,15 +2159,11 @@ func (a *App) chooseClosest(user *model.User, chosen *time.Time, dayInterval boo
 	}
 }
 
-func (a *App) shared(userId string) (*model.User, *time.Location, i18n.TranslateFunc, error) {
+func (a *App) shared(userId string) (*model.User, *model.Config, *time.Location, i18n.TranslateFunc) {
 
-	user, uErr := a.GetUser(userId)
-	if uErr != nil {
-		tf, _ := i18n.Tfunc("")
-		tl, _ := time.LoadLocation("")
-		u := model.User{}
-		return &u, tl, tf, uErr
-	}
+	user, _ := a.GetUser(userId)
+
+	cfg := a.Config()
 
 	timezone := user.GetPreferredTimezone()
 	if timezone == "" {
@@ -2189,6 +2173,6 @@ func (a *App) shared(userId string) (*model.User, *time.Location, i18n.Translate
 	location, _ := time.LoadLocation(timezone)
 	T := utils.GetUserTranslations(user.Locale)
 
-	return user, location, T, nil
+	return user, cfg, location, T
 
 }

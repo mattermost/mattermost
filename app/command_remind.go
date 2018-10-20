@@ -33,23 +33,23 @@ func (me *RemindProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Comm
 
 func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 
-	_, _, translateFunc, _ := a.shared(args.UserId)
+	_, _, _, T := a.shared(args.UserId)
 
-	if strings.HasSuffix(args.Command, translateFunc("help")) {
+	if strings.HasSuffix(args.Command, T("help")) {
 		return &model.CommandResponse{
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-			Text: fmt.Sprintf(translateFunc(model.REMIND_HELP_TEXT)),
+			Text: fmt.Sprintf(T(model.REMIND_HELP_TEXT)),
 		}
 	}
 
-	if strings.HasSuffix(args.Command, translateFunc("list")) {
+	if strings.HasSuffix(args.Command, T("list")) {
 		return &model.CommandResponse{
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			Text: fmt.Sprintf(a.ListReminders(args.UserId)),
 		}
 	}
 
-	if strings.HasSuffix(args.Command, translateFunc("clear")) {
+	if strings.HasSuffix(args.Command, T("clear")) {
 		return &model.CommandResponse{
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			Text:         fmt.Sprintf(a.DeleteReminders(args.UserId)),
@@ -58,7 +58,7 @@ func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message str
 
 	payload := strings.Trim(strings.Replace(args.Command, "/"+model.CMD_REMIND, "", -1), " ")
 
-	if strings.HasPrefix(payload, translateFunc("app.reminder.me")) ||
+	if strings.HasPrefix(payload, T("app.reminder.me")) ||
 		strings.HasPrefix(payload, "@") ||
 		strings.HasPrefix(payload, "~") {
 
@@ -77,7 +77,7 @@ func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		if err != nil {
 			return &model.CommandResponse{
 				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-				Text:         fmt.Sprintf(translateFunc(model.REMIND_EXCEPTION_TEXT)),
+				Text:         fmt.Sprintf(T(model.REMIND_EXCEPTION_TEXT)),
 			}
 		}
 
@@ -89,7 +89,7 @@ func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message str
 
 	return &model.CommandResponse{
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-		Text:         fmt.Sprintf(translateFunc(model.REMIND_EXCEPTION_TEXT)),
+		Text:         fmt.Sprintf(T(model.REMIND_EXCEPTION_TEXT)),
 	}
 
 }
