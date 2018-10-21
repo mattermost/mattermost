@@ -116,9 +116,9 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	displayName := "myhookincname"
 
 	incomingWebhook := &model.IncomingWebhook{
-		ChannelId:     th.BasicChannel.Id,
-		DisplayName:   displayName,
-		Description:   description,
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: displayName,
+		Description: description,
 	}
 
 	oldHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, incomingWebhook)
@@ -147,6 +147,75 @@ func TestModifyIncomingWebhook(t *testing.T) {
 		t.Fatal("unable to retrieve modified incoming webhook")
 	}
 	if modifiedHook.DisplayName != modifiedDisplayName || modifiedHook.Description != modifiedDescription || modifiedHook.IconURL != modifiedIconUrl || modifiedHook.ChannelLocked != modifiedChannelLocked || modifiedHook.ChannelId != modifiedChannelId {
+		t.Fatal("Failed to update incoming webhook")
+	}
+}
+
+func TestModifyOutgoingWebhook(t *testing.T) {
+	th := api4.Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableIncomingWebhooks = true
+		cfg.ServiceSettings.EnableOutgoingWebhooks = true
+		cfg.ServiceSettings.EnablePostUsernameOverride = true
+		cfg.ServiceSettings.EnablePostIconOverride = true
+	})
+
+	description := "myhookoutdesc"
+	displayName := "myhookoutname"
+
+	outgoingWebhook := &model.OutgoingWebhook{
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: displayName,
+		Description: description,
+	}
+
+	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhook)
+	if err != nil {
+		t.Fatal("unable to create outgoing webhooks")
+	}
+	defer func() {
+		th.App.DeleteOutgoingWebhook(oldHook.Id)
+	}()
+
+	// Webhook needs to be valid
+	require.Error(t, RunCommand(t, "webhook", "modify-outgoing", "doesnotexist"))
+
+	// Channel needs to be valid
+	require.Error(t, RunCommand(
+		t,
+		"webhook",
+		"modify-outgoing", oldHook.Id,
+		"--channel", th.BasicTeam.Name+":doesnotexist",
+	))
+
+	modifiedDescription := "myhookoutdesc2"
+	modifiedDisplayName := "myhookoutname2"
+	modifiedIconUrl := "myhookouticon2"
+	modifiedChannelId := th.BasicChannel2.Id
+
+	CheckCommand(
+		t,
+		"webhook",
+		"modify-outgoing", oldHook.Id,
+		"--channel", modifiedChannelId,
+		"--description", modifiedDescription,
+		"--display-name", modifiedDisplayName,
+		"--icon", modifiedIconUrl,
+	)
+
+	modifiedHook, err := th.App.GetOutgoingWebhook(oldHook.Id)
+	if err != nil {
+		t.Fatal("unable to retrieve modified outgoing webhook")
+	}
+
+	modificationSuccess := modifiedHook.DisplayName == modifiedDisplayName &&
+		modifiedHook.Description == modifiedDescription &&
+		modifiedHook.IconURL == modifiedIconUrl &&
+		modifiedHook.ChannelId == modifiedChannelId
+
+	if !modificationSuccess {
 		t.Fatal("Failed to update incoming webhook")
 	}
 }
