@@ -4,12 +4,14 @@
 package model
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"io"
 	"math"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -133,9 +135,6 @@ const (
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
 
-	WEBRTC_SETTINGS_DEFAULT_STUN_URI = ""
-	WEBRTC_SETTINGS_DEFAULT_TURN_URI = ""
-
 	ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS = 2500
 
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
@@ -174,6 +173,31 @@ const (
 	CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH = "secondary"
 )
 
+var ServerTLSSupportedCiphers = map[string]uint16{
+	"TLS_RSA_WITH_RC4_128_SHA":                tls.TLS_RSA_WITH_RC4_128_SHA,
+	"TLS_RSA_WITH_3DES_EDE_CBC_SHA":           tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+	"TLS_RSA_WITH_AES_128_CBC_SHA":            tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+	"TLS_RSA_WITH_AES_256_CBC_SHA":            tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+	"TLS_RSA_WITH_AES_128_CBC_SHA256":         tls.TLS_RSA_WITH_AES_128_CBC_SHA256,
+	"TLS_RSA_WITH_AES_128_GCM_SHA256":         tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+	"TLS_RSA_WITH_AES_256_GCM_SHA384":         tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+	"TLS_ECDHE_ECDSA_WITH_RC4_128_SHA":        tls.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+	"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA":    tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+	"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA":    tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+	"TLS_ECDHE_RSA_WITH_RC4_128_SHA":          tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+	"TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA":     tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
+	"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA":      tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+	"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA":      tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+	"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256": tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+	"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256":   tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+	"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256":   tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256": tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+	"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384":   tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+	"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384": tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+	"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305":    tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+	"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305":  tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+}
+
 type ServiceSettings struct {
 	SiteURL                                           *string
 	WebsocketURL                                      *string
@@ -182,6 +206,10 @@ type ServiceSettings struct {
 	ConnectionSecurity                                *string
 	TLSCertFile                                       *string
 	TLSKeyFile                                        *string
+	TLSMinVer                                         *string
+	TLSStrictTransport                                *bool
+	TLSStrictTransportMaxAge                          *int64
+	TLSOverwriteCiphers                               []string
 	UseLetsEncrypt                                    *bool
 	LetsEncryptCertificateCacheFile                   *string
 	Forward80To443                                    *bool
@@ -322,6 +350,22 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.TLSCertFile == nil {
 		s.TLSCertFile = NewString(SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE)
+	}
+
+	if s.TLSMinVer == nil {
+		s.TLSMinVer = NewString("1.2")
+	}
+
+	if s.TLSStrictTransport == nil {
+		s.TLSStrictTransport = NewBool(false)
+	}
+
+	if s.TLSStrictTransportMaxAge == nil {
+		s.TLSStrictTransportMaxAge = NewInt64(63072000)
+	}
+
+	if s.TLSOverwriteCiphers == nil {
+		s.TLSOverwriteCiphers = []string{}
 	}
 
 	if s.UseLetsEncrypt == nil {
@@ -996,13 +1040,13 @@ type PrivacySettings struct {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink        *string
-	PrivacyPolicyLink         *string
-	AboutLink                 *string
-	HelpLink                  *string
-	ReportAProblemLink        *string
-	SupportEmail              *string
-	CustomServiceTermsEnabled *bool
+	TermsOfServiceLink          *string
+	PrivacyPolicyLink           *string
+	AboutLink                   *string
+	HelpLink                    *string
+	ReportAProblemLink          *string
+	SupportEmail                *string
+	CustomTermsOfServiceEnabled *bool
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1050,8 +1094,8 @@ func (s *SupportSettings) SetDefaults() {
 		s.SupportEmail = NewString(SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL)
 	}
 
-	if s.CustomServiceTermsEnabled == nil {
-		s.CustomServiceTermsEnabled = NewBool(false)
+	if s.CustomTermsOfServiceEnabled == nil {
+		s.CustomTermsOfServiceEnabled = NewBool(false)
 	}
 }
 
@@ -1624,51 +1668,6 @@ func (s *NativeAppSettings) SetDefaults() {
 	}
 }
 
-type WebrtcSettings struct {
-	Enable              *bool
-	GatewayWebsocketUrl *string
-	GatewayAdminUrl     *string
-	GatewayAdminSecret  *string
-	StunURI             *string
-	TurnURI             *string
-	TurnUsername        *string
-	TurnSharedKey       *string
-}
-
-func (s *WebrtcSettings) SetDefaults() {
-	if s.Enable == nil {
-		s.Enable = NewBool(false)
-	}
-
-	if s.GatewayWebsocketUrl == nil {
-		s.GatewayWebsocketUrl = NewString("")
-	}
-
-	if s.GatewayAdminUrl == nil {
-		s.GatewayAdminUrl = NewString("")
-	}
-
-	if s.GatewayAdminSecret == nil {
-		s.GatewayAdminSecret = NewString("")
-	}
-
-	if s.StunURI == nil {
-		s.StunURI = NewString(WEBRTC_SETTINGS_DEFAULT_STUN_URI)
-	}
-
-	if s.TurnURI == nil {
-		s.TurnURI = NewString(WEBRTC_SETTINGS_DEFAULT_TURN_URI)
-	}
-
-	if s.TurnUsername == nil {
-		s.TurnUsername = NewString("")
-	}
-
-	if s.TurnSharedKey == nil {
-		s.TurnSharedKey = NewString("")
-	}
-}
-
 type ElasticsearchSettings struct {
 	ConnectionUrl                 *string
 	Username                      *string
@@ -1959,7 +1958,6 @@ type Config struct {
 	MetricsSettings       MetricsSettings
 	ExperimentalSettings  ExperimentalSettings
 	AnalyticsSettings     AnalyticsSettings
-	WebrtcSettings        WebrtcSettings
 	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
 	MessageExportSettings MessageExportSettings
@@ -2035,7 +2033,6 @@ func (o *Config) SetDefaults() {
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
-	o.WebrtcSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.TimezoneSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
@@ -2084,10 +2081,6 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.RateLimitSettings.isValid(); err != nil {
-		return err
-	}
-
-	if err := o.WebrtcSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -2322,34 +2315,35 @@ func (ss *SamlSettings) isValid() *AppError {
 	return nil
 }
 
-func (ws *WebrtcSettings) isValid() *AppError {
-	if *ws.Enable {
-		if len(*ws.GatewayWebsocketUrl) == 0 || !IsValidWebsocketUrl(*ws.GatewayWebsocketUrl) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_ws_url.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.GatewayAdminUrl) == 0 || !IsValidHttpUrl(*ws.GatewayAdminUrl) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_url.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.GatewayAdminSecret) == 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_secret.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.StunURI) != 0 && !IsValidTurnOrStunServer(*ws.StunURI) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_stun_uri.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.TurnURI) != 0 {
-			if !IsValidTurnOrStunServer(*ws.TurnURI) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_uri.app_error", nil, "", http.StatusBadRequest)
-			}
-			if len(*ws.TurnUsername) == 0 {
-				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_username.app_error", nil, "", http.StatusBadRequest)
-			} else if len(*ws.TurnSharedKey) == 0 {
-				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_shared_key.app_error", nil, "", http.StatusBadRequest)
-			}
-		}
-	}
-
-	return nil
-}
-
 func (ss *ServiceSettings) isValid() *AppError {
 	if !(*ss.ConnectionSecurity == CONN_SECURITY_NONE || *ss.ConnectionSecurity == CONN_SECURITY_TLS) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.ConnectionSecurity == CONN_SECURITY_TLS && *ss.UseLetsEncrypt == false {
+		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file.app_error", nil, "", http.StatusBadRequest)
+
+		if *ss.TLSCertFile == "" {
+			return appErr
+		} else if _, err := os.Stat(*ss.TLSCertFile); os.IsNotExist(err) {
+			return appErr
+		}
+
+		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file.app_error", nil, "", http.StatusBadRequest)
+
+		if *ss.TLSKeyFile == "" {
+			return appErr
+		} else if _, err := os.Stat(*ss.TLSKeyFile); os.IsNotExist(err) {
+			return appErr
+		}
+	}
+
+	if len(ss.TLSOverwriteCiphers) > 0 {
+		for _, cipher := range ss.TLSOverwriteCiphers {
+			if _, ok := ServerTLSSupportedCiphers[cipher]; !ok {
+				return NewAppError("Config.IsValid", "model.config.is_valid.tls_overwrite_cipher.app_error", map[string]interface{}{"name": cipher}, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	if *ss.ReadTimeout <= 0 {

@@ -660,6 +660,8 @@ func (s SqlChannelStore) Restore(channelId string, time int64) store.StoreChanne
 // @see ChannelStoreExperimental for how this update propagates to the PublicChannels table.
 func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		defer s.InvalidateChannel(channelId)
+
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1197,11 +1199,32 @@ func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) store.S
 		var dbMembers channelMemberWithSchemeRolesList
 		_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelId = :ChannelId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Limit": limit, "Offset": offset})
 		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetMembers", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.GetMembers", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+","+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		result.Data = dbMembers.ToModel()
+	})
+}
+
+func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var dbMembersTimezone []map[string]string
+		_, err := s.GetReplica().Select(&dbMembersTimezone, `
+					SELECT
+						Users.Timezone
+					FROM
+						ChannelMembers
+					LEFT JOIN
+						Users  ON ChannelMembers.UserId = Id
+					WHERE ChannelId = :ChannelId
+		`, map[string]interface{}{
+			"ChannelId": channelId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.GetChannelMembersTimezones", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+","+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result.Data = dbMembersTimezone
 	})
 }
 
@@ -1474,6 +1497,32 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) store.Sto
 		_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		}
+	})
+}
+
+func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := `
+			DELETE
+			FROM
+				ChannelMembers
+			WHERE 
+				UserId IN (
+					SELECT
+						Id
+					FROM
+						Users
+					WHERE
+						Users.DeleteAt != 0
+				)
+			AND
+				ChannelMembers.ChannelId = :ChannelId
+		`
+
+		_, err := s.GetMaster().Exec(query, map[string]interface{}{"ChannelId": channelId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.RemoveAllDeactivatedMembers", "store.sql_channel.remove_all_deactivated_members.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
 		}
 	})
 }

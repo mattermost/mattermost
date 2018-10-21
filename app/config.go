@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	ERROR_SERVICE_TERMS_NO_ROWS_FOUND = "store.sql_service_terms_store.get.no_rows.app_error"
+	ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND = "store.sql_terms_of_service_store.get.no_rows.app_error"
 )
 
 func (a *App) Config() *model.Config {
@@ -61,13 +61,12 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	if err != nil {
 		return err
 	}
+	*cfg.ServiceSettings.SiteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
+	a.config.Store(cfg)
 
 	a.configFile = configPath
-
-	a.config.Store(cfg)
 	a.envConfig = envConfig
-
-	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
+	a.siteURL = *cfg.ServiceSettings.SiteURL
 
 	a.InvokeConfigListeners(old, cfg)
 	return nil
@@ -247,12 +246,12 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
-	if a.clientConfig["EnableCustomServiceTerms"] == "true" {
-		serviceTerms, err := a.GetLatestServiceTerms()
+	if a.clientConfig["EnableCustomTermsOfService"] == "true" {
+		termsOfService, err := a.GetLatestTermsOfService()
 		if err != nil {
 			mlog.Err(err)
 		} else {
-			a.clientConfig["CustomServiceTermsId"] = serviceTerms.Id
+			a.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
 		}
 	}
 

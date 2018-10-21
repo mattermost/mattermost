@@ -36,7 +36,6 @@ const (
 	TRACK_CONFIG_PASSWORD           = "config_password"
 	TRACK_CONFIG_CLUSTER            = "config_cluster"
 	TRACK_CONFIG_METRICS            = "config_metrics"
-	TRACK_CONFIG_WEBRTC             = "config_webrtc"
 	TRACK_CONFIG_SUPPORT            = "config_support"
 	TRACK_CONFIG_NATIVEAPP          = "config_nativeapp"
 	TRACK_CONFIG_EXPERIMENTAL       = "config_experimental"
@@ -263,7 +262,6 @@ func (a *App) trackConfig() {
 		"experimental_limit_client_config":                        *cfg.ServiceSettings.ExperimentalLimitClientConfig,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
-		"custom_service_terms_enabled":                            *cfg.SupportSettings.CustomServiceTermsEnabled,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -418,6 +416,7 @@ func (a *App) trackConfig() {
 		"isdefault_help_link":             isDefault(*cfg.SupportSettings.HelpLink, model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK),
 		"isdefault_report_a_problem_link": isDefault(*cfg.SupportSettings.ReportAProblemLink, model.SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK),
 		"isdefault_support_email":         isDefault(*cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
+		"custom_terms_of_service_enabled": *cfg.SupportSettings.CustomTermsOfServiceEnabled,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
@@ -491,12 +490,6 @@ func (a *App) trackConfig() {
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
-	})
-
-	a.SendDiagnostic(TRACK_CONFIG_WEBRTC, map[string]interface{}{
-		"enable":             *cfg.WebrtcSettings.Enable,
-		"isdefault_stun_uri": isDefault(*cfg.WebrtcSettings.StunURI, model.WEBRTC_SETTINGS_DEFAULT_STUN_URI),
-		"isdefault_turn_uri": isDefault(*cfg.WebrtcSettings.TurnURI, model.WEBRTC_SETTINGS_DEFAULT_TURN_URI),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{

@@ -556,10 +556,9 @@ func TestImportValidateUserImportData(t *testing.T) {
 
 	data.Email = ptrStr("bob@example.com")
 
+	// Empty AuthService indicates user/password auth.
 	data.AuthService = ptrStr("")
-	if err := validateUserImportData(&data); err == nil {
-		t.Fatal("Validation should have failed due to 0-length auth service.")
-	}
+	checkNoError(t, validateUserImportData(&data))
 
 	data.AuthService = ptrStr("saml")
 	data.AuthData = ptrStr(strings.Repeat("abcdefghij", 15))
@@ -660,6 +659,24 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.CommentsTrigger = ptrStr(model.COMMENTS_NOTIFY_ROOT)
 	data.NotifyProps.MentionKeys = ptrStr("valid")
 	checkNoError(t, validateUserImportData(&data))
+
+	//Test the emai batching interval validators
+	//Happy paths
+	data.EmailInterval = ptrStr("immediately")
+	checkNoError(t, validateUserImportData(&data))
+
+	data.EmailInterval = ptrStr("fifteen")
+	checkNoError(t, validateUserImportData(&data))
+
+	data.EmailInterval = ptrStr("hour")
+	checkNoError(t, validateUserImportData(&data))
+
+	//Invalid values
+	data.EmailInterval = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.EmailInterval = ptrStr("")
+	checkError(t, validateUserImportData(&data))
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {

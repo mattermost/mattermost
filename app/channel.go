@@ -1153,6 +1153,24 @@ func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model
 	return result.Data.(*model.ChannelMembers), nil
 }
 
+func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
+	result := <-a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	membersTimezones := result.Data.([]map[string]string)
+
+	var timezones []string
+	for _, membersTimezone := range membersTimezones {
+		if membersTimezone["automaticTimezone"] == "" && membersTimezone["manualTimezone"] == "" {
+			continue
+		}
+		timezones = append(timezones, model.GetPreferredTimezone(membersTimezone))
+	}
+
+	return model.RemoveDuplicateStrings(timezones), nil
+}
+
 func (a *App) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
 	result := <-a.Srv.Store.Channel().GetMembersByIds(channelId, userIds)
 	if result.Err != nil {
@@ -1670,7 +1688,13 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 
 // This function is intended for use from the CLI. It is not robust against people joining the channel while the move
 // is in progress, and therefore should not be used from the API without first fixing this potential race condition.
-func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
+	if removeDeactivatedMembers {
+		if result := <-a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); result.Err != nil {
+			return result.Err
+		}
+	}
+
 	// Check that all channel members are in the destination team.
 	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
 	if err != nil {

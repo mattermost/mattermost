@@ -199,10 +199,6 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.email_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.AuthService != nil && len(*data.AuthService) == 0 {
-		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_service_length.error", nil, "", http.StatusBadRequest)
-	}
-
 	if data.AuthData != nil && data.Password != nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_password.error", nil, "", http.StatusBadRequest)
 	}
@@ -279,6 +275,10 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.ShowUnreadSection != nil && !model.IsValidTrueOrFalseString(*data.ShowUnreadSection) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_show_unread_section.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.EmailInterval != nil && !model.IsValidEmailBatchingInterval(*data.EmailInterval) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.advanced_props_email_interval.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Teams != nil {
