@@ -3099,8 +3099,16 @@
     "translation": "{{.FinalTarget}} asked me to remind you \"{{.Message}}\"."
   },
   {
-    "id": "app.reminder.list.element",
-    "translation": "* \"{{.Message}}\" {{.Occurrence}}"
+    "id": "app.reminder.list.element.upcoming",
+    "translation": "* \"{{.Message}}\" {{.Occurrence}} [Complete]() [Delete]()"
+  },
+  {
+    "id": "app.reminder.list.element.recurring",
+    "translation": "* \"{{.Message}}\" {{.Occurrence}} [Delete]()"
+  },
+  {
+    "id": "app.reminder.list.element.past",
+    "translation": "* \"{{.Message}}\"  [Complete]() · [Delete]() · Snooze: [15 mins]() · [1 hr]() · [Tomorrow]()"
   },
   {
     "id": "app.reminder.me",
@@ -3136,7 +3144,7 @@
   },
   {
     "id": "app.reminder.list_footer",
-    "translation": "\n*Note*:  To interact with these reminders use `/remind list` in a direct message with remindbot"
+    "translation": "[View completed reminders]() · [Close list]()"
   },
   {
     "id": "app.reminder.ok_deleted",

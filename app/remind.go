@@ -69,7 +69,6 @@ func (a *App) runner() {
 func (a *App) triggerReminders() {
 
 	t := time.Now().Round(time.Second).Format(time.RFC3339)
-	//mlog.Debug(t)
 	schan := a.Srv.Store.Remind().GetByTime(t)
 
 	if result := <-schan; result.Err != nil {
@@ -265,7 +264,7 @@ func (a *App) ListReminders(userId string) string {
 		output = strings.Join([]string{
 			output,
 			T("app.reminder.list_upcoming"),
-			a.listReminderGroup(userId, &upcomingOccurrences, &reminders),
+			a.listReminderGroup(userId, &upcomingOccurrences, &reminders, "upcoming"),
 			"\n",
 		}, "\n")
 	}
@@ -274,7 +273,7 @@ func (a *App) ListReminders(userId string) string {
 		output = strings.Join([]string{
 			output,
 			T("app.reminder.list_recurring"),
-			a.listReminderGroup(userId, &recurringOccurrences, &reminders),
+			a.listReminderGroup(userId, &recurringOccurrences, &reminders, "recurring"),
 			"\n",
 		}, "\n")
 	}
@@ -283,7 +282,7 @@ func (a *App) ListReminders(userId string) string {
 		output = strings.Join([]string{
 			output,
 			T("app.reminder.list_past_and_incomplete"),
-			a.listReminderGroup(userId, &pastOccurrences, &reminders),
+			a.listReminderGroup(userId, &pastOccurrences, &reminders, "past"),
 			"\n",
 		}, "\n")
 	}
@@ -291,7 +290,7 @@ func (a *App) ListReminders(userId string) string {
 	return output + T("app.reminder.list_footer")
 }
 
-func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, reminders *[]model.Reminder) string {
+func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, reminders *[]model.Reminder, gType string) string {
 
 	_, cfg, location, T := a.shared(userId)
 
@@ -315,10 +314,17 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 
 		var messageParameters = map[string]interface{}{
 			"Message":    reminder.Message,
-			"Occurrence": fmt.Sprintf("%v", formattedOccurrence),
+			"Occurrence": a.formatWhen(userId, reminder.When, formattedOccurrence),
 		}
 		if !t.Equal(emptyTime) {
-			output = strings.Join([]string{output, T("app.reminder.list.element", messageParameters)}, "\n")
+			switch gType {
+			case "upcoming":
+				output = strings.Join([]string{output, T("app.reminder.list.element.upcoming", messageParameters)}, "\n")
+			case "recurring":
+				output = strings.Join([]string{output, T("app.reminder.list.element.recurring", messageParameters)}, "\n")
+			case "past":
+				output = strings.Join([]string{output, T("app.reminder.list.element.past", messageParameters)}, "\n")
+			}
 		}
 	}
 	return output
@@ -395,20 +401,20 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 		"Target":  request.Reminder.Target,
 		"UseTo":   useToString,
 		"Message": request.Reminder.Message,
-		"When":    a.formatWhen(request),
+		"When":    a.formatWhen(request.UserId, request.Reminder.When, request.Occurrences[0].Occurrence),
 	}
 	response := T("app.reminder.response", responseParameters)
 
 	return response, nil
 }
 
-func (a *App) formatWhen(request *model.ReminderRequest) string {
+func (a *App) formatWhen(userId string, when string, occurrence string) string {
 
-	user, _, _, T := a.shared(request.UserId)
+	user, _, _, T := a.shared(userId)
 
-	if strings.HasPrefix(request.Reminder.When, T("app.reminder.chrono.in")) {
+	if strings.HasPrefix(when, T("app.reminder.chrono.in")) {
 
-		t, _ := time.Parse(time.RFC3339, request.Occurrences[0].Occurrence)
+		t, _ := time.Parse(time.RFC3339, occurrence)
 		endDate := ""
 		if time.Now().YearDay() == t.YearDay() {
 			endDate = T("app.reminder.chrono.today")
@@ -417,27 +423,12 @@ func (a *App) formatWhen(request *model.ReminderRequest) string {
 		} else {
 			endDate = t.Weekday().String() + ", " + t.Month().String() + " " + a.daySuffixFromInt(user, t.Day())
 		}
-		return request.Reminder.When + " " + T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + endDate + "."
+		return when + " " + T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + endDate + "."
 	}
 
-	if strings.HasPrefix(request.Reminder.When, T("app.reminder.chrono.at")) {
+	if strings.HasPrefix(when, T("app.reminder.chrono.at")) {
 
-		t, _ := time.Parse(time.RFC3339, request.Occurrences[0].Occurrence)
-		endDate := ""
-		if time.Now().YearDay() == t.YearDay() {
-			endDate = T("app.reminder.chrono.today")
-		} else if time.Now().YearDay() == t.YearDay()-1 {
-			endDate = T("app.reminder.chrono.tomorrow")
-		} else {
-			endDate = t.Weekday().String() + ", " + t.Month().String() + " " + a.daySuffixFromInt(user, t.Day())
-		}
-		return T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + endDate + "."
-
-	}
-
-	if strings.HasPrefix(request.Reminder.When, T("app.reminder.chrono.on")) {
-
-		t, _ := time.Parse(time.RFC3339, request.Occurrences[0].Occurrence)
+		t, _ := time.Parse(time.RFC3339, occurrence)
 		endDate := ""
 		if time.Now().YearDay() == t.YearDay() {
 			endDate = T("app.reminder.chrono.today")
@@ -450,10 +441,25 @@ func (a *App) formatWhen(request *model.ReminderRequest) string {
 
 	}
 
-	if strings.HasPrefix(request.Reminder.When, T("app.reminder.chrono.every")) {
+	if strings.HasPrefix(when, T("app.reminder.chrono.on")) {
 
-		t, _ := time.Parse(time.RFC3339, request.Occurrences[0].Occurrence)
-		repeatDate := strings.Trim(strings.Split(request.Reminder.When, T("app.reminder.chrono.at"))[0], " ")
+		t, _ := time.Parse(time.RFC3339, occurrence)
+		endDate := ""
+		if time.Now().YearDay() == t.YearDay() {
+			endDate = T("app.reminder.chrono.today")
+		} else if time.Now().YearDay() == t.YearDay()-1 {
+			endDate = T("app.reminder.chrono.tomorrow")
+		} else {
+			endDate = t.Weekday().String() + ", " + t.Month().String() + " " + a.daySuffixFromInt(user, t.Day())
+		}
+		return T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + endDate + "."
+
+	}
+
+	if strings.HasPrefix(when, T("app.reminder.chrono.every")) {
+
+		t, _ := time.Parse(time.RFC3339, occurrence)
+		repeatDate := strings.Trim(strings.Split(when, T("app.reminder.chrono.at"))[0], " ")
 		repeatDate = strings.Replace(repeatDate, T("app.reminder.chrono.every"), "", -1)
 		repeatDate = strings.Title(strings.ToLower(repeatDate))
 		repeatDate = T("app.reminder.chrono.every") + repeatDate
@@ -461,7 +467,7 @@ func (a *App) formatWhen(request *model.ReminderRequest) string {
 
 	}
 
-	t, _ := time.Parse(time.RFC3339, request.Occurrences[0].Occurrence)
+	t, _ := time.Parse(time.RFC3339, occurrence)
 	endDate := ""
 	if time.Now().YearDay() == t.YearDay() {
 		endDate = T("app.reminder.chrono.today")
