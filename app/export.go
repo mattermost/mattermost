@@ -212,7 +212,7 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 			}
 
 			//Gathering here the exportable preferences to pass them on to ImportLineFromUser
-			exportedPrefs := make(map[string]string)
+			exportedPrefs := make(map[string]*string)
 			allPrefs, err := a.GetPreferencesForUser(user.Id)
 			if err != nil {
 				return err
@@ -240,8 +240,9 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 					Name:     pref.Name,
 				}]
 				if ok {
-					mlog.Debug(id + " : " + pref.Value)
-					exportedPrefs[id] = pref.Value
+					prefPtr := pref.Value
+					exportedPrefs[id] = &prefPtr
+					mlog.Debug(id + " : " + prefPtr)
 				}
 			}
 
