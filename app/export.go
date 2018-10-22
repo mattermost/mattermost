@@ -241,7 +241,11 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 				}]
 				if ok {
 					prefPtr := pref.Value
-					exportedPrefs[id] = &prefPtr
+					if prefPtr != "" {
+						exportedPrefs[id] = &prefPtr
+					} else {
+						exportedPrefs[id] = nil
+					}
 				}
 			}
 
