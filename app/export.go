@@ -242,7 +242,6 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 				if ok {
 					prefPtr := pref.Value
 					exportedPrefs[id] = &prefPtr
-					mlog.Debug(id + " : " + prefPtr)
 				}
 			}
 
