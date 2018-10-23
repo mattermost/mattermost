@@ -37,7 +37,7 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 
-	app.Srv.Plugins = env
+	app.SetPluginsEnvironment(env)
 }
 
 func TestPluginAPIUpdateUserStatus(t *testing.T) {
@@ -124,7 +124,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.Srv.Plugins.HooksForPlugin("testloadpluginconfig")
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "str32true", ret)
@@ -198,7 +198,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.Srv.Plugins.HooksForPlugin("testloadpluginconfig")
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "override35true", ret)
