@@ -943,11 +943,11 @@
     "translation": "Sessão não é OAuth mas o token foi fornecido na consulta"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "Recurso de termos de serviço personalizado está desativado"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Por favor digite o texto para o Termo de Serviço Personalizado."
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "Transferência de Autenticação não está configurada ou disponível neste servidor."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "Valor aceito incorreto"
   },
   {
@@ -2929,10 +2929,6 @@
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "O AuthData do usuário é muito longo."
-  },
-  {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "O AuthService do usuário não deve ser vazio caso informado."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
@@ -4651,22 +4647,6 @@
     "translation": "Id do usuário inválido"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "Termo obrigatório em falta da propriedade do serviço: create_at."
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "ID do Termo de serviço inválido."
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Termos de serviço customizado é muito grande. Máximo permitido de {{.MaxLength}} caracteres."
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "Termo obrigatório em falta da propriedade do serviço: user_id."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas"
   },
@@ -4721,6 +4701,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Id de usuário inválido"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Termo obrigatório em falta da propriedade do serviço: create_at."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "ID do Termo de serviço inválido."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Termos de serviço customizado é muito grande. Máximo permitido de {{.MaxLength}} caracteres."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Termo obrigatório em falta da propriedade do serviço: user_id."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5064,7 +5060,7 @@
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
+    "translation": "Não é possível remover os usuários desativados do canal"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5863,22 +5859,6 @@
     "translation": "Falha ao confirmar a transação para salvar o esquema"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "Não foi possível salvar os termos de serviço."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Não foi possível carregar os termos de serviço."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "Nenhum termo de serviço encontrado."
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Não deve chamar para salvar termos de serviços existentes."
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "Não foi possível contar as sessões"
   },
@@ -6149,6 +6129,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Nós não conseguimos atualizar a data da última atualização do ícone da equipe"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Não foi possível salvar os termos de serviço."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Não foi possível carregar os termos de serviço."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "Nenhum termo de serviço encontrado."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Não deve chamar para salvar termos de serviços existentes."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",

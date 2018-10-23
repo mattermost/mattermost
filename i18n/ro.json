@@ -943,11 +943,11 @@
     "translation": "Sesiune nu este OAuth dar token-ul a fost oferit în şirul de interogare"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "Caracteristica pentru Termenii și condițiile personalizate este dezactivată"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Introduceți text pentru Termenii și condițiile personalizate."
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "Autentificare Transfer nu configurate sau disponibile pe acest server."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "Valoare nepotrivită acceptată"
   },
   {
@@ -2929,10 +2929,6 @@
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "AuthData utilizatorului este prea lungă."
-  },
-  {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "Utilizatorul AuthService nu trebuie să fie gol dacă este furnizat."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
@@ -4651,22 +4647,6 @@
     "translation": "Utilizator invalid"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "Lipsește proprietatea privind termenul de serviciu cerut: create_at."
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Codul nevalid al Termenilor de Utilizare."
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Textul pentru termenii și condițiile personalizate este prea lung. Sunt permise maxim {{.MaxLength}} caractere."
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "Lipsește proprietatea privind condițiile de utilizare: user_id."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Numele trebuie să fie de 2 sau mai multe caractere alfanumerice minuscule"
   },
@@ -4721,6 +4701,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Utilizator invalid"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Lipsește proprietatea privind termenul de serviciu cerut: create_at."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Codul invalid al Termenilor de Utilizare."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Textul pentru termenii și condițiile personalizate este prea lung. Sunt permise maxim {{.MaxLength}} caractere."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Lipsește proprietatea privind condițiile de utilizare: user_id."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5064,7 +5060,7 @@
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
+    "translation": "Nu am putut elimina utilizatorii dezactivați din canal"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5648,7 +5644,7 @@
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Imposibil de salvat postarea"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -5660,7 +5656,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "Imposibil de actualizat schema"
+    "translation": "Imposibil de actualizat Postarea"
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
@@ -5863,24 +5859,8 @@
     "translation": "Nu a reușit să se angajeze tranzacția pentru salvarea schemei"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "Imposibil de salvat termenii și condițiile."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Imposibil de preluat condițiile de serviciu."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "Nu au fost găsite condiții de serviciu."
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Nu trebuie să apelați cu excepția termenilor și condițiilor existente."
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Imposibil de numărare a sesiunilor"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -5896,19 +5876,19 @@
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Imposibil de eliminat sesiunea"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Nu se pot elimina toate sesiunile"
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Nu este posibilă salvarea sesiunii"
   },
   {
     "id": "store.sql_session.save.existing.app_error",
-    "translation": "Nu se poate actualiza sesiunea existentă"
+    "translation": "Imposibil de actualizat sesiunea existentă"
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
@@ -5920,7 +5900,7 @@
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "Imposibil de actualizat schema"
+    "translation": "Imposibil de actualizat rolurile"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -5988,7 +5968,7 @@
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Imposibilitatea de a număra echipele"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6012,7 +5992,7 @@
   },
   {
     "id": "store.sql_team.get.find.app_error",
-    "translation": "Nu am putut găsi echipa existentă pentru a actualiza"
+    "translation": "Nu se poate găsi echipa existentă"
   },
   {
     "id": "store.sql_team.get.finding.app_error",
@@ -6028,15 +6008,15 @@
   },
   {
     "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Nu am putut găsi echipa existentă pentru a actualiza"
+    "translation": "În imposibilitatea de a găsi echipa existentă"
   },
   {
     "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Nu am putut găsi echipa existentă pentru a actualiza"
+    "translation": "În imposibilitatea de a găsi echipa existentă"
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Nu am putut găsi echipa existentă pentru a actualiza"
+    "translation": "În imposibilitatea de a găsi echipa existentă"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
@@ -6044,7 +6024,7 @@
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "Imposibil de actualizat membru al echipei"
+    "translation": "În imposibilitatea de a obține membru al echipei"
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
@@ -6100,7 +6080,7 @@
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Imposibil de a salvat echipa"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -6116,7 +6096,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Imposibil de actualizat membru al echipei"
+    "translation": "Nu a putut fi salvat membrul echipei"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -6128,11 +6108,11 @@
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "Imposibil de actualizat schema"
+    "translation": "Imposibilitatea de a actualiza echipa"
   },
   {
     "id": "store.sql_team.update.find.app_error",
-    "translation": "Nu am putut găsi echipa existentă pentru a actualiza"
+    "translation": "În imposibilitatea de a găsi echipa existentă pentru a actualiza"
   },
   {
     "id": "store.sql_team.update.finding.app_error",
@@ -6144,15 +6124,31 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Imposibil de actualizat schema"
+    "translation": "Imposibilitatea de a actualiza numele echipei"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Am putut actualiza data Ultima echipa pictograma actualizări"
+    "translation": "Imposibil de actualizat data ultimei actualizări a pictogramei echipei"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Imposibil de salvat termenii și condițiile."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Imposibil de preluat condițiile de serviciu."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "Nu au fost găsite condiții de serviciu."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Nu trebuie să apelați cu excepția termenilor și condițiilor existente."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Am putut sa ma utilizatori activi în perioada solicitată"
+    "translation": "Nu s-au putut obține utilizatorii activi în perioada solicitată"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -6192,7 +6188,7 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Nu am putut găsi un cont existent, tipul de autentificare pentru această echipă de potrivire. Această echipă poate solicita o invita la proprietarul de echipa să se alăture."
+    "translation": "Nu s-a putut găsi un cont existent care să corespundă tipului dvs. de autentificare pentru această echipă. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
@@ -6200,11 +6196,11 @@
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Nu am putut găsi un cont existent, numele de utilizator pentru această echipă de potrivire. Această echipă poate solicita o invita la proprietarul de echipa să se alăture."
+    "translation": "Imposibil de găsit un cont existent care să corespundă cu numele dvs. de utilizator pentru această echipă. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "Nu am putut găsi un cont existent acreditările de potrivire. Această echipă poate solicita o invita la proprietarul de echipa să se alăture."
+    "translation": "Nu s-a putut găsi un cont existent care să corespundă acreditărilor dvs. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
@@ -6244,15 +6240,15 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Imposibil de salvat token"
+    "translation": "Nu am putut găsi utilizatorul."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Nu am putut găsi echipa existentă pentru a actualiza"
+    "translation": "Nu se poate șterge contul existent"
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "Imposibil de actualizat schema"
+    "translation": "Imposibil de salvat contul."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -6292,11 +6288,11 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Nu am putut găsi orice utilizator marinescu parametrii de căutare"
+    "translation": "Nu a putut fi găsit niciun utilizator care să utilizeze parametrii de căutare"
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "Imposibil de actualizat schema"
+    "translation": "Imposibil de actualizat contul"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -6308,7 +6304,7 @@
   },
   {
     "id": "store.sql_user.update.find.app_error",
-    "translation": "Nu am putut găsi contul existent pentru a actualiza"
+    "translation": "Imposibil de găsit contul existent pentru actualizare"
   },
   {
     "id": "store.sql_user.update.finding.app_error",
@@ -6324,7 +6320,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Imposibil de actualizat schema"
+    "translation": "Imposibil de actualizat datele auth"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -6336,7 +6332,7 @@
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Imposibil de actualizat schema"
+    "translation": "Imposibil de actualizat update_at"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6360,23 +6356,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Nu am putut șterge indicativul de acces personal"
+    "translation": "Imposibil de șters indicativul de acces personal"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Nu am putut obține jetonul de acces personal"
+    "translation": "Imposibil de obținut indicativul de acces personal"
   },
   {
     "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "Nu am putut obține toate simbolurile de acces personal"
+    "translation": "Nu se pot obține toate jetoanele de acces personale"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Nu am putut obține jetonul de acces personal cu jeton"
+    "translation": "Imposibil de obținut tokenul de acces personal cu jeton"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Nu am putut obține jetoanele de acces personale de către utilizator"
+    "translation": "Imposibil de obținut token-urile personale de acces de către utilizator"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
@@ -6388,71 +6384,71 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Imposibil de dezactivat simbolul de acces"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "Imposibil de activat indicativul de acces"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "Imposibil de numărare a cârligelor de intrare"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "Imposibil de numărare a hârtiilor Web de ieșire"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "Imposibil de șters webhook"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "Imposibil de șters webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a obține webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a obține webhooks"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a obține webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a obține webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a obține webhooks"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a obține webhooks"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a șterge webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a șterge webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a șterge webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a șterge webhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "În imposibilitatea de a salva IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -6460,7 +6456,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Imposibil de salvat token"
+    "translation": "În imposibilitatea de a salva OutgoingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -6468,11 +6464,11 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "Imposibilitatea de a actualiza IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Imposibil de utilizat webhook"
+    "translation": "Imposibilitatea de a actualiza webhook"
   },
   {
     "id": "system.message.name",
