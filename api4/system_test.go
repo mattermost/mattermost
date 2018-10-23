@@ -628,6 +628,8 @@ func TestS3TestConnection(t *testing.T) {
 		t.Fatal("should return error - missing s3 bucket")
 	}
 
+	// If this fails, check the test configuration to ensure minio is setup with the
+	// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 	config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
 	config.FileSettings.AmazonS3Region = "us-east-1"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
