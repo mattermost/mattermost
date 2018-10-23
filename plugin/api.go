@@ -54,6 +54,11 @@ type API interface {
 	// GetUserByUsername gets a user by their username.
 	GetUserByUsername(name string) (*model.User, *model.AppError)
 
+	// GetUsersByUsernames gets users by their usernames.
+	//
+	// Minimum server version: 5.6
+	GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError)
+
 	// GetUsersInTeam gets users in team.
 	//
 	// Minimum server version: 5.6
@@ -71,6 +76,12 @@ type API interface {
 	// UpdateUserStatus will set a user's status until the user, or another integration/plugin, sets it back to online.
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
+
+	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
+	// The sortBy parameter can be: "username" or "status".
+	//
+	// Minimum server version: 5.6
+	GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
 
 	// GetLDAPUserAttributes will return LDAP attributes for a user.
 	// The attributes parameter should be a list of attributes to pull.
@@ -154,6 +165,8 @@ type API interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
 	// SearchChannels returns the channels on a team matching the provided search term.
+	//
+	// Minimum server version: 5.6
 	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
@@ -213,6 +226,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
 
+	// GetPostsAfter gets a page of posts that were posted after the post provided.
+	//
+	// Minimum server version: 5.6
+	GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+
 	// GetPostsBefore gets a page of posts that were posted before the post provided.
 	//
 	// Minimum server version: 5.6
@@ -249,10 +267,20 @@ type API interface {
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
+	// GetFileLink gets the public link to a file by fileId.
+	//
+	// Minimum server version: 5.6
+	GetFileLink(fileId string) (string, *model.AppError)
+
 	// ReadFileAtPath reads the file from the backend for a specific path
 	//
 	// Minimum server version: 5.3
 	ReadFile(path string) ([]byte, *model.AppError)
+
+	// GetEmojiImage returns the emoji image.
+	//
+	// Minimum server version: 5.6
+	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError

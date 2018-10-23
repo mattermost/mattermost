@@ -832,7 +832,7 @@ func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, eta
 	}
 }
 
-// GetUsersInChannelStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status
+// GetUsersInChannelByStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status
 func (c *Client4) GetUsersInChannelByStatus(channelId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v&sort=status", channelId, page, perPage)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
@@ -3367,19 +3367,6 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 		defer closeBody(r)
 		return StatusFromJson(r.Body), BuildResponse(r)
 
-	}
-}
-
-// Webrtc Section
-
-// GetWebrtcToken returns a valid token, stun server and turn server with credentials to
-// use with the Mattermost WebRTC service.
-func (c *Client4) GetWebrtcToken() (*WebrtcInfoResponse, *Response) {
-	if r, err := c.DoApiGet("/webrtc/token", ""); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return WebrtcInfoResponseFromJson(r.Body), BuildResponse(r)
 	}
 }
 

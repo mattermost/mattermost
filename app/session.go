@@ -116,8 +116,6 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 				return result.Err
 			}
 		}
-
-		a.RevokeWebrtcToken(session.Id)
 	}
 
 	a.ClearSessionCacheForUser(userId)
@@ -213,7 +211,6 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 		}
 	}
 
-	a.RevokeWebrtcToken(session.Id)
 	a.ClearSessionCacheForUser(session.UserId)
 
 	return nil

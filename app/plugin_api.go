@@ -164,6 +164,10 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 	return api.app.GetUserByUsername(name)
 }
 
+func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
+	return api.app.GetUsersByUsernames(usernames, true)
+}
+
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
 	return api.app.GetUsersInTeam(teamId, page, perPage)
 }
@@ -196,6 +200,18 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 
 	return api.app.GetStatus(userId)
 }
+
+func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+	switch sortBy {
+	case model.CHANNEL_SORT_BY_USERNAME:
+		return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
+	case model.CHANNEL_SORT_BY_STATUS:
+		return api.app.GetUsersInChannelByStatus(channelId, page*perPage, perPage)
+	default:
+		return nil, model.NewAppError("GetUsersInChannel", "plugin.api.get_users_in_channel", nil, "invalid sort option", http.StatusBadRequest)
+	}
+}
+
 func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
 	if api.app.Ldap == nil {
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -331,6 +347,10 @@ func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostLi
 	return api.app.GetPostsSince(channelId, time)
 }
 
+func (api *PluginAPI) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsAfterPost(channelId, postId, page, perPage)
+}
+
 func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
 	return api.app.GetPostsBeforePost(channelId, postId, page, perPage)
 }
@@ -365,8 +385,29 @@ func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppErr
 	return api.app.GetFileInfo(fileId)
 }
 
+func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
+	if !api.app.Config().FileSettings.EnablePublicLink {
+		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	info, err := api.app.GetFileInfo(fileId)
+	if err != nil {
+		return "", err
+	}
+
+	if len(info.PostId) == 0 {
+		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+	}
+
+	return api.app.GeneratePublicLink(api.app.GetSiteURL(), info), nil
+}
+
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
+}
+
+func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+	return api.app.GetEmojiImage(emojiId)
 }
 
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {

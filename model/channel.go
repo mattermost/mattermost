@@ -29,6 +29,9 @@ const (
 	CHANNEL_HEADER_MAX_RUNES       = 1024
 	CHANNEL_PURPOSE_MAX_RUNES      = 250
 	CHANNEL_CACHE_SIZE             = 25000
+
+	CHANNEL_SORT_BY_USERNAME = "username"
+	CHANNEL_SORT_BY_STATUS   = "status"
 )
 
 type Channel struct {
