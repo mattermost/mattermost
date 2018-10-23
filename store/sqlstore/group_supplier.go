@@ -680,6 +680,7 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMem
 			AND GroupTeams.DeleteAt = 0
 			AND GroupTeams.AutoAdd = true
 			AND GroupMembers.DeleteAt = 0
+			AND Teams.DeleteAt = 0
 			AND (GroupMembers.CreateAt >= :MinGroupMembersCreateAt
 			OR GroupTeams.UpdateAt >= :MinGroupMembersCreateAt)`
 
@@ -721,6 +722,7 @@ func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroup
 			AND GroupChannels.DeleteAt = 0
 			AND GroupChannels.AutoAdd = true
 			AND GroupMembers.DeleteAt = 0
+			AND Channels.DeleteAt = 0
 			AND (GroupMembers.CreateAt >= :MinGroupMembersCreateAt
 			OR GroupChannels.UpdateAt >= :MinGroupMembersCreateAt)`
 
