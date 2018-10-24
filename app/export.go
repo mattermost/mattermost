@@ -212,7 +212,8 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 
 	members := result.Data.([]*model.ChannelMemberForExport)
 
-	preferences, err := a.getUserPreferences(userId)
+	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
+	preferences, err := a.GetPreferenceByCategoryForUser(userId, category)
 	if err != nil {
 		return nil, err
 	}
@@ -242,15 +243,6 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 		CommentsTrigger:  getProp(model.COMMENTS_NOTIFY_PROP),
 		MentionKeys:      getProp(model.MENTION_KEYS_NOTIFY_PROP),
 	}
-}
-
-func (a *App) getUserPreferences(userId string) (model.Preferences, *model.AppError) {
-	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
-	result := <-a.Srv.Store.Preference().GetCategory(userId, category)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(model.Preferences), nil
 }
 
 func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
