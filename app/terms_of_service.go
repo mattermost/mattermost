@@ -9,8 +9,8 @@ import (
 
 func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError) {
 	termsOfService := &model.TermsOfService{
-		Text:      text,
-		UserId:    userId,
+		Text:   text,
+		UserId: userId,
 	}
 
 	if _, err := a.GetUser(userId); err != nil {
