@@ -130,6 +130,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
 	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
+	oldTeam.Type = team.Type
 
 	oldTeam, err = a.updateTeamUnsanitized(oldTeam)
 	if err != nil {
@@ -1187,4 +1188,16 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 
 	return nil
+}
+
+func (a *App) UpdateTeamPrivacy(oldTeam *model.Team, user *model.User) (*model.Team, *model.AppError) {
+	team, err := a.UpdateTeam(oldTeam)
+	if err != nil {
+		return team, err
+	}
+	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TEAM_CONVERTED, team.Id, "", "", nil)
+	messageWs.Add("team_id", team.Id)
+	a.Publish(messageWs)
+
+	return team, nil
 }

@@ -26,6 +26,7 @@ const (
 	WEBSOCKET_EVENT_LEAVE_TEAM              = "leave_team"
 	WEBSOCKET_EVENT_UPDATE_TEAM             = "update_team"
 	WEBSOCKET_EVENT_DELETE_TEAM             = "delete_team"
+	WEBSOCKET_EVENT_TEAM_CONVERTED          = "team_converted"
 	WEBSOCKET_EVENT_USER_ADDED              = "user_added"
 	WEBSOCKET_EVENT_USER_UPDATED            = "user_updated"
 	WEBSOCKET_EVENT_USER_ROLE_UPDATED       = "user_role_updated"

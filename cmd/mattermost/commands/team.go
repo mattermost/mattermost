@@ -4,12 +4,12 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -78,6 +78,15 @@ var ArchiveTeamCmd = &cobra.Command{
 	RunE:    archiveTeamCmdF,
 }
 
+var ModifyTeamCmd = &cobra.Command{
+	Use:     "modify [team] [flags] --username [user]",
+	Short:   "Modify a team's public/private type",
+	Long:    `Change the public/private type of a team.`,
+	Example: "  team modify myteam --private --username myusername",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    modifyTeamCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -85,6 +94,10 @@ func init() {
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
+
+	ModifyTeamCmd.Flags().Bool("private", false, "Convert the team to a private team")
+	ModifyTeamCmd.Flags().Bool("public", false, "Convert the team to a public team")
+	ModifyTeamCmd.Flags().String("username", "", "Required. Username who changes the team privacy.")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
@@ -94,6 +107,7 @@ func init() {
 		ListTeamsCmd,
 		SearchTeamCmd,
 		ArchiveTeamCmd,
+		ModifyTeamCmd,
 	)
 	RootCmd.AddCommand(TeamCmd)
 }
@@ -335,6 +349,46 @@ func archiveTeamCmdF(command *cobra.Command, args []string) error {
 		if err := a.SoftDeleteTeam(team.Id); err != nil {
 			CommandPrintErrorln("Unable to archive team '"+team.Name+"' error: ", err)
 		}
+	}
+
+	return nil
+}
+
+func modifyTeamCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+	username, err := command.Flags().GetString("username")
+	if username == "" || err != nil {
+		return errors.New("Username is required.")
+	}
+
+	public, _ := command.Flags().GetBool("public")
+	private, _ := command.Flags().GetBool("private")
+
+	if public == private {
+		return errors.New("You must specify only one of --public or --private")
+	}
+
+	team := getTeamFromTeamArg(a, args[0])
+	if team == nil {
+		return errors.New("Unable to find team '" + args[0] + "'")
+	}
+
+	if !(team.Type == model.TEAM_OPEN || team.Type == model.TEAM_PRIVATE) {
+		return errors.New("You can only change the type of public/private teams.")
+	}
+
+	team.Type = model.TEAM_OPEN
+	if private {
+		team.Type = model.TEAM_PRIVATE
+	}
+
+	user := getUserFromUserArg(a, username)
+	if _, err := a.UpdateTeamPrivacy(team, user); err != nil {
+		return errors.Wrapf(err, "Failed to update team ('%s') privacy", args[0])
 	}
 
 	return nil

@@ -23,6 +23,7 @@ const (
 	TEAM_EMAIL_MAX_LENGTH           = 128
 	TEAM_NAME_MAX_LENGTH            = 64
 	TEAM_NAME_MIN_LENGTH            = 2
+	TEAM_PRIVATE                    = "P"
 )
 
 type Team struct {
@@ -159,7 +160,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.characters.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {
+	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE || o.Type == TEAM_PRIVATE) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
