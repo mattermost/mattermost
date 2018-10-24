@@ -253,7 +253,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var config map[string]string
-	if *c.App.Config().ServiceSettings.ExperimentalLimitClientConfig && len(c.Session.UserId) == 0 {
+	if len(c.Session.UserId) == 0 {
 		config = c.App.LimitedClientConfigWithComputed()
 	} else {
 		config = c.App.ClientConfigWithComputed()
