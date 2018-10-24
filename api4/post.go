@@ -126,9 +126,6 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var since int64
 	var parseError error
 
-	var nextPostId string
-	var previousPostId string
-
 	if len(sinceString) > 0 {
 		since, parseError = strconv.ParseInt(sinceString, 10, 64)
 		if parseError != nil {
@@ -156,9 +153,6 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		list, err = c.App.GetPostsAfterPost(c.Params.ChannelId, afterPost, c.Params.Page, c.Params.PerPage)
-		if len(list.Order) > 0 {
-			previousPostId = afterPost
-		}
 	} else if len(beforePost) > 0 {
 		etag = c.App.GetPostsEtag(c.Params.ChannelId)
 
@@ -167,9 +161,6 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		list, err = c.App.GetPostsBeforePost(c.Params.ChannelId, beforePost, c.Params.Page, c.Params.PerPage)
-		if len(list.Order) > 0 {
-			nextPostId = beforePost
-		}
 	} else {
 		etag = c.App.GetPostsEtag(c.Params.ChannelId)
 
@@ -194,12 +185,20 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.Error("Failed to prepare posts for getPostsForChannel response", mlog.Any("err", err))
 	}
 
-	if nextPostId == "" {
-		nextPostId = c.App.GetNextPostFromPostList(clientPostList)
+	var nextPostId string
+	if len(clientPostList.Order) > 0 {
+		nextPostId = beforePost
+		if nextPostId == "" {
+			nextPostId = c.App.GetNextPostIdFromPostList(clientPostList)
+		}
 	}
 
-	if previousPostId == "" {
-		previousPostId = c.App.GetPreviousPostFromPostList(clientPostList)
+	var previousPostId string
+	if len(clientPostList.Order) > 0 {
+		previousPostId = afterPost
+		if previousPostId == "" && len(clientPostList.Order) == c.Params.PerPage {
+			previousPostId = c.App.GetPreviousPostIdFromPostList(clientPostList)
+		}
 	}
 
 	clientPostList.NextPostId = nextPostId
@@ -248,8 +247,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		mlog.Error("Failed to prepare posts for getPostsForChannelAroundLastUnread response", mlog.Any("err", err))
 	}
 
-	clientPostList.NextPostId = c.App.GetNextPostFromPostList(clientPostList)
-	clientPostList.PreviousPostId = c.App.GetPreviousPostFromPostList(clientPostList)
+	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList)
+	clientPostList.PreviousPostId = c.App.GetPreviousPostIdFromPostList(clientPostList)
 
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
