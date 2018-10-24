@@ -7,11 +7,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) CreateTermsOfService(text, userId string, mandatory bool) (*model.TermsOfService, *model.AppError) {
+func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError) {
 	termsOfService := &model.TermsOfService{
 		Text:      text,
 		UserId:    userId,
-		Mandatory: mandatory,
 	}
 
 	if _, err := a.GetUser(userId); err != nil {
@@ -29,15 +28,6 @@ func (a *App) CreateTermsOfService(text, userId string, mandatory bool) (*model.
 
 func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
 	if result := <-a.Srv.Store.TermsOfService().GetLatest(true); result.Err != nil {
-		return nil, result.Err
-	} else {
-		termsOfService := result.Data.(*model.TermsOfService)
-		return termsOfService, nil
-	}
-}
-
-func (a *App) GetLatestMandatoryTermsOfService() (*model.TermsOfService, *model.AppError) {
-	if result := <-a.Srv.Store.TermsOfService().GetLatestMandatory(true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		termsOfService := result.Data.(*model.TermsOfService)

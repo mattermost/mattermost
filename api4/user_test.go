@@ -3101,7 +3101,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 	_, resp := Client.GetUserTermsOfService(th.BasicUser.Id, "")
 	CheckErrorMessage(t, resp, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error")
 
-	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id, true)
+	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 	if err != nil {
 		t.Fatal(err)
 	}

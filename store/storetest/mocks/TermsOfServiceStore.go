@@ -45,22 +45,6 @@ func (_m *TermsOfServiceStore) GetLatest(allowFromCache bool) store.StoreChannel
 	return r0
 }
 
-// GetLatestMandatory provides a mock function with given fields: allowFromCache
-func (_m *TermsOfServiceStore) GetLatestMandatory(allowFromCache bool) store.StoreChannel {
-	ret := _m.Called(allowFromCache)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(bool) store.StoreChannel); ok {
-		r0 = rf(allowFromCache)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
 // Save provides a mock function with given fields: termsOfService
 func (_m *TermsOfServiceStore) Save(termsOfService *model.TermsOfService) store.StoreChannel {
 	ret := _m.Called(termsOfService)

@@ -409,10 +409,6 @@ func (c *Client4) GetTermsOfServiceRoute() string {
 	return "/terms_of_service"
 }
 
-func (c *Client4) GetLatestMandatoryTermsOfServiceRoute() string {
-	return "/terms_of_service"
-}
-
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -3875,17 +3871,6 @@ func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response) {
 	}
 }
 
-func (c *Client4) GetLatestMandatoryTermsOfService(etag string) (*TermsOfService, *Response) {
-	url := c.GetLatestMandatoryTermsOfServiceRoute()
-
-	if r, err := c.DoApiGet(url, etag); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return TermsOfServiceFromJson(r.Body), BuildResponse(r)
-	}
-}
-
 func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfService, *Response) {
 	url := c.GetUserTermsOfServiceRoute(userId)
 
@@ -3897,10 +3882,10 @@ func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfServic
 	}
 }
 
-func (c *Client4) CreateTermsOfService(text, userId string, mandatory bool) (*TermsOfService, *Response) {
+func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response) {
 	url := c.GetTermsOfServiceRoute()
 
-	data := map[string]interface{}{"text": text, "mandatory": mandatory}
+	data := map[string]interface{}{"text": text}
 	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {

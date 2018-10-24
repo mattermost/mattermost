@@ -11,22 +11,11 @@ import (
 
 func (api *API) InitTermsOfService() {
 	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(getLatestTermsOfService)).Methods("GET")
-	api.BaseRoutes.TermsOfService.Handle("/mandatory", api.ApiSessionRequired(getLatestMandatoryTermsOfService)).Methods("GET")
 	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(createTermsOfService)).Methods("POST")
 }
 
 func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	termsOfService, err := c.App.GetLatestTermsOfService()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Write([]byte(termsOfService.ToJson()))
-}
-
-func getLatestMandatoryTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	termsOfService, err := c.App.GetLatestMandatoryTermsOfService()
 	if err != nil {
 		c.Err = err
 		return
@@ -41,25 +30,13 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
-		c.Err = model.NewAppError("createTermsOfService", "api.create_terms_of_service.custom_terms_of_service_disabled.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
+	//if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
+	//	c.Err = model.NewAppError("createTermsOfService", "api.create_terms_of_service.custom_terms_of_service_disabled.app_error", nil, "", http.StatusBadRequest)
+	//	return
+	//}
 
-	props := model.StringInterfaceFromJson(r.Body)
-
-	text, ok := props["text"].(string)
-	if !ok {
-		c.SetInvalidParam("text")
-		return
-	}
-
-	mandatory, ok := props["mandatory"].(bool)
-	if !ok {
-		c.SetInvalidParam("mandatory")
-		return
-	}
-
+	props := model.MapFromJson(r.Body)
+	text := props["text"]
 	userId := c.Session.UserId
 
 	if text == "" {
@@ -73,8 +50,8 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldTermsOfService == nil || oldTermsOfService.Text != text || oldTermsOfService.Mandatory != mandatory {
-		termsOfService, err := c.App.CreateTermsOfService(text, userId, mandatory)
+	if oldTermsOfService == nil || oldTermsOfService.Text != text {
+		termsOfService, err := c.App.CreateTermsOfService(text, userId)
 		if err != nil {
 			c.Err = err
 			return

@@ -530,7 +530,6 @@ type SchemeStore interface {
 type TermsOfServiceStore interface {
 	Save(termsOfService *model.TermsOfService) StoreChannel
 	GetLatest(allowFromCache bool) StoreChannel
-	GetLatestMandatory(allowFromCache bool) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 }
 
