@@ -102,7 +102,7 @@ func (a *App) GetUserIDsInLdapGroupRecursive(groupUID string) ([]string, *model.
 
 	if a.Ldap != nil {
 		var err *model.AppError
-		uids, err = a.Ldap.GetUserIDsInGroupRecursive(groupUID)
+		uids, err = a.Ldap.GetMemberIDsInGroupRecursive(groupUID)
 		if err != nil {
 			return nil, err
 		}
