@@ -112,6 +112,7 @@ const (
 	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
 	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
 	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
+	SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD  = 365
 
 	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
@@ -1047,6 +1048,7 @@ type SupportSettings struct {
 	ReportAProblemLink          *string
 	SupportEmail                *string
 	CustomTermsOfServiceEnabled *bool
+	ReAcceptancePeriod          *int
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1096,6 +1098,10 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.CustomTermsOfServiceEnabled == nil {
 		s.CustomTermsOfServiceEnabled = NewBool(false)
+	}
+
+	if s.ReAcceptancePeriod == nil {
+		s.ReAcceptancePeriod = NewInt(SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD)
 	}
 }
 
