@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, rootId string) {
+func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) {
 	if receiver == nil || receiver.NotifyProps == nil {
 		return
 	}
@@ -20,8 +20,8 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, roo
 		autoResponderPost := &model.Post{
 			ChannelId: channel.Id,
 			Message:   message,
-			RootId:    rootId,
-			ParentId:  rootId,
+			RootId:    "",
+			ParentId:  "",
 			Type:      model.POST_AUTO_RESPONDER,
 			UserId:    receiver.Id,
 		}
