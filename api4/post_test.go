@@ -1188,15 +1188,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}
 
 	// All returned posts are all read by the user, since it's created by the user itself.
-	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 10, 20, "")
+	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 10, 20)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != 10 {
 		t.Fatal("Should return 10 posts only since there's no unread post")
 	}
-
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 10, 20, resp.Etag)
-	CheckEtag(t, posts, resp)
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
@@ -1204,7 +1201,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember.LastViewedAt = 0
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 40, "")
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 40)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != 20 {
@@ -1233,7 +1230,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember.LastViewedAt = since
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 60, 60, "")
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 60, 60)
 	CheckNoError(t, resp)
 
 	// should return 70 + 2 posts (system_join_channel and initial post)
@@ -1276,7 +1273,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		}
 	}
 
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 60, 60, "")
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 60, 60)
 	CheckNoError(t, resp)
 
 	if len(posts.Order) != 120 {
@@ -1321,9 +1318,6 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 			}
 		}
 	}
-
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 60, 60, resp.Etag)
-	CheckEtag(t, posts, resp)
 }
 
 func TestGetPost(t *testing.T) {
