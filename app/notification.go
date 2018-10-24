@@ -356,6 +356,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
+	var previousPostId string
+	previousPost, err := a.GetPostBefore(post.ChannelId, post.CreateAt)
+	if previousPost != nil {
+		previousPostId = previousPost.Id
+	}
+
+	message.Add("previous_post_id", previousPostId)
+
 	a.Publish(message)
 	return mentionedUsersList, nil
 }
