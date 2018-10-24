@@ -759,92 +759,92 @@ func TestAutocompleteUsers(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
 	}()
 
-	rusers, resp := Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	rusers, resp := Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 user")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, "amazonses", "")
+	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, "amazonses", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, "", "")
+	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) < 2 {
 		t.Fatal("should have many users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInChannel("", channelId, "", "")
+	rusers, resp = Client.AutocompleteUsersInChannel("", channelId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) < 2 {
 		t.Fatal("should have many users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
+	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 user")
 	}
 
-	rusers, resp = Client.AutocompleteUsers(username, "")
+	rusers, resp = Client.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 users")
 	}
 
-	rusers, resp = Client.AutocompleteUsers("", "")
+	rusers, resp = Client.AutocompleteUsers("", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) < 2 {
 		t.Fatal("should have returned many users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInTeam(teamId, "amazonses", "")
+	rusers, resp = Client.AutocompleteUsersInTeam(teamId, "amazonses", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInTeam(teamId, "", "")
+	rusers, resp = Client.AutocompleteUsersInTeam(teamId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) < 2 {
 		t.Fatal("should have many users")
 	}
 
 	Client.Logout()
-	_, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	_, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
+	_, resp = Client.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.AutocompleteUsers(username, "")
+	_, resp = Client.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
-	_, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	_, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
+	_, resp = Client.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.AutocompleteUsers(username, "")
+	_, resp = Client.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	_, resp = th.SystemAdminClient.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.AutocompleteUsersInTeam(teamId, username, "")
+	_, resp = th.SystemAdminClient.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.AutocompleteUsers(username, "")
+	_, resp = th.SystemAdminClient.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	// Check against privacy config settings
@@ -852,21 +852,21 @@ func TestAutocompleteUsers(t *testing.T) {
 
 	th.LoginBasic()
 
-	rusers, resp = Client.AutocompleteUsers(username, "")
+	rusers, resp = Client.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
 		t.Fatal("should not show first/last name")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
 		t.Fatal("should not show first/last name")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
+	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
@@ -874,7 +874,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	}
 
 	t.Run("user must have access to team id, especially when it does not match channel's team id", func(t *testing.T) {
-		rusers, resp = Client.AutocompleteUsersInChannel("otherTeamId", channelId, username, "")
+		rusers, resp = Client.AutocompleteUsersInChannel("otherTeamId", channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
 	})
 }

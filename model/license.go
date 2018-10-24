@@ -57,7 +57,7 @@ type Features struct {
 	CustomPermissionsSchemes  *bool `json:"custom_permissions_schemes"`
 	CustomTermsOfService      *bool `json:"custom_terms_of_service"`
 
-	// after we enabled more features for webrtc we'll need to control them with this
+	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
 }
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +22,22 @@ var WebhookListCmd = &cobra.Command{
 	Long:    "list all webhooks",
 	Example: "  webhook list myteam",
 	RunE:    listWebhookCmdF,
+}
+
+var WebhookCreateIncomingCmd = &cobra.Command{
+	Use:     "create-incoming",
+	Short:   "Create incoming webhook",
+	Long:    "create incoming webhook which allows external posting of messages to specific channel",
+	Example: "  webhook create-incoming --channel [channelID] --user [userID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
+	RunE:    createIncomingWebhookCmdF,
+}
+
+var WebhookModifyIncomingCmd = &cobra.Command{
+	Use:     "modify-incoming",
+	Short:   "Modify incoming webhook",
+	Long:    "Modify existing incoming webhook by changing its title, description, channel or icon url",
+	Example: "  webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
+	RunE:    modifyIncomingWebhookCmdF,
 }
 
 func listWebhookCmdF(command *cobra.Command, args []string) error {
@@ -75,9 +92,109 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	channelArg, _ := command.Flags().GetString("channel")
+	channel := getChannelFromChannelArg(app, channelArg)
+	if channel == nil {
+		return errors.New("Unable to find channel '" + channelArg + "'")
+	}
+
+	userArg, _ := command.Flags().GetString("user")
+	user := getUserFromUserArg(app, userArg)
+	displayName, _ := command.Flags().GetString("display-name")
+	description, _ := command.Flags().GetString("description")
+	iconUrl, _ := command.Flags().GetString("icon")
+	channelLocked, _ := command.Flags().GetBool("lock-to-channel")
+
+	incomingWebhook := &model.IncomingWebhook{
+		ChannelId:     channel.Id,
+		DisplayName:   displayName,
+		Description:   description,
+		IconURL:       iconUrl,
+		ChannelLocked: channelLocked,
+	}
+
+	if _, err := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("WebhookID is not specified")
+	}
+
+	webhookArg := args[0]
+	oldHook, getErr := app.GetIncomingWebhook(webhookArg)
+	if getErr != nil {
+		return errors.New("Unable to find webhook '" + webhookArg + "'")
+	}
+
+	updatedHook := oldHook
+
+	channelArg, _ := command.Flags().GetString("channel")
+	if channelArg != "" {
+		channel := getChannelFromChannelArg(app, channelArg)
+		if channel == nil {
+			return errors.New("Unable to find channel '" + channelArg + "'")
+		}
+		updatedHook.ChannelId = channel.Id
+	}
+
+	displayName, _ := command.Flags().GetString("display-name")
+	if displayName != "" {
+		updatedHook.DisplayName = displayName
+	}
+	description, _ := command.Flags().GetString("description")
+	if description != "" {
+		updatedHook.Description = description
+	}
+	iconUrl, _ := command.Flags().GetString("icon")
+	if iconUrl != "" {
+		updatedHook.IconURL = iconUrl
+	}
+	channelLocked, _ := command.Flags().GetBool("lock-to-channel")
+	updatedHook.ChannelLocked = channelLocked
+
+	if _, err := app.UpdateIncomingWebhook(oldHook, updatedHook); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func init() {
+	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID")
+	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID")
+	WebhookCreateIncomingCmd.Flags().String("display-name", "", "Incoming webhook display name")
+	WebhookCreateIncomingCmd.Flags().String("description", "", "Incoming webhook description")
+	WebhookCreateIncomingCmd.Flags().String("icon", "", "Icon URL")
+	WebhookCreateIncomingCmd.Flags().Bool("lock-to-channel", false, "Lock to channel")
+
+	WebhookModifyIncomingCmd.Flags().String("channel", "", "Channel ID")
+	WebhookModifyIncomingCmd.Flags().String("display-name", "", "Incoming webhook display name")
+	WebhookModifyIncomingCmd.Flags().String("description", "", "Incoming webhook description")
+	WebhookModifyIncomingCmd.Flags().String("icon", "", "Icon URL")
+	WebhookModifyIncomingCmd.Flags().Bool("lock-to-channel", false, "Lock to channel")
+
 	WebhookCmd.AddCommand(
 		WebhookListCmd,
+		WebhookCreateIncomingCmd,
+		WebhookModifyIncomingCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)
