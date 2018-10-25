@@ -581,6 +581,31 @@ func (_m *API) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 	return r0, r1, r2
 }
 
+// GetEmoji provides a mock function with given fields: emojiId
+func (_m *API) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+	ret := _m.Called(emojiId)
+
+	var r0 *model.Emoji
+	if rf, ok := ret.Get(0).(func(string) *model.Emoji); ok {
+		r0 = rf(emojiId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Emoji)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(emojiId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetFileInfo provides a mock function with given fields: fileId
 func (_m *API) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	ret := _m.Called(fileId)
