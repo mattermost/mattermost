@@ -118,13 +118,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
-	enableExperimentalPublicChannelsMaterialization := true
-	if settings.EnablePublicChannelsMaterialization != nil && !*settings.EnablePublicChannelsMaterialization {
-		enableExperimentalPublicChannelsMaterialization = false
-	}
-
 	supplier.oldStores.team = NewSqlTeamStore(supplier)
-	supplier.oldStores.channel = NewSqlChannelStoreExperimental(supplier, metrics, enableExperimentalPublicChannelsMaterialization)
+	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
 	supplier.oldStores.audit = NewSqlAuditStore(supplier)
@@ -162,7 +157,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	UpgradeDatabase(supplier)
 
 	supplier.oldStores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
-	supplier.oldStores.channel.(*SqlChannelStoreExperimental).CreateIndexesIfNotExists()
+	supplier.oldStores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
 	supplier.oldStores.post.(*SqlPostStore).CreateIndexesIfNotExists()
 	supplier.oldStores.user.(*SqlUserStore).CreateIndexesIfNotExists()
 	supplier.oldStores.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
