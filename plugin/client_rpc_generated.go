@@ -2402,6 +2402,35 @@ func (s *apiRPCServer) GetEmojiByName(args *Z_GetEmojiByNameArgs, returns *Z_Get
 	return nil
 }
 
+type Z_GetEmojiArgs struct {
+	A string
+}
+
+type Z_GetEmojiReturns struct {
+	A *model.Emoji
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+	_args := &Z_GetEmojiArgs{emojiId}
+	_returns := &Z_GetEmojiReturns{}
+	if err := g.client.Call("Plugin.GetEmoji", _args, _returns); err != nil {
+		log.Printf("RPC call to GetEmoji API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetEmoji(args *Z_GetEmojiArgs, returns *Z_GetEmojiReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetEmoji(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetEmoji called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CopyFileInfosArgs struct {
 	A string
 	B []string

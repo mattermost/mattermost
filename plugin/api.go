@@ -254,6 +254,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetEmojiByName(name string) (*model.Emoji, *model.AppError)
 
+	// GetEmoji returns a custom emoji based on the emojiId string.
+	//
+	// Minimum server version: 5.6
+	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
+
 	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
 	// recording the given user id as the new creator and returning the new set of file ids.
 	//
