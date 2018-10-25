@@ -185,20 +185,24 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.Error("Failed to prepare posts for getPostsForChannel response", mlog.Any("err", err))
 	}
 
+	postListLength := len(clientPostList.Order)
+
 	var nextPostId string
-	if len(clientPostList.Order) > 0 {
+	if c.Params.Page == 0 {
 		nextPostId = beforePost
-		if nextPostId == "" {
-			nextPostId = c.App.GetNextPostIdFromPostList(clientPostList)
-		}
+	} else if postListLength < c.Params.PerPage {
+		nextPostId = ""
+	} else {
+		nextPostId = c.App.GetNextPostIdFromPostList(clientPostList)
 	}
 
 	var previousPostId string
-	if len(clientPostList.Order) > 0 {
+	if c.Params.Page == 0 {
 		previousPostId = afterPost
-		if previousPostId == "" && len(clientPostList.Order) == c.Params.PerPage {
-			previousPostId = c.App.GetPreviousPostIdFromPostList(clientPostList)
-		}
+	} else if postListLength < c.Params.PerPage {
+		previousPostId = ""
+	} else {
+		previousPostId = c.App.GetPreviousPostIdFromPostList(clientPostList)
 	}
 
 	clientPostList.NextPostId = nextPostId
