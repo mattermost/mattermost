@@ -483,6 +483,31 @@ func (_m *API) GetChannelsForTeamForUser(teamId string, userId string, includeDe
 	return r0, r1
 }
 
+// GetChannelStats provides a mock function with given fields: channelId
+func (_m *API) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
+	ret := _m.Called(channelId)
+
+	var r0 *model.ChannelStats
+	if rf, ok := ret.Get(0).(func(string) *model.ChannelStats); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelStats)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(channelId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetConfig provides a mock function with given fields:
 func (_m *API) GetConfig() *model.Config {
 	ret := _m.Called()
