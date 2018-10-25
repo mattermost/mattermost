@@ -133,8 +133,7 @@
         "MaxOpenConns": 300,
         "Trace": false,
         "AtRestEncryptKey": "",
-        "QueryTimeout": 30,
-        "EnablePublicChannelsMaterialization": true
+        "QueryTimeout": 30
     },
     "LogSettings": {
         "EnableConsole": true,
