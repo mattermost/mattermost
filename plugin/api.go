@@ -155,6 +155,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 
+	// GetChannelStats gets statistics for a channel.
+	//
+	// Minimum server version: 5.6
+	GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError)
+
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
