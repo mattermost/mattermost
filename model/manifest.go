@@ -111,6 +111,11 @@ type Manifest struct {
 	// A version number for your plugin. Semantic versioning is recommended: http://semver.org
 	Version string `json:"version" yaml:"version"`
 
+	// The minimum Mattermost server version required for your plugin.
+	//
+	// Minimum server version: 5.6
+	MinServerVersion string `json:"min_server_version,omitempty" yaml:"min_server_version,omitempty"`
+
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
