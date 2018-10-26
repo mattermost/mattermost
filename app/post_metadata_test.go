@@ -693,6 +693,58 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Expected: []string{"https://example.com/logo2", "https://example.com/icon2"},
 		},
 		{
+			Name: "image in author_icon",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							AuthorIcon: "https://example.com/icon2",
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/icon2"},
+		},
+		{
+			Name: "image in image_url",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							ImageURL: "https://example.com/image",
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/image"},
+		},
+		{
+			Name: "image in thumb_url",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							ThumbURL: "https://example.com/image",
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/image"},
+		},
+		{
+			Name: "image in footer_icon",
+			Post: &model.Post{
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							FooterIcon: "https://example.com/image",
+						},
+					},
+				},
+			},
+			Expected: []string{"https://example.com/image"},
+		},
+		{
 			Name: "images in multiple fields",
 			Post: &model.Post{
 				Props: map[string]interface{}{
