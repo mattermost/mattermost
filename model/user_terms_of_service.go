@@ -12,7 +12,7 @@ import (
 
 type UserTermsOfService struct {
 	UserId           string `json:"user_id"`
-	TermsOfServiceId string `json:"service_terms_id"`
+	TermsOfServiceId string `json:"terms_of_service_id"`
 	CreateAt         int64  `json:"create_at"`
 }
 
@@ -22,7 +22,7 @@ func (ut *UserTermsOfService) IsValid() *AppError {
 	}
 
 	if len(ut.TermsOfServiceId) != 26 {
-		return InvalidUserTermsOfServiceError("service_terms_id", ut.UserId)
+		return InvalidUserTermsOfServiceError("terms_of_service_id", ut.UserId)
 	}
 
 	if ut.CreateAt == 0 {
