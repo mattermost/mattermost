@@ -18,8 +18,8 @@ type PostMetadata struct {
 	// of file attachments which are contained in PostMetadata.FileInfos.
 	Images map[string]*PostImage `json:"images,omitempty"`
 
-	// A map of emoji names to a count of users that reacted with the given emoji.
-	ReactionCounts ReactionCounts `json:"reaction_counts,omitempty"`
+	// A list of reactions made to the post
+	Reactions []*Reaction `json:"reactions,omitempty"`
 }
 
 type PostImage struct {

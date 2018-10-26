@@ -17,8 +17,6 @@ type Reaction struct {
 	CreateAt  int64  `json:"create_at"`
 }
 
-type ReactionCounts map[string]int
-
 func (o *Reaction) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
@@ -75,14 +73,4 @@ func (o *Reaction) PreSave() {
 	if o.CreateAt == 0 {
 		o.CreateAt = GetMillis()
 	}
-}
-
-func CountReactions(reactions []*Reaction) ReactionCounts {
-	reactionCounts := ReactionCounts{}
-
-	for _, reaction := range reactions {
-		reactionCounts[reaction.EmojiName] += 1
-	}
-
-	return reactionCounts
 }
