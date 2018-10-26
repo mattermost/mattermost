@@ -59,11 +59,11 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 		post.Metadata = &model.PostMetadata{}
 
 		// Emojis and reaction counts
-		if emojis, reactionCounts, err := a.getEmojisAndReactionCountsForPost(post); err != nil {
+		if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
 			mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
 		} else {
 			post.Metadata.Emojis = emojis
-			post.Metadata.ReactionCounts = reactionCounts
+			post.Metadata.Reactions = reactions
 		}
 
 		// Files
@@ -90,7 +90,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 	return post, nil
 }
 
-func (a *App) getEmojisAndReactionCountsForPost(post *model.Post) ([]*model.Emoji, model.ReactionCounts, *model.AppError) {
+func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
 	reactions, err := a.GetReactionsForPost(post.Id)
 	if err != nil {
 		return nil, nil, err
@@ -101,7 +101,7 @@ func (a *App) getEmojisAndReactionCountsForPost(post *model.Post) ([]*model.Emoj
 		return nil, nil, err
 	}
 
-	return emojis, model.CountReactions(reactions), nil
+	return emojis, reactions, nil
 }
 
 func (a *App) getEmbedForPost(post *model.Post, firstLink string) (*model.PostEmbed, error) {

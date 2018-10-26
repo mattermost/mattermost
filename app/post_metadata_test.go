@@ -52,7 +52,7 @@ func TestPreparePostForClient(t *testing.T) {
 			assert.Equal(t, message, clientPost.Message, "shouldn't have changed Message")
 			assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata")
 			assert.Len(t, clientPost.Metadata.Embeds, 0, "should've populated Embeds")
-			assert.Len(t, clientPost.Metadata.ReactionCounts, 0, "should've populated ReactionCounts")
+			assert.Len(t, clientPost.Metadata.Reactions, 0, "should've populated Reactions")
 			assert.Len(t, clientPost.Metadata.Files, 0, "should've populated Files")
 			assert.Len(t, clientPost.Metadata.Emojis, 0, "should've populated Emojis")
 			assert.Len(t, clientPost.Metadata.Images, 0, "should've populated Images")
@@ -73,19 +73,22 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
 	})
 
-	t.Run("reaction counts", func(t *testing.T) {
+	t.Run("reactions", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
 		post := th.CreatePost(th.BasicChannel)
-		th.AddReactionToPost(post, th.BasicUser, "smile")
+		reaction1 := th.AddReactionToPost(post, th.BasicUser, "smile")
+		reaction2 := th.AddReactionToPost(post, th.BasicUser2, "smile")
+		reaction3 := th.AddReactionToPost(post, th.BasicUser2, "ice_cream")
 
 		clientPost, err := th.App.PreparePostForClient(post)
 		require.Nil(t, err)
 
-		assert.Equal(t, model.ReactionCounts{
-			"smile": 1,
-		}, clientPost.Metadata.ReactionCounts, "should've populated ReactionCounts")
+		assert.Len(t, clientPost.Metadata.Reactions, 3, "should've populated Reactions")
+		assert.Equal(t, reaction1, clientPost.Metadata.Reactions[0], "first reaction is incorrect")
+		assert.Equal(t, reaction2, clientPost.Metadata.Reactions[1], "second reaction is incorrect")
+		assert.Equal(t, reaction3, clientPost.Metadata.Reactions[2], "third reaction is incorrect")
 	})
 
 	t.Run("files", func(t *testing.T) {
@@ -139,10 +142,8 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 
 		t.Run("populates reaction counts", func(t *testing.T) {
-			reactionCounts := clientPost.Metadata.ReactionCounts
-			assert.Len(t, reactionCounts, 2, "should've populated ReactionCounts")
-			assert.Equal(t, 1, reactionCounts["smile"], "should've included 'smile' in ReactionCounts")
-			assert.Equal(t, 2, reactionCounts["angry"], "should've included 'angry' in ReactionCounts")
+			reactions := clientPost.Metadata.Reactions
+			assert.Len(t, reactions, 3, "should've populated Reactions")
 		})
 	})
 
@@ -178,11 +179,8 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 
 		t.Run("populates reaction counts", func(t *testing.T) {
-			reactionCounts := clientPost.Metadata.ReactionCounts
-			assert.Len(t, reactionCounts, 3, "should've populated ReactionCounts")
-			assert.Equal(t, 1, reactionCounts[emoji1.Name], "should've included emoji1 in ReactionCounts")
-			assert.Equal(t, 2, reactionCounts[emoji2.Name], "should've included emoji2 in ReactionCounts")
-			assert.Equal(t, 1, reactionCounts["angry"], "should've included angry in ReactionCounts")
+			reactions := clientPost.Metadata.Reactions
+			assert.Len(t, reactions, 4, "should've populated Reactions")
 		})
 	})
 
