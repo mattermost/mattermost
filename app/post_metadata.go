@@ -248,6 +248,22 @@ func getImagesInMessageAttachments(post *model.Post) []string {
 				images = append(images, imagesInFieldValue...)
 			}
 		}
+
+		if attachment.AuthorIcon != "" {
+			images = append(images, attachment.AuthorIcon)
+		}
+
+		if attachment.ImageURL != "" {
+			images = append(images, attachment.ImageURL)
+		}
+
+		if attachment.ThumbURL != "" {
+			images = append(images, attachment.ThumbURL)
+		}
+
+		if attachment.FooterIcon != "" {
+			images = append(images, attachment.FooterIcon)
+		}
 	}
 
 	return images
