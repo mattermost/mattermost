@@ -385,6 +385,10 @@ func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
 	return data, err
 }
 
+func GetEmojiList(page, perPage int) ([]*model.Emoji, *model.Response){
+	return api.app.GetEmojiList(page, perPage)
+}
+
 func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
 	return api.app.GetEmojiByName(name)
 }
