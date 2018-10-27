@@ -657,7 +657,7 @@ func (_m *API) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 }
 
 // GetEmojiList provides a mock function with given fields: page, perPage
-func (_m *API) GetEmojiList(page int, perPage int) ([]*model.Emoji, *model.Response) {
+func (_m *API) GetEmojiList(page int, perPage int) ([]*model.Emoji, *model.AppError) {
 	ret := _m.Called(page, perPage)
 
 	var r0 []*model.Emoji
@@ -669,12 +669,12 @@ func (_m *API) GetEmojiList(page int, perPage int) ([]*model.Emoji, *model.Respo
 		}
 	}
 
-	var r1 *model.Response
-	if rf, ok := ret.Get(1).(func(int, int) *model.Response); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
 		r1 = rf(page, perPage)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.Response)
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 

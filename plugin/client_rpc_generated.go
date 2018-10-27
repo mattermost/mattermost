@@ -2439,10 +2439,10 @@ type Z_GetEmojiListArgs struct {
 
 type Z_GetEmojiListReturns struct {
 	A []*model.Emoji
-	B *model.Response
+	B *model.AppError
 }
 
-func (g *apiRPCClient) GetEmojiList(page, perPage int) ([]*model.Emoji, *model.Response) {
+func (g *apiRPCClient) GetEmojiList(page, perPage int) ([]*model.Emoji, *model.AppError) {
 	_args := &Z_GetEmojiListArgs{page, perPage}
 	_returns := &Z_GetEmojiListReturns{}
 	if err := g.client.Call("Plugin.GetEmojiList", _args, _returns); err != nil {
@@ -2453,7 +2453,7 @@ func (g *apiRPCClient) GetEmojiList(page, perPage int) ([]*model.Emoji, *model.R
 
 func (s *apiRPCServer) GetEmojiList(args *Z_GetEmojiListArgs, returns *Z_GetEmojiListReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetEmojiList(page, perPage int) ([]*model.Emoji, *model.Response)
+		GetEmojiList(page, perPage int) ([]*model.Emoji, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetEmojiList(args.A, args.B)
 	} else {
