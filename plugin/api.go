@@ -77,6 +77,12 @@ type API interface {
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
+	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
+	// The sortBy parameter can be: "username" or "status".
+	//
+	// Minimum server version: 5.6
+	GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
+
 	// GetLDAPUserAttributes will return LDAP attributes for a user.
 	// The attributes parameter should be a list of attributes to pull.
 	// Returns a map with attribute names as keys and the user's attributes as values.
@@ -149,6 +155,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 
+	// GetChannelStats gets statistics for a channel.
+	//
+	// Minimum server version: 5.6
+	GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError)
+
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
@@ -182,11 +193,6 @@ type API interface {
 
 	// DeleteChannelMember deletes a channel membership for a user.
 	DeleteChannelMember(channelId, userId string) *model.AppError
-
-	// GetUsersInChannel gets users in given channel.
-	//
-	// Minimum server version: 5.6
-	GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError)
 
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
@@ -252,6 +258,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetEmojiByName(name string) (*model.Emoji, *model.AppError)
+
+	// GetEmoji returns a custom emoji based on the emojiId string.
+	//
+	// Minimum server version: 5.6
+	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
 
 	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
 	// recording the given user id as the new creator and returning the new set of file ids.

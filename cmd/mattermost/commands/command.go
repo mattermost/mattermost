@@ -44,6 +44,15 @@ var CommandListCmd = &cobra.Command{
 	RunE:    listCommandCmdF,
 }
 
+var CommandDeleteCmd = &cobra.Command{
+	Use:     "delete",
+	Short:   "Delete a slash command",
+	Long:    `Delete a slash command. Commands can be specified by command ID.`,
+	Example: `  command delete commandID`,
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    deleteCommandCmdF,
+}
+
 func init() {
 	CommandCreateCmd.Flags().String("title", "", "Command Title")
 	CommandCreateCmd.Flags().String("description", "", "Command Description")
@@ -64,6 +73,7 @@ func init() {
 		CommandCreateCmd,
 		CommandMoveCmd,
 		CommandListCmd,
+		CommandDeleteCmd,
 	)
 	RootCmd.AddCommand(CommandCmd)
 }
@@ -202,5 +212,23 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrettyPrintln(commandListItem)
 		}
 	}
+	return nil
+}
+
+func deleteCommandCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	commandID := args[0]
+
+	deleteErr := a.DeleteCommand(commandID)
+	if deleteErr != nil {
+		CommandPrintErrorln("Unable to delete command '" + commandID + "' error: " + deleteErr.Error())
+		return deleteErr
+	}
+	CommandPrettyPrintln("Deleted command '" + commandID + "'")
 	return nil
 }

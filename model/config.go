@@ -274,7 +274,6 @@ type ServiceSettings struct {
 	ImageProxyOptions                                 *string
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
-	ExperimentalLimitClientConfig                     *bool
 	EnableEmailInvitations                            *bool
 }
 
@@ -566,10 +565,6 @@ func (s *ServiceSettings) SetDefaults() {
 	if s.ExperimentalEnableHardenedMode == nil {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
 	}
-
-	if s.ExperimentalLimitClientConfig == nil {
-		s.ExperimentalLimitClientConfig = NewBool(false)
-	}
 }
 
 type ClusterSettings struct {
@@ -688,17 +683,16 @@ type SSOSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName                          *string
-	DataSource                          *string
-	DataSourceReplicas                  []string
-	DataSourceSearchReplicas            []string
-	MaxIdleConns                        *int
-	ConnMaxLifetimeMilliseconds         *int
-	MaxOpenConns                        *int
-	Trace                               bool
-	AtRestEncryptKey                    string
-	QueryTimeout                        *int
-	EnablePublicChannelsMaterialization *bool
+	DriverName                  *string
+	DataSource                  *string
+	DataSourceReplicas          []string
+	DataSourceSearchReplicas    []string
+	MaxIdleConns                *int
+	ConnMaxLifetimeMilliseconds *int
+	MaxOpenConns                *int
+	Trace                       bool
+	AtRestEncryptKey            string
+	QueryTimeout                *int
 }
 
 func (s *SqlSettings) SetDefaults() {
@@ -728,10 +722,6 @@ func (s *SqlSettings) SetDefaults() {
 
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewInt(30)
-	}
-
-	if s.EnablePublicChannelsMaterialization == nil {
-		s.EnablePublicChannelsMaterialization = NewBool(true)
 	}
 }
 

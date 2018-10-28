@@ -259,7 +259,6 @@ func (a *App) trackConfig() {
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
-		"experimental_limit_client_config":                        *cfg.ServiceSettings.ExperimentalLimitClientConfig,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 	})
@@ -307,15 +306,14 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
-		"driver_name":                            *cfg.SqlSettings.DriverName,
-		"trace":                                  cfg.SqlSettings.Trace,
-		"max_idle_conns":                         *cfg.SqlSettings.MaxIdleConns,
-		"conn_max_lifetime_milliseconds":         *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
-		"max_open_conns":                         *cfg.SqlSettings.MaxOpenConns,
-		"data_source_replicas":                   len(cfg.SqlSettings.DataSourceReplicas),
-		"data_source_search_replicas":            len(cfg.SqlSettings.DataSourceSearchReplicas),
-		"query_timeout":                          *cfg.SqlSettings.QueryTimeout,
-		"enable_public_channels_materialization": *cfg.SqlSettings.EnablePublicChannelsMaterialization,
+		"driver_name":                    *cfg.SqlSettings.DriverName,
+		"trace":                          cfg.SqlSettings.Trace,
+		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
+		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
+		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
+		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
+		"query_timeout":                  *cfg.SqlSettings.QueryTimeout,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{

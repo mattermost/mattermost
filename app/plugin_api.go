@@ -200,6 +200,18 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 
 	return api.app.GetStatus(userId)
 }
+
+func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
+	switch sortBy {
+	case model.CHANNEL_SORT_BY_USERNAME:
+		return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
+	case model.CHANNEL_SORT_BY_STATUS:
+		return api.app.GetUsersInChannelByStatus(channelId, page*perPage, perPage)
+	default:
+		return nil, model.NewAppError("GetUsersInChannel", "plugin.api.get_users_in_channel", nil, "invalid sort option", http.StatusBadRequest)
+	}
+}
+
 func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
 	if api.app.Ldap == nil {
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -249,6 +261,14 @@ func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDe
 	return api.app.GetChannelsForUser(teamId, userId, includeDeleted)
 }
 
+func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
+	memberCount, err := api.app.GetChannelMemberCount(channelId)
+	if err != nil {
+		return nil, err
+	}
+	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount}, nil
+}
+
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
 	return api.app.GetDirectChannel(userId1, userId2)
 }
@@ -296,10 +316,6 @@ func (api *PluginAPI) UpdateChannelMemberNotifications(channelId, userId string,
 
 func (api *PluginAPI) DeleteChannelMember(channelId, userId string) *model.AppError {
 	return api.app.LeaveChannel(channelId, userId)
-}
-
-func (api *PluginAPI) GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersInChannel(channelId, page*perPage, perPage)
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
@@ -367,6 +383,10 @@ func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
 
 func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
 	return api.app.GetEmojiByName(name)
+}
+
+func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+	return api.app.GetEmoji(emojiId)
 }
 
 func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
