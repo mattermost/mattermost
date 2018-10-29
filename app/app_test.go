@@ -242,19 +242,19 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	}
 
 	// Add a license and change the policy config.
-	restrictPublicChannel := *th.App.Config().TeamSettings.RestrictPublicChannelManagement
-	restrictPrivateChannel := *th.App.Config().TeamSettings.RestrictPrivateChannelManagement
+	restrictPublicChannel := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement
+	restrictPrivateChannel := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement
 
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement = restrictPublicChannel })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = restrictPrivateChannel })
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_TEAM_ADMIN
+		*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	})
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
+		*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	})
 	th.App.SetLicense(model.NewTestLicense())
 
@@ -430,7 +430,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th.ResetRoleMigration()
 
 	config := th.App.GetConfig()
-	*config.ServiceSettings.AllowEditPost = "always"
+	*config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "always"
 	*config.ServiceSettings.PostEditTimeLimit = 300
 	th.App.SaveConfig(config, false)
 
@@ -441,7 +441,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th.ResetRoleMigration()
 
 	config = th.App.GetConfig()
-	*config.ServiceSettings.AllowEditPost = "time_limit"
+	*config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "time_limit"
 	*config.ServiceSettings.PostEditTimeLimit = 300
 	th.App.SaveConfig(config, false)
 
@@ -450,7 +450,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	assert.Equal(t, 300, *config.ServiceSettings.PostEditTimeLimit)
 
 	config = th.App.GetConfig()
-	*config.ServiceSettings.AllowEditPost = "always"
+	*config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "always"
 	*config.ServiceSettings.PostEditTimeLimit = 300
 	th.App.SaveConfig(config, false)
 }
@@ -464,16 +464,16 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	}
 
 	// Add a license and change the policy config.
-	restrictCustomEmojiCreation := *th.App.Config().ServiceSettings.RestrictCustomEmojiCreation
+	restrictCustomEmojiCreation := *th.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation
 
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.RestrictCustomEmojiCreation = restrictCustomEmojiCreation
+			*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = restrictCustomEmojiCreation
 		})
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN
+		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN
 	})
 
 	th.ResetEmojisMigration()
@@ -538,7 +538,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	assert.Equal(t, expectedSystemAdmin, role1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ADMIN
+		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ADMIN
 	})
 
 	th.ResetEmojisMigration()
@@ -567,7 +567,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	assert.Equal(t, expectedSystemAdmin, systemAdmin1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ALL
+		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ALL
 	})
 
 	th.ResetEmojisMigration()
