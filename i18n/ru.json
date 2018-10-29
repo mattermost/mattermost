@@ -943,12 +943,12 @@
     "translation": "Сессия не OAuth, но токен присутствует в строке запроса"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
-    "translation": "Custom terms of service feature is disabled"
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Пользовательские условия обслуживания отключены"
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
-    "translation": "Please enter text for your Custom Terms of Service."
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Введите текст для своих Пользовательских условий обслуживания."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2040,7 +2040,7 @@
   },
   {
     "id": "api.user.autocomplete_users.invalid_team_id",
-    "translation": "Некорректный идентификатор команды"
+    "translation": "Некорректный идентификатор Команды"
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2132,7 +2132,7 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server."
+    "translation": "Передача аутентификации не настроена или недоступна на этом сервере."
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2200,11 +2200,11 @@
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server."
+    "translation": "Передача аутентификации не настроена или недоступна на этом сервере."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
-    "translation": "Bad accepted value"
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
+    "translation": "Принято неверное значение"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2228,19 +2228,19 @@
   },
   {
     "id": "api.user.saml.app_error",
-    "translation": "Unable to process SAML login request."
+    "translation": "Невозможно обработать SAML запрос на вход."
   },
   {
     "id": "api.user.saml.extension_id.app_error",
-    "translation": "Неверный action id"
+    "translation": "Недопустимый id расширения"
   },
   {
     "id": "api.user.saml.extension_unsupported",
-    "translation": "Extensions are not supported."
+    "translation": "Расширения не поддерживаются."
   },
   {
     "id": "api.user.saml.invalid_extension",
-    "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+    "translation": "Расширение с extension_id = {{.ExtensionId}} не поддерживается."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2424,7 +2424,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Невозможно обновить вебхук для команд"
+    "translation": "Не удалось обновить webhook в разных командах"
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -2452,7 +2452,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Канал можно переместить только тогда, когда его участники уже находятся в команде назначения."
+    "translation": "Невозможно переместить канал, если все его участники уже не являются членами Команды."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2480,19 +2480,19 @@
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": "An error occurred writing the export data."
+    "translation": "Произошла ошибка при записи данных экспорта."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "Произошла ошибка при сортировке JSON-данных для экспорта."
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": "Error reading the file at: \"{{.FilePath}}\""
+    "translation": "Ошибка чтения файла: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": "Error uploading the file: \"{{.FilePath}}\""
+    "translation": "Ошибка при загрузке файла: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -2508,11 +2508,11 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
+    "translation": "Ошибка при чтении файла изображения emoji. Emoji с именем: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Нельзя указывать каналу использовать удаленную схему."
+    "translation": "Нельзя назначить каналу удаленную схему."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
@@ -2572,7 +2572,7 @@
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": "Строка импорта данных содержит тип \"post\", но объект post равен null."
+    "translation": "Строка импорта данных содержит тип \"emoji\", но объект post равен null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -2929,10 +2929,6 @@
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "Структура AuthData пользователя слишком большая."
-  },
-  {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "Если задан пользователь AuthService, то он не может быть пустым."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
@@ -4651,22 +4647,6 @@
     "translation": "Неверный идентификатор пользователя"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Invalid term of service id."
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Имя должно состоять из 2 или более строчных букв и цифр"
   },
@@ -4721,6 +4701,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Некорректный идентификатор пользователя"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Отсутствует необходимое поле для Post: create_at."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Отсутствует необходимое поле для Post: create_at."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5863,22 +5859,6 @@
     "translation": "Failed to commit the transaction to save the scheme"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "Unable to save terms of service."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Must not call save for existing terms of service."
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "Не удалось удалить плагин"
   },
@@ -6149,6 +6129,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Unable to update the date of the last team icon update"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
