@@ -1,9 +1,15 @@
 # groupOfNames
+dn: cn=outsiders,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfNames
+member: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
+
 dn: cn=board,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfNames
 member: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
 member: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
+member: cn=outsiders,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=executive,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
@@ -18,13 +24,28 @@ dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
 uniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: cn=ugroup,cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
 uniqueMember: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: cn=vgroup,cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
+uniqueMember: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: cn=team-one-a,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfUniqueNames
+uniqueMember: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=team-one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
 uniqueMember: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
+uniqueMember: cn=team-one-a,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=team-two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
@@ -37,9 +58,3 @@ objectclass: groupOfUniqueNames
 uniqueMember: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-one,ou=testusers,dc=mm,dc=test,dc=com
 uniqueMember: cn=team-two,ou=testusers,dc=mm,dc=test,dc=com
-
-dn: cn=qa,ou=testusers,dc=mm,dc=test,dc=com
-changetype: add
-objectclass: groupOfUniqueNames
-uniqueMember: uid=qa.one,ou=testusers,dc=mm,dc=test,dc=com
-uniqueMember: uid=qa.two,ou=testusers,dc=mm,dc=test,dc=com

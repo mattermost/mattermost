@@ -19,6 +19,14 @@ cn: Test2
 mail: success+testtwo@simulator.amazonses.com
 userPassword: Password1
 
+dn: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Test3
+mail: success+testthree@simulator.amazonses.com
+userPassword: Password1
+
 
 # developers
 dn: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
@@ -37,14 +45,6 @@ cn: Dev1
 mail: success+devone@simulator.amazonses.com
 userPassword: Password1
 
-dn: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
-changetype: add
-objectclass: iNetOrgPerson
-sn: User
-cn: Dev3
-mail: success+devthree@simulator.amazonses.com
-userPassword: Password1
-
 dn: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
@@ -53,22 +53,20 @@ cn: Dev2
 mail: success+devtwo@simulator.amazonses.com
 userPassword: Password1
 
-
-# qa
-dn: uid=qa.one,ou=testusers,dc=mm,dc=test,dc=com
+dn: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
 sn: User
-cn: QA1
-mail: success+qaone@simulator.amazonses.com
+cn: Dev3
+mail: success+devthree@simulator.amazonses.com
 userPassword: Password1
 
-dn: uid=qa.two,ou=testusers,dc=mm,dc=test,dc=com
+dn: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: iNetOrgPerson
 sn: User
-cn: QA2
-mail: success+qatwo@simulator.amazonses.com
+cn: Dev4
+mail: success+devfour@simulator.amazonses.com
 userPassword: Password1
 
 
@@ -110,3 +108,12 @@ cn: Board2
 mail: success+boardtwo@simulator.amazonses.com
 userPassword: Password1
 memberOf: cn=board,ou=testusers,dc=mm,dc=test,dc=com
+
+dn: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Board3
+mail: success+boardthree@simulator.amazonses.com
+userPassword: Password1
+memberOf: cn=outsiders,ou=testusers,dc=mm,dc=test,dc=com
