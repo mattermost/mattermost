@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -58,6 +59,15 @@ var ConfigShowCmd = &cobra.Command{
 	RunE:    configShowCmdF,
 }
 
+var ConfigSetCmd = &cobra.Command{
+	Use:     "set",
+	Short:   "Set config setting",
+	Long:    "Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings",
+	Example: "config set SqlSettings.DriverName mysql",
+	Args:    cobra.MinimumNArgs(2),
+	RunE:    configSetCmdF,
+}
+
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
 
@@ -66,6 +76,7 @@ func init() {
 		ConfigSubpathCmd,
 		ConfigGetCmd,
 		ConfigShowCmd,
+		ConfigSetCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -222,6 +233,145 @@ func printMap(value reflect.Value, tabVal int) string {
 
 	return out.String()
 
+}
+
+func configSetCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+
+	defer app.Shutdown()
+
+	// args[0] -> holds the config setting that we want to change
+	// args[1:] -> the new value of the config setting
+	configSetting := args[0]
+	newVal := args[1:]
+
+	// Update the config
+
+	// first disable the watchers
+	app.DisableConfigWatch()
+
+	// create the function to update config
+	oldConfig := app.Config()
+	newConfig := app.Config()
+	f := updateConfigValue(configSetting, newVal, oldConfig, newConfig)
+
+	// update the config
+	app.UpdateConfig(f)
+
+	// make the changes persist
+	app.PersistConfig()
+
+	// reload config
+	app.ReloadConfig()
+
+	// Enable config watchers
+	app.EnableConfigWatch()
+
+	return nil
+}
+
+func updateConfigValue(configSetting string, newVal []string, oldConfig, newConfig *model.Config) func(*model.Config) {
+	return func(update *model.Config) {
+
+		// convert config to map[string]interface
+		configMap := configToMap(*oldConfig)
+
+		// iterate through the map and update the value or print an error and exit
+		err := UpdateMap(configMap, strings.Split(configSetting, "."), newVal)
+		if err != nil {
+			fmt.Printf("%s\n", err)
+			os.Exit(1)
+		}
+
+		// convert map to json
+		bs, err := json.Marshal(configMap)
+		if err != nil {
+			fmt.Printf("Error while marshalling map to json %s\n", err)
+			os.Exit(1)
+		}
+
+		// convert json to struct
+		err = json.Unmarshal(bs, newConfig)
+		if err != nil {
+			fmt.Printf("Error while unmarshalling json to struct %s\n", err)
+			os.Exit(1)
+		}
+
+		*update = *newConfig
+
+	}
+}
+
+func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal []string) error {
+	res, ok := configMap[configSettings[0]]
+	if !ok {
+		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+	}
+
+	value := reflect.ValueOf(res)
+
+	switch value.Kind() {
+
+	case reflect.Map:
+		// we can only change the value of a particular setting, not the whole map, return error
+		if len(configSettings) == 1 {
+			return errors.New("unable to set multiple settings at once")
+		}
+		return UpdateMap(res.(map[string]interface{}), configSettings[1:], newVal)
+
+	case reflect.Int:
+		if len(configSettings) == 1 {
+			val, err := strconv.Atoi(newVal[0])
+			if err != nil {
+				return err
+			}
+			configMap[configSettings[0]] = val
+			return nil
+		}
+		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+
+	case reflect.Int64:
+		if len(configSettings) == 1 {
+			val, err := strconv.Atoi(newVal[0])
+			if err != nil {
+				return err
+			}
+			configMap[configSettings[0]] = int64(val)
+			return nil
+		}
+		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+
+	case reflect.Bool:
+		if len(configSettings) == 1 {
+			val, err := strconv.ParseBool(newVal[0])
+			if err != nil {
+				return err
+			}
+			configMap[configSettings[0]] = val
+			return nil
+		}
+		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+
+	case reflect.String:
+		if len(configSettings) == 1 {
+			configMap[configSettings[0]] = newVal[0]
+			return nil
+		}
+		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+
+	case reflect.Slice:
+		if len(configSettings) == 1 {
+			configMap[configSettings[0]] = newVal
+			return nil
+		}
+		return fmt.Errorf("unable to find a setting with that name %s", configSettings[0])
+
+	default:
+		return errors.New("type not supported yet")
+	}
 }
 
 // configToMap converts our config into a map
