@@ -95,19 +95,19 @@ func (a *App) GetAllLdapGroups() ([]*model.SCIMGroup, *model.AppError) {
 	return groups, nil
 }
 
-// GetUserIDsInLdapGroupRecursive recursively retrieves the unique identifiers of all of the members of a given
+// GetMemberIDsInGroup recursively retrieves the unique identifiers of all of the members of a given
 // group.
-func (a *App) GetUserIDsInLdapGroupRecursive(groupUID string) ([]string, *model.AppError) {
+func (a *App) GetMemberIDsInGroup(groupUID string) ([]string, *model.AppError) {
 	var uids []string
 
 	if a.Ldap != nil {
 		var err *model.AppError
-		uids, err = a.Ldap.GetMemberIDsInGroupRecursive(groupUID)
+		uids, err = a.Ldap.GetMemberIDsInGroup(groupUID)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		ae := model.NewAppError("GetUserIDsInLdapGroupRecursive", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		ae := model.NewAppError("GetMemberIDsInGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
 		mlog.Error(fmt.Sprintf("%v", ae.Error()))
 	}
 

@@ -22,5 +22,5 @@ type LdapInterface interface {
 	GetGroup(groupUID string) (*model.SCIMGroup, *model.AppError)
 	GetAllGroupsNested() ([]*model.SCIMGroup, *model.AppError)
 	GetAllGroups() ([]*model.SCIMGroup, *model.AppError)
-	GetMemberIDsInGroupRecursive(groupUID string) ([]string, *model.AppError)
+	GetMemberIDsInGroup(groupUID string) ([]string, *model.AppError)
 }
