@@ -429,30 +429,34 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	// Check that the config setting for "always" and "time_limit" edit posts is updated correctly.
 	th.ResetRoleMigration()
 
-	config := th.App.GetConfig()
-	*config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "always"
-	*config.ServiceSettings.PostEditTimeLimit = 300
-	th.App.SaveConfig(config, false)
+	allowEditPost := *th.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost
+	postEditTimeLimit := *th.App.Config().ServiceSettings.PostEditTimeLimit
+
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = allowEditPost})
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit})
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "always"
+		*cfg.ServiceSettings.PostEditTimeLimit = 300
+	})
 
 	th.App.DoAdvancedPermissionsMigration()
-	config = th.App.GetConfig()
+
+	config := th.App.GetConfig()
 	assert.Equal(t, -1, *config.ServiceSettings.PostEditTimeLimit)
 
 	th.ResetRoleMigration()
 
-	config = th.App.GetConfig()
-	*config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "time_limit"
-	*config.ServiceSettings.PostEditTimeLimit = 300
-	th.App.SaveConfig(config, false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "time_limit"
+		*cfg.ServiceSettings.PostEditTimeLimit = 300
+	})
 
 	th.App.DoAdvancedPermissionsMigration()
 	config = th.App.GetConfig()
 	assert.Equal(t, 300, *config.ServiceSettings.PostEditTimeLimit)
-
-	config = th.App.GetConfig()
-	*config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = "always"
-	*config.ServiceSettings.PostEditTimeLimit = 300
-	th.App.SaveConfig(config, false)
 }
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {

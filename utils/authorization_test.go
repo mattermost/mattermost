@@ -82,7 +82,7 @@ func TestSetRolePermissionsFromConfig(t *testing.T) {
 		for policyValue, rolesMappings := range v {
 
 			config := mockConfig()
-			updateConfig(config, policyName, policyValue)
+			updateConfig(config, "DEPRECATED_DO_NOT_USE_"+policyName, policyValue)
 			roles := model.MakeDefaultRoles()
 			SetRolePermissionsFromConfig(roles, config, true)
 
