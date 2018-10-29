@@ -181,10 +181,6 @@ type ChannelStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	ResetLastPostAt() StoreChannel
 	MigratePublicChannels() error
-	DropPublicChannels() error
-	EnableExperimentalPublicChannelsMaterialization()
-	DisableExperimentalPublicChannelsMaterialization()
-	IsExperimentalPublicChannelsMaterializationEnabled() bool
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel

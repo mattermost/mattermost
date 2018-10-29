@@ -150,6 +150,8 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 
 			userLine := ImportLineFromUser(user)
 
+			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
+
 			// Do the Team Memberships.
 			members, err := a.buildUserTeamAndChannelMemberships(user.Id)
 			if err != nil {
@@ -216,6 +218,27 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 	}
 
 	return &memberships, nil
+}
+
+func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyPropsImportData {
+
+	getProp := func(key string) *string {
+		if v, ok := notifyProps[key]; ok {
+			return &v
+		}
+		return nil
+	}
+
+	return &UserNotifyPropsImportData{
+		Desktop:          getProp(model.DESKTOP_NOTIFY_PROP),
+		DesktopSound:     getProp(model.DESKTOP_SOUND_NOTIFY_PROP),
+		Email:            getProp(model.EMAIL_NOTIFY_PROP),
+		Mobile:           getProp(model.MOBILE_NOTIFY_PROP),
+		MobilePushStatus: getProp(model.MOBILE_PUSH_STATUS_NOTIFY_PROP),
+		ChannelTrigger:   getProp(model.CHANNEL_MENTIONS_NOTIFY_PROP),
+		CommentsTrigger:  getProp(model.COMMENTS_NOTIFY_PROP),
+		MentionKeys:      getProp(model.MENTION_KEYS_NOTIFY_PROP),
+	}
 }
 
 func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
