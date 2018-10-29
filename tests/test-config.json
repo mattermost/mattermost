@@ -270,7 +270,6 @@
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
         "LoginButtonTextColor": "",
-        "UseMemberOfOverlay": true
     },
     "ComplianceSettings": {
         "Enable": false,

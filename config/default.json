@@ -282,7 +282,6 @@
         "BindPassword": "",
         "UserFilter": "",
         "GroupFilter": "",
-        "UseMemberOfOverlay": true,
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",

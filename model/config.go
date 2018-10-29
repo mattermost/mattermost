@@ -1326,9 +1326,8 @@ type LdapSettings struct {
 	BindPassword       *string
 
 	// Filtering
-	UserFilter         *string
-	GroupFilter        *string
-	UseMemberOfOverlay *bool
+	UserFilter  *string
+	GroupFilter *string
 
 	// User Mapping
 	FirstNameAttribute *string
@@ -1396,10 +1395,6 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.GroupFilter == nil {
 		s.GroupFilter = NewString("")
-	}
-
-	if s.UseMemberOfOverlay == nil {
-		s.UseMemberOfOverlay = NewBool(true)
 	}
 
 	if s.FirstNameAttribute == nil {
