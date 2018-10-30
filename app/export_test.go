@@ -82,7 +82,7 @@ func TestExportUserChannelsNotifyProps(t *testing.T) {
 		if *data.Name == channelName {
 			assert.Equal(t, *data.NotifyProps.Desktop, "all")
 			assert.Equal(t, *data.NotifyProps.Mobile, "none")
-			assert.Equal(t, *data.NotifyProps.MarkUnread, "all")
+			assert.Equal(t, *data.NotifyProps.MarkUnread, "all") // default value
 		} else { // default values
 			assert.Equal(t, *data.NotifyProps.Desktop, "default")
 			assert.Equal(t, *data.NotifyProps.Mobile, "default")

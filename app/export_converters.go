@@ -80,14 +80,21 @@ func ImportUserChannelDataFromChannelMember(member *model.ChannelMemberForExport
 		rolesList = append(rolesList, model.CHANNEL_USER_ROLE_ID)
 	}
 	props := member.NotifyProps
-	desktop := props[model.DESKTOP_NOTIFY_PROP]
-	mobile := props[model.PUSH_NOTIFY_PROP]
-	markUnread := props[model.MARK_UNREAD_NOTIFY_PROP]
-	notifyProps := UserChannelNotifyPropsImportData{
-		Desktop:    &desktop,
-		Mobile:     &mobile,
-		MarkUnread: &markUnread,
+	notifyProps := UserChannelNotifyPropsImportData{}
+
+	desktop, exist := props[model.DESKTOP_NOTIFY_PROP]
+	if exist {
+		notifyProps.Desktop = &desktop
 	}
+	mobile, exist := props[model.PUSH_NOTIFY_PROP]
+	if exist {
+		notifyProps.Mobile = &mobile
+	}
+	markUnread, exist := props[model.MARK_UNREAD_NOTIFY_PROP]
+	if exist {
+		notifyProps.MarkUnread = &markUnread
+	}
+
 	roles := strings.Join(rolesList, " ")
 	return &UserChannelImportData{
 		Name:        &member.ChannelName,
