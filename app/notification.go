@@ -81,11 +81,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		if post.Type != model.POST_AUTO_RESPONDER {
 			a.Go(func() {
-				rootId := post.Id
-				if post.RootId != "" && post.RootId != post.Id {
-					rootId = post.RootId
-				}
-				a.SendAutoResponse(channel, otherUser, rootId)
+				a.SendAutoResponse(channel, otherUser)
 			})
 		}
 
