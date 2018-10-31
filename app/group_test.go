@@ -56,7 +56,7 @@ func TestGetGroupsByType(t *testing.T) {
 		t.Fatal("Should have retrieved at least one group")
 	}
 
-	if groups, _ = th.App.GetGroupsByType(model.GroupTypeLdap); len(groups) > 0 {
+	if groups, _ = th.App.GetGroupsByType(model.GroupType("blah")); len(groups) > 0 {
 		t.Fatal("Should not have groups.")
 	}
 }
