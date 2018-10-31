@@ -571,7 +571,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 	}
 
 	config := a.Config()
-	if *config.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_ALWAYS {
+	if *config.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost == model.ALLOW_EDIT_POST_ALWAYS {
 		*config.ServiceSettings.PostEditTimeLimit = -1
 		if err := a.SaveConfig(config, true); err != nil {
 			mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.String("error", err.Error()))
@@ -611,7 +611,7 @@ func (a *App) DoEmojisPermissionsMigration() {
 	var err *model.AppError = nil
 
 	mlog.Info("Migrating emojis config to database.")
-	switch *a.Config().ServiceSettings.RestrictCustomEmojiCreation {
+	switch *a.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation {
 	case model.RESTRICT_EMOJI_CREATION_ALL:
 		role, err = a.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
 		if err != nil {

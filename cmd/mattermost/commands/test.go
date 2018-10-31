@@ -93,7 +93,6 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 func setupClientTests(cfg *model.Config) {
 	*cfg.TeamSettings.EnableOpenServer = true
 	*cfg.ServiceSettings.EnableCommands = false
-	*cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
 	*cfg.ServiceSettings.EnableCustomEmoji = true
 	cfg.ServiceSettings.EnableIncomingWebhooks = false
 	cfg.ServiceSettings.EnableOutgoingWebhooks = false

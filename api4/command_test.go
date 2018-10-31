@@ -218,15 +218,10 @@ func TestListCommands(t *testing.T) {
 	Client := th.Client
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
-	enableOnlyAdminIntegrations := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableOnlyAdminIntegrations = &enableOnlyAdminIntegrations
-		})
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 
 	newCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
