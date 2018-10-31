@@ -527,14 +527,14 @@ func migrateGroups(sqlStore SqlStore) error {
 	sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
 
 	foreignKeys := [][]string{
-		[]string{"GroupMembers", "GroupId", "Groups(Id)"},
-		[]string{"GroupMembers", "UserId", "Users(Id)"},
+		{"GroupMembers", "GroupId", "Groups(Id)"},
+		{"GroupMembers", "UserId", "Users(Id)"},
 
-		[]string{"GroupTeams", "GroupId", "Groups(Id)"},
-		[]string{"GroupTeams", "TeamId", "Teams(Id)"},
+		{"GroupTeams", "GroupId", "Groups(Id)"},
+		{"GroupTeams", "TeamId", "Teams(Id)"},
 
-		[]string{"GroupChannels", "GroupId", "Groups(Id)"},
-		[]string{"GroupChannels", "ChannelId", "Channels(Id)"},
+		{"GroupChannels", "GroupId", "Groups(Id)"},
+		{"GroupChannels", "ChannelId", "Channels(Id)"},
 	}
 
 	for _, item := range foreignKeys {
