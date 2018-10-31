@@ -35,10 +35,12 @@ changetype: add
 objectclass: groupOfUniqueNames
 uniqueMember: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
 
+# Adds a group with a cycle
 dn: cn=team-one-a,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: groupOfUniqueNames
 uniqueMember: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
+uniqueMember: cn=developers,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: cn=team-one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
