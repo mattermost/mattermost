@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -66,7 +65,6 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	member, err := th.App.GetChannelMember(publicChannel.Id, th.BasicUser.Id)
-	fmt.Printf("member: %+v\n", member)
 	if member == nil {
 		t.Errorf("Expected member object, got nil")
 	}
