@@ -11,12 +11,13 @@ import (
 )
 
 const (
-	CHANNEL_NOTIFY_DEFAULT      = "default"
-	CHANNEL_NOTIFY_ALL          = "all"
-	CHANNEL_NOTIFY_MENTION      = "mention"
-	CHANNEL_NOTIFY_NONE         = "none"
-	CHANNEL_MARK_UNREAD_ALL     = "all"
-	CHANNEL_MARK_UNREAD_MENTION = "mention"
+	CHANNEL_NOTIFY_DEFAULT          = "default"
+	CHANNEL_NOTIFY_ALL              = "all"
+	CHANNEL_NOTIFY_MENTION          = "mention"
+	CHANNEL_NOTIFY_NONE             = "none"
+	CHANNEL_MARK_UNREAD_ALL         = "all"
+	CHANNEL_MARK_UNREAD_MENTION     = "mention"
+	IGNORE_CHANNEL_MENTIONS_DEFAULT = "ignore_channel_mentions_not_set"
 )
 
 type ChannelUnread struct {
@@ -116,6 +117,12 @@ func (o *ChannelMember) IsValid() *AppError {
 		}
 	}
 
+	if ignoreChannelMentions, ok := o.NotifyProps[IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP]; ok {
+		if len(ignoreChannelMentions) > 40 || !IsIgnoreChannelMentionsValid(ignoreChannelMentions) {
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.ignore_channel_mentions_value.app_error", nil, "ignore_channel_mentions="+ignoreChannelMentions, http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
 
@@ -146,11 +153,16 @@ func IsSendEmailValid(sendEmail string) bool {
 	return sendEmail == CHANNEL_NOTIFY_DEFAULT || sendEmail == "true" || sendEmail == "false"
 }
 
+func IsIgnoreChannelMentionsValid(ignoreChannelMentions string) bool {
+	return ignoreChannelMentions == "ignore_channel_mentions_on" || ignoreChannelMentions == "ignore_channel_mentions_off" || ignoreChannelMentions == "ignore_channel_mentions_not_set"
+}
+
 func GetDefaultChannelNotifyProps() StringMap {
 	return StringMap{
-		DESKTOP_NOTIFY_PROP:     CHANNEL_NOTIFY_DEFAULT,
-		MARK_UNREAD_NOTIFY_PROP: CHANNEL_MARK_UNREAD_ALL,
-		PUSH_NOTIFY_PROP:        CHANNEL_NOTIFY_DEFAULT,
-		EMAIL_NOTIFY_PROP:       CHANNEL_NOTIFY_DEFAULT,
+		DESKTOP_NOTIFY_PROP:                 CHANNEL_NOTIFY_DEFAULT,
+		MARK_UNREAD_NOTIFY_PROP:             CHANNEL_MARK_UNREAD_ALL,
+		PUSH_NOTIFY_PROP:                    CHANNEL_NOTIFY_DEFAULT,
+		EMAIL_NOTIFY_PROP:                   CHANNEL_NOTIFY_DEFAULT,
+		IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: IGNORE_CHANNEL_MENTIONS_DEFAULT,
 	}
 }
