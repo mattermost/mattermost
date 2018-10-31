@@ -4,8 +4,9 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {

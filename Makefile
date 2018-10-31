@@ -258,22 +258,22 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) vet $(GOFLAGS) $(EE_PACKAGES) || exit 1
 endif
 
-gofmt: ## Runs gofmt against all packages.
-	@echo Running GOFMT
+goimports: ## Runs goimports against all packages.
+	@echo Running goimports
 
 	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
 		echo "Checking "$$package; \
 		files=$$(go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
 		if [ "$$files" ]; then \
-			gofmt_output=$$(gofmt -d -s $$files 2>&1); \
-			if [ "$$gofmt_output" ]; then \
-				echo "$$gofmt_output"; \
-				echo "gofmt failure"; \
+			goimports_output=$$(goimports -d $$files 2>&1); \
+			if [ "$$goimports_output" ]; then \
+				echo "$$goimports_output"; \
+				echo "goimports failure"; \
 				exit 1; \
 			fi; \
 		fi; \
 	done
-	@echo "gofmt success"; \
+	@echo "goimports success"; \
 
 megacheck: ## Run megacheck on codebasis
 	go get honnef.co/go/tools/cmd/megacheck
@@ -309,7 +309,7 @@ check-licenses: ## Checks license status.
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
+check-style: govet goimports check-licenses ## Runs govet and goimports against all packages.
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
