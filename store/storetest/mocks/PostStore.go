@@ -210,8 +210,8 @@ func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) store.S
 	return r0
 }
 
-// GetPostAfter provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostAfter(channelId string, time int64) store.StoreChannel {
+// GetPostAfterTime provides a mock function with given fields: channelId, time
+func (_m *PostStore) GetPostAfterTime(channelId string, time int64) store.StoreChannel {
 	ret := _m.Called(channelId, time)
 
 	var r0 store.StoreChannel
@@ -226,8 +226,8 @@ func (_m *PostStore) GetPostAfter(channelId string, time int64) store.StoreChann
 	return r0
 }
 
-// GetPostBefore provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostBefore(channelId string, time int64) store.StoreChannel {
+// GetPostBeforeTime provides a mock function with given fields: channelId, time
+func (_m *PostStore) GetPostBeforeTime(channelId string, time int64) store.StoreChannel {
 	ret := _m.Called(channelId, time)
 
 	var r0 store.StoreChannel

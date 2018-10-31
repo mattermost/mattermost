@@ -1077,7 +1077,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-func TestGetPostsAfterAndBefore(t *testing.T) {
+func TestGetPostsBefore(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
@@ -1146,10 +1146,69 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 		t.Fatal("should match empty PreviousPostId")
 	}
 
-	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 0, 100, "")
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post5.Id, 0, 3, "")
 	CheckNoError(t, resp)
 
-	found = make([]bool, 2)
+	if len(posts.Posts) != 3 {
+		t.Fatal("should match length of posts returned")
+	}
+	if posts.Order[0] != post4.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.Order[2] != post2.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post5.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PreviousPostId != post1.Id {
+		t.Fatal("should match PreviousPostId")
+	}
+
+	// get the system post IDs posted before the created posts above
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
+	CheckNoError(t, resp)
+	systemPostId2 := posts.Order[0]
+	systemPostId1 := posts.Order[1]
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post5.Id, 1, 3, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 3 {
+		t.Fatal("should match length of posts returned")
+	}
+	if posts.Order[0] != post1.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.Order[1] != systemPostId2 {
+		t.Fatal("should match returned post")
+	}
+	if posts.Order[2] != systemPostId1 {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post2.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PreviousPostId != "" {
+		t.Fatal("should return empty PreviousPostId")
+	}
+}
+
+func TestGetPostsAfter(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+	post3 := th.CreatePost()
+	post4 := th.CreatePost()
+	post5 := th.CreatePost()
+
+	posts, resp := Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 0, 100, "")
+	CheckNoError(t, resp)
+
+	found := make([]bool, 2)
 	for _, p := range posts.Posts {
 		if p.Id == post4.Id {
 			found[0] = true
@@ -1202,6 +1261,41 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 	}
 	if posts.PreviousPostId != "" {
 		t.Fatal("should match empty PreviousPostId")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post1.Id, 0, 3, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 3 {
+		t.Fatal("should match length of posts returned")
+	}
+	if posts.Order[0] != post4.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.Order[2] != post2.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != post5.Id {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PreviousPostId != post1.Id {
+		t.Fatal("should match PreviousPostId")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post1.Id, 1, 3, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 1 {
+		t.Fatal("should match length of posts returned")
+	}
+	if posts.Order[0] != post5.Id {
+		t.Fatal("should match returned post")
+	}
+	if posts.NextPostId != "" {
+		t.Fatal("should match NextPostId")
+	}
+	if posts.PreviousPostId != post4.Id {
+		t.Fatal("should match PreviousPostId")
 	}
 }
 

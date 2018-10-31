@@ -577,8 +577,8 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 	}
 }
 
-func (a *App) GetPostAfter(channelId string, time int64) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostAfter(channelId, time)
+func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+	result := <-a.Srv.Store.Post().GetPostAfterTime(channelId, time)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -586,8 +586,8 @@ func (a *App) GetPostAfter(channelId string, time int64) (*model.Post, *model.Ap
 	return result.Data.(*model.Post), nil
 }
 
-func (a *App) GetPostBefore(channelId string, time int64) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostBefore(channelId, time)
+func (a *App) GetPostBeforeTime(channelId string, time int64) (*model.Post, *model.AppError) {
+	result := <-a.Srv.Store.Post().GetPostBeforeTime(channelId, time)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -599,7 +599,7 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
 	if len(postList.Order) > 0 {
 		firstPostId := postList.Order[0]
 		firstPost := postList.Posts[firstPostId]
-		nextPost, err := a.GetPostAfter(firstPost.ChannelId, firstPost.CreateAt)
+		nextPost, err := a.GetPostAfterTime(firstPost.ChannelId, firstPost.CreateAt)
 		if err != nil {
 			mlog.Error("GetNextPostIdFromPostList: failed in getting next post", mlog.Any("err", err))
 		}
@@ -616,7 +616,7 @@ func (a *App) GetPreviousPostIdFromPostList(postList *model.PostList) string {
 	if len(postList.Order) > 0 {
 		lastPostId := postList.Order[len(postList.Order)-1]
 		lastPost := postList.Posts[lastPostId]
-		previousPost, err := a.GetPostBefore(lastPost.ChannelId, lastPost.CreateAt)
+		previousPost, err := a.GetPostBeforeTime(lastPost.ChannelId, lastPost.CreateAt)
 		if err != nil {
 			mlog.Error("GetPreviousPostIdFromPostList: failed in getting previous post", mlog.Any("err", err))
 		}

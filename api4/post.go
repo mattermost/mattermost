@@ -123,6 +123,10 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	beforePost := r.URL.Query().Get("before")
 	sinceString := r.URL.Query().Get("since")
 
+	channelId := c.Params.ChannelId
+	page := c.Params.Page
+	perPage := c.Params.PerPage
+
 	var since int64
 	var parseError error
 
@@ -134,41 +138,57 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
+
+	prevPostIdSet := false
+	prevPostId := ""
+	nextPostIdSet := false
+	nextPostId := ""
 
 	var list *model.PostList
 	var err *model.AppError
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(c.Params.ChannelId, since, app.MAX_LIMIT_POSTS_SINCE)
-	} else if len(afterPost) > 0 {
-		etag = c.App.GetPostsEtag(c.Params.ChannelId)
+		list, err = c.App.GetPostsSince(channelId, since, app.MAX_LIMIT_POSTS_SINCE)
+	} else if afterPost != "" {
+		etag = c.App.GetPostsEtag(channelId)
 
 		if c.HandleEtag(etag, "Get Posts After", w, r) {
 			return
 		}
 
-		list, err = c.App.GetPostsAfterPost(c.Params.ChannelId, afterPost, c.Params.Page, c.Params.PerPage)
-	} else if len(beforePost) > 0 {
-		etag = c.App.GetPostsEtag(c.Params.ChannelId)
+		list, err = c.App.GetPostsAfterPost(channelId, afterPost, page, perPage)
+		if page == 0 {
+			prevPostId = afterPost
+			prevPostIdSet = true
+		}
+	} else if beforePost != "" {
+		etag = c.App.GetPostsEtag(channelId)
 
 		if c.HandleEtag(etag, "Get Posts Before", w, r) {
 			return
 		}
 
-		list, err = c.App.GetPostsBeforePost(c.Params.ChannelId, beforePost, c.Params.Page, c.Params.PerPage)
+		list, err = c.App.GetPostsBeforePost(channelId, beforePost, page, perPage)
+		if page == 0 {
+			nextPostId = beforePost
+			nextPostIdSet = true
+		} else if len(list.Order) < perPage {
+			nextPostId = ""
+			nextPostIdSet = true
+		}
 	} else {
-		etag = c.App.GetPostsEtag(c.Params.ChannelId)
+		etag = c.App.GetPostsEtag(channelId)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
 		}
 
-		list, err = c.App.GetPostsPage(c.Params.ChannelId, c.Params.Page, c.Params.PerPage)
+		list, err = c.App.GetPostsPage(channelId, page, perPage)
 	}
 
 	if err != nil {
@@ -180,33 +200,21 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 
+	if !nextPostIdSet {
+		nextPostId = c.App.GetNextPostIdFromPostList(list)
+	}
+
+	if !prevPostIdSet {
+		prevPostId = c.App.GetPreviousPostIdFromPostList(list)
+	}
+
 	clientPostList, err := c.App.PreparePostListForClient(list)
 	if err != nil {
 		mlog.Error("Failed to prepare posts for getPostsForChannel response", mlog.Any("err", err))
 	}
 
-	postListLength := len(clientPostList.Order)
-
-	var nextPostId string
-	if c.Params.Page == 0 {
-		nextPostId = beforePost
-	} else if postListLength < c.Params.PerPage {
-		nextPostId = ""
-	} else {
-		nextPostId = c.App.GetNextPostIdFromPostList(clientPostList)
-	}
-
-	var previousPostId string
-	if c.Params.Page == 0 {
-		previousPostId = afterPost
-	} else if postListLength < c.Params.PerPage {
-		previousPostId = ""
-	} else {
-		previousPostId = c.App.GetPreviousPostIdFromPostList(clientPostList)
-	}
-
 	clientPostList.NextPostId = nextPostId
-	clientPostList.PreviousPostId = previousPostId
+	clientPostList.PreviousPostId = prevPostId
 
 	w.Write([]byte(clientPostList.ToJson()))
 }
