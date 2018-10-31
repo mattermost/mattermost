@@ -943,11 +943,11 @@
     "translation": "La session n'est pas OAuth alors qu'un jeton a été spécifié dans les paramètres de la requête"
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "La fonctionnalité des conditions personnalisées d'utilisation est désactivée."
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Veuillez spécifier le texte correspondant à vos conditions personnalisées d'utilisation."
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "Le changement de méthode d'authentification n'est pas configuré ou disponible sur ce serveur."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "Valeur acceptée invalide"
   },
   {
@@ -2929,10 +2929,6 @@
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "Les données d'authentification utilisateur sont trop longues."
-  },
-  {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "La propriété User AuthService ne doit pas être vide si ce champ est spécifié."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
@@ -4651,22 +4647,6 @@
     "translation": "ID utilisateur invalide"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "La propriété requise de conditions de service est manquante : create_at."
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Identifiant de conditions de service invalide."
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Le texte de conditions personnalisées d'utilisation est trop long. Un maximum de {{.MaxLength}} caractères sont autorisés."
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "La propriété requise de conditions de service est manquante : user_id."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Le nom doit être composé d'au moins 2 caractères alphanumériques minuscules"
   },
@@ -4721,6 +4701,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Id d'utilisateur invalide"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "La propriété requise de conditions de service est manquante : create_at."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Identifiant de conditions de service invalide."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Le texte de conditions personnalisées d'utilisation est trop long. Un maximum de {{.MaxLength}} caractères sont autorisés."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "La propriété requise de conditions de service est manquante : user_id."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5863,22 +5859,6 @@
     "translation": "Impossible de valider la transaction pour enregistrer le schéma de permissions"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "Impossible de sauvegarder les conditions de service."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Impossible de récupérer les conditions de service."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "Aucune conditions de service n'ont été trouvées."
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "La sauvegarde ne doit pas être appelée pour les conditions de service actuelles."
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "Impossible de compter les sessions"
   },
@@ -6149,6 +6129,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Impossible de modifier la date de la dernière modification de l'icône d'équipe"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Impossible de sauvegarder les conditions de service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Impossible de récupérer les conditions de service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "Aucune conditions de service n'ont été trouvées."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "La sauvegarde ne doit pas être appelée pour les conditions de service actuelles."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",

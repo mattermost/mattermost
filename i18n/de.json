@@ -241,11 +241,11 @@
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-    "translation": "You cannot rename a direct message channel"
+    "translation": "Sie können einen Direktnachrichtenkanal nicht umbenennen."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-    "translation": "You cannot rename a group message channel"
+    "translation": "Sie können einen Gruppennachrichtenkanal nicht umbenennen."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -943,11 +943,11 @@
     "translation": "Sitzung ist nicht für OAuth eingerichtet, aber der Token wurde mit der Anfrage bereits mitgeschickt."
   },
   {
-    "id": "api.create_service_terms.custom_service_terms_disabled.app_error",
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
     "translation": "Benutzerdefinierte Nutzungsbedingungen sind deaktiviert."
   },
   {
-    "id": "api.create_service_terms.empty_text.app_error",
+    "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "Bitte geben Sie den Text für Ihre benutzerdefinierten Nutzungsbedingungen ein."
   },
   {
@@ -2203,7 +2203,7 @@
     "translation": "Authentifizierungs-Transfer auf diesem Server nicht konfiguriert oder verfügbar."
   },
   {
-    "id": "api.user.register_service_terms_action.bad_value.app_error",
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
     "translation": "Fehlerhafter akzeptierter Wert"
   },
   {
@@ -2929,10 +2929,6 @@
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "Benutzer AuthData ist zu lang."
-  },
-  {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "Benutzer AuthService sollte nicht leer sein wenn angegeben."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
@@ -4651,22 +4647,6 @@
     "translation": "Ungültige Benutzer-ID"
   },
   {
-    "id": "model.service_terms.is_valid.create_at.app_error",
-    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: create_at."
-  },
-  {
-    "id": "model.service_terms.is_valid.id.app_error",
-    "translation": "Ungültige Nutzungsbedingungen-ID"
-  },
-  {
-    "id": "model.service_terms.is_valid.text.app_error",
-    "translation": "Benutzerdefinierte Nutzungsbedingungen ist zu lang. Maximal {{.MaxLength}} Zeichen erlaubt."
-  },
-  {
-    "id": "model.service_terms.is_valid.user_id.app_error",
-    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: user_id."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name muss aus 2 oder mehr Kleinbuchstaben bestehen"
   },
@@ -4721,6 +4701,22 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Ungültige Benutzer-ID"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: create_at."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Ungültige Nutzungsbedingungen-ID"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Benutzerdefinierte Nutzungsbedingungen ist zu lang. Maximal {{.MaxLength}} Zeichen erlaubt."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: user_id."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -5863,22 +5859,6 @@
     "translation": "Konnte Transaktion zum Speichern des Schemas nicht ausführen"
   },
   {
-    "id": "store.sql_service_terms.save.app_error",
-    "translation": "Konnte die Nutzungsbedingungen nicht speichern."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.app_error",
-    "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
-  },
-  {
-    "id": "store.sql_service_terms_store.get.no_rows.app_error",
-    "translation": "Keine Nutzungsbedingungen gefunden."
-  },
-  {
-    "id": "store.sql_service_terms_store.save.existing.app_error",
-    "translation": "Speichern darf bei existierenden Nutzungsbedingungen nicht aufgerufen werden."
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "Konnte die Anzahl der Sitzungen nicht abrufen."
   },
@@ -6149,6 +6129,22 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Konnte den Zeitpunkt der letzten Aktualisierung des Team-Symbols nicht aktualisieren."
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Konnte die Nutzungsbedingungen nicht speichern."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "Keine Nutzungsbedingungen gefunden."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Speichern darf bei existierenden Nutzungsbedingungen nicht aufgerufen werden."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
