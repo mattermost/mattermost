@@ -4,8 +4,9 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {
@@ -78,10 +79,27 @@ func ImportUserChannelDataFromChannelMember(member *model.ChannelMemberForExport
 	if member.SchemeUser {
 		rolesList = append(rolesList, model.CHANNEL_USER_ROLE_ID)
 	}
+	props := member.NotifyProps
+	notifyProps := UserChannelNotifyPropsImportData{}
+
+	desktop, exist := props[model.DESKTOP_NOTIFY_PROP]
+	if exist {
+		notifyProps.Desktop = &desktop
+	}
+	mobile, exist := props[model.PUSH_NOTIFY_PROP]
+	if exist {
+		notifyProps.Mobile = &mobile
+	}
+	markUnread, exist := props[model.MARK_UNREAD_NOTIFY_PROP]
+	if exist {
+		notifyProps.MarkUnread = &markUnread
+	}
+
 	roles := strings.Join(rolesList, " ")
 	return &UserChannelImportData{
-		Name:  &member.ChannelName,
-		Roles: &roles,
+		Name:        &member.ChannelName,
+		Roles:       &roles,
+		NotifyProps: &notifyProps,
 	}
 }
 
