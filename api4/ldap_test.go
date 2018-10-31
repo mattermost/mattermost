@@ -31,6 +31,7 @@ func TestSyncLdap(t *testing.T) {
 
 func TestGetLdapGroups(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
 
 	_, resp := th.Client.GetLdapGroups()
 	CheckForbiddenStatus(t, resp)
@@ -43,6 +44,7 @@ func TestLinkLdapGroup(t *testing.T) {
 	const testDN string = "cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com"
 
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
 
 	_, resp := th.Client.LinkLdapGroup(testDN)
 	CheckForbiddenStatus(t, resp)
@@ -55,6 +57,7 @@ func TestUnlinkLdapGroup(t *testing.T) {
 	const testDN string = "cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com"
 
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
 
 	_, resp := th.Client.UnlinkLdapGroup(testDN)
 	CheckForbiddenStatus(t, resp)
