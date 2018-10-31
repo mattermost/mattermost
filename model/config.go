@@ -222,7 +222,7 @@ type ServiceSettings struct {
 	EnableIncomingWebhooks                            bool
 	EnableOutgoingWebhooks                            bool
 	EnableCommands                                    *bool
-	EnableOnlyAdminIntegrations                       *bool
+	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool `json:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
 	EnablePostUsernameOverride                        bool
 	EnablePostIconOverride                            bool
 	EnableLinkPreviews                                *bool
@@ -252,9 +252,9 @@ type ServiceSettings struct {
 	EnableGifPicker                                   *bool
 	GfycatApiKey                                      *string
 	GfycatApiSecret                                   *string
-	RestrictCustomEmojiCreation                       *string
-	RestrictPostDelete                                *string
-	AllowEditPost                                     *string
+	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string `json:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string `json:"RestrictPostDelete"`          // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_AllowEditPost               *string `json:"AllowEditPost"`               // This field is deprecated and must not be used.
 	PostEditTimeLimit                                 *int
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64
 	EnablePostSearch                                  *bool
@@ -447,8 +447,8 @@ func (s *ServiceSettings) SetDefaults() {
 		s.EnableCommands = NewBool(false)
 	}
 
-	if s.EnableOnlyAdminIntegrations == nil {
-		s.EnableOnlyAdminIntegrations = NewBool(true)
+	if s.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations == nil {
+		s.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations = NewBool(true)
 	}
 
 	if s.WebsocketPort == nil {
@@ -505,16 +505,16 @@ func (s *ServiceSettings) SetDefaults() {
 		s.GfycatApiSecret = NewString(SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET)
 	}
 
-	if s.RestrictCustomEmojiCreation == nil {
-		s.RestrictCustomEmojiCreation = NewString(RESTRICT_EMOJI_CREATION_ALL)
+	if s.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation == nil {
+		s.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation = NewString(RESTRICT_EMOJI_CREATION_ALL)
 	}
 
-	if s.RestrictPostDelete == nil {
-		s.RestrictPostDelete = NewString(PERMISSIONS_DELETE_POST_ALL)
+	if s.DEPRECATED_DO_NOT_USE_RestrictPostDelete == nil {
+		s.DEPRECATED_DO_NOT_USE_RestrictPostDelete = NewString(PERMISSIONS_DELETE_POST_ALL)
 	}
 
-	if s.AllowEditPost == nil {
-		s.AllowEditPost = NewString(ALLOW_EDIT_POST_ALWAYS)
+	if s.DEPRECATED_DO_NOT_USE_AllowEditPost == nil {
+		s.DEPRECATED_DO_NOT_USE_AllowEditPost = NewString(ALLOW_EDIT_POST_ALWAYS)
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
@@ -1145,37 +1145,37 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                            string
-	MaxUsersPerTeam                     *int
-	EnableTeamCreation                  *bool
-	EnableUserCreation                  *bool
-	EnableOpenServer                    *bool
-	EnableUserDeactivation              *bool
-	RestrictCreationToDomains           string
-	EnableCustomBrand                   *bool
-	CustomBrandText                     *string
-	CustomDescriptionText               *string
-	RestrictDirectMessage               *string
-	RestrictTeamInvite                  *string
-	RestrictPublicChannelManagement     *string
-	RestrictPrivateChannelManagement    *string
-	RestrictPublicChannelCreation       *string
-	RestrictPrivateChannelCreation      *string
-	RestrictPublicChannelDeletion       *string
-	RestrictPrivateChannelDeletion      *string
-	RestrictPrivateChannelManageMembers *string
-	EnableXToLeaveChannelsFromLHS       *bool
-	UserStatusAwayTimeout               *int64
-	MaxChannelsPerTeam                  *int64
-	MaxNotificationsPerChannel          *int64
-	EnableConfirmNotificationsToChannel *bool
-	TeammateNameDisplay                 *string
-	ExperimentalViewArchivedChannels    *bool
-	ExperimentalEnableAutomaticReplies  *bool
-	ExperimentalHideTownSquareinLHS     *bool
-	ExperimentalTownSquareIsReadOnly    *bool
-	ExperimentalPrimaryTeam             *string
-	ExperimentalDefaultChannels         []string
+	SiteName                                                  string
+	MaxUsersPerTeam                                           *int
+	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool `json:"EnableTeamCreation"` // This field is deprecated and must not be used.
+	EnableUserCreation                                        *bool
+	EnableOpenServer                                          *bool
+	EnableUserDeactivation                                    *bool
+	RestrictCreationToDomains                                 string
+	EnableCustomBrand                                         *bool
+	CustomBrandText                                           *string
+	CustomDescriptionText                                     *string
+	RestrictDirectMessage                                     *string
+	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string `json:"RestrictTeamInvite"`                  // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string `json:"RestrictPublicChannelManagement"`     // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string `json:"RestrictPrivateChannelManagement"`    // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string `json:"RestrictPublicChannelCreation"`       // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string `json:"RestrictPrivateChannelCreation"`      // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string `json:"RestrictPublicChannelDeletion"`       // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string `json:"RestrictPrivateChannelDeletion"`      // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string `json:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
+	EnableXToLeaveChannelsFromLHS                             *bool
+	UserStatusAwayTimeout                                     *int64
+	MaxChannelsPerTeam                                        *int64
+	MaxNotificationsPerChannel                                *int64
+	EnableConfirmNotificationsToChannel                       *bool
+	TeammateNameDisplay                                       *string
+	ExperimentalViewArchivedChannels                          *bool
+	ExperimentalEnableAutomaticReplies                        *bool
+	ExperimentalHideTownSquareinLHS                           *bool
+	ExperimentalTownSquareIsReadOnly                          *bool
+	ExperimentalPrimaryTeam                                   *string
+	ExperimentalDefaultChannels                               []string
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -1207,49 +1207,49 @@ func (s *TeamSettings) SetDefaults() {
 		s.RestrictDirectMessage = NewString(DIRECT_MESSAGE_ANY)
 	}
 
-	if s.RestrictTeamInvite == nil {
-		s.RestrictTeamInvite = NewString(PERMISSIONS_ALL)
+	if s.DEPRECATED_DO_NOT_USE_RestrictTeamInvite == nil {
+		s.DEPRECATED_DO_NOT_USE_RestrictTeamInvite = NewString(PERMISSIONS_ALL)
 	}
 
-	if s.RestrictPublicChannelManagement == nil {
-		s.RestrictPublicChannelManagement = NewString(PERMISSIONS_ALL)
+	if s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement == nil {
+		s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement = NewString(PERMISSIONS_ALL)
 	}
 
-	if s.RestrictPrivateChannelManagement == nil {
-		s.RestrictPrivateChannelManagement = NewString(PERMISSIONS_ALL)
+	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement == nil {
+		s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = NewString(PERMISSIONS_ALL)
 	}
 
-	if s.RestrictPublicChannelCreation == nil {
-		s.RestrictPublicChannelCreation = new(string)
+	if s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation == nil {
+		s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation = new(string)
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		if *s.RestrictPublicChannelManagement == PERMISSIONS_CHANNEL_ADMIN {
-			*s.RestrictPublicChannelCreation = PERMISSIONS_TEAM_ADMIN
+		if *s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement == PERMISSIONS_CHANNEL_ADMIN {
+			*s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation = PERMISSIONS_TEAM_ADMIN
 		} else {
-			*s.RestrictPublicChannelCreation = *s.RestrictPublicChannelManagement
+			*s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation = *s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement
 		}
 	}
 
-	if s.RestrictPrivateChannelCreation == nil {
+	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation == nil {
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		if *s.RestrictPrivateChannelManagement == PERMISSIONS_CHANNEL_ADMIN {
-			s.RestrictPrivateChannelCreation = NewString(PERMISSIONS_TEAM_ADMIN)
+		if *s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement == PERMISSIONS_CHANNEL_ADMIN {
+			s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation = NewString(PERMISSIONS_TEAM_ADMIN)
 		} else {
-			s.RestrictPrivateChannelCreation = NewString(*s.RestrictPrivateChannelManagement)
+			s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation = NewString(*s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement)
 		}
 	}
 
-	if s.RestrictPublicChannelDeletion == nil {
+	if s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion == nil {
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		s.RestrictPublicChannelDeletion = NewString(*s.RestrictPublicChannelManagement)
+		s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion = NewString(*s.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement)
 	}
 
-	if s.RestrictPrivateChannelDeletion == nil {
+	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion == nil {
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		s.RestrictPrivateChannelDeletion = NewString(*s.RestrictPrivateChannelManagement)
+		s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion = NewString(*s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement)
 	}
 
-	if s.RestrictPrivateChannelManageMembers == nil {
-		s.RestrictPrivateChannelManageMembers = NewString(PERMISSIONS_ALL)
+	if s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers == nil {
+		s.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers = NewString(PERMISSIONS_ALL)
 	}
 
 	if s.EnableXToLeaveChannelsFromLHS == nil {
@@ -1292,8 +1292,8 @@ func (s *TeamSettings) SetDefaults() {
 		s.ExperimentalDefaultChannels = []string{}
 	}
 
-	if s.EnableTeamCreation == nil {
-		s.EnableTeamCreation = NewBool(true)
+	if s.DEPRECATED_DO_NOT_USE_EnableTeamCreation == nil {
+		s.DEPRECATED_DO_NOT_USE_EnableTeamCreation = NewBool(true)
 	}
 
 	if s.EnableUserCreation == nil {
