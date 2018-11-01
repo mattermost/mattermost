@@ -85,9 +85,6 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	// check if only admins can manage slash commands
-	enableOnlyAdminIntegrations := *a.Config().ServiceSettings.EnableOnlyAdminIntegrations
-
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("unable to find team '" + args[0] + "'")
@@ -99,11 +96,9 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	if user == nil {
 		return errors.New("unable to find user '" + creator + "'")
 	}
-	// check the creator's permissions
-	hasPermission := a.HasPermissionToTeam(user.Id, team.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS)
 
-	// if only admins can manage slash commands and creator is not an admin do not create the command
-	if enableOnlyAdminIntegrations && !hasPermission {
+	// check if creator has permission to create slash commands
+	if !a.HasPermissionToTeam(user.Id, team.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		return errors.New("only team admins can create slash commands")
 	}
 
