@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
@@ -38,6 +39,14 @@ var WebhookModifyIncomingCmd = &cobra.Command{
 	Long:    "Modify existing incoming webhook by changing its title, description, channel or icon url",
 	Example: "  webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
 	RunE:    modifyIncomingWebhookCmdF,
+}
+
+var WebhookCreateOutgoingCmd = &cobra.Command{
+	Use:     "create-outgoing",
+	Short:   "Create outgoing webhook",
+	Long:    "create outgoing webhook which allows external posting of messages from a specific channel",
+	Example: "  webhook create-outgoing --channel [channelID] --user [userID] --display-name [displayName] --description [webhookDescription] --trigger-when [triggerWhen] --trigger-words [triggerWords] --icon [iconURL] --urls [callbackURLs] --content-type [contentType]",
+	RunE:    createOutgoingWebhookCmdF,
 }
 
 func listWebhookCmdF(command *cobra.Command, args []string) error {
@@ -177,6 +186,51 @@ func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	channelArg, _ := command.Flags().GetString("channel")
+	channel := getChannelFromChannelArg(app, channelArg)
+	if channel == nil {
+		return errors.New("Unable to find channel '" + channelArg + "'")
+	}
+	triggerWordsString, _ := command.Flags().GetString("trigger-words")
+	triggerWords := strings.Split(triggerWordsString, "\n")
+	triggerWhen, _ := command.Flags().GetInt("trigger-when")
+	callbackURLsString, _ := command.Flags().GetString("urls")
+	callbackURLs := strings.Split(callbackURLsString, "\n")
+	displayName, _ := command.Flags().GetString("display-name")
+	description, _ := command.Flags().GetString("description")
+	contentType, _ := command.Flags().GetString("content-type")
+	userArg, _ := command.Flags().GetString("user")
+	user := getUserFromUserArg(app, userArg)
+	iconURL, _ := command.Flags().GetString("icon")
+
+	outgoingWebhook := &model.OutgoingWebhook{
+		CreatorId:    user.Id,
+		TeamId:       channel.TeamId,
+		ChannelId:    channel.Id,
+		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
+		CallbackURLs: callbackURLs,
+		DisplayName:  displayName,
+		Description:  description,
+		ContentType:  contentType,
+		Username:     user.Username,
+		IconURL:      iconURL,
+	}
+
+	if _, err := app.CreateOutgoingWebhook(outgoingWebhook); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func init() {
 	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID")
 	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID")
@@ -191,10 +245,21 @@ func init() {
 	WebhookModifyIncomingCmd.Flags().String("icon", "", "Icon URL")
 	WebhookModifyIncomingCmd.Flags().Bool("lock-to-channel", false, "Lock to channel")
 
+	WebhookCreateOutgoingCmd.Flags().String("channel", "", "Channel ID")
+	WebhookCreateOutgoingCmd.Flags().String("user", "", "User ID")
+	WebhookCreateOutgoingCmd.Flags().String("display-name", "", "Outgoing webhook display name")
+	WebhookCreateOutgoingCmd.Flags().String("description", "", "Outgoing webhook description")
+	WebhookCreateOutgoingCmd.Flags().String("trigger-words", "", "Words to trigger webhook (word1\nword2)")
+	WebhookCreateOutgoingCmd.Flags().Int("trigger-when", 0, "When to trigger webhook (either when trigger word is first (enter 1) or when it's anywhere (enter 0))")
+	WebhookCreateOutgoingCmd.Flags().String("icon", "", "Icon URL")
+	WebhookCreateOutgoingCmd.Flags().String("urls", "", "Callback URLs (url1\nurl2)")
+	WebhookCreateOutgoingCmd.Flags().String("content-type", "", "Content-type")
+
 	WebhookCmd.AddCommand(
 		WebhookListCmd,
 		WebhookCreateIncomingCmd,
 		WebhookModifyIncomingCmd,
+		WebhookCreateOutgoingCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)

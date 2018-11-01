@@ -116,9 +116,9 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	displayName := "myhookincname"
 
 	incomingWebhook := &model.IncomingWebhook{
-		ChannelId:     th.BasicChannel.Id,
-		DisplayName:   displayName,
-		Description:   description,
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: displayName,
+		Description: description,
 	}
 
 	oldHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, incomingWebhook)
@@ -148,5 +148,59 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	}
 	if modifiedHook.DisplayName != modifiedDisplayName || modifiedHook.Description != modifiedDescription || modifiedHook.IconURL != modifiedIconUrl || modifiedHook.ChannelLocked != modifiedChannelLocked || modifiedHook.ChannelId != modifiedChannelId {
 		t.Fatal("Failed to update incoming webhook")
+	}
+}
+
+func TestCreateOutgoingWebhook(t *testing.T) {
+	th := api4.Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	// channel (to get team ID), display name, trigger words, callback urls are required
+	displayName := "totally radical webhook"
+	triggerWords := "build\ndefenestrate"
+	callbackURLs := "http://localhost:8000/my-webhook-handler\nhttp://localhost:8000/my-webhook-handler2"
+
+	// should fail because channel ID is not specified
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--display-name", displayName, "--trigger-words", triggerWords, "--urls", callbackURLs))
+
+	// should fail because display name is not specified
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--channel", th.BasicChannel.Id, "--trigger-words", triggerWords, "--urls", callbackURLs))
+
+	// should fail because trigger words are not specified
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--channel", th.BasicChannel.Id, "--display-name", displayName, "--urls", callbackURLs))
+
+	// should fail because callback URLs are not specified
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-words", triggerWords))
+
+	// should fail because outgoing webhooks cannot be made for private channels
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--channel", th.BasicPrivateChannel.Id, "--display-name", displayName, "--trigger-words", triggerWords, "--urls", callbackURLs))
+
+	CheckCommand(t, "webhook", "create-outgoing", "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-words", triggerWords, "--urls", callbackURLs, "--user", th.BasicUser.Id)
+
+	webhooks, err := th.App.GetOutgoingWebhooksPage(0, 1000)
+	if err != nil {
+		t.Fatal("Unable to retreive outgoing webhooks")
+	}
+
+	found := false
+	for _, webhook := range webhooks {
+		if webhook.DisplayName == displayName && webhook.CreatorId == th.BasicUser.Id {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("Failed to create incoming webhook")
 	}
 }
