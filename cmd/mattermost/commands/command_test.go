@@ -55,7 +55,7 @@ func TestCreateCommand(t *testing.T) {
 		{
 			"Creator not team admin",
 			[]string{"command", "create", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
-			"only team admins can create slash commands",
+			"the creator must be a user who has permissions to manage slash commands",
 		},
 		{
 			"Command not specified",
