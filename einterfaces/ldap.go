@@ -21,6 +21,4 @@ type LdapInterface interface {
 	MigrateIDAttribute(toAttribute string) error
 	GetGroup(groupUID string) (*model.SCIMGroup, *model.AppError)
 	GetAllGroupsPage(page int, perPage int) ([]*model.SCIMGroup, *model.AppError)
-	GetAllGroups() ([]*model.SCIMGroup, *model.AppError)
-	GetMemberIDsInGroup(groupUID string) ([]string, *model.AppError)
 }

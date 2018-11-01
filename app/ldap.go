@@ -77,25 +77,6 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int) ([]*model.SCIMGroup, *
 	return groups, nil
 }
 
-// GetMemberIDsInGroup recursively retrieves the unique identifiers of all of the members of a given
-// group.
-func (a *App) GetMemberIDsInGroup(groupUID string) ([]string, *model.AppError) {
-	var uids []string
-
-	if a.Ldap != nil {
-		var err *model.AppError
-		uids, err = a.Ldap.GetMemberIDsInGroup(groupUID)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		ae := model.NewAppError("GetMemberIDsInGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
-		mlog.Error(fmt.Sprintf("%v", ae.Error()))
-	}
-
-	return uids, nil
-}
-
 func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
 	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
