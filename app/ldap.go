@@ -40,24 +40,6 @@ func (a *App) TestLdap() *model.AppError {
 	return nil
 }
 
-// GetLdapGroupsTree retrieves all of the immediate child groups of the given parent DN.
-func (a *App) GetLdapGroupsTree() ([]*model.SCIMGroup, *model.AppError) {
-	var tree []*model.SCIMGroup
-
-	if a.Ldap != nil {
-		var err *model.AppError
-		tree, err = a.Ldap.GetAllGroupsNested()
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		ae := model.NewAppError("GetLdapGroups", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
-		mlog.Error(fmt.Sprintf("%v", ae.Error()))
-	}
-
-	return tree, nil
-}
-
 // GetLdapGroup retrieves a single LDAP group by the given DN.
 func (a *App) GetLdapGroup(uid string) (*model.SCIMGroup, *model.AppError) {
 	var group *model.SCIMGroup
@@ -76,19 +58,19 @@ func (a *App) GetLdapGroup(uid string) (*model.SCIMGroup, *model.AppError) {
 	return group, nil
 }
 
-// GetAllLdapGroups retrieves all LDAP groups under the configured base DN using the default or configured group
+// GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 // filter.
-func (a *App) GetAllLdapGroups() ([]*model.SCIMGroup, *model.AppError) {
+func (a *App) GetAllLdapGroupsPage(page int, perPage int) ([]*model.SCIMGroup, *model.AppError) {
 	var groups []*model.SCIMGroup
 
 	if a.Ldap != nil {
 		var err *model.AppError
-		groups, err = a.Ldap.GetAllGroups()
+		groups, err = a.Ldap.GetAllGroupsPage(page, perPage)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		ae := model.NewAppError("GetAllLdapGroups", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		ae := model.NewAppError("GetAllLdapGroupsPage", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
 		mlog.Error(fmt.Sprintf("%v", ae.Error()))
 	}
 

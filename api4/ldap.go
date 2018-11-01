@@ -15,7 +15,7 @@ func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
 
-	// GET /api/v4/ldap/groups
+	// GET /api/v4/ldap/groups?page=0&per_page=1000
 	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getLdapGroups)).Methods("GET")
 
 	// POST /api/v4/ldap/groups/:remote_id/link
@@ -61,7 +61,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tree, err := c.App.GetLdapGroupsTree()
+	tree, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
