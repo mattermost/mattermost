@@ -99,7 +99,7 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 
 	// check if creator has permission to create slash commands
 	if !a.HasPermissionToTeam(user.Id, team.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
-		return errors.New("only team admins can create slash commands")
+		return errors.New("the creator must be a user who has permissions to manage slash commands")
 	}
 
 	title, _ := command.Flags().GetString("title")
