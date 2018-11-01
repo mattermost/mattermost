@@ -59,3 +59,34 @@ func TestExportUserNotifyProps(t *testing.T) {
 	require.Equal(t, userNotifyProps[model.COMMENTS_NOTIFY_PROP], *exportNotifyProps.CommentsTrigger)
 	require.Equal(t, userNotifyProps[model.MENTION_KEYS_NOTIFY_PROP], *exportNotifyProps.MentionKeys)
 }
+
+func TestExportUserChannelsNotifyProps(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	channel := th.BasicChannel
+	user := th.BasicUser
+	team := th.BasicTeam
+	channelName := channel.Name
+	notifyProps := model.StringMap{
+		model.DESKTOP_NOTIFY_PROP: model.USER_NOTIFY_ALL,
+		model.PUSH_NOTIFY_PROP:    model.USER_NOTIFY_NONE,
+	}
+	channelMember := model.ChannelMember{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+	}
+	th.App.Srv.Store.Channel().SaveMember(&channelMember)
+	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
+	exportData, _ := th.App.buildUserChannelMemberships(user.Id, team.Id)
+	for _, data := range *exportData {
+		if *data.Name == channelName {
+			assert.Equal(t, *data.NotifyProps.Desktop, "all")
+			assert.Equal(t, *data.NotifyProps.Mobile, "none")
+			assert.Equal(t, *data.NotifyProps.MarkUnread, "all") // default value
+		} else { // default values
+			assert.Equal(t, *data.NotifyProps.Desktop, "default")
+			assert.Equal(t, *data.NotifyProps.Mobile, "default")
+			assert.Equal(t, *data.NotifyProps.MarkUnread, "all")
+		}
+	}
+}
