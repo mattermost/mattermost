@@ -1658,6 +1658,16 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			},
 			[]*model.User{u1},
 		},
+		{
+			"leading @ should be ignored",
+			tid,
+			"@jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]*model.User{u1},
+		},
 	}
 
 	for _, testCase := range testCases {
