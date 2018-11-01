@@ -289,15 +289,16 @@ func getGroupSyncables(syncableType model.GroupSyncableType) func(*Context, http
 			return
 		}
 
+		if len(groupSyncables) == 0 {
+			w.Write([]byte("[]"))
+			return
+		}
+
 		b, marshalErr := json.Marshal(groupSyncables)
 		if marshalErr != nil {
 			c.Err = model.NewAppError("Api4.getGroupSyncables", "api.group.marshal_error", nil, marshalErr.Error(),
 				http.StatusNotImplemented)
 			return
-		}
-
-		if b == nil {
-			w.Write([]byte("[]"))
 		}
 
 		w.Write(b)

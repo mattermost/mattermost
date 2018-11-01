@@ -61,13 +61,18 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tree, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage)
+	groups, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	b, marshalErr := json.Marshal(tree)
+	if len(groups) == 0 {
+		w.Write([]byte("[]"))
+		return
+	}
+
+	b, marshalErr := json.Marshal(groups)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
