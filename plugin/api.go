@@ -54,6 +54,11 @@ type API interface {
 	// GetUserByUsername gets a user by their username.
 	GetUserByUsername(name string) (*model.User, *model.AppError)
 
+	// GetUsersByUsernames gets users by their usernames.
+	//
+	// Minimum server version: 5.6
+	GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError)
+
 	// GetUsersInTeam gets users in team.
 	//
 	// Minimum server version: 5.6
@@ -71,6 +76,12 @@ type API interface {
 	// UpdateUserStatus will set a user's status until the user, or another integration/plugin, sets it back to online.
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
+
+	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
+	// The sortBy parameter can be: "username" or "status".
+	//
+	// Minimum server version: 5.6
+	GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
 
 	// GetLDAPUserAttributes will return LDAP attributes for a user.
 	// The attributes parameter should be a list of attributes to pull.
@@ -147,6 +158,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 
+	// GetChannelStats gets statistics for a channel.
+	//
+	// Minimum server version: 5.6
+	GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError)
+
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
@@ -172,6 +188,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
+	// GetChannelMembersByIds gets a channel membership for a particular User
+	//
+	// Minimum server version: 5.6
+	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 
@@ -180,11 +201,6 @@ type API interface {
 
 	// DeleteChannelMember deletes a channel membership for a user.
 	DeleteChannelMember(channelId, userId string) *model.AppError
-
-	// GetUsersInChannel gets users in given channel.
-	//
-	// Minimum server version: 5.6
-	GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError)
 
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
@@ -223,6 +239,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
 
+	// GetPostsAfter gets a page of posts that were posted after the post provided.
+	//
+	// Minimum server version: 5.6
+	GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+
 	// GetPostsBefore gets a page of posts that were posted before the post provided.
 	//
 	// Minimum server version: 5.6
@@ -246,6 +267,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetEmojiByName(name string) (*model.Emoji, *model.AppError)
 
+	// GetEmoji returns a custom emoji based on the emojiId string.
+	//
+	// Minimum server version: 5.6
+	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
+
 	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
 	// recording the given user id as the new creator and returning the new set of file ids.
 	//
@@ -268,6 +294,11 @@ type API interface {
 	//
 	// Minimum server version: 5.3
 	ReadFile(path string) ([]byte, *model.AppError)
+
+	// GetEmojiImage returns the emoji image.
+	//
+	// Minimum server version: 5.6
+	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
