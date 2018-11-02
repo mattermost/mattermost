@@ -35,9 +35,6 @@ const ADVANCED_PERMISSIONS_MIGRATION_KEY = "AdvancedPermissionsMigrationComplete
 const EMOJIS_PERMISSIONS_MIGRATION_KEY = "EmojisPermissionsMigrationComplete"
 
 type App struct {
-	goroutineCount      int32
-	goroutineExitSignal chan struct{}
-
 	Srv *Server
 
 	Log *mlog.Logger
@@ -118,9 +115,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 	rootRouter := mux.NewRouter()
 
 	app := &App{
-		goroutineExitSignal: make(chan struct{}, 1),
 		Srv: &Server{
-			RootRouter: rootRouter,
+			goroutineExitSignal: make(chan struct{}, 1),
+			RootRouter:          rootRouter,
 		},
 		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
 		configFile:       "config.json",
@@ -485,29 +482,6 @@ func (a *App) EnsureDiagnosticId() {
 		}
 
 		a.diagnosticId = id
-	}
-}
-
-// Go creates a goroutine, but maintains a record of it to ensure that execution completes before
-// the app is destroyed.
-func (a *App) Go(f func()) {
-	atomic.AddInt32(&a.goroutineCount, 1)
-
-	go func() {
-		f()
-
-		atomic.AddInt32(&a.goroutineCount, -1)
-		select {
-		case a.goroutineExitSignal <- struct{}{}:
-		default:
-		}
-	}()
-}
-
-// WaitForGoroutines blocks until all goroutines created by App.Go exit.
-func (a *App) WaitForGoroutines() {
-	for atomic.LoadInt32(&a.goroutineCount) != 0 {
-		<-a.goroutineExitSignal
 	}
 }
 

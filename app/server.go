@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -44,6 +45,32 @@ type Server struct {
 	RateLimiter *RateLimiter
 
 	didFinishListen chan struct{}
+
+	goroutineCount      int32
+	goroutineExitSignal chan struct{}
+}
+
+// Go creates a goroutine, but maintains a record of it to ensure that execution completes before
+// the app is destroyed.
+func (s *Server) Go(f func()) {
+	atomic.AddInt32(&s.goroutineCount, 1)
+
+	go func() {
+		f()
+
+		atomic.AddInt32(&s.goroutineCount, -1)
+		select {
+		case s.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+	}()
+}
+
+// WaitForGoroutines blocks until all goroutines created by App.Go exit.
+func (s *Server) WaitForGoroutines() {
+	for atomic.LoadInt32(&s.goroutineCount) != 0 {
+		<-s.goroutineExitSignal
+	}
 }
 
 var corsAllowedMethods = []string{
