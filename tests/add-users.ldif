@@ -27,6 +27,22 @@ cn: Test3
 mail: success+testthree@simulator.amazonses.com
 userPassword: Password1
 
+dn: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Test4
+mail: success+testfour@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Test5
+mail: success+testfive@simulator.amazonses.com
+userPassword: Password1
+
 
 # developers
 dn: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
@@ -78,7 +94,6 @@ sn: User
 cn: Exec1
 mail: success+execone@simulator.amazonses.com
 userPassword: Password1
-memberOf: cn=executive,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
@@ -87,7 +102,6 @@ sn: User
 cn: Exec2
 mail: success+exectwo@simulator.amazonses.com
 userPassword: Password1
-memberOf: cn=executive,ou=testusers,dc=mm,dc=test,dc=com
 
 
 # board of directors
@@ -98,7 +112,6 @@ sn: User
 cn: Board1
 mail: success+boardone@simulator.amazonses.com
 userPassword: Password1
-memberOf: cn=board,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
@@ -107,7 +120,6 @@ sn: User
 cn: Board2
 mail: success+boardtwo@simulator.amazonses.com
 userPassword: Password1
-memberOf: cn=board,ou=testusers,dc=mm,dc=test,dc=com
 
 dn: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
@@ -116,4 +128,3 @@ sn: User
 cn: Board3
 mail: success+boardthree@simulator.amazonses.com
 userPassword: Password1
-memberOf: cn=outsiders,ou=testusers,dc=mm,dc=test,dc=com
