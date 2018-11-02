@@ -149,16 +149,19 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if action == model.OAUTH_ACTION_MOBILE {
+		switch action {
+		case model.OAUTH_ACTION_MOBILE:
 			ReturnStatusOK(w)
-		} else if action == model.OAUTH_ACTION_CLIENT {
+		case model.OAUTH_ACTION_CLIENT:
 			err = c.App.SendMessageToExtension(w, relayProps["extension_id"], c.Session.Token)
 
 			if err != nil {
 				c.Err = err
 				return
 			}
-		} else {
+		case model.OAUTH_ACTION_EMAIL_TO_SSO:
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=signin_change", http.StatusFound)
+		default:
 			http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
 		}
 	}
