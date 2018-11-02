@@ -147,19 +147,19 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 		manualtesting.Init(api)
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runSecurityJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runDiagnosticsJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runSessionCleanupJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runTokenCleanupJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runCommandWebhookCleanupJob(a)
 	})
 

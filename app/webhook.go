@@ -80,7 +80,7 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
-		a.Go(func(hook *model.OutgoingWebhook) func() {
+		a.Srv.Go(func(hook *model.OutgoingWebhook) func() {
 			return func() {
 				a.TriggerWebhook(payload, hook, post, channel)
 			}
@@ -102,7 +102,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 	}
 
 	for _, url := range hook.CallbackURLs {
-		a.Go(func(url string) func() {
+		a.Srv.Go(func(url string) func() {
 			return func() {
 				req, _ := http.NewRequest("POST", url, body)
 				req.Header.Set("Content-Type", contentType)

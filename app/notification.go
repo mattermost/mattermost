@@ -78,7 +78,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		if post.Type != model.POST_AUTO_RESPONDER {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				a.SendAutoResponse(channel, otherUser)
 			})
 		}
@@ -127,7 +127,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if result := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, team.Id); result.Err == nil {
 				outOfChannelMentions := result.Data.([]*model.User)
 				if channel.Type != model.CHANNEL_GROUP {
-					a.Go(func() {
+					a.Srv.Go(func() {
 						a.sendOutOfChannelMentions(sender, post, outOfChannelMentions)
 					})
 				}

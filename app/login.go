@@ -78,7 +78,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 			return nil, model.NewAppError("AuthenticateUserForLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
 
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
 			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLoggedIn(pluginContext, user)

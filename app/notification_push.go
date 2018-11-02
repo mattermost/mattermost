@@ -260,7 +260,7 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 func (a *App) StartPushNotificationsHubWorkers() {
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
 		channel := a.PushNotificationsHub.Channels[x]
-		a.Go(func() { a.pushNotificationWorker(channel) })
+		a.Srv.Go(func() { a.pushNotificationWorker(channel) })
 	}
 }
 

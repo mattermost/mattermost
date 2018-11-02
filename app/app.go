@@ -179,7 +179,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
 
 		message.Add("config", app.ClientConfigWithComputed())
-		app.Go(func() {
+		app.Srv.Go(func() {
 			app.Publish(message)
 		})
 	})
@@ -188,7 +188,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
 		message.Add("license", app.GetSanitizedClientLicense())
-		app.Go(func() {
+		app.Srv.Go(func() {
 			app.Publish(message)
 		})
 
@@ -276,7 +276,7 @@ func (a *App) Shutdown() {
 	a.StopPushNotificationsHubWorkers()
 
 	a.ShutDownPlugins()
-	a.WaitForGoroutines()
+	a.Srv.WaitForGoroutines()
 
 	if a.Srv.Store != nil {
 		a.Srv.Store.Close()
@@ -644,7 +644,7 @@ func (a *App) DoEmojisPermissionsMigration() {
 }
 
 func (a *App) StartElasticsearch() {
-	a.Go(func() {
+	a.Srv.Go(func() {
 		if err := a.Elasticsearch.Start(); err != nil {
 			mlog.Error(err.Error())
 		}
@@ -652,19 +652,19 @@ func (a *App) StartElasticsearch() {
 
 	a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.Elasticsearch.Start(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.Elasticsearch.Stop(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if *oldConfig.ElasticsearchSettings.EnableIndexing {
 					if err := a.Elasticsearch.Stop(); err != nil {
 						mlog.Error(err.Error())
@@ -679,13 +679,13 @@ func (a *App) StartElasticsearch() {
 
 	a.AddLicenseListener(func() {
 		if a.License() != nil {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.Elasticsearch.Start(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.Elasticsearch.Stop(); err != nil {
 					mlog.Error(err.Error())
 				}

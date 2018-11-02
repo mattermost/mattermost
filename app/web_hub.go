@@ -416,7 +416,7 @@ func (h *Hub) Start() {
 
 				conns := connections.ForUser(webCon.UserId)
 				if len(conns) == 0 {
-					h.app.Go(func() {
+					h.app.Srv.Go(func() {
 						h.app.SetStatusOffline(webCon.UserId, false)
 					})
 				} else {
@@ -427,7 +427,7 @@ func (h *Hub) Start() {
 						}
 					}
 					if h.app.IsUserAway(latestActivity) {
-						h.app.Go(func() {
+						h.app.Srv.Go(func() {
 							h.app.SetStatusLastActivityAt(webCon.UserId, latestActivity)
 						})
 					}

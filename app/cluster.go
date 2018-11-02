@@ -24,7 +24,7 @@ func (a *App) RemoveClusterLeaderChangedListener(id string) {
 
 func (a *App) InvokeClusterLeaderChangedListeners() {
 	mlog.Info("Cluster leader changed. Invoking ClusterLeaderChanged listeners.")
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
 			listener.(func())()
 			return true

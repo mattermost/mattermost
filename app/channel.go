@@ -212,7 +212,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	}
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
 			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, sc)
@@ -239,7 +239,7 @@ func (a *App) CreateDirectChannel(userId string, otherUserId string) (*model.Cha
 	a.InvalidateCacheForUser(otherUserId)
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
 			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, channel)
@@ -854,7 +854,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 	}
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
 			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
@@ -866,7 +866,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 	if userRequestorId == "" || userId == userRequestorId {
 		a.postJoinChannelMessage(user, channel)
 	} else {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			a.PostAddToChannelMessage(userRequestor, user, channel, postRootId)
 		})
 	}
@@ -1244,7 +1244,7 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 	}
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
 			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
@@ -1336,7 +1336,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		return nil
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.postLeaveChannelMessage(user, channel)
 	})
 
@@ -1451,7 +1451,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 			actorUser, _ = a.GetUser(removerUserId)
 		}
 
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
 			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
@@ -1489,7 +1489,7 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 	if userIdToRemove == removerUserId {
 		a.postLeaveChannelMessage(user, channel)
 	} else {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			a.postRemoveFromChannelMessage(removerUserId, user, channel)
 		})
 	}
