@@ -66,7 +66,6 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 	a.Srv.configFile = configPath
 	a.Srv.envConfig = envConfig
-	a.siteURL = *cfg.ServiceSettings.SiteURL
 
 	a.InvokeConfigListeners(old, cfg)
 	return nil
@@ -322,7 +321,7 @@ func (a *App) GetCookieDomain() string {
 }
 
 func (a *App) GetSiteURL() string {
-	return a.siteURL
+	return *a.Config().ServiceSettings.SiteURL
 }
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
