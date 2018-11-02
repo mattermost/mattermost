@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -21,8 +22,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -52,6 +55,28 @@ type Server struct {
 
 	Plugins                *plugin.Environment
 	PluginConfigListenerId string
+
+	EmailBatching    *EmailBatchingJob
+	EmailRateLimiter *throttled.GCRARateLimiter
+
+	Hubs                        []*Hub
+	HubsStopCheckingForDeadlock chan bool
+
+	PushNotificationsHub PushNotificationsHub
+
+	Jobs *jobs.JobServer
+
+	config                 atomic.Value
+	envConfig              map[string]interface{}
+	configFile             string
+	configListeners        map[string]func(*model.Config, *model.Config)
+	clusterLeaderListeners sync.Map
+
+	licenseValue       atomic.Value
+	clientLicenseValue atomic.Value
+	licenseListeners   map[string]func()
+
+	timezones atomic.Value
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before

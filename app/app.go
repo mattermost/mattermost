@@ -12,11 +12,9 @@ import (
 	"reflect"
 	"strconv"
 	"sync"
-	"sync/atomic"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"github.com/throttled/throttled"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
@@ -38,16 +36,6 @@ type App struct {
 
 	Log *mlog.Logger
 
-	EmailBatching    *EmailBatchingJob
-	EmailRateLimiter *throttled.GCRARateLimiter
-
-	Hubs                        []*Hub
-	HubsStopCheckingForDeadlock chan bool
-
-	PushNotificationsHub PushNotificationsHub
-
-	Jobs *jobs.JobServer
-
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
 	Compliance       einterfaces.ComplianceInterface
@@ -58,18 +46,6 @@ type App struct {
 	Metrics          einterfaces.MetricsInterface
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
-
-	config                 atomic.Value
-	envConfig              map[string]interface{}
-	configFile             string
-	configListeners        map[string]func(*model.Config, *model.Config)
-	clusterLeaderListeners sync.Map
-
-	licenseValue       atomic.Value
-	clientLicenseValue atomic.Value
-	licenseListeners   map[string]func()
-
-	timezones atomic.Value
 
 	siteURL string
 
@@ -114,12 +90,12 @@ func New(options ...Option) (outApp *App, outErr error) {
 		Srv: &Server{
 			goroutineExitSignal: make(chan struct{}, 1),
 			RootRouter:          rootRouter,
+			configFile:          "config.json",
+			configListeners:     make(map[string]func(*model.Config, *model.Config)),
+			licenseListeners:    map[string]func(){},
 		},
-		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
-		configFile:       "config.json",
-		configListeners:  make(map[string]func(*model.Config, *model.Config)),
-		clientConfig:     make(map[string]string),
-		licenseListeners: map[string]func(){},
+		sessionCache: utils.NewLru(model.SESSION_CACHE_SIZE),
+		clientConfig: make(map[string]string),
 	}
 
 	app.HTTPService = httpservice.MakeHTTPService(app)
