@@ -677,7 +677,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 
-	// Channel-wide mentions are allowed on channel level
+	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap3Off := map[string]model.StringMap{
 		user3.Id: {
 			"ignore_channel_mentions": "ignore_channel_mentions_off",
@@ -693,15 +693,15 @@ func TestGetMentionKeywords(t *testing.T) {
 		t.Fatal("should've returned mention key of @all")
 	}
 
-	// Channel-wide mentions are disabled channel level
+	// Channel-wide mentions are ignored channel level
 	channelMemberNotifyPropsMap3On := map[string]model.StringMap{
 		user3.Id: {
 			"ignore_channel_mentions": "ignore_channel_mentions_on",
 		},
 	}
 	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On)
-	if len(mentions) > 0 {
-		t.Fatal("should not return any keywords")
+	if len(mentions) == 0 {
+		t.Fatal("should've not returned any keywords")
 	}
 
 	// user with all types of mentions enabled
@@ -716,6 +716,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 
+	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap4Off := map[string]model.StringMap{
 		user4.Id: {
 			"ignore_channel_mentions": "ignore_channel_mentions_off",
@@ -740,7 +741,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		t.Fatal("should've returned mention key of @all")
 	}
 
-	// Channel-wide mentions are disabled channel level
+	// Channel-wide mentions are ignored on channel level
 	channelMemberNotifyPropsMap4On := map[string]model.StringMap{
 		user4.Id: {
 			"ignore_channel_mentions": "ignore_channel_mentions_on",
@@ -749,6 +750,14 @@ func TestGetMentionKeywords(t *testing.T) {
 	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On)
 	if len(mentions) != 4 {
 		t.Fatal("should've returned four mention keywords")
+	} else if ids, ok := mentions["user"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of user")
+	} else if ids, ok := mentions["@user"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of @user")
+	} else if ids, ok := mentions["mention"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of mention")
+	} else if ids, ok := mentions["First"]; !ok || ids[0] != user4.Id {
+		t.Fatal("should've returned mention key of First")
 	}
 
 	dup_count := func(list []string) map[string]int {
@@ -777,7 +786,22 @@ func TestGetMentionKeywords(t *testing.T) {
 		user3.Id: user3,
 		user4.Id: user4,
 	}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off)
+	// Channel-wide mentions are not ignored on channel level for all users
+	channelMemberNotifyPropsMap5Off := map[string]model.StringMap{
+		user1.Id: {
+			"ignore_channel_mentions": "ignore_channel_mentions_off",
+		},
+		user2.Id: {
+			"ignore_channel_mentions": "ignore_channel_mentions_off",
+		},
+		user3.Id: {
+			"ignore_channel_mentions": "ignore_channel_mentions_off",
+		},
+		user4.Id: {
+			"ignore_channel_mentions": "ignore_channel_mentions_off",
+		},
+	}
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off)
 	if len(mentions) != 6 {
 		t.Fatal("should've returned six mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
