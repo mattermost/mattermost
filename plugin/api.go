@@ -107,6 +107,8 @@ type API interface {
 	GetTeamByName(name string) (*model.Team, *model.AppError)
 
 	// GetTeamsUnreadForUser gets the unread message and mention counts for each team to which the given user belongs.
+	//
+	// Minimum server version: 5.6
 	GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError)
 
 	// UpdateTeam updates a team.
