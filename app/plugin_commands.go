@@ -101,7 +101,7 @@ func (a *App) ExecutePluginCommand(args *model.CommandArgs) (*model.Command, *mo
 
 	for _, pc := range a.pluginCommands {
 		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
-			pluginHooks, err := a.Plugins.HooksForPlugin(pc.PluginId)
+			pluginHooks, err := a.Srv.Plugins.HooksForPlugin(pc.PluginId)
 			if err != nil {
 				return pc.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 			}
