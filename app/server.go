@@ -25,6 +25,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -48,6 +49,9 @@ type Server struct {
 
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
+
+	Plugins                *plugin.Environment
+	PluginConfigListenerId string
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before

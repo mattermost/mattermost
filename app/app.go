@@ -24,7 +24,6 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
@@ -38,9 +37,6 @@ type App struct {
 	Srv *Server
 
 	Log *mlog.Logger
-
-	Plugins                *plugin.Environment
-	PluginConfigListenerId string
 
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
