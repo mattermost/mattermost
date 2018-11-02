@@ -24,65 +24,48 @@ type SqlSupplier interface {
 func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	createDefaultRoles(t, ss)
 
-	for _, enabled := range []bool{true, false} {
-		description := "experimental materialization"
-		if enabled {
-			description += " enabled"
-			ss.Channel().EnableExperimentalPublicChannelsMaterialization()
-		} else {
-			description += " disabled"
-			ss.Channel().DisableExperimentalPublicChannelsMaterialization()
-
-			// Additionally drop the public channels table and all associated triggers
-			// to prove that the experimental store is fully disabled.
-			ss.Channel().DropPublicChannels()
-		}
-
-		t.Run(description, func(t *testing.T) {
-			t.Run("Save", func(t *testing.T) { testChannelStoreSave(t, ss) })
-			t.Run("SaveDirectChannel", func(t *testing.T) { testChannelStoreSaveDirectChannel(t, ss) })
-			t.Run("CreateDirectChannel", func(t *testing.T) { testChannelStoreCreateDirectChannel(t, ss) })
-			t.Run("Update", func(t *testing.T) { testChannelStoreUpdate(t, ss) })
-			t.Run("GetChannelUnread", func(t *testing.T) { testGetChannelUnread(t, ss) })
-			t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, ss) })
-			t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, ss) })
-			t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, ss) })
-			t.Run("Delete", func(t *testing.T) { testChannelStoreDelete(t, ss) })
-			t.Run("GetByName", func(t *testing.T) { testChannelStoreGetByName(t, ss) })
-			t.Run("GetByNames", func(t *testing.T) { testChannelStoreGetByNames(t, ss) })
-			t.Run("GetDeletedByName", func(t *testing.T) { testChannelStoreGetDeletedByName(t, ss) })
-			t.Run("GetDeleted", func(t *testing.T) { testChannelStoreGetDeleted(t, ss) })
-			t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, ss) })
-			t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, ss) })
-			t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, ss) })
-			t.Run("GetMoreChannels", func(t *testing.T) { testChannelStoreGetMoreChannels(t, ss) })
-			t.Run("GetPublicChannelsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsForTeam(t, ss) })
-			t.Run("GetPublicChannelsByIdsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsByIdsForTeam(t, ss) })
-			t.Run("GetChannelCounts", func(t *testing.T) { testChannelStoreGetChannelCounts(t, ss) })
-			t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, ss) })
-			t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, ss) })
-			t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, ss) })
-			t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, ss) })
-			t.Run("GetMember", func(t *testing.T) { testGetMember(t, ss) })
-			t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, ss) })
-			t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
-			t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
-			t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
-			t.Run("AutocompleteInTeamForSearch", func(t *testing.T) { testChannelStoreAutocompleteInTeamForSearch(t, ss) })
-			t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
-			t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
-			t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
-			t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
-			t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, ss) })
-			t.Run("MigrateChannelMembers", func(t *testing.T) { testChannelStoreMigrateChannelMembers(t, ss) })
-			t.Run("ResetAllChannelSchemes", func(t *testing.T) { testResetAllChannelSchemes(t, ss) })
-			t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testChannelStoreClearAllCustomRoleAssignments(t, ss) })
-			t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, ss, s) })
-			t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
-			t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
-			t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss) })
-		})
-	}
+	t.Run("Save", func(t *testing.T) { testChannelStoreSave(t, ss) })
+	t.Run("SaveDirectChannel", func(t *testing.T) { testChannelStoreSaveDirectChannel(t, ss) })
+	t.Run("CreateDirectChannel", func(t *testing.T) { testChannelStoreCreateDirectChannel(t, ss) })
+	t.Run("Update", func(t *testing.T) { testChannelStoreUpdate(t, ss) })
+	t.Run("GetChannelUnread", func(t *testing.T) { testGetChannelUnread(t, ss) })
+	t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, ss) })
+	t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, ss) })
+	t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, ss) })
+	t.Run("Delete", func(t *testing.T) { testChannelStoreDelete(t, ss) })
+	t.Run("GetByName", func(t *testing.T) { testChannelStoreGetByName(t, ss) })
+	t.Run("GetByNames", func(t *testing.T) { testChannelStoreGetByNames(t, ss) })
+	t.Run("GetDeletedByName", func(t *testing.T) { testChannelStoreGetDeletedByName(t, ss) })
+	t.Run("GetDeleted", func(t *testing.T) { testChannelStoreGetDeleted(t, ss) })
+	t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, ss) })
+	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, ss) })
+	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, ss) })
+	t.Run("GetMoreChannels", func(t *testing.T) { testChannelStoreGetMoreChannels(t, ss) })
+	t.Run("GetPublicChannelsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsForTeam(t, ss) })
+	t.Run("GetPublicChannelsByIdsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsByIdsForTeam(t, ss) })
+	t.Run("GetChannelCounts", func(t *testing.T) { testChannelStoreGetChannelCounts(t, ss) })
+	t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, ss) })
+	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, ss) })
+	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, ss) })
+	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, ss) })
+	t.Run("GetMember", func(t *testing.T) { testGetMember(t, ss) })
+	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, ss) })
+	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
+	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
+	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
+	t.Run("AutocompleteInTeamForSearch", func(t *testing.T) { testChannelStoreAutocompleteInTeamForSearch(t, ss) })
+	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
+	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
+	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
+	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
+	t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, ss) })
+	t.Run("MigrateChannelMembers", func(t *testing.T) { testChannelStoreMigrateChannelMembers(t, ss) })
+	t.Run("ResetAllChannelSchemes", func(t *testing.T) { testResetAllChannelSchemes(t, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testChannelStoreClearAllCustomRoleAssignments(t, ss) })
+	t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, ss, s) })
+	t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
+	t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
+	t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -2574,10 +2557,6 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 // testMaterializedPublicChannels tests edge cases involving the triggers and stored procedures
 // that materialize the PublicChannels table.
 func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier) {
-	if !ss.Channel().IsExperimentalPublicChannelsMaterializationEnabled() {
-		return
-	}
-
 	teamId := model.NewId()
 
 	// o1 is a public channel on the team

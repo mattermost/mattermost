@@ -155,6 +155,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 
+	// GetChannelStats gets statistics for a channel.
+	//
+	// Minimum server version: 5.6
+	GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError)
+
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
@@ -179,6 +184,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+
+	// GetChannelMembersByIds gets a channel membership for a particular User
+	//
+	// Minimum server version: 5.6
+	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
 
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
@@ -253,6 +263,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetEmojiByName(name string) (*model.Emoji, *model.AppError)
+
+	// GetEmoji returns a custom emoji based on the emojiId string.
+	//
+	// Minimum server version: 5.6
+	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
 
 	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
 	// recording the given user id as the new creator and returning the new set of file ids.

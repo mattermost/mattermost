@@ -261,6 +261,14 @@ func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDe
 	return api.app.GetChannelsForUser(teamId, userId, includeDeleted)
 }
 
+func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
+	memberCount, err := api.app.GetChannelMemberCount(channelId)
+	if err != nil {
+		return nil, err
+	}
+	return &model.ChannelStats{ChannelId: channelId, MemberCount: memberCount}, nil
+}
+
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
 	return api.app.GetDirectChannel(userId1, userId2)
 }
@@ -296,6 +304,10 @@ func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.Channel
 
 func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
 	return api.app.GetChannelMembersPage(channelId, page, perPage)
+}
+
+func (api *PluginAPI) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersByIds(channelId, userIds)
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -375,6 +387,10 @@ func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
 
 func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
 	return api.app.GetEmojiByName(name)
+}
+
+func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+	return api.app.GetEmoji(emojiId)
 }
 
 func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
