@@ -120,7 +120,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	if err := app.LoadConfig(app.configFile); err != nil {
+	if err := app.LoadConfig(app.Srv.configFile); err != nil {
 		return nil, err
 	}
 
@@ -206,7 +206,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 	app.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", app.IsLeader()))
-		app.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
+		app.Srv.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
 	})
 
 	subpath, err := utils.GetSubpathFromConfig(app.Config())
@@ -408,27 +408,27 @@ func (a *App) initEnterprise() {
 }
 
 func (a *App) initJobs() {
-	a.Jobs = jobs.NewJobServer(a, a.Srv.Store)
+	a.Srv.Jobs = jobs.NewJobServer(a, a.Srv.Store)
 	if jobsDataRetentionJobInterface != nil {
-		a.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
+		a.Srv.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
 	}
 	if jobsMessageExportJobInterface != nil {
-		a.Jobs.MessageExportJob = jobsMessageExportJobInterface(a)
+		a.Srv.Jobs.MessageExportJob = jobsMessageExportJobInterface(a)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
-		a.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)
+		a.Srv.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)
 	}
 	if jobsElasticsearchIndexerInterface != nil {
-		a.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(a)
+		a.Srv.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(a)
 	}
 	if jobsLdapSyncInterface != nil {
-		a.Jobs.LdapSync = jobsLdapSyncInterface(a)
+		a.Srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
 	if jobsMigrationsInterface != nil {
-		a.Jobs.Migrations = jobsMigrationsInterface(a)
+		a.Srv.Jobs.Migrations = jobsMigrationsInterface(a)
 	}
-	a.Jobs.Workers = a.Jobs.InitWorkers()
-	a.Jobs.Schedulers = a.Jobs.InitSchedulers()
+	a.Srv.Jobs.Workers = a.Srv.Jobs.InitWorkers()
+	a.Srv.Jobs.Schedulers = a.Srv.Jobs.InitSchedulers()
 }
 
 func (a *App) DiagnosticId() string {

@@ -28,15 +28,15 @@ const (
 )
 
 func (a *App) Config() *model.Config {
-	if cfg := a.config.Load(); cfg != nil {
+	if cfg := a.Srv.config.Load(); cfg != nil {
 		return cfg.(*model.Config)
 	}
 	return &model.Config{}
 }
 
 func (a *App) EnvironmentConfig() map[string]interface{} {
-	if a.envConfig != nil {
-		return a.envConfig
+	if a.Srv.envConfig != nil {
+		return a.Srv.envConfig
 	}
 	return map[string]interface{}{}
 }
@@ -45,7 +45,7 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 	old := a.Config()
 	updated := old.Clone()
 	f(updated)
-	a.config.Store(updated)
+	a.Srv.config.Store(updated)
 
 	a.InvokeConfigListeners(old, updated)
 }
@@ -62,10 +62,10 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 		return err
 	}
 	*cfg.ServiceSettings.SiteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
-	a.config.Store(cfg)
+	a.Srv.config.Store(cfg)
 
-	a.configFile = configPath
-	a.envConfig = envConfig
+	a.Srv.configFile = configPath
+	a.Srv.envConfig = envConfig
 	a.siteURL = *cfg.ServiceSettings.SiteURL
 
 	a.InvokeConfigListeners(old, cfg)
@@ -74,7 +74,7 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 func (a *App) ReloadConfig() *model.AppError {
 	debug.FreeOSMemory()
-	if err := a.LoadConfig(a.configFile); err != nil {
+	if err := a.LoadConfig(a.Srv.configFile); err != nil {
 		return err
 	}
 
@@ -84,7 +84,7 @@ func (a *App) ReloadConfig() *model.AppError {
 }
 
 func (a *App) ConfigFileName() string {
-	return a.configFile
+	return a.Srv.configFile
 }
 
 func (a *App) ClientConfig() map[string]string {
@@ -123,17 +123,17 @@ func (a *App) DisableConfigWatch() {
 // for the listener that can later be used to remove it.
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
 	id := model.NewId()
-	a.configListeners[id] = listener
+	a.Srv.configListeners[id] = listener
 	return id
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
 func (a *App) RemoveConfigListener(id string) {
-	delete(a.configListeners, id)
+	delete(a.Srv.configListeners, id)
 }
 
 func (a *App) InvokeConfigListeners(old, current *model.Config) {
-	for _, listener := range a.configListeners {
+	for _, listener := range a.Srv.configListeners {
 		listener(old, current)
 	}
 }

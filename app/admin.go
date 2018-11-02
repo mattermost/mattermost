@@ -213,7 +213,7 @@ func (a *App) RecycleDatabaseConnection() {
 
 	mlog.Warn("Attempting to recycle the database connection.")
 	a.Srv.Store = a.newStore()
-	a.Jobs.Store = a.Srv.Store
+	a.Srv.Jobs.Store = a.Srv.Store
 
 	if a.Srv.Store != oldStore {
 		time.Sleep(20 * time.Second)
