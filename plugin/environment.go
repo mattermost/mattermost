@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/blang/semver"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -168,13 +167,12 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}()
 
 	if pluginInfo.Manifest.MinServerVersion != "" {
-		minServerVersion, err := semver.Parse(pluginInfo.Manifest.MinServerVersion)
+		fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
 		if err != nil {
-			return nil, false, fmt.Errorf("failed to parse MinServerVersion: %v", id)
+			return nil, false, fmt.Errorf("%v: %v", err.Error(), id)
 		}
-		serverVersion := semver.MustParse(model.CurrentVersion)
-		if serverVersion.LT(minServerVersion) {
-			return nil, false, fmt.Errorf("plugin requires Mattermost %v: %v", minServerVersion.String(), id)
+		if !fulfilled {
+			return nil, false, fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, id)
 		}
 	}
 

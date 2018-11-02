@@ -600,3 +600,53 @@ func TestManifestHasWebapp(t *testing.T) {
 		})
 	}
 }
+
+func TestManifestMeetMinServerVersion(t *testing.T) {
+	for name, test := range map[string]struct {
+		MinServerVersion string
+		ServerVersion    string
+		ShouldError      bool
+		ShouldFulfill    bool
+	}{
+		"generously fulfilled": {
+			MinServerVersion: "5.5.0",
+			ServerVersion:    "5.6.0",
+			ShouldError:      false,
+			ShouldFulfill:    true,
+		},
+		"exactly fulfilled": {
+			MinServerVersion: "5.6.0",
+			ServerVersion:    "5.6.0",
+			ShouldError:      false,
+			ShouldFulfill:    true,
+		},
+		"not fulfilled": {
+			MinServerVersion: "5.6.0",
+			ServerVersion:    "5.5.0",
+			ShouldError:      false,
+			ShouldFulfill:    false,
+		},
+		"fail to parse MinServerVersion": {
+			MinServerVersion: "abc",
+			ServerVersion:    "5.5.0",
+			ShouldError:      true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			manifest := Manifest{
+				MinServerVersion: test.MinServerVersion,
+			}
+			fulfilled, err := manifest.MeetMinServerVersion(test.ServerVersion)
+
+			if test.ShouldError {
+				assert.NotNil(err)
+				assert.False(fulfilled)
+				return
+			}
+			assert.Nil(err)
+			assert.Equal(test.ShouldFulfill, fulfilled)
+		})
+	}
+}

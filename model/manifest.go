@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/blang/semver"
 	"gopkg.in/yaml.v2"
 )
 
@@ -245,6 +247,18 @@ func (m *Manifest) HasServer() bool {
 
 func (m *Manifest) HasWebapp() bool {
 	return m.Webapp != nil
+}
+
+func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
+	minServerVersion, err := semver.Parse(m.MinServerVersion)
+	if err != nil {
+		return false, errors.New("failed to parse MinServerVersion")
+	}
+	sv := semver.MustParse(serverVersion)
+	if sv.LT(minServerVersion) {
+		return false, nil
+	}
+	return true, nil
 }
 
 // FindManifest will find and parse the manifest in a given directory.
