@@ -261,6 +261,8 @@ type API interface {
 
 	// GetEmojiList returns a page of custom emoji on the system.
 	//
+	// The sortBy parameter can be: "name".
+	//
 	// Minimum server version: 5.6
 	GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError)
 
