@@ -50,7 +50,7 @@ changetype: add
 objectclass: iNetOrgPerson
 sn: User
 cn: Dev3
-mail: success+devfour@simulator.amazonses.com
+mail: success+devopsone@simulator.amazonses.com
 userPassword: Password1
 
 dn: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
