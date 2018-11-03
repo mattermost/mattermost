@@ -180,7 +180,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	}
 	defer fileWriter.Close()
 
-	if err := a.BulkExport(fileWriter); err != nil {
+	if err := a.BulkExport(fileWriter, args[0]); err != nil {
 		CommandPrettyPrintln(err.Error())
 		return err
 	}
