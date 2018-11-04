@@ -206,6 +206,11 @@ type API interface {
 	// Minimum server version: 5.6
 	SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError)
 
+	// SearchUsers returns a list of users based on some search criteria.
+	//
+	// Minimum server version: 5.6
+	SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError)
+
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 
