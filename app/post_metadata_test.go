@@ -127,6 +127,13 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji.Name + ": :taco:",
+			Props: map[string]interface{}{
+				"attachments": []*model.SlackAttachment{
+					{
+						Text: ":" + emoji.Name + ":",
+					},
+				},
+			},
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
@@ -158,11 +165,19 @@ func TestPreparePostForClient(t *testing.T) {
 		emoji1 := th.CreateEmoji()
 		emoji2 := th.CreateEmoji()
 		emoji3 := th.CreateEmoji()
+		emoji4 := th.CreateEmoji()
 
 		post, err := th.App.CreatePost(&model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji3.Name + ": :taco:",
+			Props: map[string]interface{}{
+				"attachments": []*model.SlackAttachment{
+					{
+						Text: ":" + emoji4.Name + ":",
+					},
+				},
+			},
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
@@ -175,7 +190,7 @@ func TestPreparePostForClient(t *testing.T) {
 		require.Nil(t, err)
 
 		t.Run("pupulates emojis", func(t *testing.T) {
-			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
+			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3, emoji4}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
 		})
 
 		t.Run("populates reaction counts", func(t *testing.T) {
@@ -437,91 +452,147 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	}, clientPost.Metadata.Embeds)
 }
 
-func TestGetCustomEmojisForPost_Message(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableCustomEmoji = true
-	})
-
-	emoji1 := th.CreateEmoji()
-	emoji2 := th.CreateEmoji()
-	emoji3 := th.CreateEmoji()
-
+func TestGetEmojiNamesForString(t *testing.T) {
 	testCases := []struct {
-		Description      string
-		Input            string
-		Expected         []*model.Emoji
-		SkipExpectations bool
+		Description string
+		Input       string
+		Expected    []string
 	}{
 		{
-			Description:      "no emojis",
-			Input:            "this is a string",
-			Expected:         []*model.Emoji{},
-			SkipExpectations: true,
+			Description: "no emojis",
+			Input:       "this is a string",
+			Expected:    []string{},
 		},
 		{
 			Description: "one emoji",
-			Input:       "this is an :" + emoji1.Name + ": string",
-			Expected: []*model.Emoji{
-				emoji1,
-			},
+			Input:       "this is an :emoji1: string",
+			Expected:    []string{"emoji1"},
 		},
 		{
 			Description: "two emojis",
-			Input:       "this is a :" + emoji3.Name + ": :" + emoji2.Name + ": string",
-			Expected: []*model.Emoji{
-				emoji3,
-				emoji2,
-			},
+			Input:       "this is a :emoji3: :emoji2: string",
+			Expected:    []string{"emoji3", "emoji2"},
 		},
 		{
 			Description: "punctuation around emojis",
-			Input:       ":" + emoji3.Name + ":/:" + emoji1.Name + ": (:" + emoji2.Name + ":)",
-			Expected: []*model.Emoji{
-				emoji3,
-				emoji1,
-				emoji2,
-			},
+			Input:       ":emoji3:/:emoji1: (:emoji2:)",
+			Expected:    []string{"emoji3", "emoji1", "emoji2"},
 		},
 		{
 			Description: "adjacent emojis",
-			Input:       ":" + emoji3.Name + "::" + emoji1.Name + ":",
-			Expected: []*model.Emoji{
-				emoji3,
-				emoji1,
-			},
+			Input:       ":emoji3::emoji1:",
+			Expected:    []string{"emoji3", "emoji1"},
 		},
 		{
 			Description: "duplicate emojis",
-			Input:       "" + emoji1.Name + ": :" + emoji1.Name + ": :" + emoji1.Name + ": :" + emoji2.Name + ": :" + emoji2.Name + ": :" + emoji1.Name + ":",
-			Expected: []*model.Emoji{
-				emoji1,
-				emoji2,
-			},
+			Input:       ":emoji1: :emoji1: :emoji1::emoji2::emoji2: :emoji1:",
+			Expected:    []string{"emoji1", "emoji1", "emoji1", "emoji2", "emoji2", "emoji1"},
 		},
 		{
 			Description: "fake emojis",
 			Input:       "these don't exist :tomato: :potato: :rotato:",
-			Expected:    []*model.Emoji{},
-		},
-		{
-			Description: "fake and real emojis",
-			Input:       ":tomato::" + emoji1.Name + ": :potato: :" + emoji2.Name + ":",
-			Expected: []*model.Emoji{
-				emoji1,
-				emoji2,
-			},
+			Expected:    []string{"tomato", "potato", "rotato"},
 		},
 	}
 
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			emojis, err := th.App.getCustomEmojisForPost(testCase.Input, nil)
-			assert.Nil(t, err, "failed to get emojis in message")
-			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emojis")
+			emojis := getEmojiNamesForString(testCase.Input)
+			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emoji names")
+		})
+	}
+}
+
+func TestGetEmojiNamesForPost(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Post        *model.Post
+		Reactions   []*model.Reaction
+		Expected    []string
+	}{
+		{
+			Description: "no emojis",
+			Post: &model.Post{
+				Message: "this is a post",
+			},
+			Expected: []string{},
+		},
+		{
+			Description: "in post message",
+			Post: &model.Post{
+				Message: "this is :emoji:",
+			},
+			Expected: []string{"emoji"},
+		},
+		{
+			Description: "in reactions",
+			Post:        &model.Post{},
+			Reactions: []*model.Reaction{
+				{
+					EmojiName: "emoji1",
+				},
+				{
+					EmojiName: "emoji2",
+				},
+			},
+			Expected: []string{"emoji1", "emoji2"},
+		},
+		{
+			Description: "in message attachments",
+			Post: &model.Post{
+				Message: "this is a post",
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text:    ":emoji1:",
+							Pretext: ":emoji2:",
+						},
+						{
+							Fields: []*model.SlackAttachmentField{
+								{
+									Value: ":emoji3:",
+								},
+								{
+									Value: ":emoji4:",
+								},
+							},
+						},
+					},
+				},
+			},
+			Expected: []string{"emoji1", "emoji2", "emoji3", "emoji4"},
+		},
+		{
+			Description: "with duplicates",
+			Post: &model.Post{
+				Message: "this is :emoji1",
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text:    ":emoji2:",
+							Pretext: ":emoji2:",
+							Fields: []*model.SlackAttachmentField{
+								{
+									Value: ":emoji3:",
+								},
+								{
+									Value: ":emoji1:",
+								},
+							},
+						},
+					},
+				},
+			},
+			Expected: []string{"emoji1", "emoji2", "emoji3"},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			emojis := getEmojiNamesForPost(testCase.Post, testCase.Reactions)
+			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emoji names")
 		})
 	}
 }
@@ -534,19 +605,64 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		*cfg.ServiceSettings.EnableCustomEmoji = true
 	})
 
-	emoji1 := th.CreateEmoji()
-	emoji2 := th.CreateEmoji()
-
-	reactions := []*model.Reaction{
-		{
-			UserId:    th.BasicUser.Id,
-			EmojiName: emoji1.Name,
-		},
+	emojis := []*model.Emoji{
+		th.CreateEmoji(),
+		th.CreateEmoji(),
+		th.CreateEmoji(),
+		th.CreateEmoji(),
+		th.CreateEmoji(),
+		th.CreateEmoji(),
 	}
 
-	emojis, err := th.App.getCustomEmojisForPost(":"+emoji2.Name+":", reactions)
-	assert.Nil(t, err, "failed to get emojis for post")
-	assert.ElementsMatch(t, emojis, []*model.Emoji{emoji1, emoji2}, "received incorrect emojis")
+	t.Run("from different parts of the post", func(t *testing.T) {
+		reactions := []*model.Reaction{
+			{
+				UserId:    th.BasicUser.Id,
+				EmojiName: emojis[0].Name,
+			},
+		}
+
+		post := &model.Post{
+			Message: ":" + emojis[1].Name + ":",
+			Props: map[string]interface{}{
+				"attachments": []*model.SlackAttachment{
+					{
+						Pretext: ":" + emojis[2].Name + ":",
+						Text:    ":" + emojis[3].Name + ":",
+						Fields: []*model.SlackAttachmentField{
+							{
+								Value: ":" + emojis[4].Name + ":",
+							},
+							{
+								Value: ":" + emojis[5].Name + ":",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		emojisForPost, err := th.App.getCustomEmojisForPost(post, reactions)
+		assert.Nil(t, err, "failed to get emojis for post")
+		assert.ElementsMatch(t, emojisForPost, emojis, "received incorrect emojis")
+	})
+
+	t.Run("with emojis that don't exist", func(t *testing.T) {
+		post := &model.Post{
+			Message: ":secret: :" + emojis[0].Name + ":",
+			Props: map[string]interface{}{
+				"attachments": []*model.SlackAttachment{
+					{
+						Text: ":imaginary:",
+					},
+				},
+			},
+		}
+
+		emojisForPost, err := th.App.getCustomEmojisForPost(post, nil)
+		assert.Nil(t, err, "failed to get emojis for post")
+		assert.ElementsMatch(t, emojisForPost, []*model.Emoji{emojis[0]}, "received incorrect emojis")
+	})
 }
 
 func TestGetFirstLinkAndImages(t *testing.T) {
