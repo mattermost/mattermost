@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -77,6 +78,28 @@ type Server struct {
 	licenseListeners   map[string]func()
 
 	timezones atomic.Value
+
+	newStore func() store.Store
+
+	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
+	sessionCache            *utils.Cache
+	configListenerId        string
+	licenseListenerId       string
+	logListenerId           string
+	clusterLeaderListenerId string
+	disableConfigWatch      bool
+	configWatcher           *utils.ConfigWatcher
+	asymmetricSigningKey    *ecdsa.PrivateKey
+
+	pluginCommands     []*PluginCommand
+	pluginCommandsLock sync.RWMutex
+
+	clientConfig        map[string]string
+	clientConfigHash    string
+	limitedClientConfig map[string]string
+	diagnosticId        string
+
+	phase2PermissionsMigrationComplete bool
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before

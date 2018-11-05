@@ -4,14 +4,12 @@
 package app
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 	"html/template"
 	"net/http"
 	"path"
 	"reflect"
 	"strconv"
-	"sync"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -47,28 +45,6 @@ type App struct {
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
 
-	newStore func() store.Store
-
-	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            *utils.Cache
-	configListenerId        string
-	licenseListenerId       string
-	logListenerId           string
-	clusterLeaderListenerId string
-	disableConfigWatch      bool
-	configWatcher           *utils.ConfigWatcher
-	asymmetricSigningKey    *ecdsa.PrivateKey
-
-	pluginCommands     []*PluginCommand
-	pluginCommandsLock sync.RWMutex
-
-	clientConfig        map[string]string
-	clientConfigHash    string
-	limitedClientConfig map[string]string
-	diagnosticId        string
-
-	phase2PermissionsMigrationComplete bool
-
 	HTTPService httpservice.HTTPService
 }
 
@@ -91,9 +67,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 			configFile:          "config.json",
 			configListeners:     make(map[string]func(*model.Config, *model.Config)),
 			licenseListeners:    map[string]func(){},
+			sessionCache:        utils.NewLru(model.SESSION_CACHE_SIZE),
+			clientConfig:        make(map[string]string),
 		},
-		sessionCache: utils.NewLru(model.SESSION_CACHE_SIZE),
-		clientConfig: make(map[string]string),
 	}
 
 	app.HTTPService = httpservice.MakeHTTPService(app)
