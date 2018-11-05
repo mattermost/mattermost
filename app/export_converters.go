@@ -140,12 +140,12 @@ func ImportReactionFromPost(reaction *model.Reaction) *ReactionImportData {
 	}
 }
 
-func ImportCustomEmoji(emoji *model.EmojiForExport) *LineImportData {
+func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *LineImportData {
 	return &LineImportData{
 		Type: "emoji",
 		Emoji: &EmojiImportData{
 			Name:  &emoji.Name,
-			Image: &emoji.Image,
+			Image: &filePath,
 		},
 	}
 }

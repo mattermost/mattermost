@@ -23,11 +23,6 @@ type Emoji struct {
 	Name      string `json:"name"`
 }
 
-type EmojiForExport struct {
-	*Emoji
-	Image string
-}
-
 func inSystemEmoji(emojiName string) bool {
 	_, ok := SystemEmojis[emojiName]
 	return ok

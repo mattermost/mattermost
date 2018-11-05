@@ -346,31 +346,40 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 }
 
 func (a *App) ExportCustomEmoji(writer io.Writer, file string) *model.AppError {
-	customEmojiList, err := a.GetEmojiList(0, 100, model.EMOJI_SORT_BY_NAME)
-	if err != nil {
-		return err
-	}
+	pageNumber := 0
+	for {
+		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EMOJI_SORT_BY_NAME)
 
-	var dirName = "exported_emoji"
-
-	pathToDir := a.createDirForEmoji(file, dirName)
-
-	for _, emoji := range customEmojiList {
-		err := a.copyEmojiImages(emoji.Id, pathToDir)
 		if err != nil {
-			return model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
-		}
-
-		emojiExportObject := &model.EmojiForExport{
-			Emoji: emoji,
-			Image: dirName + "/" + emoji.Id + "/image",
-		}
-		emojiImportObject := ImportCustomEmoji(emojiExportObject)
-
-		if err := a.ExportWriteLine(writer, emojiImportObject); err != nil {
 			return err
 		}
+
+		if len(customEmojiList) == 0 {
+			break
+		}
+
+		pageNumber++
+
+		var dirName = "exported_emoji"
+
+		pathToDir := a.createDirForEmoji(file, dirName)
+
+		for _, emoji := range customEmojiList {
+			err := a.copyEmojiImages(emoji.Id, pathToDir)
+			if err != nil {
+				return model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
+			}
+
+			filePath := dirName + "/" + emoji.Id + "/image"
+
+			emojiImportObject := ImportLineFromEmoji(emoji, filePath)
+
+			if err := a.ExportWriteLine(writer, emojiImportObject); err != nil {
+				return err
+			}
+		}
 	}
+
 	return nil
 }
 
@@ -400,11 +409,15 @@ func (a *App) copyEmojiImages(emojiId string, pathToDir string) error {
 	}
 	defer fromPath.Close()
 
-	err = os.Mkdir(pathToDir+"/"+emojiId, os.ModePerm)
+	emojiDir := pathToDir + "/" + emojiId
+
+	if _, err := os.Stat(emojiDir); os.IsNotExist(err) {
+		os.Mkdir(emojiDir, os.ModePerm)
+	}
 	if err != nil {
 		return errors.New("Error creating directory for the emoji " + err.Error())
 	}
-	toPath, err := os.OpenFile(pathToDir+"/"+emojiId+"/image", os.O_RDWR|os.O_CREATE, 0666)
+	toPath, err := os.OpenFile(emojiDir+"/image", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return errors.New("Error creating the image file " + err.Error())
 	}
