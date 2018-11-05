@@ -107,7 +107,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(app.Log)
 
-	app.logListenerId = app.AddConfigListener(func(_, after *model.Config) {
+	app.Srv.logListenerId = app.AddConfigListener(func(_, after *model.Config) {
 		app.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
 	})
 
@@ -119,7 +119,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	app.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
+	app.Srv.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
 		app.configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
@@ -129,7 +129,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 			app.Publish(message)
 		})
 	})
-	app.licenseListenerId = app.AddLicenseListener(func() {
+	app.Srv.licenseListenerId = app.AddLicenseListener(func() {
 		app.configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
@@ -148,8 +148,8 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 	app.initEnterprise()
 
-	if app.newStore == nil {
-		app.newStore = func() store.Store {
+	if app.Srv.newStore == nil {
+		app.Srv.newStore = func() store.Store {
 			return store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings, app.Metrics), app.Metrics, app.Cluster)
 		}
 	}
@@ -157,10 +157,10 @@ func New(options ...Option) (outApp *App, outErr error) {
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
 		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
 	} else {
-		app.htmlTemplateWatcher = htmlTemplateWatcher
+		app.Srv.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
-	app.Srv.Store = app.newStore()
+	app.Srv.Store = app.Srv.newStore()
 
 	if err := app.ensureAsymmetricSigningKey(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -178,7 +178,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 		app.initJobs()
 	})
 
-	app.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
+	app.Srv.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", app.IsLeader()))
 		app.Srv.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
 	})
@@ -229,14 +229,14 @@ func (a *App) Shutdown() {
 	}
 	a.Srv = nil
 
-	if a.htmlTemplateWatcher != nil {
-		a.htmlTemplateWatcher.Close()
+	if a.Srv.htmlTemplateWatcher != nil {
+		a.Srv.htmlTemplateWatcher.Close()
 	}
 
-	a.RemoveConfigListener(a.configListenerId)
-	a.RemoveLicenseListener(a.licenseListenerId)
-	a.RemoveConfigListener(a.logListenerId)
-	a.RemoveClusterLeaderChangedListener(a.clusterLeaderListenerId)
+	a.RemoveConfigListener(a.Srv.configListenerId)
+	a.RemoveLicenseListener(a.Srv.licenseListenerId)
+	a.RemoveConfigListener(a.Srv.logListenerId)
+	a.RemoveClusterLeaderChangedListener(a.Srv.clusterLeaderListenerId)
 	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()
@@ -406,15 +406,15 @@ func (a *App) initJobs() {
 }
 
 func (a *App) DiagnosticId() string {
-	return a.diagnosticId
+	return a.Srv.diagnosticId
 }
 
 func (a *App) SetDiagnosticId(id string) {
-	a.diagnosticId = id
+	a.Srv.diagnosticId = id
 }
 
 func (a *App) EnsureDiagnosticId() {
-	if a.diagnosticId != "" {
+	if a.Srv.diagnosticId != "" {
 		return
 	}
 	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
@@ -427,13 +427,13 @@ func (a *App) EnsureDiagnosticId() {
 			<-a.Srv.Store.System().Save(systemId)
 		}
 
-		a.diagnosticId = id
+		a.Srv.diagnosticId = id
 	}
 }
 
 func (a *App) HTMLTemplates() *template.Template {
-	if a.htmlTemplateWatcher != nil {
-		return a.htmlTemplateWatcher.Templates()
+	if a.Srv.htmlTemplateWatcher != nil {
+		return a.Srv.htmlTemplateWatcher.Templates()
 	}
 
 	return nil
@@ -516,7 +516,7 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 			return res.Err
 		}
 	}
-	a.phase2PermissionsMigrationComplete = isComplete
+	a.Srv.phase2PermissionsMigrationComplete = isComplete
 	return nil
 }
 

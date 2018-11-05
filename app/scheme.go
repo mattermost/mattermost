@@ -152,7 +152,7 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 }
 
 func (a *App) IsPhase2MigrationCompleted() *model.AppError {
-	if a.phase2PermissionsMigrationComplete {
+	if a.Srv.phase2PermissionsMigrationComplete {
 		return nil
 	}
 
@@ -160,7 +160,7 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, result.Err.Error(), http.StatusNotImplemented)
 	}
 
-	a.phase2PermissionsMigrationComplete = true
+	a.Srv.phase2PermissionsMigrationComplete = true
 
 	return nil
 }

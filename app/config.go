@@ -87,33 +87,33 @@ func (a *App) ConfigFileName() string {
 }
 
 func (a *App) ClientConfig() map[string]string {
-	return a.clientConfig
+	return a.Srv.clientConfig
 }
 
 func (a *App) ClientConfigHash() string {
-	return a.clientConfigHash
+	return a.Srv.clientConfigHash
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
-	return a.limitedClientConfig
+	return a.Srv.limitedClientConfig
 }
 
 func (a *App) EnableConfigWatch() {
-	if a.configWatcher == nil && !a.disableConfigWatch {
+	if a.Srv.configWatcher == nil && !a.Srv.disableConfigWatch {
 		configWatcher, err := utils.NewConfigWatcher(a.ConfigFileName(), func() {
 			a.ReloadConfig()
 		})
 		if err != nil {
 			mlog.Error(fmt.Sprint(err))
 		}
-		a.configWatcher = configWatcher
+		a.Srv.configWatcher = configWatcher
 	}
 }
 
 func (a *App) DisableConfigWatch() {
-	if a.configWatcher != nil {
-		a.configWatcher.Close()
-		a.configWatcher = nil
+	if a.Srv.configWatcher != nil {
+		a.Srv.configWatcher.Close()
+		a.Srv.configWatcher = nil
 	}
 }
 
@@ -140,7 +140,7 @@ func (a *App) InvokeConfigListeners(old, current *model.Config) {
 // EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
 func (a *App) ensureAsymmetricSigningKey() error {
-	if a.asymmetricSigningKey != nil {
+	if a.Srv.asymmetricSigningKey != nil {
 		return nil
 	}
 
@@ -201,7 +201,7 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	default:
 		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
 	}
-	a.asymmetricSigningKey = &ecdsa.PrivateKey{
+	a.Srv.asymmetricSigningKey = &ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: curve,
 			X:     key.ECDSAKey.X,
@@ -239,31 +239,31 @@ func (a *App) ensureInstallationDate() error {
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	return a.asymmetricSigningKey
+	return a.Srv.asymmetricSigningKey
 }
 
 func (a *App) regenerateClientConfig() {
-	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.Srv.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
-	if a.clientConfig["EnableCustomTermsOfService"] == "true" {
+	if a.Srv.clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := a.GetLatestTermsOfService()
 		if err != nil {
 			mlog.Err(err)
 		} else {
-			a.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			a.Srv.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
 		}
 	}
 
-	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.Srv.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
-		a.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-		a.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.Srv.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.Srv.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
 
-	clientConfigJSON, _ := json.Marshal(a.clientConfig)
-	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
+	clientConfigJSON, _ := json.Marshal(a.Srv.clientConfig)
+	a.Srv.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
 
 func (a *App) Desanitize(cfg *model.Config) {

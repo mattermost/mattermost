@@ -17,11 +17,11 @@ func StoreOverride(override interface{}) Option {
 	return func(a *App) {
 		switch o := override.(type) {
 		case store.Store:
-			a.newStore = func() store.Store {
+			a.Srv.newStore = func() store.Store {
 				return o
 			}
 		case func(*App) store.Store:
-			a.newStore = func() store.Store {
+			a.Srv.newStore = func() store.Store {
 				return o(a)
 			}
 		default:
@@ -37,5 +37,5 @@ func ConfigFile(file string) Option {
 }
 
 func DisableConfigWatch(a *App) {
-	a.disableConfigWatch = true
+	a.Srv.disableConfigWatch = true
 }
