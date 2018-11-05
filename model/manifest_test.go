@@ -63,7 +63,8 @@ func TestFindManifest(t *testing.T) {
 
 func TestManifestUnmarshal(t *testing.T) {
 	expected := Manifest{
-		Id: "theid",
+		Id:               "theid",
+		MinServerVersion: "5.6.0",
 		Server: &ManifestServer{
 			Executable: "theexecutable",
 			Executables: &ManifestExecutables{
@@ -101,6 +102,7 @@ func TestManifestUnmarshal(t *testing.T) {
 	var yamlResult Manifest
 	require.NoError(t, yaml.Unmarshal([]byte(`
 id: theid
+min_server_version: 5.6.0
 server:
     executable: theexecutable
     executables:
@@ -129,6 +131,7 @@ settings_schema:
 	var jsonResult Manifest
 	require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
+  "min_server_version": "5.6.0",
 	"server": {
 		"executable": "theexecutable",
 		"executables": {
@@ -246,10 +249,11 @@ func TestManifestHasClient(t *testing.T) {
 
 func TestManifestClientManifest(t *testing.T) {
 	manifest := &Manifest{
-		Id:          "theid",
-		Name:        "thename",
-		Description: "thedescription",
-		Version:     "0.0.1",
+		Id:               "theid",
+		Name:             "thename",
+		Description:      "thedescription",
+		Version:          "0.0.1",
+		MinServerVersion: "5.6.0",
 		Server: &ManifestServer{
 			Executable: "theexecutable",
 		},
@@ -284,6 +288,7 @@ func TestManifestClientManifest(t *testing.T) {
 
 	assert.Equal(t, manifest.Id, sanitized.Id)
 	assert.Equal(t, manifest.Version, sanitized.Version)
+	assert.Equal(t, manifest.MinServerVersion, sanitized.MinServerVersion)
 	assert.Equal(t, "/static/theid/theid_000102030405060708090a0b0c0d0e0f_bundle.js", sanitized.Webapp.BundlePath)
 	assert.Equal(t, manifest.Webapp.BundleHash, sanitized.Webapp.BundleHash)
 	assert.Equal(t, manifest.SettingsSchema, sanitized.SettingsSchema)
@@ -293,6 +298,7 @@ func TestManifestClientManifest(t *testing.T) {
 
 	assert.NotEmpty(t, manifest.Id)
 	assert.NotEmpty(t, manifest.Version)
+	assert.NotEmpty(t, manifest.MinServerVersion)
 	assert.NotEmpty(t, manifest.Webapp)
 	assert.NotEmpty(t, manifest.Name)
 	assert.NotEmpty(t, manifest.Description)
@@ -591,6 +597,56 @@ func TestManifestHasWebapp(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			assert.Equal(t, testCase.Expected, testCase.Manifest.HasWebapp())
+		})
+	}
+}
+
+func TestManifestMeetMinServerVersion(t *testing.T) {
+	for name, test := range map[string]struct {
+		MinServerVersion string
+		ServerVersion    string
+		ShouldError      bool
+		ShouldFulfill    bool
+	}{
+		"generously fulfilled": {
+			MinServerVersion: "5.5.0",
+			ServerVersion:    "5.6.0",
+			ShouldError:      false,
+			ShouldFulfill:    true,
+		},
+		"exactly fulfilled": {
+			MinServerVersion: "5.6.0",
+			ServerVersion:    "5.6.0",
+			ShouldError:      false,
+			ShouldFulfill:    true,
+		},
+		"not fulfilled": {
+			MinServerVersion: "5.6.0",
+			ServerVersion:    "5.5.0",
+			ShouldError:      false,
+			ShouldFulfill:    false,
+		},
+		"fail to parse MinServerVersion": {
+			MinServerVersion: "abc",
+			ServerVersion:    "5.5.0",
+			ShouldError:      true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			manifest := Manifest{
+				MinServerVersion: test.MinServerVersion,
+			}
+			fulfilled, err := manifest.MeetMinServerVersion(test.ServerVersion)
+
+			if test.ShouldError {
+				assert.NotNil(err)
+				assert.False(fulfilled)
+				return
+			}
+			assert.Nil(err)
+			assert.Equal(test.ShouldFulfill, fulfilled)
 		})
 	}
 }
