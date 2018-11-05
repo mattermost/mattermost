@@ -1031,14 +1031,14 @@ type PrivacySettings struct {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink          *string
-	PrivacyPolicyLink           *string
-	AboutLink                   *string
-	HelpLink                    *string
-	ReportAProblemLink          *string
-	SupportEmail                *string
-	CustomTermsOfServiceEnabled *bool
-	ReAcceptancePeriod          *int
+	TermsOfServiceLink                     *string
+	PrivacyPolicyLink                      *string
+	AboutLink                              *string
+	HelpLink                               *string
+	ReportAProblemLink                     *string
+	SupportEmail                           *string
+	CustomTermsOfServiceEnabled            *bool
+	CustomTermsOfServiceReAcceptancePeriod *int
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1090,8 +1090,8 @@ func (s *SupportSettings) SetDefaults() {
 		s.CustomTermsOfServiceEnabled = NewBool(false)
 	}
 
-	if s.ReAcceptancePeriod == nil {
-		s.ReAcceptancePeriod = NewInt(SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD)
+	if s.CustomTermsOfServiceReAcceptancePeriod == nil {
+		s.CustomTermsOfServiceReAcceptancePeriod = NewInt(SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD)
 	}
 }
 
