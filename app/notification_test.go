@@ -627,7 +627,7 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	channelMemberNotifyPropsMap1 := map[string]model.StringMap{
 		user1.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_off",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 	}
 
@@ -655,7 +655,7 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	channelMemberNotifyPropsMap2Off := map[string]model.StringMap{
 		user2.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_off",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 	}
 
@@ -680,7 +680,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap3Off := map[string]model.StringMap{
 		user3.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_off",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
@@ -696,7 +696,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are ignored channel level
 	channelMemberNotifyPropsMap3On := map[string]model.StringMap{
 		user3.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_on",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_ON,
 		},
 	}
 	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On)
@@ -719,7 +719,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap4Off := map[string]model.StringMap{
 		user4.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_off",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 	}
 
@@ -744,7 +744,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are ignored on channel level
 	channelMemberNotifyPropsMap4On := map[string]model.StringMap{
 		user4.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_on",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_ON,
 		},
 	}
 	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On)
@@ -789,16 +789,16 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel-wide mentions are not ignored on channel level for all users
 	channelMemberNotifyPropsMap5Off := map[string]model.StringMap{
 		user1.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_off",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 		user2.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_off",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 		user3.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_off",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 		user4.Id: {
-			"ignore_channel_mentions": "ignore_channel_mentions_off",
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 	}
 	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off)

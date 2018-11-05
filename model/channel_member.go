@@ -17,7 +17,9 @@ const (
 	CHANNEL_NOTIFY_NONE             = "none"
 	CHANNEL_MARK_UNREAD_ALL         = "all"
 	CHANNEL_MARK_UNREAD_MENTION     = "mention"
-	IGNORE_CHANNEL_MENTIONS_DEFAULT = "ignore_channel_mentions_not_set"
+	IGNORE_CHANNEL_MENTIONS_DEFAULT = "default"
+	IGNORE_CHANNEL_MENTIONS_OFF     = "off"
+	IGNORE_CHANNEL_MENTIONS_ON      = "on"
 )
 
 type ChannelUnread struct {
@@ -154,7 +156,7 @@ func IsSendEmailValid(sendEmail string) bool {
 }
 
 func IsIgnoreChannelMentionsValid(ignoreChannelMentions string) bool {
-	return ignoreChannelMentions == "ignore_channel_mentions_on" || ignoreChannelMentions == "ignore_channel_mentions_off" || ignoreChannelMentions == "ignore_channel_mentions_not_set"
+	return ignoreChannelMentions == IGNORE_CHANNEL_MENTIONS_ON || ignoreChannelMentions == IGNORE_CHANNEL_MENTIONS_OFF || ignoreChannelMentions == IGNORE_CHANNEL_MENTIONS_DEFAULT
 }
 
 func GetDefaultChannelNotifyProps() StringMap {
