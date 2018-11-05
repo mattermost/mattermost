@@ -688,7 +688,7 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMem
 
 	_, err := s.GetMaster().Select(&userTeamIDs, sql, map[string]interface{}{"MinGroupMembersCreateAt": minGroupMembersCreateAt})
 	if err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.PendingAutoAddTeamMembers", "store.sql_group.select_error", nil, "", http.StatusInternalServerError)
+		result.Err = model.NewAppError("SqlGroupStore.PendingAutoAddTeamMembers", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	result.Data = userTeamIDs
