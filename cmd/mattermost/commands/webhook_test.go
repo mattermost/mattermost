@@ -4,10 +4,11 @@
 package commands
 
 import (
-	"github.com/stretchr/testify/require"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/model"
