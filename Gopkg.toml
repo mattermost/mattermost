@@ -54,6 +54,10 @@
   name = "github.com/hashicorp/go-plugin"
   revision = "a4620f9913d19f03a6bf19b2f304daaaf83ea130"
 
+[[constraint]]
+  name = "github.com/blang/semver"
+  version = "~3.5.0"
+
 [prune]
   go-tests = true
   unused-packages = true
