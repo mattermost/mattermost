@@ -227,7 +227,6 @@ func (a *App) Shutdown() {
 	if a.Srv.Store != nil {
 		a.Srv.Store.Close()
 	}
-	a.Srv = nil
 
 	if a.Srv.htmlTemplateWatcher != nil {
 		a.Srv.htmlTemplateWatcher.Close()
@@ -242,6 +241,7 @@ func (a *App) Shutdown() {
 	a.DisableConfigWatch()
 
 	a.HTTPService.Close()
+	a.Srv = nil
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
