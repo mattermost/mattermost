@@ -97,20 +97,20 @@ GitHub favicon:  ![Github](https://assets-cdn.github.com/favicon.ico)
 GIF Image:  
 ![gif](http://i.giphy.com/xNrM4cGJ8u3ao.gif)
 
-4K Wallpaper Image (11Mb):  
-![4K Image](http://4kwallpaper.xyz/wallpaper/Large-Galaxy-Lightyears-Space-4K-wallpaper.png)
+4K Wallpaper Image:  
+![4K Image](https://pixelz.cc/wp-content/uploads/2018/10/lagoon-nebula-uhd-4k-wallpaper.jpg)
 
 Panorama Image:  
 ![Pano](http://amardeepphotography.com/wp-content/uploads/2012/11/Untitled_Panorama6small.jpg)
 
 Tall Portrait Image:  
-![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg)
+![Portrait](https://upload.wikimedia.org/wikipedia/en/9/93/Burj_Khalifa.jpg)
 
-Tall Portrait Image (resized):  
-![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg =x200)
+Tall Portrait Image (resized, maintains aspect ratio):  
+![Portrait](https://upload.wikimedia.org/wikipedia/en/9/93/Burj_Khalifa.jpg =x200)
 
-Tall Portrait Image (resized to a square):  
-![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg =200x200)
+Tall Portrait Image (resized to a square, loses aspect ratio):  
+![Portrait](https://upload.wikimedia.org/wikipedia/en/9/93/Burj_Khalifa.jpg =200x200)
 
 ### Lines
 
