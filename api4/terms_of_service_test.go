@@ -1,9 +1,10 @@
 package api4
 
 import (
+	"testing"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestGetTermsOfService(t *testing.T) {

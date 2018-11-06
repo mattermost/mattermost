@@ -4,10 +4,11 @@
 package storetest
 
 import (
+	"testing"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestTermsOfServiceStore(t *testing.T, ss store.Store) {
