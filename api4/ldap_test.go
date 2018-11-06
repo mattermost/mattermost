@@ -41,7 +41,7 @@ func TestGetLdapGroups(t *testing.T) {
 }
 
 func TestLinkLdapGroup(t *testing.T) {
-	const testDN string = "cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com"
+	const testDN string = "cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com"
 
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
@@ -54,7 +54,7 @@ func TestLinkLdapGroup(t *testing.T) {
 }
 
 func TestUnlinkLdapGroup(t *testing.T) {
-	const testDN string = "cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com"
+	const testDN string = "cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com"
 
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()

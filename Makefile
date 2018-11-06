@@ -469,7 +469,7 @@ config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
 
 	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "dockerhost"|g' config/config.json
-	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "ou=testusers,dc=mm,dc=test,dc=com"|g' config/config.json
+	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "dc=mm,dc=test,dc=com"|g' config/config.json
 	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' config/config.json
 	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' config/config.json
 	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' config/config.json
