@@ -5060,7 +5060,7 @@
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
+    "translation": "無法將已被停用的使用者從頻道中移除"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
