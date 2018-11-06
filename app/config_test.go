@@ -35,7 +35,9 @@ func TestLoadConfig(t *testing.T) {
 	require.Nil(t, err)
 	tempConfig.Close()
 
-	a := App{}
+	a := App{
+		Srv: &Server{},
+	}
 	appErr := a.LoadConfig(tempConfig.Name())
 	require.Nil(t, appErr)
 
