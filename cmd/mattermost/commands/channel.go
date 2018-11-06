@@ -31,6 +31,7 @@ var ChannelRenameCmd = &cobra.Command{
 	Short:   "Rename a channel",
 	Long:    `Rename a channel.`,
 	Example: `"  channel rename myteam:mychannel newchannelname --display_name "New Display Name"`,
+	Args:    cobra.MinimumNArgs(2),
 	RunE:    renameChannelCmdF,
 }
 
@@ -48,6 +49,7 @@ var AddChannelUsersCmd = &cobra.Command{
 	Short:   "Add users to channel",
 	Long:    "Add some users to channel",
 	Example: "  channel add myteam:mychannel user@example.com username",
+	Args:    cobra.MinimumNArgs(2),
 	RunE:    addChannelUsersCmdF,
 }
 
@@ -58,6 +60,7 @@ var ArchiveChannelsCmd = &cobra.Command{
 Archive a channel along with all related information including posts from the database.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel archive myteam:mychannel",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    archiveChannelsCmdF,
 }
 
@@ -68,6 +71,7 @@ var DeleteChannelsCmd = &cobra.Command{
 Permanently deletes a channel along with all related information including posts from the database.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel delete myteam:mychannel",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    deleteChannelsCmdF,
 }
 
@@ -77,6 +81,7 @@ var ListChannelsCmd = &cobra.Command{
 	Long: `List all channels on specified teams.
 Archived channels are appended with ' (archived)'.`,
 	Example: "  channel list myteam",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    listChannelsCmdF,
 }
 
@@ -87,6 +92,7 @@ var MoveChannelsCmd = &cobra.Command{
 Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel move newteam oldteam:mychannel --username myusername",
+	Args:    cobra.MinimumNArgs(2),
 	RunE:    moveChannelsCmdF,
 }
 
@@ -96,6 +102,7 @@ var RestoreChannelsCmd = &cobra.Command{
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel restore myteam:mychannel",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    restoreChannelsCmdF,
 }
 
@@ -105,6 +112,7 @@ var ModifyChannelCmd = &cobra.Command{
 	Long: `Change the public/private type of a channel.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel modify myteam:mychannel --private --username myusername",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    modifyChannelCmdF,
 }
 
@@ -252,10 +260,6 @@ func addChannelUsersCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
-	}
-
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -286,10 +290,6 @@ func archiveChannelsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 1 {
-		return errors.New("Enter at least one channel to archive.")
-	}
-
 	channels := getChannelsFromChannelArgs(a, args)
 	for i, channel := range channels {
 		if channel == nil {
@@ -310,10 +310,6 @@ func deleteChannelsCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Shutdown()
-
-	if len(args) < 1 {
-		return errors.New("Enter at least one channel to delete.")
-	}
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -351,10 +347,6 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Shutdown()
-
-	if len(args) < 2 {
-		return errors.New("Enter the destination team and at least one channel to move.")
-	}
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -429,10 +421,6 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 1 {
-		return errors.New("Enter at least one team.")
-	}
-
 	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
 		if team == nil {
@@ -464,10 +452,6 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 1 {
-		return errors.New("Enter at least one channel.")
-	}
-
 	channels := getChannelsFromChannelArgs(a, args)
 	for i, channel := range channels {
 		if channel == nil {
@@ -488,10 +472,6 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Shutdown()
-
-	if len(args) != 1 {
-		return errors.New("Enter at one channel to modify.")
-	}
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
@@ -534,10 +514,6 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Shutdown()
-
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
-	}
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
