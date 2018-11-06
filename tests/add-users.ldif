@@ -2,10 +2,6 @@ dn: ou=testusers,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: organizationalunit
 
-dn: ou=loadtest,ou=testusers,dc=mm,dc=test,dc=com
-changetype: add
-objectclass: organizationalunit
-
 # generic test users
 dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
 changetype: add

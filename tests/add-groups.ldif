@@ -2,10 +2,6 @@ dn: ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
 objectclass: organizationalunit
 
-dn: ou=loadtest,ou=testgroups,dc=mm,dc=test,dc=com
-changetype: add
-objectclass: organizationalunit
-
 # groupOfNames
 dn: cn=outsiders,ou=testgroups,dc=mm,dc=test,dc=com
 changetype: add
