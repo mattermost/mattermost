@@ -40,6 +40,14 @@ var WebhookModifyIncomingCmd = &cobra.Command{
 	RunE:    modifyIncomingWebhookCmdF,
 }
 
+var WebhookDeleteCmd = &cobra.Command{
+	Use:     "delete",
+	Short:   "Delete webhooks",
+	Long:    "Delete webhook with given id",
+	Example: "  webhook delete [webhookID]",
+	RunE:    deleteWebhookCmdF,
+}
+
 func listWebhookCmdF(command *cobra.Command, args []string) error {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
@@ -177,6 +185,27 @@ func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func deleteWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("WebhookID is not specified")
+	}
+
+	webhookId := args[0]
+    if err = app.DeleteIncomingWebhook(webhookId); err != nil {
+        if err = app.DeleteOutgoingWebhook(webhookId); err != nil {
+    		return errors.New("Unable to delete webhook '" + webhookId + "'")
+    	}
+	}
+
+	return nil
+}
+
 func init() {
 	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID")
 	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID")
@@ -195,6 +224,7 @@ func init() {
 		WebhookListCmd,
 		WebhookCreateIncomingCmd,
 		WebhookModifyIncomingCmd,
+        WebhookDeleteCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)

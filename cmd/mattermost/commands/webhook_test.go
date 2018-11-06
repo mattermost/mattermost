@@ -150,3 +150,51 @@ func TestModifyIncomingWebhook(t *testing.T) {
 		t.Fatal("Failed to update incoming webhook")
 	}
 }
+
+func TestDeleteWebhooks(t *testing.T) {
+	th := api4.Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	adminClient := th.SystemAdminClient
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	dispName := "myhookinc"
+	hook := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
+	_, resp := adminClient.CreateIncomingWebhook(hook)
+	api4.CheckNoError(t, resp)
+
+	dispName2 := "myhookout"
+	outHook := &model.OutgoingWebhook{DisplayName: dispName2, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
+	_, resp = adminClient.CreateOutgoingWebhook(outHook)
+	api4.CheckNoError(t, resp)
+
+	output_before_deletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
+
+	if !strings.Contains(string(output_before_deletion), dispName) {
+		t.Fatal("should have incoming webhooks")
+	}
+
+	if !strings.Contains(string(output_before_deletion), dispName2) {
+		t.Fatal("should have outgoing webhooks")
+	}
+
+	output_after_deletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
+
+	if strings.Contains(string(output_after_deletion), dispName) {
+		t.Fatal("should not have incoming webhooks")
+	}
+
+	if strings.Contains(string(output_after_deletion), dispName2) {
+		t.Fatal("should not have outgoing webhooks")
+	}
+}
