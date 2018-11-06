@@ -9,4 +9,5 @@ type SCIMGroup struct {
 	PrimaryKey        string  `json:"primary_key"`
 	Name              string  `json:"name"`
 	MattermostGroupID *string `json:"mattermost_group_id"`
+	HasSyncables      bool    `json:"has_syncables"`
 }
