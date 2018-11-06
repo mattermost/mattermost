@@ -9,12 +9,13 @@ import (
 	"strings"
 
 	"bytes"
+	"io/ioutil"
+
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils"
-	"io/ioutil"
 )
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {

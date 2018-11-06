@@ -56,19 +56,18 @@ type TestClientRequirements struct {
 
 type TestNewConfig struct {
 	TestNewServiceSettings TestNewServiceSettings
-	TestNewTeamSettings TestNewTeamSettings
+	TestNewTeamSettings    TestNewTeamSettings
 }
 
-type TestNewServiceSettings struct{
-	SiteUrl *string
-	UseLetsEncrypt *bool
-	TLSStrictTransportMaxAge    *int64
-	AllowedThemes   []string
+type TestNewServiceSettings struct {
+	SiteUrl                  *string
+	UseLetsEncrypt           *bool
+	TLSStrictTransportMaxAge *int64
+	AllowedThemes            []string
 }
-
 
 type TestNewTeamSettings struct {
-	SiteName *string
+	SiteName       *string
 	MaxUserPerTeam *int
 }
 
@@ -469,16 +468,15 @@ func TestUpdateMap(t *testing.T) {
 		},
 	}
 
-
 	// create a map of type map[string]interface
 	configMap := configToMap(config)
 
-	cases := []struct{
-		Name string
+	cases := []struct {
+		Name           string
 		configSettings []string
-		newVal []string
-		expected interface{}
-	} {
+		newVal         []string
+		expected       interface{}
+	}{
 		{
 			Name:           "check for Map and string",
 			configSettings: []string{"TestNewServiceSettings", "SiteUrl"},
@@ -517,10 +515,9 @@ func TestUpdateMap(t *testing.T) {
 		},
 	}
 
-
 	for _, test := range cases {
 
-		t.Run(test.Name, func(t *testing.T){
+		t.Run(test.Name, func(t *testing.T) {
 			err := UpdateMap(configMap, test.configSettings, test.newVal)
 
 			if err != nil {

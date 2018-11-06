@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/blang/semver"
 	"gopkg.in/yaml.v2"
 )
 
@@ -110,6 +112,11 @@ type Manifest struct {
 
 	// A version number for your plugin. Semantic versioning is recommended: http://semver.org
 	Version string `json:"version" yaml:"version"`
+
+	// The minimum Mattermost server version required for your plugin.
+	//
+	// Minimum server version: 5.6
+	MinServerVersion string `json:"min_server_version,omitempty" yaml:"min_server_version,omitempty"`
 
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
@@ -240,6 +247,18 @@ func (m *Manifest) HasServer() bool {
 
 func (m *Manifest) HasWebapp() bool {
 	return m.Webapp != nil
+}
+
+func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
+	minServerVersion, err := semver.Parse(m.MinServerVersion)
+	if err != nil {
+		return false, errors.New("failed to parse MinServerVersion")
+	}
+	sv := semver.MustParse(serverVersion)
+	if sv.LT(minServerVersion) {
+		return false, nil
+	}
+	return true, nil
 }
 
 // FindManifest will find and parse the manifest in a given directory.
