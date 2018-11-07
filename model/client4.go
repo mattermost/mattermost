@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -2224,7 +2225,7 @@ func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) 
 	}
 }
 
-// SearchPosts returns any posts with matching terms string, including .
+// SearchPosts returns any posts with matching terms string, including.
 func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response) {
 	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
 	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", StringInterfaceToJson(requestBody)); err != nil {
@@ -2238,6 +2239,31 @@ func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch
 // DoPostAction performs a post action.
 func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// OpenInteractiveDialog sends a WebSocket event to a user's clients to
+// open interactive dialogs, based on the provided trigger ID and other
+// provided data. Used with interactive message buttons, menus and
+// slash commands.
+func (c *Client4) OpenInteractiveDialog(request OpenDialogRequest) (bool, *Response) {
+	b, _ := json.Marshal(request)
+	if r, err := c.DoApiPost("/actions/dialogs/open", string(b)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// SubmitInteractiveDialog will submit the provided dialog data to the integration configured by the URL.
+func (c *Client4) SubmitInteractiveDialog(request SubmitDialogRequest) (bool, *Response) {
+	b, _ := json.Marshal(request)
+	if r, err := c.DoApiPost("/actions/dialogs/submit", string(b)); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

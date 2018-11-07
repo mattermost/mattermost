@@ -228,6 +228,13 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 			p.Set("command", "/"+trigger)
 			p.Set("text", message)
 
+			clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
+			if appErr == nil {
+				p.Set("trigger_id", triggerId)
+			} else {
+				mlog.Error(appErr.Error())
+			}
+
 			hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 			if appErr != nil {
 				return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, appErr.Error(), http.StatusInternalServerError)
@@ -269,6 +276,9 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 			if response == nil {
 				return nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusInternalServerError)
 			}
+
+			response.TriggerId = clientTriggerId
+
 			return a.HandleCommandResponse(cmd, args, response, false)
 		}
 	}

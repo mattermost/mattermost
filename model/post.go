@@ -50,8 +50,6 @@ const (
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
 	POST_PROPS_ADDED_USER_ID    = "addedUserId"
 	POST_PROPS_DELETE_BY        = "deleteBy"
-	POST_ACTION_TYPE_BUTTON     = "button"
-	POST_ACTION_TYPE_SELECT     = "select"
 )
 
 type Post struct {
@@ -130,44 +128,6 @@ type PostForIndexing struct {
 	Post
 	TeamId         string `json:"team_id"`
 	ParentCreateAt *int64 `json:"parent_create_at"`
-}
-
-type DoPostActionRequest struct {
-	SelectedOption string `json:"selected_option"`
-}
-
-type PostAction struct {
-	Id          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	DataSource  string                 `json:"data_source"`
-	Options     []*PostActionOptions   `json:"options"`
-	Integration *PostActionIntegration `json:"integration,omitempty"`
-}
-
-type PostActionOptions struct {
-	Text  string `json:"text"`
-	Value string `json:"value"`
-}
-
-type PostActionIntegration struct {
-	URL     string          `json:"url,omitempty"`
-	Context StringInterface `json:"context,omitempty"`
-}
-
-type PostActionIntegrationRequest struct {
-	UserId     string          `json:"user_id"`
-	ChannelId  string          `json:"channel_id"`
-	TeamId     string          `json:"team_id"`
-	PostId     string          `json:"post_id"`
-	Type       string          `json:"type"`
-	DataSource string          `json:"data_source"`
-	Context    StringInterface `json:"context,omitempty"`
-}
-
-type PostActionIntegrationResponse struct {
-	Update        *Post  `json:"update"`
-	EphemeralText string `json:"ephemeral_text"`
 }
 
 func (o *Post) ToJson() string {
@@ -407,34 +367,6 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
-func (r *PostActionIntegrationRequest) ToJson() string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func PostActionIntegrationRequesteFromJson(data io.Reader) *PostActionIntegrationRequest {
-	var o *PostActionIntegrationRequest
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
-func (r *PostActionIntegrationResponse) ToJson() string {
-	b, _ := json.Marshal(r)
-	return string(b)
-}
-
-func PostActionIntegrationResponseFromJson(data io.Reader) *PostActionIntegrationResponse {
-	var o *PostActionIntegrationResponse
-	err := json.NewDecoder(data).Decode(&o)
-	if err != nil {
-		return nil
-	}
-	return o
-}
-
 func (o *Post) Attachments() []*SlackAttachment {
 	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
 		return attachments
@@ -451,44 +383,6 @@ func (o *Post) Attachments() []*SlackAttachment {
 		}
 	}
 	return ret
-}
-
-func (o *Post) StripActionIntegrations() {
-	attachments := o.Attachments()
-	if o.Props["attachments"] != nil {
-		o.Props["attachments"] = attachments
-	}
-	for _, attachment := range attachments {
-		for _, action := range attachment.Actions {
-			action.Integration = nil
-		}
-	}
-}
-
-func (o *Post) GetAction(id string) *PostAction {
-	for _, attachment := range o.Attachments() {
-		for _, action := range attachment.Actions {
-			if action.Id == id {
-				return action
-			}
-		}
-	}
-	return nil
-}
-
-func (o *Post) GenerateActionIds() {
-	if o.Props["attachments"] != nil {
-		o.Props["attachments"] = o.Attachments()
-	}
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
-		for _, attachment := range attachments {
-			for _, action := range attachment.Actions {
-				if action.Id == "" {
-					action.Id = NewId()
-				}
-			}
-		}
-	}
 }
 
 var markdownDestinationEscaper = strings.NewReplacer(
@@ -513,12 +407,6 @@ func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 func (o *PostEphemeral) ToUnsanitizedJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
-}
-
-func DoPostActionRequestFromJson(data io.Reader) *DoPostActionRequest {
-	var o *DoPostActionRequest
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced

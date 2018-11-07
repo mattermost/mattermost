@@ -495,6 +495,10 @@ func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
 	return nil
 }
 
+func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
+	return api.app.OpenInteractiveDialog(dialog)
+}
+
 // Plugin Section
 
 func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {
