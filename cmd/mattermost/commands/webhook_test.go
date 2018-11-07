@@ -229,13 +229,13 @@ func TestDeleteWebhooks(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	dispName := "myhookinc"
-	inHook := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
-	_, resp := adminClient.CreateIncomingWebhook(inHook)
+	inHookStruct := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
+	incomingHook, resp := adminClient.CreateIncomingWebhook(inHookStruct)
 	api4.CheckNoError(t, resp)
 
 	dispName2 := "myhookout"
-	outHook := &model.OutgoingWebhook{DisplayName: dispName2, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
-	_, resp = adminClient.CreateOutgoingWebhook(outHook)
+	outHookStruct := &model.OutgoingWebhook{DisplayName: dispName2, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
+	outgoingHook, resp := adminClient.CreateOutgoingWebhook(outHookStruct)
 	api4.CheckNoError(t, resp)
 
 	hooksBeforeDeletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
@@ -248,8 +248,8 @@ func TestDeleteWebhooks(t *testing.T) {
 		t.Fatal("should have outgoing webhooks")
 	}
 
-	CheckCommand(t, "webhook", "delete", inHook.Id)
-	CheckCommand(t, "webhook", "delete", outHook.Id)
+	CheckCommand(t, "webhook", "delete", incomingHook.Id)
+	CheckCommand(t, "webhook", "delete", outgoingHook.Id)
 
 	hooksAfterDeletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
