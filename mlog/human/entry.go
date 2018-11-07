@@ -5,25 +5,20 @@ package human
 
 import (
 	"fmt"
-	"io"
+	"github.com/mattermost/mattermost-server/mlog"
 	"strings"
 	"time"
 )
 
-type SimpleWriter struct {
-	out io.Writer
+type LogEntry struct {
+	Time    time.Time
+	Level   string
+	Message string
+	Caller  string
+	Fields  []mlog.Field
 }
 
-func (w *SimpleWriter) Write(e LogEntry) {
-	fmt.Fprintln(w.out, e)
-}
-
-func NewSimpleWriter(out io.Writer) *SimpleWriter {
-	w := new(SimpleWriter)
-	w.out = out
-	return w
-}
-
+// Provide default string representation. Used by SimpleWriter
 func (f LogEntry) String() string {
 	var sb strings.Builder
 	if !f.Time.IsZero() {

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
+// See License.txt for license information.
 
 package human
 
@@ -14,14 +14,6 @@ import (
 	"time"
 )
 
-type LogEntry struct {
-	Time    time.Time
-	Level   string
-	Message string
-	Caller  string
-	Fields  []mlog.Field
-}
-
 func ParseLogMessage(msg string) LogEntry {
 	result, err := parseLogMessage(msg)
 	if err != nil {
@@ -34,6 +26,11 @@ func ParseLogMessage(msg string) LogEntry {
 }
 
 func parseLogMessage(msg string) (result LogEntry, err error) {
+
+	// Note: This implementation uses a custom json decoding loop.
+	// The primary advantage of this versus decoding directly into a map is to
+	// preserve the order of the fields. This can be simplified if we end up
+	// having the formatter sort fields alphabetically (logrus does by default)
 
 	dec := json.NewDecoder(strings.NewReader(msg))
 

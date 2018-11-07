@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"io"
+	"time"
 )
 
 type LogrusWriter struct {
@@ -67,5 +68,9 @@ func NewLogrusWriter(output io.Writer) *LogrusWriter {
 	w.logger.ExitFunc = func(int) {}     // prevent Fatal from causing us to exit
 	w.logger.SetReportCaller(false)
 	w.logger.SetOutput(output)
+	var tf logrus.TextFormatter
+	tf.FullTimestamp = true
+	tf.TimestampFormat = time.RFC3339Nano
+	w.logger.SetFormatter(&tf)
 	return w
 }
