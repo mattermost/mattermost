@@ -185,6 +185,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
+	// GetChannelMembersByIds gets a channel membership for a particular User
+	//
+	// Minimum server version: 5.6
+	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 
@@ -253,6 +258,13 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetProfileImage(userId string) ([]byte, *model.AppError)
+
+	// GetEmojiList returns a page of custom emoji on the system.
+	//
+	// The sortBy parameter can be: "name".
+	//
+	// Minimum server version: 5.6
+	GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError)
 
 	// GetEmojiByName gets an emoji by it's name.
 	//

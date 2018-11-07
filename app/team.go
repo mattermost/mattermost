@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -22,34 +21,32 @@ import (
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().Save(team); result.Err != nil {
+	result := <-a.Srv.Store.Team().Save(team)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		rteam := result.Data.(*model.Team)
-
-		if _, err := a.CreateDefaultChannels(rteam.Id); err != nil {
-			return nil, err
-		}
-
-		return rteam, nil
 	}
+	rteam := result.Data.(*model.Team)
+
+	if _, err := a.CreateDefaultChannels(rteam.Id); err != nil {
+		return nil, err
+	}
+
+	return rteam, nil
 }
 
 func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError) {
-	var user *model.User
-	var err *model.AppError
-	if user, err = a.GetUser(userId); err != nil {
+	user, err := a.GetUser(userId)
+	if err != nil {
 		return nil, err
-	} else {
-		team.Email = user.Email
 	}
+	team.Email = user.Email
 
 	if !a.isTeamEmailAllowed(user, team) {
 		return nil, model.NewAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	var rteam *model.Team
-	if rteam, err = a.CreateTeam(team); err != nil {
+	rteam, err := a.CreateTeam(team)
+	if err != nil {
 		return nil, err
 	}
 
@@ -100,9 +97,8 @@ func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	var oldTeam *model.Team
-	var err *model.AppError
-	if oldTeam, err = a.GetTeam(team.Id); err != nil {
+	oldTeam, err := a.GetTeam(team.Id)
+	if err != nil {
 		return nil, err
 	}
 
@@ -117,7 +113,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 				}
 			}
 			if !matched {
-				err := model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]interface{}{"Domain": domain}, "", http.StatusBadRequest)
+				err = model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]interface{}{"Domain": domain}, "", http.StatusBadRequest)
 				return nil, err
 			}
 		}
@@ -142,17 +138,17 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 }
 
 func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().Update(team); result.Err != nil {
+	result := <-a.Srv.Store.Team().Update(team)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Team), nil
 	}
+
+	return result.Data.(*model.Team), nil
 }
 
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
-	var oldTeam *model.Team
-	var err *model.AppError
-	if oldTeam, err = a.GetTeam(team.Id); err != nil {
+	oldTeam, err := a.GetTeam(team.Id)
+	if err != nil {
 		return nil, err
 	}
 
@@ -196,31 +192,28 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 }
 
 func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, *model.AppError) {
-	var team *model.Team
-	var err *model.AppError
-
-	if team, err = a.GetTeam(teamId); err != nil {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
 		return "", "", err
 	}
 
 	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
-		if scheme, err := a.GetScheme(*team.SchemeId); err != nil {
+		scheme, err := a.GetScheme(*team.SchemeId)
+		if err != nil {
 			return "", "", err
-		} else {
-			return scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole, nil
 		}
+		return scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole, nil
 	}
 
 	return model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID, nil
 }
 
 func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
-	var member *model.TeamMember
-	if result := <-a.Srv.Store.Team().GetMember(teamId, userId); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetMember(teamId, userId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		member = result.Data.(*model.TeamMember)
 	}
+	member := result.Data.(*model.TeamMember)
 
 	if member == nil {
 		err := model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
@@ -237,10 +230,12 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 	member.SchemeAdmin = false
 
 	for _, roleName := range strings.Fields(newRoles) {
-		if role, err := a.GetRoleByName(roleName); err != nil {
+		role, err := a.GetRoleByName(roleName)
+		if err != nil {
 			err.StatusCode = http.StatusBadRequest
 			return nil, err
-		} else if !role.SchemeManaged {
+		}
+		if !role.SchemeManaged {
 			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
@@ -259,11 +254,11 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	if result := <-a.Srv.Store.Team().UpdateMember(member); result.Err != nil {
+	result = <-a.Srv.Store.Team().UpdateMember(member)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		member = result.Data.(*model.TeamMember)
 	}
+	member = result.Data.(*model.TeamMember)
 
 	a.ClearSessionCacheForUser(userId)
 
@@ -286,11 +281,11 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamId string, userId string, isScheme
 		member.ExplicitRoles = RemoveRoles([]string{model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID}, member.ExplicitRoles)
 	}
 
-	if result := <-a.Srv.Store.Team().UpdateMember(member); result.Err != nil {
+	result := <-a.Srv.Store.Team().UpdateMember(member)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		member = result.Data.(*model.TeamMember)
 	}
+	member = result.Data.(*model.TeamMember)
 
 	a.ClearSessionCacheForUser(userId)
 
@@ -309,19 +304,17 @@ func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string
 	tchan := a.Srv.Store.Team().Get(teamId)
 	uchan := a.Srv.Store.User().Get(userId)
 
-	var team *model.Team
-	if result := <-tchan; result.Err != nil {
+	result := <-tchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		team = result.Data.(*model.Team)
 	}
+	team := result.Data.(*model.Team)
 
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
+	result = <-uchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		user = result.Data.(*model.User)
 	}
+	user := result.Data.(*model.User)
 
 	if err := a.JoinUserToTeam(team, user, userRequestorId); err != nil {
 		return nil, err
@@ -331,11 +324,11 @@ func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string
 }
 
 func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
-	if result := <-a.Srv.Store.Team().Get(teamId); result.Err != nil {
+	result := <-a.Srv.Store.Team().Get(teamId)
+	if result.Err != nil {
 		return result.Err
-	} else {
-		return a.JoinUserToTeam(result.Data.(*model.Team), user, "")
 	}
+	return a.JoinUserToTeam(result.Data.(*model.Team), user, "")
 }
 
 func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError) {
@@ -359,19 +352,17 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	tchan := a.Srv.Store.Team().Get(tokenData["teamId"])
 	uchan := a.Srv.Store.User().Get(userId)
 
-	var team *model.Team
-	if result := <-tchan; result.Err != nil {
+	result = <-tchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		team = result.Data.(*model.Team)
 	}
+	team := result.Data.(*model.Team)
 
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
+	result = <-uchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		user = result.Data.(*model.User)
 	}
+	user := result.Data.(*model.User)
 
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {
 		return nil, err
@@ -388,19 +379,17 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 	tchan := a.Srv.Store.Team().GetByInviteId(inviteId)
 	uchan := a.Srv.Store.User().Get(userId)
 
-	var team *model.Team
-	if result := <-tchan; result.Err != nil {
+	result := <-tchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		team = result.Data.(*model.Team)
 	}
+	team := result.Data.(*model.Team)
 
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
+	result = <-uchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		user = result.Data.(*model.User)
 	}
+	user := result.Data.(*model.User)
 
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {
 		return nil, err
@@ -424,34 +413,39 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		tm.SchemeAdmin = true
 	}
 
-	if etmr := <-a.Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {
-		// Membership already exists.  Check if deleted and and update, otherwise do nothing
-		rtm := etmr.Data.(*model.TeamMember)
-
-		// Do nothing if already added
-		if rtm.DeleteAt == 0 {
-			return rtm, true, nil
-		}
-
-		if membersCount := <-a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId); membersCount.Err != nil {
-			return nil, false, membersCount.Err
-		} else if membersCount.Data.(int64) >= int64(*a.Config().TeamSettings.MaxUsersPerTeam) {
-			return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+tm.TeamId, http.StatusBadRequest)
-		} else {
-			if tmr := <-a.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
-				return nil, false, tmr.Err
-			} else {
-				return tmr.Data.(*model.TeamMember), false, nil
-			}
-		}
-	} else {
-		// Membership appears to be missing.  Lets try to add.
-		if tmr := <-a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam); tmr.Err != nil {
+	etmr := <-a.Srv.Store.Team().GetMember(team.Id, user.Id)
+	if etmr.Err != nil {
+		// Membership appears to be missing. Lets try to add.
+		tmr := <-a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
+		if tmr.Err != nil {
 			return nil, false, tmr.Err
-		} else {
-			return tmr.Data.(*model.TeamMember), false, nil
 		}
+		return tmr.Data.(*model.TeamMember), false, nil
 	}
+
+	// Membership already exists.  Check if deleted and and update, otherwise do nothing
+	rtm := etmr.Data.(*model.TeamMember)
+
+	// Do nothing if already added
+	if rtm.DeleteAt == 0 {
+		return rtm, true, nil
+	}
+
+	membersCount := <-a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId)
+	if membersCount.Err != nil {
+		return nil, false, membersCount.Err
+	}
+
+	if membersCount.Data.(int64) >= int64(*a.Config().TeamSettings.MaxUsersPerTeam) {
+		return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+tm.TeamId, http.StatusBadRequest)
+	}
+
+	tmr := <-a.Srv.Store.Team().UpdateMember(tm)
+	if tmr.Err != nil {
+		return nil, false, tmr.Err
+	}
+
+	return tmr.Data.(*model.TeamMember), false, nil
 }
 
 func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError {
@@ -461,7 +455,8 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	tm, alreadyAdded, err := a.joinUserToTeam(team, user)
 	if err != nil {
 		return err
-	} else if alreadyAdded {
+	}
+	if alreadyAdded {
 		return nil
 	}
 
@@ -503,116 +498,116 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 }
 
 func (a *App) GetTeam(teamId string) (*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().Get(teamId); result.Err != nil {
+	result := <-a.Srv.Store.Team().Get(teamId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Team), nil
 	}
+	return result.Data.(*model.Team), nil
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetByName(name); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetByName(name)
+	if result.Err != nil {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Team), nil
 	}
+	return result.Data.(*model.Team), nil
 }
 
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetByInviteId(inviteId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.Team), nil
 	}
+	return result.Data.(*model.Team), nil
 }
 
 func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetAll(); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetAll()
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Team), nil
 	}
+	return result.Data.([]*model.Team), nil
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetAllPage(offset, limit); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetAllPage(offset, limit)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Team), nil
 	}
+	return result.Data.([]*model.Team), nil
 }
 
 func (a *App) GetAllOpenTeams() ([]*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetAllTeamListing()
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Team), nil
 	}
+	return result.Data.([]*model.Team), nil
 }
 
 func (a *App) SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().SearchAll(term); result.Err != nil {
+	result := <-a.Srv.Store.Team().SearchAll(term)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Team), nil
 	}
+	return result.Data.([]*model.Team), nil
 }
 
 func (a *App) SearchOpenTeams(term string) ([]*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().SearchOpen(term); result.Err != nil {
+	result := <-a.Srv.Store.Team().SearchOpen(term)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Team), nil
 	}
+	return result.Data.([]*model.Team), nil
 }
 
 func (a *App) GetAllOpenTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetAllTeamPageListing(offset, limit); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetAllTeamPageListing(offset, limit)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Team), nil
 	}
+	return result.Data.([]*model.Team), nil
 }
 
 func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetTeamsByUserId(userId); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetTeamsByUserId(userId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Team), nil
 	}
+	return result.Data.([]*model.Team), nil
 }
 
 func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetMember(teamId, userId); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetMember(teamId, userId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.(*model.TeamMember), nil
 	}
+	return result.Data.(*model.TeamMember), nil
 }
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetTeamsForUser(userId); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetTeamsForUser(userId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.TeamMember), nil
 	}
+	return result.Data.([]*model.TeamMember), nil
 }
 
 func (a *App) GetTeamMembers(teamId string, offset int, limit int) ([]*model.TeamMember, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.TeamMember), nil
 	}
+	return result.Data.([]*model.TeamMember), nil
 }
 
 func (a *App) GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		return result.Data.([]*model.TeamMember), nil
 	}
+	return result.Data.([]*model.TeamMember), nil
 }
 
 func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -641,11 +636,11 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 			return nil, err
 		}
 
-		if teamMember, err := a.GetTeamMember(teamId, userId); err != nil {
+		teamMember, err := a.GetTeamMember(teamId, userId)
+		if err != nil {
 			return nil, err
-		} else {
-			members = append(members, teamMember)
 		}
+		members = append(members, teamMember)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
 		message.Add("team_id", teamId)
@@ -657,33 +652,30 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 }
 
 func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *model.AppError) {
-	var team *model.Team
-	var err *model.AppError
-
-	if team, err = a.AddUserToTeamByToken(userId, tokenId); err != nil {
+	team, err := a.AddUserToTeamByToken(userId, tokenId)
+	if err != nil {
 		return nil, err
 	}
 
-	if teamMember, err := a.GetTeamMember(team.Id, userId); err != nil {
+	teamMember, err := a.GetTeamMember(team.Id, userId)
+	if err != nil {
 		return nil, err
-	} else {
-		return teamMember, nil
 	}
+
+	return teamMember, nil
 }
 
 func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMember, *model.AppError) {
-	var team *model.Team
-	var err *model.AppError
-
-	if team, err = a.AddUserToTeamByInviteId(inviteId, userId); err != nil {
+	team, err := a.AddUserToTeamByInviteId(inviteId, userId)
+	if err != nil {
 		return nil, err
 	}
 
-	if teamMember, err := a.GetTeamMember(team.Id, userId); err != nil {
+	teamMember, err := a.GetTeamMember(team.Id, userId)
+	if err != nil {
 		return nil, err
-	} else {
-		return teamMember, nil
 	}
+	return teamMember, nil
 }
 
 func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.AppError) {
@@ -714,19 +706,17 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 	tchan := a.Srv.Store.Team().Get(teamId)
 	uchan := a.Srv.Store.User().Get(userId)
 
-	var team *model.Team
-	if result := <-tchan; result.Err != nil {
+	result := <-tchan
+	if result.Err != nil {
 		return result.Err
-	} else {
-		team = result.Data.(*model.Team)
 	}
+	team := result.Data.(*model.Team)
 
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
+	result = <-uchan
+	if result.Err != nil {
 		return result.Err
-	} else {
-		user = result.Data.(*model.User)
 	}
+	user := result.Data.(*model.User)
 
 	if err := a.LeaveTeam(team, user, requestorId); err != nil {
 		return err
@@ -749,7 +739,6 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		} else {
 			return result.Err
 		}
-
 	} else {
 		channelList = result.Data.(*model.ChannelList)
 	}
@@ -763,12 +752,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		}
 	}
 
-	var channel *model.Channel
-	if result := <-a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false); result.Err != nil {
+	result := <-a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	if result.Err != nil {
 		return result.Err
-	} else {
-		channel = result.Data.(*model.Channel)
 	}
+	channel := result.Data.(*model.Channel)
 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
@@ -874,19 +862,17 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	tchan := a.Srv.Store.Team().Get(teamId)
 	uchan := a.Srv.Store.User().Get(senderId)
 
-	var team *model.Team
-	if result := <-tchan; result.Err != nil {
+	result := <-tchan
+	if result.Err != nil {
 		return result.Err
-	} else {
-		team = result.Data.(*model.Team)
 	}
+	team := result.Data.(*model.Team)
 
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
+	result = <-uchan
+	if result.Err != nil {
 		return result.Err
-	} else {
-		user = result.Data.(*model.User)
 	}
+	user := result.Data.(*model.User)
 
 	var invalidEmailList []string
 
@@ -911,48 +897,47 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 func (a *App) FindTeamByName(name string) bool {
 	if result := <-a.Srv.Store.Team().GetByName(name); result.Err != nil {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
 func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError) {
-	if result := <-a.Srv.Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userId); result.Err != nil {
+	result := <-a.Srv.Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userId)
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		data := result.Data.([]*model.ChannelUnread)
-		members := []*model.TeamUnread{}
-		membersMap := make(map[string]*model.TeamUnread)
-
-		unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
-			tu.MentionCount += cu.MentionCount
-
-			if cu.NotifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
-				tu.MsgCount += cu.MsgCount
-			}
-
-			return tu
-		}
-
-		for i := range data {
-			id := data[i].TeamId
-			if mu, ok := membersMap[id]; ok {
-				membersMap[id] = unreads(data[i], mu)
-			} else {
-				membersMap[id] = unreads(data[i], &model.TeamUnread{
-					MsgCount:     0,
-					MentionCount: 0,
-					TeamId:       id,
-				})
-			}
-		}
-
-		for _, val := range membersMap {
-			members = append(members, val)
-		}
-
-		return members, nil
 	}
+	data := result.Data.([]*model.ChannelUnread)
+	members := []*model.TeamUnread{}
+	membersMap := make(map[string]*model.TeamUnread)
+
+	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
+		tu.MentionCount += cu.MentionCount
+
+		if cu.NotifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
+			tu.MsgCount += cu.MsgCount
+		}
+
+		return tu
+	}
+
+	for i := range data {
+		id := data[i].TeamId
+		if mu, ok := membersMap[id]; ok {
+			membersMap[id] = unreads(data[i], mu)
+		} else {
+			membersMap[id] = unreads(data[i], &model.TeamUnread{
+				MsgCount:     0,
+				MentionCount: 0,
+				TeamId:       id,
+			})
+		}
+	}
+
+	for _, val := range membersMap {
+		members = append(members, val)
+	}
+
+	return members, nil
 }
 
 func (a *App) PermanentDeleteTeamId(teamId string) *model.AppError {
@@ -1021,17 +1006,17 @@ func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	stats := &model.TeamStats{}
 	stats.TeamId = teamId
 
-	if result := <-tchan; result.Err != nil {
+	result := <-tchan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		stats.TotalMemberCount = result.Data.(int64)
 	}
+	stats.TotalMemberCount = result.Data.(int64)
 
-	if result := <-achan; result.Err != nil {
+	result = <-achan
+	if result.Err != nil {
 		return nil, result.Err
-	} else {
-		stats.ActiveMemberCount = result.Data.(int64)
 	}
+	stats.ActiveMemberCount = result.Data.(int64)
 
 	return stats, nil
 }
@@ -1059,13 +1044,14 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
 		return tokenData["teamId"], nil
-	} else if len(inviteId) > 0 {
-		if result := <-a.Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
-			// soft fail, so we still create user but don't auto-join team
-			mlog.Error(fmt.Sprintf("%v", result.Err))
-		} else {
+	}
+	if len(inviteId) > 0 {
+		result := <-a.Srv.Store.Team().GetByInviteId(inviteId)
+		if result.Err == nil {
 			return result.Data.(*model.Team).Id, nil
 		}
+		// soft fail, so we still create user but don't auto-join team
+		mlog.Error(fmt.Sprintf("%v", result.Err))
 	}
 
 	return "", nil
@@ -1090,14 +1076,15 @@ func (a *App) SanitizeTeams(session model.Session, teams []*model.Team) []*model
 func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.filesettings_no_driver.app_error", nil, "", http.StatusNotImplemented)
-	} else {
-		path := "teams/" + team.Id + "/teamIcon.png"
-		if data, err := a.ReadFile(path); err != nil {
-			return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.read_file.app_error", nil, err.Error(), http.StatusNotFound)
-		} else {
-			return data, nil
-		}
 	}
+
+	path := "teams/" + team.Id + "/teamIcon.png"
+	data, err := a.ReadFile(path)
+	if err != nil {
+		return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.read_file.app_error", nil, err.Error(), http.StatusNotFound)
+	}
+
+	return data, nil
 }
 
 func (a *App) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model.AppError {
@@ -1110,7 +1097,6 @@ func (a *App) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model
 }
 
 func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.AppError {
-
 	team, getTeamErr := a.GetTeam(teamId)
 
 	if getTeamErr != nil {
@@ -1125,7 +1111,8 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 	config, _, err := image.DecodeConfig(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
-	} else if config.Width*config.Height > model.MaxImageSize {
+	}
+	if config.Width*config.Height > model.MaxImageSize {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 

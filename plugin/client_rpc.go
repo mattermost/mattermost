@@ -277,7 +277,6 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		connection, err := g.muxBroker.Accept(serveHTTPStreamId)
 		if err != nil {
 			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint32("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
-			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
 		}
 		defer connection.Close()
@@ -285,7 +284,6 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		rpcServer := rpc.NewServer()
 		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w}); err != nil {
 			g.log.Error("Plugin failed to ServeHTTP, coulden't register RPC name", mlog.Err(err))
-			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
 		}
 		rpcServer.ServeConn(connection)
@@ -298,7 +296,6 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
 			if err != nil {
 				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connection", mlog.Err(err))
-				http.Error(w, "500 internal server error", http.StatusInternalServerError)
 				return
 			}
 			defer bodyConnection.Close()

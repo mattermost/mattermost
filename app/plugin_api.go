@@ -306,6 +306,10 @@ func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*m
 	return api.app.GetChannelMembersPage(channelId, page, perPage)
 }
 
+func (api *PluginAPI) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+	return api.app.GetChannelMembersByIds(channelId, userIds)
+}
+
 func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
 	return api.app.UpdateChannelMemberRoles(channelId, userId, newRoles)
 }
@@ -379,6 +383,10 @@ func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
 
 	data, _, err := api.app.GetProfileImage(user)
 	return data, err
+}
+
+func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
+	return api.app.GetEmojiList(page, perPage, sortBy)
 }
 
 func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {

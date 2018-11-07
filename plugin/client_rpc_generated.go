@@ -1898,6 +1898,36 @@ func (s *apiRPCServer) GetChannelMembers(args *Z_GetChannelMembersArgs, returns 
 	return nil
 }
 
+type Z_GetChannelMembersByIdsArgs struct {
+	A string
+	B []string
+}
+
+type Z_GetChannelMembersByIdsReturns struct {
+	A *model.ChannelMembers
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+	_args := &Z_GetChannelMembersByIdsArgs{channelId, userIds}
+	_returns := &Z_GetChannelMembersByIdsReturns{}
+	if err := g.client.Call("Plugin.GetChannelMembersByIds", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelMembersByIds API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelMembersByIds(args *Z_GetChannelMembersByIdsArgs, returns *Z_GetChannelMembersByIdsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelMembersByIds(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelMembersByIds called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateChannelMemberRolesArgs struct {
 	A string
 	B string
@@ -2398,6 +2428,37 @@ func (s *apiRPCServer) GetProfileImage(args *Z_GetProfileImageArgs, returns *Z_G
 		returns.A, returns.B = hook.GetProfileImage(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetProfileImage called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetEmojiListArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetEmojiListReturns struct {
+	A []*model.Emoji
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
+	_args := &Z_GetEmojiListArgs{sortBy, page, perPage}
+	_returns := &Z_GetEmojiListReturns{}
+	if err := g.client.Call("Plugin.GetEmojiList", _args, _returns); err != nil {
+		log.Printf("RPC call to GetEmojiList API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetEmojiList(args *Z_GetEmojiListArgs, returns *Z_GetEmojiListReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetEmojiList(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetEmojiList called but not implemented."))
 	}
 	return nil
 }

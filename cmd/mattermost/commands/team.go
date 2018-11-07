@@ -32,6 +32,7 @@ var RemoveUsersCmd = &cobra.Command{
 	Short:   "Remove users from team",
 	Long:    "Remove some users from team",
 	Example: "  team remove myteam user@example.com username",
+	Args:    cobra.MinimumNArgs(2),
 	RunE:    removeUsersCmdF,
 }
 
@@ -40,6 +41,7 @@ var AddUsersCmd = &cobra.Command{
 	Short:   "Add users to team",
 	Long:    "Add some users to team",
 	Example: "  team add myteam user@example.com username",
+	Args:    cobra.MinimumNArgs(2),
 	RunE:    addUsersCmdF,
 }
 
@@ -49,6 +51,7 @@ var DeleteTeamsCmd = &cobra.Command{
 	Long: `Permanently delete some teams.
 Permanently deletes a team along with all related information including posts from the database.`,
 	Example: "  team delete myteam",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    deleteTeamsCmdF,
 }
 
@@ -142,10 +145,6 @@ func removeUsersCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
-	}
-
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -176,10 +175,6 @@ func addUsersCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
-	}
-
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -209,10 +204,6 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Shutdown()
-
-	if len(args) < 1 {
-		return errors.New("Not enough arguments.")
-	}
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
