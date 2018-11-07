@@ -1950,3 +1950,28 @@ func (_m *API) UpdateUserStatus(userId string, status string) (*model.Status, *m
 
 	return r0, r1
 }
+
+// UploadFile provides a mock function with given fields: data, channelId, filename
+func (_m *API) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	ret := _m.Called(data, channelId, filename)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func([]byte, string, string) *model.FileInfo); ok {
+		r0 = rf(data, channelId, filename)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]byte, string, string) *model.AppError); ok {
+		r1 = rf(data, channelId, filename)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}

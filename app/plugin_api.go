@@ -430,6 +430,10 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
 }
 
+func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	return api.app.UploadFile(data, channelId, filename)
+}
+
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 	return api.app.GetEmojiImage(emojiId)
 }

@@ -2697,6 +2697,37 @@ func (s *apiRPCServer) GetEmojiImage(args *Z_GetEmojiImageArgs, returns *Z_GetEm
 	return nil
 }
 
+type Z_UploadFileArgs struct {
+	A []byte
+	B string
+	C string
+}
+
+type Z_UploadFileReturns struct {
+	A *model.FileInfo
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	_args := &Z_UploadFileArgs{data, channelId, filename}
+	_returns := &Z_UploadFileReturns{}
+	if err := g.client.Call("Plugin.UploadFile", _args, _returns); err != nil {
+		log.Printf("RPC call to UploadFile API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UploadFile(args *Z_UploadFileArgs, returns *Z_UploadFileReturns) error {
+	if hook, ok := s.impl.(interface {
+		UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UploadFile(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API UploadFile called but not implemented."))
+	}
+	return nil
+}
+
 type Z_KVSetArgs struct {
 	A string
 	B []byte
