@@ -63,8 +63,7 @@
         "ImageProxyURL": "",
         "ImageProxyOptions": "",
         "EnableAPITeamDeletion": false,
-        "ExperimentalEnableHardenedMode": false,
-        "ExperimentalLimitClientConfig": false
+        "ExperimentalEnableHardenedMode": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -336,16 +335,6 @@
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
-    },
-    "WebrtcSettings": {
-        "Enable": false,
-        "GatewayWebsocketUrl": "",
-        "GatewayAdminUrl": "",
-        "GatewayAdminSecret": "",
-        "StunURI": "",
-        "TurnURI": "",
-        "TurnUsername": "",
-        "TurnSharedKey": ""
     },
     "ElasticsearchSettings": {
         "ConnectionUrl": "http://dockerhost:9200",

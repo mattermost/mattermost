@@ -150,6 +150,8 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 
 			userLine := ImportLineFromUser(user)
 
+			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
+
 			// Do the Team Memberships.
 			members, err := a.buildUserTeamAndChannelMemberships(user.Id)
 			if err != nil {
@@ -218,6 +220,27 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 	return &memberships, nil
 }
 
+func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyPropsImportData {
+
+	getProp := func(key string) *string {
+		if v, ok := notifyProps[key]; ok {
+			return &v
+		}
+		return nil
+	}
+
+	return &UserNotifyPropsImportData{
+		Desktop:          getProp(model.DESKTOP_NOTIFY_PROP),
+		DesktopSound:     getProp(model.DESKTOP_SOUND_NOTIFY_PROP),
+		Email:            getProp(model.EMAIL_NOTIFY_PROP),
+		Mobile:           getProp(model.MOBILE_NOTIFY_PROP),
+		MobilePushStatus: getProp(model.MOBILE_PUSH_STATUS_NOTIFY_PROP),
+		ChannelTrigger:   getProp(model.CHANNEL_MENTIONS_NOTIFY_PROP),
+		CommentsTrigger:  getProp(model.COMMENTS_NOTIFY_PROP),
+		MentionKeys:      getProp(model.MENTION_KEYS_NOTIFY_PROP),
+	}
+}
+
 func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
@@ -249,7 +272,14 @@ func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 				return err
 			}
 
+			reactions, err := a.BuildPostReactions(post.Id)
+			if err != nil {
+				return err
+			}
+
 			postLine.Post.Replies = replies
+
+			postLine.Post.Reactions = reactions
 
 			if err := a.ExportWriteLine(writer, postLine); err != nil {
 				return err
@@ -272,8 +302,35 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 	replyPosts := result.Data.([]*model.ReplyForExport)
 
 	for _, reply := range replyPosts {
-		replies = append(replies, *ImportReplyFromPost(reply))
+		replyImportObject := ImportReplyFromPost(reply)
+		if reply.HasReactions == true {
+			reactionsOfReply, err := a.BuildPostReactions(reply.Id)
+			if err != nil {
+				return nil, err
+			}
+			replyImportObject.Reactions = reactionsOfReply
+		}
+		replies = append(replies, *replyImportObject)
 	}
 
 	return &replies, nil
+}
+
+func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
+	var reactionsOfPost []ReactionImportData
+
+	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
+
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	reactions := result.Data.([]*model.Reaction)
+
+	for _, reaction := range reactions {
+		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(reaction))
+	}
+
+	return &reactionsOfPost, nil
+
 }

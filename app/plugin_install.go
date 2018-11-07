@@ -120,9 +120,8 @@ func (a *App) removePlugin(id string) *model.AppError {
 		a.Publish(message)
 	}
 
-	a.UnregisterPluginCommands(id)
-
 	a.Plugins.Deactivate(id)
+	a.UnregisterPluginCommands(id)
 
 	err = os.RemoveAll(pluginPath)
 	if err != nil {

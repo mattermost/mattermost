@@ -218,10 +218,9 @@ func TestGetOldClientConfig(t *testing.T) {
 	testKey := "supersecretkey"
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.GoogleDeveloperKey = testKey })
 
-	t.Run("with session, without limited config", func(t *testing.T) {
+	t.Run("with session", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-			*cfg.ServiceSettings.ExperimentalLimitClientConfig = false
 		})
 
 		Client := th.Client
@@ -238,50 +237,9 @@ func TestGetOldClientConfig(t *testing.T) {
 		}
 	})
 
-	t.Run("without session, without limited config", func(t *testing.T) {
+	t.Run("without session", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-			*cfg.ServiceSettings.ExperimentalLimitClientConfig = false
-		})
-
-		Client := th.CreateClient()
-
-		config, resp := Client.GetOldClientConfig("")
-		CheckNoError(t, resp)
-
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if config["GoogleDeveloperKey"] != testKey {
-			t.Fatal("config missing developer key")
-		}
-	})
-
-	t.Run("with session, with limited config", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-			*cfg.ServiceSettings.ExperimentalLimitClientConfig = true
-		})
-
-		Client := th.Client
-
-		config, resp := Client.GetOldClientConfig("")
-		CheckNoError(t, resp)
-
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if config["GoogleDeveloperKey"] != testKey {
-			t.Fatal("config missing developer key")
-		}
-	})
-
-	t.Run("without session, without limited config", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-			*cfg.ServiceSettings.ExperimentalLimitClientConfig = true
 		})
 
 		Client := th.CreateClient()
