@@ -45,7 +45,7 @@ type WebConn struct {
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
 	if len(session.UserId) > 0 {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			a.SetStatusOnline(session.UserId, false)
 			a.UpdateLastActivityAtIfNeeded(session)
 		})
@@ -126,7 +126,7 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 		if c.IsAuthenticated() {
-			c.App.Go(func() {
+			c.App.Srv.Go(func() {
 				c.App.SetStatusAwayIfNeeded(c.UserId, false)
 			})
 		}
@@ -212,7 +212,7 @@ func (c *WebConn) writePump() {
 				}
 
 				if c.App.Metrics != nil {
-					c.App.Go(func() {
+					c.App.Srv.Go(func() {
 						c.App.Metrics.IncrementWebSocketBroadcast(msg.EventType())
 					})
 				}

@@ -9,7 +9,7 @@ import (
 )
 
 func (a *App) Timezones() model.SupportedTimezones {
-	if cfg := a.timezones.Load(); cfg != nil {
+	if cfg := a.Srv.timezones.Load(); cfg != nil {
 		return cfg.(model.SupportedTimezones)
 	}
 	return model.SupportedTimezones{}
@@ -24,5 +24,5 @@ func (a *App) LoadTimezones() {
 
 	timezoneCfg := utils.LoadTimezones(timezonePath)
 
-	a.timezones.Store(timezoneCfg)
+	a.Srv.timezones.Store(timezoneCfg)
 }

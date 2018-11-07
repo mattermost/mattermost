@@ -444,7 +444,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	if a.PluginsReady() {
 		var rejectionError *model.AppError
 		pluginContext := &plugin.Context{}
-		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			var newBytes bytes.Buffer
 			replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
 			if rejectionReason != "" {

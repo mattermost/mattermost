@@ -40,9 +40,9 @@ func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job
 }
 
 func (a *App) CreateJob(job *model.Job) (*model.Job, *model.AppError) {
-	return a.Jobs.CreateJob(job.Type, job.Data)
+	return a.Srv.Jobs.CreateJob(job.Type, job.Data)
 }
 
 func (a *App) CancelJob(jobId string) *model.AppError {
-	return a.Jobs.RequestCancellation(jobId)
+	return a.Srv.Jobs.RequestCancellation(jobId)
 }

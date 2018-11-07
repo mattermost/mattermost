@@ -104,7 +104,7 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ROLE_UPDATED, "", "", "", nil)
 	message.Add("role", role.ToJson())
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.Publish(message)
 	})
 }
