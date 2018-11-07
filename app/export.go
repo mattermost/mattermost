@@ -365,7 +365,8 @@ func (a *App) ExportCustomEmoji(writer io.Writer, file string) *model.AppError {
 		pathToDir := a.createDirForEmoji(file, dirName)
 
 		for _, emoji := range customEmojiList {
-			err := a.copyEmojiImages(emoji.Id, pathToDir)
+			emojiImagePath := "data/emoji/" + emoji.Id + "/image"
+			err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
 			if err != nil {
 				return model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
 			}
@@ -400,9 +401,9 @@ func (a *App) createDirForEmoji(file string, dirName string) string {
 }
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
-func (a *App) copyEmojiImages(emojiId string, pathToDir string) error {
+func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string) error {
 	var err error
-	var emojiImagePath = "data/emoji/" + emojiId + "/image"
+
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
 		return errors.New("Error reading " + emojiImagePath + "file")
