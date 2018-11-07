@@ -107,6 +107,10 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 	return api.app.GetTeamByName(name)
 }
 
+func (api *PluginAPI) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
+	return api.app.GetTeamsUnreadForUser("", userId)
+}
+
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.UpdateTeam(team)
 }
