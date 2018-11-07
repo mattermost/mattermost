@@ -41,8 +41,8 @@ func (a *App) TestLdap() *model.AppError {
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given DN.
-func (a *App) GetLdapGroup(uid string) (*model.SCIMGroup, *model.AppError) {
-	var group *model.SCIMGroup
+func (a *App) GetLdapGroup(uid string) (*model.Group, *model.AppError) {
+	var group *model.Group
 
 	if a.Ldap != nil {
 		var err *model.AppError
@@ -60,8 +60,8 @@ func (a *App) GetLdapGroup(uid string) (*model.SCIMGroup, *model.AppError) {
 
 // GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 // filter.
-func (a *App) GetAllLdapGroupsPage(page int, perPage int) ([]*model.SCIMGroup, *model.AppError) {
-	var groups []*model.SCIMGroup
+func (a *App) GetAllLdapGroupsPage(page int, perPage int) ([]*model.Group, *model.AppError) {
+	var groups []*model.Group
 
 	if a.Ldap != nil {
 		var err *model.AppError

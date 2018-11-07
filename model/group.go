@@ -41,15 +41,25 @@ var groupTypesRequiringRemoteID = []GroupType{
 }
 
 type Group struct {
-	Id          string    `json:"id"`
-	Name        string    `json:"name"`
-	DisplayName string    `json:"display_name"`
-	Description string    `json:"description"`
-	Type        GroupType `json:"type"`
-	RemoteId    string    `json:"remote_id"`
-	CreateAt    int64     `json:"create_at"`
-	UpdateAt    int64     `json:"update_at"`
-	DeleteAt    int64     `json:"delete_at"`
+	Id           string    `json:"id"`
+	Name         string    `json:"name"`
+	DisplayName  string    `json:"display_name"`
+	Description  string    `json:"description"`
+	Type         GroupType `json:"type"`
+	RemoteId     string    `json:"remote_id"`
+	CreateAt     int64     `json:"create_at"`
+	UpdateAt     int64     `json:"update_at"`
+	DeleteAt     int64     `json:"delete_at"`
+	HasSyncables bool      `db:"-" json:"has_syncables"`
+}
+
+// MixedUnlinkedGroup is for displaying potentially unlinked (no associated MM group) groups from an SCIM such as
+// LDAP or Google groups.
+type MixedUnlinkedGroup struct {
+	Id           *string `json:"mattermost_group_id"`
+	DisplayName  string  `json:"name"`
+	RemoteId     string  `json:"primary_key"`
+	HasSyncables *bool   `json:"has_syncables"`
 }
 
 type GroupPatch struct {

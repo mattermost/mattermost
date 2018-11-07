@@ -72,7 +72,20 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, marshalErr := json.Marshal(groups)
+	mugs := []*model.MixedUnlinkedGroup{}
+	for _, group := range groups {
+		mug := &model.MixedUnlinkedGroup{
+			DisplayName: group.DisplayName,
+			RemoteId:    group.RemoteId,
+		}
+		if len(group.Id) == 26 {
+			mug.Id = &group.Id
+			mug.HasSyncables = &group.HasSyncables
+		}
+		mugs = append(mugs, mug)
+	}
+
+	b, marshalErr := json.Marshal(mugs)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
@@ -108,7 +121,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroupByRemoteID(ldapGroup.PrimaryKey, model.GroupTypeLdap)
+	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupTypeLdap)
 	if err != nil && err.DetailedError != sql.ErrNoRows.Error() {
 		c.Err = err
 		return
@@ -137,8 +150,8 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		// the LDAP group name with an appended duplicate-breaker.
 		newGroup := &model.Group{
 			Name:        model.NewId(),
-			DisplayName: ldapGroup.Name,
-			RemoteId:    ldapGroup.PrimaryKey,
+			DisplayName: ldapGroup.DisplayName,
+			RemoteId:    ldapGroup.RemoteId,
 			Type:        model.GroupTypeLdap,
 		}
 		newOrUpdatedGroup, err = c.App.CreateGroup(newGroup)

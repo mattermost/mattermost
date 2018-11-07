@@ -2979,7 +2979,7 @@ func (c *Client4) TestLdap() (bool, *Response) {
 }
 
 // GetLdapGroups retrieves the immediate child groups of the given parent group.
-func (c *Client4) GetLdapGroups() ([]*SCIMGroup, *Response) {
+func (c *Client4) GetLdapGroups() ([]*Group, *Response) {
 	path := fmt.Sprintf("%s/groups", c.GetLdapRoute())
 
 	if r, err := c.DoApiGet(path, ""); err != nil {
@@ -2989,7 +2989,7 @@ func (c *Client4) GetLdapGroups() ([]*SCIMGroup, *Response) {
 
 		response := BuildResponse(r)
 
-		var groups []*SCIMGroup
+		var groups []*Group
 		if err := json.NewDecoder(r.Body).Decode(&groups); err != nil {
 			return nil, response
 		}
@@ -2999,7 +2999,7 @@ func (c *Client4) GetLdapGroups() ([]*SCIMGroup, *Response) {
 }
 
 // LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
-func (c *Client4) LinkLdapGroup(dn string) (*SCIMGroup, *Response) {
+func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response) {
 	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
 
 	if r, err := c.DoApiPost(path, ""); err != nil {
@@ -3009,7 +3009,7 @@ func (c *Client4) LinkLdapGroup(dn string) (*SCIMGroup, *Response) {
 
 		response := BuildResponse(r)
 
-		var group *SCIMGroup
+		var group *Group
 		if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
 			return nil, response
 		}
@@ -3019,7 +3019,7 @@ func (c *Client4) LinkLdapGroup(dn string) (*SCIMGroup, *Response) {
 }
 
 // UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
-func (c *Client4) UnlinkLdapGroup(dn string) (*SCIMGroup, *Response) {
+func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
 
 	if r, err := c.DoApiDelete(path); err != nil {
@@ -3029,7 +3029,7 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*SCIMGroup, *Response) {
 
 		response := BuildResponse(r)
 
-		var group *SCIMGroup
+		var group *Group
 		if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
 			return nil, response
 		}
