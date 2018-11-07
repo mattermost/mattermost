@@ -282,10 +282,14 @@ func deleteWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 
 	webhookId := args[0]
-	if err = app.DeleteIncomingWebhook(webhookId); err != nil {
-		if err = app.DeleteOutgoingWebhook(webhookId); err != nil {
+	errIncomingWebhook := app.DeleteIncomingWebhook(webhookId)
+	errOutgoingWebhook := app.DeleteOutgoingWebhook(webhookId)
+
+	if errIncomingWebhook != nil && errOutgoingWebhook != nil {
+		if errIncomingWebhook != nil {
 			return errors.New("Unable to delete webhook '" + webhookId + "'")
 		}
+		return errors.New("Unable to delete webhook '" + webhookId + "'" + " ")
 	}
 
 	return nil
