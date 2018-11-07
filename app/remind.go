@@ -118,32 +118,31 @@ func (a *App) triggerReminders() {
 					PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 					UserId:        remindUser.Id,
 					Message:       T("app.reminder.message", messageParameters),
-					Props:         model.StringInterface{},
-					//Props: model.StringInterface{
-					//	"attachments": []*model.SlackAttachment{
-					//		{
-					//			Text: "hello",
-					//			Actions: []*model.PostAction{
-					//				{
-					//					Integration: &model.PostActionIntegration{
-					//						Context: model.StringInterface{
-					//							"s": "foo",
-					//							"n": 3,
-					//						},
-					//						URL: ts.URL,
-					//					},
-					//					Name:       "action",
-					//					Type:       "some_type",
-					//					DataSource: "some_source",
-					//				},
-					//			},
-					//		},
-					//	},
-					//},
+					//Props:         model.StringInterface{},
+					Props: model.StringInterface{
+						"attachments": []*model.SlackAttachment{
+							{
+								//Text:  T("app.reminder.message", messageParameters),
+								Actions: []*model.PostAction{
+									{
+										Integration: &model.PostActionIntegration{
+											Context: model.StringInterface{
+												"s": "foo",
+												"n": 3,
+											},
+											URL: "http://remind", 	// TODO : mattermost:// as the scheme, and handle it for all things
+										},
+										Name:       "action",
+										Type:       "some_type",
+										DataSource: "some_source",
+									},
+								},
+							},
+						},
+					},
 				}
 
-				//TODO understand clearPushNotifications bool 2nd arg
-				if _, pErr := a.CreatePostAsUser(&interactivePost, true); pErr != nil {
+				if _, pErr := a.CreatePostAsUser(&interactivePost, false); pErr != nil {
 					mlog.Error(fmt.Sprintf("%v", pErr))
 				}
 
@@ -195,8 +194,7 @@ func (a *App) triggerReminders() {
 					//},
 				}
 
-				//TODO understand clearPushNotifications bool 2nd arg
-				if _, pErr := a.CreatePostAsUser(&interactivePost, true); pErr != nil {
+				if _, pErr := a.CreatePostAsUser(&interactivePost, false); pErr != nil {
 					mlog.Error(fmt.Sprintf("%v", pErr))
 				}
 
@@ -204,6 +202,48 @@ func (a *App) triggerReminders() {
 		}
 
 	}
+}
+
+func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string) (error){
+
+	update := &model.Post{}
+	update.Message = "~~"+post.Message+"~~"
+	update.Id = post.Id
+	if _, err := a.UpdatePost(update, false); err != nil {
+		return err
+	}
+
+	ephemeralPost := &model.Post{}
+
+	ephemeralPost.Message = "Ok! I’ve marked the reminder \""+message+"\" as complete."
+	ephemeralPost.RootId = post.RootId
+	ephemeralPost.UserId = post.UserId
+	ephemeralPost.ChannelId = post.ChannelId
+	a.SendEphemeralPost(userId, ephemeralPost)
+
+	return nil
+
+	//
+	//if response.EphemeralText != "" {
+	//	ephemeralPost := &model.Post{}
+	//	ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
+	//	ephemeralPost.ChannelId = post.ChannelId
+	//	ephemeralPost.RootId = post.RootId
+	//	if ephemeralPost.RootId == "" {
+	//		ephemeralPost.RootId = post.Id
+	//	}
+	//	ephemeralPost.UserId = post.UserId
+	//	ephemeralPost.AddProp("from_webhook", "true")
+	//	for _, prop := range retainedProps {
+	//		if value, ok := post.Props[prop]; ok {
+	//			ephemeralPost.Props[prop] = value
+	//		} else {
+	//			delete(ephemeralPost.Props, prop)
+	//		}
+	//	}
+	//	a.SendEphemeralPost(userId, ephemeralPost)
+	//}
+	//
 }
 
 func (a *App) ListReminders(userId string) string {
