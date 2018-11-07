@@ -115,7 +115,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.OAUTH_ACTION_SIGNUP:
 			teamId := relayProps["team_id"]
 			if len(teamId) > 0 {
-				c.App.Go(func() {
+				c.App.Srv.Go(func() {
 					if err := c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
 						mlog.Error(err.Error())
 					} else {
@@ -129,7 +129,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
-			c.App.Go(func() {
+			c.App.Srv.Go(func() {
 				if err := c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
 					mlog.Error(err.Error())
 				}

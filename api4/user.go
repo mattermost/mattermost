@@ -845,7 +845,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, fmt.Sprintf("active=%v", active))
 	if isSelfDeactive {
-		c.App.Go(func() {
+		c.App.Srv.Go(func() {
 			if err = c.App.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
 				mlog.Error(err.Error())
 			}
