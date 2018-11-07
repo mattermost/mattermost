@@ -229,8 +229,8 @@ func TestDeleteWebhooks(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	dispName := "myhookinc"
-	hook := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
-	_, resp := adminClient.CreateIncomingWebhook(hook)
+	inHook := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
+	_, resp := adminClient.CreateIncomingWebhook(inHook)
 	api4.CheckNoError(t, resp)
 
 	dispName2 := "myhookout"
@@ -238,23 +238,26 @@ func TestDeleteWebhooks(t *testing.T) {
 	_, resp = adminClient.CreateOutgoingWebhook(outHook)
 	api4.CheckNoError(t, resp)
 
-	output_before_deletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
+	hooksBeforeDeletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
-	if !strings.Contains(string(output_before_deletion), dispName) {
+	if !strings.Contains(string(hooksBeforeDeletion), dispName) {
 		t.Fatal("should have incoming webhooks")
 	}
 
-	if !strings.Contains(string(output_before_deletion), dispName2) {
+	if !strings.Contains(string(hooksBeforeDeletion), dispName2) {
 		t.Fatal("should have outgoing webhooks")
 	}
 
-	output_after_deletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
+	CheckCommand(t, "webhook", "delete", inHook.Id)
+	CheckCommand(t, "webhook", "delete", outHook.Id)
 
-	if strings.Contains(string(output_after_deletion), dispName) {
+	hooksAfterDeletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
+
+	if strings.Contains(string(hooksAfterDeletion), dispName) {
 		t.Fatal("should not have incoming webhooks")
 	}
 
-	if strings.Contains(string(output_after_deletion), dispName2) {
+	if strings.Contains(string(hooksAfterDeletion), dispName2) {
 		t.Fatal("should not have outgoing webhooks")
 	}
 }
