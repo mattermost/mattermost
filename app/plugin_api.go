@@ -6,10 +6,11 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
 	"net/http"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type PluginAPI struct {
