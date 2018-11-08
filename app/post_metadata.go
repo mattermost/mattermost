@@ -96,7 +96,7 @@ func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []
 		return nil, nil, err
 	}
 
-	emojis, err := a.getCustomEmojisForPost(post.Message, reactions)
+	emojis, err := a.getCustomEmojisForPost(post, reactions)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -182,27 +182,55 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string) map[string]
 	return images
 }
 
-func (a *App) getCustomEmojisForPost(message string, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
+func getEmojiNamesForString(s string) []string {
+	names := model.EMOJI_PATTERN.FindAllString(s, -1)
+
+	for i, name := range names {
+		names[i] = strings.Trim(name, ":")
+	}
+
+	return names
+}
+
+func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []string {
+	// Post message
+	names := getEmojiNamesForString(post.Message)
+
+	// Reactions
+	for _, reaction := range reactions {
+		names = append(names, reaction.EmojiName)
+	}
+
+	// Post attachments
+	for _, attachment := range post.Attachments() {
+		if attachment.Text != "" {
+			names = append(names, getEmojiNamesForString(attachment.Text)...)
+		}
+
+		if attachment.Pretext != "" {
+			names = append(names, getEmojiNamesForString(attachment.Pretext)...)
+		}
+
+		for _, field := range attachment.Fields {
+			if value, ok := field.Value.(string); ok {
+				names = append(names, getEmojiNamesForString(value)...)
+			}
+		}
+	}
+
+	// Remove duplicates
+	names = model.RemoveDuplicateStrings(names)
+
+	return names
+}
+
+func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		// Only custom emoji are returned
 		return []*model.Emoji{}, nil
 	}
 
-	names := model.EMOJI_PATTERN.FindAllString(message, -1)
-
-	for _, reaction := range reactions {
-		names = append(names, reaction.EmojiName)
-	}
-
-	if len(names) == 0 {
-		return []*model.Emoji{}, nil
-	}
-
-	names = model.RemoveDuplicateStrings(names)
-
-	for i, name := range names {
-		names[i] = strings.Trim(name, ":")
-	}
+	names := getEmojiNamesForPost(post, reactions)
 
 	return a.GetMultipleEmojiByName(names)
 }
