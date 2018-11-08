@@ -273,25 +273,23 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 		f, ferr := os.Open(path)
 		if ferr != nil {
 			if !os.IsNotExist(ferr) {
-				err = ferr
-				return
+				return nil, "", ferr
 			}
 			continue
 		}
 		b, ioerr := ioutil.ReadAll(f)
 		f.Close()
 		if ioerr != nil {
-			err = ioerr
-			return
+			return nil, path, ioerr
 		}
 		var parsed Manifest
 		err = yaml.Unmarshal(b, &parsed)
 		if err != nil {
-			return
+			return nil, path, err
 		}
 		manifest = &parsed
 		manifest.Id = strings.ToLower(manifest.Id)
-		return
+		return manifest, path, nil
 	}
 
 	path = filepath.Join(dir, "plugin.json")
@@ -300,16 +298,15 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 		if os.IsNotExist(ferr) {
 			path = ""
 		}
-		err = ferr
-		return
+		return nil, path, ferr
 	}
 	defer f.Close()
 	var parsed Manifest
 	err = json.NewDecoder(f).Decode(&parsed)
 	if err != nil {
-		return
+		return nil, path, err
 	}
 	manifest = &parsed
 	manifest.Id = strings.ToLower(manifest.Id)
-	return
+	return manifest, path, nil
 }

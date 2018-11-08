@@ -4,11 +4,30 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"reflect"
+	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
 
-var bufferPool *sync.Pool
+var (
+	bufferPool *sync.Pool
+
+	// qualified package name, cached at first use
+	logrusPackage string
+
+	// Positions in the call stack when tracing to report the calling method
+	minimumCallerDepth int
+
+	// Used for caller information initialisation
+	callerInitOnce sync.Once
+)
+
+const (
+	maximumCallerDepth int = 25
+	knownLogrusFrames  int = 4
+)
 
 func init() {
 	bufferPool = &sync.Pool{
@@ -16,15 +35,18 @@ func init() {
 			return new(bytes.Buffer)
 		},
 	}
+
+	// start at the bottom of the stack before the package-name cache is primed
+	minimumCallerDepth = 1
 }
 
 // Defines the key when adding errors using WithError.
 var ErrorKey = "error"
 
 // An entry is the final or intermediate Logrus logging entry. It contains all
-// the fields passed with WithField{,s}. It's finally logged when Debug, Info,
-// Warn, Error, Fatal or Panic is called on it. These objects can be reused and
-// passed around as much as you wish to avoid field duplication.
+// the fields passed with WithField{,s}. It's finally logged when Trace, Debug,
+// Info, Warn, Error, Fatal or Panic is called on it. These objects can be
+// reused and passed around as much as you wish to avoid field duplication.
 type Entry struct {
 	Logger *Logger
 
@@ -34,22 +56,28 @@ type Entry struct {
 	// Time at which the log entry was created
 	Time time.Time
 
-	// Level the log entry was logged at: Debug, Info, Warn, Error, Fatal or Panic
+	// Level the log entry was logged at: Trace, Debug, Info, Warn, Error, Fatal or Panic
 	// This field will be set on entry firing and the value will be equal to the one in Logger struct field.
 	Level Level
 
-	// Message passed to Debug, Info, Warn, Error, Fatal or Panic
+	// Calling method, with package name
+	Caller *runtime.Frame
+
+	// Message passed to Trace, Debug, Info, Warn, Error, Fatal or Panic
 	Message string
 
 	// When formatter is called in entry.log(), a Buffer may be set to entry
 	Buffer *bytes.Buffer
+
+	// err may contain a field formatting error
+	err string
 }
 
 func NewEntry(logger *Logger) *Entry {
 	return &Entry{
 		Logger: logger,
-		// Default is five fields, give a little extra room
-		Data: make(Fields, 5),
+		// Default is three fields, plus one optional.  Give a little extra room.
+		Data: make(Fields, 6),
 	}
 }
 
@@ -80,15 +108,74 @@ func (entry *Entry) WithFields(fields Fields) *Entry {
 	for k, v := range entry.Data {
 		data[k] = v
 	}
+	var field_err string
 	for k, v := range fields {
-		data[k] = v
+		if t := reflect.TypeOf(v); t != nil && t.Kind() == reflect.Func {
+			field_err = fmt.Sprintf("can not add field %q", k)
+			if entry.err != "" {
+				field_err = entry.err + ", " + field_err
+			}
+		} else {
+			data[k] = v
+		}
 	}
-	return &Entry{Logger: entry.Logger, Data: data, Time: entry.Time}
+	return &Entry{Logger: entry.Logger, Data: data, Time: entry.Time, err: field_err}
 }
 
 // Overrides the time of the Entry.
 func (entry *Entry) WithTime(t time.Time) *Entry {
 	return &Entry{Logger: entry.Logger, Data: entry.Data, Time: t}
+}
+
+// getPackageName reduces a fully qualified function name to the package name
+// There really ought to be to be a better way...
+func getPackageName(f string) string {
+	for {
+		lastPeriod := strings.LastIndex(f, ".")
+		lastSlash := strings.LastIndex(f, "/")
+		if lastPeriod > lastSlash {
+			f = f[:lastPeriod]
+		} else {
+			break
+		}
+	}
+
+	return f
+}
+
+// getCaller retrieves the name of the first non-logrus calling function
+func getCaller() *runtime.Frame {
+	// Restrict the lookback frames to avoid runaway lookups
+	pcs := make([]uintptr, maximumCallerDepth)
+	depth := runtime.Callers(minimumCallerDepth, pcs)
+	frames := runtime.CallersFrames(pcs[:depth])
+
+	// cache this package's fully-qualified name
+	callerInitOnce.Do(func() {
+		logrusPackage = getPackageName(runtime.FuncForPC(pcs[0]).Name())
+
+		// now that we have the cache, we can skip a minimum count of known-logrus functions
+		// XXX this is dubious, the number of frames may vary store an entry in a logger interface
+		minimumCallerDepth = knownLogrusFrames
+	})
+
+	for f, again := frames.Next(); again; f, again = frames.Next() {
+		pkg := getPackageName(f.Function)
+
+		// If the caller isn't part of this package, we're done
+		if pkg != logrusPackage {
+			return &f
+		}
+	}
+
+	// if we got here, we failed to find the caller's context
+	return nil
+}
+
+func (entry Entry) HasCaller() (has bool) {
+	return entry.Logger != nil &&
+		entry.Logger.ReportCaller &&
+		entry.Caller != nil
 }
 
 // This function is not declared with a pointer value because otherwise
@@ -107,6 +194,9 @@ func (entry Entry) log(level Level, msg string) {
 
 	entry.Level = level
 	entry.Message = msg
+	if entry.Logger.ReportCaller {
+		entry.Caller = getCaller()
+	}
 
 	entry.fireHooks()
 
@@ -150,6 +240,12 @@ func (entry *Entry) write() {
 	}
 }
 
+func (entry *Entry) Trace(args ...interface{}) {
+	if entry.Logger.IsLevelEnabled(TraceLevel) {
+		entry.log(TraceLevel, fmt.Sprint(args...))
+	}
+}
+
 func (entry *Entry) Debug(args ...interface{}) {
 	if entry.Logger.IsLevelEnabled(DebugLevel) {
 		entry.log(DebugLevel, fmt.Sprint(args...))
@@ -186,7 +282,7 @@ func (entry *Entry) Fatal(args ...interface{}) {
 	if entry.Logger.IsLevelEnabled(FatalLevel) {
 		entry.log(FatalLevel, fmt.Sprint(args...))
 	}
-	Exit(1)
+	entry.Logger.Exit(1)
 }
 
 func (entry *Entry) Panic(args ...interface{}) {
@@ -197,6 +293,12 @@ func (entry *Entry) Panic(args ...interface{}) {
 }
 
 // Entry Printf family functions
+
+func (entry *Entry) Tracef(format string, args ...interface{}) {
+	if entry.Logger.IsLevelEnabled(TraceLevel) {
+		entry.Trace(fmt.Sprintf(format, args...))
+	}
+}
 
 func (entry *Entry) Debugf(format string, args ...interface{}) {
 	if entry.Logger.IsLevelEnabled(DebugLevel) {
@@ -234,7 +336,7 @@ func (entry *Entry) Fatalf(format string, args ...interface{}) {
 	if entry.Logger.IsLevelEnabled(FatalLevel) {
 		entry.Fatal(fmt.Sprintf(format, args...))
 	}
-	Exit(1)
+	entry.Logger.Exit(1)
 }
 
 func (entry *Entry) Panicf(format string, args ...interface{}) {
@@ -244,6 +346,12 @@ func (entry *Entry) Panicf(format string, args ...interface{}) {
 }
 
 // Entry Println family functions
+
+func (entry *Entry) Traceln(args ...interface{}) {
+	if entry.Logger.IsLevelEnabled(TraceLevel) {
+		entry.Trace(entry.sprintlnn(args...))
+	}
+}
 
 func (entry *Entry) Debugln(args ...interface{}) {
 	if entry.Logger.IsLevelEnabled(DebugLevel) {
@@ -281,7 +389,7 @@ func (entry *Entry) Fatalln(args ...interface{}) {
 	if entry.Logger.IsLevelEnabled(FatalLevel) {
 		entry.Fatal(entry.sprintlnn(args...))
 	}
-	Exit(1)
+	entry.Logger.Exit(1)
 }
 
 func (entry *Entry) Panicln(args ...interface{}) {

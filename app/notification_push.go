@@ -132,7 +132,7 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, cfg.ServiceSettings.EnablePostUsernameOverride)
 
-	c := a.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
+	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
 		notificationType:   NOTIFICATION_TYPE_MESSAGE,
 		post:               post,
@@ -217,7 +217,7 @@ func (a *App) ClearPushNotificationSync(userId string, channelId string) {
 }
 
 func (a *App) ClearPushNotification(userId string, channelId string) {
-	channel := a.PushNotificationsHub.GetGoChannelFromUserId(userId)
+	channel := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(userId)
 	channel <- PushNotification{
 		notificationType: NOTIFICATION_TYPE_CLEAR,
 		userId:           userId,
@@ -232,7 +232,7 @@ func (a *App) CreatePushNotificationsHub() {
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
 		hub.Channels = append(hub.Channels, make(chan PushNotification, PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER))
 	}
-	a.PushNotificationsHub = hub
+	a.Srv.PushNotificationsHub = hub
 }
 
 func (a *App) pushNotificationWorker(notifications chan PushNotification) {
@@ -259,13 +259,13 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 
 func (a *App) StartPushNotificationsHubWorkers() {
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
-		channel := a.PushNotificationsHub.Channels[x]
-		a.Go(func() { a.pushNotificationWorker(channel) })
+		channel := a.Srv.PushNotificationsHub.Channels[x]
+		a.Srv.Go(func() { a.pushNotificationWorker(channel) })
 	}
 }
 
 func (a *App) StopPushNotificationsHubWorkers() {
-	for _, channel := range a.PushNotificationsHub.Channels {
+	for _, channel := range a.Srv.PushNotificationsHub.Channels {
 		close(channel)
 	}
 }
