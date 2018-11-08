@@ -778,6 +778,22 @@ func (_m *SqlStore) UserAccessToken() store.UserAccessTokenStore {
 	return r0
 }
 
+// UserTermsOfService provides a mock function with given fields:
+func (_m *SqlStore) UserTermsOfService() store.UserTermsOfServiceStore {
+	ret := _m.Called()
+
+	var r0 store.UserTermsOfServiceStore
+	if rf, ok := ret.Get(0).(func() store.UserTermsOfServiceStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.UserTermsOfServiceStore)
+		}
+	}
+
+	return r0
+}
+
 // Webhook provides a mock function with given fields:
 func (_m *SqlStore) Webhook() store.WebhookStore {
 	ret := _m.Called()

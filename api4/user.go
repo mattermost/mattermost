@@ -40,7 +40,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
-	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(registerTermsOfServiceAction)).Methods("POST")
+	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(saveUserTermsOfService)).Methods("POST")
+	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(getUserTermsOfService)).Methods("GET")
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
@@ -1626,7 +1627,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func registerTermsOfServiceAction(c *Context, w http.ResponseWriter, r *http.Request) {
+func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.Session.UserId
@@ -1638,11 +1639,21 @@ func registerTermsOfServiceAction(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := c.App.RecordUserTermsOfServiceAction(userId, termsOfServiceId, accepted); err != nil {
+	if err := c.App.SaveUserTermsOfService(userId, termsOfServiceId, accepted); err != nil {
 		c.Err = err
 		return
 	}
 
 	c.LogAudit("TermsOfServiceId=" + termsOfServiceId + ", accepted=" + strconv.FormatBool(accepted))
 	ReturnStatusOK(w)
+}
+
+func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
+	userId := c.Session.UserId
+	if result, err := c.App.GetUserTermsOfService(userId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(result.ToJson()))
+	}
 }
