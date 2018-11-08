@@ -314,6 +314,35 @@ type API interface {
 	// Minimum server version: 5.6
 	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
 
+	// Plugin Section
+
+	// GetPlugins will return a list of plugin manifests for currently active plugins.
+	//
+	// Minimum server version: 5.6
+	GetPlugins() ([]*model.Manifest, *model.AppError)
+
+	// EnablePlugin will enable an plugin installed.
+	//
+	// Minimum server version: 5.6
+	EnablePlugin(id string) *model.AppError
+
+	// DisablePlugin will disable an enabled plugin.
+	//
+	// Minimum server version: 5.6
+	DisablePlugin(id string) *model.AppError
+
+	// RemovePlugin will disable and delete a plugin.
+	//
+	// Minimum server version: 5.6
+	RemovePlugin(id string) *model.AppError
+
+	// GetPluginStatus will return the status of a plugin.
+	//
+	// Minimum server version: 5.6
+	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
+
+	// KV Store Section
+
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
 

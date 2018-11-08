@@ -333,6 +333,38 @@ func (_m *API) DeleteUser(userId string) *model.AppError {
 	return r0
 }
 
+// DisablePlugin provides a mock function with given fields: id
+func (_m *API) DisablePlugin(id string) *model.AppError {
+	ret := _m.Called(id)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// EnablePlugin provides a mock function with given fields: id
+func (_m *API) EnablePlugin(id string) *model.AppError {
+	ret := _m.Called(id)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // GetChannel provides a mock function with given fields: channelId
 func (_m *API) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(channelId)
@@ -770,6 +802,56 @@ func (_m *API) GetLDAPUserAttributes(userId string, attributes []string) (map[st
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
 		r1 = rf(userId, attributes)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPluginStatus provides a mock function with given fields: id
+func (_m *API) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	ret := _m.Called(id)
+
+	var r0 *model.PluginStatus
+	if rf, ok := ret.Get(0).(func(string) *model.PluginStatus); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PluginStatus)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(id)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPlugins provides a mock function with given fields:
+func (_m *API) GetPlugins() ([]*model.Manifest, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 []*model.Manifest
+	if rf, ok := ret.Get(0).(func() []*model.Manifest); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Manifest)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1659,6 +1741,22 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 		r0 = rf(command)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RemovePlugin provides a mock function with given fields: id
+func (_m *API) RemovePlugin(id string) *model.AppError {
+	ret := _m.Called(id)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0
