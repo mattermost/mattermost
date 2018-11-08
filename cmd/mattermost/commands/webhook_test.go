@@ -241,11 +241,11 @@ func TestDeleteWebhooks(t *testing.T) {
 	hooksBeforeDeletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
 	if !strings.Contains(string(hooksBeforeDeletion), dispName) {
-		t.Fatal("should have incoming webhooks")
+		t.Fatal("Should have incoming webhooks")
 	}
 
 	if !strings.Contains(string(hooksBeforeDeletion), dispName2) {
-		t.Fatal("should have outgoing webhooks")
+		t.Fatal("Should have outgoing webhooks")
 	}
 
 	CheckCommand(t, "webhook", "delete", incomingHook.Id)
@@ -254,10 +254,10 @@ func TestDeleteWebhooks(t *testing.T) {
 	hooksAfterDeletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
 	if strings.Contains(string(hooksAfterDeletion), dispName) {
-		t.Fatal("should not have incoming webhooks")
+		t.Fatal("Should not have incoming webhooks")
 	}
 
 	if strings.Contains(string(hooksAfterDeletion), dispName2) {
-		t.Fatal("should not have outgoing webhooks")
+		t.Fatal("Should not have outgoing webhooks")
 	}
 }
