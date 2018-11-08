@@ -215,7 +215,7 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 
 	ephemeralPost := &model.Post{}
 
-	ephemeralPost.Message = "Ok! I’ve marked the reminder \""+message+"\" as complete."
+	ephemeralPost.Message = "Ok! I’ve marked the reminder \""+post.Message+"\" as complete."
 	ephemeralPost.RootId = post.RootId
 	ephemeralPost.UserId = post.UserId
 	ephemeralPost.ChannelId = post.ChannelId
