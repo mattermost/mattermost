@@ -2728,6 +2728,147 @@ func (s *apiRPCServer) UploadFile(args *Z_UploadFileArgs, returns *Z_UploadFileR
 	return nil
 }
 
+type Z_GetPluginsArgs struct {
+}
+
+type Z_GetPluginsReturns struct {
+	A []*model.Manifest
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPlugins() ([]*model.Manifest, *model.AppError) {
+	_args := &Z_GetPluginsArgs{}
+	_returns := &Z_GetPluginsReturns{}
+	if err := g.client.Call("Plugin.GetPlugins", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPlugins API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPlugins(args *Z_GetPluginsArgs, returns *Z_GetPluginsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPlugins() ([]*model.Manifest, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPlugins()
+	} else {
+		return encodableError(fmt.Errorf("API GetPlugins called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPluginStatusArgs struct {
+	A string
+}
+
+type Z_GetPluginStatusReturns struct {
+	A *model.PluginStatus
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	_args := &Z_GetPluginStatusArgs{id}
+	_returns := &Z_GetPluginStatusReturns{}
+	if err := g.client.Call("Plugin.GetPluginStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPluginStatus API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPluginStatus(args *Z_GetPluginStatusArgs, returns *Z_GetPluginStatusReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPluginStatus(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPluginStatus called but not implemented."))
+	}
+	return nil
+}
+
+type Z_EnablePluginArgs struct {
+	A string
+}
+
+type Z_EnablePluginReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) EnablePlugin(id string) *model.AppError {
+	_args := &Z_EnablePluginArgs{id}
+	_returns := &Z_EnablePluginReturns{}
+	if err := g.client.Call("Plugin.EnablePlugin", _args, _returns); err != nil {
+		log.Printf("RPC call to EnablePlugin API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) EnablePlugin(args *Z_EnablePluginArgs, returns *Z_EnablePluginReturns) error {
+	if hook, ok := s.impl.(interface {
+		EnablePlugin(id string) *model.AppError
+	}); ok {
+		returns.A = hook.EnablePlugin(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API EnablePlugin called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DisablePluginArgs struct {
+	A string
+}
+
+type Z_DisablePluginReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) DisablePlugin(id string) *model.AppError {
+	_args := &Z_DisablePluginArgs{id}
+	_returns := &Z_DisablePluginReturns{}
+	if err := g.client.Call("Plugin.DisablePlugin", _args, _returns); err != nil {
+		log.Printf("RPC call to DisablePlugin API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DisablePlugin(args *Z_DisablePluginArgs, returns *Z_DisablePluginReturns) error {
+	if hook, ok := s.impl.(interface {
+		DisablePlugin(id string) *model.AppError
+	}); ok {
+		returns.A = hook.DisablePlugin(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API DisablePlugin called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RemovePluginArgs struct {
+	A string
+}
+
+type Z_RemovePluginReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RemovePlugin(id string) *model.AppError {
+	_args := &Z_RemovePluginArgs{id}
+	_returns := &Z_RemovePluginReturns{}
+	if err := g.client.Call("Plugin.RemovePlugin", _args, _returns); err != nil {
+		log.Printf("RPC call to RemovePlugin API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RemovePlugin(args *Z_RemovePluginArgs, returns *Z_RemovePluginReturns) error {
+	if hook, ok := s.impl.(interface {
+		RemovePlugin(id string) *model.AppError
+	}); ok {
+		returns.A = hook.RemovePlugin(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RemovePlugin called but not implemented."))
+	}
+	return nil
+}
+
 type Z_KVSetArgs struct {
 	A string
 	B []byte

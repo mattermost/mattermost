@@ -3771,7 +3771,7 @@ func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response) {
 	}
 }
 
-// RemovePlugin will deactivate and delete a plugin.
+// RemovePlugin will disable and delete a plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) RemovePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetPluginRoute(id)); err != nil {
@@ -3793,7 +3793,7 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
 	}
 }
 
-// ActivatePlugin will activate an plugin installed.
+// EnablePlugin will enable an plugin installed.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) EnablePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/enable", ""); err != nil {
@@ -3804,7 +3804,7 @@ func (c *Client4) EnablePlugin(id string) (bool, *Response) {
 	}
 }
 
-// DeactivatePlugin will deactivate an active plugin.
+// DisablePlugin will disable an enabled plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/disable", ""); err != nil {
