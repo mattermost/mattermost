@@ -107,6 +107,10 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 	return api.app.GetTeamByName(name)
 }
 
+func (api *PluginAPI) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
+	return api.app.GetTeamsUnreadForUser("", userId)
+}
+
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.UpdateTeam(team)
 }
@@ -424,6 +428,10 @@ func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
+}
+
+func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	return api.app.UploadFile(data, channelId, filename)
 }
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {

@@ -1193,6 +1193,31 @@ func (_m *API) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
 	return r0, r1
 }
 
+// GetTeamsUnreadForUser provides a mock function with given fields: userId
+func (_m *API) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
+	ret := _m.Called(userId)
+
+	var r0 []*model.TeamUnread
+	if rf, ok := ret.Get(0).(func(string) []*model.TeamUnread); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamUnread)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUser provides a mock function with given fields: userId
 func (_m *API) GetUser(userId string) (*model.User, *model.AppError) {
 	ret := _m.Called(userId)
@@ -1917,6 +1942,31 @@ func (_m *API) UpdateUserStatus(userId string, status string) (*model.Status, *m
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
 		r1 = rf(userId, status)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UploadFile provides a mock function with given fields: data, channelId, filename
+func (_m *API) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	ret := _m.Called(data, channelId, filename)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func([]byte, string, string) *model.FileInfo); ok {
+		r0 = rf(data, channelId, filename)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]byte, string, string) *model.AppError); ok {
+		r1 = rf(data, channelId, filename)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

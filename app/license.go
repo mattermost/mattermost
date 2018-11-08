@@ -93,10 +93,10 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
 	// functioning as expected
 	if *a.Config().JobSettings.RunJobs {
-		a.Jobs.StartWorkers()
+		a.Srv.Jobs.StartWorkers()
 	}
 	if *a.Config().JobSettings.RunScheduler {
-		a.Jobs.StartSchedulers()
+		a.Srv.Jobs.StartSchedulers()
 	}
 
 	return license, nil
@@ -104,13 +104,13 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 
 // License returns the currently active license or nil if the application is unlicensed.
 func (a *App) License() *model.License {
-	license, _ := a.licenseValue.Load().(*model.License)
+	license, _ := a.Srv.licenseValue.Load().(*model.License)
 	return license
 }
 
 func (a *App) SetLicense(license *model.License) bool {
 	defer func() {
-		for _, listener := range a.licenseListeners {
+		for _, listener := range a.Srv.licenseListeners {
 			listener()
 		}
 	}()
@@ -119,14 +119,14 @@ func (a *App) SetLicense(license *model.License) bool {
 		license.Features.SetDefaults()
 
 		if !license.IsExpired() {
-			a.licenseValue.Store(license)
-			a.clientLicenseValue.Store(utils.GetClientLicense(license))
+			a.Srv.licenseValue.Store(license)
+			a.Srv.clientLicenseValue.Store(utils.GetClientLicense(license))
 			return true
 		}
 	}
 
-	a.licenseValue.Store((*model.License)(nil))
-	a.clientLicenseValue.Store(map[string]string(nil))
+	a.Srv.licenseValue.Store((*model.License)(nil))
+	a.Srv.clientLicenseValue.Store(map[string]string(nil))
 	return false
 }
 
@@ -141,18 +141,18 @@ func (a *App) ValidateAndSetLicenseBytes(b []byte) {
 }
 
 func (a *App) SetClientLicense(m map[string]string) {
-	a.clientLicenseValue.Store(m)
+	a.Srv.clientLicenseValue.Store(m)
 }
 
 func (a *App) ClientLicense() map[string]string {
-	if clientLicense, _ := a.clientLicenseValue.Load().(map[string]string); clientLicense != nil {
+	if clientLicense, _ := a.Srv.clientLicenseValue.Load().(map[string]string); clientLicense != nil {
 		return clientLicense
 	}
 	return map[string]string{"IsLicensed": "false"}
 }
 
 func (a *App) RemoveLicense() *model.AppError {
-	if license, _ := a.licenseValue.Load().(*model.License); license == nil {
+	if license, _ := a.Srv.licenseValue.Load().(*model.License); license == nil {
 		return nil
 	}
 
@@ -174,12 +174,12 @@ func (a *App) RemoveLicense() *model.AppError {
 
 func (a *App) AddLicenseListener(listener func()) string {
 	id := model.NewId()
-	a.licenseListeners[id] = listener
+	a.Srv.licenseListeners[id] = listener
 	return id
 }
 
 func (a *App) RemoveLicenseListener(id string) {
-	delete(a.licenseListeners, id)
+	delete(a.Srv.licenseListeners, id)
 }
 
 func (a *App) GetClientLicenseEtag(useSanitized bool) string {
