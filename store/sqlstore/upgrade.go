@@ -515,22 +515,12 @@ func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.5.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_5_0, VERSION_5_6_0) {
-	sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
-	//	saveSchemaVersion(sqlStore, VERSION_5_5_0)
-	//}
-}
-
-func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.6.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_5_0, VERSION_5_6_0) {
+	sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
 
 	// migrating user's accepted terms of service data into the new table
-	if sqlStore.DoesColumnExist("Users", "AcceptedTermsOfServiceId") {
-		sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
-		sqlStore.RemoveColumnIfExists("Users", "AcceptedTermsOfServiceId")
-	}
+	sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
 	//saveSchemaVersion(sqlStore, VERSION_5_6_0)
 	//}
 }
