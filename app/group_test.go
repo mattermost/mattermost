@@ -154,7 +154,7 @@ func TestCreateGroupSyncable(t *testing.T) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 
 	if _, err := th.App.CreateGroupSyncable(groupSyncable); err != nil {
@@ -176,7 +176,7 @@ func TestGetGroupSyncable(t *testing.T) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 
 	// Create GroupSyncable
@@ -185,7 +185,7 @@ func TestGetGroupSyncable(t *testing.T) {
 		t.Fatal("Should create group team")
 	}
 
-	if _, err := th.App.GetGroupSyncable(group.Id, th.BasicTeam.Id, model.GSTeam); err != nil {
+	if _, err := th.App.GetGroupSyncable(group.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam); err != nil {
 		t.Log(err)
 		t.Fatal("Should delete group team")
 	}
@@ -202,7 +202,7 @@ func TestGetGroupSyncablesPage(t *testing.T) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 
 	if _, err := th.App.CreateGroupSyncable(groupSyncable); err != nil {
@@ -210,7 +210,7 @@ func TestGetGroupSyncablesPage(t *testing.T) {
 		t.Fatal("Should create group team")
 	}
 
-	groupTeams, err := th.App.GetGroupSyncablesPage(group.Id, model.GSTeam, 0, 99)
+	groupTeams, err := th.App.GetGroupSyncablesPage(group.Id, model.GroupSyncableTypeTeam, 0, 99)
 	if err != nil {
 		t.Log(err)
 		t.Fatal("Should have group teams")
@@ -220,7 +220,7 @@ func TestGetGroupSyncablesPage(t *testing.T) {
 		t.Fatal("Should have retrieved at least one group team")
 	}
 
-	if groupTeams, _ = th.App.GetGroupSyncablesPage(group.Id, model.GSTeam, 999, 1); len(groupTeams) > 0 {
+	if groupTeams, _ = th.App.GetGroupSyncablesPage(group.Id, model.GroupSyncableTypeTeam, 999, 1); len(groupTeams) > 0 {
 		t.Fatal("Should not have group teams")
 	}
 }
@@ -234,7 +234,7 @@ func TestDeleteGroupSyncable(t *testing.T) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicChannel.Id,
-		Type:       model.GSChannel,
+		Type:       model.GroupSyncableTypeChannel,
 	}
 
 	// Create GroupSyncable
@@ -243,12 +243,12 @@ func TestDeleteGroupSyncable(t *testing.T) {
 		t.Fatal("Should create group channel")
 	}
 
-	if _, err := th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GSChannel); err != nil {
+	if _, err := th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel); err != nil {
 		t.Log(err)
 		t.Fatal("Should delete group channel")
 	}
 
-	if _, err := th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GSChannel); err == nil {
+	if _, err := th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel); err == nil {
 		t.Fatal("Should not re-delete group channel - group channel already deleted")
 	}
 }

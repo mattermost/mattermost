@@ -368,13 +368,13 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 	var err error
 
 	switch groupSyncable.Type {
-	case model.GSTeam:
+	case model.GroupSyncableTypeTeam:
 		groupTeam := &GroupTeam{
 			GroupSyncable: *groupSyncable,
 			TeamId:        groupSyncable.SyncableId,
 		}
 		err = s.GetMaster().Insert(groupTeam)
-	case model.GSChannel:
+	case model.GroupSyncableTypeChannel:
 		groupChannel := &GroupChannel{
 			GroupSyncable: *groupSyncable,
 			ChannelId:     groupSyncable.SyncableId,
@@ -419,9 +419,9 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 	var result interface{}
 
 	switch syncableType {
-	case model.GSTeam:
+	case model.GroupSyncableTypeTeam:
 		result, err = s.GetMaster().Get(GroupTeam{}, groupID, syncableID)
-	case model.GSChannel:
+	case model.GroupSyncableTypeChannel:
 		result, err = s.GetMaster().Get(GroupChannel{}, groupID, syncableID)
 	default:
 	}
@@ -435,7 +435,7 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 
 	groupSyncable := model.GroupSyncable{}
 	switch syncableType {
-	case model.GSTeam:
+	case model.GroupSyncableTypeTeam:
 		groupTeam := result.(*GroupTeam)
 		groupSyncable.SyncableId = groupTeam.TeamId
 		groupSyncable.GroupId = groupTeam.GroupId
@@ -445,7 +445,7 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 		groupSyncable.DeleteAt = groupTeam.DeleteAt
 		groupSyncable.UpdateAt = groupTeam.UpdateAt
 		groupSyncable.Type = syncableType
-	case model.GSChannel:
+	case model.GroupSyncableTypeChannel:
 		groupChannel := result.(*GroupChannel)
 		groupSyncable.SyncableId = groupChannel.ChannelId
 		groupSyncable.GroupId = groupChannel.GroupId
@@ -476,7 +476,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, 
 	groupSyncables := []*model.GroupSyncable{}
 
 	switch syncableType {
-	case model.GSTeam:
+	case model.GroupSyncableTypeTeam:
 		results := []*GroupTeam{}
 		_, err := s.GetMaster().Select(&results, sqlQuery, args)
 		if err != nil {
@@ -496,7 +496,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, 
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
-	case model.GSChannel:
+	case model.GroupSyncableTypeChannel:
 		results := []*GroupChannel{}
 		_, err := s.GetMaster().Select(&results, sqlQuery, args)
 		if err != nil {
@@ -559,12 +559,12 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 
 	var rowsAffected int64
 	switch groupSyncable.Type {
-	case model.GSTeam:
+	case model.GroupSyncableTypeTeam:
 		rowsAffected, err = s.GetMaster().Update(&GroupTeam{
 			*groupSyncable,
 			groupSyncable.SyncableId,
 		})
-	case model.GSChannel:
+	case model.GroupSyncableTypeChannel:
 		rowsAffected, err = s.GetMaster().Update(&GroupChannel{
 			*groupSyncable,
 			groupSyncable.SyncableId,
@@ -622,13 +622,13 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 
 	var rowsAffected int64
 	switch groupSyncable.Type {
-	case model.GSTeam:
+	case model.GroupSyncableTypeTeam:
 		groupTeam := &GroupTeam{
 			GroupSyncable: *groupSyncable,
 			TeamId:        groupSyncable.SyncableId,
 		}
 		rowsAffected, err = s.GetMaster().Update(groupTeam)
-	case model.GSChannel:
+	case model.GroupSyncableTypeChannel:
 		groupChannel := &GroupChannel{
 			GroupSyncable: *groupSyncable,
 			ChannelId:     groupSyncable.SyncableId,
@@ -661,7 +661,7 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	selectPart := `
+	query := `
 		SELECT 
 			GroupMembers.UserId, GroupTeams.TeamId
 		FROM 
@@ -673,12 +673,7 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMem
 			%s JOIN TeamMembers 
 			ON 
 				TeamMembers.TeamId = GroupTeams.TeamId 
-				AND TeamMembers.UserId = GroupMembers.UserId`
-
-	sql := fmt.Sprintf(`
-		%s
-		UNION
-		%s
+				AND TeamMembers.UserId = GroupMembers.UserId
 		WHERE 
 			TeamMembers.UserId IS NULL
 			AND Groups.DeleteAt = 0
@@ -687,7 +682,9 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMem
 			AND GroupMembers.DeleteAt = 0
 			AND Teams.DeleteAt = 0
 			AND (GroupMembers.CreateAt >= :MinGroupMembersCreateAt
-			OR GroupTeams.UpdateAt >= :MinGroupMembersCreateAt)`, fmt.Sprintf(selectPart, "LEFT"), fmt.Sprintf(selectPart, "RIGHT"))
+			OR GroupTeams.UpdateAt >= :MinGroupMembersCreateAt)`
+
+	sql := fmt.Sprintf("%s UNION %s", fmt.Sprintf(query, "LEFT"), fmt.Sprintf(query, "RIGHT"))
 
 	var userTeamIDs []*model.UserTeamIDPair
 
@@ -708,7 +705,7 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMem
 func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	selectPart := `
+	query := `
 		SELECT 
 			GroupMembers.UserId, GroupChannels.ChannelId
 		FROM 
@@ -719,13 +716,8 @@ func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroup
 			%s JOIN ChannelMemberHistory 
 			ON 
 				ChannelMemberHistory.ChannelId = GroupChannels.ChannelId 
-				AND ChannelMemberHistory.UserId = GroupMembers.UserId`
-
-	sql := fmt.Sprintf(`
-		%s
-		UNION
-		%s
-		WHERE 
+				AND ChannelMemberHistory.UserId = GroupMembers.UserId
+		WHERE
 			ChannelMemberHistory.UserId IS NULL
 			AND ChannelMemberHistory.LeaveTime IS NULL
 			AND Groups.DeleteAt = 0
@@ -734,7 +726,9 @@ func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroup
 			AND GroupMembers.DeleteAt = 0
 			AND Channels.DeleteAt = 0
 			AND (GroupMembers.CreateAt >= :MinGroupMembersCreateAt
-			OR GroupChannels.UpdateAt >= :MinGroupMembersCreateAt)`, fmt.Sprintf(selectPart, "LEFT"), fmt.Sprintf(selectPart, "RIGHT"))
+			OR GroupChannels.UpdateAt >= :MinGroupMembersCreateAt)`
+
+	sql := fmt.Sprintf("%s UNION %s", fmt.Sprintf(query, "LEFT"), fmt.Sprintf(query, "RIGHT"))
 
 	var userChannelIDs []*model.UserChannelIDPair
 

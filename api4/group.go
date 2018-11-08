@@ -139,13 +139,13 @@ func linkGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http
 
 		var syncableID string
 		switch syncableType {
-		case model.GSTeam:
+		case model.GroupSyncableTypeTeam:
 			c.RequireTeamId()
 			if c.Err != nil {
 				return
 			}
 			syncableID = c.Params.TeamId
-		case model.GSChannel:
+		case model.GroupSyncableTypeChannel:
 			c.RequireChannelId()
 			if c.Err != nil {
 				return
@@ -232,13 +232,13 @@ func getGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.
 
 		var syncableID string
 		switch syncableType {
-		case model.GSTeam:
+		case model.GroupSyncableTypeTeam:
 			c.RequireTeamId()
 			if c.Err != nil {
 				return
 			}
 			syncableID = c.Params.TeamId
-		case model.GSChannel:
+		case model.GroupSyncableTypeChannel:
 			c.RequireChannelId()
 			if c.Err != nil {
 				return
@@ -314,13 +314,13 @@ func patchGroupSyncable(syncableType model.GroupSyncableType) func(*Context, htt
 
 		var syncableID string
 		switch syncableType {
-		case model.GSTeam:
+		case model.GroupSyncableTypeTeam:
 			c.RequireTeamId()
 			if c.Err != nil {
 				return
 			}
 			syncableID = c.Params.TeamId
-		case model.GSChannel:
+		case model.GroupSyncableTypeChannel:
 			c.RequireChannelId()
 			if c.Err != nil {
 				return
@@ -389,13 +389,13 @@ func unlinkGroupSyncable(syncableType model.GroupSyncableType) func(*Context, ht
 
 		var syncableID string
 		switch syncableType {
-		case model.GSTeam:
+		case model.GroupSyncableTypeTeam:
 			c.RequireTeamId()
 			if c.Err != nil {
 				return
 			}
 			syncableID = c.Params.TeamId
-		case model.GSChannel:
+		case model.GroupSyncableTypeChannel:
 			c.RequireChannelId()
 			if c.Err != nil {
 				return

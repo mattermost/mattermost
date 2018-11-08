@@ -11,11 +11,11 @@ import (
 type GroupSyncableType int
 
 const (
-	GSTeam GroupSyncableType = iota
-	GSChannel
+	GroupSyncableTypeTeam GroupSyncableType = iota
+	GroupSyncableTypeChannel
 )
 
-var GroupSyncableTypes = []GroupSyncableType{GSTeam, GSChannel}
+var GroupSyncableTypes = []GroupSyncableType{GroupSyncableTypeTeam, GroupSyncableTypeChannel}
 
 func (gst GroupSyncableType) String() string {
 	// Order matters. Keep in sync with iotas.
@@ -23,14 +23,18 @@ func (gst GroupSyncableType) String() string {
 }
 
 type GroupSyncable struct {
-	GroupId    string            `json:"group_id"`
-	SyncableId string            `db:"-" json:"-"`
-	CanLeave   bool              `json:"can_leave"`
-	AutoAdd    bool              `json:"auto_add"`
-	CreateAt   int64             `json:"create_at"`
-	DeleteAt   int64             `json:"delete_at"`
-	UpdateAt   int64             `json:"update_at"`
-	Type       GroupSyncableType `db:"-" json:"-"`
+	GroupId string `json:"group_id"`
+
+	// SyncableId represents the Id of the model that is being synced with the group, for example a ChannelId or
+	// TeamId.
+	SyncableId string `db:"-" json:"-"`
+
+	CanLeave bool              `json:"can_leave"`
+	AutoAdd  bool              `json:"auto_add"`
+	CreateAt int64             `json:"create_at"`
+	DeleteAt int64             `json:"delete_at"`
+	UpdateAt int64             `json:"update_at"`
+	Type     GroupSyncableType `db:"-" json:"-"`
 }
 
 func (syncable *GroupSyncable) IsValid() *AppError {
@@ -56,10 +60,10 @@ func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
 		switch key {
 		case "team_id":
 			syncable.SyncableId = value.(string)
-			syncable.Type = GSTeam
+			syncable.Type = GroupSyncableTypeTeam
 		case "channel_id":
 			syncable.SyncableId = value.(string)
-			syncable.Type = GSChannel
+			syncable.Type = GroupSyncableTypeChannel
 		case "group_id":
 			syncable.GroupId = value.(string)
 		case "can_leave":
@@ -76,7 +80,7 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 	type Alias GroupSyncable
 
 	switch syncable.Type {
-	case GSTeam:
+	case GroupSyncableTypeTeam:
 		return json.Marshal(&struct {
 			TeamId string `json:"team_id"`
 			*Alias
@@ -84,7 +88,7 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 			TeamId: syncable.SyncableId,
 			Alias:  (*Alias)(syncable),
 		})
-	case GSChannel:
+	case GroupSyncableTypeChannel:
 		return json.Marshal(&struct {
 			ChannelId string `json:"channel_id"`
 			*Alias

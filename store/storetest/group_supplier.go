@@ -29,6 +29,9 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetAllGroupSyncablesByGroupIdPage", func(t *testing.T) { testGetAllGroupSyncablesByGroupPage(t, ss) })
 	t.Run("UpdateGroupSyncable", func(t *testing.T) { testUpdateGroupSyncable(t, ss) })
 	t.Run("DeleteGroupSyncable", func(t *testing.T) { testDeleteGroupSyncable(t, ss) })
+
+	t.Run("PendingAutoAddTeamMembers", func(t *testing.T) { testPendingAutoAddTeamMembers(t, ss) })
+	t.Run("PendingAutoAddChannelMembers", func(t *testing.T) { testPendingAutoAddChannelMembers(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -575,7 +578,7 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		GroupId:    model.NewId(),
 		CanLeave:   true,
 		SyncableId: string("x"),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	})
 	assert.Equal(t, res1.Err.Id, "model.group_syncable.syncable_id.app_error")
 
@@ -584,7 +587,7 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		GroupId:    "x",
 		CanLeave:   true,
 		SyncableId: string(model.NewId()),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	})
 	assert.Equal(t, res2.Err.Id, "model.group_syncable.group_id.app_error")
 
@@ -594,7 +597,7 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		CanLeave:   false,
 		AutoAdd:    false,
 		SyncableId: string(model.NewId()),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	})
 	assert.Equal(t, res3.Err.Id, "model.group_syncable.invalid_state")
 
@@ -630,7 +633,7 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 	res6 := <-ss.Group().CreateGroupSyncable(gt1)
 	assert.Nil(t, res6.Err)
@@ -677,14 +680,14 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 	res3 := <-ss.Group().CreateGroupSyncable(gt1)
 	assert.Nil(t, res3.Err)
 	groupTeam := res3.Data.(*model.GroupSyncable)
 
 	// Get GroupSyncable
-	res4 := <-ss.Group().GetGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GSTeam)
+	res4 := <-ss.Group().GetGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GroupSyncableTypeTeam)
 	assert.Nil(t, res4.Err)
 	dgt := res4.Data.(*model.GroupSyncable)
 	assert.Equal(t, gt1.GroupId, dgt.GroupId)
@@ -735,7 +738,7 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 			GroupId:    group.Id,
 			CanLeave:   true,
 			SyncableId: string(team.Id),
-			Type:       model.GSTeam,
+			Type:       model.GroupSyncableTypeTeam,
 		})
 		assert.Nil(t, res3.Err)
 		groupTeam := res3.Data.(*model.GroupSyncable)
@@ -743,7 +746,7 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 	}
 
 	// Returns all the group teams
-	res4 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GSTeam, 0, 999)
+	res4 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GroupSyncableTypeTeam, 0, 999)
 	d1 := res4.Data.([]*model.GroupSyncable)
 	assert.Condition(t, func() bool { return len(d1) >= numGroupSyncables })
 	for _, expectedGroupTeam := range groupTeams {
@@ -758,14 +761,14 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 	}
 
 	// Returns the correct number based on limit
-	res5 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GSTeam, 0, 2)
+	res5 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GroupSyncableTypeTeam, 0, 2)
 	d2 := res5.Data.([]*model.GroupSyncable)
 	assert.Len(t, d2, 2)
 
 	// Check that result sets are different using an offset
-	res6 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GSTeam, 0, 5)
+	res6 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GroupSyncableTypeTeam, 0, 5)
 	d3 := res6.Data.([]*model.GroupSyncable)
-	res7 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GSTeam, 5, 5)
+	res7 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GroupSyncableTypeTeam, 5, 5)
 	d4 := res7.Data.([]*model.GroupSyncable)
 	for _, d3i := range d3 {
 		for _, d4i := range d4 {
@@ -809,7 +812,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 	res6 := <-ss.Group().CreateGroupSyncable(gt1)
 	assert.Nil(t, res6.Err)
@@ -836,7 +839,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 	res9 := <-ss.Group().UpdateGroupSyncable(gt2)
 	assert.Equal(t, res9.Err.Id, "store.sql_group.no_rows")
@@ -847,7 +850,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(model.NewId()),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 	res10 := <-ss.Group().UpdateGroupSyncable(gt3)
 	assert.Equal(t, res10.Err.Id, "store.sql_group.no_rows")
@@ -908,30 +911,30 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	}
 	res7 := <-ss.Group().CreateGroupSyncable(gt1)
 	assert.Nil(t, res7.Err)
 	groupTeam := res7.Data.(*model.GroupSyncable)
 
 	// Invalid GroupId
-	res3 := <-ss.Group().DeleteGroupSyncable("x", groupTeam.SyncableId, model.GSTeam)
+	res3 := <-ss.Group().DeleteGroupSyncable("x", groupTeam.SyncableId, model.GroupSyncableTypeTeam)
 	assert.Equal(t, res3.Err.Id, "store.sql_group.invalid_group_id")
 
 	// Invalid TeamId
-	res4 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, "x", model.GSTeam)
+	res4 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, "x", model.GroupSyncableTypeTeam)
 	assert.Equal(t, res4.Err.Id, "store.sql_group.invalid_syncable_id")
 
 	// Non-existent Group
-	res5 := <-ss.Group().DeleteGroupSyncable(model.NewId(), groupTeam.SyncableId, model.GSTeam)
+	res5 := <-ss.Group().DeleteGroupSyncable(model.NewId(), groupTeam.SyncableId, model.GroupSyncableTypeTeam)
 	assert.Equal(t, res5.Err.Id, "store.sql_group.no_rows")
 
 	// Non-existent Team
-	res6 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, string(model.NewId()), model.GSTeam)
+	res6 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, string(model.NewId()), model.GroupSyncableTypeTeam)
 	assert.Equal(t, res6.Err.Id, "store.sql_group.no_rows")
 
 	// Happy path...
-	res8 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GSTeam)
+	res8 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GroupSyncableTypeTeam)
 	assert.Nil(t, res8.Err)
 	d1 := res8.Data.(*model.GroupSyncable)
 	assert.NotZero(t, d1.DeleteAt)
@@ -946,4 +949,361 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	res9 := <-ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
 	assert.NotNil(t, res9.Err)
 	assert.Equal(t, res9.Err.Id, "store.sql_group.already_deleted")
+}
+
+func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
+	// Create Group
+	res := <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "PendingAutoAddTeamMembers Test Group",
+		RemoteId:    model.NewId(),
+		Type:        model.GroupTypeLdap,
+	})
+	assert.Nil(t, res.Err)
+	group := res.Data.(*model.Group)
+
+	// Create User
+	user := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(user)
+	assert.Nil(t, res.Err)
+	user = res.Data.(*model.User)
+
+	// Create GroupMember
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+
+	// Create Team
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	res = <-ss.Team().Save(team)
+	assert.Nil(t, res.Err)
+	team = res.Data.(*model.Team)
+
+	// Create GroupTeam
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		CanLeave:   true,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    group.Id,
+	})
+	assert.Nil(t, res.Err)
+	syncable := res.Data.(*model.GroupSyncable)
+
+	// Time before syncable was created
+	res = <-ss.Group().PendingAutoAddTeamMembers(syncable.CreateAt - 1)
+	assert.Nil(t, res.Err)
+	userTeamIDs := res.Data.([]*model.UserTeamIDPair)
+	assert.Len(t, userTeamIDs, 1)
+	assert.Equal(t, user.Id, userTeamIDs[0].UserID)
+	assert.Equal(t, team.Id, userTeamIDs[0].TeamID)
+
+	// Time after syncable was created
+	res = <-ss.Group().PendingAutoAddTeamMembers(syncable.CreateAt + 1)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// Delete and restore GroupMember should return result
+	res = <-ss.Group().DeleteMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(syncable.CreateAt + 1)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	pristineSyncable := *syncable
+
+	syncable.CanLeave = false
+	res = <-ss.Group().UpdateGroupSyncable(syncable)
+	assert.Nil(t, res.Err)
+
+	// Time before syncable was updated
+	res = <-ss.Group().PendingAutoAddTeamMembers(syncable.UpdateAt - 1)
+	assert.Nil(t, res.Err)
+	userTeamIDs = res.Data.([]*model.UserTeamIDPair)
+	assert.Len(t, userTeamIDs, 1)
+	assert.Equal(t, user.Id, userTeamIDs[0].UserID)
+	assert.Equal(t, team.Id, userTeamIDs[0].TeamID)
+
+	// Time after syncable was updated
+	res = <-ss.Group().PendingAutoAddTeamMembers(syncable.UpdateAt + 1)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// Only includes if auto-add
+	syncable.AutoAdd = false
+	syncable.CanLeave = true // have to update this or the model isn't valid
+	res = <-ss.Group().UpdateGroupSyncable(syncable)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// reset state of syncable and verify
+	res = <-ss.Group().UpdateGroupSyncable(&pristineSyncable)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// No result if Group deleted
+	res = <-ss.Group().Delete(group.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// reset state of group and verify
+	group.DeleteAt = 0
+	res = <-ss.Group().Update(group)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// No result if Team deleted
+	team.DeleteAt = model.GetMillis()
+	res = <-ss.Team().Update(team)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// reset state of team and verify
+	team.DeleteAt = 0
+	res = <-ss.Team().Update(team)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// No result if GroupTeam deleted
+	res = <-ss.Group().DeleteGroupSyncable(group.Id, team.Id, model.GroupSyncableTypeTeam)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// reset GroupTeam and verify
+	res = <-ss.Group().UpdateGroupSyncable(&pristineSyncable)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// No result if GroupMember deleted
+	res = <-ss.Group().DeleteMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// restore group member and verify
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// adding team membership stops returning result
+	res = <-ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: user.Id,
+	}, 999)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddTeamMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+}
+
+func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
+	// Create Group
+	res := <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "PendingAutoAddChannelMembers Test Group",
+		RemoteId:    model.NewId(),
+		Type:        model.GroupTypeLdap,
+	})
+	assert.Nil(t, res.Err)
+	group := res.Data.(*model.Group)
+
+	// Create User
+	user := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(user)
+	assert.Nil(t, res.Err)
+	user = res.Data.(*model.User)
+
+	// Create GroupMember
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+
+	// Create Channel
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "A Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
+	}
+	res = <-ss.Channel().Save(channel, 9999)
+	assert.Nil(t, res.Err)
+	channel = res.Data.(*model.Channel)
+
+	// Create GroupChannel
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		CanLeave:   true,
+		SyncableId: channel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group.Id,
+	})
+	assert.Nil(t, res.Err)
+	syncable := res.Data.(*model.GroupSyncable)
+
+	// Time before syncable was created
+	res = <-ss.Group().PendingAutoAddChannelMembers(syncable.CreateAt - 1)
+	assert.Nil(t, res.Err)
+	userChannelIDs := res.Data.([]*model.UserChannelIDPair)
+	assert.Len(t, userChannelIDs, 1)
+	assert.Equal(t, user.Id, userChannelIDs[0].UserID)
+	assert.Equal(t, channel.Id, userChannelIDs[0].ChannelID)
+
+	// Time after syncable was created
+	res = <-ss.Group().PendingAutoAddChannelMembers(syncable.CreateAt + 1)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// Delete and restore GroupMember should return result
+	res = <-ss.Group().DeleteMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(syncable.CreateAt + 1)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	pristineSyncable := *syncable
+
+	syncable.CanLeave = false
+	res = <-ss.Group().UpdateGroupSyncable(syncable)
+	assert.Nil(t, res.Err)
+
+	// Time before syncable was updated
+	res = <-ss.Group().PendingAutoAddChannelMembers(syncable.UpdateAt - 1)
+	assert.Nil(t, res.Err)
+	userChannelIDs = res.Data.([]*model.UserChannelIDPair)
+	assert.Len(t, userChannelIDs, 1)
+	assert.Equal(t, user.Id, userChannelIDs[0].UserID)
+	assert.Equal(t, channel.Id, userChannelIDs[0].ChannelID)
+
+	// Time after syncable was updated
+	res = <-ss.Group().PendingAutoAddChannelMembers(syncable.UpdateAt + 1)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// Only includes if auto-add
+	syncable.AutoAdd = false
+	syncable.CanLeave = true // have to update this or the model isn't valid
+	res = <-ss.Group().UpdateGroupSyncable(syncable)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// reset state of syncable and verify
+	res = <-ss.Group().UpdateGroupSyncable(&pristineSyncable)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// No result if Group deleted
+	res = <-ss.Group().Delete(group.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// reset state of group and verify
+	group.DeleteAt = 0
+	res = <-ss.Group().Update(group)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// No result if Channel deleted
+	res = <-ss.Channel().Delete(channel.Id, model.GetMillis())
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// reset state of channel and verify
+	channel.DeleteAt = 0
+	res = <-ss.Channel().Update(channel)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// No result if GroupChannel deleted
+	res = <-ss.Group().DeleteGroupSyncable(group.Id, channel.Id, model.GroupSyncableTypeChannel)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// reset GroupChannel and verify
+	res = <-ss.Group().UpdateGroupSyncable(&pristineSyncable)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// No result if GroupMember deleted
+	res = <-ss.Group().DeleteMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// restore group member and verify
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
+
+	// Adding Channel (ChannelMemberHistory) should stop returning result
+	res = <-ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// Leaving Channel (ChannelMemberHistory) should still not return result
+	res = <-ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 0)
+
+	// Purging ChannelMemberHistory re-returns the result
+	res = <-ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis()+1, 100)
+	assert.Nil(t, res.Err)
+	res = <-ss.Group().PendingAutoAddChannelMembers(0)
+	assert.Nil(t, res.Err)
+	assert.Len(t, res.Data, 1)
 }

@@ -75,7 +75,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		AutoAdd:    true,
 		GroupId:    gleeGroup.Id,
 		SyncableId: practiceChannel.Id,
-		Type:       model.GSChannel,
+		Type:       model.GroupSyncableTypeChannel,
 	})
 	if err != nil {
 		t.Errorf("test groupchannel not created: %s", err.Error())
@@ -86,7 +86,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		AutoAdd:    false,
 		GroupId:    scienceGroup.Id,
 		SyncableId: nerdsTeam.Id,
-		Type:       model.GSTeam,
+		Type:       model.GroupSyncableTypeTeam,
 	})
 	if err != nil {
 		t.Errorf("test groupteam not created: %s", err.Error())
@@ -97,7 +97,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		AutoAdd:    false,
 		GroupId:    scienceGroup.Id,
 		SyncableId: experimentsChannel.Id,
-		Type:       model.GSChannel,
+		Type:       model.GroupSyncableTypeChannel,
 	})
 	if err != nil {
 		t.Errorf("test groupchannel not created: %s", err.Error())
