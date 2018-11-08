@@ -162,7 +162,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	a.Srv.Go(func() {
 		runCommandWebhookCleanupJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.InitReminders()
 		a.StartReminders()
 	})
