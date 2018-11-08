@@ -35,11 +35,12 @@ func TestLoadConfig(t *testing.T) {
 	require.Nil(t, err)
 	tempConfig.Close()
 
-	a := App{}
+	a := App{
+		Srv: &Server{},
+	}
 	appErr := a.LoadConfig(tempConfig.Name())
 	require.Nil(t, appErr)
 
-	assert.Equal(t, "http://localhost:8065", a.siteURL)
 	assert.Equal(t, "http://localhost:8065", *a.GetConfig().ServiceSettings.SiteURL)
 }
 

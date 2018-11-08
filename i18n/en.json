@@ -695,10 +695,6 @@
     "translation": "leave"
   },
   {
-    "id": "api.command_leave.success",
-    "translation": "Left the channel."
-  },
-  {
     "id": "api.command_logout.desc",
     "translation": "Logout of Mattermost"
   },

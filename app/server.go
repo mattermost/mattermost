@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -14,16 +15,21 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -44,6 +50,79 @@ type Server struct {
 	RateLimiter *RateLimiter
 
 	didFinishListen chan struct{}
+
+	goroutineCount      int32
+	goroutineExitSignal chan struct{}
+
+	Plugins                *plugin.Environment
+	PluginConfigListenerId string
+
+	EmailBatching    *EmailBatchingJob
+	EmailRateLimiter *throttled.GCRARateLimiter
+
+	Hubs                        []*Hub
+	HubsStopCheckingForDeadlock chan bool
+
+	PushNotificationsHub PushNotificationsHub
+
+	Jobs *jobs.JobServer
+
+	config                 atomic.Value
+	envConfig              map[string]interface{}
+	configFile             string
+	configListeners        map[string]func(*model.Config, *model.Config)
+	clusterLeaderListeners sync.Map
+
+	licenseValue       atomic.Value
+	clientLicenseValue atomic.Value
+	licenseListeners   map[string]func()
+
+	timezones atomic.Value
+
+	newStore func() store.Store
+
+	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
+	sessionCache            *utils.Cache
+	configListenerId        string
+	licenseListenerId       string
+	logListenerId           string
+	clusterLeaderListenerId string
+	disableConfigWatch      bool
+	configWatcher           *utils.ConfigWatcher
+	asymmetricSigningKey    *ecdsa.PrivateKey
+
+	pluginCommands     []*PluginCommand
+	pluginCommandsLock sync.RWMutex
+
+	clientConfig        map[string]string
+	clientConfigHash    string
+	limitedClientConfig map[string]string
+	diagnosticId        string
+
+	phase2PermissionsMigrationComplete bool
+}
+
+// Go creates a goroutine, but maintains a record of it to ensure that execution completes before
+// the app is destroyed.
+func (s *Server) Go(f func()) {
+	atomic.AddInt32(&s.goroutineCount, 1)
+
+	go func() {
+		f()
+
+		atomic.AddInt32(&s.goroutineCount, -1)
+		select {
+		case s.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+	}()
+}
+
+// WaitForGoroutines blocks until all goroutines created by App.Go exit.
+func (s *Server) WaitForGoroutines() {
+	for atomic.LoadInt32(&s.goroutineCount) != 0 {
+		<-s.goroutineExitSignal
+	}
 }
 
 var corsAllowedMethods = []string{

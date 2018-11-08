@@ -591,7 +591,7 @@ func (a *App) trackPlugins() {
 		settingsCount := 0
 
 		pluginStates := a.Config().PluginSettings.PluginStates
-		plugins, _ := a.Plugins.Available()
+		plugins, _ := a.Srv.Plugins.Available()
 
 		if pluginStates != nil && plugins != nil {
 			for _, plugin := range plugins {

@@ -206,17 +206,21 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 	var memberships []UserChannelImportData
 
 	result := <-a.Srv.Store.Channel().GetChannelMembersForExport(userId, teamId)
-
 	if result.Err != nil {
 		return nil, result.Err
 	}
 
 	members := result.Data.([]*model.ChannelMemberForExport)
 
-	for _, member := range members {
-		memberships = append(memberships, *ImportUserChannelDataFromChannelMember(member))
+	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
+	preferences, err := a.GetPreferenceByCategoryForUser(userId, category)
+	if err != nil {
+		return nil, err
 	}
 
+	for _, member := range members {
+		memberships = append(memberships, *ImportUserChannelDataFromChannelMemberAndPreferences(member, &preferences))
+	}
 	return &memberships, nil
 }
 

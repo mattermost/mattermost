@@ -1,8 +1,9 @@
 package sqlstore
 
 import (
-	"github.com/mattermost/mattermost-server/store/storetest"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
 func TestTermsOfServiceStore(t *testing.T) {

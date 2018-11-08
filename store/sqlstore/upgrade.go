@@ -509,11 +509,17 @@ func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_4_0, VERSION_5_5_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_5_0)
+	}
+}
+
+func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.5.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_4_0, VERSION_5_5_0) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_5_0, VERSION_5_6_0) {
 	sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
-	// 	saveSchemaVersion(sqlStore, VERSION_5_5_0)
-	// }
+	//	saveSchemaVersion(sqlStore, VERSION_5_5_0)
+	//}
 }
 
 func UpgradeDatabaseToVersion56(sqlStore SqlStore) {

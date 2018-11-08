@@ -4,9 +4,10 @@
 package api4
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"net/http"
 )
 
 func (api *API) InitTermsOfService() {
