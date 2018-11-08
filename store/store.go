@@ -66,6 +66,7 @@ type Store interface {
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
 	TermsOfService() TermsOfServiceStore
+	UserTermsOfService() UserTermsOfServiceStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -526,4 +527,10 @@ type TermsOfServiceStore interface {
 	Save(termsOfService *model.TermsOfService) StoreChannel
 	GetLatest(allowFromCache bool) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
+}
+
+type UserTermsOfServiceStore interface {
+	GetByUser(userId string) StoreChannel
+	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
+	Delete(userId, termsOfServiceId string) StoreChannel
 }

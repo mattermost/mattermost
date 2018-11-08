@@ -94,4 +94,5 @@ type SqlStore interface {
 	Role() store.RoleStore
 	Scheme() store.SchemeStore
 	TermsOfService() store.TermsOfServiceStore
+	UserTermsOfService() store.UserTermsOfServiceStore
 }

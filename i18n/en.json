@@ -4795,6 +4795,18 @@
     "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
   },
   {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "Missing required user terms of service property: user_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "Missing required user terms of service property: service_terms_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "Missing required user terms of service property: create_at."
+  },
+  {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
@@ -6453,6 +6465,22 @@
   {
     "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No user terms of service found."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch user terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "Unable to save user terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete user terms of service."
   },
   {
     "id": "system.message.name",
