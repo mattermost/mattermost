@@ -42,7 +42,7 @@ func (a *App) SetupInviteEmailRateLimiting() error {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	a.EmailRateLimiter = rateLimiter
+	a.Srv.EmailRateLimiter = rateLimiter
 	return nil
 }
 
@@ -286,11 +286,11 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 }
 
 func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
-	if a.EmailRateLimiter == nil {
+	if a.Srv.EmailRateLimiter == nil {
 		a.Log.Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
 		return
 	}
-	rateLimited, result, err := a.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := a.Srv.EmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
 		return

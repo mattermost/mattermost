@@ -36,7 +36,7 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 	}
 
 	job = result.Data.(*model.Compliance)
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.Compliance.RunComplianceJob(job)
 	})
 

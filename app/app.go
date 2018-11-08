@@ -4,19 +4,15 @@
 package app
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 	"html/template"
 	"net/http"
 	"path"
 	"reflect"
 	"strconv"
-	"sync"
-	"sync/atomic"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"github.com/throttled/throttled"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
@@ -24,7 +20,6 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
@@ -35,25 +30,9 @@ const ADVANCED_PERMISSIONS_MIGRATION_KEY = "AdvancedPermissionsMigrationComplete
 const EMOJIS_PERMISSIONS_MIGRATION_KEY = "EmojisPermissionsMigrationComplete"
 
 type App struct {
-	goroutineCount      int32
-	goroutineExitSignal chan struct{}
-
 	Srv *Server
 
 	Log *mlog.Logger
-
-	Plugins                *plugin.Environment
-	PluginConfigListenerId string
-
-	EmailBatching    *EmailBatchingJob
-	EmailRateLimiter *throttled.GCRARateLimiter
-
-	Hubs                        []*Hub
-	HubsStopCheckingForDeadlock chan bool
-
-	PushNotificationsHub PushNotificationsHub
-
-	Jobs *jobs.JobServer
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
@@ -65,42 +44,6 @@ type App struct {
 	Metrics          einterfaces.MetricsInterface
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
-
-	config                 atomic.Value
-	envConfig              map[string]interface{}
-	configFile             string
-	configListeners        map[string]func(*model.Config, *model.Config)
-	clusterLeaderListeners sync.Map
-
-	licenseValue       atomic.Value
-	clientLicenseValue atomic.Value
-	licenseListeners   map[string]func()
-
-	timezones atomic.Value
-
-	siteURL string
-
-	newStore func() store.Store
-
-	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            *utils.Cache
-	configListenerId        string
-	licenseListenerId       string
-	logListenerId           string
-	clusterLeaderListenerId string
-	disableConfigWatch      bool
-	configWatcher           *utils.ConfigWatcher
-	asymmetricSigningKey    *ecdsa.PrivateKey
-
-	pluginCommands     []*PluginCommand
-	pluginCommandsLock sync.RWMutex
-
-	clientConfig        map[string]string
-	clientConfigHash    string
-	limitedClientConfig map[string]string
-	diagnosticId        string
-
-	phase2PermissionsMigrationComplete bool
 
 	HTTPService httpservice.HTTPService
 }
@@ -118,15 +61,15 @@ func New(options ...Option) (outApp *App, outErr error) {
 	rootRouter := mux.NewRouter()
 
 	app := &App{
-		goroutineExitSignal: make(chan struct{}, 1),
 		Srv: &Server{
-			RootRouter: rootRouter,
+			goroutineExitSignal: make(chan struct{}, 1),
+			RootRouter:          rootRouter,
+			configFile:          "config.json",
+			configListeners:     make(map[string]func(*model.Config, *model.Config)),
+			licenseListeners:    map[string]func(){},
+			sessionCache:        utils.NewLru(model.SESSION_CACHE_SIZE),
+			clientConfig:        make(map[string]string),
 		},
-		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
-		configFile:       "config.json",
-		configListeners:  make(map[string]func(*model.Config, *model.Config)),
-		clientConfig:     make(map[string]string),
-		licenseListeners: map[string]func(){},
 	}
 
 	app.HTTPService = httpservice.MakeHTTPService(app)
@@ -151,7 +94,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	if err := app.LoadConfig(app.configFile); err != nil {
+	if err := app.LoadConfig(app.Srv.configFile); err != nil {
 		return nil, err
 	}
 
@@ -164,7 +107,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(app.Log)
 
-	app.logListenerId = app.AddConfigListener(func(_, after *model.Config) {
+	app.Srv.logListenerId = app.AddConfigListener(func(_, after *model.Config) {
 		app.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
 	})
 
@@ -176,22 +119,22 @@ func New(options ...Option) (outApp *App, outErr error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	app.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
+	app.Srv.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
 		app.configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
 
 		message.Add("config", app.ClientConfigWithComputed())
-		app.Go(func() {
+		app.Srv.Go(func() {
 			app.Publish(message)
 		})
 	})
-	app.licenseListenerId = app.AddLicenseListener(func() {
+	app.Srv.licenseListenerId = app.AddLicenseListener(func() {
 		app.configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
 		message.Add("license", app.GetSanitizedClientLicense())
-		app.Go(func() {
+		app.Srv.Go(func() {
 			app.Publish(message)
 		})
 
@@ -205,8 +148,8 @@ func New(options ...Option) (outApp *App, outErr error) {
 
 	app.initEnterprise()
 
-	if app.newStore == nil {
-		app.newStore = func() store.Store {
+	if app.Srv.newStore == nil {
+		app.Srv.newStore = func() store.Store {
 			return store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings, app.Metrics), app.Metrics, app.Cluster)
 		}
 	}
@@ -214,10 +157,10 @@ func New(options ...Option) (outApp *App, outErr error) {
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
 		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
 	} else {
-		app.htmlTemplateWatcher = htmlTemplateWatcher
+		app.Srv.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
-	app.Srv.Store = app.newStore()
+	app.Srv.Store = app.Srv.newStore()
 
 	if err := app.ensureAsymmetricSigningKey(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -235,9 +178,9 @@ func New(options ...Option) (outApp *App, outErr error) {
 		app.initJobs()
 	})
 
-	app.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
+	app.Srv.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", app.IsLeader()))
-		app.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
+		app.Srv.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
 	})
 
 	subpath, err := utils.GetSubpathFromConfig(app.Config())
@@ -279,26 +222,26 @@ func (a *App) Shutdown() {
 	a.StopPushNotificationsHubWorkers()
 
 	a.ShutDownPlugins()
-	a.WaitForGoroutines()
+	a.Srv.WaitForGoroutines()
 
 	if a.Srv.Store != nil {
 		a.Srv.Store.Close()
 	}
-	a.Srv = nil
 
-	if a.htmlTemplateWatcher != nil {
-		a.htmlTemplateWatcher.Close()
+	if a.Srv.htmlTemplateWatcher != nil {
+		a.Srv.htmlTemplateWatcher.Close()
 	}
 
-	a.RemoveConfigListener(a.configListenerId)
-	a.RemoveLicenseListener(a.licenseListenerId)
-	a.RemoveConfigListener(a.logListenerId)
-	a.RemoveClusterLeaderChangedListener(a.clusterLeaderListenerId)
+	a.RemoveConfigListener(a.Srv.configListenerId)
+	a.RemoveLicenseListener(a.Srv.licenseListenerId)
+	a.RemoveConfigListener(a.Srv.logListenerId)
+	a.RemoveClusterLeaderChangedListener(a.Srv.clusterLeaderListenerId)
 	mlog.Info("Server stopped")
 
 	a.DisableConfigWatch()
 
 	a.HTTPService.Close()
+	a.Srv = nil
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -439,39 +382,39 @@ func (a *App) initEnterprise() {
 }
 
 func (a *App) initJobs() {
-	a.Jobs = jobs.NewJobServer(a, a.Srv.Store)
+	a.Srv.Jobs = jobs.NewJobServer(a, a.Srv.Store)
 	if jobsDataRetentionJobInterface != nil {
-		a.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
+		a.Srv.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
 	}
 	if jobsMessageExportJobInterface != nil {
-		a.Jobs.MessageExportJob = jobsMessageExportJobInterface(a)
+		a.Srv.Jobs.MessageExportJob = jobsMessageExportJobInterface(a)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
-		a.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)
+		a.Srv.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)
 	}
 	if jobsElasticsearchIndexerInterface != nil {
-		a.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(a)
+		a.Srv.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(a)
 	}
 	if jobsLdapSyncInterface != nil {
-		a.Jobs.LdapSync = jobsLdapSyncInterface(a)
+		a.Srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
 	if jobsMigrationsInterface != nil {
-		a.Jobs.Migrations = jobsMigrationsInterface(a)
+		a.Srv.Jobs.Migrations = jobsMigrationsInterface(a)
 	}
-	a.Jobs.Workers = a.Jobs.InitWorkers()
-	a.Jobs.Schedulers = a.Jobs.InitSchedulers()
+	a.Srv.Jobs.Workers = a.Srv.Jobs.InitWorkers()
+	a.Srv.Jobs.Schedulers = a.Srv.Jobs.InitSchedulers()
 }
 
 func (a *App) DiagnosticId() string {
-	return a.diagnosticId
+	return a.Srv.diagnosticId
 }
 
 func (a *App) SetDiagnosticId(id string) {
-	a.diagnosticId = id
+	a.Srv.diagnosticId = id
 }
 
 func (a *App) EnsureDiagnosticId() {
-	if a.diagnosticId != "" {
+	if a.Srv.diagnosticId != "" {
 		return
 	}
 	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
@@ -484,36 +427,13 @@ func (a *App) EnsureDiagnosticId() {
 			<-a.Srv.Store.System().Save(systemId)
 		}
 
-		a.diagnosticId = id
-	}
-}
-
-// Go creates a goroutine, but maintains a record of it to ensure that execution completes before
-// the app is destroyed.
-func (a *App) Go(f func()) {
-	atomic.AddInt32(&a.goroutineCount, 1)
-
-	go func() {
-		f()
-
-		atomic.AddInt32(&a.goroutineCount, -1)
-		select {
-		case a.goroutineExitSignal <- struct{}{}:
-		default:
-		}
-	}()
-}
-
-// WaitForGoroutines blocks until all goroutines created by App.Go exit.
-func (a *App) WaitForGoroutines() {
-	for atomic.LoadInt32(&a.goroutineCount) != 0 {
-		<-a.goroutineExitSignal
+		a.Srv.diagnosticId = id
 	}
 }
 
 func (a *App) HTMLTemplates() *template.Template {
-	if a.htmlTemplateWatcher != nil {
-		return a.htmlTemplateWatcher.Templates()
+	if a.Srv.htmlTemplateWatcher != nil {
+		return a.Srv.htmlTemplateWatcher.Templates()
 	}
 
 	return nil
@@ -596,7 +516,7 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 			return res.Err
 		}
 	}
-	a.phase2PermissionsMigrationComplete = isComplete
+	a.Srv.phase2PermissionsMigrationComplete = isComplete
 	return nil
 }
 
@@ -670,7 +590,7 @@ func (a *App) DoEmojisPermissionsMigration() {
 }
 
 func (a *App) StartElasticsearch() {
-	a.Go(func() {
+	a.Srv.Go(func() {
 		if err := a.Elasticsearch.Start(); err != nil {
 			mlog.Error(err.Error())
 		}
@@ -678,19 +598,19 @@ func (a *App) StartElasticsearch() {
 
 	a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.Elasticsearch.Start(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.Elasticsearch.Stop(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if *oldConfig.ElasticsearchSettings.EnableIndexing {
 					if err := a.Elasticsearch.Stop(); err != nil {
 						mlog.Error(err.Error())
@@ -705,13 +625,13 @@ func (a *App) StartElasticsearch() {
 
 	a.AddLicenseListener(func() {
 		if a.License() != nil {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.Elasticsearch.Start(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 		} else {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.Elasticsearch.Stop(); err != nil {
 					mlog.Error(err.Error())
 				}
