@@ -82,7 +82,6 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		table.ColMap("MfaSecret").SetMaxSize(128)
 		table.ColMap("Position").SetMaxSize(128)
 		table.ColMap("Timezone").SetMaxSize(256)
-		table.ColMap("AcceptedTermsOfServiceId").SetMaxSize(64)
 	}
 
 	return us
