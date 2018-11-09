@@ -625,14 +625,14 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 
-	channelMemberNotifyPropsMap1 := map[string]model.StringMap{
+	channelMemberNotifyPropsMap1Off := map[string]model.StringMap{
 		user1.Id: {
 			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 	}
 
 	profiles := map[string]*model.User{user1.Id: user1}
-	mentions := th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap1)
+	mentions := th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap1Off)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || ids[0] != user1.Id {
@@ -685,6 +685,34 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
 	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3Off)
+	if len(mentions) != 3 {
+		t.Fatal("should've returned three mention keywords")
+	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
+		t.Fatal("should've returned mention key of @channel")
+	} else if ids, ok := mentions["@all"]; !ok || ids[0] != user3.Id {
+		t.Fatal("should've returned mention key of @all")
+	}
+
+	// Channel member notify props is set to default
+	channelMemberNotifyPropsMapDefault := map[string]model.StringMap{
+		user3.Id: {
+			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_DEFAULT,
+		},
+	}
+	profiles = map[string]*model.User{user3.Id: user3}
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapDefault)
+	if len(mentions) != 3 {
+		t.Fatal("should've returned three mention keywords")
+	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
+		t.Fatal("should've returned mention key of @channel")
+	} else if ids, ok := mentions["@all"]; !ok || ids[0] != user3.Id {
+		t.Fatal("should've returned mention key of @all")
+	}
+
+	// Channel member notify props is empty
+	channelMemberNotifyPropsMapEmpty := map[string]model.StringMap{}
+	profiles = map[string]*model.User{user3.Id: user3}
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmpty)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {

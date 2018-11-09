@@ -577,9 +577,16 @@ func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 			keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
 		}
 
+		ignoreChannelMentions := false
+		if ignoreChannelMentionsNotifyProp, ok := channelMemberNotifyPropsMap[profile.Id][model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP]; ok {
+			if ignoreChannelMentionsNotifyProp == model.IGNORE_CHANNEL_MENTIONS_ON {
+				ignoreChannelMentions = true
+			}
+		}
+
 		// Add @channel and @all to keywords if user has them turned on
 		if lookForSpecialMentions {
-			if int64(len(profiles)) <= *a.Config().TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" && channelMemberNotifyPropsMap[profile.Id][model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] == model.IGNORE_CHANNEL_MENTIONS_OFF {
+			if int64(len(profiles)) <= *a.Config().TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" && !ignoreChannelMentions {
 				keywords["@channel"] = append(keywords["@channel"], profile.Id)
 				keywords["@all"] = append(keywords["@all"], profile.Id)
 
