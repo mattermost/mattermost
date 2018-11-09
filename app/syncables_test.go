@@ -312,7 +312,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	timeAfterLeaving := model.GetMillis()
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	result := <-th.App.Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
+	result := <-th.App.Srv.Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
 	if result.Err != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", result.Err.Error())
 	}
@@ -328,7 +328,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	result = <-th.App.Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
+	result = <-th.App.Srv.Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
 	if result.Err != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", result.Err.Error())
 	}
