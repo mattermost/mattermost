@@ -91,6 +91,10 @@ func TestSubmitDialog(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
+
 	submit := model.SubmitDialogRequest{
 		CallbackId: "callbackid",
 		State:      "somestate",
