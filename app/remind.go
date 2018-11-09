@@ -154,52 +154,30 @@ func (a *App) triggerReminders() {
 											},
 											URL: "mattermost://remind",
 										},
-										Name:       "Snooze 20 minutes",
-										Type:       "snooze_20_min",
-									},
-									{
-										Integration: &model.PostActionIntegration{
-											Context: model.StringInterface{
-												"reminderId": reminder.Id,
-												"occurrenceId": occurrence.Id,
+										Name:       "Snooze",
+										Type:       "select",
+										Options: []*model.PostActionOptions{
+											{
+												Text: "20 minutes",
+												Value: "20min",
 											},
-											URL: "mattermost://remind",
-										},
-										Name:       "Snooze 1 hour",
-										Type:       "snooze_1_hr",
-									},
-									{
-										Integration: &model.PostActionIntegration{
-											Context: model.StringInterface{
-												"reminderId": reminder.Id,
-												"occurrenceId": occurrence.Id,
+											{
+												Text: "1 hour",
+												Value: "1hr",
 											},
-											URL: "mattermost://remind",
-										},
-										Name:       "Snooze 3 hours",
-										Type:       "snooze_3_hrs",
-									},
-									{
-										Integration: &model.PostActionIntegration{
-											Context: model.StringInterface{
-												"reminderId": reminder.Id,
-												"occurrenceId": occurrence.Id,
+											{
+												Text: "3 hours",
+												Value: "3hrs",
 											},
-											URL: "mattermost://remind",
-										},
-										Name:       "Tomorrow at 9AM",
-										Type:       "snooze_tomorrow",
-									},
-									{
-										Integration: &model.PostActionIntegration{
-											Context: model.StringInterface{
-												"reminderId": reminder.Id,
-												"occurrenceId": occurrence.Id,
+											{
+												Text: "Tomorrow at 9AM",
+												Value: "tomorrow",
 											},
-											URL: "mattermost://remind",
+											{
+												Text: "Next week",
+												Value: "nextweek",
+											},
 										},
-										Name:       "Next week",
-										Type:       "next_week",
 									},
 								},
 							},
