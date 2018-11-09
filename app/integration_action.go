@@ -1,9 +1,24 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+// Integration Action Flow
+//
+// 1. An integration creates an interactive message button or menu.
+// 2. A user clicks on a button or selects an option from the menu.
+// 3. The client sends a request to server to complete the post action, calling DoPostAction below.
+// 4. DoPostAction will send an HTTP POST request to the integration containing contextual data, including
+// an encoded and signed trigger ID. Slash commands also include trigger IDs in their payloads.
+// 5. The integration performs any actions it needs to and optionally makes a request back to the MM server
+// using the trigger ID to open an interactive dialog.
+// 6. If that optionalr request is made, OpenInteractiveDialog sends a WebSocket event to all connected clients
+// for the relevant user, telling them to display the dialog.
+// 7. The user fills in the dialog and submits it, where SubmitInteractiveDialog will submit it back to the
+// integration for handling.
+
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -111,8 +126,8 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
-func (a *App) DoActionRequest(rawURL string, body string) (*http.Response, *model.AppError) {
-	req, _ := http.NewRequest("POST", rawURL, strings.NewReader(body))
+func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	req, _ := http.NewRequest("POST", rawURL, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
@@ -166,7 +181,7 @@ func (a *App) SubmitInteractiveDialog(request model.SubmitDialogRequest) *model.
 		return model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
 	}
 
-	resp, err := a.DoActionRequest(url, string(b))
+	resp, err := a.DoActionRequest(url, b)
 	if resp != nil {
 		consumeAndClose(resp)
 	}

@@ -108,9 +108,9 @@ type SubmitDialogRequest struct {
 	Submission map[string]interface{} `json:"submission"`
 }
 
-func (r *PostActionIntegrationRequest) ToJson() string {
+func (r *PostActionIntegrationRequest) ToJson() []byte {
 	b, _ := json.Marshal(r)
-	return string(b)
+	return b
 }
 
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
@@ -192,7 +192,7 @@ func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey) (strin
 	return DecodeAndVerifyTriggerId(r.TriggerId, s)
 }
 
-func PostActionIntegrationRequesteFromJson(data io.Reader) *PostActionIntegrationRequest {
+func PostActionIntegrationRequestFromJson(data io.Reader) *PostActionIntegrationRequest {
 	var o *PostActionIntegrationRequest
 	err := json.NewDecoder(data).Decode(&o)
 	if err != nil {
@@ -201,9 +201,9 @@ func PostActionIntegrationRequesteFromJson(data io.Reader) *PostActionIntegratio
 	return o
 }
 
-func (r *PostActionIntegrationResponse) ToJson() string {
+func (r *PostActionIntegrationResponse) ToJson() []byte {
 	b, _ := json.Marshal(r)
-	return string(b)
+	return b
 }
 
 func PostActionIntegrationResponseFromJson(data io.Reader) *PostActionIntegrationResponse {

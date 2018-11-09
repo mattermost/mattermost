@@ -26,7 +26,7 @@ func TestPostAction(t *testing.T) {
 	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := model.PostActionIntegrationRequesteFromJson(r.Body)
+		request := model.PostActionIntegrationRequestFromJson(r.Body)
 		assert.NotNil(t, request)
 
 		assert.Equal(t, request.UserId, th.BasicUser.Id)

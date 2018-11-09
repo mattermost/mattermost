@@ -4,10 +4,12 @@
 package model
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -78,4 +80,32 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", err.Id)
 	})
+}
+
+func TestPostActionIntegrationRequestToJson(t *testing.T) {
+	o := PostActionIntegrationRequest{UserId: NewId(), Context: StringInterface{"a": "abc"}}
+	j := o.ToJson()
+	ro := PostActionIntegrationRequestFromJson(bytes.NewReader(j))
+
+	assert.NotNil(t, ro)
+	assert.Equal(t, o, *ro)
+}
+
+func TestPostActionIntegrationRequestFromJsonError(t *testing.T) {
+	ro := PostActionIntegrationRequestFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
+}
+
+func TestPostActionIntegrationResponseToJson(t *testing.T) {
+	o := PostActionIntegrationResponse{Update: &Post{Id: NewId(), Message: NewId()}, EphemeralText: NewId()}
+	j := o.ToJson()
+	ro := PostActionIntegrationResponseFromJson(bytes.NewReader(j))
+
+	assert.NotNil(t, ro)
+	assert.Equal(t, o, *ro)
+}
+
+func TestPostActionIntegrationResponseFromJsonError(t *testing.T) {
+	ro := PostActionIntegrationResponseFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
 }
