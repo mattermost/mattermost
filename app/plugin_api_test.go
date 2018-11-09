@@ -265,9 +265,9 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		require.True(t, activated)
 		pluginManifests = append(pluginManifests, manifest)
 	}
-	th.App.Srv.Plugins = env
+	th.App.SetPluginsEnvironment(env)
 
-	// Decative the last one for testing
+	// Decativate the last one for testing
 	sucess := env.Deactivate(pluginIDs[len(pluginIDs)-1])
 	require.True(t, sucess)
 
