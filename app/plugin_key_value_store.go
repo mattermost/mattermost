@@ -23,14 +23,13 @@ func (a *App) SetPluginKey(pluginId string, key string, value []byte) *model.App
 }
 
 func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, expireInSeconds int64) *model.AppError {
-
 	if expireInSeconds > 0 {
 		expireInSeconds = model.GetMillis() + (expireInSeconds * 1000)
 	}
 
 	kv := &model.PluginKeyValue{
 		PluginId: pluginId,
-		Key:      getKeyHash(key),
+		Key:      key,
 		Value:    value,
 		ExpireAt: expireInSeconds,
 	}
@@ -45,8 +44,19 @@ func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, 
 }
 
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
-	result := <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key))
+	result := <-a.Srv.Store.Plugin().Get(pluginId, key)
 
+	if result.Err == nil {
+		kv := result.Data.(*model.PluginKeyValue)
+		return kv.Value, nil
+	} else if result.Err != nil {
+		if result.Err.StatusCode != http.StatusNotFound {
+			mlog.Error(result.Err.Error())
+			return nil, result.Err
+		}
+	}
+
+	result = <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key))
 	if result.Err != nil {
 		if result.Err.StatusCode == http.StatusNotFound {
 			return nil, nil
@@ -54,15 +64,19 @@ func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError
 		mlog.Error(result.Err.Error())
 		return nil, result.Err
 	}
-
 	kv := result.Data.(*model.PluginKeyValue)
-
 	return kv.Value, nil
 }
 
 func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
 	result := <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key))
 
+	if result.Err != nil {
+		mlog.Error(result.Err.Error())
+	}
+
+	// Also delete the key without hashing
+	result = <-a.Srv.Store.Plugin().Delete(pluginId, key)
 	if result.Err != nil {
 		mlog.Error(result.Err.Error())
 	}

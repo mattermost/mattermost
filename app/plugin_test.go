@@ -50,17 +50,15 @@ func TestPluginKeyValueStore(t *testing.T) {
 
 	// Test ListKeys
 	assert.Nil(t, th.App.SetPluginKey(pluginId, "key2", []byte("test")))
-	hashedKey := getHashedKey("key")
-	hashedKey2 := getHashedKey("key2")
 	list, err := th.App.ListPluginKeys(pluginId, 0, 1)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(list))
-	assert.Equal(t, hashedKey, list[0])
+	assert.Equal(t, "key", list[0])
 
 	list, err = th.App.ListPluginKeys(pluginId, 1, 1)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(list))
-	assert.Equal(t, hashedKey2, list[0])
+	assert.Equal(t, "key2", list[0])
 
 	//List Keys bad input
 	list, err = th.App.ListPluginKeys(pluginId, 0, 0)
