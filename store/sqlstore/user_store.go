@@ -94,11 +94,11 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
 	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		us.CreateIndexIfNotExists("idx_users_email_lower", "Users", "lower(Email)")
-		us.CreateIndexIfNotExists("idx_users_username_lower", "Users", "lower(Username)")
-		us.CreateIndexIfNotExists("idx_users_nickname_lower", "Users", "lower(Nickname)")
-		us.CreateIndexIfNotExists("idx_users_firstname_lower", "Users", "lower(FirstName)")
-		us.CreateIndexIfNotExists("idx_users_lastname_lower", "Users", "lower(LastName)")
+		us.CreateIndexIfNotExists("idx_users_email_lower_textpattern", "Users", "lower(Email) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_username_lower_textpattern", "Users", "lower(Username) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_nickname_lower_textpattern", "Users", "lower(Nickname) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_firstname_lower_textpattern", "Users", "lower(FirstName) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_lastname_lower_textpattern", "Users", "lower(LastName) text_pattern_ops")
 	}
 
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
