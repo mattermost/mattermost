@@ -10,7 +10,7 @@
 // an encoded and signed trigger ID. Slash commands also include trigger IDs in their payloads.
 // 5. The integration performs any actions it needs to and optionally makes a request back to the MM server
 // using the trigger ID to open an interactive dialog.
-// 6. If that optionalr request is made, OpenInteractiveDialog sends a WebSocket event to all connected clients
+// 6. If that optional request is made, OpenInteractiveDialog sends a WebSocket event to all connected clients
 // for the relevant user, telling them to display the dialog.
 // 7. The user fills in the dialog and submits it, where SubmitInteractiveDialog will submit it back to the
 // integration for handling.
