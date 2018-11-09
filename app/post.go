@@ -612,13 +612,13 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
 	return ""
 }
 
-func (a *App) GetPreviousPostIdFromPostList(postList *model.PostList) string {
+func (a *App) GetPrevPostIdFromPostList(postList *model.PostList) string {
 	if len(postList.Order) > 0 {
 		lastPostId := postList.Order[len(postList.Order)-1]
 		lastPost := postList.Posts[lastPostId]
 		previousPost, err := a.GetPostBeforeTime(lastPost.ChannelId, lastPost.CreateAt)
 		if err != nil {
-			mlog.Error("GetPreviousPostIdFromPostList: failed in getting previous post", mlog.Any("err", err))
+			mlog.Error("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Any("err", err))
 		}
 
 		if previousPost != nil {
@@ -627,6 +627,50 @@ func (a *App) GetPreviousPostIdFromPostList(postList *model.PostList) string {
 	}
 
 	return ""
+}
+
+// AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
+// The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
+// and only query to database whenever necessary.
+func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int) {
+	prevPostIdSet := false
+	prevPostId := ""
+	nextPostIdSet := false
+	nextPostId := ""
+
+	if since > 0 { // "since" query to return empty NextPostId and PrevPostId
+		nextPostIdSet = true
+		prevPostIdSet = true
+	} else if afterPost != "" {
+		if page == 0 {
+			prevPostId = afterPost
+			prevPostIdSet = true
+		}
+
+		if len(originalList.Order) < perPage {
+			nextPostIdSet = true
+		}
+	} else if beforePost != "" {
+		if page == 0 {
+			nextPostId = beforePost
+			nextPostIdSet = true
+		}
+
+		if len(originalList.Order) < perPage {
+			prevPostIdSet = true
+		}
+	}
+
+	if !nextPostIdSet {
+		nextPostId = a.GetNextPostIdFromPostList(originalList)
+	}
+
+	if !prevPostIdSet {
+		prevPostId = a.GetPrevPostIdFromPostList(originalList)
+	}
+
+	originalList.NextPostId = nextPostId
+	originalList.PrevPostId = prevPostId
 }
 
 func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int) (*model.PostList, *model.AppError) {
