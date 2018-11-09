@@ -127,14 +127,79 @@ func (a *App) triggerReminders() {
 									{
 										Integration: &model.PostActionIntegration{
 											Context: model.StringInterface{
-												"s": "foo",
-												"n": 3,
+												"reminderId": reminder.Id,
+												"occurrenceId": occurrence.Id,
 											},
-											URL: "http://remind", 	// TODO : mattermost:// as the scheme, and handle it for all things
+											URL: "mattermost://remind",
 										},
-										Name:       "action",
-										Type:       "some_type",
-										DataSource: "some_source",
+										Name:       "Mark as Complete",
+										Type:       "complete",
+									},
+									{
+										Integration: &model.PostActionIntegration{
+											Context: model.StringInterface{
+												"reminderId": reminder.Id,
+												"occurrenceId": occurrence.Id,
+											},
+											URL: "mattermost://remind",
+										},
+										Name:       "Delete",
+										Type:       "delete",
+									},
+									{
+										Integration: &model.PostActionIntegration{
+											Context: model.StringInterface{
+												"reminderId": reminder.Id,
+												"occurrenceId": occurrence.Id,
+											},
+											URL: "mattermost://remind",
+										},
+										Name:       "Snooze 20 minutes",
+										Type:       "snooze_20_min",
+									},
+									{
+										Integration: &model.PostActionIntegration{
+											Context: model.StringInterface{
+												"reminderId": reminder.Id,
+												"occurrenceId": occurrence.Id,
+											},
+											URL: "mattermost://remind",
+										},
+										Name:       "Snooze 1 hour",
+										Type:       "snooze_1_hr",
+									},
+									{
+										Integration: &model.PostActionIntegration{
+											Context: model.StringInterface{
+												"reminderId": reminder.Id,
+												"occurrenceId": occurrence.Id,
+											},
+											URL: "mattermost://remind",
+										},
+										Name:       "Snooze 3 hours",
+										Type:       "snooze_3_hrs",
+									},
+									{
+										Integration: &model.PostActionIntegration{
+											Context: model.StringInterface{
+												"reminderId": reminder.Id,
+												"occurrenceId": occurrence.Id,
+											},
+											URL: "mattermost://remind",
+										},
+										Name:       "Tomorrow at 9AM",
+										Type:       "snooze_tomorrow",
+									},
+									{
+										Integration: &model.PostActionIntegration{
+											Context: model.StringInterface{
+												"reminderId": reminder.Id,
+												"occurrenceId": occurrence.Id,
+											},
+											URL: "mattermost://remind",
+										},
+										Name:       "Next week",
+										Type:       "next_week",
 									},
 								},
 							},
@@ -207,19 +272,21 @@ func (a *App) triggerReminders() {
 func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string) (error){
 
 	update := &model.Post{}
-	update.Message = "~~"+post.Message+"~~"
+	update.Message = "~~"+post.Message+"~~\n"+"Ok! I’ve marked the reminder \""+post.Message+"\" as complete."
 	update.Id = post.Id
 	if _, err := a.UpdatePost(update, false); err != nil {
 		return err
 	}
 
-	ephemeralPost := &model.Post{}
+	mlog.Info(fmt.Sprintf("%v", action.Integration.Context))
 
-	ephemeralPost.Message = "Ok! I’ve marked the reminder \""+post.Message+"\" as complete."
-	ephemeralPost.RootId = post.RootId
-	ephemeralPost.UserId = post.UserId
-	ephemeralPost.ChannelId = post.ChannelId
-	a.SendEphemeralPost(userId, ephemeralPost)
+	//ephemeralPost := &model.Post{}
+	//
+	//ephemeralPost.Message = "Ok! I’ve marked the reminder \""+post.Message+"\" as complete."
+	//ephemeralPost.RootId = post.RootId
+	//ephemeralPost.UserId = post.UserId
+	//ephemeralPost.ChannelId = post.ChannelId
+	//a.SendEphemeralPost(userId, ephemeralPost)
 
 	return nil
 

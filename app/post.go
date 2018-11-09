@@ -883,6 +883,15 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *mod
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 	}
 
+	u, _ := url.Parse(action.Integration.URL)
+	if u.Scheme == "mattermost" {
+		switch u.Host {
+		case "remind":
+			a.UpdateReminder(post, action, userId)
+		}
+		return nil
+	}
+
 	request := &model.PostActionIntegrationRequest{
 		UserId:    userId,
 		ChannelId: post.ChannelId,
