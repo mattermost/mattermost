@@ -530,7 +530,12 @@ type TermsOfServiceStore interface {
 	Get(id string, allowFromCache bool) StoreChannel
 }
 
-<<<<<<< HEAD
+type UserTermsOfServiceStore interface {
+	GetByUser(userId string) StoreChannel
+	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
+	Delete(userId, termsOfServiceId string) StoreChannel
+}
+
 type GroupStore interface {
 	Create(group *model.Group) StoreChannel
 	Get(groupID string) StoreChannel
@@ -551,10 +556,4 @@ type GroupStore interface {
 
 	PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel
 	PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel
-=======
-type UserTermsOfServiceStore interface {
-	GetByUser(userId string) StoreChannel
-	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
-	Delete(userId, termsOfServiceId string) StoreChannel
->>>>>>> origin/master
 }
