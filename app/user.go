@@ -1622,22 +1622,3 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 	return nil
 }
-
-func (a *App) RecordUserTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) *model.AppError {
-	user, err := a.GetUser(userId)
-	if err != nil {
-		return err
-	}
-
-	if accepted {
-		user.AcceptedTermsOfServiceId = termsOfServiceId
-	} else {
-		user.AcceptedTermsOfServiceId = ""
-	}
-	_, err = a.UpdateUser(user, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}

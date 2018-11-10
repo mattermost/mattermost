@@ -94,6 +94,7 @@ type SqlSupplierOldStores struct {
 	role                 store.RoleStore
 	scheme               store.SchemeStore
 	TermsOfService       store.TermsOfServiceStore
+	UserTermsOfService   store.UserTermsOfServiceStore
 }
 
 type SqlSupplier struct {
@@ -144,6 +145,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.channelMemberHistory = NewSqlChannelMemberHistoryStore(supplier)
 	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
 	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
+	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
@@ -181,6 +183,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
 	supplier.oldStores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
 	supplier.oldStores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
+	supplier.oldStores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -968,6 +971,10 @@ func (ss *SqlSupplier) Role() store.RoleStore {
 
 func (ss *SqlSupplier) TermsOfService() store.TermsOfServiceStore {
 	return ss.oldStores.TermsOfService
+}
+
+func (ss *SqlSupplier) UserTermsOfService() store.UserTermsOfServiceStore {
+	return ss.oldStores.UserTermsOfService
 }
 
 func (ss *SqlSupplier) Scheme() store.SchemeStore {

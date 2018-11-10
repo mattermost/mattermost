@@ -9,6 +9,27 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+// GetPluginStatus returns the status for a plugin installed on this server.
+func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	if a.Srv.Plugins == nil || !*a.Config().PluginSettings.Enable {
+		return nil, model.NewAppError("GetPluginStatus", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	pluginStatuses, err := a.Srv.Plugins.Statuses()
+	if err != nil {
+		return nil, model.NewAppError("GetPluginStatus", "app.plugin.get_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Add our cluster ID
+	for _, status := range pluginStatuses {
+		if status.PluginId == id {
+			status.ClusterId = a.GetClusterId()
+			return status, nil
+		}
+	}
+	return nil, model.NewAppError("GetPluginStatus", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+}
+
 // GetPluginStatuses returns the status for plugins installed on this server.
 func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	if a.Srv.Plugins == nil || !*a.Config().PluginSettings.Enable {

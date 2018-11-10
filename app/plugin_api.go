@@ -438,6 +438,41 @@ func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppE
 	return api.app.GetEmojiImage(emojiId)
 }
 
+// Plugin Section
+
+func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {
+	plugins, err := api.app.GetPlugins()
+	if err != nil {
+		return nil, err
+	}
+	var manifests []*model.Manifest
+	for _, manifest := range plugins.Active {
+		manifests = append(manifests, &manifest.Manifest)
+	}
+	for _, manifest := range plugins.Inactive {
+		manifests = append(manifests, &manifest.Manifest)
+	}
+	return manifests, nil
+}
+
+func (api *PluginAPI) EnablePlugin(id string) *model.AppError {
+	return api.app.EnablePlugin(id)
+}
+
+func (api *PluginAPI) DisablePlugin(id string) *model.AppError {
+	return api.app.DisablePlugin(id)
+}
+
+func (api *PluginAPI) RemovePlugin(id string) *model.AppError {
+	return api.app.RemovePlugin(id)
+}
+
+func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	return api.app.GetPluginStatus(id)
+}
+
+// KV Store Section
+
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }
