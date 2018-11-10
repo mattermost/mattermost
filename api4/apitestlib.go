@@ -196,6 +196,10 @@ func (me *TestHelper) TearDown() {
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
+	me.SystemAdminUser = me.CreateUser()
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	me.LoginSystemAdmin()
+
 	me.TeamAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.LoginTeamAdmin()
@@ -220,16 +224,6 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.Client.DeleteChannel(me.BasicDeletedChannel.Id)
 	me.LoginBasic()
-
-	return me
-}
-
-func (me *TestHelper) InitSystemAdmin() *TestHelper {
-	me.waitForConnectivity()
-
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.LoginSystemAdmin()
 
 	return me
 }
