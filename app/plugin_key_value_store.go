@@ -34,6 +34,9 @@ func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, 
 		ExpireAt: expireInSeconds,
 	}
 
+	// First try deleting hashed key, then set using unhashed key
+	_ = <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key))
+
 	result := <-a.Srv.Store.Plugin().SaveOrUpdate(kv)
 
 	if result.Err != nil {
@@ -64,7 +67,20 @@ func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError
 		mlog.Error(result.Err.Error())
 		return nil, result.Err
 	}
+
 	kv := result.Data.(*model.PluginKeyValue)
+
+	// If we are here that means we are using old hashed key. Remove it and insert the new key without hashing it
+	_ = <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key))
+
+	// Insert the key without hashing
+	err := a.SetPluginKeyWithExpiry(pluginId, key, kv.Value, kv.ExpireAt)
+	if err != nil {
+		// Setting the key failed at this point and we will not be able to fetch the key again so return error
+		mlog.Error(err.Error())
+		return nil, err
+	}
+	// return the fetched value
 	return kv.Value, nil
 }
 
