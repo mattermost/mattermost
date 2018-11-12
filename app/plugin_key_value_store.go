@@ -52,11 +52,6 @@ func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError
 	if result.Err == nil {
 		kv := result.Data.(*model.PluginKeyValue)
 		return kv.Value, nil
-	} else if result.Err != nil {
-		if result.Err.StatusCode != http.StatusNotFound {
-			mlog.Error(result.Err.Error())
-			return nil, result.Err
-		}
 	}
 
 	result = <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key))
