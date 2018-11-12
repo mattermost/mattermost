@@ -948,7 +948,7 @@
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
-    "translation": "Bitte geben Sie den Text für Ihre benutzerdefinierten Nutzungsbedingungen ein."
+    "translation": "Bitte geben Sie den Text für ihre benutzerdefinierten Nutzungsbedingungen ein."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -4712,7 +4712,7 @@
   },
   {
     "id": "model.terms_of_service.is_valid.text.app_error",
-    "translation": "Benutzerdefinierte Nutzungsbedingungen ist zu lang. Maximal {{.MaxLength}} Zeichen erlaubt."
+    "translation": "Benutzerdefinierte Nutzungsbedingungen sind zu lang. Maximal {{.MaxLength}} Zeichen erlaubt."
   },
   {
     "id": "model.terms_of_service.is_valid.user_id.app_error",
@@ -5060,7 +5060,7 @@
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
+    "translation": "Deaktivierte Nutzer konnten nicht aus dem Kanal entfernt werden."
   },
   {
     "id": "store.sql_channel.remove_member.app_error",

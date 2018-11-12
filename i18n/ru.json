@@ -2736,7 +2736,7 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Import emoji data empty."
+    "translation": "Нет данных об эмоджи для импорта."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
