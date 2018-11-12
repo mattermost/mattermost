@@ -1166,7 +1166,7 @@ func generateSearchQuery(searchQuery string, terms []string, fields []string, pa
 			}
 		}
 		searchTerms = append(searchTerms, fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")))
-		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
+		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
 	}
 
 	searchClause := strings.Join(searchTerms, " AND ")
