@@ -179,10 +179,9 @@ func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*m
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(user, true)
 }
-func (api *PluginAPI) UpdateUserActive(user *model.User) (*model.Status, *model.AppError) {
-	return api.app.UpdateUserActive(user, true)
+func (api *PluginAPI) UpdateUserActive(userId string, active bool) (bool, *model.AppError) {
+	return api.app.UpdateUserActive(userId, active)
 }
-
 
 func (api *PluginAPI) GetUserStatus(userId string) (*model.Status, *model.AppError) {
 	return api.app.GetStatus(userId)

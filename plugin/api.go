@@ -78,8 +78,7 @@ type API interface {
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
 	// UpdateUserActive updates status of a user whether active or not.
-	UpdateUserActive(userId, active bool) (*model.Status, *model.AppError)
-
+	UpdateUserActive(userId string, active bool) (bool, *model.AppError)
 
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 	// The sortBy parameter can be: "username" or "status".
