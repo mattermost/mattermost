@@ -205,6 +205,22 @@ func (_m *GroupStore) GetMemberUsers(groupID string) store.StoreChannel {
 	return r0
 }
 
+// GetMemberUsersPage provides a mock function with given fields: groupID, offset, limit
+func (_m *GroupStore) GetMemberUsersPage(groupID string, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(groupID, offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(groupID, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // PendingAutoAddChannelMembers provides a mock function with given fields: minGroupMembersCreateAt
 func (_m *GroupStore) PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) store.StoreChannel {
 	ret := _m.Called(minGroupMembersCreateAt)

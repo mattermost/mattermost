@@ -63,6 +63,14 @@ func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppErro
 	return result.Data.([]*model.User), nil
 }
 
+func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.Group().GetMemberUsersPage(groupID, page, perPage)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
+}
+
 func (a *App) CreateOrRestoreGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	result := <-a.Srv.Store.Group().CreateOrRestoreMember(groupID, userID)
 	if result.Err != nil {

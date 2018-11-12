@@ -252,6 +252,40 @@ func (s *SqlSupplier) GroupGetMemberUsers(stc context.Context, groupID string, h
 	return result
 }
 
+func (s *SqlSupplier) GroupGetMemberUsersPage(stc context.Context, groupID string, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	var groupMembers []*model.User
+
+	query := `
+		SELECT 
+			Users.* 
+		FROM 
+			GroupMembers 
+			JOIN Users ON Users.Id = GroupMembers.UserId
+		WHERE 
+			GroupMembers.DeleteAt = 0 
+			AND Users.DeleteAt = 0
+			AND GroupId = :GroupId
+		ORDER BY
+			Users.Username ASC
+		LIMIT
+			:Limit
+		OFFSET
+			:Offset`
+
+	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}); err != nil {
+		if err != sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlGroupStore.GroupGetMemberUsersPage", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
+			return result
+		}
+	}
+
+	result.Data = groupMembers
+
+	return result
+}
+
 func (s *SqlSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID string, userID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 

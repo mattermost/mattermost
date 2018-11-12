@@ -55,6 +55,10 @@ func (api *API) InitGroup() {
 		api.BaseRoutes.Groups.Handle(fmt.Sprintf("/{group_id:[A-Za-z0-9]+}/%[1]ss/{%[1]s_id:[A-Za-z0-9]+}/patch",
 			name), api.ApiSessionRequired(patchGroupSyncable(syncableType))).Methods("PUT")
 	}
+
+	// GET /api/v4/groups/:group_id/members?page=0&per_page=100
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
+		api.ApiSessionRequiredTrustRequester(getGroupMembers)).Methods("GET")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -425,4 +429,25 @@ func unlinkGroupSyncable(syncableType model.GroupSyncableType) func(*Context, ht
 		w.WriteHeader(http.StatusNoContent)
 		w.Write(nil)
 	}
+}
+
+func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	members, err := c.App.GetGroupMemberUsersPage(c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(members)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupMembers", "api.group.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
 }

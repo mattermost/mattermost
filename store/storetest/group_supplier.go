@@ -21,6 +21,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
+	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, ss) })
 	t.Run("CreateOrRestoreMember", func(t *testing.T) { testGroupCreateOrRestoreMember(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
 
@@ -451,6 +452,74 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 
 	// Should not return deleted members
 	res = <-ss.Group().GetMemberUsers(group.Id)
+	groupMembers = res.Data.([]*model.User)
+	assert.Equal(t, 1, len(groupMembers))
+}
+
+func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Type:        model.GroupTypeLdap,
+		RemoteId:    model.NewId(),
+	}
+	res := <-ss.Group().Create(g1)
+	assert.Nil(t, res.Err)
+	group := res.Data.(*model.Group)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(u1)
+	assert.Nil(t, res.Err)
+	user1 := res.Data.(*model.User)
+
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user1.Id)
+	assert.Nil(t, res.Err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(u2)
+	assert.Nil(t, res.Err)
+	user2 := res.Data.(*model.User)
+
+	res = <-ss.Group().CreateOrRestoreMember(group.Id, user2.Id)
+	assert.Nil(t, res.Err)
+
+	// Check returns members
+	res = <-ss.Group().GetMemberUsersPage(group.Id, 0, 100)
+	assert.Nil(t, res.Err)
+	groupMembers := res.Data.([]*model.User)
+	assert.Equal(t, 2, len(groupMembers))
+
+	// Check page 1
+	res = <-ss.Group().GetMemberUsersPage(group.Id, 0, 1)
+	assert.Nil(t, res.Err)
+	groupMembers = res.Data.([]*model.User)
+	assert.Equal(t, 1, len(groupMembers))
+	assert.Equal(t, user1.Id, groupMembers[0].Id)
+
+	// Check page 2
+	res = <-ss.Group().GetMemberUsersPage(group.Id, 1, 1)
+	assert.Nil(t, res.Err)
+	groupMembers = res.Data.([]*model.User)
+	assert.Equal(t, 1, len(groupMembers))
+	assert.Equal(t, user2.Id, groupMembers[0].Id)
+
+	// Check madeup id
+	res = <-ss.Group().GetMemberUsersPage(model.NewId(), 0, 100)
+	assert.Equal(t, 0, len(res.Data.([]*model.User)))
+
+	// Delete a member
+	<-ss.Group().DeleteMember(group.Id, user1.Id)
+
+	// Should not return deleted members
+	res = <-ss.Group().GetMemberUsersPage(group.Id, 0, 100)
 	groupMembers = res.Data.([]*model.User)
 	assert.Equal(t, 1, len(groupMembers))
 }

@@ -44,6 +44,11 @@ func (s *RedisSupplier) GroupGetMemberUsers(ctx context.Context, groupID string,
 	return s.Next().GroupGetMemberUsers(ctx, groupID, hints...)
 }
 
+func (s *RedisSupplier) GroupGetMemberUsersPage(ctx context.Context, groupID string, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().GroupGetMemberUsersPage(ctx, groupID, offset, limit, hints...)
+}
+
 func (s *RedisSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID string, userID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
 	return s.Next().GroupCreateOrRestoreMember(ctx, groupID, userID, hints...)

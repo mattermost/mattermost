@@ -545,6 +545,7 @@ type GroupStore interface {
 	Delete(groupID string) StoreChannel
 
 	GetMemberUsers(groupID string) StoreChannel
+	GetMemberUsersPage(groupID string, offset int, limit int) StoreChannel
 	CreateOrRestoreMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 
