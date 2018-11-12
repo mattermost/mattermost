@@ -1,0 +1,326 @@
+# github.com/NYTimes/gziphandler v1.0.1
+github.com/NYTimes/gziphandler
+# github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da
+github.com/armon/go-metrics
+# github.com/avct/uasurfer v0.0.0-20180927160713-2ce2c8fcd544
+github.com/avct/uasurfer
+# github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+github.com/beorn7/perks/quantile
+# github.com/blang/semver v3.5.1+incompatible
+github.com/blang/semver
+# github.com/corpix/uarand v0.0.0-20170903190822-2b8494104d86
+github.com/corpix/uarand
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
+# github.com/dgryski/dgoogauth v0.0.0-20171123172744-fd153d5969d3
+github.com/dgryski/dgoogauth
+# github.com/disintegration/imaging v1.5.0
+github.com/disintegration/imaging
+# github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
+github.com/dyatlov/go-opengraph/opengraph
+# github.com/fsnotify/fsnotify v1.4.7
+github.com/fsnotify/fsnotify
+# github.com/go-ini/ini v1.38.2
+github.com/go-ini/ini
+# github.com/go-ldap/ldap v2.5.1+incompatible
+github.com/go-ldap/ldap
+# github.com/go-redis/redis v6.14.1+incompatible
+github.com/go-redis/redis
+github.com/go-redis/redis/internal
+github.com/go-redis/redis/internal/consistenthash
+github.com/go-redis/redis/internal/hashtag
+github.com/go-redis/redis/internal/pool
+github.com/go-redis/redis/internal/proto
+github.com/go-redis/redis/internal/singleflight
+github.com/go-redis/redis/internal/util
+# github.com/go-sql-driver/mysql v1.4.0
+github.com/go-sql-driver/mysql
+# github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+github.com/golang/freetype
+github.com/golang/freetype/truetype
+github.com/golang/freetype/raster
+# github.com/golang/protobuf v1.2.0
+github.com/golang/protobuf/proto
+github.com/golang/protobuf/ptypes
+github.com/golang/protobuf/ptypes/any
+github.com/golang/protobuf/ptypes/duration
+github.com/golang/protobuf/ptypes/timestamp
+# github.com/google/uuid v1.0.0
+github.com/google/uuid
+# github.com/gorilla/context v1.1.1
+github.com/gorilla/context
+# github.com/gorilla/handlers v1.4.0
+github.com/gorilla/handlers
+# github.com/gorilla/mux v1.6.2
+github.com/gorilla/mux
+# github.com/gorilla/schema v1.0.2
+github.com/gorilla/schema
+# github.com/gorilla/websocket v1.4.0
+github.com/gorilla/websocket
+# github.com/hako/durafmt v0.0.0-20180520121703-7b7ae1e72ead
+github.com/hako/durafmt
+# github.com/hashicorp/errwrap v1.0.0
+github.com/hashicorp/errwrap
+# github.com/hashicorp/go-hclog v0.0.0-20180910232447-e45cbeb79f04
+github.com/hashicorp/go-hclog
+# github.com/hashicorp/go-immutable-radix v1.0.0
+github.com/hashicorp/go-immutable-radix
+# github.com/hashicorp/go-msgpack v0.0.0-20150518234257-fa3f63826f7c
+github.com/hashicorp/go-msgpack/codec
+# github.com/hashicorp/go-multierror v1.0.0
+github.com/hashicorp/go-multierror
+# github.com/hashicorp/go-plugin v0.0.0-20180814222501-a4620f9913d1
+github.com/hashicorp/go-plugin
+# github.com/hashicorp/go-sockaddr v0.0.0-20180320115054-6d291a969b86
+github.com/hashicorp/go-sockaddr
+# github.com/hashicorp/golang-lru v0.5.0
+github.com/hashicorp/golang-lru
+github.com/hashicorp/golang-lru/simplelru
+# github.com/hashicorp/hcl v1.0.0
+github.com/hashicorp/hcl
+github.com/hashicorp/hcl/hcl/printer
+github.com/hashicorp/hcl/hcl/ast
+github.com/hashicorp/hcl/hcl/parser
+github.com/hashicorp/hcl/hcl/token
+github.com/hashicorp/hcl/json/parser
+github.com/hashicorp/hcl/hcl/scanner
+github.com/hashicorp/hcl/hcl/strconv
+github.com/hashicorp/hcl/json/scanner
+github.com/hashicorp/hcl/json/token
+# github.com/hashicorp/memberlist v0.0.0-20180809140454-b195c8e4fcc6
+github.com/hashicorp/memberlist
+# github.com/hashicorp/yamux v0.0.0-20180917205041-7221087c3d28
+github.com/hashicorp/yamux
+# github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
+github.com/icrowley/fake
+# github.com/inconshreveable/mousetrap v1.0.0
+github.com/inconshreveable/mousetrap
+# github.com/jaytaylor/html2text v0.0.0-20180606194806-57d518f124b0
+github.com/jaytaylor/html2text
+# github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869
+github.com/jehiah/go-strftime
+# github.com/konsorten/go-windows-terminal-sequences v1.0.1
+github.com/konsorten/go-windows-terminal-sequences
+# github.com/lib/pq v1.0.0
+github.com/lib/pq
+github.com/lib/pq/oid
+# github.com/magiconair/properties v1.8.0
+github.com/magiconair/properties
+# github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329
+github.com/mailru/easyjson
+github.com/mailru/easyjson/jlexer
+github.com/mailru/easyjson/jwriter
+github.com/mailru/easyjson/buffer
+# github.com/mattermost/gorp v0.0.0-20180406155236-520a119fe353
+github.com/mattermost/gorp
+# github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
+github.com/mattermost/rsc/qr
+github.com/mattermost/rsc/qr/coding
+github.com/mattermost/rsc/gf256
+# github.com/mattermost/viper v1.0.1-0.20181112161711-f99c30686b86
+github.com/mattermost/viper
+# github.com/mattn/go-runewidth v0.0.3
+github.com/mattn/go-runewidth
+# github.com/mattn/go-sqlite3 v1.9.0
+github.com/mattn/go-sqlite3
+# github.com/matttproud/golang_protobuf_extensions v1.0.1
+github.com/matttproud/golang_protobuf_extensions/pbutil
+# github.com/miekg/dns v1.0.10
+github.com/miekg/dns
+# github.com/minio/minio-go v6.0.7+incompatible
+github.com/minio/minio-go
+github.com/minio/minio-go/pkg/credentials
+github.com/minio/minio-go/pkg/encrypt
+github.com/minio/minio-go/pkg/s3signer
+github.com/minio/minio-go/pkg/s3utils
+github.com/minio/minio-go/pkg/set
+# github.com/mitchellh/go-homedir v1.0.0
+github.com/mitchellh/go-homedir
+# github.com/mitchellh/go-testing-interface v1.0.0
+github.com/mitchellh/go-testing-interface
+# github.com/mitchellh/mapstructure v1.0.0
+github.com/mitchellh/mapstructure
+# github.com/nicksnyder/go-i18n v1.10.0
+github.com/nicksnyder/go-i18n/i18n
+github.com/nicksnyder/go-i18n/i18n/bundle
+github.com/nicksnyder/go-i18n/i18n/language
+github.com/nicksnyder/go-i18n/i18n/translation
+# github.com/oklog/run v1.0.0
+github.com/oklog/run
+# github.com/olekukonko/tablewriter v0.0.0-20180912035003-be2c049b30cc
+github.com/olekukonko/tablewriter
+# github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709
+github.com/pborman/uuid
+# github.com/pelletier/go-toml v1.2.0
+github.com/pelletier/go-toml
+# github.com/pkg/errors v0.8.0
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/prometheus/client_golang v0.8.0
+github.com/prometheus/client_golang/prometheus
+github.com/prometheus/client_golang/prometheus/promhttp
+# github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+github.com/prometheus/client_model/go
+# github.com/prometheus/common v0.0.0-20180801064454-c7de2306084e
+github.com/prometheus/common/expfmt
+github.com/prometheus/common/model
+github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
+# github.com/prometheus/procfs v0.0.0-20180920065004-418d78d0b9a7
+github.com/prometheus/procfs
+github.com/prometheus/procfs/nfs
+github.com/prometheus/procfs/xfs
+github.com/prometheus/procfs/internal/util
+# github.com/rs/cors v1.5.0
+github.com/rs/cors
+# github.com/rwcarlsen/goexif v0.0.0-20180518182100-8d986c03457a
+github.com/rwcarlsen/goexif/exif
+github.com/rwcarlsen/goexif/tiff
+# github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529
+github.com/sean-/seed
+# github.com/segmentio/analytics-go v0.0.0-20160426181448-2d840d861c32
+github.com/segmentio/analytics-go
+# github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c
+github.com/segmentio/backo-go
+# github.com/sirupsen/logrus v1.2.0
+github.com/sirupsen/logrus
+# github.com/spf13/afero v1.1.2
+github.com/spf13/afero
+github.com/spf13/afero/mem
+# github.com/spf13/cast v1.2.0
+github.com/spf13/cast
+# github.com/spf13/cobra v0.0.3
+github.com/spf13/cobra
+# github.com/spf13/jwalterweatherman v1.0.0
+github.com/spf13/jwalterweatherman
+# github.com/spf13/pflag v1.0.2
+github.com/spf13/pflag
+# github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
+github.com/ssor/bom
+# github.com/stretchr/objx v0.1.1
+github.com/stretchr/objx
+# github.com/stretchr/testify v1.2.2
+github.com/stretchr/testify/require
+github.com/stretchr/testify/mock
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/suite
+# github.com/throttled/throttled v2.2.1+incompatible
+github.com/throttled/throttled
+github.com/throttled/throttled/store/memstore
+# github.com/tylerb/graceful v1.2.15
+github.com/tylerb/graceful
+# github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
+github.com/xtgo/uuid
+# go.uber.org/atomic v1.3.2
+go.uber.org/atomic
+# go.uber.org/multierr v1.1.0
+go.uber.org/multierr
+# go.uber.org/zap v1.9.1
+go.uber.org/zap
+go.uber.org/zap/zapcore
+go.uber.org/zap/internal/bufferpool
+go.uber.org/zap/buffer
+go.uber.org/zap/internal/color
+go.uber.org/zap/internal/exit
+# golang.org/x/crypto v0.0.0-20180927165925-5295e8364332
+golang.org/x/crypto/acme/autocert
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/acme
+golang.org/x/crypto/ssh/terminal
+golang.org/x/crypto/blowfish
+golang.org/x/crypto/argon2
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/blake2b
+golang.org/x/crypto/ed25519/internal/edwards25519
+# golang.org/x/image v0.0.0-20180926015637-991ec62608f3
+golang.org/x/image/bmp
+golang.org/x/image/tiff
+golang.org/x/image/font
+golang.org/x/image/math/fixed
+golang.org/x/image/tiff/lzw
+# golang.org/x/net v0.0.0-20180926154720-4dfa2610cdf3
+golang.org/x/net/html/charset
+golang.org/x/net/html
+golang.org/x/net/html/atom
+golang.org/x/net/http/httpguts
+golang.org/x/net/context
+golang.org/x/net/idna
+golang.org/x/net/ipv4
+golang.org/x/net/ipv6
+golang.org/x/net/trace
+golang.org/x/net/bpf
+golang.org/x/net/internal/iana
+golang.org/x/net/internal/socket
+golang.org/x/net/internal/timeseries
+golang.org/x/net/http2
+golang.org/x/net/http2/hpack
+# golang.org/x/sys v0.0.0-20180928133829-e4b3c5e90611
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+golang.org/x/sys/cpu
+# golang.org/x/text v0.3.0
+golang.org/x/text/encoding
+golang.org/x/text/encoding/charmap
+golang.org/x/text/encoding/htmlindex
+golang.org/x/text/transform
+golang.org/x/text/encoding/internal/identifier
+golang.org/x/text/encoding/internal
+golang.org/x/text/encoding/japanese
+golang.org/x/text/encoding/korean
+golang.org/x/text/encoding/simplifiedchinese
+golang.org/x/text/encoding/traditionalchinese
+golang.org/x/text/encoding/unicode
+golang.org/x/text/language
+golang.org/x/text/unicode/norm
+golang.org/x/text/secure/bidirule
+golang.org/x/text/unicode/bidi
+golang.org/x/text/internal/utf8internal
+golang.org/x/text/runes
+golang.org/x/text/internal/tag
+# google.golang.org/appengine v1.2.0
+google.golang.org/appengine/cloudsql
+# google.golang.org/genproto v0.0.0-20180925191851-0e822944c569
+google.golang.org/genproto/googleapis/rpc/status
+# google.golang.org/grpc v1.15.0
+google.golang.org/grpc
+google.golang.org/grpc/credentials
+google.golang.org/grpc/health
+google.golang.org/grpc/health/grpc_health_v1
+google.golang.org/grpc/balancer
+google.golang.org/grpc/balancer/roundrobin
+google.golang.org/grpc/codes
+google.golang.org/grpc/connectivity
+google.golang.org/grpc/encoding
+google.golang.org/grpc/encoding/proto
+google.golang.org/grpc/grpclog
+google.golang.org/grpc/internal
+google.golang.org/grpc/internal/backoff
+google.golang.org/grpc/internal/channelz
+google.golang.org/grpc/internal/envconfig
+google.golang.org/grpc/internal/grpcrand
+google.golang.org/grpc/internal/transport
+google.golang.org/grpc/keepalive
+google.golang.org/grpc/metadata
+google.golang.org/grpc/naming
+google.golang.org/grpc/peer
+google.golang.org/grpc/resolver
+google.golang.org/grpc/resolver/dns
+google.golang.org/grpc/resolver/passthrough
+google.golang.org/grpc/stats
+google.golang.org/grpc/status
+google.golang.org/grpc/tap
+google.golang.org/grpc/balancer/base
+# gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
+gopkg.in/alexcesaro/quotedprintable.v3
+# gopkg.in/asn1-ber.v1 v1.0.0-20170511165959-379148ca0225
+gopkg.in/asn1-ber.v1
+# gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737
+gopkg.in/gomail.v2
+# gopkg.in/natefinch/lumberjack.v2 v2.0.0-20170531160350-a96e63847dc3
+gopkg.in/natefinch/lumberjack.v2
+# gopkg.in/olivere/elastic.v5 v5.0.76
+gopkg.in/olivere/elastic.v5
+gopkg.in/olivere/elastic.v5/config
+gopkg.in/olivere/elastic.v5/uritemplates
+# gopkg.in/yaml.v2 v2.2.1
+gopkg.in/yaml.v2
