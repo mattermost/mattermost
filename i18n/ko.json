@@ -740,7 +740,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "채널을 불러올 수 없습니다."
+    "translation": "사용자를 찾을 수 없습니다."
   },
   {
     "id": "api.command_msg.name",
