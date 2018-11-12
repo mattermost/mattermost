@@ -61,7 +61,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groups, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage)
+	groups, total, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -85,7 +85,10 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		mugs = append(mugs, mug)
 	}
 
-	b, marshalErr := json.Marshal(mugs)
+	b, marshalErr := json.Marshal(struct {
+		Count  int                         `json:"count"`
+		Groups []*model.MixedUnlinkedGroup `json:"groups"`
+	}{Count: total, Groups: mugs})
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return

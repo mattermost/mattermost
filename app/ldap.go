@@ -60,21 +60,22 @@ func (a *App) GetLdapGroup(uid string) (*model.Group, *model.AppError) {
 
 // GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 // filter.
-func (a *App) GetAllLdapGroupsPage(page int, perPage int) ([]*model.Group, *model.AppError) {
+func (a *App) GetAllLdapGroupsPage(page int, perPage int) ([]*model.Group, int, *model.AppError) {
 	var groups []*model.Group
+	var total int
 
 	if a.Ldap != nil {
 		var err *model.AppError
-		groups, err = a.Ldap.GetAllGroupsPage(page, perPage)
+		groups, total, err = a.Ldap.GetAllGroupsPage(page, perPage)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 	} else {
 		ae := model.NewAppError("GetAllLdapGroupsPage", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
 		mlog.Error(fmt.Sprintf("%v", ae.Error()))
 	}
 
-	return groups, nil
+	return groups, total, nil
 }
 
 func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {

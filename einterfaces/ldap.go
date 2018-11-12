@@ -20,5 +20,5 @@ type LdapInterface interface {
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error
 	GetGroup(groupUID string) (*model.Group, *model.AppError)
-	GetAllGroupsPage(page int, perPage int) ([]*model.Group, *model.AppError)
+	GetAllGroupsPage(page int, perPage int) ([]*model.Group, int, *model.AppError)
 }
