@@ -519,11 +519,9 @@ func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_5_0, VERSION_5_6_0) {
 	sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
 
-	if err := migrateGroups(sqlStore); err != nil {
-		mlog.Critical(err.Error())
-		time.Sleep(time.Second)
-		os.Exit(EXIT_GENERIC_FAILURE)
-	}
+	sqlStore.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
+	sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
+
 	// migrating user's accepted terms of service data into the new table
 	sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
 
@@ -536,30 +534,4 @@ func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
 	}
 	//saveSchemaVersion(sqlStore, VERSION_5_6_0)
 	//}
-}
-
-func migrateGroups(sqlStore SqlStore) error {
-	sqlStore.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
-	sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
-
-	foreignKeys := [][]string{
-		{"GroupMembers", "GroupId", "Groups(Id)"},
-		{"GroupMembers", "UserId", "Users(Id)"},
-
-		{"GroupTeams", "GroupId", "Groups(Id)"},
-		{"GroupTeams", "TeamId", "Teams(Id)"},
-
-		{"GroupChannels", "GroupId", "Groups(Id)"},
-		{"GroupChannels", "ChannelId", "Channels(Id)"},
-	}
-
-	for _, item := range foreignKeys {
-		sql := fmt.Sprintf("ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s", item[0], item[1], item[2])
-		if _, err := sqlStore.GetMaster().Exec(sql); err != nil {
-			fmt.Printf("%s\n", err.Error())
-			return err
-		}
-	}
-
-	return nil
 }

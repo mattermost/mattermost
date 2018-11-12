@@ -265,6 +265,22 @@ func (s *SqlSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID st
 		return result
 	}
 
+	var retrievedUser *model.User
+	if err := s.GetMaster().SelectOne(&retrievedUser, "SELECT * FROM Users WHERE Id = :Id", map[string]interface{}{"Id": userID}); err != nil {
+		if err != nil {
+			result.Err = model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.insert_error", nil, "group_id="+member.GroupId+"user_id="+member.UserId+","+err.Error(), http.StatusInternalServerError)
+			return result
+		}
+	}
+
+	var retrievedGroup *model.Group
+	if err := s.GetMaster().SelectOne(&retrievedGroup, "SELECT * FROM Groups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
+		if err != nil {
+			result.Err = model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.insert_error", nil, "group_id="+member.GroupId+"user_id="+member.UserId+","+err.Error(), http.StatusInternalServerError)
+			return result
+		}
+	}
+
 	var retrievedMember *model.GroupMember
 	if err := s.GetMaster().SelectOne(&retrievedMember, "SELECT * FROM GroupMembers WHERE GroupId = :GroupId AND UserId = :UserId", map[string]interface{}{"GroupId": member.GroupId, "UserId": member.UserId}); err != nil {
 		if err != sql.ErrNoRows {
