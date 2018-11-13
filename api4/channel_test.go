@@ -915,8 +915,13 @@ func TestDeleteChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.DeleteChannel(publicChannel5.Id)
 	CheckNoError(t, resp)
+}
 
-	th.InitBasic()
+func TestDeleteChannel2(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
 
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -927,9 +932,6 @@ func TestDeleteChannel(t *testing.T) {
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
 
-	Client = th.Client
-	user = th.BasicUser
-
 	// channels created by SystemAdmin
 	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
@@ -938,7 +940,7 @@ func TestDeleteChannel(t *testing.T) {
 	th.App.AddUserToChannel(user, privateChannel7)
 
 	// successful delete by user
-	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	_, resp := Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
 
 	_, resp = Client.DeleteChannel(privateChannel7.Id)
