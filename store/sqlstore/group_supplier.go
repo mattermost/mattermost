@@ -512,15 +512,15 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 	return &groupSyncable, nil
 }
 
-func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, groupID string, syncableType model.GroupSyncableType, offset int, limit int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, groupID string, syncableType model.GroupSyncableType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	sqlQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", syncableType.String())
+	sqlQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND DeleteAt = 0", syncableType.String())
 
-	args := map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}
+	args := map[string]interface{}{"GroupId": groupID}
 
 	appErrF := func(msg string) *model.AppError {
-		return model.NewAppError("SqlGroupStore.GroupGetAllGroupSyncablesByGroupPage", "store.sql_group.select_error", nil, msg, http.StatusInternalServerError)
+		return model.NewAppError("SqlGroupStore.GroupGetAllGroupSyncablesByGroup", "store.sql_group.select_error", nil, msg, http.StatusInternalServerError)
 	}
 
 	groupSyncables := []*model.GroupSyncable{}

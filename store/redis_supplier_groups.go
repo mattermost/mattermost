@@ -69,9 +69,9 @@ func (s *RedisSupplier) GroupGetGroupSyncable(ctx context.Context, groupID strin
 	return s.Next().GroupGetGroupSyncable(ctx, groupID, syncableID, syncableType, hints...)
 }
 
-func (s *RedisSupplier) GroupGetAllGroupSyncablesByGroupPage(ctx context.Context, groupID string, syncableType model.GroupSyncableType, offset int, limit int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, groupID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GroupGetAllGroupSyncablesByGroupPage(ctx, groupID, syncableType, offset, limit, hints...)
+	return s.Next().GroupGetAllGroupSyncablesByGroup(ctx, groupID, syncableType, hints...)
 }
 
 func (s *RedisSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {

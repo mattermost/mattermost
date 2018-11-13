@@ -103,8 +103,8 @@ func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType m
 	return result.Data.(*model.GroupSyncable), nil
 }
 
-func (a *App) GetGroupSyncablesPage(groupID string, syncableType model.GroupSyncableType, page int, perPage int) ([]*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllGroupSyncablesByGroupIdPage(groupID, syncableType, page*perPage, perPage)
+func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+	result := <-a.Srv.Store.Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
 	if result.Err != nil {
 		return nil, result.Err
 	}

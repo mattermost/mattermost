@@ -27,7 +27,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("CreateGroupSyncable", func(t *testing.T) { testCreateGroupSyncable(t, ss) })
 	t.Run("GetGroupSyncable", func(t *testing.T) { testGetGroupSyncable(t, ss) })
-	t.Run("GetAllGroupSyncablesByGroupIdPage", func(t *testing.T) { testGetAllGroupSyncablesByGroupPage(t, ss) })
+	t.Run("GetAllGroupSyncablesByGroupId", func(t *testing.T) { testGetAllGroupSyncablesByGroup(t, ss) })
 	t.Run("UpdateGroupSyncable", func(t *testing.T) { testUpdateGroupSyncable(t, ss) })
 	t.Run("DeleteGroupSyncable", func(t *testing.T) { testDeleteGroupSyncable(t, ss) })
 
@@ -768,7 +768,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 	assert.Zero(t, gt1.DeleteAt)
 }
 
-func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
+func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 	numGroupSyncables := 10
 
 	// Create group
@@ -815,7 +815,7 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 	}
 
 	// Returns all the group teams
-	res4 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GroupSyncableTypeTeam, 0, 999)
+	res4 := <-ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
 	d1 := res4.Data.([]*model.GroupSyncable)
 	assert.Condition(t, func() bool { return len(d1) >= numGroupSyncables })
 	for _, expectedGroupTeam := range groupTeams {
@@ -830,14 +830,14 @@ func testGetAllGroupSyncablesByGroupPage(t *testing.T, ss store.Store) {
 	}
 
 	// Returns the correct number based on limit
-	res5 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GroupSyncableTypeTeam, 0, 2)
+	res5 := <-ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
 	d2 := res5.Data.([]*model.GroupSyncable)
 	assert.Len(t, d2, 2)
 
 	// Check that result sets are different using an offset
-	res6 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GroupSyncableTypeTeam, 0, 5)
+	res6 := <-ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
 	d3 := res6.Data.([]*model.GroupSyncable)
-	res7 := <-ss.Group().GetAllGroupSyncablesByGroupIdPage(group.Id, model.GroupSyncableTypeTeam, 5, 5)
+	res7 := <-ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
 	d4 := res7.Data.([]*model.GroupSyncable)
 	for _, d3i := range d3 {
 		for _, d4i := range d4 {

@@ -409,9 +409,9 @@ func (s *LayeredGroupStore) GetGroupSyncable(groupID string, syncableID string, 
 	})
 }
 
-func (s *LayeredGroupStore) GetAllGroupSyncablesByGroupIdPage(groupID string, syncableType model.GroupSyncableType, offset int, limit int) StoreChannel {
+func (s *LayeredGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGetAllGroupSyncablesByGroupPage(s.TmpContext, groupID, syncableType, offset, limit)
+		return supplier.GroupGetAllGroupSyncablesByGroup(s.TmpContext, groupID, syncableType)
 	})
 }
 

@@ -286,8 +286,7 @@ func getGroupSyncables(syncableType model.GroupSyncableType) func(*Context, http
 			return
 		}
 
-		groupSyncables, err := c.App.GetGroupSyncablesPage(c.Params.GroupId, syncableType, c.Params.Page,
-			c.Params.PerPage)
+		groupSyncables, err := c.App.GetGroupSyncables(c.Params.GroupId, syncableType)
 		if err != nil {
 			c.Err = err
 			return
@@ -437,7 +436,12 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetGroupMemberUsersPage(c.Params.Page, c.Params.PerPage)
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	members, err := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return

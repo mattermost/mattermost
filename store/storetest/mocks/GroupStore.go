@@ -141,13 +141,13 @@ func (_m *GroupStore) GetAllByType(groupType model.GroupType) store.StoreChannel
 	return r0
 }
 
-// GetAllGroupSyncablesByGroupIdPage provides a mock function with given fields: groupID, syncableType, offset, limit
-func (_m *GroupStore) GetAllGroupSyncablesByGroupIdPage(groupID string, syncableType model.GroupSyncableType, offset int, limit int) store.StoreChannel {
-	ret := _m.Called(groupID, syncableType, offset, limit)
+// GetAllGroupSyncablesByGroupId provides a mock function with given fields: groupID, syncableType
+func (_m *GroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) store.StoreChannel {
+	ret := _m.Called(groupID, syncableType)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType, int, int) store.StoreChannel); ok {
-		r0 = rf(groupID, syncableType, offset, limit)
+	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType) store.StoreChannel); ok {
+		r0 = rf(groupID, syncableType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

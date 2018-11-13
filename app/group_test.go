@@ -191,7 +191,7 @@ func TestGetGroupSyncable(t *testing.T) {
 	}
 }
 
-func TestGetGroupSyncablesPage(t *testing.T) {
+func TestGetGroupSyncables(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
@@ -210,7 +210,7 @@ func TestGetGroupSyncablesPage(t *testing.T) {
 		t.Fatal("Should create group team")
 	}
 
-	groupTeams, err := th.App.GetGroupSyncablesPage(group.Id, model.GroupSyncableTypeTeam, 0, 99)
+	groupTeams, err := th.App.GetGroupSyncables(group.Id, model.GroupSyncableTypeTeam)
 	if err != nil {
 		t.Log(err)
 		t.Fatal("Should have group teams")
@@ -220,7 +220,7 @@ func TestGetGroupSyncablesPage(t *testing.T) {
 		t.Fatal("Should have retrieved at least one group team")
 	}
 
-	if groupTeams, _ = th.App.GetGroupSyncablesPage(group.Id, model.GroupSyncableTypeTeam, 999, 1); len(groupTeams) > 0 {
+	if groupTeams, _ = th.App.GetGroupSyncables(group.Id, model.GroupSyncableTypeTeam); len(groupTeams) > 0 {
 		t.Fatal("Should not have group teams")
 	}
 }
