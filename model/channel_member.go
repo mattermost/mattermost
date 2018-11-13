@@ -11,15 +11,16 @@ import (
 )
 
 const (
-	CHANNEL_NOTIFY_DEFAULT          = "default"
-	CHANNEL_NOTIFY_ALL              = "all"
-	CHANNEL_NOTIFY_MENTION          = "mention"
-	CHANNEL_NOTIFY_NONE             = "none"
-	CHANNEL_MARK_UNREAD_ALL         = "all"
-	CHANNEL_MARK_UNREAD_MENTION     = "mention"
-	IGNORE_CHANNEL_MENTIONS_DEFAULT = "default"
-	IGNORE_CHANNEL_MENTIONS_OFF     = "off"
-	IGNORE_CHANNEL_MENTIONS_ON      = "on"
+	CHANNEL_NOTIFY_DEFAULT              = "default"
+	CHANNEL_NOTIFY_ALL                  = "all"
+	CHANNEL_NOTIFY_MENTION              = "mention"
+	CHANNEL_NOTIFY_NONE                 = "none"
+	CHANNEL_MARK_UNREAD_ALL             = "all"
+	CHANNEL_MARK_UNREAD_MENTION         = "mention"
+	IGNORE_CHANNEL_MENTIONS_DEFAULT     = "default"
+	IGNORE_CHANNEL_MENTIONS_OFF         = "off"
+	IGNORE_CHANNEL_MENTIONS_ON          = "on"
+	IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP = "ignore_channel_mentions"
 )
 
 type ChannelUnread struct {
