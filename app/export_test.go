@@ -151,3 +151,22 @@ func TestCopyEmojiImages(t *testing.T) {
 		t.Fatal("File should exist ", err)
 	}
 }
+
+func TestExportCustomEmoji(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	filePath := "../demo.json"
+
+	fileWriter, _ := os.Create(filePath)
+	defer os.Remove(filePath)
+
+	pathToEmojiDir := "../data/emoji/"
+	dirNameToExportEmoji := "exported_emoji_test"
+
+	err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
+	defer os.RemoveAll("../" + dirNameToExportEmoji)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

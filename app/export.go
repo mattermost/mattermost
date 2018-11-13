@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func (a *App) BulkExport(writer io.Writer, file string) *model.AppError {
+func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
 	if err := a.ExportVersion(writer); err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func (a *App) BulkExport(writer io.Writer, file string) *model.AppError {
 	if err := a.ExportAllPosts(writer); err != nil {
 		return err
 	}
-	if err := a.ExportCustomEmoji(writer, file); err != nil {
+	if err := a.ExportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		return err
 	}
 
@@ -345,7 +345,7 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 
 }
 
-func (a *App) ExportCustomEmoji(writer io.Writer, file string) *model.AppError {
+func (a *App) ExportCustomEmoji(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
 	pageNumber := 0
 	for {
 		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EMOJI_SORT_BY_NAME)
@@ -360,18 +360,16 @@ func (a *App) ExportCustomEmoji(writer io.Writer, file string) *model.AppError {
 
 		pageNumber++
 
-		var dirName = "exported_emoji"
-
-		pathToDir := a.createDirForEmoji(file, dirName)
+		pathToDir := a.createDirForEmoji(file, dirNameToExportEmoji)
 
 		for _, emoji := range customEmojiList {
-			emojiImagePath := "data/emoji/" + emoji.Id + "/image"
+			emojiImagePath := pathToEmojiDir + emoji.Id + "/image"
 			err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
 			if err != nil {
 				return model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
 			}
 
-			filePath := dirName + "/" + emoji.Id + "/image"
+			filePath := dirNameToExportEmoji + "/" + emoji.Id + "/image"
 
 			emojiImportObject := ImportLineFromEmoji(emoji, filePath)
 
