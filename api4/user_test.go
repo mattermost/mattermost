@@ -1920,6 +1920,7 @@ func TestUpdateUserPassword(t *testing.T) {
 
 /*func TestResetPassword(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 	Client := th.Client
 	Client.Logout()
 	user := th.BasicUser
