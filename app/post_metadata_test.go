@@ -663,6 +663,17 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		assert.Nil(t, err, "failed to get emojis for post")
 		assert.ElementsMatch(t, emojisForPost, []*model.Emoji{emojis[0]}, "received incorrect emojis")
 	})
+
+	t.Run("with no emojis", func(t *testing.T) {
+		post := &model.Post{
+			Message: "this post is boring",
+			Props:   map[string]interface{}{},
+		}
+
+		emojisForPost, err := th.App.getCustomEmojisForPost(post, nil)
+		assert.Nil(t, err, "failed to get emojis for post")
+		assert.ElementsMatch(t, emojisForPost, []*model.Emoji{}, "should have received no emojis")
+	})
 }
 
 func TestGetFirstLinkAndImages(t *testing.T) {
