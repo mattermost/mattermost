@@ -124,25 +124,25 @@ func TestSubmitDialog(t *testing.T) {
 
 	submit.URL = ts.URL
 
-	pass, resp := Client.SubmitInteractiveDialog(submit)
+	submitResp, resp := Client.SubmitInteractiveDialog(submit)
 	CheckNoError(t, resp)
-	assert.True(t, pass)
+	assert.NotNil(t, submitResp)
 
 	submit.URL = ""
-	pass, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp = Client.SubmitInteractiveDialog(submit)
 	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
+	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
 	submit.ChannelId = model.NewId()
-	pass, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp = Client.SubmitInteractiveDialog(submit)
 	CheckForbiddenStatus(t, resp)
-	assert.False(t, pass)
+	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
 	submit.ChannelId = th.BasicChannel.Id
 	submit.TeamId = model.NewId()
-	pass, resp = Client.SubmitInteractiveDialog(submit)
+	submitResp, resp = Client.SubmitInteractiveDialog(submit)
 	CheckForbiddenStatus(t, resp)
-	assert.False(t, pass)
+	assert.Nil(t, submitResp)
 }

@@ -2260,14 +2260,17 @@ func (c *Client4) OpenInteractiveDialog(request OpenDialogRequest) (bool, *Respo
 	}
 }
 
-// SubmitInteractiveDialog will submit the provided dialog data to the integration configured by the URL.
-func (c *Client4) SubmitInteractiveDialog(request SubmitDialogRequest) (bool, *Response) {
+// SubmitInteractiveDialog will submit the provided dialog data to the integration
+// configured by the URL. Used with the interactive dialogs integration feature.
+func (c *Client4) SubmitInteractiveDialog(request SubmitDialogRequest) (*SubmitDialogResponse, *Response) {
 	b, _ := json.Marshal(request)
 	if r, err := c.DoApiPost("/actions/dialogs/submit", string(b)); err != nil {
-		return false, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return CheckStatusOK(r), BuildResponse(r)
+		var resp SubmitDialogResponse
+		json.NewDecoder(r.Body).Decode(&resp)
+		return &resp, BuildResponse(r)
 	}
 }
 

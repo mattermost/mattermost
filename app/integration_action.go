@@ -171,19 +171,30 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	return nil
 }
 
-func (a *App) SubmitInteractiveDialog(request model.SubmitDialogRequest) *model.AppError {
+func (a *App) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""
 	request.Type = "dialog_submission"
 
 	b, jsonErr := json.Marshal(request)
 	if jsonErr != nil {
-		return model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
 	}
 
 	resp, err := a.DoActionRequest(url, b)
 	if resp != nil {
-		consumeAndClose(resp)
+		defer consumeAndClose(resp)
 	}
-	return err
+
+	if err != nil {
+		return nil, err
+	}
+
+	var response model.SubmitDialogResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		// Don't fail, an empty response is acceptable
+		return &response, nil
+	}
+
+	return &response, nil
 }

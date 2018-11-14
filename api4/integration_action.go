@@ -69,8 +69,9 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	var submit model.SubmitDialogRequest
-	err := json.NewDecoder(r.Body).Decode(&submit)
-	if err != nil {
+
+	jsonErr := json.NewDecoder(r.Body).Decode(&submit)
+	if jsonErr != nil {
 		c.SetInvalidParam("dialog")
 		return
 	}
@@ -92,10 +93,13 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.SubmitInteractiveDialog(submit); err != nil {
+	resp, err := c.App.SubmitInteractiveDialog(submit)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	ReturnStatusOK(w)
+	b, _ := json.Marshal(resp)
+
+	w.Write(b)
 }

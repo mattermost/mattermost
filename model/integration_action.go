@@ -42,19 +42,19 @@ type PostActionOptions struct {
 }
 
 type PostActionIntegration struct {
-	URL     string          `json:"url,omitempty"`
-	Context StringInterface `json:"context,omitempty"`
+	URL     string                 `json:"url,omitempty"`
+	Context map[string]interface{} `json:"context,omitempty"`
 }
 
 type PostActionIntegrationRequest struct {
-	UserId     string          `json:"user_id"`
-	ChannelId  string          `json:"channel_id"`
-	TeamId     string          `json:"team_id"`
-	PostId     string          `json:"post_id"`
-	TriggerId  string          `json:"trigger_id"`
-	Type       string          `json:"type"`
-	DataSource string          `json:"data_source"`
-	Context    StringInterface `json:"context,omitempty"`
+	UserId     string                 `json:"user_id"`
+	ChannelId  string                 `json:"channel_id"`
+	TeamId     string                 `json:"team_id"`
+	PostId     string                 `json:"post_id"`
+	TriggerId  string                 `json:"trigger_id"`
+	Type       string                 `json:"type"`
+	DataSource string                 `json:"data_source"`
+	Context    map[string]interface{} `json:"context,omitempty"`
 }
 
 type PostActionIntegrationResponse struct {
@@ -70,6 +70,7 @@ type PostActionAPIResponse struct {
 type Dialog struct {
 	CallbackId     string          `json:"callback_id"`
 	Title          string          `json:"title"`
+	IconURL        string          `json:"icon_url"`
 	Elements       []DialogElement `json:"elements"`
 	SubmitLabel    string          `json:"submit_label"`
 	NotifyOnCancel bool            `json:"notify_on_cancel"`
@@ -106,6 +107,11 @@ type SubmitDialogRequest struct {
 	ChannelId  string                 `json:"channel_id"`
 	TeamId     string                 `json:"team_id"`
 	Submission map[string]interface{} `json:"submission"`
+	Cancelled  bool                   `json:"cancelled"`
+}
+
+type SubmitDialogResponse struct {
+	Errors map[string]string `json:"errors,omitempty"`
 }
 
 func (r *PostActionIntegrationRequest) ToJson() []byte {

@@ -295,15 +295,26 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		val, ok := request.Submission["name1"].(string)
 		require.True(t, ok)
 		assert.Equal(t, "value1", val)
+
+		resp := model.SubmitDialogResponse{
+			Errors: map[string]string{"name1": "some error"},
+		}
+
+		b, _ := json.Marshal(resp)
+
+		w.Write(b)
 	}))
 	defer ts.Close()
 
 	submit.URL = ts.URL
 
-	err := th.App.SubmitInteractiveDialog(submit)
+	resp, err := th.App.SubmitInteractiveDialog(submit)
 	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "some error", resp.Errors["name1"])
 
 	submit.URL = ""
-	err = th.App.SubmitInteractiveDialog(submit)
+	resp, err = th.App.SubmitInteractiveDialog(submit)
 	assert.NotNil(t, err)
+	assert.Nil(t, resp)
 }
