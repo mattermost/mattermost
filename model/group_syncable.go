@@ -35,6 +35,13 @@ type GroupSyncable struct {
 	DeleteAt int64             `json:"delete_at"`
 	UpdateAt int64             `json:"update_at"`
 	Type     GroupSyncableType `db:"-" json:"-"`
+
+	// Values joined in from the associated team and/or channel
+	ChannelDisplayName string `db:"-" json:"-"`
+	TeamDisplayName    string `db:"-" json:"-"`
+	TeamType           string `db:"-" json:"-"`
+	ChannelType        string `db:"-" json:"-"`
+	TeamID             string `db:"-" json:"-"`
 }
 
 func (syncable *GroupSyncable) IsValid() *AppError {
@@ -82,19 +89,37 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 	switch syncable.Type {
 	case GroupSyncableTypeTeam:
 		return json.Marshal(&struct {
-			TeamId string `json:"team_id"`
+			TeamID          string `json:"team_id"`
+			TeamDisplayName string `json:"team_display_name"`
+			TeamType        string `json:"team_type"`
 			*Alias
 		}{
-			TeamId: syncable.SyncableId,
-			Alias:  (*Alias)(syncable),
+			TeamDisplayName: syncable.TeamDisplayName,
+			TeamType:        syncable.TeamType,
+			TeamID:          syncable.SyncableId,
+			Alias:           (*Alias)(syncable),
 		})
 	case GroupSyncableTypeChannel:
 		return json.Marshal(&struct {
-			ChannelId string `json:"channel_id"`
+			ChannelID          string `json:"channel_id"`
+			ChannelDisplayName string `json:"channel_display_name"`
+			ChannelType        string `json:"channel_type"`
+
+			TeamID          string `json:"team_id"`
+			TeamDisplayName string `json:"team_display_name"`
+			TeamType        string `json:"team_type"`
+
 			*Alias
 		}{
-			ChannelId: syncable.SyncableId,
-			Alias:     (*Alias)(syncable),
+			ChannelID:          syncable.SyncableId,
+			ChannelDisplayName: syncable.ChannelDisplayName,
+			ChannelType:        syncable.ChannelType,
+
+			TeamID:          syncable.TeamID,
+			TeamDisplayName: syncable.TeamDisplayName,
+			TeamType:        syncable.TeamType,
+
+			Alias: (*Alias)(syncable),
 		})
 	default:
 		return nil, &json.MarshalerError{}

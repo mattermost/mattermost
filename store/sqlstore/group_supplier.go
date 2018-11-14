@@ -24,6 +24,21 @@ type GroupChannel struct {
 	ChannelId string `db:"ChannelId"`
 }
 
+type GroupTeamJoin struct {
+	GroupTeam
+	TeamDisplayName string `db:"TeamDisplayName"`
+	TeamType        string `db:"TeamType"`
+}
+
+type GroupChannelJoin struct {
+	GroupChannel
+	ChannelDisplayName string `db:"ChannelDisplayName"`
+	TeamDisplayName    string `db:"TeamDisplayName"`
+	TeamType           string `db:"TeamType"`
+	ChannelType        string `db:"ChannelType"`
+	TeamID             string `db:TeamId`
+}
+
 func initSqlSupplierGroups(sqlStore SqlStore) {
 	for _, db := range sqlStore.GetAllConns() {
 		groups := db.AddTableWithName(model.Group{}, "Groups").SetKeys(false, "Id")
@@ -527,8 +542,6 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, groupID string, syncableType model.GroupSyncableType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	sqlQuery := fmt.Sprintf("SELECT * from Group%[1]ss WHERE GroupId = :GroupId AND DeleteAt = 0", syncableType.String())
-
 	args := map[string]interface{}{"GroupId": groupID}
 
 	appErrF := func(msg string) *model.AppError {
@@ -539,7 +552,18 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		results := []*GroupTeam{}
+		sqlQuery := `
+			SELECT
+				GroupTeams.*, 
+				Teams.DisplayName AS TeamDisplayName, 
+				Teams.Type AS TeamType
+			FROM 
+				GroupTeams
+				JOIN Teams ON Teams.Id = GroupTeams.TeamId
+			WHERE 
+				GroupId = :GroupId AND GroupTeams.DeleteAt = 0`
+
+		results := []*GroupTeamJoin{}
 		_, err := s.GetMaster().Select(&results, sqlQuery, args)
 		if err != nil {
 			result.Err = appErrF(err.Error())
@@ -547,19 +571,36 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 		}
 		for _, result := range results {
 			groupSyncable := &model.GroupSyncable{
-				SyncableId: result.TeamId,
-				GroupId:    result.GroupId,
-				CanLeave:   result.CanLeave,
-				AutoAdd:    result.AutoAdd,
-				CreateAt:   result.CreateAt,
-				DeleteAt:   result.DeleteAt,
-				UpdateAt:   result.UpdateAt,
-				Type:       syncableType,
+				SyncableId:      result.TeamId,
+				GroupId:         result.GroupId,
+				CanLeave:        result.CanLeave,
+				AutoAdd:         result.AutoAdd,
+				CreateAt:        result.CreateAt,
+				DeleteAt:        result.DeleteAt,
+				UpdateAt:        result.UpdateAt,
+				Type:            syncableType,
+				TeamDisplayName: result.TeamDisplayName,
+				TeamType:        result.TeamType,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
 	case model.GroupSyncableTypeChannel:
-		results := []*GroupChannel{}
+		sqlQuery := `
+			SELECT
+				GroupChannels.*, 
+				Channels.DisplayName AS ChannelDisplayName, 
+				Teams.DisplayName AS TeamDisplayName,
+				Channels.Type As ChannelType,
+				Teams.Type As TeamType,
+				Teams.Id AS TeamId
+			FROM 
+				GroupChannels 
+				JOIN Channels ON Channels.Id = GroupChannels.ChannelId
+				JOIN Teams ON Teams.Id = Channels.TeamId
+			WHERE 
+				GroupId = :GroupId AND GroupChannels.DeleteAt = 0`
+
+		results := []*GroupChannelJoin{}
 		_, err := s.GetMaster().Select(&results, sqlQuery, args)
 		if err != nil {
 			result.Err = appErrF(err.Error())
@@ -567,14 +608,19 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 		}
 		for _, result := range results {
 			groupSyncable := &model.GroupSyncable{
-				SyncableId: result.ChannelId,
-				GroupId:    result.GroupId,
-				CanLeave:   result.CanLeave,
-				AutoAdd:    result.AutoAdd,
-				CreateAt:   result.CreateAt,
-				DeleteAt:   result.DeleteAt,
-				UpdateAt:   result.UpdateAt,
-				Type:       syncableType,
+				SyncableId:         result.ChannelId,
+				GroupId:            result.GroupId,
+				CanLeave:           result.CanLeave,
+				AutoAdd:            result.AutoAdd,
+				CreateAt:           result.CreateAt,
+				DeleteAt:           result.DeleteAt,
+				UpdateAt:           result.UpdateAt,
+				Type:               syncableType,
+				ChannelDisplayName: result.ChannelDisplayName,
+				ChannelType:        result.ChannelType,
+				TeamDisplayName:    result.TeamDisplayName,
+				TeamType:           result.TeamType,
+				TeamID:             result.TeamID,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
