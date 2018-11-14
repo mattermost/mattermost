@@ -13,19 +13,19 @@ import (
 // be called.
 func (a *App) AddClusterLeaderChangedListener(listener func()) string {
 	id := model.NewId()
-	a.clusterLeaderListeners.Store(id, listener)
+	a.Srv.clusterLeaderListeners.Store(id, listener)
 	return id
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
 func (a *App) RemoveClusterLeaderChangedListener(id string) {
-	a.clusterLeaderListeners.Delete(id)
+	a.Srv.clusterLeaderListeners.Delete(id)
 }
 
 func (a *App) InvokeClusterLeaderChangedListeners() {
 	mlog.Info("Cluster leader changed. Invoking ClusterLeaderChanged listeners.")
-	a.Go(func() {
-		a.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
+	a.Srv.Go(func() {
+		a.Srv.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
 			listener.(func())()
 			return true
 		})

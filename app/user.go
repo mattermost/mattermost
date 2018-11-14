@@ -1034,14 +1034,14 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 
 	if sendNotifications {
 		if rusers[0].Email != rusers[1].Email {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
 
 			if a.Config().EmailSettings.RequireEmailVerification {
-				a.Go(func() {
+				a.Srv.Go(func() {
 					if err := a.SendEmailVerification(rusers[0]); err != nil {
 						mlog.Error(err.Error())
 					}
@@ -1050,7 +1050,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		}
 
 		if rusers[0].Username != rusers[1].Username {
-			a.Go(func() {
+			a.Srv.Go(func() {
 				if err := a.SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
 					mlog.Error(err.Error())
 				}
@@ -1090,7 +1090,7 @@ func (a *App) UpdateMfa(activate bool, userId, token string) *model.AppError {
 		}
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		user, err := a.GetUser(userId)
 		if err != nil {
 			mlog.Error(err.Error())
@@ -1133,7 +1133,7 @@ func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method stri
 		return err
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		if err := a.SendPasswordChangeEmail(user.Email, method, user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
@@ -1618,25 +1618,6 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 		user = result.Data.([2]*model.User)[0]
 		a.InvalidateCacheForUser(user.Id)
-	}
-
-	return nil
-}
-
-func (a *App) RecordUserTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) *model.AppError {
-	user, err := a.GetUser(userId)
-	if err != nil {
-		return err
-	}
-
-	if accepted {
-		user.AcceptedTermsOfServiceId = termsOfServiceId
-	} else {
-		user.AcceptedTermsOfServiceId = ""
-	}
-	_, err = a.UpdateUser(user, false)
-	if err != nil {
-		return err
 	}
 
 	return nil

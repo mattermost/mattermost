@@ -695,10 +695,6 @@
     "translation": "leave"
   },
   {
-    "id": "api.command_leave.success",
-    "translation": "Left the channel."
-  },
-  {
     "id": "api.command_logout.desc",
     "translation": "Logout of Mattermost"
   },
@@ -3759,6 +3755,10 @@
     "translation": "Invalid email notification value"
   },
   {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Invalid ignore channel mentions status"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level"
   },
@@ -4801,6 +4801,18 @@
   {
     "id": "model.terms_of_service.is_valid.text.app_error",
     "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "Missing required user terms of service property: user_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "Missing required user terms of service property: service_terms_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "Missing required user terms of service property: create_at."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -6461,6 +6473,22 @@
   {
     "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No user terms of service found."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch user terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "Unable to save user terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete user terms of service."
   },
   {
     "id": "system.message.name",

@@ -90,6 +90,18 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 		return errors.New("unable to find team '" + args[0] + "'")
 	}
 
+	// get the creator
+	creator, _ := command.Flags().GetString("creator")
+	user := getUserFromUserArg(a, creator)
+	if user == nil {
+		return errors.New("unable to find user '" + creator + "'")
+	}
+
+	// check if creator has permission to create slash commands
+	if !a.HasPermissionToTeam(user.Id, team.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		return errors.New("the creator must be a user who has permissions to manage slash commands")
+	}
+
 	title, _ := command.Flags().GetString("title")
 	description, _ := command.Flags().GetString("description")
 	trigger, _ := command.Flags().GetString("trigger-word")
@@ -102,11 +114,6 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	url, _ := command.Flags().GetString("url")
-	creator, _ := command.Flags().GetString("creator")
-	user := getUserFromUserArg(a, creator)
-	if user == nil {
-		return errors.New("unable to find user '" + creator + "'")
-	}
 	responseUsername, _ := command.Flags().GetString("response-username")
 	icon, _ := command.Flags().GetString("icon")
 	autocomplete, _ := command.Flags().GetBool("autocomplete")

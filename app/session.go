@@ -29,7 +29,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := a.Metrics
 
 	var session *model.Session
-	if ts, ok := a.sessionCache.Get(token); ok {
+	if ts, ok := a.Srv.sessionCache.Get(token); ok {
 		session = ts.(*model.Session)
 		if metrics != nil {
 			metrics.IncrementMemCacheHitCounterSession()
@@ -137,13 +137,13 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
-	keys := a.sessionCache.Keys()
+	keys := a.Srv.sessionCache.Keys()
 
 	for _, key := range keys {
-		if ts, ok := a.sessionCache.Get(key); ok {
+		if ts, ok := a.Srv.sessionCache.Get(key); ok {
 			session := ts.(*model.Session)
 			if session.UserId == userId {
-				a.sessionCache.Remove(key)
+				a.Srv.sessionCache.Remove(key)
 				if a.Metrics != nil {
 					a.Metrics.IncrementMemCacheInvalidationCounterSession()
 				}
@@ -155,11 +155,11 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
-	a.sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*a.Config().ServiceSettings.SessionCacheInMinutes*60))
+	a.Srv.sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*a.Config().ServiceSettings.SessionCacheInMinutes*60))
 }
 
 func (a *App) SessionCacheLength() int {
-	return a.sessionCache.Len()
+	return a.Srv.sessionCache.Len()
 }
 
 func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
