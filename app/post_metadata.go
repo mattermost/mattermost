@@ -40,8 +40,10 @@ func (a *App) InitPostMetadata() {
 
 func (a *App) PreparePostListForClient(originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
-		Posts: make(map[string]*model.Post, len(originalList.Posts)),
-		Order: originalList.Order, // Note that this uses the original Order array, so it isn't a deep copy
+		Posts:      make(map[string]*model.Post, len(originalList.Posts)),
+		Order:      originalList.Order, // Note that this uses the original Order array, so it isn't a deep copy
+		NextPostId: originalList.NextPostId,
+		PrevPostId: originalList.PrevPostId,
 	}
 
 	for id, originalPost := range originalList.Posts {
