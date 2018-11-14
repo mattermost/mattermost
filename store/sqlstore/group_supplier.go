@@ -419,19 +419,31 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
+		teamResult := <-s.Team().Get(groupSyncable.SyncableId)
+		if teamResult.Err != nil {
+			result.Err = teamResult.Err
+			return result
+		}
+
 		groupTeam := &GroupTeam{
 			GroupSyncable: *groupSyncable,
 			TeamId:        groupSyncable.SyncableId,
 		}
 		err = s.GetMaster().Insert(groupTeam)
 	case model.GroupSyncableTypeChannel:
+		channelResult := <-s.Channel().Get(groupSyncable.SyncableId, false)
+		if channelResult.Err != nil {
+			result.Err = channelResult.Err
+			return result
+		}
+
 		groupChannel := &GroupChannel{
 			GroupSyncable: *groupSyncable,
 			ChannelId:     groupSyncable.SyncableId,
 		}
 		err = s.GetMaster().Insert(groupChannel)
 	default:
-		model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "store.sql_group.invalid_syncable_type", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
+		result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "store.sql_group.invalid_syncable_type", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}
 	if err != nil {
