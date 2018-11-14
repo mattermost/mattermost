@@ -166,6 +166,16 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		env.activePlugins.Store(pluginInfo.Manifest.Id, activePlugin)
 	}()
 
+	if pluginInfo.Manifest.MinServerVersion != "" {
+		fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
+		if err != nil {
+			return nil, false, fmt.Errorf("%v: %v", err.Error(), id)
+		}
+		if !fulfilled {
+			return nil, false, fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, id)
+		}
+	}
+
 	componentActivated := false
 
 	if pluginInfo.Manifest.HasWebapp() {

@@ -4,9 +4,10 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
 	"html/template"
 	"net/http"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func (a *App) isExtensionSupportEnabled() bool {

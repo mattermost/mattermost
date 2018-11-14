@@ -528,9 +528,9 @@ func TestMaxPostSize(t *testing.T) {
 
 			app := App{
 				Srv: &Server{
-					Store: mockStore,
+					Store:  mockStore,
+					config: atomic.Value{},
 				},
-				config: atomic.Value{},
 			}
 
 			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())

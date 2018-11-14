@@ -11,7 +11,6 @@ import (
 	"unicode/utf8"
 )
 
-// we only ever need the latest version of terms of service
 const TERMS_OF_SERVICE_CACHE_SIZE = 1
 
 type TermsOfService struct {
@@ -58,7 +57,7 @@ func InvalidTermsOfServiceError(fieldName string, termsOfServiceId string) *AppE
 	if termsOfServiceId != "" {
 		details = "terms_of_service_id=" + termsOfServiceId
 	}
-	return NewAppError("TermsOfServiceStore.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
+	return NewAppError("TermsOfService.IsValid", id, map[string]interface{}{"MaxLength": POST_MESSAGE_MAX_RUNES_V2}, details, http.StatusBadRequest)
 }
 
 func (t *TermsOfService) PreSave() {

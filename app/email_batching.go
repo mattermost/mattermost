@@ -25,13 +25,13 @@ const (
 
 func (a *App) InitEmailBatching() {
 	if *a.Config().EmailSettings.EnableEmailBatching {
-		if a.EmailBatching == nil {
-			a.EmailBatching = NewEmailBatchingJob(a, *a.Config().EmailSettings.EmailBatchingBufferSize)
+		if a.Srv.EmailBatching == nil {
+			a.Srv.EmailBatching = NewEmailBatchingJob(a, *a.Config().EmailSettings.EmailBatchingBufferSize)
 		}
 
 		// note that we don't support changing EmailBatchingBufferSize without restarting the server
 
-		a.EmailBatching.Start()
+		a.Srv.EmailBatching.Start()
 	}
 }
 
@@ -40,7 +40,7 @@ func (a *App) AddNotificationEmailToBatch(user *model.User, post *model.Post, te
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if !a.EmailBatching.Add(user, post, team) {
+	if !a.Srv.EmailBatching.Add(user, post, team) {
 		mlog.Error("Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize.")
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.channel_full.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -188,7 +188,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		// send the email notification if it's been long enough
 		if now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Second {
-			job.app.Go(func(userId string, notifications []*batchedNotification) func() {
+			job.app.Srv.Go(func(userId string, notifications []*batchedNotification) func() {
 				return func() {
 					handler(userId, notifications)
 				}

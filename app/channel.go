@@ -212,9 +212,9 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	}
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, sc)
 				return true
 			}, plugin.ChannelHasBeenCreatedId)
@@ -239,9 +239,9 @@ func (a *App) CreateDirectChannel(userId string, otherUserId string) (*model.Cha
 	a.InvalidateCacheForUser(otherUserId)
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, channel)
 				return true
 			}, plugin.ChannelHasBeenCreatedId)
@@ -663,6 +663,10 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		member.NotifyProps[model.PUSH_NOTIFY_PROP] = push
 	}
 
+	if ignoreChannelMentions, exists := data[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP]; exists {
+		member.NotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] = ignoreChannelMentions
+	}
+
 	result := <-a.Srv.Store.Channel().UpdateMember(member)
 	if result.Err != nil {
 		return nil, result.Err
@@ -854,9 +858,9 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 	}
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
 				return true
 			}, plugin.UserHasJoinedChannelId)
@@ -866,7 +870,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 	if userRequestorId == "" || userId == userRequestorId {
 		a.postJoinChannelMessage(user, channel)
 	} else {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			a.PostAddToChannelMessage(userRequestor, user, channel, postRootId)
 		})
 	}
@@ -1244,9 +1248,9 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 	}
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
 				return true
 			}, plugin.UserHasJoinedChannelId)
@@ -1336,7 +1340,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		return nil
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.postLeaveChannelMessage(user, channel)
 	})
 
@@ -1451,9 +1455,9 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 			actorUser, _ = a.GetUser(removerUserId)
 		}
 
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
 				return true
 			}, plugin.UserHasLeftChannelId)
@@ -1489,7 +1493,7 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 	if userIdToRemove == removerUserId {
 		a.postLeaveChannelMessage(user, channel)
 	} else {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			a.postRemoveFromChannelMessage(removerUserId, user, channel)
 		})
 	}

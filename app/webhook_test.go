@@ -10,10 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
 	"net/http"
 	"net/http/httptest"
 	"time"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {

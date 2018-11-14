@@ -24,6 +24,12 @@ func SetFormatter(formatter Formatter) {
 	std.SetFormatter(formatter)
 }
 
+// SetReportCaller sets whether the standard logger will include the calling
+// method as a field.
+func SetReportCaller(include bool) {
+	std.SetReportCaller(include)
+}
+
 // SetLevel sets the standard logger level.
 func SetLevel(level Level) {
 	std.SetLevel(level)
@@ -77,6 +83,11 @@ func WithTime(t time.Time) *Entry {
 	return std.WithTime(t)
 }
 
+// Trace logs a message at level Trace on the standard logger.
+func Trace(args ...interface{}) {
+	std.Trace(args...)
+}
+
 // Debug logs a message at level Debug on the standard logger.
 func Debug(args ...interface{}) {
 	std.Debug(args...)
@@ -117,6 +128,11 @@ func Fatal(args ...interface{}) {
 	std.Fatal(args...)
 }
 
+// Tracef logs a message at level Trace on the standard logger.
+func Tracef(format string, args ...interface{}) {
+	std.Tracef(format, args...)
+}
+
 // Debugf logs a message at level Debug on the standard logger.
 func Debugf(format string, args ...interface{}) {
 	std.Debugf(format, args...)
@@ -155,6 +171,11 @@ func Panicf(format string, args ...interface{}) {
 // Fatalf logs a message at level Fatal on the standard logger then the process will exit with status set to 1.
 func Fatalf(format string, args ...interface{}) {
 	std.Fatalf(format, args...)
+}
+
+// Traceln logs a message at level Trace on the standard logger.
+func Traceln(args ...interface{}) {
+	std.Traceln(args...)
 }
 
 // Debugln logs a message at level Debug on the standard logger.

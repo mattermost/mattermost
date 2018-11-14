@@ -19,6 +19,7 @@ func TestCreateCommand(t *testing.T) {
 	th.InitSystemAdmin()
 	defer th.TearDown()
 	team := th.BasicTeam
+	adminUser := th.TeamAdminUser
 	user := th.BasicUser
 
 	testCases := []struct {
@@ -28,17 +29,17 @@ func TestCreateCommand(t *testing.T) {
 	}{
 		{
 			"nil error",
-			[]string{"command", "create", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"",
 		},
 		{
 			"Team not specified",
-			[]string{"command", "create", "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"Error: requires at least 1 arg(s), only received 0",
 		},
 		{
 			"Team not found",
-			[]string{"command", "create", "fakeTeam", "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", "fakeTeam", "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"Error: unable to find team",
 		},
 		{
@@ -52,53 +53,58 @@ func TestCreateCommand(t *testing.T) {
 			"unable to find user",
 		},
 		{
+			"Creator not team admin",
+			[]string{"command", "create", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			"the creator must be a user who has permissions to manage slash commands",
+		},
+		{
 			"Command not specified",
-			[]string{"command", "", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"Error: unknown flag: --trigger-word",
 		},
 		{
 			"Trigger not specified",
-			[]string{"command", "create", team.Name, "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			`Error: required flag(s) "trigger-word" not set`,
 		},
 		{
 			"Blank trigger",
-			[]string{"command", "create", team.Name, "--trigger-word", "", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-word", "", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"Invalid trigger",
 		},
 		{
 			"Trigger with space",
-			[]string{"command", "create", team.Name, "--trigger-word", "test cmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-word", "test cmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"Error: a trigger word must not contain spaces",
 		},
 		{
 			"Trigger starting with /",
-			[]string{"command", "create", team.Name, "--trigger-word", "/testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-word", "/testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"Error: a trigger word cannot begin with a /",
 		},
 		{
 			"URL not specified",
-			[]string{"command", "create", team.Name, "--trigger-word", "testcmd", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-word", "testcmd", "--creator", adminUser.Username},
 			`Error: required flag(s) "url" not set`,
 		},
 		{
 			"Blank URL",
-			[]string{"command", "create", team.Name, "--trigger-word", "testcmd2", "--url", "", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-word", "testcmd2", "--url", "", "--creator", adminUser.Username},
 			"Invalid URL",
 		},
 		{
 			"Invalid URL",
-			[]string{"command", "create", team.Name, "--trigger-word", "testcmd2", "--url", "localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-word", "testcmd2", "--url", "localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"Invalid URL",
 		},
 		{
 			"Duplicate Command",
-			[]string{"command", "create", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"This trigger word is already in use",
 		},
 		{
 			"Misspelled flag",
-			[]string{"command", "create", team.Name, "--trigger-wor", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", user.Username},
+			[]string{"command", "create", team.Name, "--trigger-wor", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
 			"Error: unknown flag:",
 		},
 	}

@@ -5,12 +5,13 @@ package app
 
 import (
 	"crypto/tls"
-	"github.com/mattermost/mattermost-server/utils"
 	"net/http"
 	"path"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/utils"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
@@ -24,7 +25,7 @@ func TestStartServerSuccess(t *testing.T) {
 	serverErr := a.StartServer()
 
 	client := &http.Client{}
-	checkEndpoint(t, client, "http://localhost:" + strconv.Itoa(a.Srv.ListenAddr.Port) + "/", http.StatusNotFound)
+	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	a.Shutdown()
 	require.NoError(t, serverErr)
@@ -77,7 +78,7 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	checkEndpoint(t, client, "https://localhost:" + strconv.Itoa(a.Srv.ListenAddr.Port) + "/", http.StatusNotFound)
+	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	a.Shutdown()
 	require.NoError(t, serverErr)
@@ -100,12 +101,12 @@ func TestStartServerTLSVersion(t *testing.T) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
-			MaxVersion: tls.VersionTLS11,
+			MaxVersion:         tls.VersionTLS11,
 		},
 	}
 
 	client := &http.Client{Transport: tr}
-	err = checkEndpoint(t, client, "https://localhost:" + strconv.Itoa(a.Srv.ListenAddr.Port) + "/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	if !strings.Contains(err.Error(), "remote error: tls: protocol version not supported") {
 		t.Errorf("Expected protocol version error, got %s", err)
@@ -117,7 +118,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 		},
 	}
 
-	err = checkEndpoint(t, client, "https://localhost:" + strconv.Itoa(a.Srv.ListenAddr.Port) + "/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -154,7 +155,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	err = checkEndpoint(t, client, "https://localhost:" + strconv.Itoa(a.Srv.ListenAddr.Port) + "/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	if !strings.Contains(err.Error(), "remote error: tls: handshake failure") {
 		t.Errorf("Expected protocol version error, got %s", err)
@@ -170,7 +171,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 		},
 	}
 
-	err = checkEndpoint(t, client, "https://localhost:" + strconv.Itoa(a.Srv.ListenAddr.Port) + "/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)

@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -31,9 +32,12 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	compileGo(t, pluginCode, backend)
 
 	ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(pluginManifest), 0600)
-	env.Activate(pluginId)
+	manifest, activated, reterr := env.Activate(pluginId)
+	require.Nil(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
 
-	app.Plugins = env
+	app.Srv.Plugins = env
 }
 
 func TestPluginAPIUpdateUserStatus(t *testing.T) {
@@ -120,7 +124,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.Plugins.HooksForPlugin("testloadpluginconfig")
+	hooks, err := th.App.Srv.Plugins.HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "str32true", ret)
@@ -194,7 +198,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.Plugins.HooksForPlugin("testloadpluginconfig")
+	hooks, err := th.App.Srv.Plugins.HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "override35true", ret)
@@ -214,4 +218,62 @@ func TestPluginAPIGetProfileImage(t *testing.T) {
 	data, err = api.GetProfileImage(model.NewId())
 	require.NotNil(t, err)
 	require.Nil(t, data)
+}
+
+func TestPluginAPIGetPlugins(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	pluginCode := `
+    package main
+
+    import (
+      "github.com/mattermost/mattermost-server/plugin"
+    )
+
+    type MyPlugin struct {
+      plugin.MattermostPlugin
+    }
+
+    func main() {
+      plugin.ClientMain(&MyPlugin{})
+    }
+  `
+
+	pluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
+
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	require.NoError(t, err)
+
+	pluginIDs := []string{"pluginid1", "pluginid2", "pluginid3"}
+	var pluginManifests []*model.Manifest
+	for _, pluginID := range pluginIDs {
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+		compileGo(t, pluginCode, backend)
+
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
+		manifest, activated, reterr := env.Activate(pluginID)
+
+		require.Nil(t, reterr)
+		require.NotNil(t, manifest)
+		require.True(t, activated)
+		pluginManifests = append(pluginManifests, manifest)
+	}
+	th.App.Srv.Plugins = env
+
+	// Decative the last one for testing
+	sucess := env.Deactivate(pluginIDs[len(pluginIDs)-1])
+	require.True(t, sucess)
+
+	// check existing user first
+	plugins, err := api.GetPlugins()
+	assert.Nil(t, err)
+	assert.NotEmpty(t, plugins)
+	assert.Equal(t, pluginManifests, plugins)
 }

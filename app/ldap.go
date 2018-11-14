@@ -13,7 +13,7 @@ import (
 )
 
 func (a *App) SyncLdap() {
-	a.Go(func() {
+	a.Srv.Go(func() {
 
 		if license := a.License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap; ldapI != nil {
@@ -67,7 +67,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 		return "", err
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
@@ -113,7 +113,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 	T := utils.GetUserTranslations(user.Locale)
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}

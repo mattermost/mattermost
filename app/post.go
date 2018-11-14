@@ -146,7 +146,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	if a.PluginsReady() {
 		var rejectionError *model.AppError
 		pluginContext := &plugin.Context{}
-		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
 				rejectionError = model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
@@ -170,9 +170,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	rpost := result.Data.(*model.Post)
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rpost)
 				return true
 			}, plugin.MessageHasBeenPostedId)
@@ -181,7 +181,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			esInterface.IndexPost(rpost, channel.TeamId)
 		})
 	}
@@ -273,7 +273,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	if triggerWebhooks {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			if err := a.handleWebhookEvents(post, team, channel, user); err != nil {
 				mlog.Error(err.Error())
 			}
@@ -363,7 +363,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	if a.PluginsReady() {
 		var rejectionReason string
 		pluginContext := &plugin.Context{}
-		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
 		}, plugin.MessageWillBeUpdatedId)
@@ -379,9 +379,9 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	rpost := result.Data.(*model.Post)
 
 	if a.PluginsReady() {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true
 			}, plugin.MessageHasBeenUpdatedId)
@@ -390,7 +390,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id)
 			if rchannel.Err != nil {
 				mlog.Error(fmt.Sprintf("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id))
@@ -578,16 +578,16 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	message.Add("post", clientPost.ToJson())
 	a.Publish(message)
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.DeletePostFiles(post)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		a.DeleteFlaggedPosts(post.Id)
 	})
 
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			esInterface.DeletePost(post)
 		})
 	}
