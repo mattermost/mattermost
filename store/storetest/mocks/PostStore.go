@@ -210,6 +210,38 @@ func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) store.S
 	return r0
 }
 
+// GetPostAfterTime provides a mock function with given fields: channelId, time
+func (_m *PostStore) GetPostAfterTime(channelId string, time int64) store.StoreChannel {
+	ret := _m.Called(channelId, time)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+		r0 = rf(channelId, time)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetPostBeforeTime provides a mock function with given fields: channelId, time
+func (_m *PostStore) GetPostBeforeTime(channelId string, time int64) store.StoreChannel {
+	ret := _m.Called(channelId, time)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+		r0 = rf(channelId, time)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetPosts provides a mock function with given fields: channelId, offset, limit, allowFromCache
 func (_m *PostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(channelId, offset, limit, allowFromCache)
