@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -675,6 +676,50 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 
 			result.Data = list
 		}
+	})
+}
+
+func (s *SqlPostStore) GetPostBeforeTime(channelId string, time int64) store.StoreChannel {
+	return s.getPostAroundTime(channelId, time, true)
+}
+
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) store.StoreChannel {
+	return s.getPostAroundTime(channelId, time, false)
+}
+
+func (s *SqlPostStore) getPostAroundTime(channelId string, time int64, before bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var direction string
+		var sort string
+		if before {
+			direction = "<"
+			sort = "DESC"
+		} else {
+			direction = ">"
+			sort = "ASC"
+		}
+
+		var post *model.Post
+		err := s.GetReplica().SelectOne(
+			&post,
+			`SELECT
+				*
+			FROM
+				Posts
+			WHERE
+				CreateAt `+direction+` :Time
+				AND ChannelId = :ChannelId
+				AND DeleteAt = 0
+			ORDER BY CreateAt `+sort+`
+			LIMIT 1`,
+			map[string]interface{}{"ChannelId": channelId, "Time": time})
+		if err != nil {
+			if err != sql.ErrNoRows {
+				result.Err = model.NewAppError("SqlPostStore.getPostAroundTime", "store.sql_post.get_post_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+			}
+		}
+
+		result.Data = post
 	})
 }
 
