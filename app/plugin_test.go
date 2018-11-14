@@ -30,6 +30,12 @@ func TestPluginKeyValueStore(t *testing.T) {
 
 	pluginId := "testpluginid"
 
+	defer func() {
+		// Clean up
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key2"))
+	}()
+
 	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test")))
 	ret, err := th.App.GetPluginKey(pluginId, "key")
 	assert.Nil(t, err)
@@ -37,6 +43,9 @@ func TestPluginKeyValueStore(t *testing.T) {
 
 	// Test inserting over existing entries
 	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test2")))
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test2"), ret)
 
 	// Test getting non-existent key
 	ret, err = th.App.GetPluginKey(pluginId, "notakey")
@@ -59,12 +68,12 @@ func TestPluginKeyValueStore(t *testing.T) {
 	result := <-th.App.Srv.Store.Plugin().SaveOrUpdate(kv)
 	assert.Nil(t, result.Err)
 
-	// Test fetch by hashed keyname
+	// Test fetch by keyname
 	ret, err = th.App.GetPluginKey(pluginId, "key2")
 	assert.Nil(t, err)
 	assert.Equal(t, kv.Value, ret)
 
-	// Test fetch by keyname
+	// Test fetch by hashed keyname
 	// The key should be changed to unhashed version because of earlier GetPluginKey, so we will get nil back
 	ret, err = th.App.GetPluginKey(pluginId, hashedKey2)
 	assert.Nil(t, err)
@@ -102,10 +111,6 @@ func TestPluginKeyValueStore(t *testing.T) {
 	list, err = th.App.ListPluginKeys(pluginId, 2, 2)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(list))
-
-	// Clean up
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "key2"))
 }
 
 func TestServePluginRequest(t *testing.T) {

@@ -34,13 +34,13 @@ func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, 
 		ExpireAt: expireInSeconds,
 	}
 
-	// First try deleting hashed key, then set using unhashed key
-	_ = <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key))
-
+	// First insert unhashed key, then delete the hashed key
 	result := <-a.Srv.Store.Plugin().SaveOrUpdate(kv)
 
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	deleteResult := <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key))
+
+	if deleteResult.Err != nil {
+		mlog.Error(deleteResult.Err.Error())
 	}
 
 	return result.Err
