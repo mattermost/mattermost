@@ -301,6 +301,32 @@ func (s *SqlSupplier) GroupGetMemberUsersPage(stc context.Context, groupID strin
 	return result
 }
 
+func (s *SqlSupplier) GroupGetMemberCount(stc context.Context, groupID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	var count int64
+	var err error
+
+	query := `
+		SELECT 
+			count(*) 
+		FROM 
+			GroupMembers 
+		WHERE 
+			GroupMembers.GroupId = :GroupId`
+
+	if count, err = s.GetReplica().SelectInt(query, map[string]interface{}{"GroupId": groupID}); err != nil {
+		if err != sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlGroupStore.GroupGetMemberUsersPage", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
+			return result
+		}
+	}
+
+	result.Data = count
+
+	return result
+}
+
 func (s *SqlSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID string, userID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 

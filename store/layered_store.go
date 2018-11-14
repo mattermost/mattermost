@@ -385,6 +385,12 @@ func (s *LayeredGroupStore) GetMemberUsersPage(groupID string, offset int, limit
 	})
 }
 
+func (s *LayeredGroupStore) GetMemberCount(groupID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetMemberCount(s.TmpContext, groupID)
+	})
+}
+
 func (s *LayeredGroupStore) CreateOrRestoreMember(groupID string, userID string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.GroupCreateOrRestoreMember(s.TmpContext, groupID, userID)

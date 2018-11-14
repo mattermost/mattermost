@@ -61,6 +61,10 @@ func (s *LocalCacheSupplier) GroupGetMemberUsersPage(ctx context.Context, groupI
 	return s.Next().GroupGetMemberUsersPage(ctx, groupID, offset, limit, hints...)
 }
 
+func (s *LocalCacheSupplier) GroupGetMemberCount(ctx context.Context, groupID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupGetMemberCount(ctx, groupID, hints...)
+}
+
 func (s *LocalCacheSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID string, userID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	return s.Next().GroupCreateOrRestoreMember(ctx, groupID, userID, hints...)
 }

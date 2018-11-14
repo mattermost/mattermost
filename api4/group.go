@@ -441,13 +441,19 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
+	members, count, err := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	b, marshalErr := json.Marshal(members)
+	b, marshalErr := json.Marshal(struct {
+		Members []*model.User `json:"members"`
+		Count   int           `json:"total_member_count"`
+	}{
+		Members: members,
+		Count:   count,
+	})
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroupMembers", "api.group.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return

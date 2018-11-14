@@ -437,6 +437,29 @@ func (_m *LayeredStoreDatabaseLayer) GroupGetGroupSyncable(ctx context.Context, 
 	return r0
 }
 
+// GroupGetMemberCount provides a mock function with given fields: ctx, groupID, hints
+func (_m *LayeredStoreDatabaseLayer) GroupGetMemberCount(ctx context.Context, groupID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, groupID)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, groupID, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
 // GroupGetMemberUsers provides a mock function with given fields: ctx, groupID, hints
 func (_m *LayeredStoreDatabaseLayer) GroupGetMemberUsers(ctx context.Context, groupID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
