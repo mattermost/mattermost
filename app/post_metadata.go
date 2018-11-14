@@ -232,6 +232,10 @@ func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reacti
 
 	names := getEmojiNamesForPost(post, reactions)
 
+	if len(names) == 0 {
+		return []*model.Emoji{}, nil
+	}
+
 	return a.GetMultipleEmojiByName(names)
 }
 
