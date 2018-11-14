@@ -54,6 +54,7 @@ func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError
 		return kv.Value, nil
 	}
 
+	// Lookup using the hashed version of the key for keys written prior to v5.6.
 	result = <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key))
 	if result.Err != nil {
 		if result.Err.StatusCode == http.StatusNotFound {
