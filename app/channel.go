@@ -663,6 +663,10 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		member.NotifyProps[model.PUSH_NOTIFY_PROP] = push
 	}
 
+	if ignoreChannelMentions, exists := data[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP]; exists {
+		member.NotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] = ignoreChannelMentions
+	}
+
 	result := <-a.Srv.Store.Channel().UpdateMember(member)
 	if result.Err != nil {
 		return nil, result.Err
