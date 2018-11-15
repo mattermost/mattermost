@@ -2087,7 +2087,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 
 func (s SqlChannelStore) SearchAllChannels(term string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var parameters map[string]interface{}
+		parameters := map[string]interface{}{}
 		deleteFilter := "AND c.DeleteAt = 0"
 		if includeDeleted {
 			deleteFilter = ""
