@@ -269,7 +269,7 @@
         "LoginFieldName": "",
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": "",
+        "LoginButtonTextColor": ""
     },
     "ComplianceSettings": {
         "Enable": false,
