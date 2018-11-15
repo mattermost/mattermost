@@ -283,7 +283,7 @@ func (s *SqlSupplier) GroupGetMemberUsersPage(stc context.Context, groupID strin
 			AND Users.DeleteAt = 0
 			AND GroupId = :GroupId
 		ORDER BY
-			Users.Username ASC
+			GroupMembers.CreateAt DESC
 		LIMIT
 			:Limit
 		OFFSET

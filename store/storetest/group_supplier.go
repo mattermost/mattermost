@@ -502,14 +502,14 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	assert.Nil(t, res.Err)
 	groupMembers = res.Data.([]*model.User)
 	assert.Equal(t, 1, len(groupMembers))
-	assert.Equal(t, user1.Id, groupMembers[0].Id)
+	assert.Equal(t, user2.Id, groupMembers[0].Id)
 
 	// Check page 2
 	res = <-ss.Group().GetMemberUsersPage(group.Id, 1, 1)
 	assert.Nil(t, res.Err)
 	groupMembers = res.Data.([]*model.User)
 	assert.Equal(t, 1, len(groupMembers))
-	assert.Equal(t, user2.Id, groupMembers[0].Id)
+	assert.Equal(t, user1.Id, groupMembers[0].Id)
 
 	// Check madeup id
 	res = <-ss.Group().GetMemberUsersPage(model.NewId(), 0, 100)
