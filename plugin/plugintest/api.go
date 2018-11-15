@@ -1835,6 +1835,22 @@ func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return r0
 }
 
+// SetProfileImage provides a mock function with given fields: userId, data
+func (_m *API) SetProfileImage(userId string, data []byte) *model.AppError {
+	ret := _m.Called(userId, data)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+		r0 = rf(userId, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // UnregisterCommand provides a mock function with given fields: teamId, trigger
 func (_m *API) UnregisterCommand(teamId string, trigger string) error {
 	ret := _m.Called(teamId, trigger)
