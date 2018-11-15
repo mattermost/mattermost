@@ -1109,6 +1109,14 @@ func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bo
 	return result.Data.(*model.ChannelList), nil
 }
 
+func (a *App) GetAllChannels(page, perPage int, includeDeleted bool) (*model.ChannelListWithTeamData, *model.AppError) {
+	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, includeDeleted)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.(*model.ChannelListWithTeamData), nil
+}
+
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
 	result := <-a.Srv.Store.Channel().GetDeleted(teamId, offset, limit)
 	if result.Err != nil {
@@ -1569,6 +1577,16 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 		return nil, result.Err
 	}
 	return result.Data.(*model.ChannelList), nil
+}
+
+func (a *App) SearchAllChannels(term string) (*model.ChannelListWithTeamData, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+
+	result := <-a.Srv.Store.Channel().SearchAllChannels(term, includeDeleted)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.(*model.ChannelListWithTeamData), nil
 }
 
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {

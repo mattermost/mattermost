@@ -53,6 +53,12 @@ type Channel struct {
 	Props         map[string]interface{} `json:"props" db:"-"`
 }
 
+type ChannelWithTeamData struct {
+	Channel
+	TeamDisplayName string `json:"team_display_name"`
+	TeamName        string `json:"team_name"`
+}
+
 type ChannelPatch struct {
 	DisplayName *string `json:"display_name"`
 	Name        *string `json:"name"`
