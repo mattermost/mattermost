@@ -129,7 +129,7 @@ type API interface {
 	DeleteTeamMember(teamId, userId, requestorId string) *model.AppError
 
 	// GetTeamMembers returns the memberships of a specific team.
-	GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError)
+	GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 
 	// GetTeamMember returns a specific membership.
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
@@ -144,7 +144,7 @@ type API interface {
 	DeleteChannel(channelId string) *model.AppError
 
 	// GetPublicChannelsForTeam gets a list of all channels.
-	GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError)
+	GetPublicChannelsForTeam(teamId string, page, perPage int) (*model.ChannelList, *model.AppError)
 
 	// GetChannel gets a channel.
 	GetChannel(channelId string) (*model.Channel, *model.AppError)
