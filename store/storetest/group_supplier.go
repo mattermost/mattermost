@@ -828,24 +828,6 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 		}
 		assert.True(t, present)
 	}
-
-	// Returns the correct number based on limit
-	res5 := <-ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
-	d2 := res5.Data.([]*model.GroupSyncable)
-	assert.Len(t, d2, 2)
-
-	// Check that result sets are different using an offset
-	res6 := <-ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
-	d3 := res6.Data.([]*model.GroupSyncable)
-	res7 := <-ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
-	d4 := res7.Data.([]*model.GroupSyncable)
-	for _, d3i := range d3 {
-		for _, d4i := range d4 {
-			if d4i.GroupId == d3i.GroupId && d4i.SyncableId == d3i.SyncableId {
-				t.Error("Expected results to be unique.")
-			}
-		}
-	}
 }
 
 func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
