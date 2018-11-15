@@ -36,7 +36,7 @@ type GroupChannelJoin struct {
 	TeamDisplayName    string `db:"TeamDisplayName"`
 	TeamType           string `db:"TeamType"`
 	ChannelType        string `db:"ChannelType"`
-	TeamID             string `db:TeamId`
+	TeamID             string `db:"TeamId"`
 }
 
 func initSqlSupplierGroups(sqlStore SqlStore) {
