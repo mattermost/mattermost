@@ -264,7 +264,7 @@ type API interface {
 	// Minimum server version: 5.6
 	GetProfileImage(userId string) ([]byte, *model.AppError)
 
-	// SetProfileImage set user's profile image.
+	// SetProfileImage sets a user's profile image.
 	//
 	// Minimum server version: 5.6
 	SetProfileImage(userId string, data []byte) *model.AppError
