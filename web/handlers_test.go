@@ -33,8 +33,8 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 		mobile   bool
 		redirect bool
 	}{
-		{"redirect on destkop non-api endpoint", "/login/sso/saml", false, true},
-		{"not redirect on destkop api endpoint", "/api/v4/test", false, false},
+		{"redirect on desktop non-api endpoint", "/login/sso/saml", false, true},
+		{"not redirect on desktop api endpoint", "/api/v4/test", false, false},
 		{"not redirect on mobile non-api endpoint", "/login/sso/saml", true, false},
 		{"not redirect on mobile api endpoint", "/api/v4/test", true, false},
 	}
