@@ -153,6 +153,23 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	_, err = th.App.UpdateUser(user, false)
 	assert.False(t, err == nil)
 }
+func TestUpdateUserActive(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserDeactivation = EnableUserDeactivation })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableUserDeactivation = true
+	})
+	_, err := th.App.UpdateUserActive(user.Id, false)
+	assert.True(t, err == nil)
+}
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
 	th := Setup()

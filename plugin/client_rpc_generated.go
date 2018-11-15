@@ -1004,6 +1004,36 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	return nil
 }
 
+type Z_UpdateUserActiveArgs struct {
+	A string
+	B bool
+}
+
+type Z_UpdateUserActiveReturns struct {
+	A bool
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserActive(userId string, active bool) (bool, *model.AppError) {
+	_args := &Z_UpdateUserActiveArgs{userId, active}
+	_returns := &Z_UpdateUserActiveReturns{}
+	if err := g.client.Call("Plugin.UpdateUserActive", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserActive API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z_UpdateUserActiveReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserActive(userId string, active bool) (bool, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateUserActive(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserActive called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetUsersInChannelArgs struct {
 	A string
 	B string
@@ -2756,35 +2786,6 @@ func (s *apiRPCServer) GetPlugins(args *Z_GetPluginsArgs, returns *Z_GetPluginsR
 	return nil
 }
 
-type Z_GetPluginStatusArgs struct {
-	A string
-}
-
-type Z_GetPluginStatusReturns struct {
-	A *model.PluginStatus
-	B *model.AppError
-}
-
-func (g *apiRPCClient) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	_args := &Z_GetPluginStatusArgs{id}
-	_returns := &Z_GetPluginStatusReturns{}
-	if err := g.client.Call("Plugin.GetPluginStatus", _args, _returns); err != nil {
-		log.Printf("RPC call to GetPluginStatus API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) GetPluginStatus(args *Z_GetPluginStatusArgs, returns *Z_GetPluginStatusReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.GetPluginStatus(args.A)
-	} else {
-		return encodableError(fmt.Errorf("API GetPluginStatus called but not implemented."))
-	}
-	return nil
-}
-
 type Z_EnablePluginArgs struct {
 	A string
 }
@@ -2865,6 +2866,35 @@ func (s *apiRPCServer) RemovePlugin(args *Z_RemovePluginArgs, returns *Z_RemoveP
 		returns.A = hook.RemovePlugin(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API RemovePlugin called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPluginStatusArgs struct {
+	A string
+}
+
+type Z_GetPluginStatusReturns struct {
+	A *model.PluginStatus
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	_args := &Z_GetPluginStatusArgs{id}
+	_returns := &Z_GetPluginStatusReturns{}
+	if err := g.client.Call("Plugin.GetPluginStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPluginStatus API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPluginStatus(args *Z_GetPluginStatusArgs, returns *Z_GetPluginStatusReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPluginStatus(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPluginStatus called but not implemented."))
 	}
 	return nil
 }
