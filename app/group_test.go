@@ -219,10 +219,6 @@ func TestGetGroupSyncables(t *testing.T) {
 	if len(groupTeams) < 1 {
 		t.Fatal("Should have retrieved at least one group team")
 	}
-
-	if groupTeams, _ = th.App.GetGroupSyncables(group.Id, model.GroupSyncableTypeTeam); len(groupTeams) > 0 {
-		t.Fatal("Should not have group teams")
-	}
 }
 
 func TestDeleteGroupSyncable(t *testing.T) {
