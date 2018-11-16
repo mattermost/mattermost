@@ -18,6 +18,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestPreparePostListForClient(t *testing.T) {
+	// Most of this logic is covered by TestPreparePostForClient, so this just tests handling of multiple posts
+
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	postList := model.NewPostList()
+	for i := 0; i < 5; i++ {
+		postList.AddPost(th.CreatePost(th.BasicChannel))
+	}
+
+	clientPostList := th.App.PreparePostListForClient(postList)
+
+	t.Run("doesn't mutate provided post list", func(t *testing.T) {
+		assert.NotEqual(t, clientPostList, postList, "should've returned a new post list")
+		assert.NotEqual(t, clientPostList.Posts, postList.Posts, "should've returned a new PostList.Posts")
+		assert.Equal(t, clientPostList.Order, postList.Order, "should've returned the existing PostList.Order")
+
+		for id, originalPost := range postList.Posts {
+			assert.NotEqual(t, clientPostList.Posts[id], originalPost, "should've returned new post objects")
+			assert.Equal(t, clientPostList.Posts[id].Id, originalPost.Id, "should've returned the same posts")
+		}
+	})
+
+	t.Run("adds metadata to each post", func(t *testing.T) {
+		for _, clientPost := range clientPostList.Posts {
+			assert.NotNil(t, clientPost.Metadata, "should've populated metadata for each post")
+		}
+	})
+}
+
 func TestPreparePostForClient(t *testing.T) {
 	setup := func() *TestHelper {
 		th := Setup().InitBasic()
