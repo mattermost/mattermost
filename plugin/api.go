@@ -69,6 +69,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetTeamIcon(teamId string) ([]byte, *model.AppError)
 
+	// SetTeamIcon sets the Team Icon.
+	//
+	// Minimum server version: 5.6
+	SetTeamIcon(teamId string, data []byte) *model.AppError
+
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
 
