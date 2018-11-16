@@ -887,6 +887,64 @@ func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_Get
 	return nil
 }
 
+type Z_GetTeamIconArgs struct {
+	A string
+}
+
+type Z_GetTeamIconReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
+	_args := &Z_GetTeamIconArgs{teamId}
+	_returns := &Z_GetTeamIconReturns{}
+	if err := g.client.Call("Plugin.GetTeamIcon", _args, _returns); err != nil {
+		log.Printf("RPC call to GetTeamIcon API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetTeamIcon(args *Z_GetTeamIconArgs, returns *Z_GetTeamIconReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamIcon(teamId string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamIcon(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetTeamIcon called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetTeamIconArgs struct {
+	A string
+	B []byte
+}
+
+type Z_SetTeamIconReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetTeamIcon(teamId string, data []byte) *model.AppError {
+	_args := &Z_SetTeamIconArgs{teamId, data}
+	_returns := &Z_SetTeamIconReturns{}
+	if err := g.client.Call("Plugin.SetTeamIcon", _args, _returns); err != nil {
+		log.Printf("RPC call to SetTeamIcon API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetTeamIcon(args *Z_SetTeamIconArgs, returns *Z_SetTeamIconReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetTeamIcon(teamId string, data []byte) *model.AppError
+	}); ok {
+		returns.A = hook.SetTeamIcon(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetTeamIcon called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateUserArgs struct {
 	A *model.User
 }
