@@ -466,6 +466,20 @@ func (api *PluginAPI) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
+func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
+	team, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	fileReader := bytes.NewReader(data)
+	err = api.app.SetTeamIconFromFile(team, fileReader)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Plugin Section
 
 func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {

@@ -1876,6 +1876,22 @@ func (_m *API) SetProfileImage(userId string, data []byte) *model.AppError {
 	return r0
 }
 
+// SetTeamIcon provides a mock function with given fields: teamId, data
+func (_m *API) SetTeamIcon(teamId string, data []byte) *model.AppError {
+	ret := _m.Called(teamId, data)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+		r0 = rf(teamId, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // UnregisterCommand provides a mock function with given fields: teamId, trigger
 func (_m *API) UnregisterCommand(teamId string, trigger string) error {
 	ret := _m.Called(teamId, trigger)
