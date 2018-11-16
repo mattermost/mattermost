@@ -453,6 +453,19 @@ func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppE
 	return api.app.GetEmojiImage(emojiId)
 }
 
+func (api *PluginAPI) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
+	team, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := api.app.GetTeamIcon(team)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
 // Plugin Section
 
 func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {
