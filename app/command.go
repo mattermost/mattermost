@@ -279,9 +279,9 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	a.HandleCommandResponsePost(command, args, response, builtIn)
 
-	if response.Posts != nil {
-		for _, post := range response.Posts {
-			a.HandleCommandResponsePost(command, args, post, builtIn)
+	if response.ExtraResponses != nil {
+		for _, resp := range response.ExtraResponses {
+			a.HandleCommandResponsePost(command, args, resp, builtIn)
 		}
 	}
 

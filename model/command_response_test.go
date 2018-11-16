@@ -132,18 +132,18 @@ func TestCommandResponseFromJson(t *testing.T) {
 			false,
 		},
 		{
-			"multiple posts returned",
+			"multiple responses returned",
 			`
 			{
 				"text": "message 1",
-				"posts": [
+				"extra_responses": [
 					{"text": "message 2"}
 				]
 			}
 			`,
 			&CommandResponse{
 				Text: "message 1",
-				Posts: []*CommandResponse{
+				ExtraResponses: []*CommandResponse{
 					&CommandResponse{
 						Text: "message 2",
 					},
@@ -152,12 +152,12 @@ func TestCommandResponseFromJson(t *testing.T) {
 			false,
 		},
 		{
-			"multiple posts returned, with attachments",
+			"multiple responses returned, with attachments",
 			`
 			{
 				"text": "message 1",
 				"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}]}],
-				"posts": [
+				"extra_responses": [
 					{
 						"text": "message 2",
 						"attachments":[{"fields":[{"title":"foo 2","value":"bar 2","short":false}]}]
@@ -177,7 +177,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 						},
 					},
 				},
-				Posts: []*CommandResponse{
+				ExtraResponses: []*CommandResponse{
 					&CommandResponse{
 						Text: "message 2",
 						Attachments: []*SlackAttachment{

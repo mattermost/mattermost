@@ -18,15 +18,15 @@ const (
 )
 
 type CommandResponse struct {
-	ResponseType string             `json:"response_type"`
-	Text         string             `json:"text"`
-	Username     string             `json:"username"`
-	IconURL      string             `json:"icon_url"`
-	Type         string             `json:"type"`
-	Props        StringInterface    `json:"props"`
-	GotoLocation string             `json:"goto_location"`
-	Attachments  []*SlackAttachment `json:"attachments"`
-	Posts        []*CommandResponse `json:"posts"`
+	ResponseType   string             `json:"response_type"`
+	Text           string             `json:"text"`
+	Username       string             `json:"username"`
+	IconURL        string             `json:"icon_url"`
+	Type           string             `json:"type"`
+	Props          StringInterface    `json:"props"`
+	GotoLocation   string             `json:"goto_location"`
+	Attachments    []*SlackAttachment `json:"attachments"`
+	ExtraResponses []*CommandResponse `json:"extra_responses"`
 }
 
 func (o *CommandResponse) ToJson() string {
@@ -64,9 +64,9 @@ func CommandResponseFromJson(data io.Reader) (*CommandResponse, error) {
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)
 
-	if o.Posts != nil {
-		for _, post := range o.Posts {
-			post.Attachments = StringifySlackFieldValue(post.Attachments)
+	if o.ExtraResponses != nil {
+		for _, resp := range o.ExtraResponses {
+			resp.Attachments = StringifySlackFieldValue(resp.Attachments)
 		}
 	}
 
