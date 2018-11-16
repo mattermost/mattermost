@@ -719,7 +719,8 @@ func TestGetTeamMembers(t *testing.T) {
 	// Fetch team members multipile times
 	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
 	require.Nil(t, err)
-	members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 5)
+	// This should return 5 members
+	members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 6)
 	require.Nil(t, err)
 	members = append(members, members2...)
 
