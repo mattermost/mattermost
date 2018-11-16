@@ -75,7 +75,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 		}
 
 		// Files
-		if fileInfos, err := a.GetFileInfosForPost(post.Id, false); err != nil {
+		if fileInfos, err := a.getFileMetadataForPost(post); err != nil {
 			mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
 		} else {
 			post.Metadata.Files = fileInfos
@@ -98,10 +98,22 @@ func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 	return post
 }
 
+func (a *App) getFileMetadataForPost(post *model.Post) ([]*model.FileInfo, *model.AppError) {
+	if len(post.FileIds) == 0 {
+		return nil, nil
+	}
+
+	return a.GetFileInfosForPost(post.Id, false)
+}
+
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
-	reactions, err := a.GetReactionsForPost(post.Id)
-	if err != nil {
-		return nil, nil, err
+	var reactions []*model.Reaction
+	if post.HasReactions {
+		var err *model.AppError
+		reactions, err = a.GetReactionsForPost(post.Id)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	emojis, err := a.getCustomEmojisForPost(post, reactions)

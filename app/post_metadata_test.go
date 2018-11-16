@@ -109,6 +109,7 @@ func TestPreparePostForClient(t *testing.T) {
 		reaction1 := th.AddReactionToPost(post, th.BasicUser, "smile")
 		reaction2 := th.AddReactionToPost(post, th.BasicUser2, "smile")
 		reaction3 := th.AddReactionToPost(post, th.BasicUser2, "ice_cream")
+		post.HasReactions = true
 
 		clientPost := th.App.PreparePostForClient(post)
 
@@ -166,6 +167,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser, "smile")
 		th.AddReactionToPost(post, th.BasicUser, "angry")
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
+		post.HasReactions = true
 
 		clientPost := th.App.PreparePostForClient(post)
 
@@ -210,6 +212,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser, emoji2.Name)
 		th.AddReactionToPost(post, th.BasicUser2, emoji2.Name)
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
+		post.HasReactions = true
 
 		clientPost := th.App.PreparePostForClient(post)
 
