@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -387,6 +388,20 @@ func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
 
 	data, _, err := api.app.GetProfileImage(user)
 	return data, err
+}
+
+func (api *PluginAPI) SetProfileImage(userId string, data []byte) *model.AppError {
+	_, err := api.app.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	fileReader := bytes.NewReader(data)
+	err = api.app.SetProfileImageFromFile(userId, fileReader)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {

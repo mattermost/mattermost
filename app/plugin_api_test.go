@@ -4,8 +4,12 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -218,6 +222,36 @@ func TestPluginAPIGetProfileImage(t *testing.T) {
 	data, err = api.GetProfileImage(model.NewId())
 	require.NotNil(t, err)
 	require.Nil(t, data)
+}
+
+func TestPluginAPISetProfileImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// Create an 128 x 128 image
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+	// Draw a red dot at (2, 3)
+	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
+	buf := new(bytes.Buffer)
+	err := png.Encode(buf, img)
+	require.Nil(t, err)
+	dataBytes := buf.Bytes()
+
+	// Set the user profile image
+	err = api.SetProfileImage(th.BasicUser.Id, dataBytes)
+	require.Nil(t, err)
+
+	// Get the user profile image to check
+	imageProfile, err := api.GetProfileImage(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, imageProfile)
+
+	colorful := color.NRGBA{255, 0, 0, 255}
+	byteReader := bytes.NewReader(imageProfile)
+	img2, _, err2 := image.Decode(byteReader)
+	require.Nil(t, err2)
+	require.Equal(t, img2.At(2, 3), colorful)
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {

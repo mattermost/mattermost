@@ -264,6 +264,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetProfileImage(userId string) ([]byte, *model.AppError)
 
+	// SetProfileImage sets a user's profile image.
+	//
+	// Minimum server version: 5.6
+	SetProfileImage(userId string, data []byte) *model.AppError
+
 	// GetEmojiList returns a page of custom emoji on the system.
 	//
 	// The sortBy parameter can be: "name".
