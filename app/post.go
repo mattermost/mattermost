@@ -297,13 +297,8 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 		post.Props = model.StringInterface{}
 	}
 
-	clientPost, err := a.PreparePostForClient(post)
-	if err != nil {
-		mlog.Error("Failed to prepare ephemeral post for client", mlog.Any("err", err))
-	}
-
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", clientPost.ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 
 	return post
@@ -424,13 +419,8 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 }
 
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
-	clientPost, err := a.PreparePostForClient(post)
-	if err != nil {
-		mlog.Error("Failed to prepare updated post for client", mlog.Any("err", err))
-	}
-
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", clientPost.ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 }
 
@@ -569,13 +559,8 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		return nil, result.Err
 	}
 
-	clientPost, err := a.PreparePostForClient(post)
-	if err != nil {
-		mlog.Error("Failed to prepare deleted post for client", mlog.Any("err", err))
-	}
-
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", clientPost.ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 
 	a.Srv.Go(func() {

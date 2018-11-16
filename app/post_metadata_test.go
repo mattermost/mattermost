@@ -38,8 +38,7 @@ func TestPreparePostForClient(t *testing.T) {
 		post := th.CreatePost(th.BasicChannel)
 		message := post.Message
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		t.Run("doesn't mutate provided post", func(t *testing.T) {
 			assert.NotEqual(t, clientPost, post, "should've returned a new post")
@@ -63,11 +62,9 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
-		post, err := th.App.PreparePostForClient(th.CreatePost(th.BasicChannel))
-		require.Nil(t, err)
+		post := th.App.PreparePostForClient(th.CreatePost(th.BasicChannel))
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		assert.False(t, clientPost == post, "should've returned a new post")
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
@@ -82,8 +79,7 @@ func TestPreparePostForClient(t *testing.T) {
 		reaction2 := th.AddReactionToPost(post, th.BasicUser2, "smile")
 		reaction3 := th.AddReactionToPost(post, th.BasicUser2, "ice_cream")
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		assert.Len(t, clientPost.Metadata.Reactions, 3, "should've populated Reactions")
 		assert.Equal(t, reaction1, clientPost.Metadata.Reactions[0], "first reaction is incorrect")
@@ -107,8 +103,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		fileInfo.PostId = post.Id
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
@@ -141,8 +136,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser, "angry")
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		t.Run("populates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{}, clientPost.Metadata.Emojis, "should've populated empty Emojis")
@@ -186,8 +180,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser2, emoji2.Name)
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		t.Run("pupulates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3, emoji4}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
@@ -210,8 +203,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		t.Run("populates image dimensions", func(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
@@ -253,8 +245,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		// Reminder that only the first link gets an embed and dimensions
 
@@ -288,8 +279,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
@@ -339,8 +329,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost, err := th.App.PreparePostForClient(post)
-		require.Nil(t, err)
+		clientPost := th.App.PreparePostForClient(post)
 
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
@@ -405,10 +394,7 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	post, err = th.App.CreatePost(post, th.BasicChannel, false)
 	require.Nil(t, err)
 
-	clientPost, err := th.App.PreparePostForClient(post)
-	if err != nil && err.Id != "app.post.metadata.link.app_error" {
-		t.Fatal(err)
-	}
+	clientPost := th.App.PreparePostForClient(post)
 
 	if shouldProxy {
 		assert.Equal(t, post.Message, fmt.Sprintf(postTemplate, imageURL), "should not have mutated original post")
@@ -426,8 +412,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	}, th.BasicChannel, false)
 	require.Nil(t, err)
 
-	clientPost, err := th.App.PreparePostForClient(post)
-	require.Nil(t, err)
+	clientPost := th.App.PreparePostForClient(post)
 
 	image := &opengraph.Image{}
 	if shouldProxy {

@@ -38,18 +38,15 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) (*model.Pos
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post, err := a.PreparePostForClient(originalPost)
-		if err != nil {
-			return originalList, err
-		}
+		post := a.PreparePostForClient(originalPost)
 
 		list.Posts[id] = post
 	}
 
-	return list, nil
+	return list, nil // TODO remove me
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *model.AppError) {
+func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -87,7 +84,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 		post.Metadata.Images = a.getImagesForPost(post, images)
 	}
 
-	return post, nil
+	return post
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {

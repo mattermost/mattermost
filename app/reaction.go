@@ -6,7 +6,6 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -112,11 +111,7 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	message.Add("reaction", reaction.ToJson())
 	a.Publish(message)
 
-	clientPost, err := a.PreparePostForClient(post)
-	if err != nil {
-		mlog.Error("Failed to prepare new post for client after reaction", mlog.Any("err", err))
-	}
-
+	clientPost := a.PreparePostForClient(post)
 	clientPost.HasReactions = hasReactions
 	clientPost.UpdateAt = model.GetMillis()
 
