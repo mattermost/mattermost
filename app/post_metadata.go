@@ -31,7 +31,7 @@ func (a *App) InitPostMetadata() {
 	})
 }
 
-func (a *App) PreparePostListForClient(originalList *model.PostList) (*model.PostList, *model.AppError) {
+func (a *App) PreparePostListForClient(originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
 		Posts: make(map[string]*model.Post),
 		Order: originalList.Order,
@@ -43,7 +43,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) (*model.Pos
 		list.Posts[id] = post
 	}
 
-	return list, nil // TODO remove me
+	return list
 }
 
 func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {

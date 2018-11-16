@@ -488,10 +488,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList, err := c.App.PreparePostListForClient(posts)
-	if err != nil {
-		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
-	}
+	clientPostList := c.App.PreparePostListForClient(posts)
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
 	w.Write([]byte(clientPostList.ToJson()))

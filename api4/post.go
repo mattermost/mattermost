@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -167,12 +166,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 
-	clientPostList, err := c.App.PreparePostListForClient(list)
-	if err != nil {
-		mlog.Error("Failed to prepare posts for getPostsForChannel response", mlog.Any("err", err))
-	}
-
-	w.Write([]byte(clientPostList.ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(list).ToJson()))
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -205,12 +199,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	clientPostList, err := c.App.PreparePostListForClient(posts)
-	if err != nil {
-		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
-	}
-
-	w.Write([]byte(clientPostList.ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(posts).ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -329,10 +318,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList, err := c.App.PreparePostListForClient(list)
-	if err != nil {
-		mlog.Error("Failed to prepare posts for getFlaggedPostsForUser response", mlog.Any("err", err))
-	}
+	clientPostList := c.App.PreparePostListForClient(list)
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
 
@@ -399,10 +385,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList, err := c.App.PreparePostListForClient(results.PostList)
-	if err != nil {
-		mlog.Error("Failed to prepare posts for searchPosts response", mlog.Any("err", err))
-	}
+	clientPostList := c.App.PreparePostListForClient(results.PostList)
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
