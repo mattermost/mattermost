@@ -311,3 +311,34 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	assert.NotEmpty(t, plugins)
 	assert.Equal(t, pluginManifests, plugins)
 }
+
+func TestPluginAPIGetTeamIcon(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// Create an 128 x 128 image
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+	// Draw a red dot at (2, 3)
+	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
+	buf := new(bytes.Buffer)
+	err := png.Encode(buf, img)
+	require.Nil(t, err)
+	dataBytes := buf.Bytes()
+	fileReader := bytes.NewReader(dataBytes)
+
+	// Set the Team Icon
+	err = th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	require.Nil(t, err)
+
+	// Get the team icon to check
+	imageProfile, err := api.GetTeamIcon(th.BasicTeam.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, imageProfile)
+
+	colorful := color.NRGBA{255, 0, 0, 255}
+	byteReader := bytes.NewReader(imageProfile)
+	img2, _, err2 := image.Decode(byteReader)
+	require.Nil(t, err2)
+	require.Equal(t, img2.At(2, 3), colorful)
+}

@@ -1175,6 +1175,31 @@ func (_m *API) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	return r0, r1
 }
 
+// GetTeamIcon provides a mock function with given fields: teamId
+func (_m *API) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
+	ret := _m.Called(teamId)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetTeamMember provides a mock function with given fields: teamId, userId
 func (_m *API) GetTeamMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
 	ret := _m.Called(teamId, userId)

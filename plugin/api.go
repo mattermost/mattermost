@@ -64,6 +64,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
 
+	// GetTeamIcon gets the Team Icon.
+	//
+	// Minimum server version: 5.6
+	GetTeamIcon(teamId string) ([]byte, *model.AppError)
+
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
 
