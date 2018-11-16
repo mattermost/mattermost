@@ -26,6 +26,7 @@ type CommandResponse struct {
 	Props        StringInterface    `json:"props"`
 	GotoLocation string             `json:"goto_location"`
 	Attachments  []*SlackAttachment `json:"attachments"`
+	Posts        []*CommandResponse `json:"posts"`
 }
 
 func (o *CommandResponse) ToJson() string {
@@ -62,6 +63,12 @@ func CommandResponseFromJson(data io.Reader) (*CommandResponse, error) {
 	}
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)
+
+	if o.Posts != nil {
+		for _, post := range o.Posts {
+			post.Attachments = StringifySlackFieldValue(post.Attachments)
+		}
+	}
 
 	return &o, nil
 }
