@@ -1543,11 +1543,11 @@ type Z_GetPublicChannelsForTeamArgs struct {
 }
 
 type Z_GetPublicChannelsForTeamReturns struct {
-	A *model.ChannelList
+	A []*model.Channel
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPublicChannelsForTeam(teamId string, page, perPage int) (*model.ChannelList, *model.AppError) {
+func (g *apiRPCClient) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
 	_args := &Z_GetPublicChannelsForTeamArgs{teamId, page, perPage}
 	_returns := &Z_GetPublicChannelsForTeamReturns{}
 	if err := g.client.Call("Plugin.GetPublicChannelsForTeam", _args, _returns); err != nil {
@@ -1558,7 +1558,7 @@ func (g *apiRPCClient) GetPublicChannelsForTeam(teamId string, page, perPage int
 
 func (s *apiRPCServer) GetPublicChannelsForTeam(args *Z_GetPublicChannelsForTeamArgs, returns *Z_GetPublicChannelsForTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPublicChannelsForTeam(teamId string, page, perPage int) (*model.ChannelList, *model.AppError)
+		GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPublicChannelsForTeam(args.A, args.B, args.C)
 	} else {

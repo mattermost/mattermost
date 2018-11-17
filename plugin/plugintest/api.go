@@ -1037,15 +1037,15 @@ func (_m *API) GetProfileImage(userId string) ([]byte, *model.AppError) {
 }
 
 // GetPublicChannelsForTeam provides a mock function with given fields: teamId, page, perPage
-func (_m *API) GetPublicChannelsForTeam(teamId string, page int, perPage int) (*model.ChannelList, *model.AppError) {
+func (_m *API) GetPublicChannelsForTeam(teamId string, page int, perPage int) ([]*model.Channel, *model.AppError) {
 	ret := _m.Called(teamId, page, perPage)
 
-	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, int, int) *model.ChannelList); ok {
+	var r0 []*model.Channel
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Channel); ok {
 		r0 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelList)
+			r0 = ret.Get(0).([]*model.Channel)
 		}
 	}
 
