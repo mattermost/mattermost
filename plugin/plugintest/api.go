@@ -541,15 +541,15 @@ func (_m *API) GetChannelStats(channelId string) (*model.ChannelStats, *model.Ap
 }
 
 // GetChannelsForTeamForUser provides a mock function with given fields: teamId, userId, includeDeleted
-func (_m *API) GetChannelsForTeamForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (_m *API) GetChannelsForTeamForUser(teamId string, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
 	ret := _m.Called(teamId, userId, includeDeleted)
 
-	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, string, bool) *model.ChannelList); ok {
+	var r0 []*model.Channel
+	if rf, ok := ret.Get(0).(func(string, string, bool) []*model.Channel); ok {
 		r0 = rf(teamId, userId, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelList)
+			r0 = ret.Get(0).([]*model.Channel)
 		}
 	}
 
@@ -1820,15 +1820,15 @@ func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 }
 
 // SearchChannels provides a mock function with given fields: teamId, term
-func (_m *API) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+func (_m *API) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
 	ret := _m.Called(teamId, term)
 
-	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, string) *model.ChannelList); ok {
+	var r0 []*model.Channel
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Channel); ok {
 		r0 = rf(teamId, term)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelList)
+			r0 = ret.Get(0).([]*model.Channel)
 		}
 	}
 

@@ -168,7 +168,7 @@ type API interface {
 	// GetChannelsForTeamForUser gets a list of channels for given user ID in given team ID.
 	//
 	// Minimum server version: 5.6
-	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError)
 
 	// GetChannelStats gets statistics for a channel.
 	//
@@ -187,7 +187,7 @@ type API interface {
 	// SearchChannels returns the channels on a team matching the provided search term.
 	//
 	// Minimum server version: 5.6
-	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
+	SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
