@@ -277,6 +277,18 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 }
 
 func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+	a.HandleCommandResponsePost(command, args, response, builtIn)
+
+	if response.ExtraResponses != nil {
+		for _, resp := range response.ExtraResponses {
+			a.HandleCommandResponsePost(command, args, resp, builtIn)
+		}
+	}
+
+	return response, nil
+}
+
+func (a *App) HandleCommandResponsePost(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	post := &model.Post{}
 	post.ChannelId = args.ChannelId
 	post.RootId = args.RootId
