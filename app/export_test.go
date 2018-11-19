@@ -1,6 +1,7 @@
 package app
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -101,5 +102,71 @@ func TestExportUserChannels(t *testing.T) {
 			assert.Equal(t, *data.NotifyProps.MarkUnread, "all")
 			assert.False(t, *data.Favorite)
 		}
+	}
+}
+
+func TestDirCreationForEmoji(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
+	defer os.Remove(pathToDir)
+	if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
+		t.Fatal("Directory exported_emoji_test should exist")
+	}
+}
+
+func TestCopyEmojiImages(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	emoji := &model.Emoji{
+		Id: th.BasicUser.Id,
+	}
+
+	// Creating a dir named `exported_emoji_test` in the root of the repo
+	pathToDir := "../exported_emoji_test"
+
+	os.Mkdir(pathToDir, 0777)
+	defer os.RemoveAll(pathToDir)
+
+	filePath := "../data/emoji/" + emoji.Id
+	emojiImagePath := filePath + "/image"
+
+	var _, err = os.Stat(filePath)
+	if os.IsNotExist(err) {
+		os.MkdirAll(filePath, 0777)
+	}
+
+	// Creating a file with the name `image` to copy it to `exported_emoji_test`
+	os.OpenFile(filePath+"/image", os.O_RDONLY|os.O_CREATE, 0777)
+	defer os.RemoveAll(filePath)
+
+	copyError := th.App.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
+	if copyError != nil {
+		t.Fatal(copyError)
+	}
+
+	if _, err := os.Stat(pathToDir + "/" + emoji.Id + "/image"); os.IsNotExist(err) {
+		t.Fatal("File should exist ", err)
+	}
+}
+
+func TestExportCustomEmoji(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	filePath := "../demo.json"
+
+	fileWriter, _ := os.Create(filePath)
+	defer os.Remove(filePath)
+
+	pathToEmojiDir := "../data/emoji/"
+	dirNameToExportEmoji := "exported_emoji_test"
+
+	err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
+	defer os.RemoveAll("../" + dirNameToExportEmoji)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
