@@ -1741,6 +1741,22 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_m.Called(_ca...)
 }
 
+// OpenInteractiveDialog provides a mock function with given fields: dialog
+func (_m *API) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
+	ret := _m.Called(dialog)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(model.OpenDialogRequest) *model.AppError); ok {
+		r0 = rf(dialog)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // PublishWebSocketEvent provides a mock function with given fields: event, payload, broadcast
 func (_m *API) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
 	_m.Called(event, payload, broadcast)

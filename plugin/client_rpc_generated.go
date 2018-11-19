@@ -2870,6 +2870,34 @@ func (s *apiRPCServer) UploadFile(args *Z_UploadFileArgs, returns *Z_UploadFileR
 	return nil
 }
 
+type Z_OpenInteractiveDialogArgs struct {
+	A model.OpenDialogRequest
+}
+
+type Z_OpenInteractiveDialogReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
+	_args := &Z_OpenInteractiveDialogArgs{dialog}
+	_returns := &Z_OpenInteractiveDialogReturns{}
+	if err := g.client.Call("Plugin.OpenInteractiveDialog", _args, _returns); err != nil {
+		log.Printf("RPC call to OpenInteractiveDialog API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) OpenInteractiveDialog(args *Z_OpenInteractiveDialogArgs, returns *Z_OpenInteractiveDialogReturns) error {
+	if hook, ok := s.impl.(interface {
+		OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
+	}); ok {
+		returns.A = hook.OpenInteractiveDialog(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API OpenInteractiveDialog called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPluginsArgs struct {
 }
 

@@ -4,7 +4,7 @@
 package plugin
 
 import (
-	"github.com/hashicorp/go-plugin"
+	plugin "github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -338,6 +338,13 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
+
+	// OpenInteractiveDialog will open an interactive dialog on a user's client that
+	// generated the trigger ID. Used with interactive message buttons, menus
+	// and slash commands.
+	//
+	// Minimum server version: 5.6
+	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 
 	// Plugin Section
 
