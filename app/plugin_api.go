@@ -294,7 +294,7 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 func (api *PluginAPI) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
 	channels, err := api.app.SearchChannels(teamId, term)
 	if err != nil {
-		return []*model.Channel{}, err
+		return nil, err
 	}
 	return *channels, err
 }
