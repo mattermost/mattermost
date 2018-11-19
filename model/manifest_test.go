@@ -193,7 +193,7 @@ func TestFindManifest_FolderPermission(t *testing.T) {
 		path := filepath.Join(dir, tc)
 		require.NoError(t, os.Mkdir(path, 0700))
 
-		//User does not have permission in the plugin folder
+		// User does not have permission in the plugin folder
 		err = os.Chmod(dir, 0066)
 		require.NoError(t, err)
 
