@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -131,8 +132,8 @@ func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *mode
 	return api.app.RemoveUserFromTeam(teamId, userId, requestorId)
 }
 
-func (api *PluginAPI) GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMembers(teamId, offset, limit)
+func (api *PluginAPI) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+	return api.app.GetTeamMembers(teamId, page*perPage, perPage)
 }
 
 func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -245,8 +246,9 @@ func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
 	return api.app.DeleteChannel(channel, "")
 }
 
-func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError) {
-	return api.app.GetPublicChannelsForTeam(teamId, offset, limit)
+func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.GetPublicChannelsForTeam(teamId, page*perPage, perPage)
+	return *channels, err
 }
 
 func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppError) {
@@ -389,6 +391,20 @@ func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
 	return data, err
 }
 
+func (api *PluginAPI) SetProfileImage(userId string, data []byte) *model.AppError {
+	_, err := api.app.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	fileReader := bytes.NewReader(data)
+	err = api.app.SetProfileImageFromFile(userId, fileReader)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
 	return api.app.GetEmojiList(page, perPage, sortBy)
 }
@@ -436,6 +452,33 @@ func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string)
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 	return api.app.GetEmojiImage(emojiId)
+}
+
+func (api *PluginAPI) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
+	team, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := api.app.GetTeamIcon(team)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
+	team, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	fileReader := bytes.NewReader(data)
+	err = api.app.SetTeamIconFromFile(team, fileReader)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Plugin Section

@@ -1036,22 +1036,22 @@ func (_m *API) GetProfileImage(userId string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
-// GetPublicChannelsForTeam provides a mock function with given fields: teamId, offset, limit
-func (_m *API) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	ret := _m.Called(teamId, offset, limit)
+// GetPublicChannelsForTeam provides a mock function with given fields: teamId, page, perPage
+func (_m *API) GetPublicChannelsForTeam(teamId string, page int, perPage int) ([]*model.Channel, *model.AppError) {
+	ret := _m.Called(teamId, page, perPage)
 
-	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, int, int) *model.ChannelList); ok {
-		r0 = rf(teamId, offset, limit)
+	var r0 []*model.Channel
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Channel); ok {
+		r0 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelList)
+			r0 = ret.Get(0).([]*model.Channel)
 		}
 	}
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(teamId, offset, limit)
+		r1 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1175,6 +1175,31 @@ func (_m *API) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	return r0, r1
 }
 
+// GetTeamIcon provides a mock function with given fields: teamId
+func (_m *API) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
+	ret := _m.Called(teamId)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetTeamMember provides a mock function with given fields: teamId, userId
 func (_m *API) GetTeamMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
 	ret := _m.Called(teamId, userId)
@@ -1200,13 +1225,13 @@ func (_m *API) GetTeamMember(teamId string, userId string) (*model.TeamMember, *
 	return r0, r1
 }
 
-// GetTeamMembers provides a mock function with given fields: teamId, offset, limit
-func (_m *API) GetTeamMembers(teamId string, offset int, limit int) ([]*model.TeamMember, *model.AppError) {
-	ret := _m.Called(teamId, offset, limit)
+// GetTeamMembers provides a mock function with given fields: teamId, page, perPage
+func (_m *API) GetTeamMembers(teamId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	ret := _m.Called(teamId, page, perPage)
 
 	var r0 []*model.TeamMember
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.TeamMember); ok {
-		r0 = rf(teamId, offset, limit)
+		r0 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -1215,7 +1240,7 @@ func (_m *API) GetTeamMembers(teamId string, offset int, limit int) ([]*model.Te
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(teamId, offset, limit)
+		r1 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1829,6 +1854,38 @@ func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	return r0
+}
+
+// SetProfileImage provides a mock function with given fields: userId, data
+func (_m *API) SetProfileImage(userId string, data []byte) *model.AppError {
+	ret := _m.Called(userId, data)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+		r0 = rf(userId, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetTeamIcon provides a mock function with given fields: teamId, data
+func (_m *API) SetTeamIcon(teamId string, data []byte) *model.AppError {
+	ret := _m.Called(teamId, data)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+		r0 = rf(teamId, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

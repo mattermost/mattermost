@@ -64,6 +64,16 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
 
+	// GetTeamIcon gets the Team Icon.
+	//
+	// Minimum server version: 5.6
+	GetTeamIcon(teamId string) ([]byte, *model.AppError)
+
+	// SetTeamIcon sets the Team Icon.
+	//
+	// Minimum server version: 5.6
+	SetTeamIcon(teamId string, data []byte) *model.AppError
+
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
 
@@ -129,7 +139,7 @@ type API interface {
 	DeleteTeamMember(teamId, userId, requestorId string) *model.AppError
 
 	// GetTeamMembers returns the memberships of a specific team.
-	GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError)
+	GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 
 	// GetTeamMember returns a specific membership.
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
@@ -144,7 +154,7 @@ type API interface {
 	DeleteChannel(channelId string) *model.AppError
 
 	// GetPublicChannelsForTeam gets a list of all channels.
-	GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError)
+	GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError)
 
 	// GetChannel gets a channel.
 	GetChannel(channelId string) (*model.Channel, *model.AppError)
@@ -263,6 +273,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetProfileImage(userId string) ([]byte, *model.AppError)
+
+	// SetProfileImage sets a user's profile image.
+	//
+	// Minimum server version: 5.6
+	SetProfileImage(userId string, data []byte) *model.AppError
 
 	// GetEmojiList returns a page of custom emoji on the system.
 	//

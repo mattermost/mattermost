@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -1093,10 +1094,10 @@ func (a *App) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer file.Close()
-	return a.SetTeamIconFromFile(teamId, file)
+	return a.SetTeamIconFromMultiPartFile(teamId, file)
 }
 
-func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.AppError {
+func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError {
 	team, getTeamErr := a.GetTeam(teamId)
 
 	if getTeamErr != nil {
@@ -1118,13 +1119,15 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 
 	file.Seek(0, 0)
 
+	return a.SetTeamIconFromFile(team, file)
+}
+
+func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-
-	file.Seek(0, 0)
 
 	orientation, _ := getImageOrientation(file)
 	img = makeImageUpright(img, orientation)
@@ -1139,7 +1142,7 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	path := "teams/" + teamId + "/teamIcon.png"
+	path := "teams/" + team.Id + "/teamIcon.png"
 
 	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, "", http.StatusInternalServerError)
@@ -1147,7 +1150,7 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 
 	curTime := model.GetMillis()
 
-	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, curTime); result.Err != nil {
+	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(team.Id, curTime); result.Err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 

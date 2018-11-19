@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -746,4 +747,47 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 		t.Fatal("Failed to get the timezones for a channel. Error: " + err.Error())
 	}
 	assert.Equal(t, 2, len(timezones))
+}
+
+func TestGetPublicChannelsForTeam(t *testing.T) {
+	th := Setup()
+	team := th.CreateTeam()
+	defer th.TearDown()
+
+	var expectedChannels []*model.Channel
+
+	townSquare, err := th.App.GetChannelByName("town-square", team.Id, false)
+	require.Nil(t, err)
+	require.NotNil(t, townSquare)
+	expectedChannels = append(expectedChannels, townSquare)
+
+	offTopic, err := th.App.GetChannelByName("off-topic", team.Id, false)
+	require.Nil(t, err)
+	require.NotNil(t, offTopic)
+	expectedChannels = append(expectedChannels, offTopic)
+
+	for i := 0; i < 8; i++ {
+		channel := model.Channel{
+			DisplayName: fmt.Sprintf("Public %v", i),
+			Name:        fmt.Sprintf("public_%v", i),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		rchannel, err := th.App.CreateChannel(&channel, false)
+		require.Nil(t, err)
+		require.NotNil(t, rchannel)
+		defer th.App.PermanentDeleteChannel(rchannel)
+
+		// Store the user ids for comparison later
+		expectedChannels = append(expectedChannels, rchannel)
+	}
+
+	// Fetch public channels multipile times
+	channelList, err := th.App.GetPublicChannelsForTeam(team.Id, 0, 5)
+	require.Nil(t, err)
+	channelList2, err := th.App.GetPublicChannelsForTeam(team.Id, 5, 5)
+	require.Nil(t, err)
+
+	channels := append(*channelList, *channelList2...)
+	assert.ElementsMatch(t, expectedChannels, channels)
 }
