@@ -71,9 +71,9 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 		Id: "pluginid",
 		SettingsSchema: &model.PluginSettingsSchema{
 			Settings: []*model.PluginSetting{
-							{Key: "MyStringSetting", Type: "text"},
-							{Key: "MyIntSetting", Type: "text"},
-							{Key: "MyBoolSetting", Type: "bool"},
+				{Key: "MyStringSetting", Type: "text"},
+				{Key: "MyIntSetting", Type: "text"},
+				{Key: "MyBoolSetting", Type: "bool"},
 			},
 		},
 	}
