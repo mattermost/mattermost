@@ -8,6 +8,34 @@
     "translation": "No file under 'certificate' in request."
   },
   {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Failed to sign generatedd trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Trigger ID missing required data for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Signature verification failed of trigger ID for interactive dialog."
+  },
+  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No file under 'certificate' in request."
   },

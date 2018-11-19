@@ -581,6 +581,20 @@ func (_m *API) GetConfig() *model.Config {
 	return r0
 }
 
+// GetPluginConfig provides a mock function with given fields:
+func (_m *API) GetPluginConfig() map[string]interface{} {
+	ret := _m.Called()
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func() map[string]interface{}); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(map[string]interface{})
+	}
+
+	return r0
+}
+
 // GetDirectChannel provides a mock function with given fields: userId1, userId2
 func (_m *API) GetDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userId1, userId2)
@@ -1036,22 +1050,22 @@ func (_m *API) GetProfileImage(userId string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
-// GetPublicChannelsForTeam provides a mock function with given fields: teamId, offset, limit
-func (_m *API) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	ret := _m.Called(teamId, offset, limit)
+// GetPublicChannelsForTeam provides a mock function with given fields: teamId, page, perPage
+func (_m *API) GetPublicChannelsForTeam(teamId string, page int, perPage int) ([]*model.Channel, *model.AppError) {
+	ret := _m.Called(teamId, page, perPage)
 
-	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, int, int) *model.ChannelList); ok {
-		r0 = rf(teamId, offset, limit)
+	var r0 []*model.Channel
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Channel); ok {
+		r0 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelList)
+			r0 = ret.Get(0).([]*model.Channel)
 		}
 	}
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(teamId, offset, limit)
+		r1 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1225,13 +1239,13 @@ func (_m *API) GetTeamMember(teamId string, userId string) (*model.TeamMember, *
 	return r0, r1
 }
 
-// GetTeamMembers provides a mock function with given fields: teamId, offset, limit
-func (_m *API) GetTeamMembers(teamId string, offset int, limit int) ([]*model.TeamMember, *model.AppError) {
-	ret := _m.Called(teamId, offset, limit)
+// GetTeamMembers provides a mock function with given fields: teamId, page, perPage
+func (_m *API) GetTeamMembers(teamId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	ret := _m.Called(teamId, page, perPage)
 
 	var r0 []*model.TeamMember
 	if rf, ok := ret.Get(0).(func(string, int, int) []*model.TeamMember); ok {
-		r0 = rf(teamId, offset, limit)
+		r0 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -1240,7 +1254,7 @@ func (_m *API) GetTeamMembers(teamId string, offset int, limit int) ([]*model.Te
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(teamId, offset, limit)
+		r1 = rf(teamId, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1727,6 +1741,22 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_m.Called(_ca...)
 }
 
+// OpenInteractiveDialog provides a mock function with given fields: dialog
+func (_m *API) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
+	ret := _m.Called(dialog)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(model.OpenDialogRequest) *model.AppError); ok {
+		r0 = rf(dialog)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // PublishWebSocketEvent provides a mock function with given fields: event, payload, broadcast
 func (_m *API) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
 	_m.Called(event, payload, broadcast)
@@ -1819,6 +1849,22 @@ func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	return r0
 }
 
+// SavePluginConfig provides a mock function with given fields: pluginConfig
+func (_m *API) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
+	ret := _m.Called(pluginConfig)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(map[string]interface{}) *model.AppError); ok {
+		r0 = rf(pluginConfig)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SearchChannels provides a mock function with given fields: teamId, term
 func (_m *API) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(teamId, term)
@@ -1867,6 +1913,22 @@ func (_m *API) SetProfileImage(userId string, data []byte) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
 		r0 = rf(userId, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetTeamIcon provides a mock function with given fields: teamId, data
+func (_m *API) SetTeamIcon(teamId string, data []byte) *model.AppError {
+	ret := _m.Called(teamId, data)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+		r0 = rf(teamId, data)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

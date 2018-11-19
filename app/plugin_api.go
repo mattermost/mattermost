@@ -84,6 +84,20 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
 
+func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
+	cfg := api.app.GetConfig()
+	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
+		return pluginConfig
+	}
+	return map[string]interface{}{}
+}
+
+func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
+	cfg := api.app.GetConfig()
+	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
+	return api.app.SaveConfig(cfg, true)
+}
+
 func (api *PluginAPI) GetServerVersion() string {
 	return model.CurrentVersion
 }
@@ -132,8 +146,8 @@ func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *mode
 	return api.app.RemoveUserFromTeam(teamId, userId, requestorId)
 }
 
-func (api *PluginAPI) GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMembers(teamId, offset, limit)
+func (api *PluginAPI) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+	return api.app.GetTeamMembers(teamId, page*perPage, perPage)
 }
 
 func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -246,8 +260,9 @@ func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
 	return api.app.DeleteChannel(channel, "")
 }
 
-func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError) {
-	return api.app.GetPublicChannelsForTeam(teamId, offset, limit)
+func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.GetPublicChannelsForTeam(teamId, page*perPage, perPage)
+	return *channels, err
 }
 
 func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppError) {
@@ -464,6 +479,24 @@ func (api *PluginAPI) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
+	team, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	fileReader := bytes.NewReader(data)
+	err = api.app.SetTeamIconFromFile(team, fileReader)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
+	return api.app.OpenInteractiveDialog(dialog)
 }
 
 // Plugin Section

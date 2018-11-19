@@ -4,7 +4,7 @@
 package plugin
 
 import (
-	"github.com/hashicorp/go-plugin"
+	plugin "github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -33,6 +33,16 @@ type API interface {
 
 	// SaveConfig sets the given config and persists the changes
 	SaveConfig(config *model.Config) *model.AppError
+
+	// GetPluginConfig fetches the currently persisted config of plugin
+	//
+	// Minimum server version: 5.6
+	GetPluginConfig() map[string]interface{}
+
+	// SavePluginConfig sets the given config for plugin and persists the changes
+	//
+	// Minimum server version: 5.6
+	SavePluginConfig(config map[string]interface{}) *model.AppError
 
 	// GetServerVersion return the current Mattermost server version
 	//
@@ -68,6 +78,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetTeamIcon(teamId string) ([]byte, *model.AppError)
+
+	// SetTeamIcon sets the Team Icon.
+	//
+	// Minimum server version: 5.6
+	SetTeamIcon(teamId string, data []byte) *model.AppError
 
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
@@ -134,7 +149,7 @@ type API interface {
 	DeleteTeamMember(teamId, userId, requestorId string) *model.AppError
 
 	// GetTeamMembers returns the memberships of a specific team.
-	GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError)
+	GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 
 	// GetTeamMember returns a specific membership.
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
@@ -149,7 +164,7 @@ type API interface {
 	DeleteChannel(channelId string) *model.AppError
 
 	// GetPublicChannelsForTeam gets a list of all channels.
-	GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError)
+	GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError)
 
 	// GetChannel gets a channel.
 	GetChannel(channelId string) (*model.Channel, *model.AppError)
@@ -323,6 +338,13 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
+
+	// OpenInteractiveDialog will open an interactive dialog on a user's client that
+	// generated the trigger ID. Used with interactive message buttons, menus
+	// and slash commands.
+	//
+	// Minimum server version: 5.6
+	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 
 	// Plugin Section
 
