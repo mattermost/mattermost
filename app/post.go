@@ -594,7 +594,7 @@ func (a *App) DeleteFlaggedPosts(postId string) {
 }
 
 func (a *App) DeletePostFiles(post *model.Post) {
-	if len(post.FileIds) != 0 {
+	if len(post.FileIds) == 0 {
 		return
 	}
 

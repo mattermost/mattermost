@@ -657,3 +657,48 @@ func TestMaxPostSize(t *testing.T) {
 		})
 	}
 }
+
+func TestDeletePostWithFileAttachments(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	// Create a post with a file attachment.
+	teamId := th.BasicTeam.Id
+	channelId := th.BasicChannel.Id
+	userId := th.BasicUser.Id
+	filename := "test"
+	data := []byte("abcd")
+
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		defer func() {
+			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			th.App.RemoveFile(info1.Path)
+		}()
+	}
+
+	post := &model.Post{
+		Message:       "asd",
+		ChannelId:     channelId,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        userId,
+		CreateAt:      0,
+		FileIds:       []string{info1.Id},
+	}
+
+	post, err = th.App.CreatePost(post, th.BasicChannel, false)
+	assert.Nil(t, err)
+
+	// Delete the post.
+	post, err = th.App.DeletePost(post.Id, userId)
+	assert.Nil(t, err)
+
+	// Wait for the cleanup routine to finish.
+	time.Sleep(time.Millisecond * 100)
+
+	// Check that the file can no longer be reached.
+	_, err = th.App.GetFileInfo(info1.Id)
+	assert.NotNil(t, err)
+}
