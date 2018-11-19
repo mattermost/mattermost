@@ -4,10 +4,14 @@
 package app
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -681,5 +685,47 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 
 	if updatedTeam.SchemeId != mockID {
 		t.Fatal("Wrong Team SchemeId")
+	}
+}
+
+func TestGetTeamMembers(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	var userIDs sort.StringSlice
+	userIDs = append(userIDs, th.BasicUser.Id)
+	userIDs = append(userIDs, th.BasicUser2.Id)
+
+	for i := 0; i < 8; i++ {
+		user := model.User{
+			Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+			Username: fmt.Sprintf("user%v", i),
+			Password: "passwd1",
+		}
+		ruser, err := th.App.CreateUser(&user)
+		require.Nil(t, err)
+		require.NotNil(t, ruser)
+		defer th.App.PermanentDeleteUser(&user)
+
+		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		// Store the user ids for comparison later
+		userIDs = append(userIDs, ruser.Id)
+	}
+	// Sort them because the result of GetTeamMembers() is also sorted
+	sort.Sort(userIDs)
+
+	// Fetch team members multipile times
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	require.Nil(t, err)
+	// This should return 5 members
+	members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 6)
+	require.Nil(t, err)
+	members = append(members, members2...)
+
+	require.Equal(t, len(userIDs), len(members))
+	for i, member := range members {
+		assert.Equal(t, userIDs[i], member.UserId)
 	}
 }
