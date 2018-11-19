@@ -248,6 +248,9 @@ func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
 
 func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
 	channels, err := api.app.GetPublicChannelsForTeam(teamId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
 	return *channels, err
 }
 
