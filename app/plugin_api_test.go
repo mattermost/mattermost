@@ -87,18 +87,18 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := api.SavePluginConfig(pluginConfig); err != nil{
+	if err := api.SavePluginConfig(pluginConfig); err != nil {
 		t.Fatal(err)
 	}
 
 	type Configuration struct {
 		MyStringSetting string
-		MyIntSetting int
-		MyBoolSetting bool
+		MyIntSetting    int
+		MyBoolSetting   bool
 	}
 
 	savedConfiguration := new(Configuration)
-	if err := api.LoadPluginConfiguration(savedConfiguration); err != nil{
+	if err := api.LoadPluginConfiguration(savedConfiguration); err != nil {
 		t.Fatal(err)
 	}
 
@@ -485,4 +485,27 @@ func TestPluginAPIGetChannelsForTeamForUser(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Empty(t, channels)
 	})
+}
+
+func TestPluginAPIRemoveTeamIcon(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// Create an 128 x 128 image
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+
+	// Draw a red dot at (2, 3)
+	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
+	buf := new(bytes.Buffer)
+	err1 := png.Encode(buf, img)
+	require.Nil(t, err1)
+	dataBytes := buf.Bytes()
+	fileReader := bytes.NewReader(dataBytes)
+
+	// Set the Team Icon
+	err := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	require.Nil(t, err)
+	err = api.RemoveTeamIcon(th.BasicTeam.Id)
+	require.Nil(t, err)
 }

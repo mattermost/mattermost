@@ -510,6 +510,19 @@ func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *mod
 	return api.app.OpenInteractiveDialog(dialog)
 }
 
+func (api *PluginAPI) RemoveTeamIcon(teamId string) *model.AppError {
+	_, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	err = api.app.RemoveTeamIcon(teamId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Plugin Section
 
 func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {
