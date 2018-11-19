@@ -99,7 +99,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 }
 
 func (a *App) getFileMetadataForPost(post *model.Post) ([]*model.FileInfo, *model.AppError) {
-	if len(post.FileIds) == 0 {
+	if len(post.FileIds) == 0 { // This field is deprecated, but still use it for now to avoid unnecessary database hits
 		return nil, nil
 	}
 
@@ -108,7 +108,7 @@ func (a *App) getFileMetadataForPost(post *model.Post) ([]*model.FileInfo, *mode
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
 	var reactions []*model.Reaction
-	if post.HasReactions {
+	if post.HasReactions { // This field is deprecated, but still use it for now to avoid unnecessary database hits
 		var err *model.AppError
 		reactions, err = a.GetReactionsForPost(post.Id)
 		if err != nil {
