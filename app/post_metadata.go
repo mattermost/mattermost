@@ -31,25 +31,33 @@ func (a *App) InitPostMetadata() {
 	})
 }
 
-func (a *App) PreparePostListForClient(originalList *model.PostList) (*model.PostList, *model.AppError) {
+func (a *App) PreparePostListForClient(originalList *model.PostList) *model.PostList {
+	numPosts := len(originalList.Posts)
+
 	list := &model.PostList{
-		Posts: make(map[string]*model.Post),
-		Order: originalList.Order,
+		Posts: make(map[string]*model.Post, numPosts),
+		Order: originalList.Order, // Note that this uses the original Order array, so it isn't a deep copy
 	}
 
-	for id, originalPost := range originalList.Posts {
-		post, err := a.PreparePostForClient(originalPost)
-		if err != nil {
-			return originalList, err
-		}
+	posts := make(chan *model.Post, numPosts)
 
-		list.Posts[id] = post
+	for _, originalPost := range originalList.Posts {
+		go func(originalPost *model.Post) {
+			posts <- a.PreparePostForClient(originalPost)
+		}(originalPost)
 	}
 
-	return list, nil
+	for i := 0; i < numPosts; i++ {
+		post := <-posts
+		list.Posts[post.Id] = post
+	}
+
+	close(posts)
+
+	return list
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *model.AppError) {
+func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -67,7 +75,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 		}
 
 		// Files
-		if fileInfos, err := a.GetFileInfosForPost(post.Id, false); err != nil {
+		if fileInfos, err := a.getFileMetadataForPost(post); err != nil {
 			mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
 		} else {
 			post.Metadata.Files = fileInfos
@@ -87,13 +95,25 @@ func (a *App) PreparePostForClient(originalPost *model.Post) (*model.Post, *mode
 		post.Metadata.Images = a.getImagesForPost(post, images)
 	}
 
-	return post, nil
+	return post
+}
+
+func (a *App) getFileMetadataForPost(post *model.Post) ([]*model.FileInfo, *model.AppError) {
+	if len(post.FileIds) == 0 { // This field is deprecated, but still use it for now to avoid unnecessary database hits
+		return nil, nil
+	}
+
+	return a.GetFileInfosForPost(post.Id, false)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
-	reactions, err := a.GetReactionsForPost(post.Id)
-	if err != nil {
-		return nil, nil, err
+	var reactions []*model.Reaction
+	if post.HasReactions { // This field is deprecated, but still use it for now to avoid unnecessary database hits
+		var err *model.AppError
+		reactions, err = a.GetReactionsForPost(post.Id)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	emojis, err := a.getCustomEmojisForPost(post, reactions)
