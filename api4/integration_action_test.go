@@ -81,8 +81,9 @@ func TestOpenDialog(t *testing.T) {
 	// URL is required
 	request.TriggerId = triggerId
 	request.URL = ""
-	_, resp = Client.OpenInteractiveDialog(request)
+	pass, resp = Client.OpenInteractiveDialog(request)
 	CheckBadRequestStatus(t, resp)
+	assert.False(t, pass)
 }
 
 func TestSubmitDialog(t *testing.T) {
