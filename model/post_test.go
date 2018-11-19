@@ -25,34 +25,6 @@ func TestPostFromJsonError(t *testing.T) {
 	assert.Nil(t, ro)
 }
 
-func TestPostActionIntegrationRequestToJson(t *testing.T) {
-	o := PostActionIntegrationRequest{UserId: NewId(), Context: StringInterface{"a": "abc"}}
-	j := o.ToJson()
-	ro := PostActionIntegrationRequesteFromJson(strings.NewReader(j))
-
-	assert.NotNil(t, ro)
-	assert.Equal(t, o, *ro)
-}
-
-func TestPostActionIntegrationRequestFromJsonError(t *testing.T) {
-	ro := PostActionIntegrationRequesteFromJson(strings.NewReader(""))
-	assert.Nil(t, ro)
-}
-
-func TestPostActionIntegrationResponseToJson(t *testing.T) {
-	o := PostActionIntegrationResponse{Update: &Post{Id: NewId(), Message: NewId()}, EphemeralText: NewId()}
-	j := o.ToJson()
-	ro := PostActionIntegrationResponseFromJson(strings.NewReader(j))
-
-	assert.NotNil(t, ro)
-	assert.Equal(t, o, *ro)
-}
-
-func TestPostActionIntegrationResponseFromJsonError(t *testing.T) {
-	ro := PostActionIntegrationResponseFromJson(strings.NewReader(""))
-	assert.Nil(t, ro)
-}
-
 func TestPostIsValid(t *testing.T) {
 	o := Post{}
 	maxPostSize := 10000
