@@ -162,6 +162,13 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	message := strings.Join(parts[1:], " ")
 	provider := GetCommandProvider(trigger)
 
+	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
+	if appErr != nil {
+		mlog.Error(appErr.Error())
+	}
+
+	args.TriggerId = triggerId
+
 	if provider != nil {
 		if cmd := provider.GetCommand(a, args.T); cmd != nil {
 			response := provider.DoCommand(a, args, message)
@@ -174,6 +181,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 		return nil, appErr
 	}
 	if cmd != nil {
+		response.TriggerId = clientTriggerId
 		return a.HandleCommandResponse(cmd, args, response, true)
 	}
 
@@ -228,12 +236,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 			p.Set("command", "/"+trigger)
 			p.Set("text", message)
 
-			clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
-			if appErr == nil {
-				p.Set("trigger_id", triggerId)
-			} else {
-				mlog.Error(appErr.Error())
-			}
+			p.Set("trigger_id", triggerId)
 
 			hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 			if appErr != nil {

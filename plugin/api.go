@@ -343,7 +343,7 @@ type API interface {
 	// generated the trigger ID. Used with interactive message buttons, menus
 	// and slash commands.
 	//
-	//	Minimum server version: 5.6
+	// Minimum server version: 5.6
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 
 	// Plugin Section

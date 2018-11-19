@@ -26,9 +26,8 @@ func TestOpenDialog(t *testing.T) {
 	})
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
+
 	WebSocketClient.Listen()
 
 	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())

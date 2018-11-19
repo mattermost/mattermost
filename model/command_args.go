@@ -16,6 +16,7 @@ type CommandArgs struct {
 	TeamId    string               `json:"team_id"`
 	RootId    string               `json:"root_id"`
 	ParentId  string               `json:"parent_id"`
+	TriggerId string               `json:"trigger_id,omitempty"`
 	Command   string               `json:"command"`
 	SiteURL   string               `json:"-"`
 	T         goi18n.TranslateFunc `json:"-"`
