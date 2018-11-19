@@ -186,8 +186,13 @@ func TestFindManifest_FileErrors(t *testing.T) {
 }
 
 func TestFindManifest_FolderPermission(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("skipping test while running as root: can't effectively remove permissions")
+	}
+
 	for _, tc := range []string{"plugin.yaml", "plugin.json"} {
 		dir, err := ioutil.TempDir("", "mm-plugin-test")
+		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
 		path := filepath.Join(dir, tc)
@@ -202,7 +207,6 @@ func TestFindManifest_FolderPermission(t *testing.T) {
 		assert.Equal(t, "", mpath)
 		assert.Error(t, err, tc)
 		assert.False(t, os.IsNotExist(err), tc)
-
 	}
 }
 
