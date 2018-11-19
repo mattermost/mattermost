@@ -25,6 +25,7 @@ type CommandResponse struct {
 	Type           string             `json:"type"`
 	Props          StringInterface    `json:"props"`
 	GotoLocation   string             `json:"goto_location"`
+	TriggerId      string             `json:"trigger_id"`
 	Attachments    []*SlackAttachment `json:"attachments"`
 	ExtraResponses []*CommandResponse `json:"extra_responses"`
 }
