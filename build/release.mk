@@ -1,26 +1,35 @@
-
+.PHONY: dist
 dist: | check-style test package
 
+.PHONY: build-linux
 build-linux:
 	@echo Build Linux amd64
 	env GOOS=linux GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
 
-build-osx: 
+.PHONY: build-osx
+build-osx:
 	@echo Build OSX amd64
 	env GOOS=darwin GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
 
-build-windows: 
+.PHONY: build-windows
+build-windows:
 	@echo Build Windows amd64
 	env GOOS=windows GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
 
+.PHONY: build
 build: build-linux build-windows build-osx
 
+.PHONY: build-client
 build-client:
 	@echo Building mattermost web app
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
-package:
+.PHONY: package
+package: package-osx package-linux package-windows
+
+.PHONY: pre-package
+pre-package:
 	@ echo Packaging mattermost
 
 	@# Remove any old files
@@ -62,6 +71,8 @@ endif
 
 	@# ----- PLATFORM SPECIFIC -----
 
+.PHONY: package-osx
+package-osx: pre-package
 	@# Make osx package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
@@ -84,6 +95,8 @@ endif
 	rm -f $(DIST_PATH)/bin/platform
 	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
+.PHONY: package-windows
+package-windows: pre-package
 	@# Make windows package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
@@ -107,6 +120,8 @@ endif
 	rm -f $(DIST_PATH)/bin/platform.exe
 	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
+.PHONY: package-linux
+package-linux: pre-package
 	@# Make linux package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
