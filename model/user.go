@@ -16,22 +16,24 @@ import (
 )
 
 const (
-	ME                           = "me"
-	USER_NOTIFY_ALL              = "all"
-	USER_NOTIFY_MENTION          = "mention"
-	USER_NOTIFY_NONE             = "none"
-	DESKTOP_NOTIFY_PROP          = "desktop"
-	DESKTOP_SOUND_NOTIFY_PROP    = "desktop_sound"
-	MARK_UNREAD_NOTIFY_PROP      = "mark_unread"
-	PUSH_NOTIFY_PROP             = "push"
-	PUSH_STATUS_NOTIFY_PROP      = "push_status"
-	EMAIL_NOTIFY_PROP            = "email"
-	CHANNEL_MENTIONS_NOTIFY_PROP = "channel"
-	COMMENTS_NOTIFY_PROP         = "comments"
-	MENTION_KEYS_NOTIFY_PROP     = "mention_keys"
-	COMMENTS_NOTIFY_NEVER        = "never"
-	COMMENTS_NOTIFY_ROOT         = "root"
-	COMMENTS_NOTIFY_ANY          = "any"
+	ME                             = "me"
+	USER_NOTIFY_ALL                = "all"
+	USER_NOTIFY_MENTION            = "mention"
+	USER_NOTIFY_NONE               = "none"
+	DESKTOP_NOTIFY_PROP            = "desktop"
+	DESKTOP_SOUND_NOTIFY_PROP      = "desktop_sound"
+	MARK_UNREAD_NOTIFY_PROP        = "mark_unread"
+	PUSH_NOTIFY_PROP               = "push"
+	PUSH_STATUS_NOTIFY_PROP        = "push_status"
+	EMAIL_NOTIFY_PROP              = "email"
+	MOBILE_NOTIFY_PROP             = "mobile"
+	MOBILE_PUSH_STATUS_NOTIFY_PROP = "mobile_push_status"
+	CHANNEL_MENTIONS_NOTIFY_PROP   = "channel"
+	COMMENTS_NOTIFY_PROP           = "comments"
+	MENTION_KEYS_NOTIFY_PROP       = "mention_keys"
+	COMMENTS_NOTIFY_NEVER          = "never"
+	COMMENTS_NOTIFY_ROOT           = "root"
+	COMMENTS_NOTIFY_ANY            = "any"
 
 	DEFAULT_LOCALE          = "en"
 	USER_AUTH_SERVICE_EMAIL = "email"
@@ -48,33 +50,32 @@ const (
 )
 
 type User struct {
-	Id                       string    `json:"id"`
-	CreateAt                 int64     `json:"create_at,omitempty"`
-	UpdateAt                 int64     `json:"update_at,omitempty"`
-	DeleteAt                 int64     `json:"delete_at"`
-	Username                 string    `json:"username"`
-	Password                 string    `json:"password,omitempty"`
-	AuthData                 *string   `json:"auth_data,omitempty"`
-	AuthService              string    `json:"auth_service"`
-	Email                    string    `json:"email"`
-	EmailVerified            bool      `json:"email_verified,omitempty"`
-	Nickname                 string    `json:"nickname"`
-	FirstName                string    `json:"first_name"`
-	LastName                 string    `json:"last_name"`
-	Position                 string    `json:"position"`
-	Roles                    string    `json:"roles"`
-	AllowMarketing           bool      `json:"allow_marketing,omitempty"`
-	Props                    StringMap `json:"props,omitempty"`
-	NotifyProps              StringMap `json:"notify_props,omitempty"`
-	LastPasswordUpdate       int64     `json:"last_password_update,omitempty"`
-	LastPictureUpdate        int64     `json:"last_picture_update,omitempty"`
-	FailedAttempts           int       `json:"failed_attempts,omitempty"`
-	Locale                   string    `json:"locale"`
-	Timezone                 StringMap `json:"timezone"`
-	MfaActive                bool      `json:"mfa_active,omitempty"`
-	MfaSecret                string    `json:"mfa_secret,omitempty"`
-	LastActivityAt           int64     `db:"-" json:"last_activity_at,omitempty"`
-	AcceptedTermsOfServiceId string    `json:"accepted_terms_of_service_id,omitempty"` // TODO remove this field when new TOS user action table is created
+	Id                 string    `json:"id"`
+	CreateAt           int64     `json:"create_at,omitempty"`
+	UpdateAt           int64     `json:"update_at,omitempty"`
+	DeleteAt           int64     `json:"delete_at"`
+	Username           string    `json:"username"`
+	Password           string    `json:"password,omitempty"`
+	AuthData           *string   `json:"auth_data,omitempty"`
+	AuthService        string    `json:"auth_service"`
+	Email              string    `json:"email"`
+	EmailVerified      bool      `json:"email_verified,omitempty"`
+	Nickname           string    `json:"nickname"`
+	FirstName          string    `json:"first_name"`
+	LastName           string    `json:"last_name"`
+	Position           string    `json:"position"`
+	Roles              string    `json:"roles"`
+	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
+	Props              StringMap `json:"props,omitempty"`
+	NotifyProps        StringMap `json:"notify_props,omitempty"`
+	LastPasswordUpdate int64     `json:"last_password_update,omitempty"`
+	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
+	FailedAttempts     int       `json:"failed_attempts,omitempty"`
+	Locale             string    `json:"locale"`
+	Timezone           StringMap `json:"timezone"`
+	MfaActive          bool      `json:"mfa_active,omitempty"`
+	MfaSecret          string    `json:"mfa_secret,omitempty"`
+	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
 type UserPatch struct {

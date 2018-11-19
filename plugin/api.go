@@ -70,6 +70,16 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
 
+	// GetTeamIcon gets the Team Icon.
+	//
+	// Minimum server version: 5.6
+	GetTeamIcon(teamId string) ([]byte, *model.AppError)
+
+	// SetTeamIcon sets the Team Icon.
+	//
+	// Minimum server version: 5.6
+	SetTeamIcon(teamId string, data []byte) *model.AppError
+
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
 
@@ -82,6 +92,12 @@ type API interface {
 	// UpdateUserStatus will set a user's status until the user, or another integration/plugin, sets it back to online.
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
+
+	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
+	// The sortBy parameter can be: "username" or "status".
+	//
+	// Minimum server version: 5.6
+	GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError)
 
 	// GetLDAPUserAttributes will return LDAP attributes for a user.
 	// The attributes parameter should be a list of attributes to pull.
@@ -106,6 +122,11 @@ type API interface {
 	// GetTeamByName gets a team by its name.
 	GetTeamByName(name string) (*model.Team, *model.AppError)
 
+	// GetTeamsUnreadForUser gets the unread message and mention counts for each team to which the given user belongs.
+	//
+	// Minimum server version: 5.6
+	GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError)
+
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 
@@ -124,7 +145,7 @@ type API interface {
 	DeleteTeamMember(teamId, userId, requestorId string) *model.AppError
 
 	// GetTeamMembers returns the memberships of a specific team.
-	GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError)
+	GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 
 	// GetTeamMember returns a specific membership.
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
@@ -139,7 +160,7 @@ type API interface {
 	DeleteChannel(channelId string) *model.AppError
 
 	// GetPublicChannelsForTeam gets a list of all channels.
-	GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError)
+	GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError)
 
 	// GetChannel gets a channel.
 	GetChannel(channelId string) (*model.Channel, *model.AppError)
@@ -154,6 +175,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+
+	// GetChannelStats gets statistics for a channel.
+	//
+	// Minimum server version: 5.6
+	GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError)
 
 	// GetDirectChannel gets a direct message channel.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
@@ -180,6 +206,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
+	// GetChannelMembersByIds gets a channel membership for a particular User
+	//
+	// Minimum server version: 5.6
+	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 
@@ -188,11 +219,6 @@ type API interface {
 
 	// DeleteChannelMember deletes a channel membership for a user.
 	DeleteChannelMember(channelId, userId string) *model.AppError
-
-	// GetUsersInChannel gets users in given channel.
-	//
-	// Minimum server version: 5.6
-	GetUsersInChannel(channelId string, page int, perPage int) ([]*model.User, *model.AppError)
 
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
@@ -231,6 +257,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
 
+	// GetPostsAfter gets a page of posts that were posted after the post provided.
+	//
+	// Minimum server version: 5.6
+	GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError)
+
 	// GetPostsBefore gets a page of posts that were posted before the post provided.
 	//
 	// Minimum server version: 5.6
@@ -249,10 +280,27 @@ type API interface {
 	// Minimum server version: 5.6
 	GetProfileImage(userId string) ([]byte, *model.AppError)
 
+	// SetProfileImage sets a user's profile image.
+	//
+	// Minimum server version: 5.6
+	SetProfileImage(userId string, data []byte) *model.AppError
+
+	// GetEmojiList returns a page of custom emoji on the system.
+	//
+	// The sortBy parameter can be: "name".
+	//
+	// Minimum server version: 5.6
+	GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError)
+
 	// GetEmojiByName gets an emoji by it's name.
 	//
 	// Minimum server version: 5.6
 	GetEmojiByName(name string) (*model.Emoji, *model.AppError)
+
+	// GetEmoji returns a custom emoji based on the emojiId string.
+	//
+	// Minimum server version: 5.6
+	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
 
 	// CopyFileInfos duplicates the FileInfo objects referenced by the given file ids,
 	// recording the given user id as the new creator and returning the new set of file ids.
@@ -276,6 +324,45 @@ type API interface {
 	//
 	// Minimum server version: 5.3
 	ReadFile(path string) ([]byte, *model.AppError)
+
+	// GetEmojiImage returns the emoji image.
+	//
+	// Minimum server version: 5.6
+	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
+
+	// UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
+	//
+	// Minimum server version: 5.6
+	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
+
+	// Plugin Section
+
+	// GetPlugins will return a list of plugin manifests for currently active plugins.
+	//
+	// Minimum server version: 5.6
+	GetPlugins() ([]*model.Manifest, *model.AppError)
+
+	// EnablePlugin will enable an plugin installed.
+	//
+	// Minimum server version: 5.6
+	EnablePlugin(id string) *model.AppError
+
+	// DisablePlugin will disable an enabled plugin.
+	//
+	// Minimum server version: 5.6
+	DisablePlugin(id string) *model.AppError
+
+	// RemovePlugin will disable and delete a plugin.
+	//
+	// Minimum server version: 5.6
+	RemovePlugin(id string) *model.AppError
+
+	// GetPluginStatus will return the status of a plugin.
+	//
+	// Minimum server version: 5.6
+	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
+
+	// KV Store Section
 
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError

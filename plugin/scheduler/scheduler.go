@@ -39,7 +39,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
 
-	if job, err := scheduler.App.Jobs.CreateJob(model.JOB_TYPE_PLUGINS, nil); err != nil {
+	if job, err := scheduler.App.Srv.Jobs.CreateJob(model.JOB_TYPE_PLUGINS, nil); err != nil {
 		return nil, err
 	} else {
 		return job, nil

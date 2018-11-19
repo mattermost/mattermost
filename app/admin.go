@@ -139,7 +139,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 
 func (a *App) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	a.sessionCache.Purge()
+	a.Srv.sessionCache.Purge()
 	ClearStatusCache()
 	a.Srv.Store.Channel().ClearCaches()
 	a.Srv.Store.User().ClearCaches()
@@ -212,8 +212,8 @@ func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
 	mlog.Warn("Attempting to recycle the database connection.")
-	a.Srv.Store = a.newStore()
-	a.Jobs.Store = a.Srv.Store
+	a.Srv.Store = a.Srv.newStore()
+	a.Srv.Jobs.Store = a.Srv.Store
 
 	if a.Srv.Store != oldStore {
 		time.Sleep(20 * time.Second)

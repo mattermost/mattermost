@@ -86,29 +86,29 @@ func (a *App) DoSecurityUpdateCheck() {
 				for _, bulletin := range bulletins {
 					if bulletin.AppliesToVersion == model.CurrentVersion {
 						if props["SecurityBulletin_"+bulletin.Id] == "" {
-							if results := <-a.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
+							results := <-a.Srv.Store.User().GetSystemAdminProfiles()
+							if results.Err != nil {
 								mlog.Error("Failed to get system admins for security update information from Mattermost.")
 								return
-							} else {
-								users := results.Data.(map[string]*model.User)
+							}
+							users := results.Data.(map[string]*model.User)
 
-								resBody, err := http.Get(SECURITY_URL + "/bulletins/" + bulletin.Id)
-								if err != nil {
-									mlog.Error("Failed to get security bulletin details")
-									return
-								}
+							resBody, err := http.Get(SECURITY_URL + "/bulletins/" + bulletin.Id)
+							if err != nil {
+								mlog.Error("Failed to get security bulletin details")
+								return
+							}
 
-								body, err := ioutil.ReadAll(resBody.Body)
-								res.Body.Close()
-								if err != nil || resBody.StatusCode != 200 {
-									mlog.Error("Failed to read security bulletin details")
-									return
-								}
+							body, err := ioutil.ReadAll(resBody.Body)
+							res.Body.Close()
+							if err != nil || resBody.StatusCode != 200 {
+								mlog.Error("Failed to read security bulletin details")
+								return
+							}
 
-								for _, user := range users {
-									mlog.Info(fmt.Sprintf("Sending security bulletin for %v to %v", bulletin.Id, user.Email))
-									a.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
-								}
+							for _, user := range users {
+								mlog.Info(fmt.Sprintf("Sending security bulletin for %v to %v", bulletin.Id, user.Email))
+								a.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
 							}
 
 							bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}

@@ -9,7 +9,7 @@ import (
 
 func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Config, isLicensed bool) map[string]*model.Role {
 	if isLicensed {
-		switch *cfg.TeamSettings.RestrictPublicChannelCreation {
+		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 				roles[model.TEAM_USER_ROLE_ID].Permissions,
@@ -29,7 +29,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	}
 
 	if isLicensed {
-		switch *cfg.TeamSettings.RestrictPublicChannelManagement {
+		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 				roles[model.TEAM_USER_ROLE_ID].Permissions,
@@ -58,7 +58,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	}
 
 	if isLicensed {
-		switch *cfg.TeamSettings.RestrictPublicChannelDeletion {
+		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 				roles[model.TEAM_USER_ROLE_ID].Permissions,
@@ -87,7 +87,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	}
 
 	if isLicensed {
-		switch *cfg.TeamSettings.RestrictPrivateChannelCreation {
+		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 				roles[model.TEAM_USER_ROLE_ID].Permissions,
@@ -107,7 +107,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	}
 
 	if isLicensed {
-		switch *cfg.TeamSettings.RestrictPrivateChannelManagement {
+		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 				roles[model.TEAM_USER_ROLE_ID].Permissions,
@@ -136,7 +136,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	}
 
 	if isLicensed {
-		switch *cfg.TeamSettings.RestrictPrivateChannelDeletion {
+		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 				roles[model.TEAM_USER_ROLE_ID].Permissions,
@@ -166,7 +166,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 
 	// Restrict permissions for Private Channel Manage Members
 	if isLicensed {
-		switch *cfg.TeamSettings.RestrictPrivateChannelManageMembers {
+		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers {
 		case model.PERMISSIONS_ALL:
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
 				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
@@ -194,7 +194,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 		)
 	}
 
-	if !*cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+	if !*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations {
 		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 			roles[model.TEAM_USER_ROLE_ID].Permissions,
 			model.PERMISSION_MANAGE_WEBHOOKS.Id,
@@ -208,13 +208,13 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 
 	// Grant permissions for inviting and adding users to a team.
 	if isLicensed {
-		if *cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
+		if *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
 			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
 				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
 				model.PERMISSION_INVITE_USER.Id,
 				model.PERMISSION_ADD_USER_TO_TEAM.Id,
 			)
-		} else if *cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_ALL {
+		} else if *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite == model.PERMISSIONS_ALL {
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 				roles[model.TEAM_USER_ROLE_ID].Permissions,
 				model.PERMISSION_INVITE_USER.Id,
@@ -230,7 +230,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	}
 
 	if isLicensed {
-		switch *cfg.ServiceSettings.RestrictPostDelete {
+		switch *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictPostDelete {
 		case model.PERMISSIONS_DELETE_POST_ALL:
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
 				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
@@ -260,7 +260,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 		)
 	}
 
-	if *cfg.TeamSettings.EnableTeamCreation {
+	if *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_EnableTeamCreation {
 		roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(
 			roles[model.SYSTEM_USER_ROLE_ID].Permissions,
 			model.PERMISSION_CREATE_TEAM.Id,
@@ -268,7 +268,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	}
 
 	if isLicensed {
-		switch *cfg.ServiceSettings.AllowEditPost {
+		switch *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost {
 		case model.ALLOW_EDIT_POST_ALWAYS, model.ALLOW_EDIT_POST_TIME_LIMIT:
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
 				roles[model.CHANNEL_USER_ROLE_ID].Permissions,

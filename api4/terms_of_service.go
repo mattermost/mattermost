@@ -4,17 +4,18 @@
 package api4
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"net/http"
 )
 
 func (api *API) InitTermsOfService() {
-	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(getTermsOfService)).Methods("GET")
+	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(getLatestTermsOfService)).Methods("GET")
 	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(createTermsOfService)).Methods("POST")
 }
 
-func getTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
+func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	termsOfService, err := c.App.GetLatestTermsOfService()
 	if err != nil {
 		c.Err = err

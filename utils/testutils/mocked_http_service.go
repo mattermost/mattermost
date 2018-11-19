@@ -4,9 +4,10 @@
 package testutils
 
 import (
-	"github.com/mattermost/mattermost-server/services/httpservice"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/mattermost/mattermost-server/services/httpservice"
 )
 
 type MockedHTTPService struct {

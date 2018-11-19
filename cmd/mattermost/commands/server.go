@@ -147,19 +147,19 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 		manualtesting.Init(api)
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runSecurityJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runDiagnosticsJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runSessionCleanupJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runTokenCleanupJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runCommandWebhookCleanupJob(a)
 	})
 
@@ -181,12 +181,12 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	}
 
 	if *a.Config().JobSettings.RunJobs {
-		a.Jobs.StartWorkers()
-		defer a.Jobs.StopWorkers()
+		a.Srv.Jobs.StartWorkers()
+		defer a.Srv.Jobs.StopWorkers()
 	}
 	if *a.Config().JobSettings.RunScheduler {
-		a.Jobs.StartSchedulers()
-		defer a.Jobs.StopSchedulers()
+		a.Srv.Jobs.StartSchedulers()
+		defer a.Srv.Jobs.StopSchedulers()
 	}
 
 	notifyReady()

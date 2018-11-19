@@ -36,7 +36,6 @@ const (
 	TRACK_CONFIG_PASSWORD           = "config_password"
 	TRACK_CONFIG_CLUSTER            = "config_cluster"
 	TRACK_CONFIG_METRICS            = "config_metrics"
-	TRACK_CONFIG_WEBRTC             = "config_webrtc"
 	TRACK_CONFIG_SUPPORT            = "config_support"
 	TRACK_CONFIG_NATIVEAPP          = "config_nativeapp"
 	TRACK_CONFIG_EXPERIMENTAL       = "config_experimental"
@@ -203,7 +202,7 @@ func (a *App) trackConfig() {
 		"enable_incoming_webhooks":                                cfg.ServiceSettings.EnableIncomingWebhooks,
 		"enable_outgoing_webhooks":                                cfg.ServiceSettings.EnableOutgoingWebhooks,
 		"enable_commands":                                         *cfg.ServiceSettings.EnableCommands,
-		"enable_only_admin_integrations":                          *cfg.ServiceSettings.EnableOnlyAdminIntegrations,
+		"enable_only_admin_integrations":                          *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                               cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_user_access_tokens":                               *cfg.ServiceSettings.EnableUserAccessTokens,
@@ -213,7 +212,7 @@ func (a *App) trackConfig() {
 		"gfycat_api_key":                                          isDefault(*cfg.ServiceSettings.GfycatApiKey, model.SERVICE_SETTINGS_DEFAULT_GFYCAT_API_KEY),
 		"gfycat_api_secret":                                       isDefault(*cfg.ServiceSettings.GfycatApiSecret, model.SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET),
 		"experimental_enable_authentication_transfer":             *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer,
-		"restrict_custom_emoji_creation":                          *cfg.ServiceSettings.RestrictCustomEmojiCreation,
+		"restrict_custom_emoji_creation":                          *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation,
 		"enable_testing":                                          cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                                        *cfg.ServiceSettings.EnableDeveloper,
 		"enable_multifactor_authentication":                       *cfg.ServiceSettings.EnableMultifactorAuthentication,
@@ -239,8 +238,8 @@ func (a *App) trackConfig() {
 		"cors_allow_credentials":                                  *cfg.ServiceSettings.CorsAllowCredentials,
 		"cors_debug":                                              *cfg.ServiceSettings.CorsDebug,
 		"isdefault_allowed_untrusted_internal_connections":        isDefault(*cfg.ServiceSettings.AllowedUntrustedInternalConnections, ""),
-		"restrict_post_delete":                                    *cfg.ServiceSettings.RestrictPostDelete,
-		"allow_edit_post":                                         *cfg.ServiceSettings.AllowEditPost,
+		"restrict_post_delete":                                    *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictPostDelete,
+		"allow_edit_post":                                         *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost,
 		"post_edit_time_limit":                                    *cfg.ServiceSettings.PostEditTimeLimit,
 		"enable_user_typing_messages":                             *cfg.ServiceSettings.EnableUserTypingMessages,
 		"enable_channel_viewed_messages":                          *cfg.ServiceSettings.EnableChannelViewedMessages,
@@ -260,21 +259,20 @@ func (a *App) trackConfig() {
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
-		"experimental_limit_client_config":                        *cfg.ServiceSettings.ExperimentalLimitClientConfig,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
 		"enable_user_creation":                      cfg.TeamSettings.EnableUserCreation,
-		"enable_team_creation":                      *cfg.TeamSettings.EnableTeamCreation,
-		"restrict_team_invite":                      *cfg.TeamSettings.RestrictTeamInvite,
-		"restrict_public_channel_creation":          *cfg.TeamSettings.RestrictPublicChannelCreation,
-		"restrict_private_channel_creation":         *cfg.TeamSettings.RestrictPrivateChannelCreation,
-		"restrict_public_channel_management":        *cfg.TeamSettings.RestrictPublicChannelManagement,
-		"restrict_private_channel_management":       *cfg.TeamSettings.RestrictPrivateChannelManagement,
-		"restrict_public_channel_deletion":          *cfg.TeamSettings.RestrictPublicChannelDeletion,
-		"restrict_private_channel_deletion":         *cfg.TeamSettings.RestrictPrivateChannelDeletion,
+		"enable_team_creation":                      *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_EnableTeamCreation,
+		"restrict_team_invite":                      *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite,
+		"restrict_public_channel_creation":          *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation,
+		"restrict_private_channel_creation":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation,
+		"restrict_public_channel_management":        *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement,
+		"restrict_private_channel_management":       *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement,
+		"restrict_public_channel_deletion":          *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion,
+		"restrict_private_channel_deletion":         *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion,
 		"enable_open_server":                        *cfg.TeamSettings.EnableOpenServer,
 		"enable_user_deactivation":                  *cfg.TeamSettings.EnableUserDeactivation,
 		"enable_custom_brand":                       *cfg.TeamSettings.EnableCustomBrand,
@@ -289,7 +287,7 @@ func (a *App) trackConfig() {
 		"isdefault_custom_brand_text":               isDefault(*cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
 		"isdefault_custom_description_text":         isDefault(*cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
 		"isdefault_user_status_away_timeout":        isDefault(*cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
-		"restrict_private_channel_manage_members":   *cfg.TeamSettings.RestrictPrivateChannelManageMembers,
+		"restrict_private_channel_manage_members":   *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers,
 		"enable_X_to_leave_channels_from_LHS":       *cfg.TeamSettings.EnableXToLeaveChannelsFromLHS,
 		"experimental_enable_automatic_replies":     *cfg.TeamSettings.ExperimentalEnableAutomaticReplies,
 		"experimental_town_square_is_hidden_in_lhs": *cfg.TeamSettings.ExperimentalHideTownSquareinLHS,
@@ -308,15 +306,14 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
-		"driver_name":                            *cfg.SqlSettings.DriverName,
-		"trace":                                  cfg.SqlSettings.Trace,
-		"max_idle_conns":                         *cfg.SqlSettings.MaxIdleConns,
-		"conn_max_lifetime_milliseconds":         *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
-		"max_open_conns":                         *cfg.SqlSettings.MaxOpenConns,
-		"data_source_replicas":                   len(cfg.SqlSettings.DataSourceReplicas),
-		"data_source_search_replicas":            len(cfg.SqlSettings.DataSourceSearchReplicas),
-		"query_timeout":                          *cfg.SqlSettings.QueryTimeout,
-		"enable_public_channels_materialization": *cfg.SqlSettings.EnablePublicChannelsMaterialization,
+		"driver_name":                    *cfg.SqlSettings.DriverName,
+		"trace":                          cfg.SqlSettings.Trace,
+		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
+		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
+		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
+		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
+		"query_timeout":                  *cfg.SqlSettings.QueryTimeout,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
@@ -411,13 +408,14 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_SUPPORT, map[string]interface{}{
-		"isdefault_terms_of_service_link": isDefault(*cfg.SupportSettings.TermsOfServiceLink, model.SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK),
-		"isdefault_privacy_policy_link":   isDefault(*cfg.SupportSettings.PrivacyPolicyLink, model.SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK),
-		"isdefault_about_link":            isDefault(*cfg.SupportSettings.AboutLink, model.SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK),
-		"isdefault_help_link":             isDefault(*cfg.SupportSettings.HelpLink, model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK),
-		"isdefault_report_a_problem_link": isDefault(*cfg.SupportSettings.ReportAProblemLink, model.SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK),
-		"isdefault_support_email":         isDefault(*cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
-		"custom_terms_of_service_enabled": *cfg.SupportSettings.CustomTermsOfServiceEnabled,
+		"isdefault_terms_of_service_link":              isDefault(*cfg.SupportSettings.TermsOfServiceLink, model.SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK),
+		"isdefault_privacy_policy_link":                isDefault(*cfg.SupportSettings.PrivacyPolicyLink, model.SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK),
+		"isdefault_about_link":                         isDefault(*cfg.SupportSettings.AboutLink, model.SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK),
+		"isdefault_help_link":                          isDefault(*cfg.SupportSettings.HelpLink, model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK),
+		"isdefault_report_a_problem_link":              isDefault(*cfg.SupportSettings.ReportAProblemLink, model.SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK),
+		"isdefault_support_email":                      isDefault(*cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
+		"custom_terms_of_service_enabled":              *cfg.SupportSettings.CustomTermsOfServiceEnabled,
+		"custom_terms_of_service_re_acceptance_period": *cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
@@ -491,12 +489,6 @@ func (a *App) trackConfig() {
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
-	})
-
-	a.SendDiagnostic(TRACK_CONFIG_WEBRTC, map[string]interface{}{
-		"enable":             *cfg.WebrtcSettings.Enable,
-		"isdefault_stun_uri": isDefault(*cfg.WebrtcSettings.StunURI, model.WEBRTC_SETTINGS_DEFAULT_STUN_URI),
-		"isdefault_turn_uri": isDefault(*cfg.WebrtcSettings.TurnURI, model.WEBRTC_SETTINGS_DEFAULT_TURN_URI),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
@@ -599,7 +591,7 @@ func (a *App) trackPlugins() {
 		settingsCount := 0
 
 		pluginStates := a.Config().PluginSettings.PluginStates
-		plugins, _ := a.Plugins.Available()
+		plugins, _ := a.Srv.Plugins.Available()
 
 		if pluginStates != nil && plugins != nil {
 			for _, plugin := range plugins {

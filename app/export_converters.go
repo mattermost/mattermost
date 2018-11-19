@@ -4,8 +4,9 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {
@@ -70,7 +71,7 @@ func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *UserTe
 	}
 }
 
-func ImportUserChannelDataFromChannelMember(member *model.ChannelMemberForExport) *UserChannelImportData {
+func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelMemberForExport, preferences *model.Preferences) *UserChannelImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {
 		rolesList = append(rolesList, model.CHANNEL_ADMIN_ROLE_ID)
@@ -78,10 +79,35 @@ func ImportUserChannelDataFromChannelMember(member *model.ChannelMemberForExport
 	if member.SchemeUser {
 		rolesList = append(rolesList, model.CHANNEL_USER_ROLE_ID)
 	}
+	props := member.NotifyProps
+	notifyProps := UserChannelNotifyPropsImportData{}
+
+	desktop, exist := props[model.DESKTOP_NOTIFY_PROP]
+	if exist {
+		notifyProps.Desktop = &desktop
+	}
+	mobile, exist := props[model.PUSH_NOTIFY_PROP]
+	if exist {
+		notifyProps.Mobile = &mobile
+	}
+	markUnread, exist := props[model.MARK_UNREAD_NOTIFY_PROP]
+	if exist {
+		notifyProps.MarkUnread = &markUnread
+	}
+
+	favorite := false
+	for _, preference := range *preferences {
+		if member.ChannelId == preference.Name {
+			favorite = true
+		}
+	}
+
 	roles := strings.Join(rolesList, " ")
 	return &UserChannelImportData{
-		Name:  &member.ChannelName,
-		Roles: &roles,
+		Name:        &member.ChannelName,
+		Roles:       &roles,
+		NotifyProps: &notifyProps,
+		Favorite:    &favorite,
 	}
 }
 
@@ -111,5 +137,15 @@ func ImportReactionFromPost(reaction *model.Reaction) *ReactionImportData {
 		User:      &reaction.UserId,
 		EmojiName: &reaction.EmojiName,
 		CreateAt:  &reaction.CreateAt,
+	}
+}
+
+func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *LineImportData {
+	return &LineImportData{
+		Type: "emoji",
+		Emoji: &EmojiImportData{
+			Name:  &emoji.Name,
+			Image: &filePath,
+		},
 	}
 }

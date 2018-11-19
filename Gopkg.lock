@@ -34,6 +34,14 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  digest = "1:705c40022f5c03bf96ffeb6477858d88565064485a513abcd0f11a0911546cb6"
+  name = "github.com/blang/semver"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2ee87856327ba09384cabd113bc6b5d174e9ec0f"
+  version = "v3.5.1"
+
+[[projects]]
   branch = "master"
   digest = "1:cc439e1d9d8cff3d575642f5401033b00f2b8d0cd9f859db45604701c990879a"
   name = "github.com/corpix/uarand"
@@ -633,12 +641,12 @@
   revision = "204274ad699c0983a70203a566887f17a717fef4"
 
 [[projects]]
-  digest = "1:dc2d85c13ac22c22a1f3170a41a8e1b897fa05134aaf533f16df44f66a25b4a1"
+  digest = "1:69b1cc331fca23d702bd72f860c6a647afd0aa9fcbc1d0659b1365e26546dd70"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
-  version = "v1.1.0"
+  revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:6a4a11ba764a56d2758899ec6f3848d24698d48442ebce85ee7a3f63284526cd"
@@ -984,6 +992,7 @@
   input-imports = [
     "github.com/NYTimes/gziphandler",
     "github.com/avct/uasurfer",
+    "github.com/blang/semver",
     "github.com/dgryski/dgoogauth",
     "github.com/disintegration/imaging",
     "github.com/dyatlov/go-opengraph/opengraph",
@@ -1022,6 +1031,7 @@
     "github.com/rs/cors",
     "github.com/rwcarlsen/goexif/exif",
     "github.com/segmentio/analytics-go",
+    "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/mock",

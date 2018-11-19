@@ -44,6 +44,15 @@ var CommandListCmd = &cobra.Command{
 	RunE:    listCommandCmdF,
 }
 
+var CommandDeleteCmd = &cobra.Command{
+	Use:     "delete",
+	Short:   "Delete a slash command",
+	Long:    `Delete a slash command. Commands can be specified by command ID.`,
+	Example: `  command delete commandID`,
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    deleteCommandCmdF,
+}
+
 func init() {
 	CommandCreateCmd.Flags().String("title", "", "Command Title")
 	CommandCreateCmd.Flags().String("description", "", "Command Description")
@@ -64,6 +73,7 @@ func init() {
 		CommandCreateCmd,
 		CommandMoveCmd,
 		CommandListCmd,
+		CommandDeleteCmd,
 	)
 	RootCmd.AddCommand(CommandCmd)
 }
@@ -80,6 +90,18 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 		return errors.New("unable to find team '" + args[0] + "'")
 	}
 
+	// get the creator
+	creator, _ := command.Flags().GetString("creator")
+	user := getUserFromUserArg(a, creator)
+	if user == nil {
+		return errors.New("unable to find user '" + creator + "'")
+	}
+
+	// check if creator has permission to create slash commands
+	if !a.HasPermissionToTeam(user.Id, team.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		return errors.New("the creator must be a user who has permissions to manage slash commands")
+	}
+
 	title, _ := command.Flags().GetString("title")
 	description, _ := command.Flags().GetString("description")
 	trigger, _ := command.Flags().GetString("trigger-word")
@@ -92,11 +114,6 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	url, _ := command.Flags().GetString("url")
-	creator, _ := command.Flags().GetString("creator")
-	user := getUserFromUserArg(a, creator)
-	if user == nil {
-		return errors.New("unable to find user '" + creator + "'")
-	}
 	responseUsername, _ := command.Flags().GetString("response-username")
 	icon, _ := command.Flags().GetString("icon")
 	autocomplete, _ := command.Flags().GetBool("autocomplete")
@@ -202,5 +219,23 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrettyPrintln(commandListItem)
 		}
 	}
+	return nil
+}
+
+func deleteCommandCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	commandID := args[0]
+
+	deleteErr := a.DeleteCommand(commandID)
+	if deleteErr != nil {
+		CommandPrintErrorln("Unable to delete command '" + commandID + "' error: " + deleteErr.Error())
+		return deleteErr
+	}
+	CommandPrettyPrintln("Deleted command '" + commandID + "'")
 	return nil
 }

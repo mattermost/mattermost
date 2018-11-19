@@ -401,7 +401,7 @@ func (c *Client4) GetRedirectLocationRoute() string {
 	return fmt.Sprintf("/redirect_location")
 }
 
-func (c *Client4) GetRegisterTermsOfServiceRoute(userId string) string {
+func (c *Client4) GetUserTermsOfServiceRoute(userId string) string {
 	return c.GetUserRoute(userId) + "/terms_of_service"
 }
 
@@ -832,7 +832,7 @@ func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, eta
 	}
 }
 
-// GetUsersInChannelStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status
+// GetUsersInChannelByStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status
 func (c *Client4) GetUsersInChannelByStatus(channelId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v&sort=status", channelId, page, perPage)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
@@ -3370,19 +3370,6 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 	}
 }
 
-// Webrtc Section
-
-// GetWebrtcToken returns a valid token, stun server and turn server with credentials to
-// use with the Mattermost WebRTC service.
-func (c *Client4) GetWebrtcToken() (*WebrtcInfoResponse, *Response) {
-	if r, err := c.DoApiGet("/webrtc/token", ""); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return WebrtcInfoResponseFromJson(r.Body), BuildResponse(r)
-	}
-}
-
 // Emoji Section
 
 // CreateEmoji will save an emoji to the server if the current user has permission
@@ -3784,7 +3771,7 @@ func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response) {
 	}
 }
 
-// RemovePlugin will deactivate and delete a plugin.
+// RemovePlugin will disable and delete a plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) RemovePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetPluginRoute(id)); err != nil {
@@ -3806,7 +3793,7 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
 	}
 }
 
-// ActivatePlugin will activate an plugin installed.
+// EnablePlugin will enable an plugin installed.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) EnablePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/enable", ""); err != nil {
@@ -3817,7 +3804,7 @@ func (c *Client4) EnablePlugin(id string) (bool, *Response) {
 	}
 }
 
-// DeactivatePlugin will deactivate an active plugin.
+// DisablePlugin will disable an enabled plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/disable", ""); err != nil {
@@ -3862,7 +3849,7 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 }
 
 func (c *Client4) RegisteTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) (*bool, *Response) {
-	url := c.GetRegisterTermsOfServiceRoute(userId)
+	url := c.GetUserTermsOfServiceRoute(userId)
 	data := map[string]interface{}{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
 
 	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
@@ -3884,11 +3871,22 @@ func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response) {
 	}
 }
 
+func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfService, *Response) {
+	url := c.GetUserTermsOfServiceRoute(userId)
+
+	if r, err := c.DoApiGet(url, etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserTermsOfServiceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response) {
 	url := c.GetTermsOfServiceRoute()
 
-	data := map[string]string{"text": text}
-	if r, err := c.DoApiPost(url, MapToJson(data)); err != nil {
+	data := map[string]interface{}{"text": text}
+	if r, err := c.DoApiPost(url, StringInterfaceToJson(data)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
