@@ -581,6 +581,20 @@ func (_m *API) GetConfig() *model.Config {
 	return r0
 }
 
+// GetPluginConfig provides a mock function with given fields:
+func (_m *API) GetPluginConfig() map[string]interface{} {
+	ret := _m.Called()
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func() map[string]interface{}); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(map[string]interface{})
+	}
+
+	return r0
+}
+
 // GetDirectChannel provides a mock function with given fields: userId1, userId2
 func (_m *API) GetDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userId1, userId2)
@@ -1810,6 +1824,22 @@ func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(*model.Config) *model.AppError); ok {
 		r0 = rf(config)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SavePluginConfig provides a mock function with given fields: pluginConfig
+func (_m *API) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
+	ret := _m.Called(pluginConfig)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(map[string]interface{}) *model.AppError); ok {
+		r0 = rf(pluginConfig)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

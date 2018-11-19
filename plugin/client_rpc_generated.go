@@ -656,6 +656,61 @@ func (s *apiRPCServer) SaveConfig(args *Z_SaveConfigArgs, returns *Z_SaveConfigR
 	return nil
 }
 
+type Z_GetPluginConfigArgs struct {
+}
+
+type Z_GetPluginConfigReturns struct {
+	A map[string]interface{}
+}
+
+func (g *apiRPCClient) GetPluginConfig() map[string]interface{} {
+	_args := &Z_GetPluginConfigArgs{}
+	_returns := &Z_GetPluginConfigReturns{}
+	if err := g.client.Call("Plugin.GetPluginConfig", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPluginConfig API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetPluginConfig(args *Z_GetPluginConfigArgs, returns *Z_GetPluginConfigReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPluginConfig() map[string]interface{}
+	}); ok {
+		returns.A = hook.GetPluginConfig()
+	} else {
+		return encodableError(fmt.Errorf("API GetPluginConfig called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SavePluginConfigArgs struct {
+	A map[string]interface{}
+}
+
+type Z_SavePluginConfigReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SavePluginConfig(config map[string]interface{}) *model.AppError {
+	_args := &Z_SavePluginConfigArgs{config}
+	_returns := &Z_SavePluginConfigReturns{}
+	if err := g.client.Call("Plugin.SavePluginConfig", _args, _returns); err != nil {
+		log.Printf("RPC call to SavePluginConfig API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SavePluginConfig(args *Z_SavePluginConfigArgs, returns *Z_SavePluginConfigReturns) error {
+	if hook, ok := s.impl.(interface {
+		SavePluginConfig(config map[string]interface{}) *model.AppError
+	}); ok {
+		returns.A = hook.SavePluginConfig(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SavePluginConfig called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetServerVersionArgs struct {
 }
 
