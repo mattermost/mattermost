@@ -84,6 +84,20 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
 
+func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
+	cfg := api.app.GetConfig()
+	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
+		return pluginConfig
+	}
+	return map[string]interface{}{}
+}
+
+func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
+	cfg := api.app.GetConfig()
+	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
+	return api.app.SaveConfig(cfg, true)
+}
+
 func (api *PluginAPI) GetServerVersion() string {
 	return model.CurrentVersion
 }

@@ -63,6 +63,84 @@ func TestPluginAPIUpdateUserStatus(t *testing.T) {
 	assert.Nil(t, status)
 }
 
+func TestPluginAPISavePluginConfig(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	manifest := &model.Manifest{
+		Id: "pluginid",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "MyStringSetting", Type: "text"},
+				{Key: "MyIntSetting", Type: "text"},
+				{Key: "MyBoolSetting", Type: "bool"},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, manifest)
+
+	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
+
+	var pluginConfig map[string]interface{}
+	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := api.SavePluginConfig(pluginConfig); err != nil{
+		t.Fatal(err)
+	}
+
+	type Configuration struct {
+		MyStringSetting string
+		MyIntSetting int
+		MyBoolSetting bool
+	}
+
+	savedConfiguration := new(Configuration)
+	if err := api.LoadPluginConfiguration(savedConfiguration); err != nil{
+		t.Fatal(err)
+	}
+
+	expectedConfiguration := new(Configuration)
+	if err := json.Unmarshal([]byte(pluginConfigJsonString), &expectedConfiguration); err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, expectedConfiguration, savedConfiguration)
+}
+
+func TestPluginAPIGetPluginConfig(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	manifest := &model.Manifest{
+		Id: "pluginid",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "MyStringSetting", Type: "text"},
+				{Key: "MyIntSetting", Type: "text"},
+				{Key: "MyBoolSetting", Type: "bool"},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, manifest)
+
+	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
+	var pluginConfig map[string]interface{}
+
+	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
+		t.Fatal(err)
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["pluginid"] = pluginConfig
+	})
+
+	savedPluginConfig := api.GetPluginConfig()
+	assert.Equal(t, pluginConfig, savedPluginConfig)
+}
+
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
