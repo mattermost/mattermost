@@ -1833,6 +1833,22 @@ func (_m *API) RemoveReaction(reaction *model.Reaction) *model.AppError {
 	return r0
 }
 
+// RemoveTeamIcon provides a mock function with given fields: teamId
+func (_m *API) RemoveTeamIcon(teamId string) *model.AppError {
+	ret := _m.Called(teamId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SaveConfig provides a mock function with given fields: config
 func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	ret := _m.Called(config)
