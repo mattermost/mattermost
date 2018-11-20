@@ -336,7 +336,7 @@
         "LoginButtonTextColor": ""
     },
     "NativeAppSettings": {
-        "AppDownloadLink": "https://about.mattermost.com/downloads/",
+        "AppDownloadLink": "https://mattermost.com/download/#mobile",
         "AndroidAppDownloadLink": "https://about.mattermost.com/mattermost-android-app/",
         "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
     },
