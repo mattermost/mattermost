@@ -262,6 +262,9 @@ func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
 
 func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
 	channels, err := api.app.GetPublicChannelsForTeam(teamId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
 	return *channels, err
 }
 
@@ -277,8 +280,12 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 	return api.app.GetChannelByNameForTeamName(channelName, teamName, includeDeleted)
 }
 
-func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	return api.app.GetChannelsForUser(teamId, userId, includeDeleted)
+func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.GetChannelsForUser(teamId, userId, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+	return *channels, err
 }
 
 func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
@@ -301,8 +308,12 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.UpdateChannel(channel)
 }
 
-func (api *PluginAPI) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	return api.app.SearchChannels(teamId, term)
+func (api *PluginAPI) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.SearchChannels(teamId, term)
+	if err != nil {
+		return nil, err
+	}
+	return *channels, err
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
