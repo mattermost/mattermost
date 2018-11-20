@@ -277,3 +277,21 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	assert.NotEmpty(t, plugins)
 	assert.Equal(t, pluginManifests, plugins)
 }
+
+func TestPluginAPIUpdateUserActive(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	activeTrue, err := api.UpdateUserActive(th.BasicUser.Id, true)
+	require.Nil(t,err)
+	require.NotNil(t,activeTrue)
+	assert.Equal(t,true,activeTrue)
+
+	activeFalse, err := api.UpdateUserActive(th.BasicUser.Id, false)
+	require.Nil(t,err)
+	require.NotNil(t,activeFalse)
+	assert.Equal(t,false,activeFalse)
+
+}
+
