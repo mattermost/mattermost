@@ -1000,6 +1000,34 @@ func (s *apiRPCServer) SetTeamIcon(args *Z_SetTeamIconArgs, returns *Z_SetTeamIc
 	return nil
 }
 
+type Z_RemoveTeamIconArgs struct {
+	A string
+}
+
+type Z_RemoveTeamIconReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RemoveTeamIcon(teamId string) *model.AppError {
+	_args := &Z_RemoveTeamIconArgs{teamId}
+	_returns := &Z_RemoveTeamIconReturns{}
+	if err := g.client.Call("Plugin.RemoveTeamIcon", _args, _returns); err != nil {
+		log.Printf("RPC call to RemoveTeamIcon API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RemoveTeamIcon(args *Z_RemoveTeamIconArgs, returns *Z_RemoveTeamIconReturns) error {
+	if hook, ok := s.impl.(interface {
+		RemoveTeamIcon(teamId string) *model.AppError
+	}); ok {
+		returns.A = hook.RemoveTeamIcon(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RemoveTeamIcon called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateUserArgs struct {
 	A *model.User
 }
@@ -1778,11 +1806,11 @@ type Z_GetChannelsForTeamForUserArgs struct {
 }
 
 type Z_GetChannelsForTeamForUserReturns struct {
-	A *model.ChannelList
+	A []*model.Channel
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (g *apiRPCClient) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
 	_args := &Z_GetChannelsForTeamForUserArgs{teamId, userId, includeDeleted}
 	_returns := &Z_GetChannelsForTeamForUserReturns{}
 	if err := g.client.Call("Plugin.GetChannelsForTeamForUser", _args, _returns); err != nil {
@@ -1793,7 +1821,7 @@ func (g *apiRPCClient) GetChannelsForTeamForUser(teamId, userId string, includeD
 
 func (s *apiRPCServer) GetChannelsForTeamForUser(args *Z_GetChannelsForTeamForUserArgs, returns *Z_GetChannelsForTeamForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+		GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelsForTeamForUser(args.A, args.B, args.C)
 	} else {
@@ -1925,11 +1953,11 @@ type Z_SearchChannelsArgs struct {
 }
 
 type Z_SearchChannelsReturns struct {
-	A *model.ChannelList
+	A []*model.Channel
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+func (g *apiRPCClient) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
 	_args := &Z_SearchChannelsArgs{teamId, term}
 	_returns := &Z_SearchChannelsReturns{}
 	if err := g.client.Call("Plugin.SearchChannels", _args, _returns); err != nil {
@@ -1940,7 +1968,7 @@ func (g *apiRPCClient) SearchChannels(teamId string, term string) (*model.Channe
 
 func (s *apiRPCServer) SearchChannels(args *Z_SearchChannelsArgs, returns *Z_SearchChannelsReturns) error {
 	if hook, ok := s.impl.(interface {
-		SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
+		SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.SearchChannels(args.A, args.B)
 	} else {
