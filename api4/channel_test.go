@@ -780,7 +780,8 @@ func TestGetAllChannels(t *testing.T) {
 	channels, resp := th.SystemAdminClient.GetAllChannels(0, 20, "")
 	CheckNoError(t, resp)
 
-	require.Len(t, *channels, 20)
+	// At least, all the not-deleted channels created during the InitBasic
+	require.True(t, len(*channels) >= 3)
 	for _, c := range *channels {
 		require.NotEqual(t, c.TeamId, "")
 	}
@@ -879,7 +880,8 @@ func TestSearchAllChannels(t *testing.T) {
 	search.Term = ""
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
-	assert.True(t, len(channels) > 10)
+	// At least, all the not-deleted channels created during the InitBasic
+	assert.True(t, len(channels) >= 3)
 
 	search.Term = th.BasicChannel.Name
 	_, resp = Client.SearchAllChannels(search)
