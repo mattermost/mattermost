@@ -482,8 +482,7 @@ type UploadFileTask struct {
 	imageOrientation int
 
 	// Testing: overrideable dependency functions
-	pluginsReady       func() bool
-	runMultiPluginHook func(func(plugin.Hooks) bool, int)
+	pluginsEnvironment *plugin.Environment
 	writeFile          func(io.Reader, string) (int64, *model.AppError)
 	saveToDatabase     func(*model.FileInfo) store.StoreChannel
 }
@@ -532,10 +531,9 @@ func (a *App) NewUploadFileTask(teamId, channelId, userId, name string,
 	}
 	t.teeInput = io.TeeReader(t.limitedInput, t.buf)
 
+	t.pluginsEnvironment = a.GetPluginsEnvironment()
 	t.writeFile = a.WriteFile
 	t.saveToDatabase = a.Srv.Store.FileInfo().Save
-	t.pluginsReady = a.PluginsReady
-	t.runMultiPluginHook = (func(func(plugin.Hooks) bool, int))(a.Srv.Plugins.RunMultiPluginHook)
 
 	return t
 }
@@ -623,14 +621,14 @@ func (t *UploadFileTask) readAll() *model.AppError {
 }
 
 func (t *UploadFileTask) runPlugins() *model.AppError {
-	if !t.pluginsReady() {
+	if t.pluginsEnvironment == nil {
 		return nil
 	}
 
 	pluginContext := &plugin.Context{}
 	var rejectionError *model.AppError
 
-	t.runMultiPluginHook(func(hooks plugin.Hooks) bool {
+	t.pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 		buf := &bytes.Buffer{}
 		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext,
 			t.fileinfo, t.newReader(), buf)
