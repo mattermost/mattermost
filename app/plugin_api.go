@@ -84,6 +84,20 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
 
+func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
+	cfg := api.app.GetConfig()
+	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
+		return pluginConfig
+	}
+	return map[string]interface{}{}
+}
+
+func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
+	cfg := api.app.GetConfig()
+	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
+	return api.app.SaveConfig(cfg, true)
+}
+
 func (api *PluginAPI) GetServerVersion() string {
 	return model.CurrentVersion
 }
@@ -248,6 +262,9 @@ func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
 
 func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
 	channels, err := api.app.GetPublicChannelsForTeam(teamId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
 	return *channels, err
 }
 
@@ -263,8 +280,12 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 	return api.app.GetChannelByNameForTeamName(channelName, teamName, includeDeleted)
 }
 
-func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	return api.app.GetChannelsForUser(teamId, userId, includeDeleted)
+func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.GetChannelsForUser(teamId, userId, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+	return *channels, err
 }
 
 func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
@@ -287,8 +308,12 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.UpdateChannel(channel)
 }
 
-func (api *PluginAPI) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	return api.app.SearchChannels(teamId, term)
+func (api *PluginAPI) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.SearchChannels(teamId, term)
+	if err != nil {
+		return nil, err
+	}
+	return *channels, err
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
@@ -475,6 +500,23 @@ func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
 
 	fileReader := bytes.NewReader(data)
 	err = api.app.SetTeamIconFromFile(team, fileReader)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
+	return api.app.OpenInteractiveDialog(dialog)
+}
+
+func (api *PluginAPI) RemoveTeamIcon(teamId string) *model.AppError {
+	_, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	err = api.app.RemoveTeamIcon(teamId)
 	if err != nil {
 		return err
 	}

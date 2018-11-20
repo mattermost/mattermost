@@ -580,62 +580,65 @@ func (a *App) trackLicense() {
 }
 
 func (a *App) trackPlugins() {
-	if a.PluginsReady() {
-		totalEnabledCount := 0
-		webappEnabledCount := 0
-		backendEnabledCount := 0
-		totalDisabledCount := 0
-		webappDisabledCount := 0
-		backendDisabledCount := 0
-		brokenManifestCount := 0
-		settingsCount := 0
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return
+	}
 
-		pluginStates := a.Config().PluginSettings.PluginStates
-		plugins, _ := a.Srv.Plugins.Available()
+	totalEnabledCount := 0
+	webappEnabledCount := 0
+	backendEnabledCount := 0
+	totalDisabledCount := 0
+	webappDisabledCount := 0
+	backendDisabledCount := 0
+	brokenManifestCount := 0
+	settingsCount := 0
 
-		if pluginStates != nil && plugins != nil {
-			for _, plugin := range plugins {
-				if plugin.Manifest == nil {
-					brokenManifestCount += 1
-					continue
+	pluginStates := a.Config().PluginSettings.PluginStates
+	plugins, _ := pluginsEnvironment.Available()
+
+	if pluginStates != nil && plugins != nil {
+		for _, plugin := range plugins {
+			if plugin.Manifest == nil {
+				brokenManifestCount += 1
+				continue
+			}
+			if state, ok := pluginStates[plugin.Manifest.Id]; ok && state.Enable {
+				totalEnabledCount += 1
+				if plugin.Manifest.HasServer() {
+					backendEnabledCount += 1
 				}
-				if state, ok := pluginStates[plugin.Manifest.Id]; ok && state.Enable {
-					totalEnabledCount += 1
-					if plugin.Manifest.HasServer() {
-						backendEnabledCount += 1
-					}
-					if plugin.Manifest.HasWebapp() {
-						webappEnabledCount += 1
-					}
-				} else {
-					totalDisabledCount += 1
-					if plugin.Manifest.HasServer() {
-						backendDisabledCount += 1
-					}
-					if plugin.Manifest.HasWebapp() {
-						webappDisabledCount += 1
-					}
+				if plugin.Manifest.HasWebapp() {
+					webappEnabledCount += 1
 				}
-				if plugin.Manifest.SettingsSchema != nil {
-					settingsCount += 1
+			} else {
+				totalDisabledCount += 1
+				if plugin.Manifest.HasServer() {
+					backendDisabledCount += 1
+				}
+				if plugin.Manifest.HasWebapp() {
+					webappDisabledCount += 1
 				}
 			}
-		} else {
-			totalEnabledCount = -1  // -1 to indicate disabled or error
-			totalDisabledCount = -1 // -1 to indicate disabled or error
+			if plugin.Manifest.SettingsSchema != nil {
+				settingsCount += 1
+			}
 		}
-
-		a.SendDiagnostic(TRACK_PLUGINS, map[string]interface{}{
-			"enabled_plugins":               totalEnabledCount,
-			"enabled_webapp_plugins":        webappEnabledCount,
-			"enabled_backend_plugins":       backendEnabledCount,
-			"disabled_plugins":              totalDisabledCount,
-			"disabled_webapp_plugins":       webappDisabledCount,
-			"disabled_backend_plugins":      backendDisabledCount,
-			"plugins_with_settings":         settingsCount,
-			"plugins_with_broken_manifests": brokenManifestCount,
-		})
+	} else {
+		totalEnabledCount = -1  // -1 to indicate disabled or error
+		totalDisabledCount = -1 // -1 to indicate disabled or error
 	}
+
+	a.SendDiagnostic(TRACK_PLUGINS, map[string]interface{}{
+		"enabled_plugins":               totalEnabledCount,
+		"enabled_webapp_plugins":        webappEnabledCount,
+		"enabled_backend_plugins":       backendEnabledCount,
+		"disabled_plugins":              totalDisabledCount,
+		"disabled_webapp_plugins":       webappDisabledCount,
+		"disabled_backend_plugins":      backendDisabledCount,
+		"plugins_with_settings":         settingsCount,
+		"plugins_with_broken_manifests": brokenManifestCount,
+	})
 }
 
 func (a *App) trackServer() {

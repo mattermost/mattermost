@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -508,7 +509,9 @@ func TestExecuteGetCommand(t *testing.T) {
 
 	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/getcommand")
 	CheckNoError(t, resp)
+	assert.True(t, len(commandResponse.TriggerId) == 26)
 
+	expectedCommandResponse.TriggerId = commandResponse.TriggerId
 	expectedCommandResponse.Props["from_webhook"] = "true"
 	require.Equal(t, expectedCommandResponse, commandResponse)
 }
@@ -566,7 +569,9 @@ func TestExecutePostCommand(t *testing.T) {
 
 	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
 	CheckNoError(t, resp)
+	assert.True(t, len(commandResponse.TriggerId) == 26)
 
+	expectedCommandResponse.TriggerId = commandResponse.TriggerId
 	expectedCommandResponse.Props["from_webhook"] = "true"
 	require.Equal(t, expectedCommandResponse, commandResponse)
 

@@ -131,6 +131,71 @@ func TestCommandResponseFromJson(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"multiple responses returned",
+			`
+			{
+				"text": "message 1",
+				"extra_responses": [
+					{"text": "message 2"}
+				]
+			}
+			`,
+			&CommandResponse{
+				Text: "message 1",
+				ExtraResponses: []*CommandResponse{
+					&CommandResponse{
+						Text: "message 2",
+					},
+				},
+			},
+			false,
+		},
+		{
+			"multiple responses returned, with attachments",
+			`
+			{
+				"text": "message 1",
+				"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}]}],
+				"extra_responses": [
+					{
+						"text": "message 2",
+						"attachments":[{"fields":[{"title":"foo 2","value":"bar 2","short":false}]}]
+					}
+				]
+			}`,
+			&CommandResponse{
+				Text: "message 1",
+				Attachments: []*SlackAttachment{
+					{
+						Fields: []*SlackAttachmentField{
+							{
+								Title: "foo",
+								Value: "bar",
+								Short: true,
+							},
+						},
+					},
+				},
+				ExtraResponses: []*CommandResponse{
+					&CommandResponse{
+						Text: "message 2",
+						Attachments: []*SlackAttachment{
+							{
+								Fields: []*SlackAttachmentField{
+									{
+										Title: "foo 2",
+										Value: "bar 2",
+										Short: false,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			false,
+		},
 	}
 
 	for _, testCase := range testCases {

@@ -211,10 +211,10 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		a.InvalidateCacheForUser(channel.CreatorId)
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, sc)
 				return true
 			}, plugin.ChannelHasBeenCreatedId)
@@ -238,10 +238,10 @@ func (a *App) CreateDirectChannel(userId string, otherUserId string) (*model.Cha
 	a.InvalidateCacheForUser(userId)
 	a.InvalidateCacheForUser(otherUserId)
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, channel)
 				return true
 			}, plugin.ChannelHasBeenCreatedId)
@@ -857,10 +857,10 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		return nil, err
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
 				return true
 			}, plugin.UserHasJoinedChannelId)
@@ -1247,10 +1247,10 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 		return err
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
 				return true
 			}, plugin.UserHasJoinedChannelId)
@@ -1448,8 +1448,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	a.InvalidateCacheForUser(userIdToRemove)
 	a.InvalidateCacheForChannelMembers(channel.Id)
 
-	if a.PluginsReady() {
-
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actorUser *model.User
 		if removerUserId != "" {
 			actorUser, _ = a.GetUser(removerUserId)
@@ -1457,7 +1456,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
 				return true
 			}, plugin.UserHasLeftChannelId)
