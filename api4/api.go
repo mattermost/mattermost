@@ -234,6 +234,7 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.InitImage()
 	api.InitTermsOfService()
 	api.InitGroup()
+	api.InitAction()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
