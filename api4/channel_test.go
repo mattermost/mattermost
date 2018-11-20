@@ -788,11 +788,11 @@ func TestGetAllChannels(t *testing.T) {
 
 	channels, resp = th.SystemAdminClient.GetAllChannels(0, 10, "")
 	CheckNoError(t, resp)
-	require.Len(t, *channels, 10)
+	require.True(t, len(*channels) >= 3)
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(1, 10, "")
+	channels, resp = th.SystemAdminClient.GetAllChannels(1, 1, "")
 	CheckNoError(t, resp)
-	require.Len(t, *channels, 10)
+	require.Len(t, *channels, 1)
 
 	channels, resp = th.SystemAdminClient.GetAllChannels(10000, 10000, "")
 	CheckNoError(t, resp)
