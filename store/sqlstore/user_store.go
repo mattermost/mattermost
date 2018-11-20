@@ -1010,6 +1010,57 @@ func (us SqlUserStore) Search(teamId string, term string, options *model.UserSea
 	})
 }
 
+func (us SqlUserStore) SearchWithRoles(teamId string, term string, roles []string, options *model.UserSearchOptions) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		rolesQuery := generateRolesQuery(roles)
+		searchQuery := ""
+
+		if teamId == "" {
+			// Id != '' is added because both SEARCH_CLAUSE and INACTIVE_CLAUSE start with an AND
+			searchQuery = `
+			SELECT
+				*
+			FROM
+				Users
+			WHERE
+				Id != ''
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+				ROLES_CLAUSE	
+			ORDER BY Username ASC
+			LIMIT :Limit`
+		} else {
+			searchQuery = `
+			SELECT
+				Users.*
+			FROM
+				Users, TeamMembers
+			WHERE
+				TeamMembers.TeamId = :TeamId
+				AND Users.Id = TeamMembers.UserId
+				AND TeamMembers.DeleteAt = 0
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+				ROLES_CLAUSE
+			ORDER BY Users.Username ASC
+			LIMIT :Limit`
+		}
+
+		if rolesQuery != "" {
+			rolesClause := fmt.Sprintf("AND (%s)", rolesQuery)
+			searchQuery = strings.Replace(searchQuery, "ROLES_CLAUSE", rolesClause, 1)
+		} else {
+			searchQuery = strings.Replace(searchQuery, "ROLES_CLAUSE", "", 1)
+		}
+
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"TeamId": teamId,
+			"Limit":  options.Limit,
+		})
+
+	})
+}
+
 func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
@@ -1173,6 +1224,15 @@ func generateSearchQuery(searchQuery string, terms []string, fields []string, pa
 	return strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", searchClause), 1)
 }
 
+func generateRolesQuery(roles []string) string {
+	rolesQuery := []string{}
+
+	for _, role := range roles {
+		rolesQuery = append(rolesQuery, "Users.Roles like '%"+role+"%'")
+	}
+
+	return strings.Join(rolesQuery, " OR ")
+}
 func (us SqlUserStore) performSearch(searchQuery string, term string, options *model.UserSearchOptions, parameters map[string]interface{}) store.StoreResult {
 	result := store.StoreResult{}
 

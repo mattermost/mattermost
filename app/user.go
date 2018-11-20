@@ -1500,6 +1500,20 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 	return users, nil
 }
 
+func (a *App) SearchUsersInTeamWithRoles(teamId string, term string, roles []string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().SearchWithRoles(teamId, term, roles, options)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	users := result.Data.([]*model.User)
+
+	for _, user := range users {
+		a.SanitizeProfile(user, options.IsAdmin)
+	}
+
+	return users, nil
+}
+
 func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	result := <-a.Srv.Store.User().SearchNotInTeam(notInTeamId, term, options)
 	if result.Err != nil {

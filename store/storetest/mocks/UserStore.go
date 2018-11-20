@@ -689,6 +689,22 @@ func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *m
 	return r0
 }
 
+// SearchWithRoles provides a mock function with given fields: teamId, term, roles, options
+func (_m *UserStore) SearchWithRoles(teamId string, term string, roles []string, options *model.UserSearchOptions) store.StoreChannel {
+	ret := _m.Called(teamId, term, roles, options)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string, []string, *model.UserSearchOptions) store.StoreChannel); ok {
+		r0 = rf(teamId, term, roles, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // SearchWithoutTeam provides a mock function with given fields: term, options
 func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) store.StoreChannel {
 	ret := _m.Called(term, options)

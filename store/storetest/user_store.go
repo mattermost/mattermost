@@ -55,6 +55,7 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, ss) })
 	t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, ss) })
 	t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, ss) })
+	t.Run("SearchWithRoles", func(t *testing.T) { testUserStoreSearchWithRoles(t, ss) })
 	t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, ss) })
 	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
 	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
@@ -1705,6 +1706,120 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 		// the operating system, and jimbo1 might sort before or after jim-bo.
 		// assertUsers(t, []*model.User{u2, u1, u6, u5}, r1.Data.([]*model.User))
 	})
+}
+
+func testUserStoreSearchWithRoles(t *testing.T, ss store.Store) {
+	u1 := &model.User{
+		Username:  "HelloDam" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Roles:     "system_admin",
+	}
+	store.Must(ss.User().Save(u1))
+	defer ss.User().PermanentDelete(u1.Id)
+
+	u2 := &model.User{
+		Username: "Foobar" + model.NewId(),
+		Email:    MakeEmail(),
+		Roles:    "system_admin",
+	}
+	store.Must(ss.User().Save(u2))
+
+	u3 := &model.User{
+		Username: "FooHello" + model.NewId(),
+		Email:    MakeEmail(),
+		Roles:    "system_user",
+	}
+	store.Must(ss.User().Save(u3))
+
+	u5 := &model.User{
+		Username:  "John" + model.NewId(),
+		FirstName: "En",
+		LastName:  "Yu",
+		Nickname:  "enyu",
+		Email:     MakeEmail(),
+		Roles:     "system_admin system_user",
+	}
+	store.Must(ss.User().Save(u5))
+
+	tid := model.NewId()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u5.Id}, -1))
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
+
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+	u5.AuthData = nilAuthData
+
+	testCases := []struct {
+		Description string
+		TeamId      string
+		Term        string
+		Options     *model.UserSearchOptions
+		Roles       []string
+		Expected    []*model.User
+	}{
+		{
+			"search hello with an admin role",
+			tid,
+			"hello",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]string{"admin"},
+			[]*model.User{u1},
+		},
+		{
+			"search foo with admin or user role",
+			tid,
+			"foo",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]string{"user", "admin"},
+			[]*model.User{u2, u3},
+		},
+		{
+			"search John with system_user",
+			tid,
+			"John",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]string{"system_user"},
+			[]*model.User{u5},
+		},
+		{
+			"search Foo with empty roles",
+			tid,
+			"foo",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]string{},
+			[]*model.User{u2, u3},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			result := <-ss.User().SearchWithRoles(testCase.TeamId, testCase.Term, testCase.Roles, testCase.Options)
+			require.Nil(t, result.Err)
+			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+		})
+	}
 }
 
 func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
