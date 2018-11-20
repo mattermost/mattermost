@@ -54,8 +54,9 @@ type Server struct {
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 
-	Plugins                *plugin.Environment
+	PluginsEnvironment     *plugin.Environment
 	PluginConfigListenerId string
+	PluginsLock            sync.RWMutex
 
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter

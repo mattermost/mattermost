@@ -460,10 +460,10 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
 		pluginContext := &plugin.Context{}
-		a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			var newBytes bytes.Buffer
 			replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
 			if rejectionReason != "" {

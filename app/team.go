@@ -461,7 +461,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		return nil
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if userRequestorId != "" {
 			actor, _ = a.GetUser(userRequestorId)
@@ -469,7 +469,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedTeam(pluginContext, tm, actor)
 				return true
 			}, plugin.UserHasJoinedTeamId)
@@ -784,7 +784,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		return result.Err
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if requestorId != "" {
 			actor, _ = a.GetUser(requestorId)
@@ -792,7 +792,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 				return true
 			}, plugin.UserHasLeftTeamId)
