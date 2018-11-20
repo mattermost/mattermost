@@ -90,8 +90,8 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 	case GroupSyncableTypeTeam:
 		return json.Marshal(&struct {
 			TeamID          string `json:"team_id"`
-			TeamDisplayName string `json:"team_display_name"`
-			TeamType        string `json:"team_type"`
+			TeamDisplayName string `json:"team_display_name,omitempty"`
+			TeamType        string `json:"team_type,omitempty"`
 			*Alias
 		}{
 			TeamDisplayName: syncable.TeamDisplayName,
@@ -102,12 +102,12 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 	case GroupSyncableTypeChannel:
 		return json.Marshal(&struct {
 			ChannelID          string `json:"channel_id"`
-			ChannelDisplayName string `json:"channel_display_name"`
-			ChannelType        string `json:"channel_type"`
+			ChannelDisplayName string `json:"channel_display_name,omitempty"`
+			ChannelType        string `json:"channel_type,omitempty"`
 
-			TeamID          string `json:"team_id"`
-			TeamDisplayName string `json:"team_display_name"`
-			TeamType        string `json:"team_type"`
+			TeamID          string `json:"team_id,omitempty"`
+			TeamDisplayName string `json:"team_display_name,omitempty"`
+			TeamType        string `json:"team_type,omitempty"`
 
 			*Alias
 		}{
