@@ -772,6 +772,35 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetAllChannels(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	channels, resp := th.SystemAdminClient.GetAllChannels(0, 20, "")
+	CheckNoError(t, resp)
+
+	require.Len(t, *channels, 20)
+	for _, c := range *channels {
+		require.NotEqual(t, c.TeamId, "")
+	}
+
+	channels, resp = th.SystemAdminClient.GetAllChannels(0, 10, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 10)
+
+	channels, resp = th.SystemAdminClient.GetAllChannels(1, 10, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 10)
+
+	channels, resp = th.SystemAdminClient.GetAllChannels(10000, 10000, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 0)
+
+	_, resp = Client.GetAllChannels(0, 20, "")
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestSearchChannels(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
@@ -825,6 +854,36 @@ func TestSearchChannels(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.SearchChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
+}
+
+func TestSearchAllChannels(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
+
+	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 1)
+	assert.Equal(t, channels[0].Id, th.BasicChannel.Id)
+
+	search.Term = th.BasicPrivateChannel.Name
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 1)
+	assert.Equal(t, channels[0].Id, th.BasicPrivateChannel.Id)
+
+	search.Term = ""
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+	assert.True(t, len(channels) > 10)
+
+	search.Term = th.BasicChannel.Name
+	_, resp = Client.SearchAllChannels(search)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestDeleteChannel(t *testing.T) {

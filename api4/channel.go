@@ -500,7 +500,7 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channels, err := c.App.GetAllChannels(c.Params.Page*c.Params.PerPage, c.Params.PerPage, false)
+	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, false)
 	if err != nil {
 		c.Err = err
 		return

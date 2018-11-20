@@ -2092,7 +2092,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, includeDeleted bool) sto
 		if includeDeleted {
 			deleteFilter = ""
 		}
-		searchQuery := `SELECT Channels.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName FROM Channels AS c JOIN Teams ON Teams.Id = c.TeamId WHERE (c.Type = 'P' OR c.Type = 'O') "` + deleteFilter + ` SEARCH_CLAUSE ORDER BY c.DisplayName, Teams.DisplayName LIMIT 100`
+		searchQuery := `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName FROM Channels AS c JOIN Teams AS t ON t.Id = c.TeamId WHERE (c.Type = 'P' OR c.Type = 'O') ` + deleteFilter + ` SEARCH_CLAUSE ORDER BY c.DisplayName, t.DisplayName LIMIT 100`
 
 		likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
 		if likeTerm == "" {

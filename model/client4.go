@@ -1667,6 +1667,17 @@ func (c *Client4) RemoveTeamIcon(teamId string) (bool, *Response) {
 
 // Channel Section
 
+// GetAllChannels get all the channels. Must be a system administrator.
+func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
 	if r, err := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson()); err != nil {
@@ -1829,6 +1840,16 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 	} else {
 		defer closeBody(r)
 		return ChannelSliceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// SearchAllChannels search in all the channels. Must be a system administrator.
+func (c *Client4) SearchAllChannels(search *ChannelSearch) ([]*ChannelWithTeamData, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelWithTeamDataSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
