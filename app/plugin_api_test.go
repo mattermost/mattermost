@@ -4,8 +4,12 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -37,7 +41,7 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 
-	app.Srv.Plugins = env
+	app.SetPluginsEnvironment(env)
 }
 
 func TestPluginAPIUpdateUserStatus(t *testing.T) {
@@ -57,6 +61,84 @@ func TestPluginAPIUpdateUserStatus(t *testing.T) {
 	status, err := api.UpdateUserStatus(th.BasicUser.Id, "notrealstatus")
 	assert.NotNil(t, err)
 	assert.Nil(t, status)
+}
+
+func TestPluginAPISavePluginConfig(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	manifest := &model.Manifest{
+		Id: "pluginid",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "MyStringSetting", Type: "text"},
+				{Key: "MyIntSetting", Type: "text"},
+				{Key: "MyBoolSetting", Type: "bool"},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, manifest)
+
+	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
+
+	var pluginConfig map[string]interface{}
+	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := api.SavePluginConfig(pluginConfig); err != nil {
+		t.Fatal(err)
+	}
+
+	type Configuration struct {
+		MyStringSetting string
+		MyIntSetting    int
+		MyBoolSetting   bool
+	}
+
+	savedConfiguration := new(Configuration)
+	if err := api.LoadPluginConfiguration(savedConfiguration); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedConfiguration := new(Configuration)
+	if err := json.Unmarshal([]byte(pluginConfigJsonString), &expectedConfiguration); err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, expectedConfiguration, savedConfiguration)
+}
+
+func TestPluginAPIGetPluginConfig(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	manifest := &model.Manifest{
+		Id: "pluginid",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "MyStringSetting", Type: "text"},
+				{Key: "MyIntSetting", Type: "text"},
+				{Key: "MyBoolSetting", Type: "bool"},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, manifest)
+
+	pluginConfigJsonString := `{"mystringsetting": "str", "MyIntSetting": 32, "myboolsetting": true}`
+	var pluginConfig map[string]interface{}
+
+	if err := json.Unmarshal([]byte(pluginConfigJsonString), &pluginConfig); err != nil {
+		t.Fatal(err)
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["pluginid"] = pluginConfig
+	})
+
+	savedPluginConfig := api.GetPluginConfig()
+	assert.Equal(t, pluginConfig, savedPluginConfig)
 }
 
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
@@ -124,7 +206,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.Srv.Plugins.HooksForPlugin("testloadpluginconfig")
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "str32true", ret)
@@ -198,7 +280,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.Srv.Plugins.HooksForPlugin("testloadpluginconfig")
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "override35true", ret)
@@ -218,6 +300,36 @@ func TestPluginAPIGetProfileImage(t *testing.T) {
 	data, err = api.GetProfileImage(model.NewId())
 	require.NotNil(t, err)
 	require.Nil(t, data)
+}
+
+func TestPluginAPISetProfileImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// Create an 128 x 128 image
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+	// Draw a red dot at (2, 3)
+	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
+	buf := new(bytes.Buffer)
+	err := png.Encode(buf, img)
+	require.Nil(t, err)
+	dataBytes := buf.Bytes()
+
+	// Set the user profile image
+	err = api.SetProfileImage(th.BasicUser.Id, dataBytes)
+	require.Nil(t, err)
+
+	// Get the user profile image to check
+	imageProfile, err := api.GetProfileImage(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, imageProfile)
+
+	colorful := color.NRGBA{255, 0, 0, 255}
+	byteReader := bytes.NewReader(imageProfile)
+	img2, _, err2 := image.Decode(byteReader)
+	require.Nil(t, err2)
+	require.Equal(t, img2.At(2, 3), colorful)
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {
@@ -265,9 +377,9 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		require.True(t, activated)
 		pluginManifests = append(pluginManifests, manifest)
 	}
-	th.App.Srv.Plugins = env
+	th.App.SetPluginsEnvironment(env)
 
-	// Decative the last one for testing
+	// Decativate the last one for testing
 	sucess := env.Deactivate(pluginIDs[len(pluginIDs)-1])
 	require.True(t, sucess)
 
@@ -278,11 +390,129 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	assert.Equal(t, pluginManifests, plugins)
 }
 
-func TestPluginAPIUpdateUserActive(t *testing.T) {
+func TestPluginAPIGetTeamIcon(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+	// Create an 128 x 128 image
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+	// Draw a red dot at (2, 3)
+	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
+	buf := new(bytes.Buffer)
+	err := png.Encode(buf, img)
+	require.Nil(t, err)
+	dataBytes := buf.Bytes()
+	fileReader := bytes.NewReader(dataBytes)
+
+	// Set the Team Icon
+	err = th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	require.Nil(t, err)
+
+	// Get the team icon to check
+	teamIcon, err := api.GetTeamIcon(th.BasicTeam.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, teamIcon)
+
+	colorful := color.NRGBA{255, 0, 0, 255}
+	byteReader := bytes.NewReader(teamIcon)
+	img2, _, err2 := image.Decode(byteReader)
+	require.Nil(t, err2)
+	require.Equal(t, img2.At(2, 3), colorful)
+}
+
+func TestPluginAPISetTeamIcon(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
+	// Create an 128 x 128 image
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+	// Draw a red dot at (2, 3)
+	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
+	buf := new(bytes.Buffer)
+	err := png.Encode(buf, img)
+	require.Nil(t, err)
+	dataBytes := buf.Bytes()
+
+	// Set the user profile image
+	err = api.SetTeamIcon(th.BasicTeam.Id, dataBytes)
+	require.Nil(t, err)
+
+	// Get the user profile image to check
+	teamIcon, err := api.GetTeamIcon(th.BasicTeam.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, teamIcon)
+
+	colorful := color.NRGBA{255, 0, 0, 255}
+	byteReader := bytes.NewReader(teamIcon)
+	img2, _, err2 := image.Decode(byteReader)
+	require.Nil(t, err2)
+	require.Equal(t, img2.At(2, 3), colorful)
+}
+
+func TestPluginAPISearchChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		channels, err := api.SearchChannels(th.BasicTeam.Id, th.BasicChannel.Name)
+		assert.Nil(t, err)
+		assert.Len(t, channels, 1)
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		channels, err := api.SearchChannels("invalidid", th.BasicChannel.Name)
+		assert.Nil(t, err)
+		assert.Empty(t, channels)
+	})
+}
+
+func TestPluginAPIGetChannelsForTeamForUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		channels, err := api.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+		assert.Nil(t, err)
+		assert.Len(t, channels, 3)
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		channels, err := api.GetChannelsForTeamForUser("invalidid", th.BasicUser.Id, false)
+		assert.NotNil(t, err)
+		assert.Empty(t, channels)
+	})
+}
+
+func TestPluginAPIRemoveTeamIcon(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// Create an 128 x 128 image
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+
+	// Draw a red dot at (2, 3)
+	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
+	buf := new(bytes.Buffer)
+	err1 := png.Encode(buf, img)
+	require.Nil(t, err1)
+	dataBytes := buf.Bytes()
+	fileReader := bytes.NewReader(dataBytes)
+
+	// Set the Team Icon
+	err := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	require.Nil(t, err)
+	err = api.RemoveTeamIcon(th.BasicTeam.Id)
+	require.Nil(t, err)
+}
+
+func TestPluginAPIUpdateUserActive(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
 	activeTrue, err := api.UpdateUserActive(th.BasicUser.Id, true)
 	require.Nil(t,err)
 	require.NotNil(t,activeTrue)
