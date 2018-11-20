@@ -21,6 +21,17 @@ type SqlSupplier interface {
 	GetMaster() *gorp.DbMap
 }
 
+func cleanupChannels(t *testing.T, ss store.Store) {
+	result := <-ss.Channel().GetAllChannels(0, 100000, true)
+	if result.Err != nil {
+		t.Fatal("error cleaning all channels")
+	}
+	list := result.Data.(*model.ChannelListWithTeamData)
+	for _, channel := range *list {
+		ss.Channel().PermanentDelete(channel.Id)
+	}
+}
+
 func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	createDefaultRoles(t, ss)
 
@@ -962,6 +973,8 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreGetAllChannels(t *testing.T, ss store.Store) {
+	cleanupChannels(t, ss)
+
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
@@ -2082,6 +2095,8 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
+	cleanupChannels(t, ss)
+
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
