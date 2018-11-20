@@ -450,3 +450,39 @@ func TestPluginAPISetTeamIcon(t *testing.T) {
 	require.Nil(t, err2)
 	require.Equal(t, img2.At(2, 3), colorful)
 }
+
+func TestPluginAPISearchChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		channels, err := api.SearchChannels(th.BasicTeam.Id, th.BasicChannel.Name)
+		assert.Nil(t, err)
+		assert.Len(t, channels, 1)
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		channels, err := api.SearchChannels("invalidid", th.BasicChannel.Name)
+		assert.Nil(t, err)
+		assert.Empty(t, channels)
+	})
+}
+
+func TestPluginAPIGetChannelsForTeamForUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		channels, err := api.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+		assert.Nil(t, err)
+		assert.Len(t, channels, 3)
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		channels, err := api.GetChannelsForTeamForUser("invalidid", th.BasicUser.Id, false)
+		assert.NotNil(t, err)
+		assert.Empty(t, channels)
+	})
+}
