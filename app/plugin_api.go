@@ -523,6 +523,25 @@ func (api *PluginAPI) RemoveTeamIcon(teamId string) *model.AppError {
 	return nil
 }
 
+func (api *PluginAPI) CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
+	_, err := api.app.GetUser(userId1)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = api.app.GetUser(userId2)
+	if err != nil {
+		return nil, err
+	}
+
+	dm, err := api.app.CreateDirectChannel(userId1, userId2)
+	if err != nil {
+		return nil, err
+	}
+
+	return dm, nil
+}
+
 // Plugin Section
 
 func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {
