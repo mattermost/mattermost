@@ -66,6 +66,15 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 		return "", err
 	}
 
+	u, _ := url.Parse(action.Integration.URL)
+	if u.Scheme == "mattermost" {
+		switch u.Host {
+		case "remind":
+			a.UpdateReminder(post, action, userId)
+		}
+		return clientTriggerId, nil
+	}
+
 	if action.Type == model.POST_ACTION_TYPE_SELECT {
 		request.DataSource = action.DataSource
 		request.Context["selected_option"] = selectedOption
