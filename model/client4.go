@@ -1866,6 +1866,7 @@ func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Ch
 	return ChannelFromJson(r.Body), BuildResponse(r)
 }
 
+// GetChannelByNameIncludeDeleted returns a channel based on the provided channel name and team id strings. Other then GetChannelByName it will also return deleted channels.
 func (c *Client4) GetChannelByNameIncludeDeleted(channelName, teamId string, etag string) (*Channel, *Response) {
 	r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId)+"?include_deleted=true", etag)
 	if err != nil {
@@ -1885,6 +1886,7 @@ func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag
 	return ChannelFromJson(r.Body), BuildResponse(r)
 }
 
+// GetChannelByNameForTeamNameIncludeDeleted returns a channel based on the provided channel name and team name strings. Other then GetChannelByNameForTeamName it will also return deleted channels.
 func (c *Client4) GetChannelByNameForTeamNameIncludeDeleted(channelName, teamName string, etag string) (*Channel, *Response) {
 	r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName)+"?include_deleted=true", etag)
 	if err != nil {
@@ -3069,6 +3071,7 @@ func (c *Client4) GetBrandImage() ([]byte, *Response) {
 	return data, BuildResponse(r)
 }
 
+// DeleteBrandImage delets the brand image for the system.
 func (c *Client4) DeleteBrandImage() *Response {
 	r, err := c.DoApiDelete(c.GetBrandRoute() + "/image")
 	if err != nil {
@@ -3152,7 +3155,7 @@ func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
 	return OAuthAppFromJson(r.Body), BuildResponse(r)
 }
 
-// UpdateOAuthApp
+// UpdateOAuthApp updates a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
 	r, err := c.DoApiPut(c.GetOAuthAppRoute(app.Id), app.ToJson())
 	if err != nil {
