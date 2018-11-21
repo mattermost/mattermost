@@ -56,7 +56,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAP {
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -108,7 +108,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAP {
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -186,7 +186,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAP {
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkLdapGroup", "api.ldap.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
