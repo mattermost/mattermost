@@ -274,7 +274,17 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 		}
 
 	case "delete":
-		mlog.Info("delete")
+		if result := <-a.Srv.Store.Remind().GetReminder(reminderId); result.Err != nil {
+			return result.Err
+		} else {
+			reminder := result.Data.(model.Reminder)
+			schan := a.Srv.Store.Remind().DeleteByReminder(reminderId)
+			if result := <-schan; result.Err != nil {
+				return result.Err
+			}
+			update.Message = "Ok! I’ve deleted the reminder \"" + reminder.Message + "\"."
+		}
+
 	case "snooze":
 		mlog.Info("snooze")
 
