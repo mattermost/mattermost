@@ -202,6 +202,7 @@ func (s *LayeredStore) UnlockFromMaster() {
 }
 
 func (s *LayeredStore) DropAllTables() {
+	defer s.LocalCacheLayer.Invalidate()
 	s.DatabaseLayer.DropAllTables()
 }
 

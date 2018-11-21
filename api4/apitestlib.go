@@ -15,7 +15,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -77,6 +76,10 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
+	if testStore != nil {
+		testStore.DropAllTables()
+	}
+
 	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
@@ -179,61 +182,6 @@ func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
 func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 
-	var wg sync.WaitGroup
-	wg.Add(3)
-
-	go func() {
-		defer wg.Done()
-		options := &model.UserSearchOptions{
-			AllowEmails:    false,
-			AllowFullNames: false,
-			Limit:          model.USER_SEARCH_MAX_LIMIT,
-		}
-		if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
-			mlog.Error("Error tearing down test users")
-		} else {
-			users := result.Data.([]*model.User)
-
-			for _, u := range users {
-				if err := me.App.PermanentDeleteUser(u); err != nil {
-					mlog.Error(err.Error())
-				}
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if result := <-me.App.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
-			mlog.Error("Error tearing down test teams")
-		} else {
-			teams := result.Data.([]*model.Team)
-
-			for _, t := range teams {
-				if err := me.App.PermanentDeleteTeam(t); err != nil {
-					mlog.Error(err.Error())
-				}
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if result := <-me.App.Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
-			mlog.Error("Error tearing down test oauth apps")
-		} else {
-			apps := result.Data.([]*model.OAuthApp)
-
-			for _, a := range apps {
-				if strings.HasPrefix(a.Name, "fakeoauthapp") {
-					<-me.App.Srv.Store.OAuth().DeleteApp(a.Id)
-				}
-			}
-		}
-	}()
-
-	wg.Wait()
-
 	me.App.Shutdown()
 	os.Remove(me.tempConfigPath)
 
@@ -247,6 +195,10 @@ func (me *TestHelper) TearDown() {
 
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
+
+	me.SystemAdminUser = me.CreateUser()
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	me.LoginSystemAdmin()
 
 	me.TeamAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
@@ -272,16 +224,6 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.Client.DeleteChannel(me.BasicDeletedChannel.Id)
 	me.LoginBasic()
-
-	return me
-}
-
-func (me *TestHelper) InitSystemAdmin() *TestHelper {
-	me.waitForConnectivity()
-
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.LoginSystemAdmin()
 
 	return me
 }

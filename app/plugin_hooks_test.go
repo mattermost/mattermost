@@ -44,7 +44,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log)
 	require.NoError(t, err)
 
-	app.Srv.Plugins = env
+	app.SetPluginsEnvironment(env)
 	pluginIds := []string{}
 	activationErrors := []error{}
 	for _, code := range pluginCode {

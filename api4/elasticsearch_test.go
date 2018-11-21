@@ -8,7 +8,7 @@ import (
 )
 
 func TestElasticsearchTest(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.TestElasticsearch()
@@ -19,7 +19,7 @@ func TestElasticsearchTest(t *testing.T) {
 }
 
 func TestElasticsearchPurgeIndexes(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.PurgeElasticsearchIndexes()

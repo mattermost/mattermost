@@ -19,7 +19,8 @@ import (
 )
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
-	if a.Srv.Plugins == nil || !*a.Config().PluginSettings.Enable {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
 		a.Log.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
@@ -29,7 +30,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := mux.Vars(r)
-	hooks, err := a.Srv.Plugins.HooksForPlugin(params["plugin_id"])
+	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
 	if err != nil {
 		a.Log.Error("Access to route for non-existent plugin", mlog.String("missing_plugin_id", params["plugin_id"]), mlog.Err(err))
 		http.NotFound(w, r)
