@@ -434,6 +434,7 @@ type RemindStore interface {
 	GetByReminder(reminderId string) StoreChannel
 	DeleteForUser(userId string) StoreChannel
 	DeleteByReminder(reminderId string) StoreChannel
+	DeleteForReminder(reminderId string) StoreChannel
 }
 
 type EmojiStore interface {

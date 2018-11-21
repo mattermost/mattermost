@@ -50,10 +50,16 @@ func (s SqlRemindStore) CreateIndexesIfNotExists() {
 
 func (s SqlRemindStore) SaveReminder(reminder *model.Reminder) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if err := s.GetMaster().Insert(reminder); err != nil {
-			mlog.Error(err.Error())
-			result.Err = model.NewAppError("SqlRemindStore.Save", "store.sql_remind.save_reminder.saving.app_error", nil, "user_id="+reminder.UserId, http.StatusInternalServerError)
+		if err := s.GetReplica().SelectOne(&model.Reminder{},"SELECT * FROM Reminders WHERE Id = :Id",map[string]interface{}{"Id": reminder.Id}); err == nil {
+			if _, err := s.GetMaster().Update(reminder); err != nil {
+				result.Err = model.NewAppError("SqlRemindStore.Save", "store.sql_remind.save_reminder.saving.app_error", nil, "user_id="+reminder.UserId, http.StatusInternalServerError)
+			}
+		} else {
+			if err := s.GetMaster().Insert(reminder); err != nil {
+				result.Err = model.NewAppError("SqlRemindStore.Save", "store.sql_remind.save_reminder.saving.app_error", nil, "user_id="+reminder.UserId, http.StatusInternalServerError)
+			}
 		}
+
 	})
 }
 
@@ -108,9 +114,9 @@ func (s SqlRemindStore) GetReminder(reminderId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 
 		query := "SELECT * FROM Reminders WHERE Id = :ReminderId"
-		var reminders model.Reminders
-		if _, err := s.GetReplica().Select(
-			&reminders,
+		var reminder model.Reminder
+		if err := s.GetReplica().SelectOne(
+			&reminder,
 			query,
 			map[string]interface{}{"ReminderId": reminderId}); err != nil {
 			result.Err = model.NewAppError("SqlRemindStore.GetReminder", "store.sql_remind.get_reminder.app_error", nil, "Id="+reminderId+", "+err.Error(), http.StatusInternalServerError)
@@ -118,7 +124,7 @@ func (s SqlRemindStore) GetReminder(reminderId string) store.StoreChannel {
 				result.Err.StatusCode = http.StatusNotFound
 			}
 		}
-		result.Data = reminders
+		result.Data = reminder
 	})
 }
 
@@ -162,6 +168,15 @@ func (s SqlRemindStore) DeleteByReminder(reminderId string) store.StoreChannel {
 		if _, err := s.GetMaster().Exec("DELETE FROM Occurrences WHERE ReminderId = :ReminderId",
 			map[string]interface{}{"ReminderId": reminderId}); err != nil {
 			result.Err = model.NewAppError("SqlRemindStore.DeleteByReminder", "store.sql_remind.delete_by_reminder.app_error", nil, "ReminderId="+reminderId, http.StatusInternalServerError)
+		}
+	})
+}
+
+func (s SqlRemindStore) DeleteForReminder(reminderId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := s.GetMaster().Exec("DELETE FROM Occurrences WHERE ReminderId = :ReminderId",
+			map[string]interface{}{"ReminderId": reminderId}); err != nil {
+			result.Err = model.NewAppError("SqlRemindStore.DeleteForReminder", "store.sql_remind.delete_for_reminder.app_error", nil, "ReminderId="+reminderId, http.StatusInternalServerError)
 		}
 	})
 }

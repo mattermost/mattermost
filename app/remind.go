@@ -88,7 +88,7 @@ func (a *App) triggerReminders() {
 			if result := <-schan; result.Err != nil {
 				continue
 			} else {
-				reminder = result.Data.(model.Reminders)[0]
+				reminder = result.Data.(model.Reminder)
 			}
 
 			user, _, _, T := a.shared(reminder.UserId)
@@ -129,28 +129,31 @@ func (a *App) triggerReminders() {
 											Context: model.StringInterface{
 												"reminderId": reminder.Id,
 												"occurrenceId": occurrence.Id,
+												"action": "complete",
 											},
 											URL: "mattermost://remind",
 										},
 										Name:       "Mark as Complete",
-										Type:       "complete",
+										Type:       "action",
 									},
 									{
 										Integration: &model.PostActionIntegration{
 											Context: model.StringInterface{
 												"reminderId": reminder.Id,
 												"occurrenceId": occurrence.Id,
+												"action": "delete",
 											},
 											URL: "mattermost://remind",
 										},
 										Name:       "Delete",
-										Type:       "delete",
+										Type:       "action",
 									},
 									{
 										Integration: &model.PostActionIntegration{
 											Context: model.StringInterface{
 												"reminderId": reminder.Id,
 												"occurrenceId": occurrence.Id,
+												"action": "snooze",
 											},
 											URL: "mattermost://remind",
 										},
@@ -250,45 +253,39 @@ func (a *App) triggerReminders() {
 func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string) (error){
 
 	update := &model.Post{}
-	update.Message = "~~"+post.Message+"~~\n"+"Ok! I’ve marked the reminder \""+post.Message+"\" as complete."
 	update.Id = post.Id
+	reminderId := action.Integration.Context["reminderId"].(string)
+
+	switch action.Integration.Context["action"] {
+	case "complete":
+
+		if result := <-a.Srv.Store.Remind().GetReminder(reminderId); result.Err != nil {
+			return result.Err
+		} else {
+			reminder := result.Data.(model.Reminder)
+			reminder.Completed = time.Now().Format(time.RFC3339)
+			if result := <-a.Srv.Store.Remind().SaveReminder(&reminder); result.Err != nil {
+				return result.Err
+			}
+			if result := <-a.Srv.Store.Remind().DeleteForReminder(reminderId); result.Err != nil {
+				return result.Err
+			}
+			update.Message = "~~"+post.Message+"~~\n"+"Ok! I’ve marked the reminder \""+reminder.Message+"\" as complete."
+		}
+
+	case "delete":
+		mlog.Info("delete")
+	case "snooze":
+		mlog.Info("snooze")
+
+	}
+
 	if _, err := a.UpdatePost(update, false); err != nil {
 		return err
 	}
 
-	mlog.Info(fmt.Sprintf("%v", action.Integration.Context))
-
-	//ephemeralPost := &model.Post{}
-	//
-	//ephemeralPost.Message = "Ok! I’ve marked the reminder \""+post.Message+"\" as complete."
-	//ephemeralPost.RootId = post.RootId
-	//ephemeralPost.UserId = post.UserId
-	//ephemeralPost.ChannelId = post.ChannelId
-	//a.SendEphemeralPost(userId, ephemeralPost)
-
 	return nil
 
-	//
-	//if response.EphemeralText != "" {
-	//	ephemeralPost := &model.Post{}
-	//	ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
-	//	ephemeralPost.ChannelId = post.ChannelId
-	//	ephemeralPost.RootId = post.RootId
-	//	if ephemeralPost.RootId == "" {
-	//		ephemeralPost.RootId = post.Id
-	//	}
-	//	ephemeralPost.UserId = post.UserId
-	//	ephemeralPost.AddProp("from_webhook", "true")
-	//	for _, prop := range retainedProps {
-	//		if value, ok := post.Props[prop]; ok {
-	//			ephemeralPost.Props[prop] = value
-	//		} else {
-	//			delete(ephemeralPost.Props, prop)
-	//		}
-	//	}
-	//	a.SendEphemeralPost(userId, ephemeralPost)
-	//}
-	//
 }
 
 func (a *App) ListReminders(userId string) string {

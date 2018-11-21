@@ -19,6 +19,7 @@ func TestRemindStore(t *testing.T, ss store.Store) {
 	t.Run("GetByReminder", func(t *testing.T) { testGetByReminder(t, ss) })
 	t.Run("DeleteForUser", func(t *testing.T) { testDeleteForUser(t, ss) })
 	t.Run("DeleteByReminder", func(t *testing.T) { testDeleteByReminder(t, ss) })
+	t.Run("DeleteForReminder", func(t *testing.T) { testDeleteForReminder(t, ss) })
 
 }
 
@@ -100,6 +101,14 @@ func testDeleteForUser(t *testing.T, ss store.Store) {
 func testDeleteByReminder(t *testing.T, ss store.Store) {
 
 	schan := ss.Remind().DeleteByReminder("1")
+	if result := <-schan; result.Err != nil {
+		t.Fatal(result.Err.Message)
+	}
+}
+
+func testDeleteForReminder(t *testing.T, ss store.Store) {
+
+	schan := ss.Remind().DeleteForReminder("1")
 	if result := <-schan; result.Err != nil {
 		t.Fatal(result.Err.Message)
 	}
