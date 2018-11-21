@@ -2301,8 +2301,7 @@ func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*F
 		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	_, err = io.Copy(part, bytes.NewBuffer(data))
-	if err != nil {
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
 		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
