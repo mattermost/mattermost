@@ -391,8 +391,25 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	return scheme, roles
 }
 
+func (me *TestHelper) ShutdownApp() {
+	done := make(chan bool)
+	go func() {
+		me.App.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		// panic instead of t.Fatal to terminate all tests in this package, otherwise the
+		// still running App could spuriously fail subsequent tests.
+		panic("failed to shutdown App within 30 seconds")
+	}
+}
+
 func (me *TestHelper) TearDown() {
-	me.App.Shutdown()
+	me.ShutdownApp()
+
 	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
 		StopTestStore()
