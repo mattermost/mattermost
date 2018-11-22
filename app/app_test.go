@@ -539,8 +539,8 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 		model.PERMISSION_MANAGE_WEBHOOKS.Id,
 		model.PERMISSION_EDIT_POST.Id,
-		// model.PERMISSION_MANAGE_EMOJIS.Id,
-		// model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id,
+		model.PERMISSION_MANAGE_EMOJIS.Id,
+		model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id,
 	}
 
 	role1, err1 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
@@ -568,7 +568,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_MANAGE_WEBHOOKS.Id,
 		model.PERMISSION_DELETE_POST.Id,
 		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
-		// model.PERMISSION_MANAGE_EMOJIS.Id,
+		model.PERMISSION_MANAGE_EMOJIS.Id,
 	}
 	assert.Equal(t, expected2, role2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.TEAM_ADMIN_ROLE_ID))
 
@@ -590,7 +590,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
 		model.PERMISSION_PERMANENT_DELETE_USER.Id,
 		model.PERMISSION_CREATE_TEAM.Id,
-		// model.PERMISSION_MANAGE_EMOJIS.Id,
+		model.PERMISSION_MANAGE_EMOJIS.Id,
 	}
 	assert.Equal(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_USER_ROLE_ID))
 
