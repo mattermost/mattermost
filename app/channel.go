@@ -224,11 +224,11 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	return sc, nil
 }
 
-func (a *App) GetOrCreateDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetByName("", model.GetDMNameFromIds(userId1, userId2), true)
+func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError) {
+	result := <-a.Srv.Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
 	if result.Err != nil {
 		if result.Err.Id == store.MISSING_CHANNEL_ERROR {
-			channel, err := a.createDirectChannel(userId1, userId2)
+			channel, err := a.createDirectChannel(userId, otherUserId)
 			if err != nil {
 				if err.Id == store.CHANNEL_EXISTS_ERROR {
 					return channel, nil
@@ -236,10 +236,10 @@ func (a *App) GetOrCreateDirectChannel(userId1, userId2 string) (*model.Channel,
 				return nil, err
 			}
 
-			a.WaitForChannelMembership(channel.Id, userId1)
+			a.WaitForChannelMembership(channel.Id, userId)
 
-			a.InvalidateCacheForUser(userId1)
-			a.InvalidateCacheForUser(userId2)
+			a.InvalidateCacheForUser(userId)
+			a.InvalidateCacheForUser(otherUserId)
 
 			if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 				a.Srv.Go(func() {
@@ -252,7 +252,7 @@ func (a *App) GetOrCreateDirectChannel(userId1, userId2 string) (*model.Channel,
 			}
 
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
-			message.Add("teammate_id", userId2)
+			message.Add("teammate_id", otherUserId)
 			a.Publish(message)
 
 			return channel, nil
