@@ -57,6 +57,11 @@ type API interface {
 	// Minimum server version: 5.6
 	CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError)
 
+	// CreateGroupChannel creates a Group channel.
+	//
+	// Minimum server version: 5.6
+	CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError)
+
 	// DeleteUser deletes a user.
 	DeleteUser(userId string) *model.AppError
 

@@ -1333,6 +1333,14 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.plugin.create_group_channel.missing_users",
+    "translation": "UsersId list cannot be empty."
+  },
+  {
+    "id": "api.plugin.create_group_channel.invalid_userid",
+    "translation": "Invalid userId {{.UserId}}."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },

@@ -301,7 +301,7 @@ func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel,
 }
 
 func (api *PluginAPI) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
-	return api.app.CreateGroupChannel(userIds, "")
+	return api.app.GetGroupChannel(userIds)
 }
 
 func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
@@ -540,6 +540,25 @@ func (api *PluginAPI) CreateDirectChannel(userId1 string, userId2 string) (*mode
 	}
 
 	return dm, nil
+}
+
+func (api *PluginAPI) CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+	if len(userIds) == 0 {
+		return nil, model.NewAppError("PluginAPI_CreateGroupChannel", "api.plugin.create_group_channel.missing_users", nil, "", http.StatusBadRequest)
+	}
+
+	for _, id := range userIds {
+		if len(id) != 26 {
+			return nil, model.NewAppError("PluginAPI_CreateGroupChannel", "api.plugin.create_group_channel.invalid_userid", map[string]interface{}{"UserId": id}, "", http.StatusBadRequest)
+		}
+	}
+
+	gm, err := api.app.CreateGroupChannel(userIds, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return gm, nil
 }
 
 // Plugin Section

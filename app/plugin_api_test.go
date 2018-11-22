@@ -527,3 +527,34 @@ func TestPluginAPICreateDirectChannel(t *testing.T) {
 	require.NotNil(t, err)
 	require.Empty(t, dm3)
 }
+
+func TestPluginAPICreateGroupChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	//Group Channel need to be at least 3 users
+	userIds := []string{th.BasicUser.Id, th.BasicUser2.Id}
+	gm, err := api.CreateGroupChannel(userIds)
+	require.NotNil(t, err)
+	require.Empty(t, gm)
+
+	user3 := th.CreateUser()
+	require.NotEmpty(t, user3)
+
+	userIds = append(userIds, user3.Id)
+	gm2, err := api.CreateGroupChannel(userIds)
+	require.Nil(t, err)
+	require.NotEmpty(t, gm2)
+
+	gmCheck, err := api.GetGroupChannel(userIds)
+	require.Nil(t, err)
+	require.NotEmpty(t, gmCheck)
+	require.Equal(t, gm2.Id, gmCheck.Id)
+
+	userIds2 := []string{th.BasicUser.Id, "dcdc3", th.BasicUser2.Id}
+	gm3, err := api.CreateGroupChannel(userIds2)
+	require.NotNil(t, err)
+	require.Empty(t, gm3)
+
+}

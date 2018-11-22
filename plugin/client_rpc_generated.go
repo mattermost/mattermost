@@ -797,6 +797,35 @@ func (s *apiRPCServer) CreateDirectChannel(args *Z_CreateDirectChannelArgs, retu
 	return nil
 }
 
+type Z_CreateGroupChannelArgs struct {
+	A []string
+}
+
+type Z_CreateGroupChannelReturns struct {
+	A *model.Channel
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+	_args := &Z_CreateGroupChannelArgs{userIds}
+	_returns := &Z_CreateGroupChannelReturns{}
+	if err := g.client.Call("Plugin.CreateGroupChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateGroupChannel API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateGroupChannel(args *Z_CreateGroupChannelArgs, returns *Z_CreateGroupChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateGroupChannel(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API CreateGroupChannel called but not implemented."))
+	}
+	return nil
+}
+
 type Z_DeleteUserArgs struct {
 	A string
 }
