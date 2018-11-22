@@ -224,7 +224,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	return sc, nil
 }
 
-func (a *App) CreateOrGetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
+func (a *App) GetOrCreateDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
 	result := <-a.Srv.Store.Channel().GetByName("", model.GetDMNameFromIds(userId1, userId2), true)
 	if result.Err != nil {
 		if result.Err.Id == store.MISSING_CHANNEL_ERROR {
