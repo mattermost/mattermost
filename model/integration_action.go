@@ -114,11 +114,6 @@ type SubmitDialogResponse struct {
 	Errors map[string]string `json:"errors,omitempty"`
 }
 
-func (r *PostActionIntegrationRequest) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
 	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
@@ -196,6 +191,11 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 
 func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey) (string, string, *AppError) {
 	return DecodeAndVerifyTriggerId(r.TriggerId, s)
+}
+
+func (r *PostActionIntegrationRequest) ToJson() []byte {
+	b, _ := json.Marshal(r)
+	return b
 }
 
 func PostActionIntegrationRequestFromJson(data io.Reader) *PostActionIntegrationRequest {
