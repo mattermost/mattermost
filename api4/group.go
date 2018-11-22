@@ -67,6 +67,11 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroup", "api.groups.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -100,7 +105,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAP {
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroup", "api.group.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -172,7 +177,7 @@ func linkGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http
 			return
 		}
 
-		if c.App.License() == nil || !*c.App.License().Features.LDAP {
+		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 			c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.license.error", nil, "",
 				http.StatusNotImplemented)
 			return
@@ -252,6 +257,11 @@ func getGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.
 			c.SetInvalidParam(fmt.Sprintf("%s_id", strings.ToLower(syncableType.String())))
 		}
 
+		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.getGroupSyncable", "api.groups.license.error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
 		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
@@ -278,6 +288,11 @@ func getGroupSyncables(syncableType model.GroupSyncableType) func(*Context, http
 	return func(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.RequireGroupId()
 		if c.Err != nil {
+			return
+		}
+
+		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.getGroupSyncables", "api.group.license.error", nil, "", http.StatusNotImplemented)
 			return
 		}
 
@@ -346,7 +361,7 @@ func patchGroupSyncable(syncableType model.GroupSyncableType) func(*Context, htt
 			return
 		}
 
-		if c.App.License() == nil || !*c.App.License().Features.LDAP {
+		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 			c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.license.error", nil, "",
 				http.StatusNotImplemented)
 			return
@@ -408,8 +423,8 @@ func unlinkGroupSyncable(syncableType model.GroupSyncableType) func(*Context, ht
 			c.SetInvalidParam(fmt.Sprintf("%s_id", strings.ToLower(syncableType.String())))
 		}
 
-		if c.App.License() == nil || !*c.App.License().Features.LDAP {
-			c.Err = model.NewAppError("Api4.deleteGroupSyncable", "api.group.license.error", nil, "",
+		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.group.license.error", nil, "",
 				http.StatusNotImplemented)
 			return
 		}
@@ -431,6 +446,11 @@ func unlinkGroupSyncable(syncableType model.GroupSyncableType) func(*Context, ht
 }
 
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupMembers", "api.group.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
