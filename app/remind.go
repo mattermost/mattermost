@@ -118,7 +118,6 @@ func (a *App) triggerReminders() {
 					PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 					UserId:        remindUser.Id,
 					Message:       T("app.reminder.message", messageParameters),
-					//Props:         model.StringInterface{},
 					Props: model.StringInterface{
 						"attachments": []*model.SlackAttachment{
 							{
@@ -127,57 +126,57 @@ func (a *App) triggerReminders() {
 									{
 										Integration: &model.PostActionIntegration{
 											Context: model.StringInterface{
-												"reminderId": reminder.Id,
+												"reminderId":   reminder.Id,
 												"occurrenceId": occurrence.Id,
-												"action": "complete",
+												"action":       "complete",
 											},
 											URL: "mattermost://remind",
 										},
-										Name:       "Mark as Complete",
-										Type:       "action",
+										Name: "Mark as Complete",
+										Type: "action",
 									},
 									{
 										Integration: &model.PostActionIntegration{
 											Context: model.StringInterface{
-												"reminderId": reminder.Id,
+												"reminderId":   reminder.Id,
 												"occurrenceId": occurrence.Id,
-												"action": "delete",
+												"action":       "delete",
 											},
 											URL: "mattermost://remind",
 										},
-										Name:       "Delete",
-										Type:       "action",
+										Name: "Delete",
+										Type: "action",
 									},
 									{
 										Integration: &model.PostActionIntegration{
 											Context: model.StringInterface{
-												"reminderId": reminder.Id,
+												"reminderId":   reminder.Id,
 												"occurrenceId": occurrence.Id,
-												"action": "snooze",
+												"action":       "snooze",
 											},
 											URL: "mattermost://remind",
 										},
-										Name:       "Snooze",
-										Type:       "select",
+										Name: "Snooze",
+										Type: "select",
 										Options: []*model.PostActionOptions{
 											{
-												Text: "20 minutes",
+												Text:  "20 minutes",
 												Value: "20min",
 											},
 											{
-												Text: "1 hour",
+												Text:  "1 hour",
 												Value: "1hr",
 											},
 											{
-												Text: "3 hours",
+												Text:  "3 hours",
 												Value: "3hrs",
 											},
 											{
-												Text: "Tomorrow at 9AM",
+												Text:  "Tomorrow at 9AM",
 												Value: "tomorrow",
 											},
 											{
-												Text: "Next week",
+												Text:  "Next week",
 												Value: "nextweek",
 											},
 										},
@@ -250,7 +249,9 @@ func (a *App) triggerReminders() {
 	}
 }
 
-func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string) (error){
+func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string, selectedOption string) (error) {
+
+	_, cfg, location, _ := a.shared(userId)
 
 	update := &model.Post{}
 	update.Id = post.Id
@@ -270,7 +271,7 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 			if result := <-a.Srv.Store.Remind().DeleteForReminder(reminderId); result.Err != nil {
 				return result.Err
 			}
-			update.Message = "~~"+post.Message+"~~\n"+"Ok! I’ve marked the reminder \""+reminder.Message+"\" as complete."
+			update.Message = "~~" + post.Message + "~~\n" + "Ok! I’ve marked the reminder \"" + reminder.Message + "\" as complete."
 		}
 
 	case "delete":
@@ -286,8 +287,89 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 		}
 
 	case "snooze":
-		mlog.Info("snooze")
+		occurrenceId := action.Integration.Context["occurrenceId"].(string)
 
+		if result := <-a.Srv.Store.Remind().GetOccurrence(occurrenceId); result.Err != nil {
+			return result.Err
+		} else {
+			occurrence := result.Data.(model.Occurrence)
+
+			if result := <-a.Srv.Store.Remind().GetReminder(reminderId); result.Err != nil {
+				return result.Err
+			} else {
+				reminder := result.Data.(model.Reminder)
+
+				switch selectedOption {
+				case "20min":
+
+					if *cfg.DisplaySettings.ExperimentalTimezone {
+						occurrence.Snoozed = time.Now().In(location).Round(time.Second).Add(time.Minute * time.Duration(20)).Format(time.RFC3339)
+					} else {
+						occurrence.Snoozed = time.Now().Round(time.Second).Add(time.Minute * time.Duration(20)).Format(time.RFC3339)
+					}
+
+					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" in 20 minutes"
+
+				case "1hr":
+
+					if *cfg.DisplaySettings.ExperimentalTimezone {
+						occurrence.Snoozed = time.Now().In(location).Round(time.Second).Add(time.Hour * time.Duration(1)).Format(time.RFC3339)
+					} else {
+						occurrence.Snoozed = time.Now().Round(time.Second).Add(time.Hour * time.Duration(1)).Format(time.RFC3339)
+					}
+
+					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" in 1 hour"
+
+				case "3hrs":
+
+					if *cfg.DisplaySettings.ExperimentalTimezone {
+						occurrence.Snoozed = time.Now().In(location).Round(time.Second).Add(time.Hour * time.Duration(3)).Format(time.RFC3339)
+					} else {
+						occurrence.Snoozed = time.Now().Round(time.Second).Add(time.Hour * time.Duration(3)).Format(time.RFC3339)
+					}
+
+					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" in 3 hours"
+
+				case "tomorrow":
+
+					if *cfg.DisplaySettings.ExperimentalTimezone {
+						tt := time.Now().In(location).Add(time.Hour * time.Duration(24))
+						occurrence.Snoozed = time.Date(tt.Year(), tt.Month(), tt.Day(), 9, 0, 0, 0, location).Format(time.RFC3339)
+					} else {
+						tt := time.Now().Add(time.Hour * time.Duration(24))
+						occurrence.Snoozed = time.Date(tt.Year(), tt.Month(), tt.Day(), 9, 0, 0, 0, time.Local).Format(time.RFC3339)
+					}
+
+					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" at 9am tomorrow"
+
+				case "nextweek":
+					todayWeekDayNum := int(time.Now().Weekday())
+					weekDayNum := 1
+					day := 0
+
+					if weekDayNum < todayWeekDayNum {
+						day = 7 - (todayWeekDayNum - weekDayNum)
+					} else if weekDayNum >= todayWeekDayNum {
+						day = 7 + (weekDayNum - todayWeekDayNum)
+					}
+
+					tt := time.Now()
+					if *cfg.DisplaySettings.ExperimentalTimezone {
+						occurrence.Snoozed = time.Date(tt.Year(), tt.Month(), tt.Day(), 9, 0, 0, 0, location).AddDate(0, 0, day).Format(time.RFC3339)
+					} else {
+						occurrence.Snoozed = time.Date(tt.Year(), tt.Month(), tt.Day(), 9, 0, 0, 0, time.Local).AddDate(0, 0, day).Format(time.RFC3339)
+					}
+
+					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" at 9am Monday"
+
+				}
+
+				schan := a.Srv.Store.Remind().SaveOccurrence(&occurrence)
+				if result := <-schan; result.Err != nil {
+					return result.Err
+				}
+			}
+		}
 	}
 
 	if _, err := a.UpdatePost(update, false); err != nil {
@@ -712,7 +794,7 @@ func (a *App) isRepeating(request *model.ReminderRequest) bool {
 
 func (a *App) findWhen(request *model.ReminderRequest) error {
 
-	user, _, _, T:= a.shared(request.UserId)
+	user, _, _, T := a.shared(request.UserId)
 
 	inIndex := strings.Index(request.Payload, " "+T("app.reminder.chrono.in")+" ")
 	if inIndex > -1 {
@@ -1327,9 +1409,9 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		T("app.reminder.chrono.sundays"):
 
 		return a.every(
-			T("app.reminder.chrono.every")+" "+
-				dateUnit[:len(dateUnit)-1]+" "+
-				T("app.reminder.chrono.at")+" "+
+			T("app.reminder.chrono.every") + " "+
+				dateUnit[:len(dateUnit)-1]+ " "+
+				T("app.reminder.chrono.at")+ " "+
 				timeUnit[:len(timeUnit)-3],
 			user)
 
@@ -1518,16 +1600,16 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 		return a.at(T("app.reminder.chrono.at")+" "+timeUnit, user)
 	case T("app.reminder.chrono.tomorrow"):
 		return a.on(
-			T("app.reminder.chrono.on")+" "+
-				time.Now().Add(time.Hour*24).Weekday().String()+" "+
-				T("app.reminder.chrono.at")+" "+
+			T("app.reminder.chrono.on") + " "+
+				time.Now().Add(time.Hour * 24).Weekday().String()+ " "+
+				T("app.reminder.chrono.at")+ " "+
 				timeUnit,
 			user)
 	case T("app.reminder.chrono.everyday"):
 		return a.every(
-			T("app.reminder.chrono.every")+" "+
-				T("app.reminder.chrono.day")+" "+
-				T("app.reminder.chrono.at")+" "+
+			T("app.reminder.chrono.every") + " "+
+				T("app.reminder.chrono.day")+ " "+
+				T("app.reminder.chrono.at")+ " "+
 				timeUnit,
 			user)
 	case T("app.reminder.chrono.mondays"),
@@ -1538,9 +1620,9 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 		T("app.reminder.chrono.saturdays"),
 		T("app.reminder.chrono.sundays"):
 		return a.every(
-			T("app.reminder.chrono.every")+" "+
-				dateUnit[:len(dateUnit)-1]+" "+
-				T("app.reminder.chrono.at")+" "+
+			T("app.reminder.chrono.every") + " "+
+				dateUnit[:len(dateUnit)-1]+ " "+
+				T("app.reminder.chrono.at")+ " "+
 				timeUnit,
 			user)
 	case T("app.reminder.chrono.monday"),
@@ -1551,16 +1633,16 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 		T("app.reminder.chrono.saturday"),
 		T("app.reminder.chrono.sunday"):
 		return a.on(
-			T("app.reminder.chrono.on")+" "+
-				dateUnit+" "+
-				T("app.reminder.chrono.at")+" "+
+			T("app.reminder.chrono.on") + " "+
+				dateUnit+ " "+
+				T("app.reminder.chrono.at")+ " "+
 				timeUnit,
 			user)
 	default:
 		return a.on(
-			T("app.reminder.chrono.on")+" "+
-				dateUnit[:len(dateUnit)-1]+" "+
-				T("app.reminder.chrono.at")+" "+
+			T("app.reminder.chrono.on") + " "+
+				dateUnit[:len(dateUnit)-1]+ " "+
+				T("app.reminder.chrono.at")+ " "+
 				timeUnit,
 			user)
 	}

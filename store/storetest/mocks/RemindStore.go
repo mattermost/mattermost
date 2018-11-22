@@ -109,6 +109,22 @@ func (_m *RemindStore) GetByUser(userId string) store.StoreChannel {
 	return r0
 }
 
+// GetOccurrence provides a mock function with given fields: occurrenceId
+func (_m *RemindStore) GetOccurrence(occurrenceId string) store.StoreChannel {
+	ret := _m.Called(occurrenceId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(occurrenceId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetReminder provides a mock function with given fields: reminderId
 func (_m *RemindStore) GetReminder(reminderId string) store.StoreChannel {
 	ret := _m.Called(reminderId)

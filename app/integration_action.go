@@ -70,7 +70,7 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 	if u.Scheme == "mattermost" {
 		switch u.Host {
 		case "remind":
-			a.UpdateReminder(post, action, userId)
+			a.UpdateReminder(post, action, userId, selectedOption)
 		}
 		return clientTriggerId, nil
 	}

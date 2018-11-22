@@ -107,6 +107,8 @@ type Routes struct {
 	ReactionByNameForPostForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}/reactions/{emoji_name:[A-Za-z0-9_-+]+}'
 
 	TermsOfService *mux.Router // 'api/v4/terms_of_service
+
+	Remind *mux.Router // 'api/v4/remind'
 }
 
 type API struct {
@@ -203,6 +205,8 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	api.BaseRoutes.TermsOfService = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
 
+	api.BaseRoutes.Remind = api.BaseRoutes.ApiRoot.PathPrefix("/remind").Subrouter()
+
 	api.InitUser()
 	api.InitTeam()
 	api.InitChannel()
@@ -232,6 +236,7 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.InitImage()
 	api.InitTermsOfService()
 	api.InitAction()
+	api.InitRemind()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

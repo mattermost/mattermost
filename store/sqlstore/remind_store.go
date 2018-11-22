@@ -52,11 +52,11 @@ func (s SqlRemindStore) SaveReminder(reminder *model.Reminder) store.StoreChanne
 	return store.Do(func(result *store.StoreResult) {
 		if err := s.GetReplica().SelectOne(&model.Reminder{},"SELECT * FROM Reminders WHERE Id = :Id",map[string]interface{}{"Id": reminder.Id}); err == nil {
 			if _, err := s.GetMaster().Update(reminder); err != nil {
-				result.Err = model.NewAppError("SqlRemindStore.Save", "store.sql_remind.save_reminder.saving.app_error", nil, "user_id="+reminder.UserId, http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlRemindStore.SaveReminder", "store.sql_remind.save_reminder.saving.app_error", nil, "reminderId="+reminder.Id, http.StatusInternalServerError)
 			}
 		} else {
 			if err := s.GetMaster().Insert(reminder); err != nil {
-				result.Err = model.NewAppError("SqlRemindStore.Save", "store.sql_remind.save_reminder.saving.app_error", nil, "user_id="+reminder.UserId, http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlRemindStore.SaveReminder", "store.sql_remind.save_reminder.saving.app_error", nil, "reminderId="+reminder.Id, http.StatusInternalServerError)
 			}
 		}
 
@@ -65,11 +65,15 @@ func (s SqlRemindStore) SaveReminder(reminder *model.Reminder) store.StoreChanne
 
 func (s SqlRemindStore) SaveOccurrence(occurrence *model.Occurrence) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if err := s.GetMaster().Insert(occurrence); err != nil {
-			mlog.Error(err.Error())
-			result.Err = model.NewAppError("SqlRemindStore.Save", "store.sql_remind.save_occurrence.saving.app_error", nil, "user_id="+occurrence.UserId, http.StatusInternalServerError)
+		if err := s.GetReplica().SelectOne(&model.Occurrence{},"SELECT * FROM Occurrences WHERE Id = :Id",map[string]interface{}{"Id": occurrence.Id}); err == nil {
+			if _, err := s.GetMaster().Update(occurrence); err != nil {
+				result.Err = model.NewAppError("SqlRemindStore.SaveOccurrence", "store.sql_remind.save_occurrence.saving.app_error", nil, "occurrenceId="+occurrence.Id, http.StatusInternalServerError)
+			}
+		} else {
+			if err := s.GetMaster().Insert(occurrence); err != nil {
+				result.Err = model.NewAppError("SqlRemindStore.SaveOccurrence", "store.sql_remind.save_occurrence.saving.app_error", nil, "occurrenceId="+occurrence.Id, http.StatusInternalServerError)
+			}
 		}
-
 	})
 }
 
@@ -143,6 +147,24 @@ func (s SqlRemindStore) GetByReminder(reminderId string) store.StoreChannel {
 			}
 		}
 		result.Data = occurrences
+	})
+}
+
+func (s SqlRemindStore) GetOccurrence(occurrenceId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+
+		query := "SELECT * FROM Occurrences WHERE Id = :Id"
+		var occurrence model.Occurrence
+		if err := s.GetReplica().SelectOne(
+			&occurrence,
+			query,
+			map[string]interface{}{"Id": occurrenceId}); err != nil {
+			result.Err = model.NewAppError("SqlRemindStore.GetOccurrence", "store.sql_remind.get_by_reminder.app_error", nil, "Id="+occurrenceId+", "+err.Error(), http.StatusInternalServerError)
+			if err == sql.ErrNoRows {
+				result.Err.StatusCode = http.StatusNotFound
+			}
+		}
+		result.Data = occurrence
 	})
 }
 

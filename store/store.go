@@ -432,6 +432,7 @@ type RemindStore interface {
 	GetByTime(time string) StoreChannel
 	GetReminder(reminderId string) StoreChannel
 	GetByReminder(reminderId string) StoreChannel
+	GetOccurrence(occurrenceId string) StoreChannel
 	DeleteForUser(userId string) StoreChannel
 	DeleteByReminder(reminderId string) StoreChannel
 	DeleteForReminder(reminderId string) StoreChannel
