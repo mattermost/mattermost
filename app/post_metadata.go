@@ -131,27 +131,29 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string) (*model.PostEm
 		}, nil
 	}
 
-	if firstLink != "" {
-		og, image, err := a.getLinkMetadata(firstLink, true)
-		if err != nil {
-			return nil, err
-		}
+	if firstLink == "" {
+		return nil, nil
+	}
 
-		if og != nil {
-			return &model.PostEmbed{
-				Type: model.POST_EMBED_OPENGRAPH,
-				URL:  firstLink,
-				Data: og,
-			}, nil
-		}
+	og, image, err := a.getLinkMetadata(firstLink, true)
+	if err != nil {
+		return nil, err
+	}
 
-		if image != nil {
-			// Note that we're not passing the image info here since they'll be part of the PostMetadata.Images field
-			return &model.PostEmbed{
-				Type: model.POST_EMBED_IMAGE,
-				URL:  firstLink,
-			}, nil
-		}
+	if og != nil {
+		return &model.PostEmbed{
+			Type: model.POST_EMBED_OPENGRAPH,
+			URL:  firstLink,
+			Data: og,
+		}, nil
+	}
+
+	if image != nil {
+		// Note that we're not passing the image info here since they'll be part of the PostMetadata.Images field
+		return &model.PostEmbed{
+			Type: model.POST_EMBED_IMAGE,
+			URL:  firstLink,
+		}, nil
 	}
 
 	return nil, nil

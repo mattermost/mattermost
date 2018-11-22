@@ -13,7 +13,7 @@ import (
 // be used as part of a SQL query.
 func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[string]interface{}) {
 	keys := bytes.Buffer{}
-	params := make(map[string]interface{})
+	params := make(map[string]interface{}, len(list))
 	for i, entry := range list {
 		if keys.Len() > 0 {
 			keys.WriteString(",")

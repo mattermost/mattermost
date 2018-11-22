@@ -133,7 +133,7 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
-// Shallowly clone the a post
+// Clone shallowly copies the post.
 func (o *Post) Clone() *Post {
 	copy := *o
 	return &copy
