@@ -67,6 +67,10 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
+	if testStore != nil {
+		testStore.DropAllTables()
+	}
+
 	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
@@ -148,21 +152,18 @@ func Setup() *TestHelper {
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
+	me.SystemAdminUser = me.CreateUser()
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+
 	me.BasicTeam = me.CreateTeam()
 	me.BasicUser = me.CreateUser()
+
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser()
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicChannel = me.CreateChannel(me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicChannel)
-
-	return me
-}
-
-func (me *TestHelper) InitSystemAdmin() *TestHelper {
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
 
 	return me
 }
@@ -423,8 +424,25 @@ func (me *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emoj
 	return reaction
 }
 
+func (me *TestHelper) ShutdownApp() {
+	done := make(chan bool)
+	go func() {
+		me.App.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		// panic instead of t.Fatal to terminate all tests in this package, otherwise the
+		// still running App could spuriously fail subsequent tests.
+		panic("failed to shutdown App within 30 seconds")
+	}
+}
+
 func (me *TestHelper) TearDown() {
-	me.App.Shutdown()
+	me.ShutdownApp()
+
 	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
 		StopTestStore()

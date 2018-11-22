@@ -22,7 +22,8 @@ func (a *App) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 }
 
 func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
-	if a.Srv.Plugins == nil || !*a.Config().PluginSettings.Enable {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -55,7 +56,7 @@ func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 		return nil, model.NewAppError("installPlugin", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": plugin.MinIdLength, "Max": plugin.MaxIdLength, "Regex": plugin.ValidIdRegex}, "", http.StatusBadRequest)
 	}
 
-	bundles, err := a.Srv.Plugins.Available()
+	bundles, err := pluginsEnvironment.Available()
 	if err != nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.install.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -91,11 +92,12 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 }
 
 func (a *App) removePlugin(id string) *model.AppError {
-	if a.Srv.Plugins == nil || !*a.Config().PluginSettings.Enable {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
 		return model.NewAppError("removePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := a.Srv.Plugins.Available()
+	plugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -114,13 +116,13 @@ func (a *App) removePlugin(id string) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if a.Srv.Plugins.IsActive(id) && manifest.HasClient() {
+	if pluginsEnvironment.IsActive(id) && manifest.HasClient() {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
 		message.Add("manifest", manifest.ClientManifest())
 		a.Publish(message)
 	}
 
-	a.Srv.Plugins.Deactivate(id)
+	pluginsEnvironment.Deactivate(id)
 	a.UnregisterPluginCommands(id)
 
 	err = os.RemoveAll(pluginPath)

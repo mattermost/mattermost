@@ -15,22 +15,49 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+// GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
+// initialized.
+//
+// To get the plugins environment when the plugins are disabled, manually acquire the plugins
+// lock instead.
+func (a *App) GetPluginsEnvironment() *plugin.Environment {
+	if !*a.Config().PluginSettings.Enable {
+		return nil
+	}
+
+	a.Srv.PluginsLock.RLock()
+	defer a.Srv.PluginsLock.RUnlock()
+
+	return a.Srv.PluginsEnvironment
+}
+
+func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
+	a.Srv.PluginsLock.Lock()
+	defer a.Srv.PluginsLock.Unlock()
+
+	a.Srv.PluginsEnvironment = pluginsEnvironment
+}
+
 func (a *App) SyncPluginsActiveState() {
-	if a.Srv.Plugins == nil {
+	a.Srv.PluginsLock.RLock()
+	pluginsEnvironment := a.Srv.PluginsEnvironment
+	a.Srv.PluginsLock.RUnlock()
+
+	if pluginsEnvironment == nil {
 		return
 	}
 
 	config := a.Config().PluginSettings
 
 	if *config.Enable {
-		availablePlugins, err := a.Srv.Plugins.Available()
+		availablePlugins, err := pluginsEnvironment.Available()
 		if err != nil {
 			a.Log.Error("Unable to get available plugins", mlog.Err(err))
 			return
 		}
 
 		// Deactivate any plugins that have been disabled.
-		for _, plugin := range a.Srv.Plugins.Active() {
+		for _, plugin := range pluginsEnvironment.Active() {
 			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
@@ -40,7 +67,7 @@ func (a *App) SyncPluginsActiveState() {
 
 			// If it's not enabled we need to deactivate it
 			if !pluginEnabled {
-				deactivated := a.Srv.Plugins.Deactivate(pluginId)
+				deactivated := pluginsEnvironment.Deactivate(pluginId)
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
@@ -65,7 +92,7 @@ func (a *App) SyncPluginsActiveState() {
 
 			// Activate plugin if enabled
 			if pluginEnabled {
-				updatedManifest, activated, err := a.Srv.Plugins.Activate(pluginId)
+				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
 				if err != nil {
 					plugin.WrapLogger(a.Log).Error("Unable to activate plugin", mlog.Err(err))
 					continue
@@ -79,7 +106,7 @@ func (a *App) SyncPluginsActiveState() {
 			}
 		}
 	} else { // If plugins are disabled, shutdown plugins.
-		a.Srv.Plugins.Shutdown()
+		pluginsEnvironment.Shutdown()
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
@@ -92,7 +119,10 @@ func (a *App) NewPluginAPI(manifest *model.Manifest) plugin.API {
 }
 
 func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
-	if a.Srv.Plugins != nil || !*a.Config().PluginSettings.Enable {
+	a.Srv.PluginsLock.RLock()
+	pluginsEnvironment := a.Srv.PluginsEnvironment
+	a.Srv.PluginsLock.RUnlock()
+	if pluginsEnvironment != nil || !*a.Config().PluginSettings.Enable {
 		a.SyncPluginsActiveState()
 		return
 	}
@@ -109,12 +139,12 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		return
 	}
 
-	if env, err := plugin.NewEnvironment(a.NewPluginAPI, pluginDir, webappPluginDir, a.Log); err != nil {
+	env, err := plugin.NewEnvironment(a.NewPluginAPI, pluginDir, webappPluginDir, a.Log)
+	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
-	} else {
-		a.Srv.Plugins = env
 	}
+	a.SetPluginsEnvironment(env)
 
 	prepackagedPluginsDir, found := utils.FindDir("prepackaged_plugins")
 	if found {
@@ -136,39 +166,46 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	}
 
 	// Sync plugin active state when config changes. Also notify plugins.
+	a.Srv.PluginsLock.Lock()
 	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
 	a.Srv.PluginConfigListenerId = a.AddConfigListener(func(*model.Config, *model.Config) {
 		a.SyncPluginsActiveState()
-		a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			hooks.OnConfigurationChange()
-			return true
-		}, plugin.OnConfigurationChangeId)
+		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.OnConfigurationChange()
+				return true
+			}, plugin.OnConfigurationChangeId)
+		}
 	})
+	a.Srv.PluginsLock.Unlock()
 
 	a.SyncPluginsActiveState()
-
 }
 
 func (a *App) ShutDownPlugins() {
-	if a.Srv.Plugins == nil {
+	a.Srv.PluginsLock.Lock()
+	pluginsEnvironment := a.Srv.PluginsEnvironment
+	defer a.Srv.PluginsLock.Unlock()
+	if pluginsEnvironment == nil {
 		return
 	}
 
 	mlog.Info("Shutting down plugins")
 
-	a.Srv.Plugins.Shutdown()
+	pluginsEnvironment.Shutdown()
 
 	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
 	a.Srv.PluginConfigListenerId = ""
-	a.Srv.Plugins = nil
+	a.Srv.PluginsEnvironment = nil
 }
 
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
-	if a.Srv.Plugins == nil || !*a.Config().PluginSettings.Enable {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins := a.Srv.Plugins.Active()
+	plugins := pluginsEnvironment.Active()
 
 	manifests := make([]*model.Manifest, len(plugins))
 	for i, plugin := range plugins {
@@ -181,11 +218,12 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 // activation if inactive anywhere in the cluster.
 func (a *App) EnablePlugin(id string) *model.AppError {
-	if a.Srv.Plugins == nil || !*a.Config().PluginSettings.Enable {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := a.Srv.Plugins.Available()
+	plugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -221,11 +259,12 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 func (a *App) DisablePlugin(id string) *model.AppError {
-	if a.Srv.Plugins == nil || !*a.Config().PluginSettings.Enable {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := a.Srv.Plugins.Available()
+	plugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -255,16 +294,13 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) PluginsReady() bool {
-	return a.Srv.Plugins != nil && *a.Config().PluginSettings.Enable
-}
-
 func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
-	if !a.PluginsReady() {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	availablePlugins, err := a.Srv.Plugins.Available()
+	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return nil, model.NewAppError("GetPlugins", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -278,7 +314,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 			Manifest: *plugin.Manifest,
 		}
 
-		if a.Srv.Plugins.IsActive(plugin.Manifest.Id) {
+		if pluginsEnvironment.IsActive(plugin.Manifest.Id) {
 			resp.Active = append(resp.Active, info)
 		} else {
 			resp.Inactive = append(resp.Inactive, info)

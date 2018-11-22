@@ -36,7 +36,7 @@ func TestCreateTermsOfService(t *testing.T) {
 }
 
 func TestCreateTermsOfServiceAdminUser(t *testing.T) {
-	th := Setup().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 

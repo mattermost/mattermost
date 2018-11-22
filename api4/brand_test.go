@@ -11,7 +11,7 @@ import (
 )
 
 func TestGetBrandImage(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -27,7 +27,7 @@ func TestGetBrandImage(t *testing.T) {
 }
 
 func TestUploadBrandImage(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -56,7 +56,7 @@ func TestUploadBrandImage(t *testing.T) {
 }
 
 func TestDeleteBrandImage(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	data, err := testutils.ReadTestFile("test.png")

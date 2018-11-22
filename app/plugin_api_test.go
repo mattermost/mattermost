@@ -41,7 +41,7 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 
-	app.Srv.Plugins = env
+	app.SetPluginsEnvironment(env)
 }
 
 func TestPluginAPIUpdateUserStatus(t *testing.T) {
@@ -87,18 +87,18 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := api.SavePluginConfig(pluginConfig); err != nil{
+	if err := api.SavePluginConfig(pluginConfig); err != nil {
 		t.Fatal(err)
 	}
 
 	type Configuration struct {
 		MyStringSetting string
-		MyIntSetting int
-		MyBoolSetting bool
+		MyIntSetting    int
+		MyBoolSetting   bool
 	}
 
 	savedConfiguration := new(Configuration)
-	if err := api.LoadPluginConfiguration(savedConfiguration); err != nil{
+	if err := api.LoadPluginConfiguration(savedConfiguration); err != nil {
 		t.Fatal(err)
 	}
 
@@ -206,7 +206,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.Srv.Plugins.HooksForPlugin("testloadpluginconfig")
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "str32true", ret)
@@ -280,7 +280,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 			}
 		]
 	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.Srv.Plugins.HooksForPlugin("testloadpluginconfig")
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
 	assert.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "override35true", ret)
@@ -377,9 +377,9 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		require.True(t, activated)
 		pluginManifests = append(pluginManifests, manifest)
 	}
-	th.App.Srv.Plugins = env
+	th.App.SetPluginsEnvironment(env)
 
-	// Decative the last one for testing
+	// Decativate the last one for testing
 	sucess := env.Deactivate(pluginIDs[len(pluginIDs)-1])
 	require.True(t, sucess)
 
@@ -449,4 +449,81 @@ func TestPluginAPISetTeamIcon(t *testing.T) {
 	img2, _, err2 := image.Decode(byteReader)
 	require.Nil(t, err2)
 	require.Equal(t, img2.At(2, 3), colorful)
+}
+
+func TestPluginAPISearchChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		channels, err := api.SearchChannels(th.BasicTeam.Id, th.BasicChannel.Name)
+		assert.Nil(t, err)
+		assert.Len(t, channels, 1)
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		channels, err := api.SearchChannels("invalidid", th.BasicChannel.Name)
+		assert.Nil(t, err)
+		assert.Empty(t, channels)
+	})
+}
+
+func TestPluginAPIGetChannelsForTeamForUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		channels, err := api.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+		assert.Nil(t, err)
+		assert.Len(t, channels, 3)
+	})
+
+	t.Run("invalid team id", func(t *testing.T) {
+		channels, err := api.GetChannelsForTeamForUser("invalidid", th.BasicUser.Id, false)
+		assert.NotNil(t, err)
+		assert.Empty(t, channels)
+	})
+}
+
+func TestPluginAPIRemoveTeamIcon(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// Create an 128 x 128 image
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+
+	// Draw a red dot at (2, 3)
+	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
+	buf := new(bytes.Buffer)
+	err1 := png.Encode(buf, img)
+	require.Nil(t, err1)
+	dataBytes := buf.Bytes()
+	fileReader := bytes.NewReader(dataBytes)
+
+	// Set the Team Icon
+	err := th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
+	require.Nil(t, err)
+	err = api.RemoveTeamIcon(th.BasicTeam.Id)
+	require.Nil(t, err)
+}
+
+func TestPluginAPICreateDirectChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	dm1, err := api.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, dm1)
+
+	dm2, err := api.CreateDirectChannel(th.BasicUser.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, dm2)
+
+	dm3, err := api.CreateDirectChannel(th.BasicUser.Id, model.NewId())
+	require.NotNil(t, err)
+	require.Empty(t, dm3)
 }

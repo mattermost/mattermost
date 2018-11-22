@@ -64,7 +64,9 @@ func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
 // This method only parses and processes the attachments,
 // all else should be set in the post which is passed
 func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
-	post.Type = POST_SLACK_ATTACHMENT
+	if post.Type == "" {
+		post.Type = POST_SLACK_ATTACHMENT
+	}
 
 	for _, attachment := range attachments {
 		attachment.Text = ParseSlackLinksToMarkdown(attachment.Text)

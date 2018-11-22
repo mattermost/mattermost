@@ -52,6 +52,11 @@ type API interface {
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 
+	// CreateDirectChannel creates a Direct channel.
+	//
+	// Minimum server version: 5.6
+	CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError)
+
 	// DeleteUser deletes a user.
 	DeleteUser(userId string) *model.AppError
 
@@ -74,15 +79,20 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
 
-	// GetTeamIcon gets the Team Icon.
+	// GetTeamIcon gets the team icon.
 	//
 	// Minimum server version: 5.6
 	GetTeamIcon(teamId string) ([]byte, *model.AppError)
 
-	// SetTeamIcon sets the Team Icon.
+	// SetTeamIcon sets the team icon.
 	//
 	// Minimum server version: 5.6
 	SetTeamIcon(teamId string, data []byte) *model.AppError
+
+	// RemoveTeamIcon removes the team icon.
+	//
+	// Minimum server version: 5.6
+	RemoveTeamIcon(teamId string) *model.AppError
 
 	// UpdateUser updates a user.
 	UpdateUser(user *model.User) (*model.User, *model.AppError)
@@ -178,7 +188,7 @@ type API interface {
 	// GetChannelsForTeamForUser gets a list of channels for given user ID in given team ID.
 	//
 	// Minimum server version: 5.6
-	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError)
 
 	// GetChannelStats gets statistics for a channel.
 	//
@@ -197,7 +207,7 @@ type API interface {
 	// SearchChannels returns the channels on a team matching the provided search term.
 	//
 	// Minimum server version: 5.6
-	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
+	SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)

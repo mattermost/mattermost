@@ -13,7 +13,7 @@
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generatedd trigger ID for interactive dialog."
+    "translation": "Failed to sign generated trigger ID for interactive dialog."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",

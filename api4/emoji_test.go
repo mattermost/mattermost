@@ -17,7 +17,7 @@ import (
 )
 
 func TestCreateEmoji(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -259,7 +259,7 @@ func TestGetEmojiList(t *testing.T) {
 }
 
 func TestDeleteEmoji(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
