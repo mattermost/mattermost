@@ -1709,13 +1709,15 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		channelMemberIds = append(channelMemberIds, channelMember.UserId)
 	}
 
-	teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds)
-	if err2 != nil {
-		return err2
-	}
+	if len(channelMemberIds) > 0 {
+		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds)
+		if err2 != nil {
+			return err2
+		}
 
-	if len(teamMembers) != len(*channelMembers) {
-		return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
+		if len(teamMembers) != len(*channelMembers) {
+			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
+		}
 	}
 
 	// keep instance of the previous team
