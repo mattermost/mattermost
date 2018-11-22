@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetPing(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -39,7 +39,7 @@ func TestGetPing(t *testing.T) {
 }
 
 func TestGetConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -84,7 +84,7 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestReloadConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -105,7 +105,7 @@ func TestReloadConfig(t *testing.T) {
 }
 
 func TestUpdateConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -152,7 +152,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
 	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	t.Run("as system admin", func(t *testing.T) {
@@ -212,7 +212,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 }
 
 func TestGetOldClientConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	testKey := "supersecretkey"
@@ -274,7 +274,7 @@ func TestGetOldClientConfig(t *testing.T) {
 }
 
 func TestGetOldClientLicense(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -307,7 +307,7 @@ func TestGetOldClientLicense(t *testing.T) {
 }
 
 func TestGetAudits(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -344,7 +344,7 @@ func TestGetAudits(t *testing.T) {
 }
 
 func TestEmailTest(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -379,7 +379,7 @@ func TestEmailTest(t *testing.T) {
 }
 
 func TestDatabaseRecycle(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -391,7 +391,7 @@ func TestDatabaseRecycle(t *testing.T) {
 }
 
 func TestInvalidateCaches(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -409,7 +409,7 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -449,7 +449,7 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestPostLog(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -484,7 +484,7 @@ func TestPostLog(t *testing.T) {
 }
 
 func TestUploadLicenseFile(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -502,7 +502,7 @@ func TestUploadLicenseFile(t *testing.T) {
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -520,7 +520,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -593,7 +593,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 }
 
 func TestS3TestConnection(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -672,7 +672,7 @@ func TestRedirectLocation(t *testing.T) {
 
 	mockBitlyLink := testServer.URL
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews

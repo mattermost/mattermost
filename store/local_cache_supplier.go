@@ -111,3 +111,9 @@ func (s *LocalCacheSupplier) doClearCacheCluster(cache utils.ObjectCache) {
 		s.cluster.SendClusterMessage(msg)
 	}
 }
+
+func (s *LocalCacheSupplier) Invalidate() {
+	s.doClearCacheCluster(s.reactionCache)
+	s.doClearCacheCluster(s.roleCache)
+	s.doClearCacheCluster(s.schemeCache)
+}
