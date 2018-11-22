@@ -221,6 +221,34 @@ func PostActionIntegrationResponseFromJson(data io.Reader) *PostActionIntegratio
 	return o
 }
 
+func SubmitDialogRequestFromJson(data io.Reader) *SubmitDialogRequest {
+	var o *SubmitDialogRequest
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
+func (r *SubmitDialogRequest) ToJson() []byte {
+	b, _ := json.Marshal(r)
+	return b
+}
+
+func SubmitDialogResponseFromJson(data io.Reader) *SubmitDialogResponse {
+	var o *SubmitDialogResponse
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
+func (r *SubmitDialogResponse) ToJson() []byte {
+	b, _ := json.Marshal(r)
+	return b
+}
+
 func (o *Post) StripActionIntegrations() {
 	attachments := o.Attachments()
 	if o.Props["attachments"] != nil {
