@@ -1915,7 +1915,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Get the channel to check that the header was updated.
-	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.CreateOrGetDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		if channel.Header != *data.Header {
@@ -1999,7 +1999,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.CreateOrGetDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
@@ -2024,7 +2024,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Get the channel.
 	var directChannel *model.Channel
-	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.CreateOrGetDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		directChannel = channel
