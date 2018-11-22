@@ -146,7 +146,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableID := c.Params.SyncableId
 
-	c.RequireSyncableId()
+	c.RequireSyncableType()
 	if c.Err != nil {
 		return
 	}
@@ -231,7 +231,7 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableID := c.Params.SyncableId
 
-	c.RequireSyncableId()
+	c.RequireSyncableType()
 	if c.Err != nil {
 		return
 	}
@@ -269,7 +269,7 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.RequireSyncableId()
+	c.RequireSyncableType()
 	if c.Err != nil {
 		return
 	}
@@ -318,7 +318,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableID := c.Params.SyncableId
 
-	c.RequireSyncableId()
+	c.RequireSyncableType()
 	if c.Err != nil {
 		return
 	}
@@ -385,7 +385,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableID := c.Params.SyncableId
 
-	c.RequireSyncableId()
+	c.RequireSyncableType()
 	if c.Err != nil {
 		return
 	}
