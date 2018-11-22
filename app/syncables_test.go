@@ -7,7 +7,7 @@ import (
 )
 
 func TestPopulateSyncablesSince(t *testing.T) {
-	th := Setup().InitSystemAdmin().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	singersTeam, err := th.App.CreateTeam(&model.Team{

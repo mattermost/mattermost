@@ -8,7 +8,7 @@ import (
 )
 
 func TestTestLdap(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.TestLdap()
@@ -19,7 +19,7 @@ func TestTestLdap(t *testing.T) {
 }
 
 func TestSyncLdap(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.SystemAdminClient.SyncLdap()
@@ -30,7 +30,7 @@ func TestSyncLdap(t *testing.T) {
 }
 
 func TestGetLdapGroups(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.GetLdapGroups()
@@ -43,7 +43,7 @@ func TestGetLdapGroups(t *testing.T) {
 func TestLinkLdapGroup(t *testing.T) {
 	const testDN string = "cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com"
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.LinkLdapGroup(testDN)
@@ -56,7 +56,7 @@ func TestLinkLdapGroup(t *testing.T) {
 func TestUnlinkLdapGroup(t *testing.T) {
 	const testDN string = "cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com"
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.UnlinkLdapGroup(testDN)

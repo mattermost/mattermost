@@ -773,7 +773,7 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 }
 
 func TestGetAllChannels(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -858,7 +858,7 @@ func TestSearchChannels(t *testing.T) {
 }
 
 func TestSearchAllChannels(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
