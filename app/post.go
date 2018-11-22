@@ -201,6 +201,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
+	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
+	// to be done when we send the post over the websocket in handlePostEvents
+	rpost = a.PreparePostForClient(rpost)
+
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		return nil, err
 	}
