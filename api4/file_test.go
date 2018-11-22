@@ -15,7 +15,7 @@ import (
 )
 
 func TestUploadFileAsMultipart(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -128,7 +128,7 @@ func TestUploadFileAsMultipart(t *testing.T) {
 }
 
 func TestUploadFileAsRequestBody(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -251,7 +251,7 @@ func TestUploadFileAsRequestBody(t *testing.T) {
 }
 
 func TestGetFile(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -366,7 +366,7 @@ func TestGetFileHeaders(t *testing.T) {
 }
 
 func TestGetFileThumbnail(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -418,7 +418,7 @@ func TestGetFileThumbnail(t *testing.T) {
 }
 
 func TestGetFileLink(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -494,7 +494,7 @@ func TestGetFileLink(t *testing.T) {
 }
 
 func TestGetFilePreview(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -546,7 +546,7 @@ func TestGetFilePreview(t *testing.T) {
 }
 
 func TestGetFileInfo(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -613,7 +613,7 @@ func TestGetFileInfo(t *testing.T) {
 }
 
 func TestGetPublicFile(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel

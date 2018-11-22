@@ -52,6 +52,11 @@ type API interface {
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 
+	// CreateDirectChannel creates a Direct channel.
+	//
+	// Minimum server version: 5.6
+	CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError)
+
 	// DeleteUser deletes a user.
 	DeleteUser(userId string) *model.AppError
 

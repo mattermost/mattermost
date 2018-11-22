@@ -12,7 +12,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := api4.Setup().InitSystemAdmin()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -29,7 +29,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestJoinTeam(t *testing.T) {
-	th := api4.Setup().InitSystemAdmin().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	CheckCommand(t, "team", "add", th.BasicTeam.Name, th.BasicUser.Email)
