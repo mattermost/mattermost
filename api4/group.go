@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -27,34 +26,30 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/patch",
 		api.ApiSessionRequired(patchGroup)).Methods("PUT")
 
-	for _, syncableType := range model.GroupSyncableTypes {
-		name := strings.ToLower(syncableType.String())
+	// POST /api/v4/teams/:team_id/link
+	// POST /api/v4/channels/:channel_id/link
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
+		api.ApiSessionRequired(linkGroupSyncable)).Methods("POST")
 
-		// POST /api/v4/teams/:team_id/link
-		// POST /api/v4/channels/:channel_id/link
-		api.BaseRoutes.Groups.Handle(fmt.Sprintf("/{group_id:[A-Za-z0-9]+}/%[1]ss/{%[1]s_id:[A-Za-z0-9]+}/link",
-			name), api.ApiSessionRequired(linkGroupSyncable(syncableType))).Methods("POST")
+	// DELETE /api/v4/teams/:team_id/link
+	// DELETE /api/v4/channels/:channel_id/link
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
+		api.ApiSessionRequired(unlinkGroupSyncable)).Methods("DELETE")
 
-		// DELETE /api/v4/teams/:team_id/link
-		// DELETE /api/v4/channels/:channel_id/link
-		api.BaseRoutes.Groups.Handle(fmt.Sprintf("/{group_id:[A-Za-z0-9]+}/%[1]ss/{%[1]s_id:[A-Za-z0-9]+}/link",
-			name), api.ApiSessionRequired(unlinkGroupSyncable(syncableType))).Methods("DELETE")
+	// GET /api/v4/teams/:team_id
+	// GET /api/v4/channels/:channel_id
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}",
+		api.ApiSessionRequired(getGroupSyncable)).Methods("GET")
 
-		// GET /api/v4/teams/:team_id
-		// GET /api/v4/channels/:channel_id
-		api.BaseRoutes.Groups.Handle(fmt.Sprintf("/{group_id:[A-Za-z0-9]+}/%[1]ss/{%[1]s_id:[A-Za-z0-9]+}",
-			name), api.ApiSessionRequired(getGroupSyncable(syncableType))).Methods("GET")
+	// GET /api/v4/teams
+	// GET /api/v4/channels
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}",
+		api.ApiSessionRequired(getGroupSyncables)).Methods("GET")
 
-		// GET /api/v4/teams
-		// GET /api/v4/channels
-		api.BaseRoutes.Groups.Handle(fmt.Sprintf("/{group_id:[A-Za-z0-9]+}/%[1]ss", name),
-			api.ApiSessionRequired(getGroupSyncables(syncableType))).Methods("GET")
-
-		// PUT /api/v4/teams/:team_id/patch
-		// PUT /api/v4/channels/:channel_id/patch
-		api.BaseRoutes.Groups.Handle(fmt.Sprintf("/{group_id:[A-Za-z0-9]+}/%[1]ss/{%[1]s_id:[A-Za-z0-9]+}/patch",
-			name), api.ApiSessionRequired(patchGroupSyncable(syncableType))).Methods("PUT")
-	}
+	// PUT /api/v4/teams/:team_id/patch
+	// PUT /api/v4/channels/:channel_id/patch
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/patch",
+		api.ApiSessionRequired(patchGroupSyncable)).Methods("PUT")
 
 	// GET /api/v4/groups/:group_id/members?page=0&per_page=100
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
@@ -139,310 +134,282 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func linkGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
-	return func(c *Context, w http.ResponseWriter, r *http.Request) {
-		c.RequireGroupId()
-		if c.Err != nil {
-			return
-		}
-
-		var syncableID string
-		switch syncableType {
-		case model.GroupSyncableTypeTeam:
-			c.RequireTeamId()
-			if c.Err != nil {
-				return
-			}
-			syncableID = c.Params.TeamId
-		case model.GroupSyncableTypeChannel:
-			c.RequireChannelId()
-			if c.Err != nil {
-				return
-			}
-			syncableID = c.Params.ChannelId
-		default:
-			c.SetInvalidParam(fmt.Sprintf("%s_id", strings.ToLower(syncableType.String())))
-		}
-
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.io_error", nil, err.Error(),
-				http.StatusNotImplemented)
-		}
-
-		var patch *model.GroupSyncablePatch
-		err = json.Unmarshal(body, &patch)
-		if err != nil || patch == nil {
-			c.SetInvalidParam(fmt.Sprintf("Group%s", syncableType.String()))
-			return
-		}
-
-		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.license.error", nil, "",
-				http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-			return
-		}
-
-		groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
-		if appErr != nil {
-			if appErr.Id != "store.sql_group.no_rows" {
-				c.Err = appErr
-				return
-			}
-		}
-
-		if groupSyncable == nil || groupSyncable.DeleteAt == 0 {
-			groupSyncable = &model.GroupSyncable{
-				GroupId:    c.Params.GroupId,
-				SyncableId: syncableID,
-				Type:       syncableType,
-			}
-			groupSyncable.Patch(patch)
-			groupSyncable, appErr = c.App.CreateGroupSyncable(groupSyncable)
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-		} else {
-			groupSyncable.DeleteAt = 0
-			groupSyncable.Patch(patch)
-			groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-		}
-
-		w.WriteHeader(http.StatusCreated)
-
-		var marshalErr error
-		b, marshalErr := json.Marshal(groupSyncable)
-		if marshalErr != nil {
-			c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.marshal_error", nil,
-				marshalErr.Error(), http.StatusNotImplemented)
-			return
-		}
-
-		w.Write(b)
+func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
 	}
-}
 
-func getGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
-	return func(c *Context, w http.ResponseWriter, r *http.Request) {
-		c.RequireGroupId()
-		if c.Err != nil {
-			return
-		}
-
-		var syncableID string
-		switch syncableType {
-		case model.GroupSyncableTypeTeam:
-			c.RequireTeamId()
-			if c.Err != nil {
-				return
-			}
-			syncableID = c.Params.TeamId
-		case model.GroupSyncableTypeChannel:
-			c.RequireChannelId()
-			if c.Err != nil {
-				return
-			}
-			syncableID = c.Params.ChannelId
-		default:
-			c.SetInvalidParam(fmt.Sprintf("%s_id", strings.ToLower(syncableType.String())))
-		}
-
-		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.getGroupSyncable", "api.groups.license.error", nil, "", http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-			return
-		}
-
-		groupSyncable, err := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		b, marshalErr := json.Marshal(groupSyncable)
-		if marshalErr != nil {
-			c.Err = model.NewAppError("Api4.getGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(),
-				http.StatusNotImplemented)
-			return
-		}
-
-		w.Write(b)
+	c.RequireSyncableId()
+	if c.Err != nil {
+		return
 	}
-}
+	syncableID := c.Params.SyncableId
 
-func getGroupSyncables(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
-	return func(c *Context, w http.ResponseWriter, r *http.Request) {
-		c.RequireGroupId()
-		if c.Err != nil {
-			return
-		}
-
-		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.getGroupSyncables", "api.group.license.error", nil, "", http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-			return
-		}
-
-		groupSyncables, err := c.App.GetGroupSyncables(c.Params.GroupId, syncableType)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		if len(groupSyncables) == 0 {
-			w.Write([]byte("[]"))
-			return
-		}
-
-		b, marshalErr := json.Marshal(groupSyncables)
-		if marshalErr != nil {
-			c.Err = model.NewAppError("Api4.getGroupSyncables", "api.group.marshal_error", nil, marshalErr.Error(),
-				http.StatusNotImplemented)
-			return
-		}
-
-		w.Write(b)
+	c.RequireSyncableType()
+	if c.Err != nil {
+		return
 	}
-}
+	syncableType := c.Params.SyncableType
 
-func patchGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
-	return func(c *Context, w http.ResponseWriter, r *http.Request) {
-		c.RequireGroupId()
-		if c.Err != nil {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.io_error", nil, err.Error(),
+			http.StatusNotImplemented)
+	}
+
+	var patch *model.GroupSyncablePatch
+	err = json.Unmarshal(body, &patch)
+	if err != nil || patch == nil {
+		c.SetInvalidParam(fmt.Sprintf("Group%s", syncableType.String()))
+		return
+	}
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.license.error", nil, "",
+			http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+	if appErr != nil {
+		if appErr.Id != "store.sql_group.no_rows" {
+			c.Err = appErr
 			return
 		}
+	}
 
-		var syncableID string
-		switch syncableType {
-		case model.GroupSyncableTypeTeam:
-			c.RequireTeamId()
-			if c.Err != nil {
-				return
-			}
-			syncableID = c.Params.TeamId
-		case model.GroupSyncableTypeChannel:
-			c.RequireChannelId()
-			if c.Err != nil {
-				return
-			}
-			syncableID = c.Params.ChannelId
-		default:
-			c.SetInvalidParam(fmt.Sprintf("%s_id", strings.ToLower(syncableType.String())))
+	if groupSyncable == nil || groupSyncable.DeleteAt == 0 {
+		groupSyncable = &model.GroupSyncable{
+			GroupId:    c.Params.GroupId,
+			SyncableId: syncableID,
+			Type:       syncableType,
 		}
-
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.io_error", nil, err.Error(),
-				http.StatusNotImplemented)
-		}
-
-		var patch *model.GroupSyncablePatch
-		err = json.Unmarshal(body, &patch)
-		if err != nil || patch == nil {
-			c.SetInvalidParam(fmt.Sprintf("Group[%s]Patch", syncableType.String()))
-			return
-		}
-
-		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.license.error", nil, "",
-				http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-			return
-		}
-
-		var appErr *model.AppError
-		groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+		groupSyncable.Patch(patch)
+		groupSyncable, appErr = c.App.CreateGroupSyncable(groupSyncable)
 		if appErr != nil {
 			c.Err = appErr
 			return
 		}
-
+	} else {
+		groupSyncable.DeleteAt = 0
 		groupSyncable.Patch(patch)
-
 		groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
 		if appErr != nil {
 			c.Err = appErr
 			return
 		}
-
-		b, marshalErr := json.Marshal(groupSyncable)
-		if marshalErr != nil {
-			c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(),
-				http.StatusNotImplemented)
-			return
-		}
-
-		w.Write(b)
 	}
+
+	w.WriteHeader(http.StatusCreated)
+
+	var marshalErr error
+	b, marshalErr := json.Marshal(groupSyncable)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.marshal_error", nil,
+			marshalErr.Error(), http.StatusNotImplemented)
+		return
+	}
+
+	w.Write(b)
 }
 
-func unlinkGroupSyncable(syncableType model.GroupSyncableType) func(*Context, http.ResponseWriter, *http.Request) {
-	return func(c *Context, w http.ResponseWriter, r *http.Request) {
-		c.RequireGroupId()
-		if c.Err != nil {
-			return
-		}
-
-		var syncableID string
-		switch syncableType {
-		case model.GroupSyncableTypeTeam:
-			c.RequireTeamId()
-			if c.Err != nil {
-				return
-			}
-			syncableID = c.Params.TeamId
-		case model.GroupSyncableTypeChannel:
-			c.RequireChannelId()
-			if c.Err != nil {
-				return
-			}
-			syncableID = c.Params.ChannelId
-		default:
-			c.SetInvalidParam(fmt.Sprintf("%s_id", strings.ToLower(syncableType.String())))
-		}
-
-		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
-			c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.group.license.error", nil, "",
-				http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-			return
-		}
-
-		_, err := c.App.DeleteGroupSyncable(c.Params.GroupId, syncableID, syncableType)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-		w.Write(nil)
+func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
 	}
+
+	c.RequireSyncableId()
+	if c.Err != nil {
+		return
+	}
+	syncableID := c.Params.SyncableId
+
+	c.RequireSyncableType()
+	if c.Err != nil {
+		return
+	}
+	syncableType := c.Params.SyncableType
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupSyncable", "api.groups.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	groupSyncable, err := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(groupSyncable)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(),
+			http.StatusNotImplemented)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireSyncableType()
+	if c.Err != nil {
+		return
+	}
+	syncableType := c.Params.SyncableType
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupSyncables", "api.group.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	groupSyncables, err := c.App.GetGroupSyncables(c.Params.GroupId, syncableType)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if len(groupSyncables) == 0 {
+		w.Write([]byte("[]"))
+		return
+	}
+
+	b, marshalErr := json.Marshal(groupSyncables)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupSyncables", "api.group.marshal_error", nil, marshalErr.Error(),
+			http.StatusNotImplemented)
+		return
+	}
+
+	w.Write(b)
+}
+
+func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireSyncableId()
+	if c.Err != nil {
+		return
+	}
+	syncableID := c.Params.SyncableId
+
+	c.RequireSyncableType()
+	if c.Err != nil {
+		return
+	}
+	syncableType := c.Params.SyncableType
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.io_error", nil, err.Error(),
+			http.StatusNotImplemented)
+	}
+
+	var patch *model.GroupSyncablePatch
+	err = json.Unmarshal(body, &patch)
+	if err != nil || patch == nil {
+		c.SetInvalidParam(fmt.Sprintf("Group[%s]Patch", syncableType.String()))
+		return
+	}
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.license.error", nil, "",
+			http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	var appErr *model.AppError
+	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	groupSyncable.Patch(patch)
+
+	groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	b, marshalErr := json.Marshal(groupSyncable)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(),
+			http.StatusNotImplemented)
+		return
+	}
+
+	w.Write(b)
+}
+
+func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireSyncableId()
+	if c.Err != nil {
+		return
+	}
+	syncableID := c.Params.SyncableId
+
+	c.RequireSyncableType()
+	if c.Err != nil {
+		return
+	}
+	syncableType := c.Params.SyncableType
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.group.license.error", nil, "",
+			http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	_, err := c.App.DeleteGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	w.Write(nil)
 }
 
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
