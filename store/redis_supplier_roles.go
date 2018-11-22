@@ -13,7 +13,6 @@ import (
 
 func (s *RedisSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	key := buildRedisKeyForRoleName(role.Name)
-	result := s.Next().RoleSave(ctx, role, hints...)
 
 	defer func() {
 		if err := s.client.Del(key).Err(); err != nil {
@@ -21,7 +20,7 @@ func (s *RedisSupplier) RoleSave(ctx context.Context, role *model.Role, hints ..
 		}
 	}()
 
-	return result
+	return s.Next().RoleSave(ctx, role, hints...)
 }
 
 func (s *RedisSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
@@ -87,7 +86,6 @@ func (s *RedisSupplier) RoleGetByNames(ctx context.Context, roleNames []string, 
 }
 
 func (s *RedisSupplier) RoleDelete(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// XXXXXX Shouldn't this call Role
 	result := s.Next().RoleGet(ctx, roleId, hints...)
 
 	if result.Err == nil {
@@ -105,17 +103,17 @@ func (s *RedisSupplier) RoleDelete(ctx context.Context, roleId string, hints ...
 }
 
 func (s *RedisSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	result := s.Next().RolePermanentDeleteAll(ctx, hints...)
-
-	if keys, err := s.client.Keys("roles:*").Result(); err != nil {
-		mlog.Error("Redis encountered an error on read: " + err.Error())
-	} else {
-		if err := s.client.Del(keys...).Err(); err != nil {
-			mlog.Error("Redis encountered an error on delete: " + err.Error())
+	defer func() {
+		if keys, err := s.client.Keys("roles:*").Result(); err != nil {
+			mlog.Error("Redis encountered an error on read: " + err.Error())
+		} else {
+			if err := s.client.Del(keys...).Err(); err != nil {
+				mlog.Error("Redis encountered an error on delete: " + err.Error())
+			}
 		}
-	}
+	}()
 
-	return result
+	return s.Next().RolePermanentDeleteAll(ctx, hints...)
 }
 
 func buildRedisKeyForRoleName(roleName string) string {
