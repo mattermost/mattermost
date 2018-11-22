@@ -52,37 +52,35 @@ func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	if post.Metadata == nil {
-		post.Metadata = &model.PostMetadata{}
+	post.Metadata = &model.PostMetadata{}
 
-		// Emojis and reaction counts
-		if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
-			mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
-		} else {
-			post.Metadata.Emojis = emojis
-			post.Metadata.Reactions = reactions
-		}
-
-		// Files
-		if fileInfos, err := a.getFileMetadataForPost(post); err != nil {
-			mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
-		} else {
-			post.Metadata.Files = fileInfos
-		}
-
-		// Embeds and image dimensions
-		firstLink, images := getFirstLinkAndImages(post.Message)
-
-		if embed, err := a.getEmbedForPost(post, firstLink); err != nil {
-			mlog.Warn("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
-		} else if embed == nil {
-			post.Metadata.Embeds = []*model.PostEmbed{}
-		} else {
-			post.Metadata.Embeds = []*model.PostEmbed{embed}
-		}
-
-		post.Metadata.Images = a.getImagesForPost(post, images)
+	// Emojis and reaction counts
+	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
+		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+	} else {
+		post.Metadata.Emojis = emojis
+		post.Metadata.Reactions = reactions
 	}
+
+	// Files
+	if fileInfos, err := a.getFileMetadataForPost(post); err != nil {
+		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+	} else {
+		post.Metadata.Files = fileInfos
+	}
+
+	// Embeds and image dimensions
+	firstLink, images := getFirstLinkAndImages(post.Message)
+
+	if embed, err := a.getEmbedForPost(post, firstLink); err != nil {
+		mlog.Warn("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+	} else if embed == nil {
+		post.Metadata.Embeds = []*model.PostEmbed{}
+	} else {
+		post.Metadata.Embeds = []*model.PostEmbed{embed}
+	}
+
+	post.Metadata.Images = a.getImagesForPost(post, images)
 
 	return post
 }

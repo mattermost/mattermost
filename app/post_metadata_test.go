@@ -26,7 +26,7 @@ func TestPreparePostListForClient(t *testing.T) {
 
 	postList := model.NewPostList()
 	for i := 0; i < 5; i++ {
-		postList.AddPost(th.CreatePost(th.BasicChannel))
+		postList.AddPost(&model.Post{})
 	}
 
 	clientPostList := th.App.PreparePostListForClient(postList)
@@ -66,8 +66,10 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
-		post := th.CreatePost(th.BasicChannel)
-		message := post.Message
+		message := model.NewId()
+		post := &model.Post{
+			Message: message,
+		}
 
 		clientPost := th.App.PreparePostForClient(post)
 
@@ -93,7 +95,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
-		post := th.App.PreparePostForClient(th.CreatePost(th.BasicChannel))
+		post := th.CreatePost(th.BasicChannel)
 
 		clientPost := th.App.PreparePostForClient(post)
 
@@ -423,10 +425,6 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		ChannelId: th.BasicChannel.Id,
 		Message:   fmt.Sprintf(postTemplate, imageURL),
 	}
-
-	var err *model.AppError
-	post, err = th.App.CreatePost(post, th.BasicChannel, false)
-	require.Nil(t, err)
 
 	clientPost := th.App.PreparePostForClient(post)
 
