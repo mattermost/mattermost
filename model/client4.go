@@ -1685,12 +1685,12 @@ func (c *Client4) RemoveTeamIcon(teamId string) (bool, *Response) {
 // GetAllChannels get all the channels. Must be a system administrator.
 func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	if r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag); err != nil {
+	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if err != nil {
 		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 	}
+	defer closeBody(r)
+	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
 // CreateChannel creates a channel based on the provided channel struct.
@@ -1859,12 +1859,12 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(search *ChannelSearch) ([]*ChannelWithTeamData, *Response) {
-	if r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson()); err != nil {
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if err != nil {
 		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return ChannelWithTeamDataSliceFromJson(r.Body), BuildResponse(r)
 	}
+	defer closeBody(r)
+	return ChannelWithTeamDataSliceFromJson(r.Body), BuildResponse(r)
 }
 
 // DeleteChannel deletes channel based on the provided channel id string.
@@ -3061,60 +3061,60 @@ func (c *Client4) TestLdap() (bool, *Response) {
 func (c *Client4) GetLdapGroups() ([]*Group, *Response) {
 	path := fmt.Sprintf("%s/groups", c.GetLdapRoute())
 
-	if r, err := c.DoApiGet(path, ""); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-
-		response := BuildResponse(r)
-
-		var groups []*Group
-		if err := json.NewDecoder(r.Body).Decode(&groups); err != nil {
-			return nil, response
-		}
-
-		return groups, BuildResponse(r)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
+	defer closeBody(r)
+
+	response := BuildResponse(r)
+
+	var groups []*Group
+	if err := json.NewDecoder(r.Body).Decode(&groups); err != nil {
+		return nil, response
+	}
+
+	return groups, BuildResponse(r)
 }
 
 // LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
 func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response) {
 	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
 
-	if r, err := c.DoApiPost(path, ""); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-
-		response := BuildResponse(r)
-
-		var group *Group
-		if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
-			return nil, response
-		}
-
-		return group, BuildResponse(r)
+	r, appErr := c.DoApiPost(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
+	defer closeBody(r)
+
+	response := BuildResponse(r)
+
+	var group *Group
+	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
+		return nil, response
+	}
+
+	return group, BuildResponse(r)
 }
 
 // UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
 func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
 
-	if r, err := c.DoApiDelete(path); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-
-		response := BuildResponse(r)
-
-		var group *Group
-		if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
-			return nil, response
-		}
-
-		return group, BuildResponse(r)
+	r, appErr := c.DoApiDelete(path)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
+	defer closeBody(r)
+
+	response := BuildResponse(r)
+
+	var group *Group
+	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
+		return nil, response
+	}
+
+	return group, BuildResponse(r)
 }
 
 // Audits Section
