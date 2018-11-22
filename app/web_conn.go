@@ -109,10 +109,10 @@ func (c *WebConn) SetSession(v *model.Session) {
 }
 
 func (c *WebConn) Pump() {
-	ch := make(chan struct{}, 1)
+	ch := make(chan struct{})
 	go func() {
 		c.writePump()
-		ch <- struct{}{}
+		close(ch)
 	}()
 	c.readPump()
 	c.closeOnce.Do(func() {
