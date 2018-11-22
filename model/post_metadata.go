@@ -4,21 +4,23 @@
 package model
 
 type PostMetadata struct {
-	// An array of the information required to render additional details about the contents of this post.
+	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
+	// for links in the post.
 	Embeds []*PostEmbed `json:"embeds,omitempty"`
 
-	// An arrayof the  custom emojis used in the post or in reactions to the post.
+	// Emojis holds all custom emojis used in the post or used in reaction to the post.
 	Emojis []*Emoji `json:"emojis,omitempty"`
 
-	// An array of information about the file attachments on the post.
+	// Files holds information about the file attachments on the post.
 	Files []*FileInfo `json:"files,omitempty"`
 
-	// A map of image URL to information about  all external images in the post. This includes image embeds,
-	// inline Markdown images, OpenGraph images, and message attachment images, but it does not contain the dimensions
-	// of file attachments which are contained in PostMetadata.FileInfos.
+	// Images holds the dimensions of all external images in the post as a map of the image URL to its diemsnions.
+	// This includes image embeds (when the message contains a plaintext link to an image), Markdown images, images
+	// contained in the OpenGraph metadata, and images contained in message attachments. It does not contain
+	// the dimensions of any file attachments as those are stored in FileInfos.
 	Images map[string]*PostImage `json:"images,omitempty"`
 
-	// A list of reactions made to the post
+	// Reactions holds reactions made to the post.
 	Reactions []*Reaction `json:"reactions,omitempty"`
 }
 
