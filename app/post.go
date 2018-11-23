@@ -752,14 +752,13 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 	return model.MakePostSearchResults(posts, nil), nil
 }
 
-func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
 	pchan := a.Srv.Store.Post().GetSingle(postId)
 
-	result := <-a.Srv.Store.FileInfo().GetForPost(postId, readFromMaster, true)
-	if result.Err != nil {
-		return nil, result.Err
+	infos, err := a.GetFileInfosForPost(postId)
+	if err != nil {
+		return nil, err
 	}
-	infos := result.Data.([]*model.FileInfo)
 
 	if len(infos) == 0 {
 		// No FileInfos were returned so check if they need to be created for this post
@@ -777,6 +776,15 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 	}
 
 	return infos, nil
+}
+
+func (a *App) GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
+	result := <-a.Srv.Store.FileInfo().GetForPost(postId, false, true)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	return result.Data.([]*model.FileInfo), nil
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
