@@ -80,8 +80,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getGroup", "api.group.marshal_error", nil, marshalErr.Error(),
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.getGroup", "api.group.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
