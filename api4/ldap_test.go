@@ -5,6 +5,8 @@ package api4
 
 import (
 	"testing"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestTestLdap(t *testing.T) {
@@ -38,6 +40,11 @@ func TestGetLdapGroups(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetLdapGroups()
 	CheckNotImplementedStatus(t, resp)
+
+	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
+
+	_, resp = th.SystemAdminClient.GetLdapGroups()
+	CheckOKStatus(t, resp)
 }
 
 func TestLinkLdapGroup(t *testing.T) {
