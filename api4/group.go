@@ -42,7 +42,7 @@ func (api *API) InitGroup() {
 		api.ApiSessionRequired(getGroupSyncable)).Methods("GET")
 
 	// GET /api/v4/groups/:group_id/teams
-	// GET /api/v4/channels
+	// GET /api/v4/groups/:group_id/channels
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}",
 		api.ApiSessionRequired(getGroupSyncables)).Methods("GET")
 
