@@ -32,7 +32,7 @@ func (api *API) InitGroup() {
 		api.ApiSessionRequired(linkGroupSyncable)).Methods("POST")
 
 	// DELETE /api/v4/groups/:group_id/teams/:team_id/link
-	// DELETE /api/v4/channels/:channel_id/link
+	// DELETE /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
 		api.ApiSessionRequired(unlinkGroupSyncable)).Methods("DELETE")
 
