@@ -125,8 +125,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.patchGroup", "api.group.marshal_error", nil, marshalErr.Error(),
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.patchGroup", "api.group.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -153,7 +152,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.io_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.io_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -209,8 +208,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	var marshalErr error
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.marshal_error", nil,
-			marshalErr.Error(), http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -253,8 +251,7 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(),
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.getGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -296,8 +293,7 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, marshalErr := json.Marshal(groupSyncables)
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getGroupSyncables", "api.group.marshal_error", nil, marshalErr.Error(),
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.getGroupSyncables", "api.group.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -324,8 +320,8 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.io_error", nil, err.Error(),
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.error", nil, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	var patch *model.GroupSyncablePatch
@@ -363,8 +359,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(),
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.group.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -390,8 +385,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	syncableType := c.Params.SyncableType
 
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.group.license.error", nil, "",
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.group.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
