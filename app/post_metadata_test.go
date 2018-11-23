@@ -24,6 +24,10 @@ func TestPreparePostListForClient(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.DisablePostMetadata = false
+	})
+
 	postList := model.NewPostList()
 	for i := 0; i < 5; i++ {
 		postList.AddPost(&model.Post{})
@@ -57,6 +61,7 @@ func TestPreparePostForClient(t *testing.T) {
 			*cfg.ServiceSettings.ImageProxyType = ""
 			*cfg.ServiceSettings.ImageProxyURL = ""
 			*cfg.ServiceSettings.ImageProxyOptions = ""
+			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
 
 		return th
@@ -384,6 +389,20 @@ func TestPreparePostForClient(t *testing.T) {
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
 		})
 	})
+
+	t.Run("when disabled", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
+		})
+
+		post := th.CreatePost(th.BasicChannel)
+		post = th.App.PreparePostForClient(post)
+
+		assert.Nil(t, post.Metadata)
+	})
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
@@ -395,6 +414,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
 			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
 			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
 
 		return th
