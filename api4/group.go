@@ -46,7 +46,7 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}",
 		api.ApiSessionRequired(getGroupSyncables)).Methods("GET")
 
-	// PUT /api/v4/teams/:team_id/patch
+	// PUT /api/v4/groups/:group_id/teams/:team_id/patch
 	// PUT /api/v4/channels/:channel_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/patch",
 		api.ApiSessionRequired(patchGroupSyncable)).Methods("PUT")
