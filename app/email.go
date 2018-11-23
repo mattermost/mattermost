@@ -319,7 +319,6 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
 				map[string]interface{}{"SenderStatus": senderRole, "SenderName": senderName, "TeamDisplayName": team.DisplayName})
-			bodyPage.Props["Info"] = map[string]interface{}{}
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
 			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
