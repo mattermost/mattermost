@@ -384,6 +384,10 @@
     "translation": "No command trigger found"
   },
   {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Specified user is not a member of specified channel."
+  },
+  {
     "id": "api.command.invite_people.desc",
     "translation": "Send an email invite to your Mattermost team"
   },
