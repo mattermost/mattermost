@@ -109,3 +109,52 @@ func TestPostActionIntegrationResponseFromJsonError(t *testing.T) {
 	ro := PostActionIntegrationResponseFromJson(strings.NewReader(""))
 	assert.Nil(t, ro)
 }
+
+func TestSubmitDialogRequestToJson(t *testing.T) {
+	t.Run("all fine", func(t *testing.T) {
+		request := SubmitDialogRequest{
+			URL:        "http://example.org",
+			CallbackId: NewId(),
+			State:      "some state",
+			UserId:     NewId(),
+			ChannelId:  NewId(),
+			TeamId:     NewId(),
+			Submission: map[string]interface{}{
+				"text":  "some text",
+				"float": 1.2,
+				"bool":  true,
+			},
+			Cancelled: true,
+		}
+		jsonRequest := request.ToJson()
+		r := SubmitDialogRequestFromJson(bytes.NewReader(jsonRequest))
+
+		require.NotNil(t, r)
+		assert.Equal(t, request, *r)
+	})
+	t.Run("error", func(t *testing.T) {
+		r := SubmitDialogRequestFromJson(strings.NewReader(""))
+		assert.Nil(t, r)
+	})
+}
+
+func TestSubmitDialogResponseToJson(t *testing.T) {
+	t.Run("all fine", func(t *testing.T) {
+		request := SubmitDialogResponse{
+			Errors: map[string]string{
+				"text":  "some text",
+				"float": "1.2",
+				"bool":  "true",
+			},
+		}
+		jsonRequest := request.ToJson()
+		r := SubmitDialogResponseFromJson(bytes.NewReader(jsonRequest))
+
+		require.NotNil(t, r)
+		assert.Equal(t, request, *r)
+	})
+	t.Run("error", func(t *testing.T) {
+		r := SubmitDialogResponseFromJson(strings.NewReader(""))
+		assert.Nil(t, r)
+	})
+}
