@@ -67,7 +67,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.UpdateLastActivityAtIfNeeded(c.Session)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+	w.Write([]byte(c.App.PreparePostForClient(rp).ToJson()))
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -95,7 +95,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+	w.Write([]byte(c.App.PreparePostForClient(rp).ToJson()))
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -164,7 +164,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
+
+	w.Write([]byte(c.App.PreparePostListForClient(list).ToJson()))
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -197,7 +198,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(posts).ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -231,12 +232,14 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	post = c.App.PreparePostForClient(post)
+
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
 	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(post).ToJson()))
+	w.Write([]byte(post.ToJson()))
 }
 
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -314,8 +317,11 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
+	clientPostList := c.App.PreparePostListForClient(list)
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
+
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -378,7 +384,9 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results = model.MakePostSearchResults(c.App.PostListWithProxyAddedToImageURLs(results.PostList), results.Matches)
+	clientPostList := c.App.PreparePostListForClient(results.PostList)
+
+	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(results.ToJson()))
@@ -429,7 +437,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rpost).ToJson()))
+	rpost = c.App.PreparePostForClient(rpost)
+
+	w.Write([]byte(rpost.ToJson()))
 }
 
 func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -469,7 +479,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(patchedPost).ToJson()))
+	patchedPost = c.App.PreparePostForClient(patchedPost)
+
+	w.Write([]byte(patchedPost.ToJson()))
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {

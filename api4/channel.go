@@ -490,8 +490,10 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, posts.Etag())
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	clientPostList := c.App.PreparePostListForClient(posts)
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {

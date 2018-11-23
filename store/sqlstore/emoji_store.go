@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -128,6 +129,27 @@ func (es SqlEmojiStore) GetByName(name string) store.StoreChannel {
 	})
 }
 
+func (es SqlEmojiStore) GetMultipleByName(names []string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		keys, params := MapStringsToQueryParams(names, "Emoji")
+
+		var emojis []*model.Emoji
+
+		if _, err := es.GetReplica().Select(&emojis,
+			`SELECT
+				*
+			FROM
+				Emoji
+			WHERE
+				Name IN `+keys+`
+				AND DeleteAt = 0`, params); err != nil {
+			result.Err = model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
+		} else {
+			result.Data = emojis
+		}
+	})
+}
+
 func (es SqlEmojiStore) GetList(offset, limit int, sort string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var emoji []*model.Emoji
@@ -151,7 +173,7 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) store.StoreChann
 func (es SqlEmojiStore) Delete(id string, time int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if sqlResult, err := es.GetMaster().Exec(
-			`Update
+			`UPDATE
 				Emoji
 			SET
 				DeleteAt = :DeleteAt,
