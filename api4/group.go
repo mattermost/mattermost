@@ -37,7 +37,7 @@ func (api *API) InitGroup() {
 		api.ApiSessionRequired(unlinkGroupSyncable)).Methods("DELETE")
 
 	// GET /api/v4/teams/:team_id
-	// GET /api/v4/channels/:channel_id
+	// GET /api/v4/groups/:group_id/channels/:channel_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}",
 		api.ApiSessionRequired(getGroupSyncable)).Methods("GET")
 
