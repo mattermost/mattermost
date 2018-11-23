@@ -43,6 +43,7 @@ type Store interface {
 	Channel() ChannelStore
 	Post() PostStore
 	User() UserStore
+	Bot() BotStore
 	Audit() AuditStore
 	ClusterDiscovery() ClusterDiscoveryStore
 	Compliance() ComplianceStore
@@ -281,6 +282,14 @@ type UserStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
 	GetAllAfter(limit int, afterId string) StoreChannel
+}
+
+type BotStore interface {
+	Get(userId string, includeDeleted bool) StoreChannel
+	GetAll(page, perPage int, includeDeleted bool) StoreChannel
+	Save(bot *model.Bot) StoreChannel
+	Update(bot *model.Bot) StoreChannel
+	PermanentDelete(userId string) StoreChannel
 }
 
 type SessionStore interface {
