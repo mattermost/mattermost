@@ -3069,7 +3069,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	success, resp := Client.RegisteTermsOfServiceAction(th.BasicUser.Id, "st_1", true)
+	success, resp := Client.RegisterTermsOfServiceAction(th.BasicUser.Id, "st_1", true)
 	CheckErrorMessage(t, resp, "store.sql_terms_of_service_store.get.no_rows.app_error")
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
@@ -3077,7 +3077,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	success, resp = Client.RegisteTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
+	success, resp = Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
 	CheckNoError(t, resp)
 
 	assert.True(t, *success)
@@ -3100,7 +3100,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	success, resp := Client.RegisteTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
+	success, resp := Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
 	CheckNoError(t, resp)
 	assert.True(t, *success)
 
