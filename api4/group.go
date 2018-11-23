@@ -27,7 +27,7 @@ func (api *API) InitGroup() {
 		api.ApiSessionRequired(patchGroup)).Methods("PUT")
 
 	// POST /api/v4/groups/:group_id/teams/:team_id/link
-	// POST /api/v4/channels/:channel_id/link
+	// POST /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
 		api.ApiSessionRequired(linkGroupSyncable)).Methods("POST")
 
