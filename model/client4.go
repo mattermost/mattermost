@@ -3919,7 +3919,7 @@ func (c *Client4) GetRedirectLocation(urlParam, etag string) (string, *Response)
 	return MapFromJson(r.Body)["location"], BuildResponse(r)
 }
 
-// Saves action performed by a user against a specific terms of service.
+// RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.
 func (c *Client4) RegisterTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) (*bool, *Response) {
 	url := c.GetUserTermsOfServiceRoute(userId)
 	data := map[string]interface{}{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
@@ -3931,7 +3931,7 @@ func (c *Client4) RegisterTermsOfServiceAction(userId, termsOfServiceId string, 
 	return NewBool(CheckStatusOK(r)), BuildResponse(r)
 }
 
-// Fetches the latest terms of service
+// GetTermsOfService fetches the latest terms of service
 func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response) {
 	url := c.GetTermsOfServiceRoute()
 	r, err := c.DoApiGet(url, etag)
@@ -3941,7 +3941,7 @@ func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response) {
 	defer closeBody(r)
 	return TermsOfServiceFromJson(r.Body), BuildResponse(r)
 }
-
+// GetUserTermsOfService fetches user's latest terms of service action if the latest action was for acceptance.
 func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfService, *Response) {
 	url := c.GetUserTermsOfServiceRoute(userId)
 	r, err := c.DoApiGet(url, etag)
@@ -3952,7 +3952,7 @@ func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfServic
 	return UserTermsOfServiceFromJson(r.Body), BuildResponse(r)
 }
 
-// Creates new terms of service.
+// CreateTermsOfService creates new terms of service.
 func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response) {
 	url := c.GetTermsOfServiceRoute()
 	data := map[string]interface{}{"text": text}
