@@ -153,8 +153,8 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.io_error", nil, err.Error(),
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.io_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	var patch *model.GroupSyncablePatch
@@ -165,8 +165,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.license.error", nil, "",
-			http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.group.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
