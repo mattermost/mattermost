@@ -20,7 +20,7 @@ const (
 func (api *API) InitGroup() {
 	// GET /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
-		api.ApiSessionRequiredTrustRequester(getGroup)).Methods("GET")
+		api.ApiSessionRequired(getGroup)).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/patch",
@@ -53,7 +53,7 @@ func (api *API) InitGroup() {
 
 	// GET /api/v4/groups/:group_id/members?page=0&per_page=100
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.ApiSessionRequiredTrustRequester(getGroupMembers)).Methods("GET")
+		api.ApiSessionRequired(getGroupMembers)).Methods("GET")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
