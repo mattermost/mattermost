@@ -212,7 +212,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestDeleteWebhooks(t *testing.T) {
-	th := api4.Setup().InitBasic().InitSystemAdmin()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
