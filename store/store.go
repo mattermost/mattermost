@@ -66,6 +66,7 @@ type Store interface {
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
 	TermsOfService() TermsOfServiceStore
+	UserTermsOfService() UserTermsOfServiceStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -427,6 +428,7 @@ type EmojiStore interface {
 	Save(emoji *model.Emoji) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 	GetByName(name string) StoreChannel
+	GetMultipleByName(names []string) StoreChannel
 	GetList(offset, limit int, sort string) StoreChannel
 	Delete(id string, time int64) StoreChannel
 	Search(name string, prefixOnly bool, limit int) StoreChannel
@@ -526,4 +528,10 @@ type TermsOfServiceStore interface {
 	Save(termsOfService *model.TermsOfService) StoreChannel
 	GetLatest(allowFromCache bool) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
+}
+
+type UserTermsOfServiceStore interface {
+	GetByUser(userId string) StoreChannel
+	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
+	Delete(userId, termsOfServiceId string) StoreChannel
 }

@@ -20,7 +20,9 @@ type SqlTermsOfServiceStore struct {
 
 var termsOfServiceCache = utils.NewLru(model.TERMS_OF_SERVICE_CACHE_SIZE)
 
-const termsOfServiceCacheName = "TermsOfServiceStore"
+const (
+	termsOfServiceCacheName = "TermsOfServiceStore"
+)
 
 func NewSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
 	s := SqlTermsOfServiceStore{sqlStore, metrics}

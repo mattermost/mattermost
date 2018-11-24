@@ -7,21 +7,13 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"net/url"
-	"path"
 	"strings"
-
-	"github.com/dyatlov/go-opengraph/opengraph"
-	"golang.org/x/net/html/charset"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -147,10 +139,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, err
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
 		pluginContext := &plugin.Context{}
-		a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
 				rejectionError = model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
@@ -173,10 +165,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 	rpost := result.Data.(*model.Post)
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rpost)
 				return true
 			}, plugin.MessageHasBeenPostedId)
@@ -208,6 +200,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			a.Metrics.IncrementPostFileAttachment(len(post.FileIds))
 		}
 	}
+
+	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
+	// to be done when we send the post over the websocket in handlePostEvents
+	rpost = a.PreparePostForClient(rpost)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		return nil, err
@@ -302,7 +298,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 
 	return post
@@ -359,10 +355,10 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, err
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := &plugin.Context{}
-		a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
 		}, plugin.MessageWillBeUpdatedId)
@@ -377,10 +373,10 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	}
 	rpost := result.Data.(*model.Post)
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := &plugin.Context{}
-			a.Srv.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true
 			}, plugin.MessageHasBeenUpdatedId)
@@ -424,7 +420,7 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 }
 
@@ -564,7 +560,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 
 	a.Srv.Go(func() {
@@ -594,7 +590,7 @@ func (a *App) DeleteFlaggedPosts(postId string) {
 }
 
 func (a *App) DeletePostFiles(post *model.Post) {
-	if len(post.FileIds) != 0 {
+	if len(post.FileIds) == 0 {
 		return
 	}
 
@@ -781,197 +777,6 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 	}
 
 	return infos, nil
-}
-
-func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
-	og := opengraph.NewOpenGraph()
-
-	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
-	if err != nil {
-		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error()))
-		return og
-	}
-	defer consumeAndClose(res)
-
-	contentType := res.Header.Get("Content-Type")
-	body := forceHTMLEncodingToUTF8(res.Body, contentType)
-
-	if err := og.ProcessHTML(body); err != nil {
-		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error()))
-	}
-
-	makeOpenGraphURLsAbsolute(og, requestURL)
-
-	// The URL should be the link the user provided in their message, not a redirected one.
-	if og.URL != "" {
-		og.URL = requestURL
-	}
-
-	return og
-}
-
-func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
-	r, err := charset.NewReader(body, contentType)
-	if err != nil {
-		mlog.Error(fmt.Sprintf("forceHTMLEncodingToUTF8 failed to convert for contentType=%v with err=%v", contentType, err.Error()))
-		return body
-	}
-	return r
-}
-
-func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
-	parsedRequestURL, err := url.Parse(requestURL)
-	if err != nil {
-		mlog.Warn(fmt.Sprintf("makeOpenGraphURLsAbsolute failed to parse url=%v", requestURL))
-		return
-	}
-
-	makeURLAbsolute := func(resultURL string) string {
-		if resultURL == "" {
-			return resultURL
-		}
-
-		parsedResultURL, err := url.Parse(resultURL)
-		if err != nil {
-			mlog.Warn(fmt.Sprintf("makeOpenGraphURLsAbsolute failed to parse result url=%v", resultURL))
-			return resultURL
-		}
-
-		if parsedResultURL.IsAbs() {
-			return resultURL
-		}
-
-		return parsedRequestURL.ResolveReference(parsedResultURL).String()
-	}
-
-	og.URL = makeURLAbsolute(og.URL)
-
-	for _, image := range og.Images {
-		image.URL = makeURLAbsolute(image.URL)
-		image.SecureURL = makeURLAbsolute(image.SecureURL)
-	}
-
-	for _, audio := range og.Audios {
-		audio.URL = makeURLAbsolute(audio.URL)
-		audio.SecureURL = makeURLAbsolute(audio.SecureURL)
-	}
-
-	for _, video := range og.Videos {
-		video.URL = makeURLAbsolute(video.URL)
-		video.SecureURL = makeURLAbsolute(video.SecureURL)
-	}
-}
-
-func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) *model.AppError {
-	pchan := a.Srv.Store.Post().GetSingle(postId)
-	cchan := a.Srv.Store.Channel().GetForPost(postId)
-
-	result := <-pchan
-	if result.Err != nil {
-		return result.Err
-	}
-	post := result.Data.(*model.Post)
-
-	result = <-cchan
-	if result.Err != nil {
-		return result.Err
-	}
-	channel := result.Data.(*model.Channel)
-
-	action := post.GetAction(actionId)
-	if action == nil || action.Integration == nil {
-		return model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
-	}
-
-	request := &model.PostActionIntegrationRequest{
-		UserId:    userId,
-		ChannelId: post.ChannelId,
-		TeamId:    channel.TeamId,
-		PostId:    postId,
-		Type:      action.Type,
-		Context:   action.Integration.Context,
-	}
-
-	if action.Type == model.POST_ACTION_TYPE_SELECT {
-		request.DataSource = action.DataSource
-		request.Context["selected_option"] = selectedOption
-	}
-
-	req, _ := http.NewRequest("POST", action.Integration.URL, strings.NewReader(request.ToJson()))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-
-	// Allow access to plugin routes for action buttons
-	var httpClient *httpservice.Client
-	url, _ := url.Parse(action.Integration.URL)
-	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
-	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
-		httpClient = a.HTTPService.MakeClient(true)
-	} else {
-		httpClient = a.HTTPService.MakeClient(false)
-	}
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
-	}
-	defer consumeAndClose(resp)
-
-	if resp.StatusCode != http.StatusOK {
-		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
-	}
-
-	var response model.PostActionIntegrationResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
-	}
-
-	retainedProps := []string{"override_username", "override_icon_url"}
-
-	if response.Update != nil {
-		response.Update.Id = postId
-		response.Update.AddProp("from_webhook", "true")
-		for _, prop := range retainedProps {
-			if value, ok := post.Props[prop]; ok {
-				response.Update.Props[prop] = value
-			} else {
-				delete(response.Update.Props, prop)
-			}
-		}
-		if _, err := a.UpdatePost(response.Update, false); err != nil {
-			return err
-		}
-	}
-
-	if response.EphemeralText != "" {
-		ephemeralPost := &model.Post{}
-		ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
-		ephemeralPost.ChannelId = post.ChannelId
-		ephemeralPost.RootId = post.RootId
-		if ephemeralPost.RootId == "" {
-			ephemeralPost.RootId = post.Id
-		}
-		ephemeralPost.UserId = post.UserId
-		ephemeralPost.AddProp("from_webhook", "true")
-		for _, prop := range retainedProps {
-			if value, ok := post.Props[prop]; ok {
-				ephemeralPost.Props[prop] = value
-			} else {
-				delete(ephemeralPost.Props, prop)
-			}
-		}
-		a.SendEphemeralPost(userId, ephemeralPost)
-	}
-
-	return nil
-}
-
-func (a *App) PostListWithProxyAddedToImageURLs(list *model.PostList) *model.PostList {
-	if f := a.ImageProxyAdder(); f != nil {
-		return list.WithRewrittenImageURLs(f)
-	}
-	return list
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

@@ -13,7 +13,7 @@ import (
 )
 
 func TestSaveReaction(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -225,7 +225,7 @@ func TestSaveReaction(t *testing.T) {
 }
 
 func TestGetReactions(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -306,7 +306,7 @@ func TestGetReactions(t *testing.T) {
 }
 
 func TestDeleteReaction(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id

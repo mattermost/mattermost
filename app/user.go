@@ -801,10 +801,10 @@ func (a *App) SetProfileImage(userId string, imageData *multipart.FileHeader) *m
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer file.Close()
-	return a.SetProfileImageFromFile(userId, file)
+	return a.SetProfileImageFromMultiPartFile(userId, file)
 }
 
-func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model.AppError {
+func (a *App) SetProfileImageFromMultiPartFile(userId string, file multipart.File) *model.AppError {
 	// Decode image config first to check dimensions before loading the whole thing into memory later on
 	config, _, err := image.DecodeConfig(file)
 	if err != nil {
@@ -816,13 +816,16 @@ func (a *App) SetProfileImageFromFile(userId string, file multipart.File) *model
 
 	file.Seek(0, 0)
 
+	return a.SetProfileImageFromFile(userId, file)
+}
+
+func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppError {
+
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-
-	file.Seek(0, 0)
 
 	orientation, _ := getImageOrientation(file)
 	img = makeImageUpright(img, orientation)
@@ -1618,25 +1621,6 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 		user = result.Data.([2]*model.User)[0]
 		a.InvalidateCacheForUser(user.Id)
-	}
-
-	return nil
-}
-
-func (a *App) RecordUserTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) *model.AppError {
-	user, err := a.GetUser(userId)
-	if err != nil {
-		return err
-	}
-
-	if accepted {
-		user.AcceptedTermsOfServiceId = termsOfServiceId
-	} else {
-		user.AcceptedTermsOfServiceId = ""
-	}
-	_, err = a.UpdateUser(user, false)
-	if err != nil {
-		return err
 	}
 
 	return nil

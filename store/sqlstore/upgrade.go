@@ -504,7 +504,6 @@ func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
 			time.Sleep(time.Second)
 			os.Exit(EXIT_GENERIC_FAILURE)
 		}
-		sqlStore.CreateColumnIfNotExists("Users", "AcceptedTermsOfServiceId", "varchar(64)", "varchar(64)", "")
 		saveSchemaVersion(sqlStore, VERSION_5_4_0)
 	}
 }
@@ -516,9 +515,20 @@ func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.5.0 is released
+	// TODO: Uncomment following condition when version 5.6.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_5_0, VERSION_5_6_0) {
 	sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
-	//	saveSchemaVersion(sqlStore, VERSION_5_5_0)
+
+	// migrating user's accepted terms of service data into the new table
+	sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
+		sqlStore.RemoveIndexIfExists("idx_users_username_lower", "lower(Username)")
+		sqlStore.RemoveIndexIfExists("idx_users_nickname_lower", "lower(Nickname)")
+		sqlStore.RemoveIndexIfExists("idx_users_firstname_lower", "lower(FirstName)")
+		sqlStore.RemoveIndexIfExists("idx_users_lastname_lower", "lower(LastName)")
+	}
+	//saveSchemaVersion(sqlStore, VERSION_5_6_0)
 	//}
 }

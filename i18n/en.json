@@ -8,6 +8,34 @@
     "translation": "No file under 'certificate' in request."
   },
   {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Failed to sign generated trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Trigger ID missing required data for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Signature verification failed of trigger ID for interactive dialog."
+  },
+  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -3751,6 +3779,10 @@
     "translation": "Invalid email notification value"
   },
   {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Invalid ignore channel mentions status"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level"
   },
@@ -4793,6 +4825,18 @@
   {
     "id": "model.terms_of_service.is_valid.text.app_error",
     "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "Missing required user terms of service property: user_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "Missing required user terms of service property: service_terms_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "Missing required user terms of service property: create_at."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -6453,6 +6497,22 @@
   {
     "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No user terms of service found."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch user terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "Unable to save user terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete user terms of service."
   },
   {
     "id": "system.message.name",

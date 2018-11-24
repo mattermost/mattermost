@@ -82,7 +82,6 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		table.ColMap("MfaSecret").SetMaxSize(128)
 		table.ColMap("Position").SetMaxSize(128)
 		table.ColMap("Timezone").SetMaxSize(256)
-		table.ColMap("AcceptedTermsOfServiceId").SetMaxSize(64)
 	}
 
 	return us
@@ -95,11 +94,11 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
 	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		us.CreateIndexIfNotExists("idx_users_email_lower", "Users", "lower(Email)")
-		us.CreateIndexIfNotExists("idx_users_username_lower", "Users", "lower(Username)")
-		us.CreateIndexIfNotExists("idx_users_nickname_lower", "Users", "lower(Nickname)")
-		us.CreateIndexIfNotExists("idx_users_firstname_lower", "Users", "lower(FirstName)")
-		us.CreateIndexIfNotExists("idx_users_lastname_lower", "Users", "lower(LastName)")
+		us.CreateIndexIfNotExists("idx_users_email_lower_textpattern", "Users", "lower(Email) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_username_lower_textpattern", "Users", "lower(Username) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_nickname_lower_textpattern", "Users", "lower(Nickname) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_firstname_lower_textpattern", "Users", "lower(FirstName) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_lastname_lower_textpattern", "Users", "lower(LastName) text_pattern_ops")
 	}
 
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
@@ -1167,7 +1166,7 @@ func generateSearchQuery(searchQuery string, terms []string, fields []string, pa
 			}
 		}
 		searchTerms = append(searchTerms, fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")))
-		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
+		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
 	}
 
 	searchClause := strings.Join(searchTerms, " AND ")
