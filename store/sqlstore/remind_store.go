@@ -100,7 +100,7 @@ func (s SqlRemindStore) GetByUser(userId string) store.StoreChannel {
 func (s SqlRemindStore) GetByTime(time string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 
-		query := "SELECT * FROM Occurrences WHERE Occurrence = :Occurrence"
+		query := "SELECT * FROM Occurrences WHERE Occurrence = :Occurrence or Snoozed = :Occurrence"
 
 		var occurrences model.Occurrences
 		if _, err := s.GetReplica().Select(
