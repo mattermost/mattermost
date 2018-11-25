@@ -8,10 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -138,6 +139,22 @@ func TestMoveChannel(t *testing.T) {
 	if err := th.App.MoveChannel(targetTeam, channel2, th.BasicUser, true); err != nil {
 		t.Fatal(err)
 	}
+
+	// Test moving a channel with no members.
+	channel3 := &model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      sourceTeam.Id,
+		CreatorId:   th.BasicUser.Id,
+	}
+
+	var err *model.AppError
+	channel3, err = th.App.CreateChannel(channel3, false)
+	require.Nil(t, err)
+
+	err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser, false)
+	assert.Nil(t, err)
 }
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {

@@ -79,6 +79,9 @@ type Post struct {
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
+
+	// Transient data populated before sending a post to the client
+	Metadata *PostMetadata `json:"metadata" db:"-"`
 }
 
 type PostEphemeral struct {
@@ -130,10 +133,16 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
-func (o *Post) ToJson() string {
+// Clone shallowly copies the post.
+func (o *Post) Clone() *Post {
 	copy := *o
+	return &copy
+}
+
+func (o *Post) ToJson() string {
+	copy := o.Clone()
 	copy.StripActionIntegrations()
-	b, _ := json.Marshal(&copy)
+	b, _ := json.Marshal(copy)
 	return string(b)
 }
 
@@ -396,12 +405,12 @@ var markdownDestinationEscaper = strings.NewReplacer(
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
 // rewritten via RewriteImageURLs.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
-	copy := *o
+	copy := o.Clone()
 	copy.Message = RewriteImageURLs(o.Message, f)
 	if copy.MessageSource == "" && copy.Message != o.Message {
 		copy.MessageSource = o.Message
 	}
-	return &copy
+	return copy
 }
 
 func (o *PostEphemeral) ToUnsanitizedJson() string {

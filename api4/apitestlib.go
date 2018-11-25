@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -179,10 +178,26 @@ func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
 	return setupTestHelper(false, updateConfig)
 }
 
+func (me *TestHelper) ShutdownApp() {
+	done := make(chan bool)
+	go func() {
+		me.App.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		// panic instead of t.Fatal to terminate all tests in this package, otherwise the
+		// still running App could spuriously fail subsequent tests.
+		panic("failed to shutdown App within 30 seconds")
+	}
+}
+
 func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 
-	me.App.Shutdown()
+	me.ShutdownApp()
 	os.Remove(me.tempConfigPath)
 
 	utils.EnableDebugLogForTest()
@@ -685,22 +700,6 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
 		t.Fatal("wrong status code")
-	}
-}
-
-func readTestFile(name string) ([]byte, error) {
-	path, _ := utils.FindDir("tests")
-	file, err := os.Open(filepath.Join(path, name))
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	data := &bytes.Buffer{}
-	if _, err := io.Copy(data, file); err != nil {
-		return nil, err
-	} else {
-		return data.Bytes(), nil
 	}
 }
 

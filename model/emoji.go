@@ -7,12 +7,15 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 )
 
 const (
 	EMOJI_NAME_MAX_LENGTH = 64
 	EMOJI_SORT_BY_NAME    = "name"
 )
+
+var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_-]+:`)
 
 type Emoji struct {
 	Id        string `json:"id"`
