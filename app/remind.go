@@ -82,6 +82,10 @@ func (a *App) triggerReminders() {
 
 		for _, occurrence := range occurrences {
 
+			if occurrence.Repeat != "" {
+				a.RescheduleOccurrence(&occurrence)
+			}
+
 			reminder := model.Reminder{}
 
 			schan = a.Srv.Store.Remind().GetReminder(occurrence.ReminderId)
@@ -100,8 +104,7 @@ func (a *App) triggerReminders() {
 					continue
 				}
 
-				var finalTarget string
-				finalTarget = reminder.Target
+				finalTarget := reminder.Target
 				if finalTarget == T("app.reminder.me") {
 					finalTarget = T("app.reminder.you")
 				} else {
@@ -607,6 +610,29 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 	response := T("app.reminder.response", responseParameters)
 
 	return response, nil
+}
+
+func (a *App) RescheduleOccurrence(occurrence *model.Occurrence) {
+	/*
+		List<LocalDateTime> occurrences = occurrence.calculate(reminderOccurrence.getRepeat());
+
+        LocalDateTime newOccurrence = occurrences.stream()
+                .filter(o -> o.toLocalTime().equals(reminderOccurrence.getOccurrence().toLocalTime()))
+                .findFirst().orElse(null);
+
+        if (newOccurrence != null) {
+            reminderOccurrence.setOccurrence(newOccurrence);
+            reminderOccurrenceRepository.save(reminderOccurrence);
+        } else {
+            newOccurrence = occurrences.stream()
+                    .filter(o -> o.getDayOfYear() == reminderOccurrence.getOccurrence().getDayOfYear())
+                    .findFirst().orElseThrow(() -> new ReminderException("No matching occurrences to reschedule"));
+            reminderOccurrence.setOccurrence(newOccurrence);
+            reminderOccurrenceRepository.save(reminderOccurrence);
+        }
+
+    }
+	 */
 }
 
 func (a *App) formatWhen(userId string, when string, occurrence string, snoozed bool) string {
