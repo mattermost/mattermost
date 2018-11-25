@@ -251,7 +251,7 @@ func (a *App) triggerReminders() {
 
 func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string, selectedOption string) (error) {
 
-	_, cfg, location, _ := a.shared(userId)
+	_, cfg, location, T := a.shared(userId)
 
 	update := &model.Post{}
 	update.Id = post.Id
@@ -271,7 +271,10 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 			if result := <-a.Srv.Store.Remind().DeleteForReminder(reminderId); result.Err != nil {
 				return result.Err
 			}
-			update.Message = "~~" + post.Message + "~~\n" + "Ok! I’ve marked the reminder \"" + reminder.Message + "\" as complete."
+			var updateParameters = map[string]interface{}{
+				"Message": reminder.Message,
+			}
+			update.Message = "~~" + post.Message + "~~\n" + T("app.reminder.update.complete", updateParameters)
 		}
 
 	case "delete":
@@ -283,7 +286,10 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 			if result := <-schan; result.Err != nil {
 				return result.Err
 			}
-			update.Message = "Ok! I’ve deleted the reminder \"" + reminder.Message + "\"."
+			var deleteParameters = map[string]interface{}{
+				"Message": reminder.Message,
+			}
+			update.Message = T("app.reminder.update.delete", deleteParameters)
 		}
 
 	case "snooze":
@@ -298,6 +304,9 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 				return result.Err
 			} else {
 				reminder := result.Data.(model.Reminder)
+				var snoozeParameters = map[string]interface{}{
+					"Message": reminder.Message,
+				}
 
 				switch selectedOption {
 				case "20min":
@@ -308,7 +317,7 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 						occurrence.Snoozed = time.Now().Round(time.Second).Add(time.Minute * time.Duration(20)).Format(time.RFC3339)
 					}
 
-					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" in 20 minutes"
+					update.Message = T("app.reminder.update.snooze.20min", snoozeParameters)
 
 				case "1hr":
 
@@ -317,8 +326,7 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 					} else {
 						occurrence.Snoozed = time.Now().Round(time.Second).Add(time.Hour * time.Duration(1)).Format(time.RFC3339)
 					}
-
-					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" in 1 hour"
+					update.Message = T("app.reminder.update.snooze.1hr", snoozeParameters)
 
 				case "3hrs":
 
@@ -327,8 +335,7 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 					} else {
 						occurrence.Snoozed = time.Now().Round(time.Second).Add(time.Hour * time.Duration(3)).Format(time.RFC3339)
 					}
-
-					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" in 3 hours"
+					update.Message = T("app.reminder.update.snooze.3hr", snoozeParameters)
 
 				case "tomorrow":
 
@@ -339,10 +346,10 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 						tt := time.Now().Add(time.Hour * time.Duration(24))
 						occurrence.Snoozed = time.Date(tt.Year(), tt.Month(), tt.Day(), 9, 0, 0, 0, time.Local).Format(time.RFC3339)
 					}
-
-					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" at 9am tomorrow"
+					update.Message = T("app.reminder.update.snooze.tomorrow", snoozeParameters)
 
 				case "nextweek":
+
 					todayWeekDayNum := int(time.Now().Weekday())
 					weekDayNum := 1
 					day := 0
@@ -360,7 +367,7 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 						occurrence.Snoozed = time.Date(tt.Year(), tt.Month(), tt.Day(), 9, 0, 0, 0, time.Local).AddDate(0, 0, day).Format(time.RFC3339)
 					}
 
-					update.Message = "Ok! I’ll remind you  \"" + reminder.Message + "\" at 9am Monday"
+					update.Message = T("app.reminder.update.snooze.nextweek", snoozeParameters)
 
 				}
 
