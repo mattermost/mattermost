@@ -424,8 +424,8 @@ func (a *App) ListReminders(userId string) string {
 					upcomingOccurrences = append(upcomingOccurrences, occurrence)
 				}
 
-				if occurrence.Repeat != "" &&
-					t.After(time.Now()) {
+				if occurrence.Repeat != "" && (t.After(time.Now()) ||
+					(s != emptyTime && s.After(time.Now()))) {
 					recurringOccurrences = append(recurringOccurrences, occurrence)
 				}
 
@@ -481,28 +481,48 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 	for _, occurrence := range *occurrences {
 
 		reminder := a.findReminder(occurrence.ReminderId, reminders)
-		t, tErr := time.Parse(time.RFC3339, occurrence.Occurrence)
-		if tErr != nil {
+		t, pErr := time.Parse(time.RFC3339, occurrence.Occurrence)
+		s, pErr2 := time.Parse(time.RFC3339, occurrence.Snoozed)
+		if pErr != nil || pErr2 != nil {
 			continue
 		}
 
 		var formattedOccurrence string
 		if *cfg.DisplaySettings.ExperimentalTimezone {
-			formattedOccurrence = t.In(location).Format(time.RFC3339)
+			formattedOccurrence = a.formatWhen(userId, reminder.When, t.In(location).Format(time.RFC3339), false)
+
 		} else {
-			formattedOccurrence = t.Format(time.RFC3339)
+			formattedOccurrence = a.formatWhen(userId, reminder.When, t.Format(time.RFC3339), false)
+		}
+
+		formattedSnooze := ""
+		if s != emptyTime {
+			if *cfg.DisplaySettings.ExperimentalTimezone {
+				formattedSnooze = a.formatWhen(userId, reminder.When, s.In(location).Format(time.RFC3339), true)
+			} else {
+				formattedSnooze = a.formatWhen(userId, reminder.When, s.Format(time.RFC3339), true)
+			}
 		}
 
 		var messageParameters = map[string]interface{}{
 			"Message":    reminder.Message,
-			"Occurrence": a.formatWhen(userId, reminder.When, formattedOccurrence),
+			"Occurrence": formattedOccurrence,
+			"Snoozed": formattedSnooze,
 		}
 		if !t.Equal(emptyTime) {
 			switch gType {
 			case "upcoming":
-				output = strings.Join([]string{output, T("app.reminder.list.element.upcoming", messageParameters)}, "\n")
+				if formattedSnooze == "" {
+					output = strings.Join([]string{output, T("app.reminder.list.element.upcoming", messageParameters)}, "\n")
+				} else {
+					output = strings.Join([]string{output, T("app.reminder.list.element.upcoming.snoozed", messageParameters)}, "\n")
+				}
 			case "recurring":
-				output = strings.Join([]string{output, T("app.reminder.list.element.recurring", messageParameters)}, "\n")
+				if formattedSnooze == "" {
+					output = strings.Join([]string{output, T("app.reminder.list.element.recurring", messageParameters)}, "\n")
+				} else {
+					output = strings.Join([]string{output, T("app.reminder.list.element.recurring.snoozed", messageParameters)}, "\n")
+				}
 			case "past":
 				output = strings.Join([]string{output, T("app.reminder.list.element.past", messageParameters)}, "\n")
 			}
@@ -582,14 +602,14 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 		"Target":  request.Reminder.Target,
 		"UseTo":   useToString,
 		"Message": request.Reminder.Message,
-		"When":    a.formatWhen(request.UserId, request.Reminder.When, request.Occurrences[0].Occurrence),
+		"When":    a.formatWhen(request.UserId, request.Reminder.When, request.Occurrences[0].Occurrence, false),
 	}
 	response := T("app.reminder.response", responseParameters)
 
 	return response, nil
 }
 
-func (a *App) formatWhen(userId string, when string, occurrence string) string {
+func (a *App) formatWhen(userId string, when string, occurrence string, snoozed bool) string {
 
 	user, _, _, T := a.shared(userId)
 
@@ -604,7 +624,11 @@ func (a *App) formatWhen(userId string, when string, occurrence string) string {
 		} else {
 			endDate = t.Weekday().String() + ", " + t.Month().String() + " " + a.daySuffixFromInt(user, t.Day())
 		}
-		return when + " " + T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + endDate + "."
+		prefix := ""
+		if !snoozed {
+			prefix = when + " " + T("app.reminder.chrono.at") + " "
+		}
+		return prefix + t.Format(time.Kitchen) + " " + endDate + "."
 	}
 
 	if strings.HasPrefix(when, T("app.reminder.chrono.at")) {
@@ -618,7 +642,11 @@ func (a *App) formatWhen(userId string, when string, occurrence string) string {
 		} else {
 			endDate = t.Weekday().String() + ", " + t.Month().String() + " " + a.daySuffixFromInt(user, t.Day())
 		}
-		return T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + endDate + "."
+		prefix := ""
+		if !snoozed {
+			prefix = T("app.reminder.chrono.at") + " "
+		}
+		return prefix + t.Format(time.Kitchen) + " " + endDate + "."
 
 	}
 
@@ -633,7 +661,11 @@ func (a *App) formatWhen(userId string, when string, occurrence string) string {
 		} else {
 			endDate = t.Weekday().String() + ", " + t.Month().String() + " " + a.daySuffixFromInt(user, t.Day())
 		}
-		return T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + endDate + "."
+		prefix := ""
+		if !snoozed {
+			prefix = T("app.reminder.chrono.at") + " "
+		}
+		return prefix + t.Format(time.Kitchen) + " " + endDate + "."
 
 	}
 
@@ -644,7 +676,11 @@ func (a *App) formatWhen(userId string, when string, occurrence string) string {
 		repeatDate = strings.Replace(repeatDate, T("app.reminder.chrono.every"), "", -1)
 		repeatDate = strings.Title(strings.ToLower(repeatDate))
 		repeatDate = T("app.reminder.chrono.every") + repeatDate
-		return T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + repeatDate + "."
+		prefix := ""
+		if !snoozed {
+			prefix = T("app.reminder.chrono.at") + " "
+		}
+		return prefix + t.Format(time.Kitchen) + " " + repeatDate + "."
 
 	}
 
@@ -657,7 +693,11 @@ func (a *App) formatWhen(userId string, when string, occurrence string) string {
 	} else {
 		endDate = t.Weekday().String() + ", " + t.Month().String() + " " + a.daySuffixFromInt(user, t.Day())
 	}
-	return T("app.reminder.chrono.at") + " " + t.Format(time.Kitchen) + " " + endDate + "."
+	prefix := ""
+	if !snoozed {
+		prefix = T("app.reminder.chrono.at") + " "
+	}
+	return prefix + t.Format(time.Kitchen) + " " + endDate + "."
 
 }
 

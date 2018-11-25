@@ -3127,8 +3127,16 @@
     "translation": "* \"{{.Message}}\" {{.Occurrence}} [Complete]() [Delete]()"
   },
   {
+    "id": "app.reminder.list.element.upcoming.snoozed",
+    "translation": "* \"{{.Message}}\" (snoozed until {{.Snoozed}}) [Complete]() [Delete]()"
+  },
+  {
     "id": "app.reminder.list.element.recurring",
     "translation": "* \"{{.Message}}\" {{.Occurrence}} [Delete]()"
+  },
+  {
+    "id": "app.reminder.list.element.recurring.snoozed",
+    "translation": "* \"{{.Message}}\" {{.Occurrence}} (snoozed until {{.Snoozed}}) [Delete]()"
   },
   {
     "id": "app.reminder.list.element.past",
@@ -3184,15 +3192,15 @@
   },
   {
     "id": "app.reminder.list_upcoming",
-    "translation": "*Upcoming*:"
+    "translation": "**Upcoming:**"
   },
   {
     "id": "app.reminder.list_recurring",
-    "translation": "*Recurring*:"
+    "translation": "**Recurring:**"
   },
   {
     "id": "app.reminder.list_past_and_incomplete",
-    "translation": "*Past and incomplete*:"
+    "translation": "**Past and incomplete:**"
   },
   {
     "id": "app.reminder.list_footer",
