@@ -21,12 +21,14 @@ type LicenseRecord struct {
 }
 
 type License struct {
-	Id        string    `json:"id"`
-	IssuedAt  int64     `json:"issued_at"`
-	StartsAt  int64     `json:"starts_at"`
-	ExpiresAt int64     `json:"expires_at"`
-	Customer  *Customer `json:"customer"`
-	Features  *Features `json:"features"`
+	Id           string    `json:"id"`
+	IssuedAt     int64     `json:"issued_at"`
+	StartsAt     int64     `json:"starts_at"`
+	ExpiresAt    int64     `json:"expires_at"`
+	Customer     *Customer `json:"customer"`
+	Features     *Features `json:"features"`
+	SkuName      string    `json:"sku_name"`
+	SkuShortName string    `json:"sku_short_name"`
 }
 
 type Customer struct {
