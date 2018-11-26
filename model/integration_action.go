@@ -114,11 +114,6 @@ type SubmitDialogResponse struct {
 	Errors map[string]string `json:"errors,omitempty"`
 }
 
-func (r *PostActionIntegrationRequest) ToJson() []byte {
-	b, _ := json.Marshal(r)
-	return b
-}
-
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
 	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
@@ -198,6 +193,11 @@ func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey) (strin
 	return DecodeAndVerifyTriggerId(r.TriggerId, s)
 }
 
+func (r *PostActionIntegrationRequest) ToJson() []byte {
+	b, _ := json.Marshal(r)
+	return b
+}
+
 func PostActionIntegrationRequestFromJson(data io.Reader) *PostActionIntegrationRequest {
 	var o *PostActionIntegrationRequest
 	err := json.NewDecoder(data).Decode(&o)
@@ -219,6 +219,34 @@ func PostActionIntegrationResponseFromJson(data io.Reader) *PostActionIntegratio
 		return nil
 	}
 	return o
+}
+
+func SubmitDialogRequestFromJson(data io.Reader) *SubmitDialogRequest {
+	var o *SubmitDialogRequest
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
+func (r *SubmitDialogRequest) ToJson() []byte {
+	b, _ := json.Marshal(r)
+	return b
+}
+
+func SubmitDialogResponseFromJson(data io.Reader) *SubmitDialogResponse {
+	var o *SubmitDialogResponse
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		return nil
+	}
+	return o
+}
+
+func (r *SubmitDialogResponse) ToJson() []byte {
+	b, _ := json.Marshal(r)
+	return b
 }
 
 func (o *Post) StripActionIntegrations() {

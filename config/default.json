@@ -360,7 +360,8 @@
     },
     "ExperimentalSettings": {
         "ClientSideCertEnable": false,
-        "ClientSideCertCheck": "secondary"
+        "ClientSideCertCheck": "secondary",
+        "DisablePostMetadata": false
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500

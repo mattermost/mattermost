@@ -651,6 +651,7 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable *bool
 	ClientSideCertCheck  *string
+	DisablePostMetadata  *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -660,6 +661,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ClientSideCertCheck == nil {
 		s.ClientSideCertCheck = NewString(CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH)
+	}
+
+	if s.DisablePostMetadata == nil {
+		s.DisablePostMetadata = NewBool(false)
 	}
 }
 
