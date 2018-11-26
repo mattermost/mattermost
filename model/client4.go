@@ -4085,7 +4085,7 @@ func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType Gro
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	var groupSyncable *GroupSyncable
+	groupSyncable := &GroupSyncable{}
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(bodyBytes, groupSyncable)
 	return groupSyncable, BuildResponse(r)
@@ -4126,4 +4126,17 @@ func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableTy
 		panic(err)
 	}
 	return groupSyncables, BuildResponse(r)
+}
+
+func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, appErr := c.DoApiPut(c.GetGroupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	groupSyncable := &GroupSyncable{}
+	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	json.Unmarshal(bodyBytes, groupSyncable)
+	return groupSyncable, BuildResponse(r)
 }

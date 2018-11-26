@@ -151,8 +151,9 @@ func TestLinkGroupTeam(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	_, response = th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	groupTeam, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	assert.NotNil(t, groupTeam)
 }
 
 func TestLinkGroupChannel(t *testing.T) {
@@ -474,5 +475,146 @@ func TestGetGroupChannels(t *testing.T) {
 	CheckUnauthorizedStatus(t, response)
 }
 
-func TestPatchGroupTeam(t *testing.T)    {}
-func TestPatchGroupChannel(t *testing.T) {}
+func TestPatchGroupTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	g, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Type:        model.GroupTypeLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	patch := &model.GroupSyncablePatch{
+		CanLeave: model.NewBool(true),
+		AutoAdd:  model.NewBool(true),
+	}
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	groupSyncable, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	assert.NotNil(t, groupSyncable)
+	assert.True(t, groupSyncable.CanLeave)
+	assert.True(t, groupSyncable.AutoAdd)
+
+	_, response = th.Client.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	assert.Equal(t, http.StatusForbidden, response.StatusCode)
+
+	th.App.SetLicense(nil)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	patch.AutoAdd = model.NewBool(false)
+	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	CheckOKStatus(t, response)
+	assert.False(t, groupSyncable.AutoAdd)
+
+	assert.Equal(t, g.Id, groupSyncable.GroupId)
+	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
+	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Type)
+
+	patch.CanLeave = model.NewBool(false)
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	CheckBadRequestStatus(t, response)
+
+	patch.AutoAdd = model.NewBool(true)
+	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	CheckOKStatus(t, response)
+	assert.False(t, groupSyncable.CanLeave)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	CheckNotFoundStatus(t, response)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeTeam, patch)
+	CheckNotFoundStatus(t, response)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable("abc", th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	CheckBadRequestStatus(t, response)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, "abc", model.GroupSyncableTypeTeam, patch)
+	CheckBadRequestStatus(t, response)
+
+	th.SystemAdminClient.Logout()
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	CheckUnauthorizedStatus(t, response)
+}
+
+func TestPatchGroupChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	g, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Type:        model.GroupTypeLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	patch := &model.GroupSyncablePatch{
+		CanLeave: model.NewBool(true),
+		AutoAdd:  model.NewBool(true),
+	}
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	groupSyncable, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	assert.NotNil(t, groupSyncable)
+	assert.True(t, groupSyncable.CanLeave)
+	assert.True(t, groupSyncable.AutoAdd)
+
+	_, response = th.Client.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	assert.Equal(t, http.StatusForbidden, response.StatusCode)
+
+	th.App.SetLicense(nil)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	patch.AutoAdd = model.NewBool(false)
+	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	CheckOKStatus(t, response)
+	assert.False(t, groupSyncable.AutoAdd)
+
+	assert.Equal(t, g.Id, groupSyncable.GroupId)
+	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
+	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
+
+	patch.CanLeave = model.NewBool(false)
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	CheckBadRequestStatus(t, response)
+
+	patch.AutoAdd = model.NewBool(true)
+	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	CheckOKStatus(t, response)
+	assert.False(t, groupSyncable.CanLeave)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	CheckNotFoundStatus(t, response)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, model.NewId(), model.GroupSyncableTypeChannel, patch)
+	CheckNotFoundStatus(t, response)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable("abc", th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	CheckBadRequestStatus(t, response)
+
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, "abc", model.GroupSyncableTypeChannel, patch)
+	CheckBadRequestStatus(t, response)
+
+	th.SystemAdminClient.Logout()
+	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	CheckUnauthorizedStatus(t, response)
+}
