@@ -3941,6 +3941,7 @@ func (c *Client4) GetTermsOfService(etag string) (*TermsOfService, *Response) {
 	defer closeBody(r)
 	return TermsOfServiceFromJson(r.Body), BuildResponse(r)
 }
+
 // GetUserTermsOfService fetches user's latest terms of service action if the latest action was for acceptance.
 func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfService, *Response) {
 	url := c.GetUserTermsOfServiceRoute(userId)
