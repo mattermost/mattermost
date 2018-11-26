@@ -82,10 +82,6 @@ func (a *App) triggerReminders() {
 
 		for _, occurrence := range occurrences {
 
-			if occurrence.Repeat != "" {
-				a.RescheduleOccurrence(&occurrence)
-			}
-
 			reminder := model.Reminder{}
 
 			schan = a.Srv.Store.Remind().GetReminder(occurrence.ReminderId)
@@ -194,6 +190,10 @@ func (a *App) triggerReminders() {
 					mlog.Error(fmt.Sprintf("%v", pErr))
 				}
 
+				if occurrence.Repeat != "" {
+					a.RescheduleOccurrence(&occurrence)
+				}
+
 			} else if strings.HasPrefix(reminder.Target, "~") {
 
 				channel, cErr := a.GetChannelByName(
@@ -246,7 +246,12 @@ func (a *App) triggerReminders() {
 					mlog.Error(fmt.Sprintf("%v", pErr))
 				}
 
+				if occurrence.Repeat != "" {
+					a.RescheduleOccurrence(&occurrence)
+				}
+
 			}
+
 		}
 
 	}
@@ -415,6 +420,7 @@ func (a *App) ListReminders(userId string) string {
 		if len(occurrences) > 0 {
 
 			for _, occurrence := range occurrences {
+
 				t, pErr := time.Parse(time.RFC3339, occurrence.Occurrence)
 				s, pErr2 := time.Parse(time.RFC3339, occurrence.Snoozed)
 				if pErr != nil || pErr2 != nil {
@@ -510,7 +516,7 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 		var messageParameters = map[string]interface{}{
 			"Message":    reminder.Message,
 			"Occurrence": formattedOccurrence,
-			"Snoozed": formattedSnooze,
+			"Snoozed":    formattedSnooze,
 		}
 		if !t.Equal(emptyTime) {
 			switch gType {
@@ -613,26 +619,47 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 }
 
 func (a *App) RescheduleOccurrence(occurrence *model.Occurrence) {
-	/*
-		List<LocalDateTime> occurrences = occurrence.calculate(reminderOccurrence.getRepeat());
 
-        LocalDateTime newOccurrence = occurrences.stream()
-                .filter(o -> o.toLocalTime().equals(reminderOccurrence.getOccurrence().toLocalTime()))
-                .findFirst().orElse(null);
+	user, _, _, T := a.shared(occurrence.UserId)
+	var times []time.Time
 
-        if (newOccurrence != null) {
-            reminderOccurrence.setOccurrence(newOccurrence);
-            reminderOccurrenceRepository.save(reminderOccurrence);
-        } else {
-            newOccurrence = occurrences.stream()
-                    .filter(o -> o.getDayOfYear() == reminderOccurrence.getOccurrence().getDayOfYear())
-                    .findFirst().orElseThrow(() -> new ReminderException("No matching occurrences to reschedule"));
-            reminderOccurrence.setOccurrence(newOccurrence);
-            reminderOccurrenceRepository.save(reminderOccurrence);
-        }
+	if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.in")) {
+		times, _ = a.in(occurrence.Repeat, user)
+	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.at")) {
+		times, _ = a.at(occurrence.Repeat, user)
+	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.on")) {
+		times, _ = a.on(occurrence.Repeat, user)
+	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.every")) {
+		times, _ = a.every(occurrence.Repeat, user)
+	} else {
+		times, _ = a.freeForm(occurrence.Repeat, user)
+	}
 
-    }
-	 */
+	if len(times) > 1 {
+
+		td, _ := time.Parse(time.RFC3339, occurrence.Occurrence)
+		for _, ts := range times {
+			if ts.Weekday() == td.Weekday() {
+
+				occurrence.Occurrence = ts.Format(time.RFC3339)
+				schan := a.Srv.Store.Remind().SaveOccurrence(occurrence)
+				if result := <-schan; result.Err != nil {
+					mlog.Error("error: " + result.Err.Message)
+				}
+				return
+			}
+		}
+
+	} else {
+
+		occurrence.Occurrence = times[0].Format(time.RFC3339)
+		schan := a.Srv.Store.Remind().SaveOccurrence(occurrence)
+		if result := <-schan; result.Err != nil {
+			mlog.Error("error: " + result.Err.Message)
+		}
+
+	}
+
 }
 
 func (a *App) formatWhen(userId string, when string, occurrence string, snoozed bool) string {
