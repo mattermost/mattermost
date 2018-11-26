@@ -94,7 +94,7 @@ func (a *App) getFileMetadataForPost(post *model.Post) ([]*model.FileInfo, *mode
 		return nil, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id, false)
+	return a.GetFileInfosForPost(post.Id)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
