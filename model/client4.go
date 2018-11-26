@@ -409,6 +409,14 @@ func (c *Client4) GetTermsOfServiceRoute() string {
 	return "/terms_of_service"
 }
 
+func (c *Client4) GetGroupsRoute() string {
+	return "/groups"
+}
+
+func (c *Client4) GetGroupRoute(groupID string) string {
+	return fmt.Sprintf("%s/%s", c.GetGroupsRoute(), groupID)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -4040,4 +4048,13 @@ func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *R
 	}
 	defer closeBody(r)
 	return TermsOfServiceFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupRoute(groupID), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupFromJson(r.Body), BuildResponse(r)
 }

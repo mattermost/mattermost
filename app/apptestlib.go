@@ -30,7 +30,6 @@ type TestHelper struct {
 	BasicUser2   *model.User
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
-	BasicGroup   *model.Group
 
 	SystemAdminUser *model.User
 
@@ -165,7 +164,6 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicChannel = me.CreateChannel(me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicChannel)
-	// me.BasicGroup = me.CreateGroup()
 
 	return me
 }

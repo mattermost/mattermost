@@ -118,7 +118,7 @@ func (s *SqlSupplier) GroupGet(ctx context.Context, groupId string, hints ...sto
 	var group *model.Group
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE Id = :Id", map[string]interface{}{"Id": groupId}); err != nil {
 		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupGet", "store.sql_group.no_rows", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlGroupStore.GroupGet", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
 		} else {
 			result.Err = model.NewAppError("SqlGroupStore.GroupGet", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
