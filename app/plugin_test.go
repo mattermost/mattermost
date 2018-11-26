@@ -68,16 +68,15 @@ func TestPluginKeyValueStore(t *testing.T) {
 	result := <-th.App.Srv.Store.Plugin().SaveOrUpdate(kv)
 	assert.Nil(t, result.Err)
 
-	// Test fetch by keyname
+	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
 	ret, err = th.App.GetPluginKey(pluginId, "key2")
 	assert.Nil(t, err)
 	assert.Equal(t, kv.Value, ret)
 
 	// Test fetch by hashed keyname
-	// The key should be changed to unhashed version because of earlier GetPluginKey, so we will get nil back
 	ret, err = th.App.GetPluginKey(pluginId, hashedKey2)
 	assert.Nil(t, err)
-	assert.Equal(t, []byte(nil), ret)
+	assert.Equal(t, kv.Value, ret)
 
 	// Test ListKeys
 	list, err := th.App.ListPluginKeys(pluginId, 0, 1)
@@ -88,8 +87,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 	list, err = th.App.ListPluginKeys(pluginId, 1, 1)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(list))
-	// The key should be changed to unhashed version because of earlier GetPluginKey
-	assert.Equal(t, "key2", list[0])
+	assert.Equal(t, hashedKey2, list[0])
 
 	//List Keys bad input
 	list, err = th.App.ListPluginKeys(pluginId, 0, 0)
