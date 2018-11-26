@@ -417,6 +417,10 @@ func (c *Client4) GetGroupRoute(groupID string) string {
 	return fmt.Sprintf("%s/%s", c.GetGroupsRoute(), groupID)
 }
 
+func (c *Client4) GetGroupSyncableRoute(groupID, syncableID string, syncableType GroupSyncableType) string {
+	return fmt.Sprintf("%s/%ss/%s", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()), syncableID)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -4059,7 +4063,7 @@ func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response) {
 	return GroupFromJson(r.Body), BuildResponse(r)
 }
 
-func (c *Client4) PatchGroup(groupID string, patch *GroupPatch, etag string) (*Group, *Response) {
+func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response) {
 	payload, _ := json.Marshal(patch)
 	r, appErr := c.DoApiPut(c.GetGroupRoute(groupID)+"/patch", string(payload))
 	if appErr != nil {
@@ -4067,4 +4071,30 @@ func (c *Client4) PatchGroup(groupID string, patch *GroupPatch, etag string) (*G
 	}
 	defer closeBody(r)
 	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response) {
+	payload, _ := json.Marshal(patch)
+	url := fmt.Sprintf("%s/link", c.GetGroupSyncableRoute(groupID, syncableID, syncableType))
+	r, appErr := c.DoApiPost(url, string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	var groupSyncable *GroupSyncable
+	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	json.Unmarshal(bodyBytes, groupSyncable)
+	return groupSyncable, BuildResponse(r)
+}
+
+func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, etag string) (*GroupSyncable, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupSyncableRoute(groupID, syncableID, syncableType), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	groupSyncable := &GroupSyncable{}
+	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	json.Unmarshal(bodyBytes, groupSyncable)
+	return groupSyncable, BuildResponse(r)
 }

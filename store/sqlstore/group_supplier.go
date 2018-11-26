@@ -505,7 +505,7 @@ func (s *SqlSupplier) GroupGetGroupSyncable(ctx context.Context, groupID string,
 	groupSyncable, err := s.getGroupSyncable(groupID, syncableID, syncableType)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupGetGroupSyncable", "store.sql_group.no_rows", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlGroupStore.GroupGetGroupSyncable", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
 		} else {
 			result.Err = model.NewAppError("SqlGroupStore.GroupGetGroupSyncable", "store.sql_group.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
