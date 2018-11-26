@@ -48,27 +48,27 @@ func TestGetLdapGroups(t *testing.T) {
 }
 
 func TestLinkLdapGroup(t *testing.T) {
-	const testDN string = "cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com"
+	const entryUUID string = "foo"
 
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	_, resp := th.Client.LinkLdapGroup(testDN)
+	_, resp := th.Client.LinkLdapGroup(entryUUID)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.LinkLdapGroup(testDN)
+	_, resp = th.SystemAdminClient.LinkLdapGroup(entryUUID)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestUnlinkLdapGroup(t *testing.T) {
-	const testDN string = "cn=tgroup,ou=testgroups,dc=mm,dc=test,dc=com"
+	const entryUUID string = "foo"
 
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	_, resp := th.Client.UnlinkLdapGroup(testDN)
+	_, resp := th.Client.UnlinkLdapGroup(entryUUID)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UnlinkLdapGroup(testDN)
+	_, resp = th.SystemAdminClient.UnlinkLdapGroup(entryUUID)
 	CheckNotImplementedStatus(t, resp)
 }
