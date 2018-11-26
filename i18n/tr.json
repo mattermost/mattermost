@@ -177,7 +177,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kalan yalnız siz varsınız. Ayrılmak yerine Özel Grubu kaldırmayı deneyin."
+    "translation": "Kanalda yalnız siz kaldınız. Kanaldan ayrılmak yerine Özel Grubu kaldırmayı deneyin."
   },
   {
     "id": "api.channel.leave.left",
@@ -238,6 +238,14 @@
   {
     "id": "api.channel.remove_member.removed",
     "translation": "%v kanaldan çıkarıldı."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Bir doğrudan ileti kanalını yeniden adlandıramazsınız"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Bir grup ileti kanalını yeniden adlandıramazsınız"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -410,6 +418,10 @@
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "Geçerli kanal güncellenirken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Geçerli kanal alınırken sorun çıktı."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -616,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kullanıcı bulunamadı."
+    "translation": "Kullanıcı bulunamadı. Sistem Yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_invite.name",
@@ -681,10 +693,6 @@
   {
     "id": "api.command_leave.name",
     "translation": "ayrıl"
-  },
-  {
-    "id": "api.command_leave.success",
-    "translation": "Kanaldan ayrıldı."
   },
   {
     "id": "api.command_logout.desc",
@@ -824,7 +832,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Kullanıcı bulunamadı"
+    "translation": "Kullanıcı bulunamadı. Sistem Yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_remove.name",
@@ -929,6 +937,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "Oturum OAuth olmadığı halde sorgu dizgesinde kod belirtilmiş"
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Özel hizmet koşulları özelliği devre dışı"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Lütfen Özel Hizmet Koşulları metnini yazın."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2019,6 +2035,10 @@
     "translation": "Desteklenmeyen OAuth hizmeti sağlayıcı"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Takım kodu geçersiz"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Çok sayıda başarısız oturum açma girişimi nedeniyle hesabınız kilitlendi. Lütfen parolanızı sıfırlayın."
   },
@@ -2177,6 +2197,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Kimlik Doğrulama Aktarımı yapılandırılmamış ya da bu sunucu üzerinde kullanılamıyor."
+  },
+  {
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
+    "translation": "Onaylanan değer hatalı"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2401,14 +2425,6 @@
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
     "translation": "Aynı kanaldaki giden web bağlantılarında aynı tetikleyici sözcük ve geri çağırma adresleri bulunamaz."
-  },
-  {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "Bu sunucu üzerinde WebRTC etkinleştirilmemiş."
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "WebRTC kodu kaydedilirken bir sorun çıktı"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2903,10 +2919,6 @@
     "translation": "Kullanıcı Kimlik Doğrulama Verileri çok uzun."
   },
   {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "Kullanıcı Kimlik Doğrulama Hizmeti belirtilmiş ise boş olmamalıdır."
-  },
-  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "Kullanıcı e-posta adresinin uzunluğu geçersiz."
   },
@@ -3137,6 +3149,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "API bağlantı noktasına erişilemediğinden istenilen aktarımlar yapılamadı."
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Etkileşim penceresi için JSON kodlaması sırasında bir sorun çıktı."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3599,6 +3615,30 @@
     "translation": "SAML 2.0 ayarları yapılmamış ya da bu sunucu tarafından desteklenmiyor."
   },
   {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Etkileşim penceresi için base64 tetikleyici kodu çözülemedi."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Etkileşimli pencere için tetikleyici kodunun süresi geçmiş. Tetikleyici kodları en fazla {{.Seconds}} saniye süreyle geçerlidir."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Etkileşim penceresi için tetikleyici kodunda istenilen veri eksik."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Etkileşim penceresi için tetikleyici kodunun base64 imzası çözülemedi."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Etkileşimli pencere için tetikleyici kodunun imzası doğrulanamadı."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Etkileşim penceresi için üretilen tetikleyici kodu imzalanamadı."
+  },
+  {
     "id": "jobs.do_job.batch_size.parse_error",
     "translation": "İleti dışa aktarma görevinde BatchSize değeri çözümlenemedi."
   },
@@ -3737,6 +3777,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "E-posta bildirimi değeri geçersiz"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Kanal anmalarını yok sayma durumu geçersiz"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4255,32 +4299,16 @@
     "translation": "Kullanıcının yazma aralıkları süresi 1000 milisaniyeden küçük olmamalıdır."
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "WebRTC Ağ Geçidi Yönetici parolası ayarlanmalıdır."
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "TLS sertifikası dosyasının değeri geçersiz - LetsEncrypt kullanın ya da var olan sertifika dosyasının yolunu belirtin"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC Ağ Geçidi Yönetici adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "TLS anahtar dosyasının değeri geçersiz - LetsEncrypt kullanın ya da var olan anahtar dosyasının yolunu belirtin"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Ağ Geçidi Websocket adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN adresi stun: ile başlayan geçerli bir adres olmalıdır"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "WebRTC TURN adresi ayarlanmış ise TURN Paylaşılmış Anahtarı boş olamaz."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN adresi turn: ile başlayan geçerli bir adres olmalıdır"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "WebRTC TURN adresi ayarlanmış ise TURN Kullanıcı Adı boş olamaz."
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "TLS için kullanılacak şifreleyici için aktarılan değer geçersiz - Lütfen geçerli değerlerin neler olduğunu öğrenmek için belgelere bakın"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4679,6 +4707,22 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: olusturulma_zamani."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Hizmet koşulları kodu geçersiz."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Özel hizmet koşulları metni çok uzun. En çok {{.MaxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: kullanici_kodu."
+  },
+  {
     "id": "model.token.is_valid.expiry",
     "translation": "Kod sona erme süresi geçersiz"
   },
@@ -4688,15 +4732,75 @@
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "Lütfen geçerli bir e-posta adresi yazın."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalıdır."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf ile bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük ile bir büyük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük, bir büyük harf ve bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir büyük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir büyük harf ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir rakam ile bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf ile bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf ile bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Kullanıcı adı bir harf ile başlamalı, 3 ile 22 karakter arasında olmalı ve rakamlar, küçük harfler ve \".\",\"-\" ile \"_\" karakterlerini içermelidir."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4715,6 +4819,18 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: olusturulma_zamani."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: hizmet_kosullari_kodu."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: kullanici_kodu."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "kod çözülemedi"
   },
@@ -4729,6 +4845,14 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Kullanıcı durumu ayarlanamadı. Kullanıcı durumu bilinmiyor."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Herkese açık bağlantılar devre dışı bırakılmış"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Dosyanın herkese açık bağlantısı alınamadı. Dosya okunabilecek bir iletiye eklenmiş olmalıdır."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4891,6 +5015,10 @@
     "translation": "Herkese açık kanallar alınamadı"
   },
   {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "Kanal üyelerinin saat dilimleri alınamadı"
+  },
+  {
     "id": "store.sql_channel.get_unread.app_error",
     "translation": "Okunmamış kanal iletileri alınamadı"
   },
@@ -4957,6 +5085,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "Sabitlenmiş iletiler bulunamadı"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "Devre dışı bırakılmış kullanıcılar kanaldan çıkarılamadı"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -6027,6 +6159,22 @@
     "translation": "Son takım simgesi güncelleme tarihi güncellenemedi"
   },
   {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Hizmet koşulları kaydedilemedi."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Hizmet koşulları alınamadı."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Var olan hizmet koşulları için kaydetme çağrısı yapılmamalıdır."
+  },
+  {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
     "translation": "Belirtilen dönemde etkin olan kullanıcılar alınamadı"
   },
@@ -6269,6 +6417,22 @@
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
     "translation": "Erişim kodu etkinleştirilemedi"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "Hizmet koşulları silinemedi."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "Hizmet koşulları alınamadı."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "Herhangi bir hizmet koşulları kaydı bulunamadı."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "Hizmet koşulları kaydedilemedi."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
