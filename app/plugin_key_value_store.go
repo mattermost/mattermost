@@ -56,17 +56,16 @@ func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError
 
 	// Lookup using the hashed version of the key for keys written prior to v5.6.
 	result = <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key))
-	if result.Err != nil {
-		if result.Err.StatusCode == http.StatusNotFound {
-			return nil, nil
-		}
+
+	if result.Err == nil {
+		kv := result.Data.(*model.PluginKeyValue)
+		return kv.Value, nil
+	} else if result.Err.StatusCode != http.StatusNotFound {
 		mlog.Error(result.Err.Error())
 		return nil, result.Err
 	}
 
-	kv := result.Data.(*model.PluginKeyValue)
-
-	return kv.Value, nil
+	return nil, nil
 }
 
 func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
