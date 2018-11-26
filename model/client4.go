@@ -4058,3 +4058,13 @@ func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response) {
 	defer closeBody(r)
 	return GroupFromJson(r.Body), BuildResponse(r)
 }
+
+func (c *Client4) PatchGroup(groupID string, patch *GroupPatch, etag string) (*Group, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, appErr := c.DoApiPut(c.GetGroupRoute(groupID)+"/patch", string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
