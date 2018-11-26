@@ -25,7 +25,6 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.ApiSessionRequired(patchPost)).Methods("PUT")
-	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.ApiSessionRequired(doPostAction)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/pin", api.ApiSessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.ApiSessionRequired(unpinPost)).Methods("POST")
 }
@@ -58,7 +57,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post))
+	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post), !c.Session.IsMobileApp())
 	if err != nil {
 		c.Err = err
 		return
@@ -68,7 +67,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.UpdateLastActivityAtIfNeeded(c.Session)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+
+	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
+	w.Write([]byte(rp.ToJson()))
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -96,7 +97,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rp).ToJson()))
+	w.Write([]byte(c.App.PreparePostForClient(rp).ToJson()))
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -165,7 +166,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
+
+	w.Write([]byte(c.App.PreparePostListForClient(list).ToJson()))
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -198,7 +200,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(posts).ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -232,12 +234,14 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	post = c.App.PreparePostForClient(post)
+
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
-		w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(post).ToJson()))
 	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
+	w.Write([]byte(post.ToJson()))
 }
 
 func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -313,10 +317,13 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {
 		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
-		w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(list).ToJson()))
 	}
+
+	clientPostList := c.App.PreparePostListForClient(list)
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
+
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -330,18 +337,42 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJson(r.Body)
-	terms, ok := props["terms"].(string)
-	if !ok || len(terms) == 0 {
+	params := model.SearchParameterFromJson(r.Body)
+
+	if params.Terms == nil || len(*params.Terms) == 0 {
 		c.SetInvalidParam("terms")
 		return
 	}
+	terms := *params.Terms
 
-	isOrSearch, _ := props["is_or_search"].(bool)
+	timeZoneOffset := 0
+	if params.TimeZoneOffset != nil {
+		timeZoneOffset = *params.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if params.IsOrSearch != nil {
+		isOrSearch = *params.IsOrSearch
+	}
+
+	page := 0
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	perPage := 60
+	if params.PerPage != nil {
+		perPage = *params.PerPage
+	}
+
+	includeDeletedChannels := false
+	if params.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *params.IncludeDeletedChannels
+	}
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
+	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset), page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics
@@ -355,7 +386,9 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results = model.MakePostSearchResults(c.App.PostListWithProxyAddedToImageURLs(results.PostList), results.Matches)
+	clientPostList := c.App.PreparePostListForClient(results.PostList)
+
+	results = model.MakePostSearchResults(clientPostList, results.Matches)
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(results.ToJson()))
@@ -371,6 +404,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post == nil {
 		c.SetInvalidParam("post")
+		return
+	}
+
+	// The post being updated in the payload must be the same one as indicated in the URL.
+	if post.Id != c.Params.PostId {
+		c.SetInvalidParam("post_id")
 		return
 	}
 
@@ -400,7 +439,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(rpost).ToJson()))
+	rpost = c.App.PreparePostForClient(rpost)
+
+	w.Write([]byte(rpost.ToJson()))
 }
 
 func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -440,7 +481,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(c.App.PostWithProxyAddedToImageURLs(patchedPost).ToJson()))
+	patchedPost = c.App.PreparePostForClient(patchedPost)
+
+	w.Write([]byte(patchedPost.ToJson()))
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {
@@ -485,33 +528,17 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if infos, err := c.App.GetFileInfosForPost(c.Params.PostId, false); err != nil {
-		c.Err = err
-		return
-	} else if c.HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
-		return
-	} else {
-		w.Header().Set("Cache-Control", "max-age=2592000, public")
-		w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
-		w.Write([]byte(model.FileInfosToJson(infos)))
-	}
-}
-
-func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId().RequireActionId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-		return
-	}
-
-	if err := c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId); err != nil {
+	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	ReturnStatusOK(w)
+	if c.HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
+		return
+	}
+
+	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
+	w.Write([]byte(model.FileInfosToJson(infos)))
 }

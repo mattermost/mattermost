@@ -30,12 +30,12 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"io/ioutil"
 
 	"golang.org/x/net/context"
-	"golang.org/x/net/http2"
 	"golang.org/x/net/trace"
 
 	"google.golang.org/grpc/codes"
@@ -43,14 +43,13 @@ import (
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/encoding/proto"
 	"google.golang.org/grpc/grpclog"
-	"google.golang.org/grpc/internal"
 	"google.golang.org/grpc/internal/channelz"
+	"google.golang.org/grpc/internal/transport"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/stats"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/tap"
-	"google.golang.org/grpc/transport"
 )
 
 const (
@@ -106,12 +105,8 @@ type Server struct {
 	channelzRemoveOnce sync.Once
 	serveWG            sync.WaitGroup // counts active Serve goroutines for GracefulStop
 
-	channelzID          int64 // channelz unique identification number
-	czmu                sync.RWMutex
-	callsStarted        int64
-	callsFailed         int64
-	callsSucceeded      int64
-	lastCallStartedTime time.Time
+	channelzID int64 // channelz unique identification number
+	czData     *channelzData
 }
 
 type options struct {
@@ -126,7 +121,6 @@ type options struct {
 	maxConcurrentStreams  uint32
 	maxReceiveMessageSize int
 	maxSendMessageSize    int
-	useHandlerImpl        bool // use http.Handler-based server
 	unknownStreamDesc     *StreamDesc
 	keepaliveParams       keepalive.ServerParameters
 	keepalivePolicy       keepalive.EnforcementPolicy
@@ -135,19 +129,25 @@ type options struct {
 	writeBufferSize       int
 	readBufferSize        int
 	connectionTimeout     time.Duration
+	maxHeaderListSize     *uint32
 }
 
 var defaultServerOptions = options{
 	maxReceiveMessageSize: defaultServerMaxReceiveMessageSize,
 	maxSendMessageSize:    defaultServerMaxSendMessageSize,
 	connectionTimeout:     120 * time.Second,
+	writeBufferSize:       defaultWriteBufSize,
+	readBufferSize:        defaultReadBufSize,
 }
 
 // A ServerOption sets options such as credentials, codec and keepalive parameters, etc.
 type ServerOption func(*options)
 
-// WriteBufferSize lets you set the size of write buffer, this determines how much data can be batched
-// before doing a write on the wire.
+// WriteBufferSize determines how much data can be batched before doing a write on the wire.
+// The corresponding memory allocation for this buffer will be twice the size to keep syscalls low.
+// The default value for this buffer is 32KB.
+// Zero will disable the write buffer such that each write will be on underlying connection.
+// Note: A Send call may not directly translate to a write.
 func WriteBufferSize(s int) ServerOption {
 	return func(o *options) {
 		o.writeBufferSize = s
@@ -156,6 +156,9 @@ func WriteBufferSize(s int) ServerOption {
 
 // ReadBufferSize lets you set the size of read buffer, this determines how much data can be read at most
 // for one read syscall.
+// The default value for this buffer is 32KB.
+// Zero will disable read buffer for a connection so data framer can access the underlying
+// conn directly.
 func ReadBufferSize(s int) ServerOption {
 	return func(o *options) {
 		o.readBufferSize = s
@@ -335,6 +338,14 @@ func ConnectionTimeout(d time.Duration) ServerOption {
 	}
 }
 
+// MaxHeaderListSize returns a ServerOption that sets the max (uncompressed) size
+// of header list that the server is prepared to accept.
+func MaxHeaderListSize(s uint32) ServerOption {
+	return func(o *options) {
+		o.maxHeaderListSize = &s
+	}
+}
+
 // NewServer creates a gRPC server which has no service registered and has not
 // started to accept requests yet.
 func NewServer(opt ...ServerOption) *Server {
@@ -343,12 +354,13 @@ func NewServer(opt ...ServerOption) *Server {
 		o(&opts)
 	}
 	s := &Server{
-		lis:   make(map[net.Listener]bool),
-		opts:  opts,
-		conns: make(map[io.Closer]bool),
-		m:     make(map[string]*service),
-		quit:  make(chan struct{}),
-		done:  make(chan struct{}),
+		lis:    make(map[net.Listener]bool),
+		opts:   opts,
+		conns:  make(map[io.Closer]bool),
+		m:      make(map[string]*service),
+		quit:   make(chan struct{}),
+		done:   make(chan struct{}),
+		czData: new(channelzData),
 	}
 	s.cv = sync.NewCond(&s.mu)
 	if EnableTracing {
@@ -357,7 +369,7 @@ func NewServer(opt ...ServerOption) *Server {
 	}
 
 	if channelz.IsOn() {
-		s.channelzID = channelz.RegisterServer(s, "")
+		s.channelzID = channelz.RegisterServer(&channelzServer{s}, "")
 	}
 	return s
 }
@@ -481,7 +493,8 @@ type listenSocket struct {
 
 func (l *listenSocket) ChannelzMetric() *channelz.SocketInternalMetric {
 	return &channelz.SocketInternalMetric{
-		LocalAddr: l.Listener.Addr(),
+		SocketOptions: channelz.GetSocketOption(l.Listener),
+		LocalAddr:     l.Listener.Addr(),
 	}
 }
 
@@ -617,27 +630,19 @@ func (s *Server) handleRawConn(rawConn net.Conn) {
 	}
 	s.mu.Unlock()
 
-	var serve func()
-	c := conn.(io.Closer)
-	if s.opts.useHandlerImpl {
-		serve = func() { s.serveUsingHandler(conn) }
-	} else {
-		// Finish handshaking (HTTP2)
-		st := s.newHTTP2Transport(conn, authInfo)
-		if st == nil {
-			return
-		}
-		c = st
-		serve = func() { s.serveStreams(st) }
+	// Finish handshaking (HTTP2)
+	st := s.newHTTP2Transport(conn, authInfo)
+	if st == nil {
+		return
 	}
 
 	rawConn.SetDeadline(time.Time{})
-	if !s.addConn(c) {
+	if !s.addConn(st) {
 		return
 	}
 	go func() {
-		serve()
-		s.removeConn(c)
+		s.serveStreams(st)
+		s.removeConn(st)
 	}()
 }
 
@@ -656,6 +661,7 @@ func (s *Server) newHTTP2Transport(c net.Conn, authInfo credentials.AuthInfo) tr
 		WriteBufferSize:       s.opts.writeBufferSize,
 		ReadBufferSize:        s.opts.readBufferSize,
 		ChannelzParentID:      s.channelzID,
+		MaxHeaderListSize:     s.opts.maxHeaderListSize,
 	}
 	st, err := transport.NewServerTransport("http2", c, config)
 	if err != nil {
@@ -690,27 +696,6 @@ func (s *Server) serveStreams(st transport.ServerTransport) {
 }
 
 var _ http.Handler = (*Server)(nil)
-
-// serveUsingHandler is called from handleRawConn when s is configured
-// to handle requests via the http.Handler interface. It sets up a
-// net/http.Server to handle the just-accepted conn. The http.Server
-// is configured to route all incoming requests (all HTTP/2 streams)
-// to ServeHTTP, which creates a new ServerTransport for each stream.
-// serveUsingHandler blocks until conn closes.
-//
-// This codepath is only used when Server.TestingUseHandlerImpl has
-// been configured. This lets the end2end tests exercise the ServeHTTP
-// method as one of the environment types.
-//
-// conn is the *tls.Conn that's already been authenticated.
-func (s *Server) serveUsingHandler(conn net.Conn) {
-	h2s := &http2.Server{
-		MaxConcurrentStreams: s.opts.maxConcurrentStreams,
-	}
-	h2s.ServeConn(conn, &http2.ServeConnOpts{
-		Handler: s,
-	})
-}
 
 // ServeHTTP implements the Go standard library's http.Handler
 // interface by responding to the gRPC request r, by looking up
@@ -794,36 +779,26 @@ func (s *Server) removeConn(c io.Closer) {
 	}
 }
 
-// ChannelzMetric returns ServerInternalMetric of current server.
-// This is an EXPERIMENTAL API.
-func (s *Server) ChannelzMetric() *channelz.ServerInternalMetric {
-	s.czmu.RLock()
-	defer s.czmu.RUnlock()
+func (s *Server) channelzMetric() *channelz.ServerInternalMetric {
 	return &channelz.ServerInternalMetric{
-		CallsStarted:             s.callsStarted,
-		CallsSucceeded:           s.callsSucceeded,
-		CallsFailed:              s.callsFailed,
-		LastCallStartedTimestamp: s.lastCallStartedTime,
+		CallsStarted:             atomic.LoadInt64(&s.czData.callsStarted),
+		CallsSucceeded:           atomic.LoadInt64(&s.czData.callsSucceeded),
+		CallsFailed:              atomic.LoadInt64(&s.czData.callsFailed),
+		LastCallStartedTimestamp: time.Unix(0, atomic.LoadInt64(&s.czData.lastCallStartedTime)),
 	}
 }
 
 func (s *Server) incrCallsStarted() {
-	s.czmu.Lock()
-	s.callsStarted++
-	s.lastCallStartedTime = time.Now()
-	s.czmu.Unlock()
+	atomic.AddInt64(&s.czData.callsStarted, 1)
+	atomic.StoreInt64(&s.czData.lastCallStartedTime, time.Now().UnixNano())
 }
 
 func (s *Server) incrCallsSucceeded() {
-	s.czmu.Lock()
-	s.callsSucceeded++
-	s.czmu.Unlock()
+	atomic.AddInt64(&s.czData.callsSucceeded, 1)
 }
 
 func (s *Server) incrCallsFailed() {
-	s.czmu.Lock()
-	s.callsFailed++
-	s.czmu.Unlock()
+	atomic.AddInt64(&s.czData.callsFailed, 1)
 }
 
 func (s *Server) sendResponse(t transport.ServerTransport, stream *transport.Stream, msg interface{}, cp Compressor, opts *transport.Options, comp encoding.Compressor) error {
@@ -944,10 +919,6 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 			switch st := err.(type) {
 			case transport.ConnectionError:
 				// Nothing to do here.
-			case transport.StreamError:
-				if e := t.WriteStatus(stream, status.New(st.Code, st.Desc)); e != nil {
-					grpclog.Warningf("grpc: Server.processUnaryRPC failed to write status %v", e)
-				}
 			default:
 				panic(fmt.Sprintf("grpc: Unexpected error (%T) from recvMsg: %v", st, st))
 			}
@@ -1028,10 +999,7 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 	if trInfo != nil {
 		trInfo.tr.LazyLog(stringer("OK"), false)
 	}
-	opts := &transport.Options{
-		Last:  true,
-		Delay: false,
-	}
+	opts := &transport.Options{Last: true}
 
 	if err := s.sendResponse(t, stream, reply, cp, opts, comp); err != nil {
 		if err == io.EOF {
@@ -1046,10 +1014,6 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 			switch st := err.(type) {
 			case transport.ConnectionError:
 				// Nothing to do here.
-			case transport.StreamError:
-				if e := t.WriteStatus(stream, status.New(st.Code, st.Desc)); e != nil {
-					grpclog.Warningf("grpc: Server.processUnaryRPC failed to write status %v", e)
-				}
 			default:
 				panic(fmt.Sprintf("grpc: Unexpected error (%T) from sendResponse: %v", st, st))
 			}
@@ -1099,11 +1063,11 @@ func (s *Server) processStreamingRPC(t transport.ServerTransport, stream *transp
 	}
 	ctx := NewContextWithServerTransportStream(stream.Context(), stream)
 	ss := &serverStream{
-		ctx:   ctx,
-		t:     t,
-		s:     stream,
-		p:     &parser{r: stream},
-		codec: s.getCodec(stream.ContentSubtype()),
+		ctx:                   ctx,
+		t:                     t,
+		s:                     stream,
+		p:                     &parser{r: stream},
+		codec:                 s.getCodec(stream.ContentSubtype()),
 		maxReceiveMessageSize: s.opts.maxReceiveMessageSize,
 		maxSendMessageSize:    s.opts.maxSendMessageSize,
 		trInfo:                trInfo,
@@ -1169,12 +1133,7 @@ func (s *Server) processStreamingRPC(t transport.ServerTransport, stream *transp
 	if appErr != nil {
 		appStatus, ok := status.FromError(appErr)
 		if !ok {
-			switch err := appErr.(type) {
-			case transport.StreamError:
-				appStatus = status.New(err.Code, err.Desc)
-			default:
-				appStatus = status.New(codes.Unknown, appErr.Error())
-			}
+			appStatus = status.New(codes.Unknown, appErr.Error())
 			appErr = appStatus.Err()
 		}
 		if trInfo != nil {
@@ -1410,12 +1369,6 @@ func (s *Server) GracefulStop() {
 	s.mu.Unlock()
 }
 
-func init() {
-	internal.TestingUseHandlerImpl = func(arg interface{}) {
-		arg.(*Server).opts.useHandlerImpl = true
-	}
-}
-
 // contentSubtype must be lowercase
 // cannot return nil
 func (s *Server) getCodec(contentSubtype string) baseCodec {
@@ -1483,4 +1436,12 @@ func Method(ctx context.Context) (string, bool) {
 		return "", false
 	}
 	return s.Method(), true
+}
+
+type channelzServer struct {
+	s *Server
+}
+
+func (c *channelzServer) ChannelzMetric() *channelz.ServerInternalMetric {
+	return c.s.channelzMetric()
 }

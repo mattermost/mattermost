@@ -135,6 +135,20 @@ func (me *Session) GetUserRoles() []string {
 	return strings.Fields(me.Roles)
 }
 
+func (me *Session) GenerateCSRF() string {
+	token := NewId()
+	me.AddProp("csrf", token)
+	return token
+}
+
+func (me *Session) GetCSRF() string {
+	if me.Props == nil {
+		return ""
+	}
+
+	return me.Props["csrf"]
+}
+
 func SessionsToJson(o []*Session) string {
 	if b, err := json.Marshal(o); err != nil {
 		return "[]"

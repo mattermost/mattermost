@@ -223,8 +223,8 @@ func unpackUint48(msg []byte, off int) (i uint64, off1 int, err error) {
 		return 0, len(msg), &Error{err: "overflow unpacking uint64 as uint48"}
 	}
 	// Used in TSIG where the last 48 bits are occupied, so for now, assume a uint48 (6 bytes)
-	i = (uint64(uint64(msg[off])<<40 | uint64(msg[off+1])<<32 | uint64(msg[off+2])<<24 | uint64(msg[off+3])<<16 |
-		uint64(msg[off+4])<<8 | uint64(msg[off+5])))
+	i = uint64(uint64(msg[off])<<40 | uint64(msg[off+1])<<32 | uint64(msg[off+2])<<24 | uint64(msg[off+3])<<16 |
+		uint64(msg[off+4])<<8 | uint64(msg[off+5]))
 	off += 6
 	return i, off, nil
 }
@@ -363,7 +363,7 @@ func packStringHex(s string, msg []byte, off int) (int, error) {
 	if err != nil {
 		return len(msg), err
 	}
-	if off+(len(h)) > len(msg) {
+	if off+len(h) > len(msg) {
 		return len(msg), &Error{err: "overflow packing hex"}
 	}
 	copy(msg[off:off+len(h)], h)
@@ -603,7 +603,7 @@ func packDataNsec(bitmap []uint16, msg []byte, off int) (int, error) {
 		// Setting the octets length
 		msg[off+1] = byte(length)
 		// Setting the bit value for the type in the right octet
-		msg[off+1+int(length)] |= byte(1 << (7 - (t % 8)))
+		msg[off+1+int(length)] |= byte(1 << (7 - t%8))
 		lastwindow, lastlength = window, length
 	}
 	off += int(lastlength) + 2

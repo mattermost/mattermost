@@ -17,6 +17,7 @@ const (
 	JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION = "elasticsearch_post_aggregation"
 	JOB_TYPE_LDAP_SYNC                      = "ldap_sync"
 	JOB_TYPE_MIGRATIONS                     = "migrations"
+	JOB_TYPE_PLUGINS                        = "plugins"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"

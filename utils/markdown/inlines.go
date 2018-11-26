@@ -86,7 +86,19 @@ type Autolink struct {
 
 	Children []Inline
 
-	Link string
+	RawDestination Range
+
+	markdown string
+}
+
+func (i *Autolink) Destination() string {
+	destination := Unescape(i.markdown[i.RawDestination.Position:i.RawDestination.End])
+
+	if strings.HasPrefix(destination, "www") {
+		destination = "http://" + destination
+	}
+
+	return destination
 }
 
 type delimiterType int
@@ -254,7 +266,7 @@ func (p *inlineParser) parseLinkOrImageDelimiter() {
 	}
 }
 
-func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int) (destination, title Range, end int, ok bool) {
+func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int, isImage bool) (destination, title Range, end int, ok bool) {
 	if position >= len(p.raw) || p.raw[position] != '(' {
 		return
 	}
@@ -273,6 +285,23 @@ func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int) (destin
 	}
 	position = end
 
+	if isImage && position < len(p.raw) && isWhitespaceByte(p.raw[position]) {
+		dimensionsStart := nextNonWhitespace(p.raw, position)
+		if dimensionsStart >= len(p.raw) {
+			return
+		}
+
+		if p.raw[dimensionsStart] == '=' {
+			// Read optional image dimensions even if we don't use them
+			_, end, ok = parseImageDimensions(p.raw, dimensionsStart)
+			if !ok {
+				return
+			}
+
+			position = end
+		}
+	}
+
 	if position < len(p.raw) && isWhitespaceByte(p.raw[position]) {
 		titleStart := nextNonWhitespace(p.raw, position)
 		if titleStart >= len(p.raw) {
@@ -281,11 +310,13 @@ func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int) (destin
 			return destination, Range{titleStart, titleStart}, titleStart + 1, true
 		}
 
-		title, end, ok = parseLinkTitle(p.raw, titleStart)
-		if !ok {
-			return
+		if p.raw[titleStart] == '"' || p.raw[titleStart] == '\'' || p.raw[titleStart] == '(' {
+			title, end, ok = parseLinkTitle(p.raw, titleStart)
+			if !ok {
+				return
+			}
+			position = end
 		}
-		position = end
 	}
 
 	closingPosition := nextNonWhitespace(p.raw, position)
@@ -317,9 +348,11 @@ func (p *inlineParser) lookForLinkOrImage() {
 			break
 		}
 
+		isImage := d.Type == imageOpeningDelimiter
+
 		var inline Inline
 
-		if destination, title, next, ok := p.peekAtInlineLinkDestinationAndTitle(p.position + 1); ok {
+		if destination, title, next, ok := p.peekAtInlineLinkDestinationAndTitle(p.position+1, isImage); ok {
 			destinationMarkdownPosition := relativeToAbsolutePosition(p.ranges, destination.Position)
 			linkOrImage := InlineLinkOrImage{
 				Children:       append([]Inline(nil), p.inlines[d.TextNode+1:]...),
@@ -465,15 +498,18 @@ func (p *inlineParser) parseAutolink(c rune) bool {
 		}
 	}
 
-	link := ""
-	text := ""
+	var link Range
 	if c == ':' {
-		text = parseURLAutolink(p.raw, p.position)
-		link = text
+		var ok bool
+		link, ok = parseURLAutolink(p.raw, p.position)
+
+		if !ok {
+			return false
+		}
 
 		// Since the current position is at the colon, we have to rewind the parsing slightly so that
 		// we don't duplicate the URL scheme
-		rewind := strings.Index(text, ":")
+		rewind := strings.Index(p.raw[link.Position:link.End], ":")
 		if rewind != -1 {
 			lastInline := p.inlines[len(p.inlines)-1]
 			lastText, ok := lastInline.(*Text)
@@ -491,22 +527,30 @@ func (p *inlineParser) parseAutolink(c rune) bool {
 				Range: Range{lastText.Range.Position, lastText.Range.End - rewind},
 			})
 			p.position -= rewind
-
 		}
-	} else if c == 'w' {
-		text = parseWWWAutolink(p.raw, p.position)
-		link = "http://" + text
+	} else if c == 'w' || c == 'W' {
+		var ok bool
+		link, ok = parseWWWAutolink(p.raw, p.position)
+
+		if !ok {
+			return false
+		}
 	}
 
-	if text == "" {
-		return false
-	}
+	linkMarkdownPosition := relativeToAbsolutePosition(p.ranges, link.Position)
+	linkRange := Range{linkMarkdownPosition, linkMarkdownPosition + link.End - link.Position}
 
 	p.inlines = append(p.inlines, &Autolink{
-		Link:     link,
-		Children: []Inline{&Text{Text: text}},
+		Children: []Inline{
+			&Text{
+				Text:  p.raw[link.Position:link.End],
+				Range: linkRange,
+			},
+		},
+		RawDestination: linkRange,
+		markdown:       p.markdown,
 	})
-	p.position += len(text)
+	p.position += (link.End - link.Position)
 
 	return true
 }

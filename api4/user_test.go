@@ -12,12 +12,13 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -69,6 +70,11 @@ func TestCreateUser(t *testing.T) {
 	CheckErrorMessage(t, resp, "model.user.is_valid.email.app_error")
 	CheckBadRequestStatus(t, resp)
 
+	ruser.Username = "testinvalid+++"
+	_, resp = Client.CreateUser(ruser)
+	CheckErrorMessage(t, resp, "model.user.is_valid.username.app_error")
+	CheckBadRequestStatus(t, resp)
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
@@ -88,7 +94,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestCreateUserWithToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -227,7 +233,7 @@ func TestCreateUserWithToken(t *testing.T) {
 }
 
 func TestCreateUserWithInviteId(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -259,7 +265,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, resp := Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotFoundStatus(t, resp)
-		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.find.app_error")
+		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.finding.app_error")
 	})
 
 	t.Run("NoInviteId", func(t *testing.T) {
@@ -281,7 +287,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, resp = Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotFoundStatus(t, resp)
-		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.find.app_error")
+		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.finding.app_error")
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
@@ -348,7 +354,7 @@ func TestGetMe(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -406,7 +412,7 @@ func TestGetUser(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUser(user.Id, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUser(user.Id, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -419,7 +425,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUserByUsername(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -474,7 +480,7 @@ func TestGetUserByUsername(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -487,7 +493,7 @@ func TestGetUserByUsername(t *testing.T) {
 }
 
 func TestGetUserByEmail(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -539,7 +545,7 @@ func TestGetUserByEmail(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	ruser, resp = th.SystemAdminClient.GetUserByEmail(user.Email, resp.Etag)
+	ruser, _ = th.SystemAdminClient.GetUserByEmail(user.Email, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -552,7 +558,7 @@ func TestGetUserByEmail(t *testing.T) {
 }
 
 func TestSearchUsers(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -742,7 +748,7 @@ func findUserInList(id string, users []*model.User) bool {
 }
 
 func TestAutocompleteUsers(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
@@ -754,92 +760,92 @@ func TestAutocompleteUsers(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
 	}()
 
-	rusers, resp := Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	rusers, resp := Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 user")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, "amazonses", "")
+	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, "amazonses", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, "", "")
+	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) < 2 {
 		t.Fatal("should have many users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInChannel("", channelId, "", "")
+	rusers, resp = Client.AutocompleteUsersInChannel("", channelId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) < 2 {
 		t.Fatal("should have many users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
+	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 user")
 	}
 
-	rusers, resp = Client.AutocompleteUsers(username, "")
+	rusers, resp = Client.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 users")
 	}
 
-	rusers, resp = Client.AutocompleteUsers("", "")
+	rusers, resp = Client.AutocompleteUsers("", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) < 2 {
 		t.Fatal("should have returned many users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInTeam(teamId, "amazonses", "")
+	rusers, resp = Client.AutocompleteUsersInTeam(teamId, "amazonses", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInTeam(teamId, "", "")
+	rusers, resp = Client.AutocompleteUsersInTeam(teamId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 	if len(rusers.Users) < 2 {
 		t.Fatal("should have many users")
 	}
 
 	Client.Logout()
-	_, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	_, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
+	_, resp = Client.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.AutocompleteUsers(username, "")
+	_, resp = Client.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
-	_, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	_, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
+	_, resp = Client.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.AutocompleteUsers(username, "")
+	_, resp = Client.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	_, resp = th.SystemAdminClient.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.AutocompleteUsersInTeam(teamId, username, "")
+	_, resp = th.SystemAdminClient.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.AutocompleteUsers(username, "")
+	_, resp = th.SystemAdminClient.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	// Check against privacy config settings
@@ -847,30 +853,35 @@ func TestAutocompleteUsers(t *testing.T) {
 
 	th.LoginBasic()
 
-	rusers, resp = Client.AutocompleteUsers(username, "")
+	rusers, resp = Client.AutocompleteUsers(username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
 		t.Fatal("should not show first/last name")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, "")
+	rusers, resp = Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
 		t.Fatal("should not show first/last name")
 	}
 
-	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
+	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
 
 	if rusers.Users[0].FirstName != "" || rusers.Users[0].LastName != "" {
 		t.Fatal("should not show first/last name")
 	}
+
+	t.Run("user must have access to team id, especially when it does not match channel's team id", func(t *testing.T) {
+		rusers, resp = Client.AutocompleteUsersInChannel("otherTeamId", channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+	})
 }
 
 func TestGetProfileImage(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -974,7 +985,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 }
 
 func TestGetTotalUsersStat(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -989,7 +1000,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1054,7 +1065,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestPatchUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1150,7 +1161,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateUserAuth(t *testing.T) {
-	th := Setup().InitSystemAdmin().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	Client := th.SystemAdminClient
@@ -1192,7 +1203,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = ""
 	userAuth.Password = "1"
-	if _, err := Client.UpdateUserAuth(user.Id, userAuth); err == nil {
+	if _, err := th.Client.UpdateUserAuth(user.Id, userAuth); err == nil {
 		t.Fatal("Should have errored - user password not valid")
 	}
 
@@ -1212,7 +1223,7 @@ func TestUpdateUserAuth(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -1244,7 +1255,7 @@ func TestDeleteUser(t *testing.T) {
 }
 
 func TestUpdateUserRoles(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -1299,7 +1310,7 @@ func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSoc
 
 func TestUpdateUserActive(t *testing.T) {
 	t.Run("basic tests", func(t *testing.T) {
-		th := Setup().InitBasic().InitSystemAdmin()
+		th := Setup().InitBasic()
 		defer th.TearDown()
 
 		Client := th.Client
@@ -1366,7 +1377,7 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 
 	t.Run("websocket events", func(t *testing.T) {
-		th := Setup().InitBasic().InitSystemAdmin()
+		th := Setup().InitBasic()
 		defer th.TearDown()
 
 		SystemAdminClient := th.SystemAdminClient
@@ -1525,7 +1536,7 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 }
 
 func TestGetUsersWithoutTeam(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
@@ -1575,7 +1586,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 }
 
 func TestGetUsersInTeam(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
@@ -1621,7 +1632,7 @@ func TestGetUsersInTeam(t *testing.T) {
 }
 
 func TestGetUsersNotInTeam(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
@@ -1631,27 +1642,22 @@ func TestGetUsersNotInTeam(t *testing.T) {
 	for _, u := range rusers {
 		CheckUserSanitization(t, u)
 	}
+	require.Len(t, rusers, 1, "should be 1 user in total")
 
 	rusers, resp = Client.GetUsersNotInTeam(teamId, 0, 60, resp.Etag)
 	CheckEtag(t, rusers, resp)
 
 	rusers, resp = Client.GetUsersNotInTeam(teamId, 0, 1, "")
 	CheckNoError(t, resp)
-	if len(rusers) != 1 {
-		t.Fatal("should be 1 per page")
-	}
+	require.Len(t, rusers, 1, "should be 1 per page")
 
 	rusers, resp = Client.GetUsersNotInTeam(teamId, 1, 1, "")
 	CheckNoError(t, resp)
-	if len(rusers) != 1 {
-		t.Fatal("should be 1 per page")
-	}
+	require.Len(t, rusers, 0, "should be no users")
 
 	rusers, resp = Client.GetUsersNotInTeam(teamId, 10000, 100, "")
 	CheckNoError(t, resp)
-	if len(rusers) != 0 {
-		t.Fatal("should be no users")
-	}
+	require.Len(t, rusers, 0, "should be no users")
 
 	Client.Logout()
 	_, resp = Client.GetUsersNotInTeam(teamId, 0, 60, "")
@@ -1667,7 +1673,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 }
 
 func TestGetUsersInChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channelId := th.BasicChannel.Id
@@ -1710,7 +1716,7 @@ func TestGetUsersInChannel(t *testing.T) {
 }
 
 func TestGetUsersNotInChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
@@ -1751,7 +1757,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 }
 
 func TestUpdateUserMfa(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1767,7 +1773,7 @@ func TestUpdateUserMfa(t *testing.T) {
 }
 
 func TestCheckUserMfa(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1813,7 +1819,7 @@ func TestCheckUserMfa(t *testing.T) {
 }
 
 func TestGenerateMfaSecret(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1846,7 +1852,7 @@ func TestGenerateMfaSecret(t *testing.T) {
 }
 
 func TestUpdateUserPassword(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1915,11 +1921,12 @@ func TestUpdateUserPassword(t *testing.T) {
 
 /*func TestResetPassword(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 	Client := th.Client
 	Client.Logout()
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
-	utils.DeleteMailBox(user.Email)
+	mailservice.DeleteMailBox(user.Email)
 	success, resp := Client.SendPasswordResetEmail(user.Email)
 	CheckNoError(t, resp)
 	if !success {
@@ -1934,10 +1941,10 @@ func TestUpdateUserPassword(t *testing.T) {
 		t.Fatal("should have succeeded")
 	}
 	// Check if the email was send to the right email address and the recovery key match
-	var resultsMailbox utils.JSONMessageHeaderInbucket
-	err := utils.RetryInbucket(5, func() error {
+	var resultsMailbox mailservice.JSONMessageHeaderInbucket
+	err := mailservice.RetryInbucket(5, func() error {
 		var err error
-		resultsMailbox, err = utils.GetMailBox(user.Email)
+		resultsMailbox, err = mailservice.GetMailBox(user.Email)
 		return err
 	})
 	if err != nil {
@@ -1949,7 +1956,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		if !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			if resultsEmail, err := utils.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
+			if resultsEmail, err := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
 				loc := strings.Index(resultsEmail.Body.Text, "token=")
 				if loc == -1 {
 					t.Log(resultsEmail.Body.Text)
@@ -1999,7 +2006,7 @@ func TestUpdateUserPassword(t *testing.T) {
 }*/
 
 func TestGetSessions(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2039,7 +2046,7 @@ func TestGetSessions(t *testing.T) {
 }
 
 func TestRevokeSessions(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2112,8 +2119,6 @@ func TestRevokeAllSessions(t *testing.T) {
 	_, resp := Client.RevokeAllSessions(th.BasicUser2.Id)
 	CheckForbiddenStatus(t, resp)
 
-	th.InitSystemAdmin()
-
 	_, resp = Client.RevokeAllSessions("junk" + user.Id)
 	CheckBadRequestStatus(t, resp)
 
@@ -2177,7 +2182,7 @@ func TestAttachDeviceId(t *testing.T) {
 }
 
 func TestGetUserAudits(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -2208,14 +2213,14 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
-	ruser, resp := Client.CreateUser(&user)
+	ruser, _ := Client.CreateUser(&user)
 
 	token, err := th.App.CreateVerifyEmailToken(ruser.Id)
 	if err != nil {
 		t.Fatal("Unable to create email verify token")
 	}
 
-	_, resp = Client.VerifyUserEmail(token.Token)
+	_, resp := Client.VerifyUserEmail(token.Token)
 	CheckNoError(t, resp)
 
 	_, resp = Client.VerifyUserEmail(GenerateTestId())
@@ -2250,12 +2255,12 @@ func TestSendVerificationEmail(t *testing.T) {
 }
 
 func TestSetProfileImage(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
 
-	data, err := readTestFile("test.png")
+	data, err := testutils.ReadTestFile("test.png")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2299,6 +2304,50 @@ func TestSetProfileImage(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSetDefaultProfileImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
+
+	ok, resp := Client.SetDefaultProfileImage(user.Id)
+	if !ok {
+		t.Fatal(resp.Error)
+	}
+	CheckNoError(t, resp)
+
+	ok, resp = Client.SetDefaultProfileImage(model.NewId())
+	if ok {
+		t.Fatal("Should return false, set profile image not allowed")
+	}
+	CheckForbiddenStatus(t, resp)
+
+	// status code returns either forbidden or unauthorized
+	// note: forbidden is set as default at Client4.SetDefaultProfileImage when request is terminated early by server
+	Client.Logout()
+	_, resp = Client.SetDefaultProfileImage(user.Id)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	_, resp = th.SystemAdminClient.SetDefaultProfileImage(user.Id)
+	CheckNoError(t, resp)
+
+	ruser, err := th.App.GetUser(user.Id)
+	require.Nil(t, err)
+	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have resetted to default")
+
+	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
+	if err := th.cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCBALogin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -2329,7 +2378,7 @@ func TestCBALogin(t *testing.T) {
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, "")
+	user, _ = Client.Login(th.BasicUser.Email, "")
 	if !(user != nil && user.Email == th.BasicUser.Email) {
 		t.Fatal("Should have been able to login")
 	}
@@ -2340,20 +2389,20 @@ func TestCBALogin(t *testing.T) {
 	})
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, "")
+	user, _ = Client.Login(th.BasicUser.Email, "")
 	if resp.Error.StatusCode != 400 && user == nil {
 		t.Fatal("Should have failed because password is required")
 	}
 
 	Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, resp = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	user, _ = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	if !(user != nil && user.Email == th.BasicUser.Email) {
 		t.Fatal("Should have been able to login")
 	}
 }
 
 func TestSwitchAccount(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2481,7 +2530,7 @@ func TestSwitchAccount(t *testing.T) {
 }
 
 func TestCreateUserAccessToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -2562,7 +2611,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 }
 
 func TestGetUserAccessToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -2597,7 +2646,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	_, resp = AdminClient.GetUserAccessToken(token.Id)
 	CheckNoError(t, resp)
 
-	token, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
 	rtokens, resp := Client.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)
@@ -2646,7 +2695,7 @@ func TestGetUserAccessToken(t *testing.T) {
 }
 
 func TestSearchUserAccessToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -2692,7 +2741,7 @@ func TestSearchUserAccessToken(t *testing.T) {
 }
 
 func TestRevokeUserAccessToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -2736,7 +2785,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 }
 
 func TestDisableUserAccessToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -2780,7 +2829,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 }
 
 func TestEnableUserAccessToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2822,7 +2871,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 }
 
 func TestUserAccessTokenInactiveUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2845,7 +2894,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 }
 
 func TestUserAccessTokenDisableConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -3013,4 +3062,52 @@ func TestGetUsersByStatus(t *testing.T) {
 			t.Fatal("expected to receive offline users last")
 		}
 	})
+}
+
+func TestRegisterTermsOfServiceAction(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	success, resp := Client.RegisterTermsOfServiceAction(th.BasicUser.Id, "st_1", true)
+	CheckErrorMessage(t, resp, "store.sql_terms_of_service_store.get.no_rows.app_error")
+
+	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	success, resp = Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
+	CheckNoError(t, resp)
+
+	assert.True(t, *success)
+	_, err = th.App.GetUser(th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGetUserTermsOfService(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	_, resp := Client.GetUserTermsOfService(th.BasicUser.Id, "")
+	CheckErrorMessage(t, resp, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error")
+
+	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	success, resp := Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
+	CheckNoError(t, resp)
+	assert.True(t, *success)
+
+	userTermsOfService, resp := Client.GetUserTermsOfService(th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+
+	assert.Equal(t, th.BasicUser.Id, userTermsOfService.UserId)
+	assert.Equal(t, termsOfService.Id, userTermsOfService.TermsOfServiceId)
+	assert.NotEmpty(t, userTermsOfService.CreateAt)
 }

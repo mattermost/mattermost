@@ -4,12 +4,15 @@
 package app
 
 import (
+	"fmt"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -98,7 +101,7 @@ func TestMoveChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser); err == nil {
+	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser, false); err == nil {
 		t.Fatal("Should have failed due to mismatched members.")
 	}
 
@@ -106,9 +109,52 @@ func TestMoveChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser); err != nil {
+	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser, false); err != nil {
 		t.Fatal(err)
 	}
+
+	// Test moving a channel with a deactivated user who isn't in the destination team.
+	// It should fail, unless removeDeactivatedMembers is true.
+	deacivatedUser := th.CreateUser()
+	channel2 := th.CreateChannel(sourceTeam)
+
+	if _, err := th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := th.App.AddUserToChannel(th.BasicUser, channel2); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := th.App.AddUserToChannel(deacivatedUser, channel2); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := th.App.UpdateActive(deacivatedUser, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := th.App.MoveChannel(targetTeam, channel2, th.BasicUser, false); err == nil {
+		t.Fatal("Should have failed due to mismatched deacivated member.")
+	}
+
+	if err := th.App.MoveChannel(targetTeam, channel2, th.BasicUser, true); err != nil {
+		t.Fatal(err)
+	}
+
+	// Test moving a channel with no members.
+	channel3 := &model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      sourceTeam.Id,
+		CreatorId:   th.BasicUser.Id,
+	}
+
+	var err *model.AppError
+	channel3, err = th.App.CreateChannel(channel3, false)
+	require.Nil(t, err)
+
+	err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser, false)
+	assert.Nil(t, err)
 }
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {
@@ -175,7 +221,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
 
 	for _, channelName := range defaultChannelList {
-		channel, err := th.App.GetChannelByName(channelName, th.BasicTeam.Id)
+		channel, err := th.App.GetChannelByName(channelName, th.BasicTeam.Id, false)
 
 		if err != nil {
 			t.Errorf("Expected nil, got %s", err)
@@ -389,7 +435,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
 	userRequestorId := ""
 	postRootId := ""
-	if _, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId); err != nil {
+	if _, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId, false); err != nil {
 		t.Fatal("Failed to add user to channel. Error: " + err.Message)
 	}
 
@@ -640,12 +686,125 @@ func TestRenameChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
-
-	channel, err := th.App.RenameChannel(channel, "newchannelname", "New Display Name")
-	if err != nil {
-		t.Fatal("Failed to update channel name. Error: " + err.Error())
+	testCases := []struct {
+		Name                string
+		Channel             *model.Channel
+		ExpectError         bool
+		ExpectedName        string
+		ExpectedDisplayName string
+	}{
+		{
+			"Rename open channel",
+			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
+			false,
+			"newchannelname",
+			"New Display Name",
+		},
+		{
+			"Fail on rename direct message channel",
+			th.CreateDmChannel(th.BasicUser2),
+			true,
+			"",
+			"",
+		},
+		{
+			"Fail on rename direct message channel",
+			th.CreateGroupChannel(th.BasicUser2, th.CreateUser()),
+			true,
+			"",
+			"",
+		},
 	}
-	assert.Equal(t, "newchannelname", channel.Name)
-	assert.Equal(t, "New Display Name", channel.DisplayName)
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			channel, err := th.App.RenameChannel(tc.Channel, "newchannelname", "New Display Name")
+			if tc.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Equal(t, tc.ExpectedName, channel.Name)
+				assert.Equal(t, tc.ExpectedDisplayName, channel.DisplayName)
+			}
+		})
+	}
+}
+
+func TestGetChannelMembersTimezones(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	userRequestorId := ""
+	postRootId := ""
+	if _, err := th.App.AddChannelMember(th.BasicUser2.Id, th.BasicChannel, userRequestorId, postRootId, false); err != nil {
+		t.Fatal("Failed to add user to channel. Error: " + err.Message)
+	}
+
+	user := th.BasicUser
+	user.Timezone["useAutomaticTimezone"] = "false"
+	user.Timezone["manualTimezone"] = "XOXO/BLABLA"
+	th.App.UpdateUser(user, false)
+
+	user2 := th.BasicUser2
+	user2.Timezone["automaticTimezone"] = "NoWhere/Island"
+	th.App.UpdateUser(user2, false)
+
+	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ := th.App.CreateUser(&user3)
+	th.App.AddUserToChannel(ruser, th.BasicChannel)
+
+	ruser.Timezone["automaticTimezone"] = "NoWhere/Island"
+	th.App.UpdateUser(ruser, false)
+
+	user4 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ = th.App.CreateUser(&user4)
+	th.App.AddUserToChannel(ruser, th.BasicChannel)
+
+	timezones, err := th.App.GetChannelMembersTimezones(th.BasicChannel.Id)
+	if err != nil {
+		t.Fatal("Failed to get the timezones for a channel. Error: " + err.Error())
+	}
+	assert.Equal(t, 2, len(timezones))
+}
+
+func TestGetPublicChannelsForTeam(t *testing.T) {
+	th := Setup()
+	team := th.CreateTeam()
+	defer th.TearDown()
+
+	var expectedChannels []*model.Channel
+
+	townSquare, err := th.App.GetChannelByName("town-square", team.Id, false)
+	require.Nil(t, err)
+	require.NotNil(t, townSquare)
+	expectedChannels = append(expectedChannels, townSquare)
+
+	offTopic, err := th.App.GetChannelByName("off-topic", team.Id, false)
+	require.Nil(t, err)
+	require.NotNil(t, offTopic)
+	expectedChannels = append(expectedChannels, offTopic)
+
+	for i := 0; i < 8; i++ {
+		channel := model.Channel{
+			DisplayName: fmt.Sprintf("Public %v", i),
+			Name:        fmt.Sprintf("public_%v", i),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		rchannel, err := th.App.CreateChannel(&channel, false)
+		require.Nil(t, err)
+		require.NotNil(t, rchannel)
+		defer th.App.PermanentDeleteChannel(rchannel)
+
+		// Store the user ids for comparison later
+		expectedChannels = append(expectedChannels, rchannel)
+	}
+
+	// Fetch public channels multipile times
+	channelList, err := th.App.GetPublicChannelsForTeam(team.Id, 0, 5)
+	require.Nil(t, err)
+	channelList2, err := th.App.GetPublicChannelsForTeam(team.Id, 5, 5)
+	require.Nil(t, err)
+
+	channels := append(*channelList, *channelList2...)
+	assert.ElementsMatch(t, expectedChannels, channels)
 }

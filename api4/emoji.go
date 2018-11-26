@@ -92,9 +92,9 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(newEmoji.ToJson()))
 	}
+
+	w.Write([]byte(newEmoji.ToJson()))
 }
 
 func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -113,9 +113,9 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.EmojiListToJson(listEmoji)))
 	}
+
+	w.Write([]byte(model.EmojiListToJson(listEmoji)))
 }
 
 func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -173,9 +173,9 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else {
-		ReturnStatusOK(w)
 	}
+
+	ReturnStatusOK(w)
 }
 
 func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -193,9 +193,9 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(emoji.ToJson()))
 	}
+
+	w.Write([]byte(emoji.ToJson()))
 }
 
 func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -208,9 +208,9 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(emoji.ToJson()))
 	}
+
+	w.Write([]byte(emoji.ToJson()))
 }
 
 func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -256,9 +256,9 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.EmojiListToJson(emojis)))
 	}
+
+	w.Write([]byte(model.EmojiListToJson(emojis)))
 }
 
 func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -273,7 +273,7 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.EmojiListToJson(emojis)))
 	}
+
+	w.Write([]byte(model.EmojiListToJson(emojis)))
 }

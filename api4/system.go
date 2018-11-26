@@ -12,7 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/services/filesstore"
 )
 
 func (api *API) InitSystem() {
@@ -40,6 +40,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.ApiRoot.Handle("/analytics/old", api.ApiSessionRequired(getAnalytics)).Methods("GET")
+
+	api.BaseRoutes.ApiRoot.Handle("/redirect_location", api.ApiSessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -251,7 +253,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var config map[string]string
-	if *c.App.Config().ServiceSettings.ExperimentalLimitClientConfig && len(c.Session.UserId) == 0 {
+	if len(c.Session.UserId) == 0 {
 		config = c.App.LimitedClientConfigWithComputed()
 	} else {
 		config = c.App.ClientConfigWithComputed()
@@ -341,20 +343,21 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	if license, err := c.App.SaveLicense(buf.Bytes()); err != nil {
-		if err.Id == model.EXPIRED_LICENSE_ERROR {
+	license, appErr := c.App.SaveLicense(buf.Bytes())
+	if appErr != nil {
+		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
 			c.LogAudit("failed - expired or non-started license")
-		} else if err.Id == model.INVALID_LICENSE_ERROR {
+		} else if appErr.Id == model.INVALID_LICENSE_ERROR {
 			c.LogAudit("failed - invalid license")
 		} else {
 			c.LogAudit("failed - unable to save license")
 		}
-		c.Err = err
+		c.Err = appErr
 		return
-	} else {
-		c.LogAudit("success")
-		w.Write([]byte(license.ToJson()))
 	}
+
+	c.LogAudit("success")
+	w.Write([]byte(license.ToJson()))
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -424,7 +427,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := utils.CheckMandatoryS3Fields(&cfg.FileSettings)
+	err := filesstore.CheckMandatoryS3Fields(&cfg.FileSettings)
 	if err != nil {
 		c.Err = err
 		return
@@ -435,7 +438,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	license := c.App.License()
-	backend, appErr := utils.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
+	backend, appErr := filesstore.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
 	if appErr == nil {
 		appErr = backend.TestConnection()
 	}
@@ -445,4 +448,38 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
+	m := make(map[string]string)
+	m["location"] = ""
+	cfg := c.App.GetConfig()
+	if !*cfg.ServiceSettings.EnableLinkPreviews {
+		w.Write([]byte(model.MapToJson(m)))
+		return
+	}
+	url := r.URL.Query().Get("url")
+	if len(url) == 0 {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	res, err := client.Head(url)
+	if err != nil {
+		// Always return a success status and a JSON string to limit the amount of information returned to a
+		// hacker attempting to use Mattermost to probe a private network.
+		w.Write([]byte(model.MapToJson(m)))
+		return
+	}
+
+	m["location"] = res.Header.Get("Location")
+
+	w.Write([]byte(model.MapToJson(m)))
+	return
 }

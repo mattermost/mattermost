@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -25,9 +26,7 @@ func testSystemStore(t *testing.T, ss store.Store) {
 	result := <-ss.System().Get()
 	systems := result.Data.(model.StringMap)
 
-	if systems[system.Name] != system.Value {
-		t.Fatal()
-	}
+	require.Equal(t, system.Value, systems[system.Name])
 
 	system.Value = "value2"
 	store.Must(ss.System().Update(system))
@@ -35,15 +34,11 @@ func testSystemStore(t *testing.T, ss store.Store) {
 	result2 := <-ss.System().Get()
 	systems2 := result2.Data.(model.StringMap)
 
-	if systems2[system.Name] != system.Value {
-		t.Fatal()
-	}
+	require.Equal(t, system.Value, systems2[system.Name])
 
 	result3 := <-ss.System().GetByName(system.Name)
 	rsystem := result3.Data.(*model.System)
-	if rsystem.Value != system.Value {
-		t.Fatal()
-	}
+	require.Equal(t, system.Value, rsystem.Value)
 }
 
 func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {

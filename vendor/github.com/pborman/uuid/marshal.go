@@ -7,6 +7,8 @@ package uuid
 import (
 	"errors"
 	"fmt"
+
+	guuid "github.com/google/uuid"
 )
 
 // MarshalText implements encoding.TextMarshaler.
@@ -60,11 +62,11 @@ func (u Array) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (u *Array) UnmarshalText(data []byte) error {
-	id := Parse(string(data))
-	if id == nil {
-		return errors.New("invalid UUID")
+	id, err := guuid.ParseBytes(data)
+	if err != nil {
+		return err
 	}
-	*u = id.Array()
+	*u = Array(id)
 	return nil
 }
 

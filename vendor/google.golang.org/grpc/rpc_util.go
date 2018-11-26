@@ -36,11 +36,11 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/encoding/proto"
+	"google.golang.org/grpc/internal/transport"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/stats"
 	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/transport"
 )
 
 // Compressor defines the interface gRPC uses to compress a message.
@@ -156,16 +156,19 @@ type callInfo struct {
 	compressorType        string
 	failFast              bool
 	stream                *clientStream
-	traceInfo             traceInfo // in trace.go
 	maxReceiveMessageSize *int
 	maxSendMessageSize    *int
 	creds                 credentials.PerRPCCredentials
 	contentSubtype        string
 	codec                 baseCodec
+	maxRetryRPCBufferSize int
 }
 
 func defaultCallInfo() *callInfo {
-	return &callInfo{failFast: true}
+	return &callInfo{
+		failFast:              true,
+		maxRetryRPCBufferSize: 256 * 1024, // 256KB
+	}
 }
 
 // CallOption configures a Call before it starts or extracts information from
@@ -415,6 +418,27 @@ func (o CustomCodecCallOption) before(c *callInfo) error {
 }
 func (o CustomCodecCallOption) after(c *callInfo) {}
 
+// MaxRetryRPCBufferSize returns a CallOption that limits the amount of memory
+// used for buffering this RPC's requests for retry purposes.
+//
+// This API is EXPERIMENTAL.
+func MaxRetryRPCBufferSize(bytes int) CallOption {
+	return MaxRetryRPCBufferSizeCallOption{bytes}
+}
+
+// MaxRetryRPCBufferSizeCallOption is a CallOption indicating the amount of
+// memory to be used for caching this RPC for retry purposes.
+// This is an EXPERIMENTAL API.
+type MaxRetryRPCBufferSizeCallOption struct {
+	MaxRetryRPCBufferSize int
+}
+
+func (o MaxRetryRPCBufferSizeCallOption) before(c *callInfo) error {
+	c.maxRetryRPCBufferSize = o.MaxRetryRPCBufferSize
+	return nil
+}
+func (o MaxRetryRPCBufferSizeCallOption) after(c *callInfo) {}
+
 // The format of the payload: compressed or not?
 type payloadFormat uint8
 
@@ -444,7 +468,7 @@ type parser struct {
 //   * io.EOF, when no messages remain
 //   * io.ErrUnexpectedEOF
 //   * of type transport.ConnectionError
-//   * of type transport.StreamError
+//   * an error from the status package
 // No other error values or types must be returned, which also means
 // that the underlying io.Reader must not return an incompatible
 // error.
@@ -722,6 +746,19 @@ func parseDialTarget(target string) (net string, addr string) {
 	}
 
 	return net, target
+}
+
+// channelzData is used to store channelz related data for ClientConn, addrConn and Server.
+// These fields cannot be embedded in the original structs (e.g. ClientConn), since to do atomic
+// operation on int64 variable on 32-bit machine, user is responsible to enforce memory alignment.
+// Here, by grouping those int64 fields inside a struct, we are enforcing the alignment.
+type channelzData struct {
+	callsStarted   int64
+	callsFailed    int64
+	callsSucceeded int64
+	// lastCallStartedTime stores the timestamp that last call starts. It is of int64 type instead of
+	// time.Time since it's more costly to atomically update time.Time variable than int64 variable.
+	lastCallStartedTime int64
 }
 
 // The SupportPackageIsVersion variables are referenced from generated protocol

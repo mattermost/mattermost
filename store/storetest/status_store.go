@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -103,9 +104,7 @@ func testActiveUserCount(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	} else {
 		count := result.Data.(int64)
-		if count <= 0 {
-			t.Fatal()
-		}
+		require.True(t, count > 0, "expected count > 0, got %d", count)
 	}
 }
 
@@ -125,7 +124,7 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 	team1 := model.Team{}
 	team1.DisplayName = model.NewId()
 	team1.Name = model.NewId()
-	team1.Email = model.NewId() + "@example.com"
+	team1.Email = MakeEmail()
 	team1.Type = model.TEAM_OPEN
 
 	if err := (<-ss.Team().Save(&team1)).Err; err != nil {
@@ -135,7 +134,7 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 	team2 := model.Team{}
 	team2.DisplayName = model.NewId()
 	team2.Name = model.NewId()
-	team2.Email = model.NewId() + "@example.com"
+	team2.Email = MakeEmail()
 	team2.Type = model.TEAM_OPEN
 
 	if err := (<-ss.Team().Save(&team2)).Err; err != nil {

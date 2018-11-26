@@ -85,7 +85,7 @@ func (o *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.CreatorId) != 26 {
+	if len(o.CreatorId) != 26 && o.CreatorId != "nouser" {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 

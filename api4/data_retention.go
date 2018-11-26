@@ -12,13 +12,13 @@ func (api *API) InitDataRetention() {
 }
 
 func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	// No permission check required.
 
-	if policy, err := c.App.GetDataRetentionPolicy(); err != nil {
+	policy, err := c.App.GetDataRetentionPolicy()
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(policy.ToJson()))
 	}
+
+	w.Write([]byte(policy.ToJson()))
 }

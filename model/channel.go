@@ -29,6 +29,9 @@ const (
 	CHANNEL_HEADER_MAX_RUNES       = 1024
 	CHANNEL_PURPOSE_MAX_RUNES      = 250
 	CHANNEL_CACHE_SIZE             = 25000
+
+	CHANNEL_SORT_BY_USERNAME = "username"
+	CHANNEL_SORT_BY_STATUS   = "status"
 )
 
 type Channel struct {
@@ -57,8 +60,17 @@ type ChannelPatch struct {
 	Purpose     *string `json:"purpose"`
 }
 
+type ChannelForExport struct {
+	Channel
+	TeamName   string
+	SchemeName *string
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
+	if copy.SchemeId != nil {
+		copy.SchemeId = NewString(*o.SchemeId)
+	}
 	return &copy
 }
 

@@ -9,19 +9,6 @@ import (
 	"io"
 )
 
-type rwc struct {
-	io.ReadCloser
-	io.WriteCloser
-}
-
-func (rwc *rwc) Close() (err error) {
-	err = rwc.WriteCloser.Close()
-	if rerr := rwc.ReadCloser.Close(); err == nil {
-		err = rerr
-	}
-	return
-}
-
 type remoteIOReader struct {
 	conn io.ReadWriteCloser
 }

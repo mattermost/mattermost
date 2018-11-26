@@ -6,7 +6,6 @@ package api4
 import (
 	"net/http"
 
-	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -25,22 +24,6 @@ func (api *API) InitOpenGraph() {
 			openGraphDataCache.Purge()
 		}
 	})
-}
-
-func OpenGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxyURL func(string) string) *opengraph.OpenGraph {
-	for _, image := range ogdata.Images {
-		var url string
-		if image.SecureURL != "" {
-			url = image.SecureURL
-		} else {
-			url = image.URL
-		}
-
-		image.URL = ""
-		image.SecureURL = toProxyURL(url)
-	}
-
-	return ogdata
 }
 
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -65,12 +48,6 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	og := c.App.GetOpenGraphMetadata(url)
-
-	// If image proxy enabled modify open graph data to feed though proxy
-	if toProxyURL := c.App.ImageProxyAdder(); toProxyURL != nil {
-		og = OpenGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
-	}
-
 	ogJSON, err := og.ToJSON()
 	openGraphDataCache.AddWithExpiresInSecs(props["url"], ogJSON, 3600) // Cache would expire after 1 hour
 	if err != nil {

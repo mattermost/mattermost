@@ -5,17 +5,19 @@ package plugin
 
 import (
 	"fmt"
+	"hash/fnv"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
 )
 
 type apiImplCreatorFunc func(*model.Manifest) API
-type supervisorCreatorFunc func(*model.BundleInfo, *mlog.Logger, API) (*supervisor, error)
 
 // multiPluginHookRunnerFunc is a callback function to invoke as part of RunMultiPluginHook.
 //
@@ -34,8 +36,7 @@ type activePlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	activePlugins   map[string]activePlugin
-	mutex           sync.RWMutex
+	activePlugins   sync.Map
 	logger          *mlog.Logger
 	newAPIImpl      apiImplCreatorFunc
 	pluginDir       string
@@ -44,7 +45,6 @@ type Environment struct {
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
 	return &Environment{
-		activePlugins:   make(map[string]activePlugin),
 		logger:          logger,
 		newAPIImpl:      newAPIImpl,
 		pluginDir:       pluginDir,
@@ -83,28 +83,24 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 
 // Returns a list of all currently active plugins within the environment.
 func (env *Environment) Active() []*model.BundleInfo {
-	env.mutex.RLock()
-	defer env.mutex.RUnlock()
-
 	activePlugins := []*model.BundleInfo{}
-	for _, p := range env.activePlugins {
-		activePlugins = append(activePlugins, p.BundleInfo)
-	}
+	env.activePlugins.Range(func(key, value interface{}) bool {
+		activePlugins = append(activePlugins, value.(activePlugin).BundleInfo)
+
+		return true
+	})
 
 	return activePlugins
 }
 
 // IsActive returns true if the plugin with the given id is active.
 func (env *Environment) IsActive(id string) bool {
-	_, ok := env.activePlugins[id]
+	_, ok := env.activePlugins.Load(id)
 	return ok
 }
 
 // Statuses returns a list of plugin statuses representing the state of every plugin
 func (env *Environment) Statuses() (model.PluginStatuses, error) {
-	env.mutex.RLock()
-	defer env.mutex.RUnlock()
-
 	plugins, err := env.Available()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get plugin statuses")
@@ -118,8 +114,8 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 		}
 
 		pluginState := model.PluginStateNotRunning
-		if plugin, ok := env.activePlugins[plugin.Manifest.Id]; ok {
-			pluginState = plugin.State
+		if plugin, ok := env.activePlugins.Load(plugin.Manifest.Id); ok {
+			pluginState = plugin.(activePlugin).State
 		}
 
 		status := &model.PluginStatus{
@@ -137,31 +133,27 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	return pluginStatuses, nil
 }
 
-// Activate activates the plugin with the given id.
-func (env *Environment) Activate(id string) (reterr error) {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
-
+func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	// Check if we are already active
-	if _, ok := env.activePlugins[id]; ok {
-		return nil
+	if _, ok := env.activePlugins.Load(id); ok {
+		return nil, false, nil
 	}
 
 	plugins, err := env.Available()
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 	var pluginInfo *model.BundleInfo
 	for _, p := range plugins {
 		if p.Manifest != nil && p.Manifest.Id == id {
 			if pluginInfo != nil {
-				return fmt.Errorf("multiple plugins found: %v", id)
+				return nil, false, fmt.Errorf("multiple plugins found: %v", id)
 			}
 			pluginInfo = p
 		}
 	}
 	if pluginInfo == nil {
-		return fmt.Errorf("plugin not found: %v", id)
+		return nil, false, fmt.Errorf("plugin not found: %v", id)
 	}
 
 	activePlugin := activePlugin{BundleInfo: pluginInfo}
@@ -171,82 +163,122 @@ func (env *Environment) Activate(id string) (reterr error) {
 		} else {
 			activePlugin.State = model.PluginStateFailedToStart
 		}
-		env.activePlugins[pluginInfo.Manifest.Id] = activePlugin
+		env.activePlugins.Store(pluginInfo.Manifest.Id, activePlugin)
 	}()
 
-	if pluginInfo.Manifest.Webapp != nil {
+	if pluginInfo.Manifest.MinServerVersion != "" {
+		fulfilled, err := pluginInfo.Manifest.MeetMinServerVersion(model.CurrentVersion)
+		if err != nil {
+			return nil, false, fmt.Errorf("%v: %v", err.Error(), id)
+		}
+		if !fulfilled {
+			return nil, false, fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, id)
+		}
+	}
+
+	componentActivated := false
+
+	if pluginInfo.Manifest.HasWebapp() {
 		bundlePath := filepath.Clean(pluginInfo.Manifest.Webapp.BundlePath)
 		if bundlePath == "" || bundlePath[0] == '.' {
-			return fmt.Errorf("invalid webapp bundle path")
+			return nil, false, fmt.Errorf("invalid webapp bundle path")
 		}
 		bundlePath = filepath.Join(env.pluginDir, id, bundlePath)
+		destinationPath := filepath.Join(env.webappPluginDir, id)
 
-		webappBundle, err := ioutil.ReadFile(bundlePath)
-		if err != nil {
-			return errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+		if err := os.RemoveAll(destinationPath); err != nil {
+			return nil, false, errors.Wrapf(err, "unable to remove old webapp bundle directory: %v", destinationPath)
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/%s_bundle.js", env.webappPluginDir, id), webappBundle, 0644)
-		if err != nil {
-			return errors.Wrapf(err, "unable to write webapp bundle: %v", id)
+		if err := utils.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
+			return nil, false, errors.Wrapf(err, "unable to copy webapp bundle directory: %v", id)
 		}
+
+		sourceBundleFilepath := filepath.Join(destinationPath, filepath.Base(bundlePath))
+
+		sourceBundleFileContents, err := ioutil.ReadFile(sourceBundleFilepath)
+		if err != nil {
+			return nil, false, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+		}
+
+		hash := fnv.New64a()
+		hash.Write(sourceBundleFileContents)
+		pluginInfo.Manifest.Webapp.BundleHash = hash.Sum([]byte{})
+
+		if err := os.Rename(
+			sourceBundleFilepath,
+			filepath.Join(destinationPath, fmt.Sprintf("%s_%x_bundle.js", id, pluginInfo.Manifest.Webapp.BundleHash)),
+		); err != nil {
+			return nil, false, errors.Wrapf(err, "unable to rename webapp bundle: %v", id)
+		}
+
+		componentActivated = true
 	}
 
 	if pluginInfo.Manifest.HasServer() {
 		supervisor, err := newSupervisor(pluginInfo, env.logger, env.newAPIImpl(pluginInfo.Manifest))
 		if err != nil {
-			return errors.Wrapf(err, "unable to start plugin: %v", id)
+			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
 		activePlugin.supervisor = supervisor
+
+		componentActivated = true
 	}
 
-	return nil
+	if !componentActivated {
+		return nil, false, fmt.Errorf("unable to start plugin: must at least have a web app or server component")
+	}
+
+	return pluginInfo.Manifest, true, nil
 }
 
 // Deactivates the plugin with the given id.
-func (env *Environment) Deactivate(id string) {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
-
-	if activePlugin, ok := env.activePlugins[id]; !ok {
-		return
-	} else {
-		delete(env.activePlugins, id)
-		if activePlugin.supervisor != nil {
-			if err := activePlugin.supervisor.Hooks().OnDeactivate(); err != nil {
-				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", activePlugin.BundleInfo.Manifest.Id), mlog.Err(err))
-			}
-			activePlugin.supervisor.Shutdown()
-		}
+func (env *Environment) Deactivate(id string) bool {
+	p, ok := env.activePlugins.Load(id)
+	if !ok {
+		return false
 	}
+
+	env.activePlugins.Delete(id)
+
+	activePlugin := p.(activePlugin)
+	if activePlugin.supervisor != nil {
+		if err := activePlugin.supervisor.Hooks().OnDeactivate(); err != nil {
+			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", activePlugin.BundleInfo.Manifest.Id), mlog.Err(err))
+		}
+		activePlugin.supervisor.Shutdown()
+	}
+
+	return true
 }
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
+	env.activePlugins.Range(func(key, value interface{}) bool {
+		activePlugin := value.(activePlugin)
 
-	for _, activePlugin := range env.activePlugins {
 		if activePlugin.supervisor != nil {
 			if err := activePlugin.supervisor.Hooks().OnDeactivate(); err != nil {
 				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", activePlugin.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
 			activePlugin.supervisor.Shutdown()
 		}
-	}
-	env.activePlugins = make(map[string]activePlugin)
-	return
+
+		env.activePlugins.Delete(key)
+
+		return true
+	})
 }
 
 // HooksForPlugin returns the hooks API for the plugin with the given id.
 //
 // Consider using RunMultiPluginHook instead.
 func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
-	env.mutex.RLock()
-	defer env.mutex.RUnlock()
-
-	if plug, ok := env.activePlugins[id]; ok && plug.supervisor != nil {
-		return plug.supervisor.Hooks(), nil
+	if p, ok := env.activePlugins.Load(id); ok {
+		activePlugin := p.(activePlugin)
+		if activePlugin.supervisor != nil {
+			return activePlugin.supervisor.Hooks(), nil
+		}
 	}
 
 	return nil, fmt.Errorf("plugin not found: %v", id)
@@ -257,15 +289,16 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc multiPluginHookRunnerFunc, hookId int) {
-	env.mutex.RLock()
-	defer env.mutex.RUnlock()
+	env.activePlugins.Range(func(key, value interface{}) bool {
+		activePlugin := value.(activePlugin)
 
-	for _, activePlugin := range env.activePlugins {
 		if activePlugin.supervisor == nil || !activePlugin.supervisor.Implements(hookId) {
-			continue
+			return true
 		}
 		if !hookRunnerFunc(activePlugin.supervisor.Hooks()) {
-			break
+			return false
 		}
-	}
+
+		return true
+	})
 }

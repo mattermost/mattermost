@@ -492,7 +492,6 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 		if received.LastActivityAt <= lastUpdateAt {
 			t.Fatal("lastActivityAt wasn't updated")
 		}
-		lastUpdateAt = received.LastActivityAt
 	}
 }
 

@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
@@ -67,7 +68,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	}
 	defer a.Shutdown()
 
-	utils.TestConnection(a.Config())
+	mailservice.TestConnection(a.Config())
 
 	pwd, _ := os.Getwd()
 	if usedPlatform {
@@ -146,19 +147,19 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 		manualtesting.Init(api)
 	}
 
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runSecurityJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runDiagnosticsJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runSessionCleanupJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runTokenCleanupJob(a)
 	})
-	a.Go(func() {
+	a.Srv.Go(func() {
 		runCommandWebhookCleanupJob(a)
 	})
 
@@ -176,18 +177,16 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	}
 
 	if a.Elasticsearch != nil {
-		a.Go(func() {
-			if err := a.Elasticsearch.Start(); err != nil {
-				mlog.Error(err.Error())
-			}
-		})
+		a.StartElasticsearch()
 	}
 
 	if *a.Config().JobSettings.RunJobs {
-		a.Jobs.StartWorkers()
+		a.Srv.Jobs.StartWorkers()
+		defer a.Srv.Jobs.StopWorkers()
 	}
 	if *a.Config().JobSettings.RunScheduler {
-		a.Jobs.StartSchedulers()
+		a.Srv.Jobs.StartSchedulers()
+		defer a.Srv.Jobs.StopSchedulers()
 	}
 
 	notifyReady()
@@ -204,9 +203,6 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	if a.Metrics != nil {
 		a.Metrics.StopServer()
 	}
-
-	a.Jobs.StopSchedulers()
-	a.Jobs.StopWorkers()
 
 	return nil
 }
@@ -248,7 +244,7 @@ func runSessionCleanupJob(a *app.App) {
 
 func resetStatuses(a *app.App) {
 	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
-		mlog.Error(fmt.Sprint("mattermost.reset_status.error FIXME: NOT FOUND IN TRANSLATIONS FILE", result.Err.Error()))
+		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
 	}
 }
 

@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestAccessJson(t *testing.T) {
@@ -26,9 +28,7 @@ func TestAccessJson(t *testing.T) {
 func TestAccessIsValid(t *testing.T) {
 	ad := AccessData{}
 
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.ClientId = NewRandomString(28)
 	if err := ad.IsValid(); err == nil {
@@ -41,9 +41,7 @@ func TestAccessIsValid(t *testing.T) {
 	}
 
 	ad.ClientId = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.UserId = NewRandomString(28)
 	if err := ad.IsValid(); err == nil {
@@ -66,9 +64,7 @@ func TestAccessIsValid(t *testing.T) {
 	}
 
 	ad.Token = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.RefreshToken = NewRandomString(28)
 	if err := ad.IsValid(); err == nil {
@@ -76,9 +72,7 @@ func TestAccessIsValid(t *testing.T) {
 	}
 
 	ad.RefreshToken = NewId()
-	if err := ad.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, ad.IsValid())
 
 	ad.RedirectUri = ""
 	if err := ad.IsValid(); err == nil {

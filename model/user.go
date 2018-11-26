@@ -16,22 +16,24 @@ import (
 )
 
 const (
-	ME                           = "me"
-	USER_NOTIFY_ALL              = "all"
-	USER_NOTIFY_MENTION          = "mention"
-	USER_NOTIFY_NONE             = "none"
-	DESKTOP_NOTIFY_PROP          = "desktop"
-	DESKTOP_SOUND_NOTIFY_PROP    = "desktop_sound"
-	MARK_UNREAD_NOTIFY_PROP      = "mark_unread"
-	PUSH_NOTIFY_PROP             = "push"
-	PUSH_STATUS_NOTIFY_PROP      = "push_status"
-	EMAIL_NOTIFY_PROP            = "email"
-	CHANNEL_MENTIONS_NOTIFY_PROP = "channel"
-	COMMENTS_NOTIFY_PROP         = "comments"
-	MENTION_KEYS_NOTIFY_PROP     = "mention_keys"
-	COMMENTS_NOTIFY_NEVER        = "never"
-	COMMENTS_NOTIFY_ROOT         = "root"
-	COMMENTS_NOTIFY_ANY          = "any"
+	ME                             = "me"
+	USER_NOTIFY_ALL                = "all"
+	USER_NOTIFY_MENTION            = "mention"
+	USER_NOTIFY_NONE               = "none"
+	DESKTOP_NOTIFY_PROP            = "desktop"
+	DESKTOP_SOUND_NOTIFY_PROP      = "desktop_sound"
+	MARK_UNREAD_NOTIFY_PROP        = "mark_unread"
+	PUSH_NOTIFY_PROP               = "push"
+	PUSH_STATUS_NOTIFY_PROP        = "push_status"
+	EMAIL_NOTIFY_PROP              = "email"
+	MOBILE_NOTIFY_PROP             = "mobile"
+	MOBILE_PUSH_STATUS_NOTIFY_PROP = "mobile_push_status"
+	CHANNEL_MENTIONS_NOTIFY_PROP   = "channel"
+	COMMENTS_NOTIFY_PROP           = "comments"
+	MENTION_KEYS_NOTIFY_PROP       = "mention_keys"
+	COMMENTS_NOTIFY_NEVER          = "never"
+	COMMENTS_NOTIFY_ROOT           = "root"
+	COMMENTS_NOTIFY_ANY            = "any"
 
 	DEFAULT_LOCALE          = "en"
 	USER_AUTH_SERVICE_EMAIL = "email"
@@ -132,7 +134,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("username", u.Id)
 	}
 
-	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 {
+	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 || !IsValidEmail(u.Email) {
 		return InvalidUserError("email", u.Id)
 	}
 
@@ -498,11 +500,7 @@ func (u *User) IsSAMLUser() bool {
 }
 
 func (u *User) GetPreferredTimezone() string {
-	if u.Timezone["useAutomaticTimezone"] == "true" {
-		return u.Timezone["automaticTimezone"]
-	}
-
-	return u.Timezone["manualTimezone"]
+	return GetPreferredTimezone(u.Timezone)
 }
 
 // UserFromJson will decode the input and return a User
@@ -637,4 +635,10 @@ func IsValidCommentsNotifyLevel(notifyLevel string) bool {
 	return notifyLevel == COMMENTS_NOTIFY_ANY ||
 		notifyLevel == COMMENTS_NOTIFY_ROOT ||
 		notifyLevel == COMMENTS_NOTIFY_NEVER
+}
+
+func IsValidEmailBatchingInterval(emailInterval string) bool {
+	return emailInterval == PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY ||
+		emailInterval == PREFERENCE_EMAIL_INTERVAL_FIFTEEN ||
+		emailInterval == PREFERENCE_EMAIL_INTERVAL_HOUR
 }

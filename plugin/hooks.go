@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -28,6 +29,9 @@ const (
 	UserHasJoinedTeamId     = 11
 	UserHasLeftTeamId       = 12
 	ChannelHasBeenCreatedId = 13
+	FileWillBeUploadedId    = 14
+	UserWillLogInId         = 15
+	UserHasLoggedInId       = 16
 	TotalHooksId            = iota
 )
 
@@ -37,7 +41,9 @@ const (
 // A plugin only need implement the hooks it cares about. The MattermostPlugin provides some
 // default implementations for convenience but may be overridden.
 type Hooks interface {
-	// OnActivate is invoked when the plugin is activated.
+	// OnActivate is invoked when the plugin is activated. If an error is returned, the plugin
+	// will be terminated. The plugin will not receive hooks until after OnActivate returns
+	// without error.
 	OnActivate() error
 
 	// Implemented returns a list of hooks that are implemented by the plugin.
@@ -45,10 +51,13 @@ type Hooks interface {
 	Implemented() ([]string, error)
 
 	// OnDeactivate is invoked when the plugin is deactivated. This is the plugin's last chance to
-	// use the API, and the plugin will be terminated shortly after this invocation.
+	// use the API, and the plugin will be terminated shortly after this invocation. The plugin
+	// will stop receiving hooks just prior to this method being called.
 	OnDeactivate() error
 
-	// OnConfigurationChange is invoked when configuration changes may have been made.
+	// OnConfigurationChange is invoked when configuration changes may have been made. Any
+	// returned error is logged, but does not stop the plugin. You must be prepared to handle
+	// a configuration failure gracefully.
 	OnConfigurationChange() error
 
 	// ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for
@@ -64,7 +73,10 @@ type Hooks interface {
 
 	// MessageWillBePosted is invoked when a message is posted by a user before it is committed
 	// to the database. If you also want to act on edited posts, see MessageWillBeUpdated.
-	// Return values should be the modified post or nil if rejected and an explanation for the user.
+	//
+	// To reject a post, return an non-empty string describing why the post was rejected.
+	// To modify the post, return the replacement, non-nil *model.Post and an empty string.
+	// To allow the post without modification, return a nil *model.Post and an empty string.
 	//
 	// If you don't need to modify or reject posts, use MessageHasBeenPosted instead.
 	//
@@ -113,4 +125,22 @@ type Hooks interface {
 	// UserHasLeftTeam is invoked after the membership has been removed from the database.
 	// If actor is not nil, the user was removed from the team by the actor.
 	UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+
+	// UserWillLogIn before the login of the user is returned. Returning a non empty string will reject the login event.
+	// If you don't need to reject the login event, see UserHasLoggedIn
+	UserWillLogIn(c *Context, user *model.User) string
+
+	// UserHasLoggedIn is invoked after a user has logged in.
+	UserHasLoggedIn(c *Context, user *model.User)
+
+	// FileWillBeUploaded is invoked when a file is uploaded, but before it is committed to backing store.
+	// Read from file to retrieve the body of the uploaded file.
+	//
+	// To reject a file upload, return an non-empty string describing why the file was rejected.
+	// To modify the file, write to the output and/or return a non-nil *model.FileInfo, as well as an empty string.
+	// To allow the file without modification, do not write to the output and return a nil *model.FileInfo and an empty string.
+	//
+	// Note that this method will be called for files uploaded by plugins, including the plugin that uploaded the post.
+	// FileInfo.Size will be automatically set properly if you modify the file.
+	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
 }

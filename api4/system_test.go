@@ -3,6 +3,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -10,10 +11,11 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetPing(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -37,7 +39,7 @@ func TestGetPing(t *testing.T) {
 }
 
 func TestGetConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -47,9 +49,7 @@ func TestGetConfig(t *testing.T) {
 	cfg, resp := th.SystemAdminClient.GetConfig()
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	}
+	require.NotEqual(t, "", cfg.TeamSettings.SiteName)
 
 	if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
 		t.Fatal("did not sanitize properly")
@@ -84,7 +84,7 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestReloadConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -105,7 +105,7 @@ func TestReloadConfig(t *testing.T) {
 }
 
 func TestUpdateConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -121,28 +121,14 @@ func TestUpdateConfig(t *testing.T) {
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	} else {
-		if cfg.TeamSettings.SiteName != "MyFancyName" {
-			t.Log("It should update the SiteName")
-			t.Fatal()
-		}
-	}
+	require.Equal(t, "MyFancyName", cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 	//Revert the change
 	cfg.TeamSettings.SiteName = SiteName
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	if len(cfg.TeamSettings.SiteName) == 0 {
-		t.Fatal()
-	} else {
-		if cfg.TeamSettings.SiteName != SiteName {
-			t.Log("It should update the SiteName")
-			t.Fatal()
-		}
-	}
+	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
 		oldEnableUploads := *th.App.GetConfig().PluginSettings.EnableUploads
@@ -166,7 +152,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
 	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	t.Run("as system admin", func(t *testing.T) {
@@ -226,16 +212,15 @@ func TestGetEnvironmentConfig(t *testing.T) {
 }
 
 func TestGetOldClientConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	testKey := "supersecretkey"
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.GoogleDeveloperKey = testKey })
 
-	t.Run("with session, without limited config", func(t *testing.T) {
+	t.Run("with session", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-			*cfg.ServiceSettings.ExperimentalLimitClientConfig = false
 		})
 
 		Client := th.Client
@@ -252,50 +237,9 @@ func TestGetOldClientConfig(t *testing.T) {
 		}
 	})
 
-	t.Run("without session, without limited config", func(t *testing.T) {
+	t.Run("without session", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-			*cfg.ServiceSettings.ExperimentalLimitClientConfig = false
-		})
-
-		Client := th.CreateClient()
-
-		config, resp := Client.GetOldClientConfig("")
-		CheckNoError(t, resp)
-
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if config["GoogleDeveloperKey"] != testKey {
-			t.Fatal("config missing developer key")
-		}
-	})
-
-	t.Run("with session, with limited config", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-			*cfg.ServiceSettings.ExperimentalLimitClientConfig = true
-		})
-
-		Client := th.Client
-
-		config, resp := Client.GetOldClientConfig("")
-		CheckNoError(t, resp)
-
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if config["GoogleDeveloperKey"] != testKey {
-			t.Fatal("config missing developer key")
-		}
-	})
-
-	t.Run("without session, without limited config", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-			*cfg.ServiceSettings.ExperimentalLimitClientConfig = true
 		})
 
 		Client := th.CreateClient()
@@ -330,7 +274,7 @@ func TestGetOldClientConfig(t *testing.T) {
 }
 
 func TestGetOldClientLicense(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -363,7 +307,7 @@ func TestGetOldClientLicense(t *testing.T) {
 }
 
 func TestGetAudits(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -400,7 +344,7 @@ func TestGetAudits(t *testing.T) {
 }
 
 func TestEmailTest(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -435,7 +379,7 @@ func TestEmailTest(t *testing.T) {
 }
 
 func TestDatabaseRecycle(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -447,7 +391,7 @@ func TestDatabaseRecycle(t *testing.T) {
 }
 
 func TestInvalidateCaches(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -465,7 +409,7 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -505,7 +449,7 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestPostLog(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -540,7 +484,7 @@ func TestPostLog(t *testing.T) {
 }
 
 func TestUploadLicenseFile(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -558,7 +502,7 @@ func TestUploadLicenseFile(t *testing.T) {
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -576,7 +520,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -649,7 +593,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 }
 
 func TestS3TestConnection(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -714,4 +658,56 @@ func TestSupportedTimezones(t *testing.T) {
 
 	CheckNoError(t, resp)
 	assert.Equal(t, supportedTimezonesFromConfig, supportedTimezones)
+}
+
+func TestRedirectLocation(t *testing.T) {
+	expected := "https://mattermost.com/wp-content/themes/mattermostv2/img/logo-light.svg"
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Location", expected)
+		res.WriteHeader(http.StatusFound)
+		res.Write([]byte("body"))
+	}))
+	defer func() { testServer.Close() }()
+
+	mockBitlyLink := testServer.URL
+
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews })
+	}()
+
+	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
+
+	_, resp := th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetRedirectLocation("", "")
+	CheckBadRequestStatus(t, resp)
+
+	actual, resp := th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	CheckNoError(t, resp)
+	if actual != expected {
+		t.Errorf("Expected %v but got %v.", expected, actual)
+	}
+
+	*th.App.Config().ServiceSettings.EnableLinkPreviews = false
+	actual, resp = th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
+	CheckNoError(t, resp)
+	assert.Equal(t, actual, "")
+
+	actual, resp = th.SystemAdminClient.GetRedirectLocation("", "")
+	CheckNoError(t, resp)
+	assert.Equal(t, actual, "")
+
+	actual, resp = th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, actual, "")
+
+	Client.Logout()
+	_, resp = Client.GetRedirectLocation("", "")
+	CheckUnauthorizedStatus(t, resp)
 }

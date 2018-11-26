@@ -13,7 +13,7 @@ import (
 )
 
 func TestSaveReaction(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -176,7 +176,7 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("unable-to-react-in-read-only-town-square", func(t *testing.T) {
 		th.LoginBasic()
 
-		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id)
+		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
@@ -192,17 +192,40 @@ func TestSaveReaction(t *testing.T) {
 		_, resp := Client.SaveReaction(reaction)
 		CheckForbiddenStatus(t, resp)
 
-		if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 3 {
-			t.Fatal("should have not created a reactions")
+		if reactions, err := th.App.GetReactionsForPost(post.Id); err != nil || len(reactions) != 0 {
+			t.Fatal("should have not created a reaction")
 		}
 
 		th.App.RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
+
+	t.Run("unable-to-react-in-an-archived-channel", func(t *testing.T) {
+		th.LoginBasic()
+
+		channel := th.CreatePublicChannel()
+		post := th.CreatePostWithClient(th.Client, channel)
+
+		reaction := &model.Reaction{
+			UserId:    userId,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+
+		err := th.App.DeleteChannel(channel, userId)
+		assert.Nil(t, err)
+
+		_, resp := Client.SaveReaction(reaction)
+		CheckForbiddenStatus(t, resp)
+
+		if reactions, err := th.App.GetReactionsForPost(post.Id); err != nil || len(reactions) != 0 {
+			t.Fatal("should have not created a reaction")
+		}
+	})
 }
 
 func TestGetReactions(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -283,7 +306,7 @@ func TestGetReactions(t *testing.T) {
 }
 
 func TestDeleteReaction(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -482,7 +505,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("unable-to-delete-reactions-in-read-only-town-square", func(t *testing.T) {
 		th.LoginBasic()
 
-		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id)
+		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
@@ -498,7 +521,7 @@ func TestDeleteReaction(t *testing.T) {
 		CheckNoError(t, resp)
 
 		if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
-			t.Fatal("should have created a reactions")
+			t.Fatal("should have created a reaction")
 		}
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
@@ -507,10 +530,40 @@ func TestDeleteReaction(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
-			t.Fatal("should have not deleted a reactions")
+			t.Fatal("should have not deleted a reaction")
 		}
 
 		th.App.RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
+	})
+
+	t.Run("unable-to-delete-reactions-in-an-archived-channel", func(t *testing.T) {
+		th.LoginBasic()
+
+		channel := th.CreatePublicChannel()
+		post := th.CreatePostWithClient(th.Client, channel)
+
+		reaction := &model.Reaction{
+			UserId:    userId,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+
+		r1, resp := Client.SaveReaction(reaction)
+		CheckNoError(t, resp)
+
+		if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
+			t.Fatal("should have created a reaction")
+		}
+
+		err := th.App.DeleteChannel(channel, userId)
+		assert.Nil(t, err)
+
+		_, resp = Client.SaveReaction(r1)
+		CheckForbiddenStatus(t, resp)
+
+		if reactions, err := th.App.GetReactionsForPost(post.Id); err != nil || len(reactions) != 1 {
+			t.Fatal("should have not deleted a reaction")
+		}
 	})
 }

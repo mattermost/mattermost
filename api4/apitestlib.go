@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,7 +14,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -44,6 +42,7 @@ type TestHelper struct {
 	BasicTeam           *model.Team
 	BasicChannel        *model.Channel
 	BasicPrivateChannel *model.Channel
+	BasicDeletedChannel *model.Channel
 	BasicChannel2       *model.Channel
 	BasicPost           *model.Post
 
@@ -75,7 +74,11 @@ func StopTestStore() {
 	}
 }
 
-func setupTestHelper(enterprise bool) *TestHelper {
+func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
+	if testStore != nil {
+		testStore.DropAllTables()
+	}
+
 	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
@@ -114,6 +117,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	if testStore != nil {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	}
+	if updateConfig != nil {
+		th.App.UpdateConfig(updateConfig)
 	}
 	serverErr := th.App.StartServer()
 	if serverErr != nil {
@@ -161,69 +167,37 @@ func setupTestHelper(enterprise bool) *TestHelper {
 }
 
 func SetupEnterprise() *TestHelper {
-	return setupTestHelper(true)
+	return setupTestHelper(true, nil)
 }
 
 func Setup() *TestHelper {
-	return setupTestHelper(false)
+	return setupTestHelper(false, nil)
+}
+
+func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
+	return setupTestHelper(false, updateConfig)
+}
+
+func (me *TestHelper) ShutdownApp() {
+	done := make(chan bool)
+	go func() {
+		me.App.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		// panic instead of t.Fatal to terminate all tests in this package, otherwise the
+		// still running App could spuriously fail subsequent tests.
+		panic("failed to shutdown App within 30 seconds")
+	}
 }
 
 func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 
-	var wg sync.WaitGroup
-	wg.Add(3)
-
-	go func() {
-		defer wg.Done()
-		options := map[string]bool{}
-		options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
-		if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
-			mlog.Error("Error tearing down test users")
-		} else {
-			users := result.Data.([]*model.User)
-
-			for _, u := range users {
-				if err := me.App.PermanentDeleteUser(u); err != nil {
-					mlog.Error(err.Error())
-				}
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if result := <-me.App.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
-			mlog.Error("Error tearing down test teams")
-		} else {
-			teams := result.Data.([]*model.Team)
-
-			for _, t := range teams {
-				if err := me.App.PermanentDeleteTeam(t); err != nil {
-					mlog.Error(err.Error())
-				}
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if result := <-me.App.Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
-			mlog.Error("Error tearing down test oauth apps")
-		} else {
-			apps := result.Data.([]*model.OAuthApp)
-
-			for _, a := range apps {
-				if strings.HasPrefix(a.Name, "fakeoauthapp") {
-					<-me.App.Srv.Store.OAuth().DeleteApp(a.Id)
-				}
-			}
-		}
-	}()
-
-	wg.Wait()
-
-	me.App.Shutdown()
+	me.ShutdownApp()
 	os.Remove(me.tempConfigPath)
 
 	utils.EnableDebugLogForTest()
@@ -237,12 +211,17 @@ func (me *TestHelper) TearDown() {
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
+	me.SystemAdminUser = me.CreateUser()
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	me.LoginSystemAdmin()
+
 	me.TeamAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.LoginTeamAdmin()
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
+	me.BasicDeletedChannel = me.CreatePublicChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
 	me.BasicUser = me.CreateUser()
@@ -255,18 +234,11 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel2)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicPrivateChannel)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicPrivateChannel)
+	me.App.AddUserToChannel(me.BasicUser, me.BasicDeletedChannel)
+	me.App.AddUserToChannel(me.BasicUser2, me.BasicDeletedChannel)
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
+	me.Client.DeleteChannel(me.BasicDeletedChannel.Id)
 	me.LoginBasic()
-
-	return me
-}
-
-func (me *TestHelper) InitSystemAdmin() *TestHelper {
-	me.waitForConnectivity()
-
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.LoginSystemAdmin()
 
 	return me
 }
@@ -430,6 +402,31 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 	}
 	utils.EnableDebugLogForTest()
 	return rpost
+}
+
+func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
+	post := store.Must(me.App.Srv.Store.Post().Save(&model.Post{
+		UserId:    me.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   message,
+		CreateAt:  createAtTime,
+	})).(*model.Post)
+
+	return post
+}
+
+func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	var channel *model.Channel
+	if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return channel
 }
 
 func (me *TestHelper) LoginBasic() {
@@ -703,22 +700,6 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
 		t.Fatal("wrong status code")
-	}
-}
-
-func readTestFile(name string) ([]byte, error) {
-	path, _ := utils.FindDir("tests")
-	file, err := os.Open(filepath.Join(path, name))
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	data := &bytes.Buffer{}
-	if _, err := io.Copy(data, file); err != nil {
-		return nil, err
-	} else {
-		return data.Bytes(), nil
 	}
 }
 

@@ -12,7 +12,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := api4.Setup().InitSystemAdmin()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -29,7 +29,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestJoinTeam(t *testing.T) {
-	th := api4.Setup().InitSystemAdmin().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 
 	CheckCommand(t, "team", "add", th.BasicTeam.Name, th.BasicUser.Email)
@@ -93,5 +93,96 @@ func TestListTeams(t *testing.T) {
 
 	if !strings.Contains(string(output), name) {
 		t.Fatal("should have the created team")
+	}
+}
+
+func TestListArchivedTeams(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	CheckCommand(t, "team", "archive", name)
+
+	output := CheckCommand(t, "team", "list", th.BasicTeam.Name, th.BasicUser.Email)
+
+	if !strings.Contains(string(output), name+" (archived)") {
+		t.Fatal("should have archived team")
+	}
+}
+
+func TestSearchTeamsByName(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	output := CheckCommand(t, "team", "search", name)
+
+	if !strings.Contains(string(output), name) {
+		t.Fatal("should have the created team")
+	}
+}
+
+func TestSearchTeamsByDisplayName(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	output := CheckCommand(t, "team", "search", displayName)
+
+	if !strings.Contains(string(output), name) {
+		t.Fatal("should have the created team")
+	}
+}
+
+func TestSearchArchivedTeamsByName(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	CheckCommand(t, "team", "archive", name)
+
+	output := CheckCommand(t, "team", "search", name)
+
+	if !strings.Contains(string(output), "(archived)") {
+		t.Fatal("should have archived team")
+	}
+}
+
+func TestArchiveTeams(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	CheckCommand(t, "team", "archive", name)
+
+	output := CheckCommand(t, "team", "list")
+
+	if !strings.Contains(string(output), name+" (archived)") {
+		t.Fatal("should have archived team")
 	}
 }

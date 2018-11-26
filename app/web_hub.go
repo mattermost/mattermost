@@ -62,7 +62,7 @@ func (a *App) NewWebHub() *Hub {
 
 func (a *App) TotalWebsocketConnections() int {
 	count := int64(0)
-	for _, hub := range a.Hubs {
+	for _, hub := range a.Srv.Hubs {
 		count = count + atomic.LoadInt64(&hub.connectionCount)
 	}
 
@@ -74,13 +74,13 @@ func (a *App) HubStart() {
 	numberOfHubs := runtime.NumCPU() * 2
 	mlog.Info(fmt.Sprintf("Starting %v websocket hubs", numberOfHubs))
 
-	a.Hubs = make([]*Hub, numberOfHubs)
-	a.HubsStopCheckingForDeadlock = make(chan bool, 1)
+	a.Srv.Hubs = make([]*Hub, numberOfHubs)
+	a.Srv.HubsStopCheckingForDeadlock = make(chan bool, 1)
 
-	for i := 0; i < len(a.Hubs); i++ {
-		a.Hubs[i] = a.NewWebHub()
-		a.Hubs[i].connectionIndex = i
-		a.Hubs[i].Start()
+	for i := 0; i < len(a.Srv.Hubs); i++ {
+		a.Srv.Hubs[i] = a.NewWebHub()
+		a.Srv.Hubs[i].connectionIndex = i
+		a.Srv.Hubs[i].Start()
 	}
 
 	go func() {
@@ -93,7 +93,7 @@ func (a *App) HubStart() {
 		for {
 			select {
 			case <-ticker.C:
-				for _, hub := range a.Hubs {
+				for _, hub := range a.Srv.Hubs {
 					if len(hub.broadcast) >= DEADLOCK_WARN {
 						mlog.Error(fmt.Sprintf("Hub processing might be deadlock on hub %v goroutine %v with %v events in the buffer", hub.connectionIndex, hub.goroutineId, len(hub.broadcast)))
 						buf := make([]byte, 1<<16)
@@ -109,7 +109,7 @@ func (a *App) HubStart() {
 					}
 				}
 
-			case <-a.HubsStopCheckingForDeadlock:
+			case <-a.Srv.HubsStopCheckingForDeadlock:
 				return
 			}
 		}
@@ -120,27 +120,27 @@ func (a *App) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
 	select {
-	case a.HubsStopCheckingForDeadlock <- true:
+	case a.Srv.HubsStopCheckingForDeadlock <- true:
 	default:
 		mlog.Warn("We appear to have already sent the stop checking for deadlocks command")
 	}
 
-	for _, hub := range a.Hubs {
+	for _, hub := range a.Srv.Hubs {
 		hub.Stop()
 	}
 
-	a.Hubs = []*Hub{}
+	a.Srv.Hubs = []*Hub{}
 }
 
 func (a *App) GetHubForUserId(userId string) *Hub {
-	if len(a.Hubs) == 0 {
+	if len(a.Srv.Hubs) == 0 {
 		return nil
 	}
 
 	hash := fnv.New32a()
 	hash.Write([]byte(userId))
-	index := hash.Sum32() % uint32(len(a.Hubs))
-	return a.Hubs[index]
+	index := hash.Sum32() % uint32(len(a.Srv.Hubs))
+	return a.Srv.Hubs[index]
 }
 
 func (a *App) HubRegister(webConn *WebConn) {
@@ -190,7 +190,7 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 			hub.Broadcast(message)
 		}
 	} else {
-		for _, hub := range a.Hubs {
+		for _, hub := range a.Srv.Hubs {
 			hub.Broadcast(message)
 		}
 	}
@@ -346,7 +346,10 @@ func (a *App) UpdateWebConnUserActivity(session model.Session, activityAt int64)
 }
 
 func (h *Hub) Register(webConn *WebConn) {
-	h.register <- webConn
+	select {
+	case h.register <- webConn:
+	case <-h.didStop:
+	}
 
 	if webConn.IsAuthenticated() {
 		webConn.SendHello()
@@ -356,22 +359,31 @@ func (h *Hub) Register(webConn *WebConn) {
 func (h *Hub) Unregister(webConn *WebConn) {
 	select {
 	case h.unregister <- webConn:
-	case <-h.stop:
+	case <-h.didStop:
 	}
 }
 
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	if h != nil && h.broadcast != nil && message != nil {
-		h.broadcast <- message
+		select {
+		case h.broadcast <- message:
+		case <-h.didStop:
+		}
 	}
 }
 
 func (h *Hub) InvalidateUser(userId string) {
-	h.invalidateUser <- userId
+	select {
+	case h.invalidateUser <- userId:
+	case <-h.didStop:
+	}
 }
 
 func (h *Hub) UpdateActivity(userId, sessionToken string, activityAt int64) {
-	h.activity <- &WebConnActivityMessage{UserId: userId, SessionToken: sessionToken, ActivityAt: activityAt}
+	select {
+	case h.activity <- &WebConnActivityMessage{UserId: userId, SessionToken: sessionToken, ActivityAt: activityAt}:
+	case <-h.didStop:
+	}
 }
 
 func getGoroutineId() int {
@@ -416,7 +428,7 @@ func (h *Hub) Start() {
 
 				conns := connections.ForUser(webCon.UserId)
 				if len(conns) == 0 {
-					h.app.Go(func() {
+					h.app.Srv.Go(func() {
 						h.app.SetStatusOffline(webCon.UserId, false)
 					})
 				} else {
@@ -427,7 +439,7 @@ func (h *Hub) Start() {
 						}
 					}
 					if h.app.IsUserAway(latestActivity) {
-						h.app.Go(func() {
+						h.app.Srv.Go(func() {
 							h.app.SetStatusLastActivityAt(webCon.UserId, latestActivity)
 						})
 					}

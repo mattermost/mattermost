@@ -33,6 +33,7 @@ const (
 )
 
 const (
+	EXIT_GENERIC_FAILURE             = 1
 	EXIT_CREATE_TABLE                = 100
 	EXIT_DB_OPEN                     = 101
 	EXIT_PING                        = 102
@@ -91,6 +92,8 @@ type SqlSupplierOldStores struct {
 	channelMemberHistory store.ChannelMemberHistoryStore
 	role                 store.RoleStore
 	scheme               store.SchemeStore
+	TermsOfService       store.TermsOfServiceStore
+	UserTermsOfService   store.UserTermsOfServiceStore
 }
 
 type SqlSupplier struct {
@@ -139,6 +142,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
 	supplier.oldStores.channelMemberHistory = NewSqlChannelMemberHistoryStore(supplier)
 	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
+	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
+	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
@@ -174,6 +179,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.job.(*SqlJobStore).CreateIndexesIfNotExists()
 	supplier.oldStores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
 	supplier.oldStores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
+	supplier.oldStores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
+	supplier.oldStores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -457,6 +464,52 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		mlog.Critical("Failed to check if column exists because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DOES_COLUMN_EXISTS_MISSING)
+		return false
+	}
+}
+
+func (ss *SqlSupplier) DoesTriggerExist(triggerName string) bool {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		count, err := ss.GetMaster().SelectInt(`
+			SELECT
+				COUNT(0)
+			FROM
+				pg_trigger
+			WHERE
+				tgname = $1
+		`, triggerName)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if trigger exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		return count > 0
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		count, err := ss.GetMaster().SelectInt(`
+			SELECT
+				COUNT(0)
+			FROM
+				information_schema.triggers
+			WHERE
+				trigger_schema = DATABASE()
+			AND	trigger_name = ?
+		`, triggerName)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if trigger exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		return count > 0
+
+	} else {
+		mlog.Critical("Failed to check if column exists because of missing driver")
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
 		return false
 	}
 }
@@ -907,6 +960,14 @@ func (ss *SqlSupplier) Plugin() store.PluginStore {
 
 func (ss *SqlSupplier) Role() store.RoleStore {
 	return ss.oldStores.role
+}
+
+func (ss *SqlSupplier) TermsOfService() store.TermsOfServiceStore {
+	return ss.oldStores.TermsOfService
+}
+
+func (ss *SqlSupplier) UserTermsOfService() store.UserTermsOfServiceStore {
+	return ss.oldStores.UserTermsOfService
 }
 
 func (ss *SqlSupplier) Scheme() store.SchemeStore {

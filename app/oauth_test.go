@@ -7,7 +7,58 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{
+		Name:         "fakeoauthapp" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://nowhere.com"},
+	}
+
+	oapp, err := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, err)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.IMPLICIT_RESPONSE_TYPE,
+		ClientId:     oapp.Id,
+		RedirectUri:  oapp.CallbackUrls[0],
+		Scope:        "",
+		State:        "123",
+	}
+
+	session, err := th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
+	assert.Nil(t, err)
+	assert.NotNil(t, session)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+
+	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
+	assert.NotNil(t, err, "should fail - oauth2 disabled")
+	assert.Nil(t, session)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	authRequest.ClientId = "junk"
+
+	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
+	assert.NotNil(t, err, "should fail - bad client id")
+	assert.Nil(t, session)
+
+	authRequest.ClientId = oapp.Id
+
+	session, err = th.App.GetOAuthAccessTokenForImplicitFlow("junk", authRequest)
+	assert.NotNil(t, err, "should fail - bad user id")
+	assert.Nil(t, session)
+}
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
 	th := Setup()

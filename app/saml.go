@@ -20,11 +20,11 @@ func (a *App) GetSamlMetadata() (string, *model.AppError) {
 		return "", err
 	}
 
-	if result, err := a.Saml.GetMetadata(); err != nil {
+	result, err := a.Saml.GetMetadata()
+	if err != nil {
 		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, err.StatusCode)
-	} else {
-		return result, nil
 	}
+	return result, nil
 }
 
 func WriteSamlFile(fileData *multipart.FileHeader) *model.AppError {

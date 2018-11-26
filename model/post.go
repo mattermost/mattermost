@@ -79,6 +79,9 @@ type Post struct {
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
+
+	// Transient data populated before sending a post to the client
+	Metadata *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
 type PostEphemeral struct {
@@ -94,6 +97,15 @@ type PostPatch struct {
 	HasReactions *bool            `json:"has_reactions"`
 }
 
+type SearchParameter struct {
+	Terms                  *string `json:"terms"`
+	IsOrSearch             *bool   `json:"is_or_search"`
+	TimeZoneOffset         *int    `json:"time_zone_offset"`
+	Page                   *int    `json:"page"`
+	PerPage                *int    `json:"per_page"`
+	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
+}
+
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	copy := *o
 	if copy.Message != nil {
@@ -102,37 +114,35 @@ func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
 	return &copy
 }
 
+type PostForExport struct {
+	Post
+	TeamName    string
+	ChannelName string
+	Username    string
+	ReplyCount  int
+}
+
+type ReplyForExport struct {
+	Post
+	Username string
+}
+
 type PostForIndexing struct {
 	Post
 	TeamId         string `json:"team_id"`
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
-type PostAction struct {
-	Id          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Integration *PostActionIntegration `json:"integration,omitempty"`
-}
-
-type PostActionIntegration struct {
-	URL     string          `json:"url,omitempty"`
-	Context StringInterface `json:"context,omitempty"`
-}
-
-type PostActionIntegrationRequest struct {
-	UserId  string          `json:"user_id"`
-	Context StringInterface `json:"context,omitempty"`
-}
-
-type PostActionIntegrationResponse struct {
-	Update        *Post  `json:"update"`
-	EphemeralText string `json:"ephemeral_text"`
+// Clone shallowly copies the post.
+func (o *Post) Clone() *Post {
+	copy := *o
+	return &copy
 }
 
 func (o *Post) ToJson() string {
-	copy := *o
+	copy := o.Clone()
 	copy.StripActionIntegrations()
-	b, _ := json.Marshal(&copy)
+	b, _ := json.Marshal(copy)
 	return string(b)
 }
 
@@ -342,13 +352,28 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	return &post
 }
 
-func (o *Post) ChannelMentions() []string {
-	return ChannelMentions(o.Message)
+func (o *SearchParameter) SearchParameterToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
 }
 
-func (r *PostActionIntegrationRequest) ToJson() string {
-	b, _ := json.Marshal(r)
-	return string(b)
+func SearchParameterFromJson(data io.Reader) *SearchParameter {
+	decoder := json.NewDecoder(data)
+	var searchParam SearchParameter
+	err := decoder.Decode(&searchParam)
+	if err != nil {
+		return nil
+	}
+
+	return &searchParam
+}
+
+func (o *Post) ChannelMentions() []string {
+	return ChannelMentions(o.Message)
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
@@ -369,44 +394,6 @@ func (o *Post) Attachments() []*SlackAttachment {
 	return ret
 }
 
-func (o *Post) StripActionIntegrations() {
-	attachments := o.Attachments()
-	if o.Props["attachments"] != nil {
-		o.Props["attachments"] = attachments
-	}
-	for _, attachment := range attachments {
-		for _, action := range attachment.Actions {
-			action.Integration = nil
-		}
-	}
-}
-
-func (o *Post) GetAction(id string) *PostAction {
-	for _, attachment := range o.Attachments() {
-		for _, action := range attachment.Actions {
-			if action.Id == id {
-				return action
-			}
-		}
-	}
-	return nil
-}
-
-func (o *Post) GenerateActionIds() {
-	if o.Props["attachments"] != nil {
-		o.Props["attachments"] = o.Attachments()
-	}
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
-		for _, attachment := range attachments {
-			for _, action := range attachment.Actions {
-				if action.Id == "" {
-					action.Id = NewId()
-				}
-			}
-		}
-	}
-}
-
 var markdownDestinationEscaper = strings.NewReplacer(
 	`\`, `\\`,
 	`<`, `\<`,
@@ -418,12 +405,12 @@ var markdownDestinationEscaper = strings.NewReplacer(
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
 // rewritten via RewriteImageURLs.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
-	copy := *o
+	copy := o.Clone()
 	copy.Message = RewriteImageURLs(o.Message, f)
 	if copy.MessageSource == "" && copy.Message != o.Message {
 		copy.MessageSource = o.Message
 	}
-	return &copy
+	return copy
 }
 
 func (o *PostEphemeral) ToUnsanitizedJson() string {

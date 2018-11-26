@@ -10,6 +10,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -55,11 +56,36 @@ func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface
 
 type apiRPCClient struct {
 	client *rpc.Client
-	log    *mlog.Logger
 }
 
 type apiRPCServer struct {
 	impl API
+}
+
+// ErrorString is a fallback for sending unregistered implementations of the error interface across
+// rpc. For example, the errorString type from the github.com/pkg/errors package cannot be
+// registered since it is not exported, but this precludes common error handling paradigms.
+// ErrorString merely preserves the string description of the error, while satisfying the error
+// interface itself to allow other registered types (such as model.AppError) to be sent unmodified.
+type ErrorString struct {
+	Err string
+}
+
+func (e ErrorString) Error() string {
+	return e.Err
+}
+
+func encodableError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if _, ok := err.(*model.AppError); ok {
+		return err
+	}
+
+	return &ErrorString{
+		Err: err.Error(),
+	}
 }
 
 // Registering some types used by MM for encoding/gob used by rpc
@@ -67,6 +93,8 @@ func init() {
 	gob.Register([]*model.SlackAttachment{})
 	gob.Register([]interface{}{})
 	gob.Register(map[string]interface{}{})
+	gob.Register(&model.AppError{})
+	gob.Register(&ErrorString{})
 }
 
 // These enforce compile time checks to make sure types implement the interface
@@ -127,7 +155,7 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 		methods = append(methods, method.Name)
 	}
 	*reply = methods
-	return nil
+	return encodableError(nil)
 }
 
 type Z_OnActivateArgs struct {
@@ -167,11 +195,16 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 
 	if mmplugin, ok := s.impl.(interface {
 		SetAPI(api API)
-		OnConfigurationChange() error
-	}); !ok {
-	} else {
+	}); ok {
 		mmplugin.SetAPI(s.apiRPCClient)
-		mmplugin.OnConfigurationChange()
+	}
+
+	if mmplugin, ok := s.impl.(interface {
+		OnConfigurationChange() error
+	}); ok {
+		if err := mmplugin.OnConfigurationChange(); err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] call to OnConfigurationChange failed, error: %v", err.Error())
+		}
 	}
 
 	// Capture output of standard logger because go-plugin
@@ -181,7 +214,7 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	if hook, ok := s.impl.(interface {
 		OnActivate() error
 	}); ok {
-		returns.A = hook.OnActivate()
+		returns.A = encodableError(hook.OnActivate())
 	}
 	return nil
 }
@@ -197,9 +230,12 @@ func (g *apiRPCClient) LoadPluginConfiguration(dest interface{}) error {
 	_args := &Z_LoadPluginConfigurationArgsArgs{}
 	_returns := &Z_LoadPluginConfigurationArgsReturns{}
 	if err := g.client.Call("Plugin.LoadPluginConfiguration", _args, _returns); err != nil {
-		g.log.Error("RPC call to LoadPluginConfiguration API failed.", mlog.Err(err))
+		log.Printf("RPC call to LoadPluginConfiguration API failed: %s", err.Error())
 	}
-	return json.Unmarshal(_returns.A, dest)
+	if err := json.Unmarshal(_returns.A, dest); err != nil {
+		log.Printf("LoadPluginConfiguration API failed to unmarshal: %s", err.Error())
+	}
+	return nil
 }
 
 func (s *apiRPCServer) LoadPluginConfiguration(args *Z_LoadPluginConfigurationArgsArgs, returns *Z_LoadPluginConfigurationArgsReturns) error {
@@ -241,7 +277,6 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		connection, err := g.muxBroker.Accept(serveHTTPStreamId)
 		if err != nil {
 			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint32("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
-			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
 		}
 		defer connection.Close()
@@ -249,7 +284,6 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		rpcServer := rpc.NewServer()
 		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w}); err != nil {
 			g.log.Error("Plugin failed to ServeHTTP, coulden't register RPC name", mlog.Err(err))
-			http.Error(w, "500 internal server error", http.StatusInternalServerError)
 			return
 		}
 		rpcServer.ServeConn(connection)
@@ -261,8 +295,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		go func() {
 			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
 			if err != nil {
-				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connecion", mlog.Err(err))
-				http.Error(w, "500 internal server error", http.StatusInternalServerError)
+				g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept request body connection", mlog.Err(err))
 				return
 			}
 			defer bodyConnection.Close()
@@ -291,7 +324,6 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		g.log.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
 	}
-	return
 }
 
 func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) error {
@@ -324,5 +356,88 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 		http.NotFound(w, r)
 	}
 
+	return nil
+}
+
+func init() {
+	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedId
+}
+
+type Z_FileWillBeUploadedArgs struct {
+	A                     *Context
+	B                     *model.FileInfo
+	UploadedFileStream    uint32
+	ReplacementFileStream uint32
+}
+
+type Z_FileWillBeUploadedReturns struct {
+	A *model.FileInfo
+	B string
+}
+
+func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
+	if !g.implemented[FileWillBeUploadedId] {
+		return info, ""
+	}
+
+	uploadedFileStreamId := g.muxBroker.NextId()
+	go func() {
+		uploadedFileConnection, err := g.muxBroker.Accept(uploadedFileStreamId)
+		if err != nil {
+			g.log.Error("Plugin failed to serve upload file stream. MuxBroker could not Accept connection", mlog.Err(err))
+			return
+		}
+		defer uploadedFileConnection.Close()
+		serveIOReader(file, uploadedFileConnection)
+	}()
+
+	replacementFileStreamId := g.muxBroker.NextId()
+	go func() {
+		replacementFileConnection, err := g.muxBroker.Accept(replacementFileStreamId)
+		if err != nil {
+			g.log.Error("Plugin failed to serve replacement file stream. MuxBroker could not Accept connection", mlog.Err(err))
+			return
+		}
+		defer replacementFileConnection.Close()
+		if _, err := io.Copy(output, replacementFileConnection); err != nil && err != io.EOF {
+			g.log.Error("Error reading replacement file.", mlog.Err(err))
+		}
+	}()
+
+	_args := &Z_FileWillBeUploadedArgs{c, info, uploadedFileStreamId, replacementFileStreamId}
+	_returns := &Z_FileWillBeUploadedReturns{}
+	if g.implemented[FileWillBeUploadedId] {
+		if err := g.client.Call("Plugin.FileWillBeUploaded", _args, _returns); err != nil {
+			g.log.Error("RPC call FileWillBeUploaded to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) FileWillBeUploaded(args *Z_FileWillBeUploadedArgs, returns *Z_FileWillBeUploadedReturns) error {
+	uploadFileConnection, err := s.muxBroker.Dial(args.UploadedFileStream)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote upload file stream, error: %v", err.Error())
+		return err
+	}
+	defer uploadFileConnection.Close()
+	fileReader := connectIOReader(uploadFileConnection)
+	defer fileReader.Close()
+
+	replacementFileConnection, err := s.muxBroker.Dial(args.ReplacementFileStream)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote replacement file stream, error: %v", err.Error())
+		return err
+	}
+	defer replacementFileConnection.Close()
+	returnFileWriter := replacementFileConnection
+
+	if hook, ok := s.impl.(interface {
+		FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+	}); ok {
+		returns.A, returns.B = hook.FileWillBeUploaded(args.A, args.B, fileReader, returnFileWriter)
+	} else {
+		return fmt.Errorf("Hook FileWillBeUploaded called but not implemented.")
+	}
 	return nil
 }

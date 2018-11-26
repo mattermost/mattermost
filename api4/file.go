@@ -4,12 +4,14 @@
 package api4
 
 import (
+	"crypto/subtle"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -69,6 +71,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	now := time.Now()
 	var resStruct *model.FileUploadResponse
 	var appErr *model.AppError
 
@@ -100,6 +103,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			[]io.ReadCloser{r.Body},
 			[]string{filename},
 			[]string{},
+			now,
 		)
 	} else {
 		m := r.MultipartForm
@@ -120,7 +124,14 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		resStruct, appErr = c.App.UploadMultipartFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
+		resStruct, appErr = c.App.UploadMultipartFiles(
+			FILE_TEAM_ID,
+			channelId,
+			c.Session.UserId,
+			m.File["files"],
+			m.Value["client_ids"],
+			now,
+		)
 	}
 
 	if appErr != nil {
@@ -160,6 +171,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err.StatusCode = http.StatusNotFound
 		return
 	}
+	defer fileReader.Close()
 
 	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, forceDownload, w, r)
 	if err != nil {
@@ -195,10 +207,16 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fileReader, err := c.App.FileReader(info.ThumbnailPath); err != nil {
+	fileReader, err := c.App.FileReader(info.ThumbnailPath)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, fileReader, forceDownload, w, r); err != nil {
+		return
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, fileReader, forceDownload, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -264,10 +282,16 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fileReader, err := c.App.FileReader(info.PreviewPath); err != nil {
+	fileReader, err := c.App.FileReader(info.PreviewPath)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, fileReader, forceDownload, w, r); err != nil {
+		return
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, fileReader, forceDownload, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -319,16 +343,21 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if hash != app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt) {
+	if subtle.ConstantTimeCompare([]byte(hash), []byte(app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt))) != 1 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}
 
-	if fileReader, err := c.App.FileReader(info.Path); err != nil {
+	fileReader, err := c.App.FileReader(info.Path)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, true, w, r); err != nil {
+	}
+	defer fileReader.Close()
+
+	err = writeFileResponse(info.Name, info.MimeType, info.Size, fileReader, false, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}

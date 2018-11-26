@@ -5,12 +5,15 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/blang/semver"
 	"gopkg.in/yaml.v2"
 )
 
@@ -43,6 +46,8 @@ type PluginSetting struct {
 	// of pre-defined options.
 	//
 	// "text" will result in a string setting that can be typed in manually.
+	//
+	// "longtext" will result in a multi line string that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	Type string `json:"type" yaml:"type"`
@@ -108,6 +113,11 @@ type Manifest struct {
 	// A version number for your plugin. Semantic versioning is recommended: http://semver.org
 	Version string `json:"version" yaml:"version"`
 
+	// The minimum Mattermost server version required for your plugin.
+	//
+	// Minimum server version: 5.6
+	MinServerVersion string `json:"min_server_version,omitempty" yaml:"min_server_version,omitempty"`
+
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
@@ -151,6 +161,9 @@ type ManifestWebapp struct {
 	// The path to your webapp bundle. This should be relative to the root of your bundle and the
 	// location of the manifest file.
 	BundlePath string `json:"bundle_path" yaml:"bundle_path"`
+
+	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
+	BundleHash []byte `json:"-"`
 }
 
 func (m *Manifest) ToJson() string {
@@ -188,7 +201,7 @@ func (m *Manifest) ClientManifest() *Manifest {
 	if cm.Webapp != nil {
 		cm.Webapp = new(ManifestWebapp)
 		*cm.Webapp = *m.Webapp
-		cm.Webapp.BundlePath = "/static/" + m.Id + "_bundle.js"
+		cm.Webapp.BundlePath = "/static/" + m.Id + "/" + fmt.Sprintf("%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
 	}
 	return cm
 }
@@ -236,6 +249,18 @@ func (m *Manifest) HasWebapp() bool {
 	return m.Webapp != nil
 }
 
+func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
+	minServerVersion, err := semver.Parse(m.MinServerVersion)
+	if err != nil {
+		return false, errors.New("failed to parse MinServerVersion")
+	}
+	sv := semver.MustParse(serverVersion)
+	if sv.LT(minServerVersion) {
+		return false, nil
+	}
+	return true, nil
+}
+
 // FindManifest will find and parse the manifest in a given directory.
 //
 // In all cases other than a does-not-exist error, path is set to the path of the manifest file that was
@@ -248,25 +273,23 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 		f, ferr := os.Open(path)
 		if ferr != nil {
 			if !os.IsNotExist(ferr) {
-				err = ferr
-				return
+				return nil, "", ferr
 			}
 			continue
 		}
 		b, ioerr := ioutil.ReadAll(f)
 		f.Close()
 		if ioerr != nil {
-			err = ioerr
-			return
+			return nil, path, ioerr
 		}
 		var parsed Manifest
 		err = yaml.Unmarshal(b, &parsed)
 		if err != nil {
-			return
+			return nil, path, err
 		}
 		manifest = &parsed
 		manifest.Id = strings.ToLower(manifest.Id)
-		return
+		return manifest, path, nil
 	}
 
 	path = filepath.Join(dir, "plugin.json")
@@ -275,16 +298,15 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 		if os.IsNotExist(ferr) {
 			path = ""
 		}
-		err = ferr
-		return
+		return nil, path, ferr
 	}
 	defer f.Close()
 	var parsed Manifest
 	err = json.NewDecoder(f).Decode(&parsed)
 	if err != nil {
-		return
+		return nil, path, err
 	}
 	manifest = &parsed
 	manifest.Id = strings.ToLower(manifest.Id)
-	return
+	return manifest, path, nil
 }

@@ -1000,7 +1000,7 @@ func TestCommonMarkReferenceStrings(t *testing.T) {
 	}
 }
 
-func TestCommonMarkRefernceAutolinks(t *testing.T) {
+func TestCommonMarkReferenceAutolinks(t *testing.T) {
 	// These tests are adapted from the GitHub-flavoured CommonMark extension tests located at
 	// https://github.com/github/cmark/blob/master/test/extensions.txt
 	for name, tc := range map[string]struct {

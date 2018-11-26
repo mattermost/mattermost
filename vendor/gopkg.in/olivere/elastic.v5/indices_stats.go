@@ -274,16 +274,25 @@ type IndexStatsGet struct {
 }
 
 type IndexStatsSearch struct {
-	OpenContexts      int64  `json:"open_contexts,omitempty"`
-	QueryTotal        int64  `json:"query_total,omitempty"`
-	QueryTime         string `json:"query_time,omitempty"`
-	QueryTimeInMillis int64  `json:"query_time_in_millis,omitempty"`
-	QueryCurrent      int64  `json:"query_current,omitempty"`
-	FetchTotal        int64  `json:"fetch_total,omitempty"`
-	FetchTime         string `json:"fetch_time,omitempty"`
-	FetchTimeInMillis int64  `json:"fetch_time_in_millis,omitempty"`
-	FetchCurrent      int64  `json:"fetch_current,omitempty"`
+	OpenContexts        int64  `json:"open_contexts,omitempty"`
+	QueryTotal          int64  `json:"query_total,omitempty"`
+	QueryTime           string `json:"query_time,omitempty"`
+	QueryTimeInMillis   int64  `json:"query_time_in_millis,omitempty"`
+	QueryCurrent        int64  `json:"query_current,omitempty"`
+	FetchTotal          int64  `json:"fetch_total,omitempty"`
+	FetchTime           string `json:"fetch_time,omitempty"`
+	FetchTimeInMillis   int64  `json:"fetch_time_in_millis,omitempty"`
+	FetchCurrent        int64  `json:"fetch_current,omitempty"`
+	ScrollTotal         int64  `json:"scroll_total,omitempty"`
+	ScrollTime          string `json:"scroll_time,omitempty"`
+	ScrollTimeInMillis  int64  `json:"scroll_time_in_millis,omitempty"`
+	ScrollCurrent       int64  `json:"scroll_current,omitempty"`
+	SuggestTotal        int64  `json:"suggest_total,omitempty"`
+	SuggestTime         string `json:"suggest_time,omitempty"`
+	SuggestTimeInMillis int64  `json:"suggest_time_in_millis,omitempty"`
+	SuggestCurrent      int64  `json:"suggest_current,omitempty"`
 }
+
 
 type IndexStatsMerges struct {
 	Current            int64  `json:"current,omitempty"`

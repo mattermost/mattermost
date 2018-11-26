@@ -4,6 +4,10 @@
 package app
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,6 +19,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func getHashedKey(key string) string {
+	hash := sha256.New()
+	hash.Write([]byte(key))
+	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
+}
 func TestPluginKeyValueStore(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -38,6 +47,41 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "intkey"))
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "postkey"))
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "notrealkey"))
+
+	// Test ListKeys
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key2", []byte("test")))
+	hashedKey := getHashedKey("key")
+	hashedKey2 := getHashedKey("key2")
+	list, err := th.App.ListPluginKeys(pluginId, 0, 1)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(list))
+	assert.Equal(t, hashedKey, list[0])
+
+	list, err = th.App.ListPluginKeys(pluginId, 1, 1)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(list))
+	assert.Equal(t, hashedKey2, list[0])
+
+	//List Keys bad input
+	list, err = th.App.ListPluginKeys(pluginId, 0, 0)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(list))
+
+	list, err = th.App.ListPluginKeys(pluginId, 0, -1)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(list))
+
+	list, err = th.App.ListPluginKeys(pluginId, -1, 1)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(list))
+
+	list, err = th.App.ListPluginKeys(pluginId, -1, 0)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(list))
+
+	list, err = th.App.ListPluginKeys(pluginId, 2, 2)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, len(list))
 }
 
 func TestServePluginRequest(t *testing.T) {
@@ -50,6 +94,52 @@ func TestServePluginRequest(t *testing.T) {
 	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
 	th.App.ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
+}
+
+func TestPrivateServePluginRequest(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	testCases := []struct {
+		Description string
+		ConfigFunc  func(cfg *model.Config)
+		URL         string
+		ExpectedURL string
+	}{
+		{
+			"no subpath",
+			func(cfg *model.Config) {},
+			"/plugins/id/endpoint",
+			"/endpoint",
+		},
+		{
+			"subpath",
+			func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL += "/subpath" },
+			"/subpath/plugins/id/endpoint",
+			"/endpoint",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			th.App.UpdateConfig(testCase.ConfigFunc)
+			expectedBody := []byte("body")
+			request := httptest.NewRequest(http.MethodGet, testCase.URL, bytes.NewReader(expectedBody))
+			recorder := httptest.NewRecorder()
+
+			handler := func(context *plugin.Context, w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, testCase.ExpectedURL, r.URL.Path)
+
+				body, _ := ioutil.ReadAll(r.Body)
+				assert.Equal(t, expectedBody, body)
+			}
+
+			request = mux.SetURLVars(request, map[string]string{"plugin_id": "id"})
+
+			th.App.servePluginRequest(recorder, request, handler)
+		})
+	}
+
 }
 
 func TestHandlePluginRequest(t *testing.T) {
@@ -108,6 +198,7 @@ func TestGetPluginStatusesDisabled(t *testing.T) {
 	})
 
 	_, err := th.App.GetPluginStatuses()
+	require.NotNil(t, err)
 	require.EqualError(t, err, "GetPluginStatuses: Plugins have been disabled. Please check your logs for details., ")
 }
 

@@ -5,6 +5,9 @@ package model
 
 import (
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSplitWords(t *testing.T) {
@@ -166,58 +169,249 @@ func TestParseSearchFlags(t *testing.T) {
 	} else if len(flags) != 2 || flags[0][0] != "in" || flags[0][1] != "here" || flags[1][0] != "from" || flags[1][1] != "someone" {
 		t.Fatalf("got incorrect flags %v", flags)
 	}
+
+	if words, flags := parseSearchFlags(splitWords("after:2018-1-1")); len(words) != 0 {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after:2018-1-1")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana before:2018-1-1")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "before" || flags[0][1] != "2018-1-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after:2018-1-1 before:2018-1-10")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 2 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" || flags[1][0] != "before" || flags[1][1] != "2018-1-10" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("#apple #banana after:2018-1-1")); len(words) != 2 || words[0] != "#apple" || words[1] != "#banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("#apple #banana before:2018-1-1")); len(words) != 2 || words[0] != "#apple" || words[1] != "#banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "before" || flags[0][1] != "2018-1-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("#apple #banana after:2018-1-1 before:2018-1-10")); len(words) != 2 || words[0] != "#apple" || words[1] != "#banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 2 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" || flags[1][0] != "before" || flags[1][1] != "2018-1-10" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after: 2018-1-1")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana before: 2018-1-1")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "before" || flags[0][1] != "2018-1-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after: 2018-1-1 before: 2018-1-10")); len(words) != 2 || words[0] != "apple" || words[1] != "banana" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 2 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" || flags[1][0] != "before" || flags[1][1] != "2018-1-10" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("apple banana after: 2018-1-1 before: 2018-1-10 #fruit")); len(words) != 3 || words[0] != "apple" || words[1] != "banana" || words[2] != "#fruit" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 2 || flags[0][0] != "after" || flags[0][1] != "2018-1-1" || flags[1][0] != "before" || flags[1][1] != "2018-1-10" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
+
+	if words, flags := parseSearchFlags(splitWords("test after:2018-7-1")); len(words) != 1 || words[0] != "test" {
+		t.Fatalf("got incorrect words %v", words)
+	} else if len(flags) != 1 || flags[0][0] != "after" || flags[0][1] != "2018-7-1" {
+		t.Fatalf("got incorrect flags %v", flags)
+	}
 }
 
 func TestParseSearchParams(t *testing.T) {
-	if sp := ParseSearchParams(""); len(sp) != 0 {
+	if sp := ParseSearchParams("", 0); len(sp) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("     "); len(sp) != 0 {
+	if sp := ParseSearchParams("     ", 0); len(sp) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("words words"); len(sp) != 1 || sp[0].Terms != "words words" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("words words", 0); len(sp) != 1 || sp[0].Terms != "words words" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("\"my stuff\""); len(sp) != 1 || sp[0].Terms != "\"my stuff\"" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("\"my stuff\"", 0); len(sp) != 1 || sp[0].Terms != "\"my stuff\"" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("#words #words"); len(sp) != 1 || sp[0].Terms != "#words #words" || !sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("#words #words", 0); len(sp) != 1 || sp[0].Terms != "#words #words" || !sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("#words words"); len(sp) != 2 || sp[1].Terms != "#words" || !sp[1].IsHashtag || len(sp[1].InChannels) != 0 || len(sp[1].FromUsers) != 0 || sp[0].Terms != "words" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 {
+	if sp := ParseSearchParams("#words words", 0); len(sp) != 2 || sp[1].Terms != "#words" || !sp[1].IsHashtag || len(sp[1].InChannels) != 0 || len(sp[1].FromUsers) != 0 || sp[0].Terms != "words" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("in:channel"); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("in:channel", 0); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("testing in:channel"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("testing in:channel", 0); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("in:channel testing"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("in:channel testing", 0); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("in:channel in:otherchannel"); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].InChannels) != 2 || sp[0].InChannels[0] != "channel" || sp[0].InChannels[1] != "otherchannel" || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("in:channel in:otherchannel", 0); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].InChannels) != 2 || sp[0].InChannels[0] != "channel" || sp[0].InChannels[1] != "otherchannel" || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp)
 	}
 
-	if sp := ParseSearchParams("testing in:channel from:someone"); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 1 || sp[0].FromUsers[0] != "someone" {
+	if sp := ParseSearchParams("testing in:channel from:someone", 0); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].InChannels) != 1 || sp[0].InChannels[0] != "channel" || len(sp[0].FromUsers) != 1 || sp[0].FromUsers[0] != "someone" {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
 	}
 
-	if sp := ParseSearchParams("##hashtag +#plus+"); len(sp) != 1 || sp[0].Terms != "#hashtag #plus" || !sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("##hashtag +#plus+", 0); len(sp) != 1 || sp[0].Terms != "#hashtag #plus" || !sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
 	}
 
-	if sp := ParseSearchParams("wildcar*"); len(sp) != 1 || sp[0].Terms != "wildcar*" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
+	if sp := ParseSearchParams("wildcar*", 0); len(sp) != 1 || sp[0].Terms != "wildcar*" || sp[0].IsHashtag || len(sp[0].InChannels) != 0 || len(sp[0].FromUsers) != 0 {
 		t.Fatalf("Incorrect output from parse search params: %v", sp[0])
+	}
+
+	if sp := ParseSearchParams("after:2018-8-1 testing", 0); len(sp) != 1 || sp[0].Terms != "testing" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
+		t.Fatalf("Incorrect output from parse search params: %v", sp)
+	}
+
+	if sp := ParseSearchParams("after:2018-8-1", 0); len(sp) != 1 || sp[0].Terms != "" || len(sp[0].AfterDate) == 0 || sp[0].AfterDate != "2018-8-1" {
+		t.Fatalf("Incorrect output from parse search params: %v", sp)
+	}
+}
+
+func TestGetOnDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Name        string
+		Input       string
+		StartOnDate int64
+		EndOnDate   int64
+	}{
+		{
+			Name:        "Valid date",
+			Input:       "2018-08-01",
+			StartOnDate: 1533081600000,
+			EndOnDate:   1533167999999,
+		},
+		{
+			Name:        "Valid date but requires padding of zero",
+			Input:       "2018-8-1",
+			StartOnDate: 1533081600000,
+			EndOnDate:   1533167999999,
+		},
+		{
+			Name:        "Invalid date, date not exist",
+			Input:       "2018-02-29",
+			StartOnDate: 0,
+			EndOnDate:   0,
+		},
+		{
+			Name:        "Invalid date, not date format",
+			Input:       "holiday",
+			StartOnDate: 0,
+			EndOnDate:   0,
+		},
+	} {
+		t.Run(testCase.Name, func(t *testing.T) {
+			sp := &SearchParams{OnDate: testCase.Input, TimeZoneOffset: 0}
+			startOnDate, endOnDate := sp.GetOnDateMillis()
+			assert.Equal(t, testCase.StartOnDate, startOnDate)
+			assert.Equal(t, testCase.EndOnDate, endOnDate)
+		})
+	}
+}
+
+func TestGetBeforeDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Name       string
+		Input      string
+		BeforeDate int64
+	}{
+		{
+			Name:       "Valid date",
+			Input:      "2018-08-01",
+			BeforeDate: 1533081599999,
+		},
+		{
+			Name:       "Valid date but requires padding of zero",
+			Input:      "2018-8-1",
+			BeforeDate: 1533081599999,
+		},
+		{
+			Name:       "Invalid date, date not exist",
+			Input:      "2018-02-29",
+			BeforeDate: 0,
+		},
+		{
+			Name:       "Invalid date, not date format",
+			Input:      "holiday",
+			BeforeDate: 0,
+		},
+	} {
+		t.Run(testCase.Name, func(t *testing.T) {
+			sp := &SearchParams{BeforeDate: testCase.Input, TimeZoneOffset: 0}
+			beforeDate := sp.GetBeforeDateMillis()
+			assert.Equal(t, testCase.BeforeDate, beforeDate)
+		})
+	}
+}
+
+func TestGetAfterDateMillis(t *testing.T) {
+	for _, testCase := range []struct {
+		Name      string
+		Input     string
+		AfterDate int64
+	}{
+		{
+			Name:      "Valid date",
+			Input:     "2018-08-01",
+			AfterDate: 1533168000000,
+		},
+		{
+			Name:      "Valid date but requires padding of zero",
+			Input:     "2018-8-1",
+			AfterDate: 1533168000000,
+		},
+		{
+			Name:      "Invalid date, date not exist",
+			Input:     "2018-02-29",
+			AfterDate: GetStartOfDayMillis(time.Now().Add(time.Hour*24), 0),
+		},
+		{
+			Name:      "Invalid date, not date format",
+			Input:     "holiday",
+			AfterDate: GetStartOfDayMillis(time.Now().Add(time.Hour*24), 0),
+		},
+	} {
+		t.Run(testCase.Name, func(t *testing.T) {
+			sp := &SearchParams{AfterDate: testCase.Input, TimeZoneOffset: 0}
+			afterDate := sp.GetAfterDateMillis()
+			assert.Equal(t, testCase.AfterDate, afterDate)
+		})
 	}
 }

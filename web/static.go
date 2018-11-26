@@ -5,6 +5,7 @@ package web
 
 import (
 	"fmt"
+	"mime"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -26,8 +27,10 @@ func (w *Web) InitStatic() {
 
 		subpath, _ := utils.GetSubpathFromConfig(w.App.Config())
 
-		staticHandler := staticHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
-		pluginHandler := pluginHandler(w.App.Config, http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
+		mime.AddExtensionType(".wasm", "application/wasm")
+
+		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
+		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
 
 		if *w.App.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
@@ -42,7 +45,8 @@ func (w *Web) InitStatic() {
 		// trailing slash. We don't want to use StrictSlash on the w.MainRouter and affect
 		// all routes, just /subpath -> /subpath/.
 		w.MainRouter.HandleFunc("", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, r.URL.String()+"/", http.StatusFound)
+			r.URL.Path += "/"
+			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		}))
 	}
 }
@@ -69,24 +73,9 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
 }
 
-func staticHandler(handler http.Handler) http.Handler {
+func staticFilesHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "max-age=31556926, public")
-		if strings.HasSuffix(r.URL.Path, "/") {
-			http.NotFound(w, r)
-			return
-		}
-		handler.ServeHTTP(w, r)
-	})
-}
-
-func pluginHandler(config model.ConfigFunc, handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if *config().ServiceSettings.EnableDeveloper {
-			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		} else {
-			w.Header().Set("Cache-Control", "max-age=31556926, public")
-		}
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
 			return

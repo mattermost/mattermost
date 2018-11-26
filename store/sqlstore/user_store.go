@@ -94,11 +94,11 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
 	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		us.CreateIndexIfNotExists("idx_users_email_lower", "Users", "lower(Email)")
-		us.CreateIndexIfNotExists("idx_users_username_lower", "Users", "lower(Username)")
-		us.CreateIndexIfNotExists("idx_users_nickname_lower", "Users", "lower(Nickname)")
-		us.CreateIndexIfNotExists("idx_users_firstname_lower", "Users", "lower(FirstName)")
-		us.CreateIndexIfNotExists("idx_users_lastname_lower", "Users", "lower(LastName)")
+		us.CreateIndexIfNotExists("idx_users_email_lower_textpattern", "Users", "lower(Email) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_username_lower_textpattern", "Users", "lower(Username) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_nickname_lower_textpattern", "Users", "lower(Nickname) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_firstname_lower_textpattern", "Users", "lower(FirstName) text_pattern_ops")
+		us.CreateIndexIfNotExists("idx_users_lastname_lower_textpattern", "Users", "lower(LastName) text_pattern_ops")
 	}
 
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
@@ -205,6 +205,16 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) store.StoreChannel
 		curTime := model.GetMillis()
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+		} else {
+			result.Data = userId
+		}
+	})
+}
+
+func (us SqlUserStore) ResetLastPictureUpdate(userId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": 0, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
 		} else {
 			result.Data = userId
@@ -326,6 +336,17 @@ func (us SqlUserStore) GetAll() store.StoreChannel {
 		var data []*model.User
 		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users"); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAll", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = data
+	})
+}
+
+func (us SqlUserStore) GetAllAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var data []*model.User
+		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users WHERE Id > :AfterId ORDER BY Id LIMIT :Limit", map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetAllAfter", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = data
@@ -938,12 +959,21 @@ func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string)
 	})
 }
 
-func (us SqlUserStore) Search(teamId string, term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if count, err := us.GetReplica().SelectInt("SELECT SUM(c.TotalMsgCount - cm.MsgCount) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = :ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetMentionCountForChannel", "store.sql_user.get_unread_count_for_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = count
+		}
+	})
+}
+
+func (us SqlUserStore) Search(teamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := ""
 
 		if teamId == "" {
-
 			// Id != '' is added because both SEARCH_CLAUSE and INACTIVE_CLAUSE start with an AND
 			searchQuery = `
 			SELECT
@@ -954,8 +984,8 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 				Id != ''
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
-				ORDER BY Username ASC
-			LIMIT 100`
+			ORDER BY Username ASC
+			LIMIT :Limit`
 		} else {
 			searchQuery = `
 			SELECT
@@ -968,16 +998,19 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 				AND TeamMembers.DeleteAt = 0
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
-				ORDER BY Users.Username ASC
-			LIMIT 100`
+			ORDER BY Users.Username ASC
+			LIMIT :Limit`
 		}
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId})
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"TeamId": teamId,
+			"Limit":  options.Limit,
+		})
 
 	})
 }
 
-func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 		SELECT
@@ -995,14 +1028,16 @@ func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool) s
 			SEARCH_CLAUSE
 			INACTIVE_CLAUSE
 			ORDER BY Username ASC
-		LIMIT 100`
+		LIMIT :Limit`
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{})
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"Limit": options.Limit,
+		})
 
 	})
 }
 
-func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 			SELECT
@@ -1016,14 +1051,17 @@ func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options 
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 			ORDER BY Users.Username ASC
-			LIMIT 100`
+			LIMIT :Limit`
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{"NotInTeamId": notInTeamId})
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"NotInTeamId": notInTeamId,
+			"Limit":       options.Limit,
+		})
 
 	})
 }
 
-func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := ""
 		if teamId == "" {
@@ -1039,7 +1077,7 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 			ORDER BY Users.Username ASC
-			LIMIT 100`
+			LIMIT :Limit`
 		} else {
 			searchQuery = `
 			SELECT
@@ -1057,30 +1095,37 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 			ORDER BY Users.Username ASC
-			LIMIT 100`
+			LIMIT :Limit`
 		}
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId})
-
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"TeamId":    teamId,
+			"ChannelId": channelId,
+			"Limit":     options.Limit,
+		})
 	})
 }
 
-func (us SqlUserStore) SearchInChannel(channelId string, term string, options map[string]bool) store.StoreChannel {
+func (us SqlUserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
-        SELECT
-            Users.*
-        FROM
-            Users, ChannelMembers
-        WHERE
-            ChannelMembers.ChannelId = :ChannelId
-            AND ChannelMembers.UserId = Users.Id
-            SEARCH_CLAUSE
-            INACTIVE_CLAUSE
-            ORDER BY Users.Username ASC
-        LIMIT 100`
+			SELECT
+			    Users.*
+			FROM
+			    Users, ChannelMembers
+			WHERE
+			    ChannelMembers.ChannelId = :ChannelId
+			    AND ChannelMembers.UserId = Users.Id
+			    SEARCH_CLAUSE
+			    INACTIVE_CLAUSE
+			    ORDER BY Users.Username ASC
+		    LIMIT :Limit
+		`
 
-		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{"ChannelId": channelId})
+		*result = us.performSearch(searchQuery, term, options, map[string]interface{}{
+			"ChannelId": channelId,
+			"Limit":     options.Limit,
+		})
 
 	})
 }
@@ -1121,14 +1166,14 @@ func generateSearchQuery(searchQuery string, terms []string, fields []string, pa
 			}
 		}
 		searchTerms = append(searchTerms, fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")))
-		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
+		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
 	}
 
 	searchClause := strings.Join(searchTerms, " AND ")
 	return strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", searchClause), 1)
 }
 
-func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) store.StoreResult {
+func (us SqlUserStore) performSearch(searchQuery string, term string, options *model.UserSearchOptions, parameters map[string]interface{}) store.StoreResult {
 	result := store.StoreResult{}
 
 	// These chars must be removed from the like query.
@@ -1141,16 +1186,22 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		term = strings.Replace(term, c, "*"+c, -1)
 	}
 
-	searchType := USER_SEARCH_TYPE_ALL
-	if ok := options[store.USER_SEARCH_OPTION_NAMES_ONLY]; ok {
-		searchType = USER_SEARCH_TYPE_NAMES
-	} else if ok = options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME]; ok {
-		searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
-	} else if ok = options[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME]; ok {
-		searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
+	searchType := USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+	if options.AllowEmails {
+		if options.AllowFullNames {
+			searchType = USER_SEARCH_TYPE_ALL
+		} else {
+			searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
+		}
+	} else {
+		if options.AllowFullNames {
+			searchType = USER_SEARCH_TYPE_NAMES
+		} else {
+			searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+		}
 	}
 
-	if ok := options[store.USER_SEARCH_OPTION_ALLOW_INACTIVE]; ok {
+	if ok := options.AllowInactive; ok {
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "", 1)
 	} else {
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "AND Users.DeleteAt = 0", 1)
@@ -1255,7 +1306,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 		builtInRoles := model.MakeDefaultRoles()
 		lastUserId := strings.Repeat("0", 26)
 
-		for true {
+		for {
 			var transaction *gorp.Transaction
 			var err error
 
@@ -1314,5 +1365,16 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				return
 			}
 		}
+	})
+}
+
+func (us SqlUserStore) InferSystemInstallDate() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		createAt, err := us.GetReplica().SelectInt("SELECT CreateAt FROM Users WHERE CreateAt IS NOT NULL ORDER BY CreateAt ASC LIMIT 1")
+		if err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetSystemInstallDate", "store.sql_user.get_system_install_date.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result.Data = createAt
 	})
 }

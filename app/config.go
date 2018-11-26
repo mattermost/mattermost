@@ -16,22 +16,27 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+const (
+	ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND = "store.sql_terms_of_service_store.get.no_rows.app_error"
+)
+
 func (a *App) Config() *model.Config {
-	if cfg := a.config.Load(); cfg != nil {
+	if cfg := a.Srv.config.Load(); cfg != nil {
 		return cfg.(*model.Config)
 	}
 	return &model.Config{}
 }
 
 func (a *App) EnvironmentConfig() map[string]interface{} {
-	if a.envConfig != nil {
-		return a.envConfig
+	if a.Srv.envConfig != nil {
+		return a.Srv.envConfig
 	}
 	return map[string]interface{}{}
 }
@@ -40,7 +45,7 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 	old := a.Config()
 	updated := old.Clone()
 	f(updated)
-	a.config.Store(updated)
+	a.Srv.config.Store(updated)
 
 	a.InvokeConfigListeners(old, updated)
 }
@@ -56,13 +61,11 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	if err != nil {
 		return err
 	}
+	*cfg.ServiceSettings.SiteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
+	a.Srv.config.Store(cfg)
 
-	a.configFile = configPath
-
-	a.config.Store(cfg)
-	a.envConfig = envConfig
-
-	a.siteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
+	a.Srv.configFile = configPath
+	a.Srv.envConfig = envConfig
 
 	a.InvokeConfigListeners(old, cfg)
 	return nil
@@ -70,7 +73,7 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 
 func (a *App) ReloadConfig() *model.AppError {
 	debug.FreeOSMemory()
-	if err := a.LoadConfig(a.configFile); err != nil {
+	if err := a.LoadConfig(a.Srv.configFile); err != nil {
 		return err
 	}
 
@@ -80,37 +83,37 @@ func (a *App) ReloadConfig() *model.AppError {
 }
 
 func (a *App) ConfigFileName() string {
-	return a.configFile
+	return a.Srv.configFile
 }
 
 func (a *App) ClientConfig() map[string]string {
-	return a.clientConfig
+	return a.Srv.clientConfig
 }
 
 func (a *App) ClientConfigHash() string {
-	return a.clientConfigHash
+	return a.Srv.clientConfigHash
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
-	return a.limitedClientConfig
+	return a.Srv.limitedClientConfig
 }
 
 func (a *App) EnableConfigWatch() {
-	if a.configWatcher == nil && !a.disableConfigWatch {
+	if a.Srv.configWatcher == nil && !a.Srv.disableConfigWatch {
 		configWatcher, err := utils.NewConfigWatcher(a.ConfigFileName(), func() {
 			a.ReloadConfig()
 		})
 		if err != nil {
 			mlog.Error(fmt.Sprint(err))
 		}
-		a.configWatcher = configWatcher
+		a.Srv.configWatcher = configWatcher
 	}
 }
 
 func (a *App) DisableConfigWatch() {
-	if a.configWatcher != nil {
-		a.configWatcher.Close()
-		a.configWatcher = nil
+	if a.Srv.configWatcher != nil {
+		a.Srv.configWatcher.Close()
+		a.Srv.configWatcher = nil
 	}
 }
 
@@ -119,17 +122,17 @@ func (a *App) DisableConfigWatch() {
 // for the listener that can later be used to remove it.
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
 	id := model.NewId()
-	a.configListeners[id] = listener
+	a.Srv.configListeners[id] = listener
 	return id
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
 func (a *App) RemoveConfigListener(id string) {
-	delete(a.configListeners, id)
+	delete(a.Srv.configListeners, id)
 }
 
 func (a *App) InvokeConfigListeners(old, current *model.Config) {
-	for _, listener := range a.configListeners {
+	for _, listener := range a.Srv.configListeners {
 		listener(old, current)
 	}
 }
@@ -137,7 +140,7 @@ func (a *App) InvokeConfigListeners(old, current *model.Config) {
 // EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
 func (a *App) ensureAsymmetricSigningKey() error {
-	if a.asymmetricSigningKey != nil {
+	if a.Srv.asymmetricSigningKey != nil {
 		return nil
 	}
 
@@ -184,7 +187,9 @@ func (a *App) ensureAsymmetricSigningKey() error {
 		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
 		if result.Err != nil {
 			return result.Err
-		} else if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+		}
+
+		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
 			return err
 		}
 	}
@@ -196,7 +201,7 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	default:
 		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
 	}
-	a.asymmetricSigningKey = &ecdsa.PrivateKey{
+	a.Srv.asymmetricSigningKey = &ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: curve,
 			X:     key.ECDSAKey.X,
@@ -208,23 +213,57 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	return nil
 }
 
+func (a *App) ensureInstallationDate() error {
+	_, err := a.getSystemInstallDate()
+	if err == nil {
+		return nil
+	}
+
+	result := <-a.Srv.Store.User().InferSystemInstallDate()
+	var installationDate int64
+	if result.Err == nil && result.Data.(int64) > 0 {
+		installationDate = result.Data.(int64)
+	} else {
+		installationDate = utils.MillisFromTime(time.Now())
+	}
+
+	result = <-a.Srv.Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
+		Value: strconv.FormatInt(installationDate, 10),
+	})
+	if result.Err != nil {
+		return result.Err
+	}
+	return nil
+}
+
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	return a.asymmetricSigningKey
+	return a.Srv.asymmetricSigningKey
 }
 
 func (a *App) regenerateClientConfig() {
-	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
-	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.Srv.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+
+	if a.Srv.clientConfig["EnableCustomTermsOfService"] == "true" {
+		termsOfService, err := a.GetLatestTermsOfService()
+		if err != nil {
+			mlog.Err(err)
+		} else {
+			a.Srv.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+		}
+	}
+
+	a.Srv.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
-		a.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-		a.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.Srv.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.Srv.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
 
-	clientConfigJSON, _ := json.Marshal(a.clientConfig)
-	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
+	clientConfigJSON, _ := json.Marshal(a.Srv.clientConfig)
+	a.Srv.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
 
 func (a *App) Desanitize(cfg *model.Config) {
@@ -282,7 +321,7 @@ func (a *App) GetCookieDomain() string {
 }
 
 func (a *App) GetSiteURL() string {
-	return a.siteURL
+	return *a.Config().ServiceSettings.SiteURL
 }
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
@@ -296,6 +335,10 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
 	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
+	respCfg["InstallationDate"] = ""
+	if installationDate, err := a.getSystemInstallDate(); err == nil {
+		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
+	}
 
 	return respCfg
 }

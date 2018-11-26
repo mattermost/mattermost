@@ -93,6 +93,23 @@ func nametomib(name string) (mib []_C_int, err error) {
 	return mib, nil
 }
 
+func SysctlClockinfo(name string) (*Clockinfo, error) {
+	mib, err := sysctlmib(name)
+	if err != nil {
+		return nil, err
+	}
+
+	n := uintptr(SizeofClockinfo)
+	buf := make([]byte, SizeofClockinfo)
+	if err := sysctl(mib, &buf[0], &n, nil, 0); err != nil {
+		return nil, err
+	}
+	if n != SizeofClockinfo {
+		return nil, EIO
+	}
+	return (*Clockinfo)(unsafe.Pointer(&buf[0])), nil
+}
+
 //sysnb pipe() (fd1 int, fd2 int, err error)
 func Pipe(p []int) (err error) {
 	if len(p) != 2 {
@@ -145,11 +162,11 @@ func IoctlSetInt(fd int, req uint, value int) error {
 	return ioctl(fd, req, uintptr(value))
 }
 
-func IoctlSetWinsize(fd int, req uint, value *Winsize) error {
+func ioctlSetWinsize(fd int, req uint, value *Winsize) error {
 	return ioctl(fd, req, uintptr(unsafe.Pointer(value)))
 }
 
-func IoctlSetTermios(fd int, req uint, value *Termios) error {
+func ioctlSetTermios(fd int, req uint, value *Termios) error {
 	return ioctl(fd, req, uintptr(unsafe.Pointer(value)))
 }
 
@@ -233,6 +250,18 @@ func Uname(uname *Utsname) error {
 //sys	Dup(fd int) (nfd int, err error)
 //sys	Dup2(from int, to int) (err error)
 //sys	Exit(code int)
+//sys	ExtattrGetFd(fd int, attrnamespace int, attrname string, data uintptr, nbytes int) (ret int, err error)
+//sys	ExtattrSetFd(fd int, attrnamespace int, attrname string, data uintptr, nbytes int) (ret int, err error)
+//sys	ExtattrDeleteFd(fd int, attrnamespace int, attrname string) (err error)
+//sys	ExtattrListFd(fd int, attrnamespace int, data uintptr, nbytes int) (ret int, err error)
+//sys	ExtattrGetFile(file string, attrnamespace int, attrname string, data uintptr, nbytes int) (ret int, err error)
+//sys	ExtattrSetFile(file string, attrnamespace int, attrname string, data uintptr, nbytes int) (ret int, err error)
+//sys	ExtattrDeleteFile(file string, attrnamespace int, attrname string) (err error)
+//sys	ExtattrListFile(file string, attrnamespace int, data uintptr, nbytes int) (ret int, err error)
+//sys	ExtattrGetLink(link string, attrnamespace int, attrname string, data uintptr, nbytes int) (ret int, err error)
+//sys	ExtattrSetLink(link string, attrnamespace int, attrname string, data uintptr, nbytes int) (ret int, err error)
+//sys	ExtattrDeleteLink(link string, attrnamespace int, attrname string) (err error)
+//sys	ExtattrListLink(link string, attrnamespace int, data uintptr, nbytes int) (ret int, err error)
 //sys	Faccessat(dirfd int, path string, mode uint32, flags int) (err error)
 //sys	Fadvise(fd int, offset int64, length int64, advice int) (err error) = SYS_POSIX_FADVISE
 //sys	Fchdir(fd int) (err error)

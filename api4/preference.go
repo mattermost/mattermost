@@ -28,13 +28,13 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if preferences, err := c.App.GetPreferencesForUser(c.Params.UserId); err != nil {
+	preferences, err := c.App.GetPreferencesForUser(c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(preferences.ToJson()))
-		return
 	}
+
+	w.Write([]byte(preferences.ToJson()))
 }
 
 func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -48,13 +48,13 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if preferences, err := c.App.GetPreferenceByCategoryForUser(c.Params.UserId, c.Params.Category); err != nil {
+	preferences, err := c.App.GetPreferenceByCategoryForUser(c.Params.UserId, c.Params.Category)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(preferences.ToJson()))
-		return
 	}
+
+	w.Write([]byte(preferences.ToJson()))
 }
 
 func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -68,13 +68,13 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if preferences, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, c.Params.Category, c.Params.PreferenceName); err != nil {
+	preferences, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, c.Params.Category, c.Params.PreferenceName)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(preferences.ToJson()))
-		return
 	}
+
+	w.Write([]byte(preferences.ToJson()))
 }
 
 func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {

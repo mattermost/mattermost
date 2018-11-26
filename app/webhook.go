@@ -80,7 +80,7 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
-		a.Go(func(hook *model.OutgoingWebhook) func() {
+		a.Srv.Go(func(hook *model.OutgoingWebhook) func() {
 			return func() {
 				a.TriggerWebhook(payload, hook, post, channel)
 			}
@@ -102,12 +102,12 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 	}
 
 	for _, url := range hook.CallbackURLs {
-		a.Go(func(url string) func() {
+		a.Srv.Go(func(url string) func() {
 			return func() {
 				req, _ := http.NewRequest("POST", url, body)
 				req.Header.Set("Content-Type", contentType)
 				req.Header.Set("Accept", "application/json")
-				if resp, err := a.HTTPClient(false).Do(req); err != nil {
+				if resp, err := a.HTTPService.MakeClient(false).Do(req); err != nil {
 					mlog.Error(fmt.Sprintf("Event POST failed, err=%s", err.Error()))
 				} else {
 					defer consumeAndClose(resp)
@@ -265,7 +265,7 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		for key, val := range props {
 			if key == "attachments" {
 				if attachments, success := val.([]*model.SlackAttachment); success {
-					parseSlackAttachment(post, attachments)
+					model.ParseSlackAttachment(post, attachments)
 				}
 			} else if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
 				post.AddProp(key, val)

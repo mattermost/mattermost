@@ -39,6 +39,14 @@ var (
 		"../..",
 		"../../..",
 	}
+
+	termsOfServiceEnabledAndEmpty = model.NewAppError(
+		"Config.IsValid",
+		"model.config.is_valid.support.custom_terms_of_service_text.app_error",
+		nil,
+		"",
+		http.StatusBadRequest,
+	)
 )
 
 func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
@@ -51,9 +59,7 @@ func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bo
 	}
 
 	searchPaths := []string{}
-	for _, baseSearchPath := range baseSearchPaths {
-		searchPaths = append(searchPaths, baseSearchPath)
-	}
+	searchPaths = append(searchPaths, baseSearchPaths...)
 
 	// Additionally attempt to search relative to the location of the running binary.
 	var binaryDir string
@@ -247,11 +253,15 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map
 
 	var config model.Config
 	unmarshalErr := v.Unmarshal(&config)
+	// https://github.com/spf13/viper/issues/324
+	// https://github.com/spf13/viper/issues/348
 	if unmarshalErr == nil {
-		// https://github.com/spf13/viper/issues/324
-		// https://github.com/spf13/viper/issues/348
-		config.PluginSettings = model.PluginSettings{}
-		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
+		config.PluginSettings.Plugins = make(map[string]map[string]interface{})
+		unmarshalErr = v.UnmarshalKey("pluginsettings.plugins", &config.PluginSettings.Plugins)
+	}
+	if unmarshalErr == nil {
+		config.PluginSettings.PluginStates = make(map[string]*model.PluginState)
+		unmarshalErr = v.UnmarshalKey("pluginsettings.pluginstates", &config.PluginSettings.PluginStates)
 	}
 
 	envConfig := v.EnvSettings()
@@ -280,6 +290,10 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 	defaults := getDefaultsFromStruct(model.Config{})
 
 	for key, value := range defaults {
+		if key == "PluginSettings.Plugins" || key == "PluginSettings.PluginStates" {
+			continue
+		}
+
 		v.SetDefault(key, value)
 	}
 
@@ -468,7 +482,10 @@ func LoadConfig(fileName string) (*model.Config, string, map[string]interface{},
 
 	config.SetDefaults()
 
-	if err := config.IsValid(); err != nil {
+	// Don't treat it as an error right now if custom terms of service are enabled but text is empty.
+	// This is because terms of service text will be fetched from database at a later state, but
+	// the flag indicating it is enabled is fetched from config file right away.
+	if err := config.IsValid(); err != nil && err.Id != termsOfServiceEnabledAndEmpty.Id {
 		return nil, "", nil, err
 	}
 
@@ -501,32 +518,22 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
-	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
-	props["RestrictPublicChannelCreation"] = *c.TeamSettings.RestrictPublicChannelCreation
-	props["RestrictPrivateChannelCreation"] = *c.TeamSettings.RestrictPrivateChannelCreation
-	props["RestrictPublicChannelManagement"] = *c.TeamSettings.RestrictPublicChannelManagement
-	props["RestrictPrivateChannelManagement"] = *c.TeamSettings.RestrictPrivateChannelManagement
-	props["RestrictPublicChannelDeletion"] = *c.TeamSettings.RestrictPublicChannelDeletion
-	props["RestrictPrivateChannelDeletion"] = *c.TeamSettings.RestrictPrivateChannelDeletion
-	props["RestrictPrivateChannelManageMembers"] = *c.TeamSettings.RestrictPrivateChannelManageMembers
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
+	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
 	props["EnableOutgoingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableOutgoingWebhooks)
 	props["EnableCommands"] = strconv.FormatBool(*c.ServiceSettings.EnableCommands)
-	props["EnableOnlyAdminIntegrations"] = strconv.FormatBool(*c.ServiceSettings.EnableOnlyAdminIntegrations)
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostIconOverride)
 	props["EnableUserAccessTokens"] = strconv.FormatBool(*c.ServiceSettings.EnableUserAccessTokens)
 	props["EnableLinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnableLinkPreviews)
 	props["EnableTesting"] = strconv.FormatBool(c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
-	props["RestrictPostDelete"] = *c.ServiceSettings.RestrictPostDelete
-	props["AllowEditPost"] = *c.ServiceSettings.AllowEditPost
 	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
 	props["CloseUnusedDirectMessages"] = strconv.FormatBool(*c.ServiceSettings.CloseUnusedDirectMessages)
 	props["EnablePreviewFeatures"] = strconv.FormatBool(*c.ServiceSettings.EnablePreviewFeatures)
@@ -565,10 +572,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableGifPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableGifPicker)
 	props["GfycatApiKey"] = *c.ServiceSettings.GfycatApiKey
 	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatApiSecret
-	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
-
-	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
 
 	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
 	props["EnableConfirmNotificationsToChannel"] = strconv.FormatBool(*c.TeamSettings.EnableConfirmNotificationsToChannel)
@@ -683,6 +687,11 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
 		}
+
+		if *license.Features.CustomTermsOfService {
+			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
+			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
+		}
 	}
 
 	return props
@@ -699,7 +708,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName
-	props["EnableTeamCreation"] = strconv.FormatBool(*c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 

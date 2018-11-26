@@ -22,6 +22,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.ApiSessionRequired(getPublicChannelsByIdsForTeam)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeamForSearch)).Methods("GET")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
 
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(getChannel)).Methods("GET")
@@ -32,7 +33,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(deleteChannel)).Methods("DELETE")
 	api.BaseRoutes.Channel.Handle("/stats", api.ApiSessionRequired(getChannelStats)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("/pinned", api.ApiSessionRequired(getPinnedPosts)).Methods("GET")
-
+	api.BaseRoutes.Channel.Handle("/timezones", api.ApiSessionRequired(getChannelMembersTimezones)).Methods("GET")
 	api.BaseRoutes.ChannelForUser.Handle("/unread", api.ApiSessionRequired(getChannelUnread)).Methods("GET")
 
 	api.BaseRoutes.ChannelByName.Handle("", api.ApiSessionRequired(getChannelByName)).Methods("GET")
@@ -90,11 +91,18 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The channel being updated in the payload must be the same one as indicated in the URL.
+	if channel.Id != c.Params.ChannelId {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+
 	var oldChannel *model.Channel
-	var err *model.AppError
-	if oldChannel, err = c.App.GetChannel(channel.Id); err != nil {
+	if originalOldChannel, err := c.App.GetChannel(channel.Id); err != nil {
 		c.Err = err
 		return
+	} else {
+		oldChannel = originalOldChannel.DeepCopy()
 	}
 
 	switch oldChannel.Type {
@@ -223,10 +231,12 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oldChannel, err := c.App.GetChannel(c.Params.ChannelId)
-	if err != nil {
+	var oldChannel *model.Channel
+	if originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId); err != nil {
 		c.Err = err
 		return
+	} else {
+		oldChannel = originalOldChannel.DeepCopy()
 	}
 
 	switch oldChannel.Type {
@@ -478,8 +488,10 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, posts.Etag())
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
+	clientPostList := c.App.PreparePostListForClient(posts)
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, clientPostList.Etag())
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -589,7 +601,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId)
+	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -623,6 +635,30 @@ func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Requ
 	name := r.URL.Query().Get("name")
 
 	channels, err := c.App.AutocompleteChannels(c.Params.TeamId, name)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Don't fill in channels props, since unused by client and potentially expensive.
+
+	w.Write([]byte(channels.ToJson()))
+}
+
+func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+		c.SetPermissionError(model.PERMISSION_LIST_TEAM_CHANNELS)
+		return
+	}
+
+	name := r.URL.Query().Get("name")
+
+	channels, err := c.App.AutocompleteChannelsForSearch(c.Params.TeamId, c.Session.UserId, name)
 	if err != nil {
 		c.Err = err
 		return
@@ -709,7 +745,9 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
 	var err *model.AppError
 
-	if channel, err = c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId); err != nil {
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+
+	if channel, err = c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted); err != nil {
 		c.Err = err
 		return
 	}
@@ -744,7 +782,9 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	var channel *model.Channel
 	var err *model.AppError
 
-	if channel, err = c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName); err != nil {
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+
+	if channel, err = c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted); err != nil {
 		c.Err = err
 		return
 	}
@@ -781,6 +821,26 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(members.ToJson()))
+}
+
+func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	membersTimezones, err := c.App.GetChannelMembersTimezones(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.ArrayToJson(membersTimezones)))
 }
 
 func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1035,7 +1095,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cm, err := c.App.AddChannelMember(member.UserId, channel, c.Session.UserId, postRootId)
+	cm, err := c.App.AddChannelMember(member.UserId, channel, c.Session.UserId, postRootId, !c.Session.IsMobileApp())
 	if err != nil {
 		c.Err = err
 		return
@@ -1056,6 +1116,11 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	if channel, err = c.App.GetChannel(c.Params.ChannelId); err != nil {
 		c.Err = err
+		return
+	}
+
+	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
+		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 

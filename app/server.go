@@ -5,23 +5,31 @@ package app
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/rs/cors"
+	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -42,9 +50,83 @@ type Server struct {
 	RateLimiter *RateLimiter
 
 	didFinishListen chan struct{}
+
+	goroutineCount      int32
+	goroutineExitSignal chan struct{}
+
+	PluginsEnvironment     *plugin.Environment
+	PluginConfigListenerId string
+	PluginsLock            sync.RWMutex
+
+	EmailBatching    *EmailBatchingJob
+	EmailRateLimiter *throttled.GCRARateLimiter
+
+	Hubs                        []*Hub
+	HubsStopCheckingForDeadlock chan bool
+
+	PushNotificationsHub PushNotificationsHub
+
+	Jobs *jobs.JobServer
+
+	config                 atomic.Value
+	envConfig              map[string]interface{}
+	configFile             string
+	configListeners        map[string]func(*model.Config, *model.Config)
+	clusterLeaderListeners sync.Map
+
+	licenseValue       atomic.Value
+	clientLicenseValue atomic.Value
+	licenseListeners   map[string]func()
+
+	timezones atomic.Value
+
+	newStore func() store.Store
+
+	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
+	sessionCache            *utils.Cache
+	configListenerId        string
+	licenseListenerId       string
+	logListenerId           string
+	clusterLeaderListenerId string
+	disableConfigWatch      bool
+	configWatcher           *utils.ConfigWatcher
+	asymmetricSigningKey    *ecdsa.PrivateKey
+
+	pluginCommands     []*PluginCommand
+	pluginCommandsLock sync.RWMutex
+
+	clientConfig        map[string]string
+	clientConfigHash    string
+	limitedClientConfig map[string]string
+	diagnosticId        string
+
+	phase2PermissionsMigrationComplete bool
 }
 
-var allowedMethods []string = []string{
+// Go creates a goroutine, but maintains a record of it to ensure that execution completes before
+// the app is destroyed.
+func (s *Server) Go(f func()) {
+	atomic.AddInt32(&s.goroutineCount, 1)
+
+	go func() {
+		f()
+
+		atomic.AddInt32(&s.goroutineCount, -1)
+		select {
+		case s.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+	}()
+}
+
+// WaitForGoroutines blocks until all goroutines created by App.Go exit.
+func (s *Server) WaitForGoroutines() {
+	for atomic.LoadInt32(&s.goroutineCount) != 0 {
+		<-s.goroutineExitSignal
+	}
+}
+
+var corsAllowedMethods = []string{
 	"POST",
 	"GET",
 	"OPTIONS",
@@ -58,36 +140,7 @@ type RecoveryLogger struct {
 
 func (rl *RecoveryLogger) Println(i ...interface{}) {
 	mlog.Error("Please check the std error output for the stack trace")
-	mlog.Error(fmt.Sprint(i))
-}
-
-type CorsWrapper struct {
-	config model.ConfigFunc
-	router *mux.Router
-}
-
-func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if allowed := *cw.config().ServiceSettings.AllowCorsFrom; allowed != "" {
-		if utils.CheckOrigin(r, allowed) {
-			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-
-			if r.Method == "OPTIONS" {
-				w.Header().Set(
-					"Access-Control-Allow-Methods",
-					strings.Join(allowedMethods, ", "))
-
-				w.Header().Set(
-					"Access-Control-Allow-Headers",
-					r.Header.Get("Access-Control-Request-Headers"))
-			}
-		}
-	}
-
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	cw.router.ServeHTTP(w, r)
+	mlog.Error(fmt.Sprint(i...))
 }
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
@@ -114,7 +167,28 @@ func stripPort(hostport string) string {
 func (a *App) StartServer() error {
 	mlog.Info("Starting Server...")
 
-	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.RootRouter}
+	var handler http.Handler = a.Srv.RootRouter
+	if allowedOrigins := *a.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
+		exposedCorsHeaders := *a.Config().ServiceSettings.CorsExposedHeaders
+		allowCredentials := *a.Config().ServiceSettings.CorsAllowCredentials
+		debug := *a.Config().ServiceSettings.CorsDebug
+		corsWrapper := cors.New(cors.Options{
+			AllowedOrigins:   strings.Fields(allowedOrigins),
+			AllowedMethods:   corsAllowedMethods,
+			AllowedHeaders:   []string{"*"},
+			ExposedHeaders:   strings.Fields(exposedCorsHeaders),
+			MaxAge:           86400,
+			AllowCredentials: allowCredentials,
+			Debug:            debug,
+		})
+
+		// If we have debugging of CORS turned on then forward messages to logs
+		if debug {
+			corsWrapper.Log = a.Log.StdLog(mlog.String("source", "cors"))
+		}
+
+		handler = corsWrapper.Handler(handler)
+	}
 
 	if *a.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
@@ -205,26 +279,75 @@ func (a *App) StartServer() error {
 	go func() {
 		var err error
 		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
-			if *a.Config().ServiceSettings.UseLetsEncrypt {
 
-				tlsConfig := &tls.Config{
-					GetCertificate: m.GetCertificate,
+			tlsConfig := &tls.Config{
+				PreferServerCipherSuites: true,
+				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+			}
+
+			switch *a.Config().ServiceSettings.TLSMinVer {
+			case "1.0":
+				tlsConfig.MinVersion = tls.VersionTLS10
+			case "1.1":
+				tlsConfig.MinVersion = tls.VersionTLS11
+			default:
+				tlsConfig.MinVersion = tls.VersionTLS12
+			}
+
+			defaultCiphers := []uint16{
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			}
+
+			if len(a.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
+				tlsConfig.CipherSuites = defaultCiphers
+			} else {
+				var cipherSuites []uint16
+				for _, cipher := range a.Config().ServiceSettings.TLSOverwriteCiphers {
+					value, ok := model.ServerTLSSupportedCiphers[cipher]
+
+					if !ok {
+						mlog.Warn("Unsupported cipher passed", mlog.String("cipher", cipher))
+						continue
+					}
+
+					cipherSuites = append(cipherSuites, value)
 				}
 
-				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
+				if len(cipherSuites) == 0 {
+					mlog.Warn("No supported ciphers passed, fallback to default cipher suite")
+					cipherSuites = defaultCiphers
+				}
 
-				a.Srv.Server.TLSConfig = tlsConfig
-				err = a.Srv.Server.ServeTLS(listener, "", "")
-			} else {
-				err = a.Srv.Server.ServeTLS(listener, *a.Config().ServiceSettings.TLSCertFile, *a.Config().ServiceSettings.TLSKeyFile)
+				tlsConfig.CipherSuites = cipherSuites
 			}
+
+			certFile := ""
+			keyFile := ""
+
+			if *a.Config().ServiceSettings.UseLetsEncrypt {
+				tlsConfig.GetCertificate = m.GetCertificate
+				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
+			} else {
+				certFile = *a.Config().ServiceSettings.TLSCertFile
+				keyFile = *a.Config().ServiceSettings.TLSKeyFile
+			}
+
+			a.Srv.Server.TLSConfig = tlsConfig
+			err = a.Srv.Server.ServeTLS(listener, certFile, keyFile)
 		} else {
 			err = a.Srv.Server.Serve(listener)
 		}
+
 		if err != nil && err != http.ErrServerClosed {
 			mlog.Critical(fmt.Sprintf("Error starting server, err:%v", err))
 			time.Sleep(time.Second)
 		}
+
 		close(a.Srv.didFinishListen)
 	}()
 
@@ -255,6 +378,14 @@ func (a *App) StopServer() {
 
 func (a *App) OriginChecker() func(*http.Request) bool {
 	if allowed := *a.Config().ServiceSettings.AllowCorsFrom; allowed != "" {
+		if allowed != "*" {
+			siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
+			if err == nil {
+				siteURL.Path = ""
+				allowed += " " + siteURL.String()
+			}
+		}
+
 		return utils.OriginChecker(allowed)
 	}
 	return nil

@@ -15,11 +15,9 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
-	"testing"
 	"time"
 	"unicode"
 
@@ -143,9 +141,40 @@ func NewRandomString(length int) string {
 	return b.String()
 }
 
-// GetMillis is a convience method to get milliseconds since epoch.
+// GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
+// GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
+func GetMillisForTime(thisTime time.Time) int64 {
+	return thisTime.UnixNano() / int64(time.Millisecond)
+}
+
+// PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
+func PadDateStringZeros(dateString string) string {
+	parts := strings.Split(dateString, "-")
+	for index, part := range parts {
+		if len(part) == 1 {
+			parts[index] = "0" + part
+		}
+	}
+	dateString = strings.Join(parts[:], "-")
+	return dateString
+}
+
+// GetStartOfDayMillis is a convenience method to get milliseconds since epoch for provided date's start of day
+func GetStartOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
+	localSearchTimeZone := time.FixedZone("Local Search Time Zone", timeZoneOffset)
+	resultTime := time.Date(thisTime.Year(), thisTime.Month(), thisTime.Day(), 0, 0, 0, 0, localSearchTimeZone)
+	return GetMillisForTime(resultTime)
+}
+
+// GetEndOfDayMillis is a convenience method to get milliseconds since epoch for provided date's end of day
+func GetEndOfDayMillis(thisTime time.Time, timeZoneOffset int) int64 {
+	localSearchTimeZone := time.FixedZone("Local Search Time Zone", timeZoneOffset)
+	resultTime := time.Date(thisTime.Year(), thisTime.Month(), thisTime.Day(), 23, 59, 59, 999999999, localSearchTimeZone)
+	return GetMillisForTime(resultTime)
 }
 
 func CopyStringMap(originalMap map[string]string) map[string]string {
@@ -263,7 +292,7 @@ func GetServerIpAddress() string {
 	} else {
 		for _, addr := range addrs {
 
-			if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+			if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() && !ip.IP.IsLinkLocalUnicast() && !ip.IP.IsLinkLocalMulticast() {
 				if ip.IP.To4() != nil {
 					return ip.IP.String()
 				}
@@ -279,16 +308,18 @@ func IsLower(s string) bool {
 }
 
 func IsValidEmail(email string) bool {
-
 	if !IsLower(email) {
 		return false
 	}
 
-	if _, err := mail.ParseAddress(email); err == nil {
-		return true
+	if addr, err := mail.ParseAddress(email); err != nil {
+		return false
+	} else if addr.Name != "" {
+		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" which we don't allow
+		return false
 	}
 
-	return false
+	return true
 }
 
 var reservedName = []string{
@@ -480,59 +511,79 @@ func IsValidId(value string) bool {
 	return true
 }
 
-// checkNowhereNil checks that the given interface value is not nil, and if a struct, that all of
-// its public fields are also nowhere nil
-func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
-	if value == nil {
+// Copied from https://golang.org/src/net/dnsclient.go#L119
+func IsDomainName(s string) bool {
+	// See RFC 1035, RFC 3696.
+	// Presentation format has dots before every label except the first, and the
+	// terminal empty label is optional here because we assume fully-qualified
+	// (absolute) input. We must therefore reserve space for the first and last
+	// labels' length octets in wire format, where they are necessary and the
+	// maximum total length is 255.
+	// So our _effective_ maximum is 253, but 254 is not rejected if the last
+	// character is a dot.
+	l := len(s)
+	if l == 0 || l > 254 || l == 254 && s[l-1] != '.' {
 		return false
 	}
 
-	v := reflect.ValueOf(value)
-	switch v.Type().Kind() {
-	case reflect.Ptr:
-		if v.IsNil() {
-			t.Logf("%s was nil", name)
+	last := byte('.')
+	ok := false // Ok once we've seen a letter.
+	partlen := 0
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		default:
 			return false
-		}
-
-		return checkNowhereNil(t, fmt.Sprintf("(*%s)", name), v.Elem().Interface())
-
-	case reflect.Map:
-		if v.IsNil() {
-			t.Logf("%s was nil", name)
-			return false
-		}
-
-		// Don't check map values
-		return true
-
-	case reflect.Struct:
-		nowhereNil := true
-		for i := 0; i < v.NumField(); i++ {
-			f := v.Field(i)
-			// Ignore unexported fields
-			if v.Type().Field(i).PkgPath != "" {
-				continue
+		case 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_':
+			ok = true
+			partlen++
+		case '0' <= c && c <= '9':
+			// fine
+			partlen++
+		case c == '-':
+			// Byte before dash cannot be dot.
+			if last == '.' {
+				return false
 			}
-
-			nowhereNil = nowhereNil && checkNowhereNil(t, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), f.Interface())
+			partlen++
+		case c == '.':
+			// Byte before dot cannot be dot, dash.
+			if last == '.' || last == '-' {
+				return false
+			}
+			if partlen > 63 || partlen == 0 {
+				return false
+			}
+			partlen = 0
 		}
-
-		return nowhereNil
-
-	case reflect.Array:
-		fallthrough
-	case reflect.Chan:
-		fallthrough
-	case reflect.Func:
-		fallthrough
-	case reflect.Interface:
-		fallthrough
-	case reflect.UnsafePointer:
-		t.Logf("unhandled field %s, type: %s", name, v.Type().Kind())
-		return false
-
-	default:
-		return true
+		last = c
 	}
+	if last == '-' || partlen > 63 {
+		return false
+	}
+
+	return ok
+}
+
+func RemoveDuplicateStrings(in []string) []string {
+	out := []string{}
+	seen := make(map[string]bool, len(in))
+
+	for _, item := range in {
+		if !seen[item] {
+			out = append(out, item)
+
+			seen[item] = true
+		}
+	}
+
+	return out
+}
+
+func GetPreferredTimezone(timezone StringMap) string {
+	if timezone["useAutomaticTimezone"] == "true" {
+		return timezone["automaticTimezone"]
+	}
+
+	return timezone["manualTimezone"]
 }
