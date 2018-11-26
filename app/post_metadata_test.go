@@ -402,6 +402,10 @@ func TestPreparePostForClient(t *testing.T) {
 		post = th.App.PreparePostForClient(post)
 
 		assert.Nil(t, post.Metadata)
+
+		b := post.ToJson()
+
+		assert.NotContains(t, string(b), "metadata", "json shouldn't include a metadata field, not even a falsey one")
 	})
 }
 

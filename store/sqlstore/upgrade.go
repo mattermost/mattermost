@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_5_7_0            = "5.7.0"
 	VERSION_5_6_0            = "5.6.0"
 	VERSION_5_5_0            = "5.5.0"
 	VERSION_5_4_0            = "5.4.0"
@@ -90,6 +91,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion54(sqlStore)
 	UpgradeDatabaseToVersion55(sqlStore)
 	UpgradeDatabaseToVersion56(sqlStore)
+	UpgradeDatabaseToVersion57(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -515,20 +517,28 @@ func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.6.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_5_0, VERSION_5_6_0) {
-	sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
+	if shouldPerformUpgrade(sqlStore, VERSION_5_5_0, VERSION_5_6_0) {
+		sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
 
-	// migrating user's accepted terms of service data into the new table
-	sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
+		// migrating user's accepted terms of service data into the new table
+		sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
 
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
-		sqlStore.RemoveIndexIfExists("idx_users_username_lower", "lower(Username)")
-		sqlStore.RemoveIndexIfExists("idx_users_nickname_lower", "lower(Nickname)")
-		sqlStore.RemoveIndexIfExists("idx_users_firstname_lower", "lower(FirstName)")
-		sqlStore.RemoveIndexIfExists("idx_users_lastname_lower", "lower(LastName)")
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
+			sqlStore.RemoveIndexIfExists("idx_users_username_lower", "lower(Username)")
+			sqlStore.RemoveIndexIfExists("idx_users_nickname_lower", "lower(Nickname)")
+			sqlStore.RemoveIndexIfExists("idx_users_firstname_lower", "lower(FirstName)")
+			sqlStore.RemoveIndexIfExists("idx_users_lastname_lower", "lower(LastName)")
+		}
+		saveSchemaVersion(sqlStore, VERSION_5_6_0)
 	}
-	//saveSchemaVersion(sqlStore, VERSION_5_6_0)
-	//}
+
+}
+
+func UpgradeDatabaseToVersion57(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.5.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_6_0, VERSION_5_7_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_7_0)
+	// }
 }
