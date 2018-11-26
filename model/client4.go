@@ -421,6 +421,10 @@ func (c *Client4) GetGroupSyncableRoute(groupID, syncableID string, syncableType
 	return fmt.Sprintf("%s/%ss/%s", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()), syncableID)
 }
 
+func (c *Client4) GetGroupSyncablesRoute(groupID string, syncableType GroupSyncableType) string {
+	return fmt.Sprintf("%s/%ss", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()))
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -4107,4 +4111,19 @@ func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType Grou
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	json.Unmarshal(bodyBytes, groupSyncable)
 	return groupSyncable, BuildResponse(r)
+}
+
+func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupSyncablesRoute(groupID, syncableType), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	groupSyncables := []*GroupSyncable{}
+	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(bodyBytes, &groupSyncables)
+	if err != nil {
+		panic(err)
+	}
+	return groupSyncables, BuildResponse(r)
 }

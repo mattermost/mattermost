@@ -374,7 +374,105 @@ func TestGetGroupChannel(t *testing.T) {
 	CheckUnauthorizedStatus(t, response)
 }
 
-func TestGetGroupTeams(t *testing.T)     {}
-func TestGetGroupChannels(t *testing.T)  {}
+func TestGetGroupTeams(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	g, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Type:        model.GroupTypeLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	patch := &model.GroupSyncablePatch{
+		CanLeave: model.NewBool(true),
+		AutoAdd:  model.NewBool(true),
+	}
+
+	for i := 0; i < 10; i++ {
+		team := th.CreateTeam()
+		_, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, team.Id, model.GroupSyncableTypeTeam, patch)
+		assert.Equal(t, http.StatusCreated, response.StatusCode)
+	}
+
+	th.App.SetLicense(nil)
+
+	_, response := th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	CheckNotImplementedStatus(t, response)
+
+	_, response = th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, response = th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	assert.Equal(t, http.StatusForbidden, response.StatusCode)
+
+	groupSyncables, response := th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	CheckOKStatus(t, response)
+
+	assert.Len(t, groupSyncables, 10)
+
+	th.SystemAdminClient.Logout()
+	_, response = th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	CheckUnauthorizedStatus(t, response)
+}
+
+func TestGetGroupChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	g, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Type:        model.GroupTypeLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	patch := &model.GroupSyncablePatch{
+		CanLeave: model.NewBool(true),
+		AutoAdd:  model.NewBool(true),
+	}
+
+	for i := 0; i < 10; i++ {
+		channel := th.CreatePublicChannel()
+		_, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
+		assert.Equal(t, http.StatusCreated, response.StatusCode)
+	}
+
+	th.App.SetLicense(nil)
+
+	_, response := th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	CheckNotImplementedStatus(t, response)
+
+	_, response = th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, response = th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	assert.Equal(t, http.StatusForbidden, response.StatusCode)
+
+	groupSyncables, response := th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	CheckOKStatus(t, response)
+
+	assert.Len(t, groupSyncables, 10)
+
+	th.SystemAdminClient.Logout()
+	_, response = th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	CheckUnauthorizedStatus(t, response)
+}
+
 func TestPatchGroupTeam(t *testing.T)    {}
 func TestPatchGroupChannel(t *testing.T) {}
