@@ -361,7 +361,7 @@
     "ExperimentalSettings": {
         "ClientSideCertEnable": false,
         "ClientSideCertCheck": "secondary",
-        "DisablePostMetadata": false
+        "EnablePostMetadata": false
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
