@@ -81,19 +81,22 @@ func TestUploadFiles(t *testing.T) {
 		names     []string
 		clientIds []string
 
-		skipSuccessValidation  bool
-		skipPayloadValidation  bool
-		skipSimplePost         bool
-		skipMultipart          bool
-		expectedPayloadNames   []string
-		expectedThumbnailNames []string
-		expectedPreviewNames   []string
-		channelId              string
-		useChunkedInSimplePost bool
-		expectImage            bool
-		expectedCreatorId      string
-		setupConfig            func(a *app.App) func(a *app.App)
-		checkResponse          func(t *testing.T, resp *model.Response)
+		skipSuccessValidation       bool
+		skipPayloadValidation       bool
+		skipSimplePost              bool
+		skipMultipart               bool
+		channelId                   string
+		useChunkedInSimplePost      bool
+		expectedCreatorId           string
+		expectedPayloadNames        []string
+		expectImage                 bool
+		expectedImageWidths         []int
+		expectedImageHeights        []int
+		expectedImageThumbnailNames []string
+		expectedImagePreviewNames   []string
+		expectedImageHasPreview     []bool
+		setupConfig                 func(a *app.App) func(a *app.App)
+		checkResponse               func(t *testing.T, resp *model.Response)
 	}{
 		// Upload a bunch of files, mixed images and non-images
 		{
@@ -108,12 +111,16 @@ func TestUploadFiles(t *testing.T) {
 			clientIds:         []string{"1", "2", "3", "4"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
-		// Upload a bunch of images
+		// Upload a bunch of images. testgif.gif is an animated GIF,
+		// so it does not have HasPreviewImage set.
 		{
-			title:             "Happy images",
-			names:             []string{"test.png", "testgif.gif"},
-			expectImage:       true,
-			expectedCreatorId: th.BasicUser.Id,
+			title:                   "Happy images",
+			names:                   []string{"test.png", "testgif.gif"},
+			expectImage:             true,
+			expectedCreatorId:       th.BasicUser.Id,
+			expectedImageWidths:     []int{408, 118},
+			expectedImageHeights:    []int{336, 118},
+			expectedImageHasPreview: []bool{true, false},
 		},
 		{
 			title:                 "Happy invalid image",
@@ -124,77 +131,107 @@ func TestUploadFiles(t *testing.T) {
 		},
 		// Simple POST, chunked encoding
 		{
-			title:                  "Happy image chunked post",
-			skipMultipart:          true,
-			useChunkedInSimplePost: true,
-			names:                  []string{"test.png"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
+			title:                   "Happy image chunked post",
+			skipMultipart:           true,
+			useChunkedInSimplePost:  true,
+			names:                   []string{"test.png"},
+			expectImage:             true,
+			expectedImageWidths:     []int{408},
+			expectedImageHeights:    []int{336},
+			expectedImageHasPreview: []bool{true},
+			expectedCreatorId:       th.BasicUser.Id,
 		},
-		// Image thumbnail and preview: size and orientation
+		// Image thumbnail and preview: size and orientation. Note that
+		// the expected image dimensions remain the same regardless of the
+		// orientation - what we save in FileInfo is used by the
+		// clients to size UI elements, so the dimensions are "actual".
 		{
-			title:                  "Happy image thumbnail/preview 1",
-			names:                  []string{"orientation_test_1.jpeg"},
-			expectedThumbnailNames: []string{"orientation_test_1_expected_thumb.jpeg"},
-			expectedPreviewNames:   []string{"orientation_test_1_expected_preview.jpeg"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
-		},
-		{
-			title:                  "Happy image thumbnail/preview 2",
-			names:                  []string{"orientation_test_2.jpeg"},
-			expectedThumbnailNames: []string{"orientation_test_2_expected_thumb.jpeg"},
-			expectedPreviewNames:   []string{"orientation_test_2_expected_preview.jpeg"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
-		},
-		{
-			title:                  "Happy image thumbnail/preview 3",
-			names:                  []string{"orientation_test_3.jpeg"},
-			expectedThumbnailNames: []string{"orientation_test_3_expected_thumb.jpeg"},
-			expectedPreviewNames:   []string{"orientation_test_3_expected_preview.jpeg"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
+			title:                       "Happy image thumbnail/preview 1",
+			names:                       []string{"orientation_test_1.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_1_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_1_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
-			title:                  "Happy image thumbnail/preview 4",
-			names:                  []string{"orientation_test_4.jpeg"},
-			expectedThumbnailNames: []string{"orientation_test_4_expected_thumb.jpeg"},
-			expectedPreviewNames:   []string{"orientation_test_4_expected_preview.jpeg"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
+			title:                       "Happy image thumbnail/preview 2",
+			names:                       []string{"orientation_test_2.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_2_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_2_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
-			title:                  "Happy image thumbnail/preview 5",
-			names:                  []string{"orientation_test_5.jpeg"},
-			expectedThumbnailNames: []string{"orientation_test_5_expected_thumb.jpeg"},
-			expectedPreviewNames:   []string{"orientation_test_5_expected_preview.jpeg"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
+			title:                       "Happy image thumbnail/preview 3",
+			names:                       []string{"orientation_test_3.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_3_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_3_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
-			title:                  "Happy image thumbnail/preview 6",
-			names:                  []string{"orientation_test_6.jpeg"},
-			expectedThumbnailNames: []string{"orientation_test_6_expected_thumb.jpeg"},
-			expectedPreviewNames:   []string{"orientation_test_6_expected_preview.jpeg"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
+			title:                       "Happy image thumbnail/preview 4",
+			names:                       []string{"orientation_test_4.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_4_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_4_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
-			title:                  "Happy image thumbnail/preview 7",
-			names:                  []string{"orientation_test_7.jpeg"},
-			expectedThumbnailNames: []string{"orientation_test_7_expected_thumb.jpeg"},
-			expectedPreviewNames:   []string{"orientation_test_7_expected_preview.jpeg"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
+			title:                       "Happy image thumbnail/preview 5",
+			names:                       []string{"orientation_test_5.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_5_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_5_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
-			title:                  "Happy image thumbnail/preview 8",
-			names:                  []string{"orientation_test_8.jpeg"},
-			expectedThumbnailNames: []string{"orientation_test_8_expected_thumb.jpeg"},
-			expectedPreviewNames:   []string{"orientation_test_8_expected_preview.jpeg"},
-			expectImage:            true,
-			expectedCreatorId:      th.BasicUser.Id,
+			title:                       "Happy image thumbnail/preview 6",
+			names:                       []string{"orientation_test_6.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_6_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_6_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		{
+			title:                       "Happy image thumbnail/preview 7",
+			names:                       []string{"orientation_test_7.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_7_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_7_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		{
+			title:                       "Happy image thumbnail/preview 8",
+			names:                       []string{"orientation_test_8.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_8_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_8_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
 		},
 		{
 			title:             "Happy admin",
@@ -404,6 +441,7 @@ func TestUploadFiles(t *testing.T) {
 					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
 					checkEq(t, dbInfo.Path, expectedPath,
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))
+
 					if tc.expectImage {
 						expectedThumbnailPath := fmt.Sprintf("%s/%s_thumb.jpg", expectedDir, name)
 						expectedPreviewPath := fmt.Sprintf("%s/%s_preview.jpg", expectedDir, name)
@@ -411,6 +449,15 @@ func TestUploadFiles(t *testing.T) {
 							fmt.Sprintf("Thumbnail for %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.ThumbnailPath, expectedThumbnailPath))
 						checkEq(t, dbInfo.PreviewPath, expectedPreviewPath,
 							fmt.Sprintf("Preview for %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.PreviewPath, expectedPreviewPath))
+
+						checkCond(t,
+							dbInfo.HasPreviewImage == tc.expectedImageHasPreview[i],
+							fmt.Sprintf("Image: HasPreviewImage should be set for %s", dbInfo.Name))
+						checkCond(t,
+							dbInfo.Width == tc.expectedImageWidths[i] && dbInfo.Height == tc.expectedImageHeights[i],
+							fmt.Sprintf("Image dimensions: expected %dwx%dh, got %vwx%dh",
+								tc.expectedImageWidths[i], tc.expectedImageHeights[i],
+								dbInfo.Width, dbInfo.Height))
 					}
 
 					if !tc.skipPayloadValidation {
@@ -440,11 +487,11 @@ func TestUploadFiles(t *testing.T) {
 						}
 
 						compare(client.GetFile, tc.expectedPayloadNames[i])
-						if len(tc.expectedThumbnailNames) > i {
-							compare(client.GetFileThumbnail, tc.expectedThumbnailNames[i])
+						if len(tc.expectedImageThumbnailNames) > i {
+							compare(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
 						}
-						if len(tc.expectedThumbnailNames) > i {
-							compare(client.GetFilePreview, tc.expectedPreviewNames[i])
+						if len(tc.expectedImageThumbnailNames) > i {
+							compare(client.GetFilePreview, tc.expectedImagePreviewNames[i])
 						}
 					}
 

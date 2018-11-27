@@ -577,18 +577,21 @@ func CheckNoError(t *testing.T, resp *model.Response) {
 	}
 }
 
-func checkHTTPStatus(t *testing.T, resp *model.Response, status int, expectError bool) {
+func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
-	if expectError {
-		if resp.Error == nil {
-			t.Fatalf("Expected an error with status:%v, got nil", status)
-		}
-	} else {
-		CheckNoError(t, resp)
-	}
 
-	if resp.StatusCode != status {
-		t.Fatalf("Expected status code %v, got %v", status, resp.StatusCode)
+	switch {
+	case resp == nil:
+		t.Fatalf("Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
+
+	case expectError && resp.Error == nil:
+		t.Fatalf("Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
+
+	case !expectError && resp.Error != nil:
+		t.Fatalf("Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
+
+	case resp.StatusCode != expectedStatus:
+		t.Fatalf("Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 	}
 }
 

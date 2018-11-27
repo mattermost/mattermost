@@ -711,7 +711,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 func (t *UploadFileTask) postprocessImage() {
 	decoded, typ := t.decoded, t.imageType
 	if decoded == nil {
-		err := error(nil)
+		var err error
 		decoded, typ, err = image.Decode(t.newReader())
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))

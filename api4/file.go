@@ -239,13 +239,13 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 	mode uploadFileMultipartMode) *model.FileUploadResponse {
 
 	expectClientIds := true
-	clientIds := []string(nil)
+	var clientIds []string
 	resp := model.FileUploadResponse{
 		FileInfos: []*model.FileInfo{},
 		ClientIds: []string{},
 	}
 
-	buf := (*bytes.Buffer)(nil)
+	var buf *bytes.Buffer
 	prevBody := r.Body
 	if mode == bufferedMode {
 		buf = &bytes.Buffer{}
@@ -267,7 +267,7 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 
 	nFiles := 0
 	for {
-		p, err := mr.NextPart()
+		part, err := mr.NextPart()
 		if err == io.EOF {
 			break
 		}
@@ -278,14 +278,14 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 		}
 
 		// Parse any form fields in the multipart.
-		formname := p.FormName()
+		formname := part.FormName()
 		if formname == "" {
 			continue
 		}
-		filename := p.FileName()
+		filename := part.FileName()
 		if filename == "" {
 			var b bytes.Buffer
-			_, err := io.CopyN(&b, p, maxMultipartValueBytes)
+			_, err := io.CopyN(&b, part, maxMultipartValueBytes)
 			if err != nil && err != io.EOF {
 				c.Err = model.NewAppError("uploadFileMultipart", "api.file.upload_file.read_request.app_error",
 					nil, err.Error(), http.StatusBadRequest)
@@ -372,7 +372,7 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 		}
 
 		task := c.App.NewUploadFileTask(FILE_TEAM_ID, c.Params.ChannelId,
-			c.Session.UserId, filename, timestamp, -1, p)
+			c.Session.UserId, filename, timestamp, -1, part)
 		task.ClientId = clientId
 		info, appErr := task.Do()
 		if appErr != nil {
