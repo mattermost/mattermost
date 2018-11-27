@@ -24,6 +24,7 @@ func getHashedKey(key string) string {
 	hash.Write([]byte(key))
 	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
 }
+
 func TestPluginKeyValueStore(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -31,7 +32,6 @@ func TestPluginKeyValueStore(t *testing.T) {
 	pluginId := "testpluginid"
 
 	defer func() {
-		// Clean up
 		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
 		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key2"))
 	}()
@@ -52,11 +52,10 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, ret)
 
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "stringkey"))
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "intkey"))
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "postkey"))
+	// Test deleting non-existent keys.
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "notrealkey"))
 
+	// Verify behaviour for the old approach that involved storing the hashed keys.
 	hashedKey2 := getHashedKey("key2")
 	kv := &model.PluginKeyValue{
 		PluginId: pluginId,
@@ -89,7 +88,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.Equal(t, 1, len(list))
 	assert.Equal(t, hashedKey2, list[0])
 
-	//List Keys bad input
+	// List Keys bad input
 	list, err = th.App.ListPluginKeys(pluginId, 0, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(list))

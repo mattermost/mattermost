@@ -45,19 +45,16 @@ func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, 
 }
 
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
-	result := <-a.Srv.Store.Plugin().Get(pluginId, key)
-
-	if result.Err == nil {
-		kv := result.Data.(*model.PluginKeyValue)
-		return kv.Value, nil
+	if result := <-a.Srv.Store.Plugin().Get(pluginId, key); result.Err == nil {
+		return result.Data.(*model.PluginKeyValue).Value, nil
+	} else if result.Err.StatusCode != http.StatusNotFound {
+		mlog.Error(result.Err.Error())
+		return nil, result.Err
 	}
 
 	// Lookup using the hashed version of the key for keys written prior to v5.6.
-	result = <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key))
-
-	if result.Err == nil {
-		kv := result.Data.(*model.PluginKeyValue)
-		return kv.Value, nil
+	if result := <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key)); result.Err == nil {
+		return result.Data.(*model.PluginKeyValue).Value, nil
 	} else if result.Err.StatusCode != http.StatusNotFound {
 		mlog.Error(result.Err.Error())
 		return nil, result.Err
