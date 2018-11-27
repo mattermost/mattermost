@@ -24,11 +24,17 @@ func getHashedKey(key string) string {
 	hash.Write([]byte(key))
 	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
 }
+
 func TestPluginKeyValueStore(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	pluginId := "testpluginid"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key2"))
+	}()
 
 	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test")))
 	ret, err := th.App.GetPluginKey(pluginId, "key")
@@ -37,32 +43,52 @@ func TestPluginKeyValueStore(t *testing.T) {
 
 	// Test inserting over existing entries
 	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test2")))
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test2"), ret)
 
 	// Test getting non-existent key
 	ret, err = th.App.GetPluginKey(pluginId, "notakey")
 	assert.Nil(t, err)
 	assert.Nil(t, ret)
 
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "stringkey"))
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "intkey"))
-	assert.Nil(t, th.App.DeletePluginKey(pluginId, "postkey"))
+	// Test deleting non-existent keys.
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "notrealkey"))
 
-	// Test ListKeys
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "key2", []byte("test")))
-	hashedKey := getHashedKey("key")
+	// Verify behaviour for the old approach that involved storing the hashed keys.
 	hashedKey2 := getHashedKey("key2")
+	kv := &model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      hashedKey2,
+		Value:    []byte("test"),
+		ExpireAt: 0,
+	}
+
+	result := <-th.App.Srv.Store.Plugin().SaveOrUpdate(kv)
+	assert.Nil(t, result.Err)
+
+	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
+	ret, err = th.App.GetPluginKey(pluginId, "key2")
+	assert.Nil(t, err)
+	assert.Equal(t, kv.Value, ret)
+
+	// Test fetch by hashed keyname
+	ret, err = th.App.GetPluginKey(pluginId, hashedKey2)
+	assert.Nil(t, err)
+	assert.Equal(t, kv.Value, ret)
+
+	// Test ListKeys
 	list, err := th.App.ListPluginKeys(pluginId, 0, 1)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(list))
-	assert.Equal(t, hashedKey, list[0])
+	assert.Equal(t, "key", list[0])
 
 	list, err = th.App.ListPluginKeys(pluginId, 1, 1)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(list))
 	assert.Equal(t, hashedKey2, list[0])
 
-	//List Keys bad input
+	// List Keys bad input
 	list, err = th.App.ListPluginKeys(pluginId, 0, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(list))
