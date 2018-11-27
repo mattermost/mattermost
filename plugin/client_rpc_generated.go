@@ -2986,7 +2986,6 @@ func (s *apiRPCServer) OpenInteractiveDialog(args *Z_OpenInteractiveDialogArgs, 
 	return nil
 }
 
-
 type Z_GetPluginsArgs struct {
 }
 
