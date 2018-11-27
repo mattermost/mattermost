@@ -687,11 +687,6 @@ func (a *App) StartServer() error {
 	return nil
 }
 
-func (a *App) StopServer() {
-	if a.Srv != nil && a.Srv.Server != nil {
-	}
-}
-
 func (a *App) OriginChecker() func(*http.Request) bool {
 	if allowed := *a.Config().ServiceSettings.AllowCorsFrom; allowed != "" {
 		if allowed != "*" {
