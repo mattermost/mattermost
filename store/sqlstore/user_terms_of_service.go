@@ -5,9 +5,10 @@ package sqlstore
 
 import (
 	"database/sql"
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"net/http"
 )
 
 type SqlUserTermsOfServiceStore struct {

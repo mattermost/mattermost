@@ -56,8 +56,8 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !CheckClientCompatability(r.UserAgent()) {
 		w.Header().Set("Cache-Control", "no-store")
 		page := utils.NewHTMLTemplate(c.App.HTMLTemplates(), "unsupported_browser")
-		page.Props["Title"] = c.T("web.error.unsupported_browser.title")
-		page.Props["Message"] = c.T("web.error.unsupported_browser.message")
+		page.Props["Title"] = c.App.T("web.error.unsupported_browser.title")
+		page.Props["Message"] = c.App.T("web.error.unsupported_browser.message")
 		page.RenderToWriter(w)
 		return
 	}
