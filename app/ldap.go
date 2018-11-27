@@ -40,13 +40,13 @@ func (a *App) TestLdap() *model.AppError {
 	return nil
 }
 
-// GetLdapGroup retrieves a single LDAP group by the given DN.
-func (a *App) GetLdapGroup(uid string) (*model.Group, *model.AppError) {
+// GetLdapGroup retrieves a single LDAP group by the given entryUUID.
+func (a *App) GetLdapGroup(entryUUID string) (*model.Group, *model.AppError) {
 	var group *model.Group
 
 	if a.Ldap != nil {
 		var err *model.AppError
-		group, err = a.Ldap.GetGroup(uid)
+		group, err = a.Ldap.GetGroup(entryUUID)
 		if err != nil {
 			return nil, err
 		}

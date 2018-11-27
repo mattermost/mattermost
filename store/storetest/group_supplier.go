@@ -89,7 +89,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	res4 := <-ss.Group().Create(g3)
 	assert.Nil(t, res4.Data)
-	assert.Equal(t, res4.Err.Id, "store.sql_group.invalid_group_id")
+	assert.Equal(t, res4.Err.Id, "model.group.id.app_error")
 
 	// Won't accept a duplicate name
 	g4 := &model.Group{
@@ -108,7 +108,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	res5b := <-ss.Group().Create(g4b)
 	assert.Nil(t, res5b.Data)
-	assert.Equal(t, res5b.Err.Id, "store.sql_group.commit_error")
+	assert.Equal(t, res5b.Err.Id, "store.commit_error")
 
 	// Fields cannot be greater than max values
 	g5 := &model.Group{
@@ -331,7 +331,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	})
-	assert.Equal(t, res6.Err.Id, "store.sql_group.update_error")
+	assert.Equal(t, res6.Err.Id, "store.update_error")
 
 	// Cannot update CreateAt
 	someVal := model.GetMillis()
@@ -343,7 +343,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	// Cannot update DeleteAt to non-zero
 	d1.DeleteAt = 1
 	res9 := <-ss.Group().Update(d1)
-	assert.Equal(t, "store.sql_group.invalid_delete_at", res9.Err.Id)
+	assert.Equal(t, "model.group.delete_at.app_error", res9.Err.Id)
 
 	//...except for 0 for DeleteAt
 	d1.DeleteAt = 0
@@ -560,11 +560,11 @@ func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
 
 	// Invalid UserId
 	res5 := <-ss.Group().CreateOrRestoreMember(group.Id, model.NewId())
-	assert.Equal(t, res5.Err.Id, "store.sql_group.insert_error")
+	assert.Equal(t, res5.Err.Id, "store.insert_error")
 
 	// Invalid GroupId
 	res6 := <-ss.Group().CreateOrRestoreMember(model.NewId(), user.Id)
-	assert.Equal(t, res6.Err.Id, "store.sql_group.insert_error")
+	assert.Equal(t, res6.Err.Id, "store.insert_error")
 
 	// Restores a deleted member
 	res := <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
@@ -626,11 +626,11 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 
 	// Delete with invalid UserId
 	res6 := <-ss.Group().DeleteMember(group.Id, strings.Repeat("x", 27))
-	assert.Equal(t, res6.Err.Id, "store.sql_group.invalid_user_id")
+	assert.Equal(t, res6.Err.Id, "model.group_member.user_id.app_error")
 
 	// Delete with invalid GroupId
 	res7 := <-ss.Group().DeleteMember(strings.Repeat("x", 27), user.Id)
-	assert.Equal(t, res7.Err.Id, "store.sql_group.invalid_group_id")
+	assert.Equal(t, res7.Err.Id, "model.group.id.app_error")
 
 	// Delete with non-existent User
 	res8 := <-ss.Group().DeleteMember(group.Id, model.NewId())
@@ -919,7 +919,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	// Cannot update DeleteAt to arbitrary value
 	d1.DeleteAt = 1
 	res12 := <-ss.Group().UpdateGroupSyncable(d1)
-	assert.Equal(t, "store.sql_group.invalid_delete_at", res12.Err.Id)
+	assert.Equal(t, "model.group.delete_at.app_error", res12.Err.Id)
 
 	// Can update DeleteAt to 0
 	d1.DeleteAt = 0
@@ -970,11 +970,11 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Invalid GroupId
 	res3 := <-ss.Group().DeleteGroupSyncable("x", groupTeam.SyncableId, model.GroupSyncableTypeTeam)
-	assert.Equal(t, res3.Err.Id, "store.sql_group.invalid_group_id")
+	assert.Equal(t, res3.Err.Id, "model.group.id.app_error")
 
 	// Invalid TeamId
 	res4 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, "x", model.GroupSyncableTypeTeam)
-	assert.Equal(t, res4.Err.Id, "store.sql_group.invalid_syncable_id")
+	assert.Equal(t, res4.Err.Id, "model.group_syncable.syncable_id.app_error")
 
 	// Non-existent Group
 	res5 := <-ss.Group().DeleteGroupSyncable(model.NewId(), groupTeam.SyncableId, model.GroupSyncableTypeTeam)
@@ -999,7 +999,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	// Record already deleted
 	res9 := <-ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
 	assert.NotNil(t, res9.Err)
-	assert.Equal(t, res9.Err.Id, "store.sql_group.already_deleted")
+	assert.Equal(t, res9.Err.Id, "store.sql_group.group_syncable_already_deleted")
 }
 
 func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {

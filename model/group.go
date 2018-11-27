@@ -125,10 +125,10 @@ func (group *Group) IsValidForUpdate() *AppError {
 		return NewAppError("Group.IsValidForUpdate", "model.group.id.app_error", nil, "", http.StatusBadRequest)
 	}
 	if group.CreateAt == 0 {
-		return NewAppError("Group.IsValidForCreate", "model.group.create_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidForUpdate", "model.group.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 	if group.UpdateAt == 0 {
-		return NewAppError("Group.IsValidForCreate", "model.group.update_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidForUpdate", "model.group.update_at.app_error", nil, "", http.StatusBadRequest)
 	}
 	if err := group.IsValidForCreate(); err != nil {
 		return err
