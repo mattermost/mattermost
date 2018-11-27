@@ -58,10 +58,10 @@ func (a *App) runner() {
 
 	go func() {
 		<-time.NewTimer(time.Second).C
-		a.triggerReminders()
 		if !running {
 			return
 		}
+		a.triggerReminders()
 		a.runner()
 	}()
 }
