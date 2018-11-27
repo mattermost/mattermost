@@ -19,20 +19,20 @@ import (
 )
 
 func (w *Web) InitStatic() {
-	if *w.App.Config().ServiceSettings.WebserverMode != "disabled" {
-		utils.UpdateAssetsSubpathFromConfig(w.App.Config())
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode != "disabled" {
+		utils.UpdateAssetsSubpathFromConfig(w.ConfigService.Config())
 
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
 		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
 
-		subpath, _ := utils.GetSubpathFromConfig(w.App.Config())
+		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
 
 		mime.AddExtensionType(".wasm", "application/wasm")
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
-		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.App.Config().PluginSettings.ClientDirectory))))
+		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
 
-		if *w.App.Config().ServiceSettings.WebserverMode == "gzip" {
+		if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}

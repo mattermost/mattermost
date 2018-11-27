@@ -16,33 +16,33 @@ import (
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		App:            w.App,
-		HandleFunc:     h,
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
 	}
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		App:            w.App,
-		HandleFunc:     h,
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       true,
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            true,
 	}
 }
 
 type Handler struct {
-	App            *app.App
-	HandleFunc     func(*Context, http.ResponseWriter, *http.Request)
-	RequireSession bool
-	TrustRequester bool
-	RequireMfa     bool
-	IsStatic       bool
+	GetGlobalAppOptions app.AppOptionCreator
+	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
+	RequireSession      bool
+	TrustRequester      bool
+	RequireMfa          bool
+	IsStatic            bool
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +50,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
 
 	c := &Context{}
-	c.App = h.App
+	c.App = app.New(
+		h.GetGlobalAppOptions()...,
+	)
 	c.T, _ = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
 	c.IpAddress = utils.GetIpAddress(r)

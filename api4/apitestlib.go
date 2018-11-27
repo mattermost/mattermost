@@ -33,6 +33,7 @@ import (
 
 type TestHelper struct {
 	App            *app.App
+	Server         *app.Server
 	tempConfigPath string
 
 	Client              *model.Client4
@@ -99,13 +100,14 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		options = append(options, app.StoreOverride(testStore))
 	}
 
-	a, err := app.New(options...)
+	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
 
 	th := &TestHelper{
-		App:            a,
+		App:            s.FakeApp(),
+		Server:         s,
 		tempConfigPath: tempConfig.Name(),
 	}
 
@@ -127,8 +129,8 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	Init(th.App, th.App.Srv.Router)
-	web.NewWeb(th.App, th.App.Srv.Router)
+	Init(th.Server, th.Server.AppOptions, th.App.Srv.Router)
+	web.New(th.Server, th.Server.AppOptions, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 	th.App.DoAdvancedPermissionsMigration()
@@ -181,7 +183,7 @@ func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
 func (me *TestHelper) ShutdownApp() {
 	done := make(chan bool)
 	go func() {
-		me.App.Shutdown()
+		me.Server.Shutdown()
 		close(done)
 	}()
 

@@ -4,9 +4,7 @@
 package commands
 
 import (
-	"fmt"
 	"net"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,8 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 	"github.com/spf13/cobra"
@@ -27,8 +23,6 @@ import (
 const (
 	SESSIONS_CLEANUP_BATCH_SIZE = 1000
 )
-
-var MaxNotificationsPerChannelDefault int64 = 1000000
 
 var serverCmd = &cobra.Command{
 	Use:          "server",
@@ -60,53 +54,18 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	if disableConfigWatch {
 		options = append(options, app.DisableConfigWatch)
 	}
-
-	a, err := app.New(options...)
+	server, err := app.NewServer(options...)
 	if err != nil {
 		mlog.Critical(err.Error())
 		return err
 	}
-	defer a.Shutdown()
+	defer server.Shutdown()
 
-	mailservice.TestConnection(a.Config())
+	a := server.FakeApp()
 
-	pwd, _ := os.Getwd()
 	if usedPlatform {
 		mlog.Error("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
-
-	if _, err := url.ParseRequestURI(*a.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
-	}
-
-	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
-	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
-	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
-	mlog.Info(fmt.Sprintf("Loaded config file from %v", utils.FindConfigFile(configFileLocation)))
-
-	backend, appErr := a.FileBackend()
-	if appErr == nil {
-		appErr = backend.TestConnection()
-	}
-	if appErr != nil {
-		mlog.Error("Problem with file storage settings: " + appErr.Error())
-	}
-
-	if model.BuildEnterpriseReady == "true" {
-		a.LoadLicense()
-	}
-
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
-
-	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-	a.AddConfigListener(func(prevCfg, cfg *model.Config) {
-		if *cfg.PluginSettings.Enable {
-			a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-		} else {
-			a.ShutDownPlugins()
-		}
-	})
 
 	serverErr := a.StartServer()
 	if serverErr != nil {
@@ -114,33 +73,9 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 		return serverErr
 	}
 
-	api := api4.Init(a, a.Srv.Router)
-	wsapi.Init(a, a.Srv.WebSocketRouter)
-	web.NewWeb(a, a.Srv.Router)
-
-	license := a.License()
-
-	if license == nil && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
-		mlog.Warn("More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		a.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
-		})
-	}
-
-	if license == nil {
-		a.UpdateConfig(func(cfg *model.Config) {
-			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
-		})
-	}
-
-	a.ReloadConfig()
-
-	// Enable developer settings if this is a "dev" build
-	if model.BuildNumber == "dev" {
-		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
-	}
-
-	resetStatuses(a)
+	api := api4.Init(server, server.AppOptions, server.Router)
+	wsapi.Init(a, server.WebSocketRouter)
+	web.New(server, server.AppOptions, server.Router)
 
 	// If we allow testing then listen for manual testing URL hits
 	if a.Config().ServiceSettings.EnableTesting {
@@ -240,12 +175,6 @@ func runSessionCleanupJob(a *app.App) {
 	model.CreateRecurringTask("Session Cleanup", func() {
 		doSessionCleanup(a)
 	}, time.Hour*24)
-}
-
-func resetStatuses(a *app.App) {
-	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
-		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
-	}
 }
 
 func doSecurity(a *app.App) {

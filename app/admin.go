@@ -202,9 +202,6 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 		}
 	}
 
-	// start/restart email batching job if necessary
-	a.InitEmailBatching()
-
 	return nil
 }
 

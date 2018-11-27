@@ -350,7 +350,7 @@ do-cover-file: ## Creates the test coverage report file.
 go-junit-report:
 	go get -u github.com/jstemmer/go-junit-report
 
-test-te: go-junit-report do-cover-file ## Runs tests in the team edition.
+test-te: start-docker go-junit-report do-cover-file ## Runs tests in the team edition.
 	@echo Testing TE
 	@echo "Packages to test: "$(TE_PACKAGES)
 	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
@@ -358,7 +358,12 @@ test-te: go-junit-report do-cover-file ## Runs tests in the team edition.
 	cat output-test-te | $(GOPATH)/bin/go-junit-report > report-te.xml && rm output-test-te
 	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 
-test-ee: go-junit-report do-cover-file ## Runs tests in the enterprise edition.
+test-ee: start-docker go-junit-report do-cover-file ## Runs tests in the enterprise edition.
+	@echo Testing EE
+
+	rm -f enterprise/config/*.crt
+	rm -f enterprise/config/*.key
+
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Testing EE
 	@echo "Packages to test: "$(EE_PACKAGES)
@@ -366,11 +371,18 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGSEE) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(EE_PACKAGES) 2>&1 | tee output-test-ee
 	cat output-test-ee | $(GOPATH)/bin/go-junit-report > report-ee.xml && rm output-test-ee
 	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
-	rm -f config/*.crt
-	rm -f config/*.key
+	rm -f enterprise/config/*.crt
+	rm -f enterprise/config/*.key
 else
 	@echo Skipping EE Tests
 endif
+
+test-compile:
+	@echo COMPILE TESTS
+
+	for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
+		$(GO) test $(GOFLAGS) -c $$package; \
+	done
 
 test-server: test-te test-ee ## Runs tests.
 	find . -type d -name data -not -path './vendor/*' | xargs rm -rf

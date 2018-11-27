@@ -27,59 +27,76 @@ const (
 	ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND = "store.sql_terms_of_service_store.get.no_rows.app_error"
 )
 
-func (a *App) Config() *model.Config {
-	if cfg := a.Srv.config.Load(); cfg != nil {
+func (s *Server) Config() *model.Config {
+	if cfg := s.config.Load(); cfg != nil {
 		return cfg.(*model.Config)
 	}
 	return &model.Config{}
 }
 
-func (a *App) EnvironmentConfig() map[string]interface{} {
-	if a.Srv.envConfig != nil {
-		return a.Srv.envConfig
+func (a *App) Config() *model.Config {
+	return a.Srv.Config()
+}
+
+func (s *Server) EnvironmentConfig() map[string]interface{} {
+	if s.envConfig != nil {
+		return s.envConfig
 	}
 	return map[string]interface{}{}
 }
 
-func (a *App) UpdateConfig(f func(*model.Config)) {
-	old := a.Config()
+func (a *App) EnvironmentConfig() map[string]interface{} {
+	return a.Srv.EnvironmentConfig()
+}
+
+func (s *Server) UpdateConfig(f func(*model.Config)) {
+	old := s.Config()
 	updated := old.Clone()
 	f(updated)
-	a.Srv.config.Store(updated)
+	s.config.Store(updated)
 
-	a.InvokeConfigListeners(old, updated)
+	s.InvokeConfigListeners(old, updated)
+}
+
+func (a *App) UpdateConfig(f func(*model.Config)) {
+	a.Srv.UpdateConfig(f)
 }
 
 func (a *App) PersistConfig() {
 	utils.SaveConfig(a.ConfigFileName(), a.Config())
 }
 
-func (a *App) LoadConfig(configFile string) *model.AppError {
-	old := a.Config()
+func (s *Server) LoadConfig(configFile string) *model.AppError {
+	old := s.Config()
 
 	cfg, configPath, envConfig, err := utils.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
 	*cfg.ServiceSettings.SiteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
-	a.Srv.config.Store(cfg)
+	s.config.Store(cfg)
 
-	a.Srv.configFile = configPath
-	a.Srv.envConfig = envConfig
+	s.configFile = configPath
+	s.envConfig = envConfig
 
-	a.InvokeConfigListeners(old, cfg)
+	s.InvokeConfigListeners(old, cfg)
+	return nil
+}
+
+func (a *App) LoadConfig(configFile string) *model.AppError {
+	return a.Srv.LoadConfig(configFile)
+}
+
+func (s *Server) ReloadConfig() *model.AppError {
+	debug.FreeOSMemory()
+	if err := s.LoadConfig(s.configFile); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (a *App) ReloadConfig() *model.AppError {
-	debug.FreeOSMemory()
-	if err := a.LoadConfig(a.Srv.configFile); err != nil {
-		return err
-	}
-
-	// start/restart email batching job if necessary
-	a.InitEmailBatching()
-	return nil
+	return a.Srv.ReloadConfig()
 }
 
 func (a *App) ConfigFileName() string {
@@ -98,41 +115,57 @@ func (a *App) LimitedClientConfig() map[string]string {
 	return a.Srv.limitedClientConfig
 }
 
-func (a *App) EnableConfigWatch() {
-	if a.Srv.configWatcher == nil && !a.Srv.disableConfigWatch {
-		configWatcher, err := utils.NewConfigWatcher(a.ConfigFileName(), func() {
-			a.ReloadConfig()
+func (s *Server) EnableConfigWatch() {
+	if s.configWatcher == nil && !s.disableConfigWatch {
+		configWatcher, err := utils.NewConfigWatcher(s.configFile, func() {
+			s.ReloadConfig()
 		})
 		if err != nil {
 			mlog.Error(fmt.Sprint(err))
 		}
-		a.Srv.configWatcher = configWatcher
+		s.configWatcher = configWatcher
+	}
+}
+
+func (a *App) EnableConfigWatch() {
+	a.Srv.EnableConfigWatch()
+}
+
+func (s *Server) DisableConfigWatch() {
+	if s.configWatcher != nil {
+		s.configWatcher.Close()
+		s.configWatcher = nil
 	}
 }
 
 func (a *App) DisableConfigWatch() {
-	if a.Srv.configWatcher != nil {
-		a.Srv.configWatcher.Close()
-		a.Srv.configWatcher = nil
-	}
+	a.Srv.DisableConfigWatch()
 }
 
 // Registers a function with a given to be called when the config is reloaded and may have changed. The function
 // will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
 // for the listener that can later be used to remove it.
-func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
+func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
 	id := model.NewId()
-	a.Srv.configListeners[id] = listener
+	s.configListeners[id] = listener
 	return id
 }
 
-// Removes a listener function by the unique ID returned when AddConfigListener was called
-func (a *App) RemoveConfigListener(id string) {
-	delete(a.Srv.configListeners, id)
+func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
+	return a.Srv.AddConfigListener(listener)
 }
 
-func (a *App) InvokeConfigListeners(old, current *model.Config) {
-	for _, listener := range a.Srv.configListeners {
+// Removes a listener function by the unique ID returned when AddConfigListener was called
+func (s *Server) RemoveConfigListener(id string) {
+	delete(s.configListeners, id)
+}
+
+func (a *App) RemoveConfigListener(id string) {
+	a.Srv.RemoveConfigListener(id)
+}
+
+func (s *Server) InvokeConfigListeners(old, current *model.Config) {
+	for _, listener := range s.configListeners {
 		listener(old, current)
 	}
 }
@@ -238,8 +271,12 @@ func (a *App) ensureInstallationDate() error {
 }
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
+func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
+	return s.asymmetricSigningKey
+}
+
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	return a.Srv.asymmetricSigningKey
+	return a.Srv.AsymmetricSigningKey()
 }
 
 func (a *App) regenerateClientConfig() {

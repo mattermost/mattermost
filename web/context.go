@@ -9,8 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -19,16 +17,10 @@ import (
 )
 
 type Context struct {
-	App           *app.App
-	Log           *mlog.Logger
-	Session       model.Session
-	Params        *Params
-	Err           *model.AppError
-	T             goi18n.TranslateFunc
-	RequestId     string
-	IpAddress     string
-	Path          string
-	siteURLHeader string
+	App    *app.App
+	Log    *mlog.Logger
+	Params *Params
+	Err    *model.AppError
 }
 
 func (c *Context) LogAudit(extraInfo string) {

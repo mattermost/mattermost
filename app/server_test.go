@@ -19,36 +19,36 @@ import (
 )
 
 func TestStartServerSuccess(t *testing.T) {
-	a, err := New()
+	s, err := NewServer()
 	require.NoError(t, err)
 
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := a.StartServer()
+	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	serverErr := s.StartServer()
 
 	client := &http.Client{}
-	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
+	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
 
-	a.Shutdown()
+	s.Shutdown()
 	require.NoError(t, serverErr)
 }
 
 func TestStartServerRateLimiterCriticalError(t *testing.T) {
-	a, err := New()
+	s, err := NewServer()
 	require.NoError(t, err)
 
 	// Attempt to use Rate Limiter with an invalid config
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.RateLimitSettings.Enable = true
 		*cfg.RateLimitSettings.MaxBurst = -100
 	})
 
-	serverErr := a.StartServer()
-	a.Shutdown()
+	serverErr := s.StartServer()
+	s.Shutdown()
 	require.Error(t, serverErr)
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {
-	a, err := New()
+	s, err := NewServer()
 	require.NoError(t, err)
 
 	// Listen on the next available port
@@ -56,52 +56,52 @@ func TestStartServerPortUnavailable(t *testing.T) {
 	require.NoError(t, err)
 
 	// Attempt to listen on the port used above.
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
 	})
 
-	serverErr := a.StartServer()
-	a.Shutdown()
+	serverErr := s.StartServer()
+	s.Shutdown()
 	require.Error(t, serverErr)
 }
 
 func TestStartServerTLSSuccess(t *testing.T) {
-	a, err := New()
+	s, err := NewServer()
 	require.NoError(t, err)
 
 	testDir, _ := utils.FindDir("tests")
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
-	serverErr := a.StartServer()
+	serverErr := s.StartServer()
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
 	client := &http.Client{Transport: tr}
-	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
+	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
 
-	a.Shutdown()
+	s.Shutdown()
 	require.NoError(t, serverErr)
 }
 
 func TestStartServerTLSVersion(t *testing.T) {
-	a, err := New()
+	s, err := NewServer()
 	require.NoError(t, err)
 
 	testDir, _ := utils.FindDir("tests")
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSMinVer = "1.2"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
-	serverErr := a.StartServer()
+	serverErr := s.StartServer()
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -111,7 +111,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	if !strings.Contains(err.Error(), "remote error: tls: protocol version not supported") {
 		t.Errorf("Expected protocol version error, got %s", err)
@@ -123,22 +123,22 @@ func TestStartServerTLSVersion(t *testing.T) {
 		},
 	}
 
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
 
-	a.Shutdown()
+	s.Shutdown()
 	require.NoError(t, serverErr)
 }
 
 func TestStartServerTLSOverwriteCipher(t *testing.T) {
-	a, err := New()
+	s, err := NewServer()
 	require.NoError(t, err)
 
 	testDir, _ := utils.FindDir("tests")
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		cfg.ServiceSettings.TLSOverwriteCiphers = []string{
@@ -148,7 +148,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
-	serverErr := a.StartServer()
+	serverErr := s.StartServer()
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -160,7 +160,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	if !strings.Contains(err.Error(), "remote error: tls: handshake failure") {
 		t.Errorf("Expected protocol version error, got %s", err)
@@ -176,13 +176,13 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 		},
 	}
 
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(a.Srv.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
 
-	a.Shutdown()
+	s.Shutdown()
 	require.NoError(t, serverErr)
 }
 

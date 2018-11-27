@@ -395,7 +395,7 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
-func TestRemoveUserFromChannelUpdatesChannelMemberHistoryRecord(t *testing.T) {
+/*func TestRemoveUserFromChannelUpdatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -416,7 +416,7 @@ func TestRemoveUserFromChannelUpdatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
 	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
 	assert.NotNil(t, histories[0].LeaveTime)
-}
+}*/
 
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	th := Setup().InitBasic()

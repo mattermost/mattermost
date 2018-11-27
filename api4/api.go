@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/configservice"
 	"github.com/mattermost/mattermost-server/web"
 
 	_ "github.com/nicksnyder/go-i18n/i18n"
@@ -110,14 +111,16 @@ type Routes struct {
 }
 
 type API struct {
-	App        *app.App
-	BaseRoutes *Routes
+	ConfigService       configservice.ConfigService
+	GetGlobalAppOptions app.AppOptionCreator
+	BaseRoutes          *Routes
 }
 
-func Init(a *app.App, root *mux.Router) *API {
+func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
 	api := &API{
-		App:        a,
-		BaseRoutes: &Routes{},
+		ConfigService:       configservice,
+		GetGlobalAppOptions: globalOptionsFunc,
+		BaseRoutes:          &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -235,13 +238,11 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
-	a.InitEmailBatching()
-
 	return api
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
-	web.Handle404(api.App, w, r)
+	web.Handle404(api.ConfigService, w, r)
 }
 
 var ReturnStatusOK = web.ReturnStatusOK
