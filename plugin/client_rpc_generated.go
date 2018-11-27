@@ -767,6 +767,36 @@ func (s *apiRPCServer) CreateUser(args *Z_CreateUserArgs, returns *Z_CreateUserR
 	return nil
 }
 
+type Z_CreateDirectChannelArgs struct {
+	A string
+	B string
+}
+
+type Z_CreateDirectChannelReturns struct {
+	A *model.Channel
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
+	_args := &Z_CreateDirectChannelArgs{userId1, userId2}
+	_returns := &Z_CreateDirectChannelReturns{}
+	if err := g.client.Call("Plugin.CreateDirectChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateDirectChannel API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateDirectChannel(args *Z_CreateDirectChannelArgs, returns *Z_CreateDirectChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateDirectChannel(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API CreateDirectChannel called but not implemented."))
+	}
+	return nil
+}
+
 type Z_DeleteUserArgs struct {
 	A string
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -74,7 +74,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 }
 
 func TestGetIncomingWebhooks(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -153,7 +153,7 @@ func TestGetIncomingWebhooks(t *testing.T) {
 }
 
 func TestGetIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
@@ -192,7 +192,7 @@ func TestGetIncomingWebhook(t *testing.T) {
 }
 
 func TestDeleteIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
@@ -243,7 +243,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -293,7 +293,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooks(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -394,7 +394,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 }
 
 func TestGetOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -424,7 +424,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 }
 
 func TestUpdateIncomingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -644,7 +644,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 }
 
 func TestRegenOutgoingHookToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -676,7 +676,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 }
 
 func TestUpdateOutgoingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -839,7 +839,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 }
 
 func TestDeleteOutgoingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 

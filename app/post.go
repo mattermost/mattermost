@@ -8,13 +8,8 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"net/http"
-	"net/url"
 	"strings"
-
-	"github.com/dyatlov/go-opengraph/opengraph"
-	"golang.org/x/net/html/charset"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -206,6 +201,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
+	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
+	// to be done when we send the post over the websocket in handlePostEvents
+	rpost = a.PreparePostForClient(rpost)
+
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		return nil, err
 	}
@@ -299,7 +298,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 
 	return post
@@ -421,7 +420,7 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 }
 
@@ -561,7 +560,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post).ToJson())
 	a.Publish(message)
 
 	a.Srv.Go(func() {
@@ -753,14 +752,13 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 	return model.MakePostSearchResults(posts, nil), nil
 }
 
-func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
 	pchan := a.Srv.Store.Post().GetSingle(postId)
 
-	result := <-a.Srv.Store.FileInfo().GetForPost(postId, readFromMaster, true)
-	if result.Err != nil {
-		return nil, result.Err
+	infos, err := a.GetFileInfosForPost(postId)
+	if err != nil {
+		return nil, err
 	}
-	infos := result.Data.([]*model.FileInfo)
 
 	if len(infos) == 0 {
 		// No FileInfos were returned so check if they need to be created for this post
@@ -780,90 +778,13 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 	return infos, nil
 }
 
-func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
-	og := opengraph.NewOpenGraph()
-
-	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
-	if err != nil {
-		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error()))
-		return og
-	}
-	defer consumeAndClose(res)
-
-	contentType := res.Header.Get("Content-Type")
-	body := forceHTMLEncodingToUTF8(res.Body, contentType)
-
-	if err := og.ProcessHTML(body); err != nil {
-		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error()))
+func (a *App) GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
+	result := <-a.Srv.Store.FileInfo().GetForPost(postId, false, true)
+	if result.Err != nil {
+		return nil, result.Err
 	}
 
-	makeOpenGraphURLsAbsolute(og, requestURL)
-
-	// The URL should be the link the user provided in their message, not a redirected one.
-	if og.URL != "" {
-		og.URL = requestURL
-	}
-
-	return og
-}
-
-func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
-	r, err := charset.NewReader(body, contentType)
-	if err != nil {
-		mlog.Error(fmt.Sprintf("forceHTMLEncodingToUTF8 failed to convert for contentType=%v with err=%v", contentType, err.Error()))
-		return body
-	}
-	return r
-}
-
-func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
-	parsedRequestURL, err := url.Parse(requestURL)
-	if err != nil {
-		mlog.Warn(fmt.Sprintf("makeOpenGraphURLsAbsolute failed to parse url=%v", requestURL))
-		return
-	}
-
-	makeURLAbsolute := func(resultURL string) string {
-		if resultURL == "" {
-			return resultURL
-		}
-
-		parsedResultURL, err := url.Parse(resultURL)
-		if err != nil {
-			mlog.Warn(fmt.Sprintf("makeOpenGraphURLsAbsolute failed to parse result url=%v", resultURL))
-			return resultURL
-		}
-
-		if parsedResultURL.IsAbs() {
-			return resultURL
-		}
-
-		return parsedRequestURL.ResolveReference(parsedResultURL).String()
-	}
-
-	og.URL = makeURLAbsolute(og.URL)
-
-	for _, image := range og.Images {
-		image.URL = makeURLAbsolute(image.URL)
-		image.SecureURL = makeURLAbsolute(image.SecureURL)
-	}
-
-	for _, audio := range og.Audios {
-		audio.URL = makeURLAbsolute(audio.URL)
-		audio.SecureURL = makeURLAbsolute(audio.SecureURL)
-	}
-
-	for _, video := range og.Videos {
-		video.URL = makeURLAbsolute(video.URL)
-		video.SecureURL = makeURLAbsolute(video.SecureURL)
-	}
-}
-
-func (a *App) PostListWithProxyAddedToImageURLs(list *model.PostList) *model.PostList {
-	if f := a.ImageProxyAdder(); f != nil {
-		return list.WithRewrittenImageURLs(f)
-	}
-	return list
+	return result.Data.([]*model.FileInfo), nil
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

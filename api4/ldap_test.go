@@ -8,7 +8,7 @@ import (
 )
 
 func TestLdapTest(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.TestLdap()
@@ -19,7 +19,7 @@ func TestLdapTest(t *testing.T) {
 }
 
 func TestLdapSync(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.SystemAdminClient.SyncLdap()

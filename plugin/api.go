@@ -52,6 +52,11 @@ type API interface {
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 
+	// CreateDirectChannel creates a Direct channel.
+	//
+	// Minimum server version: 5.6
+	CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError)
+
 	// DeleteUser deletes a user.
 	DeleteUser(userId string) *model.AppError
 
@@ -103,7 +108,7 @@ type API interface {
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
 	// UpdateUserActive updates status of a user whether active or not.
-	UpdateUserActive(userId string, active bool) (bool, *model.AppError)
+	UpdateUserActive(userId string, active bool) (*model.AppError)
 
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 	// The sortBy parameter can be: "username" or "status".

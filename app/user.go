@@ -1066,34 +1066,19 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	return rusers[0], nil
 }
 
-func (a *App) UpdateUserActive(userId string, active bool) (bool, *model.AppError) {
-	var user *model.User
-	var err *model.AppError
-//When active = true
-if active{
-		if user,err = a.GetUser(userId); err != nil{
-		return false ,err
+func (a *App) UpdateUserActive(userId string, active bool) *model.AppError {
+	user, err := a.GetUser(userId)
+
+	if err != nil {
+		return err
+	}
+	if _, err = a.UpdateActive(user, active); err != nil {
+		return err
 	}
 
-	if _,err := a.UpdateUser(user,active); err!=nil{
-		return false, err
-	}
+	return nil
+}
 
-}
-//When active = false => soft deleting an user
-	isSelfDeactive := !active
-	if isSelfDeactive && !*a.GetConfig().TeamSettings.EnableUserDeactivation{
-		return false ,model.NewAppError("updateUserActive", "plugin_api.user.update_active.not_enable.app_error", nil, "userId="+userId, http.StatusUnauthorized)
-	}
-	if isSelfDeactive{
-		a.Srv.Go(func() {
-			if err = a.SendDeactivateAccountEmail(user.Email, user.Locale,a.GetSiteURL()); err!=nil {
-				mlog.Error(err.Error())
-			}
-			})
-	}
-	return true,err
-}
 func (a *App) UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userId)
 	if err != nil {
