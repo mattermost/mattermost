@@ -1181,24 +1181,23 @@ type Z_UpdateUserActiveArgs struct {
 }
 
 type Z_UpdateUserActiveReturns struct {
-	A bool
-	B *model.AppError
+	A *model.AppError
 }
 
-func (g *apiRPCClient) UpdateUserActive(userId string, active bool) (bool, *model.AppError) {
+func (g *apiRPCClient) UpdateUserActive(userId string, active bool) *model.AppError {
 	_args := &Z_UpdateUserActiveArgs{userId, active}
 	_returns := &Z_UpdateUserActiveReturns{}
 	if err := g.client.Call("Plugin.UpdateUserActive", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateUserActive API failed: %s", err.Error())
 	}
-	return _returns.A, _returns.B
+	return _returns.A
 }
 
 func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z_UpdateUserActiveReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateUserActive(userId string, active bool) (bool, *model.AppError)
+		UpdateUserActive(userId string, active bool) *model.AppError
 	}); ok {
-		returns.A, returns.B = hook.UpdateUserActive(args.A, args.B)
+		returns.A = hook.UpdateUserActive(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateUserActive called but not implemented."))
 	}

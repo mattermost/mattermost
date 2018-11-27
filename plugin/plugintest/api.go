@@ -606,20 +606,6 @@ func (_m *API) GetConfig() *model.Config {
 	return r0
 }
 
-// GetPluginConfig provides a mock function with given fields:
-func (_m *API) GetPluginConfig() map[string]interface{} {
-	ret := _m.Called()
-
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func() map[string]interface{}); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(map[string]interface{})
-	}
-
-	return r0
-}
-
 // GetDirectChannel provides a mock function with given fields: userId1, userId2
 func (_m *API) GetDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userId1, userId2)
@@ -848,6 +834,22 @@ func (_m *API) GetLDAPUserAttributes(userId string, attributes []string) (map[st
 	}
 
 	return r0, r1
+}
+
+// GetPluginConfig provides a mock function with given fields:
+func (_m *API) GetPluginConfig() map[string]interface{} {
+	ret := _m.Called()
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func() map[string]interface{}); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	return r0
 }
 
 // GetPluginStatus provides a mock function with given fields: id
@@ -1890,13 +1892,13 @@ func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 	return r0
 }
 
-// SavePluginConfig provides a mock function with given fields: pluginConfig
-func (_m *API) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
-	ret := _m.Called(pluginConfig)
+// SavePluginConfig provides a mock function with given fields: config
+func (_m *API) SavePluginConfig(config map[string]interface{}) *model.AppError {
+	ret := _m.Called(config)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(map[string]interface{}) *model.AppError); ok {
-		r0 = rf(pluginConfig)
+		r0 = rf(config)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -2169,26 +2171,19 @@ func (_m *API) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 }
 
 // UpdateUserActive provides a mock function with given fields: userId, active
-func (_m *API) UpdateUserActive(userId string, active bool) (bool, *model.AppError) {
+func (_m *API) UpdateUserActive(userId string, active bool) *model.AppError {
 	ret := _m.Called(userId, active)
 
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(string, bool) bool); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
 		r0 = rf(userId, active)
 	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
-		r1 = rf(userId, active)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0
 }
 
 // UpdateUserStatus provides a mock function with given fields: userId, status

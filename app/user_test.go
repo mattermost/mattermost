@@ -167,8 +167,8 @@ func TestUpdateUserActive(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableUserDeactivation = true
 	})
-	_, err := th.App.UpdateUserActive(user.Id, false)
-	assert.True(t, err == nil)
+	err := th.App.UpdateUserActive(user.Id, false)
+	assert.Nil(t, err)
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
