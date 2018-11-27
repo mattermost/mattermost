@@ -494,6 +494,7 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
 		"client_side_cert_enable":          *cfg.ExperimentalSettings.ClientSideCertEnable,
 		"isdefault_client_side_cert_check": isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
+		"enable_post_metadata":             *cfg.ExperimentalSettings.EnablePostMetadata,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{

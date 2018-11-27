@@ -52,7 +52,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	if *a.Config().ExperimentalSettings.DisablePostMetadata {
+	if !*a.Config().ExperimentalSettings.EnablePostMetadata {
 		return post
 	}
 
