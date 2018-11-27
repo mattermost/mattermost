@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
+
 type RemindProvider struct {
 }
 
@@ -23,11 +24,11 @@ func (me *RemindProvider) GetTrigger() string {
 
 func (me *RemindProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:			model.CMD_REMIND,
-		AutoComplete:  		true,
-		AutoCompleteDesc:	T("api.command_remind.desc"),
-		AutoCompleteHint: 	T("api.command_remind.hint"),
-		DisplayName:		T("api.command_remind.name"),
+		Trigger:          model.CMD_REMIND,
+		AutoComplete:     true,
+		AutoCompleteDesc: T("api.command_remind.desc"),
+		AutoCompleteHint: T("api.command_remind.hint"),
+		DisplayName:      T("api.command_remind.name"),
 	}
 }
 
@@ -38,14 +39,14 @@ func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	if strings.HasSuffix(args.Command, T("help")) {
 		return &model.CommandResponse{
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-			Text: fmt.Sprintf(T(model.REMIND_HELP_TEXT)),
+			Text:         fmt.Sprintf(T(model.REMIND_HELP_TEXT)),
 		}
 	}
 
 	if strings.HasSuffix(args.Command, T("list")) {
 		return &model.CommandResponse{
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-			Text: fmt.Sprintf(a.ListReminders(args.UserId)),
+			Text:         fmt.Sprintf(a.ListReminders(args.UserId)),
 		}
 	}
 
@@ -62,13 +63,12 @@ func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		strings.HasPrefix(payload, "@") ||
 		strings.HasPrefix(payload, "~") {
 
-
 		request := model.ReminderRequest{
-			args.TeamId,
-			args.UserId,
-			payload,
-			model.Reminder{},
-			model.Occurrences{},
+			TeamId:      args.TeamId,
+			UserId:      args.UserId,
+			Payload:     payload,
+			Reminder:    model.Reminder{},
+			Occurrences: model.Occurrences{},
 		}
 		response, err := a.ScheduleReminder(&request)
 

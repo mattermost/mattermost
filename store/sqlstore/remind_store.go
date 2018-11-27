@@ -50,7 +50,7 @@ func (s SqlRemindStore) CreateIndexesIfNotExists() {
 
 func (s SqlRemindStore) SaveReminder(reminder *model.Reminder) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if err := s.GetReplica().SelectOne(&model.Reminder{},"SELECT * FROM Reminders WHERE Id = :Id",map[string]interface{}{"Id": reminder.Id}); err == nil {
+		if err := s.GetReplica().SelectOne(&model.Reminder{}, "SELECT * FROM Reminders WHERE Id = :Id", map[string]interface{}{"Id": reminder.Id}); err == nil {
 			if _, err := s.GetMaster().Update(reminder); err != nil {
 				result.Err = model.NewAppError("SqlRemindStore.SaveReminder", "store.sql_remind.save_reminder.saving.app_error", nil, "reminderId="+reminder.Id, http.StatusInternalServerError)
 			}
@@ -65,7 +65,7 @@ func (s SqlRemindStore) SaveReminder(reminder *model.Reminder) store.StoreChanne
 
 func (s SqlRemindStore) SaveOccurrence(occurrence *model.Occurrence) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if err := s.GetReplica().SelectOne(&model.Occurrence{},"SELECT * FROM Occurrences WHERE Id = :Id",map[string]interface{}{"Id": occurrence.Id}); err == nil {
+		if err := s.GetReplica().SelectOne(&model.Occurrence{}, "SELECT * FROM Occurrences WHERE Id = :Id", map[string]interface{}{"Id": occurrence.Id}); err == nil {
 			if _, err := s.GetMaster().Update(occurrence); err != nil {
 				result.Err = model.NewAppError("SqlRemindStore.SaveOccurrence", "store.sql_remind.save_occurrence.saving.app_error", nil, "occurrenceId="+occurrence.Id, http.StatusInternalServerError)
 			}

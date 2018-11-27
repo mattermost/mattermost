@@ -1,10 +1,13 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package storetest
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"time"
 )
 
@@ -28,8 +31,7 @@ func testSaveReminder(t *testing.T, ss store.Store) {
 	r.Id = model.NewId()
 	r.TeamId = "TEST"
 	r.UserId = "USER"
-	r.Completed = time.Time{}.AddDate(0,0,1).Format(time.RFC3339)
-
+	r.Completed = time.Time{}.AddDate(0, 0, 1).Format(time.RFC3339)
 
 	schan := ss.Remind().SaveReminder(&r)
 	if result := <-schan; result.Err != nil {
@@ -41,12 +43,12 @@ func testSaveReminder(t *testing.T, ss store.Store) {
 func testSaveOccurrence(t *testing.T, ss store.Store) {
 
 	o := &model.Occurrence{
-		model.NewId(),
-		"USER",
-		"REMINDER",
-		"REPEAT",
-		time.Now().Format(time.RFC3339),
-		time.Time{}.AddDate(0,0,1).Format(time.RFC3339),
+		Id:         model.NewId(),
+		UserId:     "USER",
+		ReminderId: "REMINDER",
+		Repeat:     "REPEAT",
+		Occurrence: time.Now().Format(time.RFC3339),
+		Snoozed:    time.Time{}.AddDate(0, 0, 1).Format(time.RFC3339),
 	}
 
 	schan := ss.Remind().SaveOccurrence(o)

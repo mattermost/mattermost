@@ -35,7 +35,7 @@ type Store struct {
 	PreferenceStore           mocks.PreferenceStore
 	LicenseStore              mocks.LicenseStore
 	TokenStore                mocks.TokenStore
-	RemindStore  			  mocks.RemindStore
+	RemindStore               mocks.RemindStore
 	EmojiStore                mocks.EmojiStore
 	StatusStore               mocks.StatusStore
 	FileInfoStore             mocks.FileInfoStore
@@ -66,7 +66,7 @@ func (s *Store) CommandWebhook() store.CommandWebhookStore         { return &s.C
 func (s *Store) Preference() store.PreferenceStore                 { return &s.PreferenceStore }
 func (s *Store) License() store.LicenseStore                       { return &s.LicenseStore }
 func (s *Store) Token() store.TokenStore                           { return &s.TokenStore }
-func (s *Store) Remind() store.RemindStore 					   	   { return &s.RemindStore }
+func (s *Store) Remind() store.RemindStore                         { return &s.RemindStore }
 func (s *Store) Emoji() store.EmojiStore                           { return &s.EmojiStore }
 func (s *Store) Status() store.StatusStore                         { return &s.StatusStore }
 func (s *Store) FileInfo() store.FileInfoStore                     { return &s.FileInfoStore }

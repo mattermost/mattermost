@@ -82,7 +82,7 @@ type SqlSupplierOldStores struct {
 	preference           store.PreferenceStore
 	license              store.LicenseStore
 	token                store.TokenStore
-	remind  			 store.RemindStore
+	remind               store.RemindStore
 	emoji                store.EmojiStore
 	status               store.StatusStore
 	fileInfo             store.FileInfoStore

@@ -257,7 +257,7 @@ func (a *App) triggerReminders() {
 	}
 }
 
-func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string, selectedOption string) (error) {
+func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string, selectedOption string) error {
 
 	_, cfg, location, T := a.shared(userId)
 
@@ -856,12 +856,12 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 		}
 
 		occurrence := &model.Occurrence{
-			model.NewId(),
-			request.UserId,
-			request.Reminder.Id,
-			repeat,
-			o.Format(time.RFC3339),
-			emptyTime.Format(time.RFC3339),
+			Id:         model.NewId(),
+			UserId:     request.UserId,
+			ReminderId: request.Reminder.Id,
+			Repeat:     repeat,
+			Occurrence: o.Format(time.RFC3339),
+			Snoozed:    emptyTime.Format(time.RFC3339),
 		}
 
 		schan := a.Srv.Store.Remind().SaveOccurrence(occurrence)
@@ -1246,7 +1246,6 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 		return nil, errors.New("could not format 'in'")
 	}
 
-	return nil, errors.New("could not format 'in'")
 }
 
 func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
@@ -1426,7 +1425,6 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
 	}
 
-	return []time.Time{}, errors.New("could not format 'at'")
 }
 
 func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
@@ -1499,7 +1497,6 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 
 		return []time.Time{a.chooseClosest(user, &occurrence, false)}, nil
 
-		break
 	case T("app.reminder.chrono.mondays"),
 		T("app.reminder.chrono.tuesdays"),
 		T("app.reminder.chrono.wednesdays"),
@@ -1509,13 +1506,12 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 		T("app.reminder.chrono.sundays"):
 
 		return a.every(
-			T("app.reminder.chrono.every") + " "+
-				dateUnit[:len(dateUnit)-1]+ " "+
-				T("app.reminder.chrono.at")+ " "+
+			T("app.reminder.chrono.every")+" "+
+				dateUnit[:len(dateUnit)-1]+" "+
+				T("app.reminder.chrono.at")+" "+
 				timeUnit[:len(timeUnit)-3],
 			user)
 
-		break
 	}
 
 	dateSplit := a.regSplit(dateUnit, "T|Z")
@@ -1700,16 +1696,16 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 		return a.at(T("app.reminder.chrono.at")+" "+timeUnit, user)
 	case T("app.reminder.chrono.tomorrow"):
 		return a.on(
-			T("app.reminder.chrono.on") + " "+
-				time.Now().Add(time.Hour * 24).Weekday().String()+ " "+
-				T("app.reminder.chrono.at")+ " "+
+			T("app.reminder.chrono.on")+" "+
+				time.Now().Add(time.Hour*24).Weekday().String()+" "+
+				T("app.reminder.chrono.at")+" "+
 				timeUnit,
 			user)
 	case T("app.reminder.chrono.everyday"):
 		return a.every(
-			T("app.reminder.chrono.every") + " "+
-				T("app.reminder.chrono.day")+ " "+
-				T("app.reminder.chrono.at")+ " "+
+			T("app.reminder.chrono.every")+" "+
+				T("app.reminder.chrono.day")+" "+
+				T("app.reminder.chrono.at")+" "+
 				timeUnit,
 			user)
 	case T("app.reminder.chrono.mondays"),
@@ -1720,9 +1716,9 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 		T("app.reminder.chrono.saturdays"),
 		T("app.reminder.chrono.sundays"):
 		return a.every(
-			T("app.reminder.chrono.every") + " "+
-				dateUnit[:len(dateUnit)-1]+ " "+
-				T("app.reminder.chrono.at")+ " "+
+			T("app.reminder.chrono.every")+" "+
+				dateUnit[:len(dateUnit)-1]+" "+
+				T("app.reminder.chrono.at")+" "+
 				timeUnit,
 			user)
 	case T("app.reminder.chrono.monday"),
@@ -1733,21 +1729,20 @@ func (a *App) freeForm(when string, user *model.User) (times []time.Time, err er
 		T("app.reminder.chrono.saturday"),
 		T("app.reminder.chrono.sunday"):
 		return a.on(
-			T("app.reminder.chrono.on") + " "+
-				dateUnit+ " "+
-				T("app.reminder.chrono.at")+ " "+
+			T("app.reminder.chrono.on")+" "+
+				dateUnit+" "+
+				T("app.reminder.chrono.at")+" "+
 				timeUnit,
 			user)
 	default:
 		return a.on(
-			T("app.reminder.chrono.on") + " "+
-				dateUnit[:len(dateUnit)-1]+ " "+
-				T("app.reminder.chrono.at")+ " "+
+			T("app.reminder.chrono.on")+" "+
+				dateUnit[:len(dateUnit)-1]+" "+
+				T("app.reminder.chrono.at")+" "+
 				timeUnit,
 			user)
 	}
 
-	return []time.Time{}, nil
 }
 
 func (a *App) normalizeTime(text string, user *model.User) (string, error) {
@@ -1786,7 +1781,6 @@ func (a *App) normalizeTime(text string, user *model.User) (string, error) {
 		case 2:
 			tzSplit := strings.Split(dateTimeSplit[1], "-")
 			return tzSplit[0], nil
-			break
 		case 3:
 			break
 		default:
@@ -1832,7 +1826,6 @@ func (a *App) normalizeTime(text string, user *model.User) (string, error) {
 		case 2:
 			tzSplit := strings.Split(dateTimeSplit[1], "-")
 			return tzSplit[0], nil
-			break
 		case 3:
 			break
 		default:
@@ -2166,7 +2159,6 @@ func (a *App) normalizeDate(text string, user *model.User) (string, error) {
 
 	}
 
-	return "", errors.New("unrecognized time")
 }
 
 func (a *App) daySuffixFromInt(user *model.User, day int) string {
