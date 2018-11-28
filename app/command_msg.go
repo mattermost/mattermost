@@ -70,7 +70,7 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 
-			if directChannel, err := a.CreateDirectChannel(args.UserId, userProfile.Id); err != nil {
+			if directChannel, err := a.GetOrCreateDirectChannel(args.UserId, userProfile.Id); err != nil {
 				mlog.Error(err.Error())
 				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			} else {

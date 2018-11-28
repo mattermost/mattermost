@@ -510,20 +510,20 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestPluginAPICreateDirectChannel(t *testing.T) {
+func TestPluginAPIGetDirectChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	dm1, err := api.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	dm1, err := api.GetDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, err)
 	require.NotEmpty(t, dm1)
 
-	dm2, err := api.CreateDirectChannel(th.BasicUser.Id, th.BasicUser.Id)
+	dm2, err := api.GetDirectChannel(th.BasicUser.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotEmpty(t, dm2)
 
-	dm3, err := api.CreateDirectChannel(th.BasicUser.Id, model.NewId())
+	dm3, err := api.GetDirectChannel(th.BasicUser.Id, model.NewId())
 	require.NotNil(t, err)
 	require.Empty(t, dm3)
 }
