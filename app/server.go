@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -26,13 +27,19 @@ import (
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
+
+var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
 	Store           store.Store
@@ -101,10 +108,338 @@ type Server struct {
 	diagnosticId        string
 
 	phase2PermissionsMigrationComplete bool
+
+	HTTPService httpservice.HTTPService
+
+	Log *mlog.Logger
+
+	AccountMigration einterfaces.AccountMigrationInterface
+	Cluster          einterfaces.ClusterInterface
+	Compliance       einterfaces.ComplianceInterface
+	DataRetention    einterfaces.DataRetentionInterface
+	Elasticsearch    einterfaces.ElasticsearchInterface
+	Ldap             einterfaces.LdapInterface
+	MessageExport    einterfaces.MessageExportInterface
+	Metrics          einterfaces.MetricsInterface
+	Mfa              einterfaces.MfaInterface
+	Saml             einterfaces.SamlInterface
+}
+
+// This is a bridge between the old and new initalization for the context refactor.
+// It calls app layer initalization code that then turns around and acts on the server.
+// Don't add anything new here, new initilization should be done in the server and
+// performed in the NewServer function.
+func (s *Server) RunOldAppInitalization() error {
+	a := s.FakeApp()
+
+	a.CreatePushNotificationsHub()
+	a.StartPushNotificationsHubWorkers()
+
+	if utils.T == nil {
+		if err := utils.TranslationsPreInit(); err != nil {
+			return errors.Wrapf(err, "unable to load Mattermost translation files")
+		}
+	}
+	model.AppErrorInit(utils.T)
+
+	a.LoadTimezones()
+
+	if err := utils.InitTranslations(a.Config().LocalizationSettings); err != nil {
+		return errors.Wrapf(err, "unable to load Mattermost translation files")
+	}
+
+	a.Srv.configListenerId = a.AddConfigListener(func(_, _ *model.Config) {
+		a.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
+
+		message.Add("config", a.ClientConfigWithComputed())
+		a.Srv.Go(func() {
+			a.Publish(message)
+		})
+	})
+	a.Srv.licenseListenerId = a.AddLicenseListener(func() {
+		a.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
+		message.Add("license", a.GetSanitizedClientLicense())
+		a.Srv.Go(func() {
+			a.Publish(message)
+		})
+
+	})
+
+	if err := a.SetupInviteEmailRateLimiting(); err != nil {
+		return err
+	}
+
+	mlog.Info("Server is initializing...")
+
+	s.initEnterprise()
+
+	if a.Srv.newStore == nil {
+		a.Srv.newStore = func() store.Store {
+			return store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Config().SqlSettings, a.Metrics), a.Metrics, a.Cluster)
+		}
+	}
+
+	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
+	} else {
+		a.Srv.htmlTemplateWatcher = htmlTemplateWatcher
+	}
+
+	a.Srv.Store = a.Srv.newStore()
+
+	if err := a.ensureAsymmetricSigningKey(); err != nil {
+		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
+	}
+
+	if err := a.ensureInstallationDate(); err != nil {
+		return errors.Wrapf(err, "unable to ensure installation date")
+	}
+
+	a.EnsureDiagnosticId()
+	a.regenerateClientConfig()
+
+	s.initJobs()
+	a.AddLicenseListener(func() {
+		s.initJobs()
+	})
+
+	a.Srv.clusterLeaderListenerId = a.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", a.IsLeader()))
+		a.Srv.Jobs.Schedulers.HandleClusterLeaderChange(a.IsLeader())
+	})
+
+	subpath, err := utils.GetSubpathFromConfig(a.Config())
+	if err != nil {
+		return errors.Wrap(err, "failed to parse SiteURL subpath")
+	}
+	a.Srv.Router = a.Srv.RootRouter.PathPrefix(subpath).Subrouter()
+	a.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", a.ServePluginRequest)
+	a.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", a.ServePluginRequest)
+
+	// If configured with a subpath, redirect 404s at the root back into the subpath.
+	if subpath != "/" {
+		a.Srv.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = path.Join(subpath, r.URL.Path)
+			http.Redirect(w, r, r.URL.String(), http.StatusFound)
+		})
+	}
+	a.Srv.Router.NotFoundHandler = http.HandlerFunc(a.Handle404)
+
+	a.Srv.WebSocketRouter = &WebSocketRouter{
+		app:      a,
+		handlers: make(map[string]webSocketHandler),
+	}
+
+	mailservice.TestConnection(a.Config())
+
+	if _, err := url.ParseRequestURI(*a.Config().ServiceSettings.SiteURL); err != nil {
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
+	}
+
+	backend, appErr := a.FileBackend()
+	if appErr == nil {
+		appErr = backend.TestConnection()
+	}
+	if appErr != nil {
+		mlog.Error("Problem with file storage settings: " + appErr.Error())
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		a.LoadLicense()
+	}
+
+	a.DoAdvancedPermissionsMigration()
+	a.DoEmojisPermissionsMigration()
+
+	a.InitPostMetadata()
+
+	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+	a.AddConfigListener(func(prevCfg, cfg *model.Config) {
+		if *cfg.PluginSettings.Enable {
+			a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+		} else {
+			a.ShutDownPlugins()
+		}
+	})
+
+	return nil
+}
+
+func NewServer(options ...Option) (*Server, error) {
+	rootRouter := mux.NewRouter()
+
+	s := &Server{
+		goroutineExitSignal: make(chan struct{}, 1),
+		RootRouter:          rootRouter,
+		configFile:          "config.json",
+		configListeners:     make(map[string]func(*model.Config, *model.Config)),
+		licenseListeners:    map[string]func(){},
+		sessionCache:        utils.NewLru(model.SESSION_CACHE_SIZE),
+		clientConfig:        make(map[string]string),
+	}
+	for _, option := range options {
+		option(s)
+	}
+
+	if err := s.LoadConfig(s.configFile); err != nil {
+		return nil, err
+	}
+
+	s.EnableConfigWatch()
+
+	// Initalize logging
+	s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+
+	// Redirect default golang logger to this logger
+	mlog.RedirectStdLog(s.Log)
+
+	// Use this app logger as the global logger (eventually remove all instances of global logging)
+	mlog.InitGlobalLogger(s.Log)
+
+	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
+		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
+	})
+
+	err := s.RunOldAppInitalization()
+	if err != nil {
+		return nil, err
+	}
+
+	// Start email batching because it's not like the other jobs
+	s.InitEmailBatching()
+	s.AddConfigListener(func(_, _ *model.Config) {
+		s.InitEmailBatching()
+	})
+
+	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
+
+	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
+	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
+	pwd, _ := os.Getwd()
+	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
+	mlog.Info(fmt.Sprintf("Loaded config file from %v", utils.FindConfigFile(s.configFile)))
+
+	license := s.License()
+
+	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 1 {
+		mlog.Warn("More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
+		s.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
+		})
+	}
+
+	if license == nil {
+		s.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
+		})
+	}
+
+	s.ReloadConfig()
+
+	// Enable developer settings if this is a "dev" build
+	if model.BuildNumber == "dev" {
+		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+	}
+
+	if result := <-s.Store.Status().ResetAll(); result.Err != nil {
+		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
+	}
+
+	return s, nil
+}
+
+// Global app opptions that should be applied to apps created by this server
+func (s *Server) AppOptions() []AppOption {
+	return []AppOption{
+		ServerConnector(s),
+	}
+}
+
+// A temporary bridge to deal with cases where the code is so tighly coupled that
+// this is easier as a temporary solution
+func (s *Server) FakeApp() *App {
+	a := New(
+		ServerConnector(s),
+	)
+	return a
+}
+
+func (s *Server) StartServer() error {
+	return s.FakeApp().StartServer()
+}
+
+const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
+
+func (s *Server) StopHTTPServer() {
+	if s.Server != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		defer cancel()
+		didShutdown := false
+		for s.didFinishListen != nil && !didShutdown {
+			if err := s.Server.Shutdown(ctx); err != nil {
+				mlog.Warn(err.Error())
+			}
+			timer := time.NewTimer(time.Millisecond * 50)
+			select {
+			case <-s.didFinishListen:
+				didShutdown = true
+			case <-timer.C:
+			}
+			timer.Stop()
+		}
+		s.Server.Close()
+		s.Server = nil
+	}
+}
+
+func (s *Server) RunOldAppShutdown() {
+	a := s.FakeApp()
+	a.HubStop()
+	a.StopPushNotificationsHubWorkers()
+	a.ShutDownPlugins()
+	a.RemoveLicenseListener(s.licenseListenerId)
+	a.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
+}
+
+func (s *Server) Shutdown() error {
+	mlog.Info("Stopping Server...")
+
+	s.RunOldAppShutdown()
+
+	s.StopHTTPServer()
+	s.WaitForGoroutines()
+
+	if s.Store != nil {
+		s.Store.Close()
+	}
+
+	if s.htmlTemplateWatcher != nil {
+		s.htmlTemplateWatcher.Close()
+	}
+
+	s.RemoveConfigListener(s.configListenerId)
+	s.RemoveConfigListener(s.logListenerId)
+
+	s.DisableConfigWatch()
+
+	if s.HTTPService != nil {
+		s.HTTPService.Close()
+	}
+	mlog.Info("Server stopped")
+	return nil
+}
+
+func (s *Server) License() *model.License {
+	license, _ := s.licenseValue.Load().(*model.License)
+	return license
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
-// the app is destroyed.
+// the server is shutdown.
 func (s *Server) Go(f func()) {
 	atomic.AddInt32(&s.goroutineCount, 1)
 
@@ -142,8 +477,6 @@ func (rl *RecoveryLogger) Println(i ...interface{}) {
 	mlog.Error("Please check the std error output for the stack trace")
 	mlog.Error(fmt.Sprint(i...))
 }
-
-const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
 // golang.org/x/crypto/acme/autocert/autocert.go
 func handleHTTPRedirect(w http.ResponseWriter, r *http.Request) {
@@ -352,28 +685,6 @@ func (a *App) StartServer() error {
 	}()
 
 	return nil
-}
-
-func (a *App) StopServer() {
-	if a.Srv.Server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
-		defer cancel()
-		didShutdown := false
-		for a.Srv.didFinishListen != nil && !didShutdown {
-			if err := a.Srv.Server.Shutdown(ctx); err != nil {
-				mlog.Warn(err.Error())
-			}
-			timer := time.NewTimer(time.Millisecond * 50)
-			select {
-			case <-a.Srv.didFinishListen:
-				didShutdown = true
-			case <-timer.C:
-			}
-			timer.Stop()
-		}
-		a.Srv.Server.Close()
-		a.Srv.Server = nil
-	}
 }
 
 func (a *App) OriginChecker() func(*http.Request) bool {

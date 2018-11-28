@@ -4,6 +4,8 @@
 package testutils
 
 import (
+	"crypto/ecdsa"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -21,4 +23,8 @@ func (StaticConfigService) AddConfigListener(func(old, current *model.Config)) s
 
 func (StaticConfigService) RemoveConfigListener(string) {
 
+}
+
+func (StaticConfigService) AsymmetricSigningKey() *ecdsa.PrivateKey {
+	return &ecdsa.PrivateKey{}
 }

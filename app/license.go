@@ -104,8 +104,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 
 // License returns the currently active license or nil if the application is unlicensed.
 func (a *App) License() *model.License {
-	license, _ := a.Srv.licenseValue.Load().(*model.License)
-	return license
+	return a.Srv.License()
 }
 
 func (a *App) SetLicense(license *model.License) bool {
