@@ -8,10 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -1339,6 +1341,45 @@ func TestImportImportUser(t *testing.T) {
 	assert.True(t, channelMember.SchemeUser)
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
+}
+
+func TestImportUserDefaultNotifyProps(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	// Create a valid new user with some, but not all, notify props populated.
+	username := model.NewId()
+	data := UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+		NotifyProps: &UserNotifyPropsImportData{
+			Email: ptrStr("false"),
+		},
+	}
+
+	require.Nil(t, th.App.ImportUser(&data, false))
+
+	user, err := th.App.GetUserByUsername(username)
+	require.Nil(t, err)
+
+	// Check the value of the notify prop we specified explicitly in the import data.
+	val, ok := user.NotifyProps[model.EMAIL_NOTIFY_PROP]
+	assert.True(t, ok)
+	assert.Equal(t, "false", val)
+
+	// Check all the other notify props are set to their default values.
+	comparisonUser := model.User{}
+	comparisonUser.SetDefaultNotifications()
+
+	for key, expectedValue := range comparisonUser.NotifyProps {
+		if key == model.EMAIL_NOTIFY_PROP {
+			continue
+		}
+
+		val, ok := user.NotifyProps[key]
+		assert.True(t, ok)
+		assert.Equal(t, expectedValue, val)
+	}
 }
 
 func TestImportImportPost(t *testing.T) {
