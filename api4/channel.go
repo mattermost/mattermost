@@ -339,7 +339,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc, err := c.App.CreateDirectChannel(userIds[0], userIds[1])
+	sc, err := c.App.GetOrCreateDirectChannel(userIds[0], userIds[1])
 	if err != nil {
 		c.Err = err
 		return
