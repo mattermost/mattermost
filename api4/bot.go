@@ -109,6 +109,10 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.HandleEtag(bot.Etag(), "Get Bot", w, r) {
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write(bot.ToJson())
 }
@@ -127,8 +131,12 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.HandleEtag(bots.Etag(), "Get Bots", w, r) {
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write(model.BotListToJson(bots))
+	w.Write(bots.ToJson())
 }
 
 func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {

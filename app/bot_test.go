@@ -285,49 +285,49 @@ func TestGetBots(t *testing.T) {
 	t.Run("get bots, page=0, perPage=10", func(t *testing.T) {
 		bots, err := th.App.GetBots(0, 10, false)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.Bot{bot1, bot2, bot3}, bots)
+		assert.Equal(t, model.BotList{bot1, bot2, bot3}, bots)
 	})
 
 	t.Run("get bots, page=0, perPage=1", func(t *testing.T) {
 		bots, err := th.App.GetBots(0, 1, false)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.Bot{bot1}, bots)
+		assert.Equal(t, model.BotList{bot1}, bots)
 	})
 
 	t.Run("get bots, page=1, perPage=2", func(t *testing.T) {
 		bots, err := th.App.GetBots(1, 2, false)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.Bot{bot3}, bots)
+		assert.Equal(t, model.BotList{bot3}, bots)
 	})
 
 	t.Run("get bots, page=2, perPage=2", func(t *testing.T) {
 		bots, err := th.App.GetBots(2, 2, false)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.Bot{}, bots)
+		assert.Equal(t, model.BotList{}, bots)
 	})
 
 	t.Run("get bots, page=0, perPage=10, include deleted", func(t *testing.T) {
 		bots, err := th.App.GetBots(0, 10, true)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.Bot{bot1, deletedBot1, bot2, bot3, deletedBot2}, bots)
+		assert.Equal(t, model.BotList{bot1, deletedBot1, bot2, bot3, deletedBot2}, bots)
 	})
 
 	t.Run("get bots, page=0, perPage=1, include deleted", func(t *testing.T) {
 		bots, err := th.App.GetBots(0, 1, true)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.Bot{bot1}, bots)
+		assert.Equal(t, model.BotList{bot1}, bots)
 	})
 
 	t.Run("get bots, page=1, perPage=2, include deleted", func(t *testing.T) {
 		bots, err := th.App.GetBots(1, 2, true)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.Bot{bot2, bot3}, bots)
+		assert.Equal(t, model.BotList{bot2, bot3}, bots)
 	})
 
 	t.Run("get bots, page=2, perPage=2, include deleted", func(t *testing.T) {
 		bots, err := th.App.GetBots(2, 2, true)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.Bot{deletedBot2}, bots)
+		assert.Equal(t, model.BotList{deletedBot2}, bots)
 	})
 }
 

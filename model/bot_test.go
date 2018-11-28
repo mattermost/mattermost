@@ -516,3 +516,151 @@ func TestUserFromBotModel(t *testing.T) {
 		FirstName: "display name 2",
 	}, UserFromBotModel(bot2))
 }
+
+func TestBotListToAndFromJson(t *testing.T) {
+	testCases := []struct {
+		Description string
+		BotList     BotList
+	}{
+		{
+			"empty list",
+			BotList{},
+		},
+		{
+			"single item",
+			BotList{
+				&Bot{
+					UserId:      NewId(),
+					Username:    "username",
+					DisplayName: "display name",
+					Description: "description",
+					CreatorId:   NewId(),
+					CreateAt:    1,
+					UpdateAt:    2,
+					DeleteAt:    3,
+				},
+			},
+		},
+		{
+			"multiple items",
+			BotList{
+				&Bot{
+					UserId:      NewId(),
+					Username:    "username",
+					DisplayName: "display name",
+					Description: "description",
+					CreatorId:   NewId(),
+					CreateAt:    1,
+					UpdateAt:    2,
+					DeleteAt:    3,
+				},
+
+				&Bot{
+					UserId:      NewId(),
+					Username:    "username",
+					DisplayName: "display name",
+					Description: "description 2",
+					CreatorId:   NewId(),
+					CreateAt:    4,
+					UpdateAt:    5,
+					DeleteAt:    6,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			assert.Equal(t, testCase.BotList, BotListFromJson(bytes.NewReader(testCase.BotList.ToJson())))
+		})
+	}
+}
+
+func TestBotListEtag(t *testing.T) {
+	bot1 := &Bot{
+		UserId:      NewId(),
+		Username:    "username",
+		DisplayName: "display name",
+		Description: "description",
+		CreatorId:   NewId(),
+		CreateAt:    1,
+		UpdateAt:    2,
+		DeleteAt:    3,
+	}
+
+	bot1Updated := &Bot{
+		UserId:      NewId(),
+		Username:    "username",
+		DisplayName: "display name",
+		Description: "description",
+		CreatorId:   NewId(),
+		CreateAt:    1,
+		UpdateAt:    10,
+		DeleteAt:    3,
+	}
+
+	bot2 := &Bot{
+		UserId:      NewId(),
+		Username:    "username",
+		DisplayName: "display name",
+		Description: "description",
+		CreatorId:   NewId(),
+		CreateAt:    4,
+		UpdateAt:    5,
+		DeleteAt:    6,
+	}
+
+	testCases := []struct {
+		Description   string
+		BotListA      BotList
+		BotListB      BotList
+		ExpectedEqual bool
+	}{
+		{
+			"empty lists",
+			BotList{},
+			BotList{},
+			true,
+		},
+		{
+			"single item, same list",
+			BotList{bot1},
+			BotList{bot1},
+			true,
+		},
+		{
+			"single item, different update at",
+			BotList{bot1},
+			BotList{bot1Updated},
+			false,
+		},
+		{
+			"single item vs. multiple items",
+			BotList{bot1},
+			BotList{bot1, bot2},
+			false,
+		},
+		{
+			"multiple items, different update at",
+			BotList{bot1, bot2},
+			BotList{bot1Updated, bot2},
+			false,
+		},
+		{
+			"multiple items, same list",
+			BotList{bot1, bot2},
+			BotList{bot1, bot2},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			if testCase.ExpectedEqual {
+				assert.Equal(t, testCase.BotListA.Etag(), testCase.BotListB.Etag())
+			} else {
+				assert.NotEqual(t, testCase.BotListA.Etag(), testCase.BotListB.Etag())
+			}
+		})
+	}
+}

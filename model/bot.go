@@ -34,6 +34,9 @@ type BotPatch struct {
 	Description *string `json:"description"`
 }
 
+// BotList is a list of bots.
+type BotList []*Bot
+
 // Trace describes the minimum information required to identify a bot for the purpose of logging.
 func (b *Bot) Trace() map[string]interface{} {
 	return map[string]interface{}{"user_id": b.UserId}
@@ -108,19 +111,6 @@ func BotFromJson(data io.Reader) *Bot {
 	return bot
 }
 
-// BotListToJson serializes a list of bots to json.
-func BotListToJson(bots []*Bot) []byte {
-	b, _ := json.Marshal(bots)
-	return b
-}
-
-// BotListFromJson deserializes a list of bots from json.
-func BotListFromJson(data io.Reader) []*Bot {
-	var bots []*Bot
-	json.NewDecoder(data).Decode(&bots)
-	return bots
-}
-
 // Patch modifies an existing bot with optional fields from the given patch.
 func (b *Bot) Patch(patch *BotPatch) {
 	if patch.Username != nil {
@@ -167,4 +157,34 @@ func UserFromBotModel(b *Bot) *User {
 		Email:     fmt.Sprintf("%s@localhost", strings.ToLower(b.Username)),
 		FirstName: b.DisplayName,
 	}
+}
+
+// BotListFromJson deserializes a list of bots from json.
+func BotListFromJson(data io.Reader) BotList {
+	var bots BotList
+	json.NewDecoder(data).Decode(&bots)
+	return bots
+}
+
+// ToJson serializes a list of bots to json.
+func (l *BotList) ToJson() []byte {
+	b, _ := json.Marshal(l)
+	return b
+}
+
+// Etag computes the etag for a list of bots.
+func (l *BotList) Etag() string {
+	id := "0"
+	var t int64 = 0
+	var delta int64 = 0
+
+	for _, v := range *l {
+		if v.UpdateAt > t {
+			t = v.UpdateAt
+			id = v.UserId
+		}
+
+	}
+
+	return Etag(id, t, delta, len(*l))
 }

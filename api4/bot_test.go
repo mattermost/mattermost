@@ -290,6 +290,9 @@ func TestGetBot(t *testing.T) {
 		bot, resp := th.Client.GetBot(bot1.UserId, "")
 		CheckOKStatus(t, resp)
 		require.Equal(t, bot1, bot)
+
+		bot, resp = th.Client.GetBot(bot1.UserId, bot.Etag())
+		CheckEtag(t, bot, resp)
 	})
 
 	t.Run("get bot2", func(t *testing.T) {
@@ -301,6 +304,9 @@ func TestGetBot(t *testing.T) {
 		bot, resp := th.Client.GetBot(bot2.UserId, "")
 		CheckOKStatus(t, resp)
 		require.Equal(t, bot2, bot)
+
+		bot, resp = th.Client.GetBot(bot2.UserId, bot.Etag())
+		CheckEtag(t, bot, resp)
 	})
 
 	t.Run("get bot1 without permission", func(t *testing.T) {
@@ -337,6 +343,9 @@ func TestGetBot(t *testing.T) {
 		deletedBot.UpdateAt = bot.UpdateAt
 		deletedBot.DeleteAt = bot.DeleteAt
 		require.Equal(t, deletedBot, bot)
+
+		bot, resp = th.Client.GetBotIncludeDeleted(deletedBot.UserId, bot.Etag())
+		CheckEtag(t, bot, resp)
 	})
 }
 
@@ -394,7 +403,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(0, 10, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot1, bot2, bot3}, bots)
+		require.Equal(t, model.BotList{bot1, bot2, bot3}, bots)
+
+		bots, resp = th.Client.GetBots(0, 10, bots.Etag())
+		CheckEtag(t, bots, resp)
 	})
 
 	t.Run("get bots, page=0, perPage=1", func(t *testing.T) {
@@ -405,7 +417,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(0, 1, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot1}, bots)
+		require.Equal(t, model.BotList{bot1}, bots)
+
+		bots, resp = th.Client.GetBots(0, 1, bots.Etag())
+		CheckEtag(t, bots, resp)
 	})
 
 	t.Run("get bots, page=1, perPage=2", func(t *testing.T) {
@@ -416,7 +431,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(1, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot3}, bots)
+		require.Equal(t, model.BotList{bot3}, bots)
+
+		bots, resp = th.Client.GetBots(1, 2, bots.Etag())
+		CheckEtag(t, bots, resp)
 	})
 
 	t.Run("get bots, page=2, perPage=2", func(t *testing.T) {
@@ -427,7 +445,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(2, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{}, bots)
+		require.Equal(t, model.BotList{}, bots)
+
+		bots, resp = th.Client.GetBots(2, 2, bots.Etag())
+		CheckEtag(t, bots, resp)
 	})
 
 	t.Run("get bots, page=0, perPage=10, include deleted", func(t *testing.T) {
@@ -438,7 +459,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(0, 10, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot1, deletedBot1, bot2, bot3, deletedBot2}, bots)
+		require.Equal(t, model.BotList{bot1, deletedBot1, bot2, bot3, deletedBot2}, bots)
+
+		bots, resp = th.Client.GetBotsIncludeDeleted(0, 10, bots.Etag())
+		CheckEtag(t, bots, resp)
 	})
 
 	t.Run("get bots, page=0, perPage=1, include deleted", func(t *testing.T) {
@@ -449,7 +473,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(0, 1, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot1}, bots)
+		require.Equal(t, model.BotList{bot1}, bots)
+
+		bots, resp = th.Client.GetBotsIncludeDeleted(0, 1, bots.Etag())
+		CheckEtag(t, bots, resp)
 	})
 
 	t.Run("get bots, page=1, perPage=2, include deleted", func(t *testing.T) {
@@ -460,7 +487,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(1, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot2, bot3}, bots)
+		require.Equal(t, model.BotList{bot2, bot3}, bots)
+
+		bots, resp = th.Client.GetBotsIncludeDeleted(1, 2, bots.Etag())
+		CheckEtag(t, bots, resp)
 	})
 
 	t.Run("get bots, page=2, perPage=2, include deleted", func(t *testing.T) {
@@ -471,7 +501,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(2, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{deletedBot2}, bots)
+		require.Equal(t, model.BotList{deletedBot2}, bots)
+
+		bots, resp = th.Client.GetBotsIncludeDeleted(2, 2, bots.Etag())
+		CheckEtag(t, bots, resp)
 	})
 
 	t.Run("get bots without permission", func(t *testing.T) {
