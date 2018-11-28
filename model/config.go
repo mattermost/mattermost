@@ -1886,14 +1886,6 @@ func (s *MessageExportSettings) SetDefaults() {
 		s.ExportFromTimestamp = NewInt64(0)
 	}
 
-	if s.EnableExport != nil && *s.EnableExport && *s.ExportFromTimestamp == int64(0) {
-		// when the feature is enabled via the System Console, use the current timestamp as the start time for future exports
-		s.ExportFromTimestamp = NewInt64(GetMillis())
-	} else if s.EnableExport != nil && !*s.EnableExport {
-		// when the feature is disabled, reset the timestamp so that the timestamp will be set if the feature is re-enabled
-		s.ExportFromTimestamp = NewInt64(0)
-	}
-
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(10000)
 	}
