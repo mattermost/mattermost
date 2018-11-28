@@ -181,7 +181,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if groupSyncable == nil || groupSyncable.DeleteAt == 0 {
+	if groupSyncable == nil {
 		groupSyncable = &model.GroupSyncable{
 			GroupId:    c.Params.GroupId,
 			SyncableId: syncableID,
