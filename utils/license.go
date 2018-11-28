@@ -128,6 +128,8 @@ func GetClientLicense(l *model.License) map[string]string {
 
 	if l != nil {
 		props["Id"] = l.Id
+		props["SkuName"] = l.SkuName
+		props["SkuShortName"] = l.SkuShortName
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
 		props["MFA"] = strconv.FormatBool(*l.Features.MFA)

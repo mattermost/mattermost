@@ -8,10 +8,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/segmentio/analytics-go"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	analytics "github.com/segmentio/analytics-go"
 )
 
 const (
@@ -569,6 +568,7 @@ func (a *App) trackLicense() {
 			"start":       license.StartsAt,
 			"expire":      license.ExpiresAt,
 			"users":       *license.Features.Users,
+			"edition":     license.SkuShortName,
 		}
 
 		features := license.Features.ToMap()
