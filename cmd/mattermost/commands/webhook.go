@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
@@ -45,8 +44,8 @@ var WebhookCreateOutgoingCmd = &cobra.Command{
 	Use:   "create-outgoing",
 	Short: "Create outgoing webhook",
 	Long:  "create outgoing webhook which allows external posting of messages from a specific channel",
-	Example: `  webhook create-outgoing --team myteam --user myusername --display-name mywebhook --trigger-words "build\ntest" --urls http://localhost:8000/my-webhook-handler
-	webhook create-outgoing --team myteam --channel mychannel --user myusername --display-name mywebhook --description "My cool webhook" --trigger-when 1 --trigger-words "build\ntest" --icon http://localhost:8000/my-slash-handler-bot-icon.png --urls http://localhost:8000/my-webhook-handler --content-type "application/json"`,
+	Example: `  webhook create-outgoing --team myteam --user myusername --display-name mywebhook --trigger-word "build" --trigger-word "test" --url http://localhost:8000/my-webhook-handler
+	webhook create-outgoing --team myteam --channel mychannel --user myusername --display-name mywebhook --description "My cool webhook" --trigger-when start --trigger-word build --trigger-word test --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json"`,
 	RunE: createOutgoingWebhookCmdF,
 }
 
@@ -225,19 +224,25 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Display name is required")
 	}
 
-	triggerWordsString, errWords := command.Flags().GetString("trigger-words")
-	if errWords != nil || triggerWordsString == "" {
+	triggerWords, errWords := command.Flags().GetStringArray("trigger-word")
+	if errWords != nil || len(triggerWords) == 0 {
 		return errors.New("Trigger word or words required")
 	}
-	triggerWords := strings.Split(triggerWordsString, "\n")
 
-	callbackURLsString, errURL := command.Flags().GetString("urls")
-	if errURL != nil || callbackURLsString == "" {
+	callbackURLs, errURL := command.Flags().GetStringArray("url")
+	if errURL != nil || len(callbackURLs) == 0 {
 		return errors.New("Callback URL or URLs required")
 	}
-	callbackURLs := strings.Split(callbackURLsString, "\n")
 
-	triggerWhen, _ := command.Flags().GetInt("trigger-when")
+	triggerWhenString, _ := command.Flags().GetString("trigger-when")
+	var triggerWhen int
+	if triggerWhenString == "exact" {
+		triggerWhen = 0
+	} else if triggerWhenString == "start" {
+		triggerWhen = 1
+	} else {
+		return errors.New("Invalid trigger when parameter")
+	}
 	description, _ := command.Flags().GetString("description")
 	contentType, _ := command.Flags().GetString("content-type")
 	iconURL, _ := command.Flags().GetString("icon")
@@ -311,10 +316,10 @@ func init() {
 	WebhookCreateOutgoingCmd.Flags().String("user", "", "User username, email, or ID (required)")
 	WebhookCreateOutgoingCmd.Flags().String("display-name", "", "Outgoing webhook display name (required)")
 	WebhookCreateOutgoingCmd.Flags().String("description", "", "Outgoing webhook description")
-	WebhookCreateOutgoingCmd.Flags().String("trigger-words", "", "Words to trigger webhook (word1\nword2) (required)")
-	WebhookCreateOutgoingCmd.Flags().Int("trigger-when", 0, "When to trigger webhook (either when trigger word is first (enter 1) or when it's anywhere (enter 0))")
+	WebhookCreateOutgoingCmd.Flags().StringArray("trigger-word", []string{}, "Word to trigger webhook (required)")
+	WebhookCreateOutgoingCmd.Flags().String("trigger-when", "exact", "When to trigger webhook (exact: for first word matches a trigger word exactly, start: for first word starts with a trigger word)")
 	WebhookCreateOutgoingCmd.Flags().String("icon", "", "Icon URL")
-	WebhookCreateOutgoingCmd.Flags().String("urls", "", "Callback URLs (url1\nurl2) (required)")
+	WebhookCreateOutgoingCmd.Flags().StringArray("url", []string{}, "Callback URL (required)")
 	WebhookCreateOutgoingCmd.Flags().String("content-type", "", "Content-type")
 
 	WebhookCmd.AddCommand(
