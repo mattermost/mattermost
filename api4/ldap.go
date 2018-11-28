@@ -197,15 +197,13 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if group != nil && group.DeleteAt == 0 {
+	if group.DeleteAt == 0 {
 		_, err = c.App.DeleteGroup(group.Id)
 		if err != nil {
 			c.Err = err
 			return
 		}
-	}
-
-	if group != nil && group.DeleteAt != 0 {
+	} else {
 		c.Err = model.NewAppError("Api4.unlinkLdapGroup", "api.ldap_group.already_unlinked", nil, "", http.StatusNotModified)
 		return
 	}
