@@ -5,6 +5,7 @@ package app
 
 import (
 	"crypto/tls"
+	"net"
 	"net/http"
 	"path"
 	"strconv"
@@ -50,9 +51,13 @@ func TestStartServerPortUnavailable(t *testing.T) {
 	a, err := New()
 	require.NoError(t, err)
 
-	// Attempt to listen on a system-reserved port
+	// Listen on the next available port
+	listener, err := net.Listen("tcp", ":0")
+	require.NoError(t, err)
+
+	// Attempt to listen on the port used above.
 	a.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":21"
+		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
 	})
 
 	serverErr := a.StartServer()

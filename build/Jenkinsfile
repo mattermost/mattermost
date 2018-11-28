@@ -176,7 +176,7 @@ podTemplate(label: 'jenkins-slave',
     }
     stage('Unit Tests') {
         container('golang') {
-            withEnv(['CI_HOST=localhost', 'CI_INBUCKET_PORT=10080', 'CI_MINIO_PORT=9000']) {
+            withEnv(['CI_INBUCKET_HOST=localhost', 'CI_INBUCKET_PORT=10080', 'CI_MINIO_HOST=localhost', 'CI_MINIO_PORT=9000']) {
                 sh "cd /go/src/github.com/mattermost/mattermost-server && make test-te BUILD_NUMBER=${env.BUILD_NUMBER} TESTFLAGS= TESTFLAGSEE="
             }
         }
