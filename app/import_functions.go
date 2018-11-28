@@ -279,6 +279,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	} else {
 		user = &model.User{}
 		user.MakeNonNil()
+		user.SetDefaultNotifications()
 		hasUserChanged = true
 	}
 
