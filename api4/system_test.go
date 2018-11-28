@@ -430,7 +430,7 @@ func TestEmailTest(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
 	CheckBadRequestStatus(t, resp)
 
-	inbucket_host := os.Getenv("CI_HOST")
+	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
 	if inbucket_host == "" {
 		inbucket_host = "dockerhost"
 	}
@@ -665,7 +665,7 @@ func TestS3TestConnection(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	s3Host := os.Getenv("CI_HOST")
+	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
 		s3Host = "dockerhost"
 	}
@@ -696,6 +696,8 @@ func TestS3TestConnection(t *testing.T) {
 		t.Fatal("should return error - missing s3 bucket")
 	}
 
+	// If this fails, check the test configuration to ensure minio is setup with the
+	// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 	config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
 	config.FileSettings.AmazonS3Region = "us-east-1"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)

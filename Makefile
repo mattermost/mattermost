@@ -347,23 +347,29 @@ test-server-race: test-te-race test-ee-race ## Checks for race conditions.
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
-test-te: do-cover-file ## Runs tests in the team edition.
+go-junit-report:
+	go get -u github.com/jstemmer/go-junit-report
+
+test-te: go-junit-report do-cover-file ## Runs tests in the team edition.
 	@echo Testing TE
 	@echo "Packages to test: "$(TE_PACKAGES)
 	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES)
+	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES) | tee output-test-te
+	cat output-test-te | $(GOPATH)/bin/go-junit-report > report-te.xml && rm output-test-te
 	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 
-test-ee: do-cover-file ## Runs tests in the enterprise edition.
-	@echo Testing EE
-
+test-ee: go-junit-report do-cover-file ## Runs tests in the enterprise edition.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Testing EE
 	@echo "Packages to test: "$(EE_PACKAGES)
 	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGSEE) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(EE_PACKAGES)
+	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGSEE) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(EE_PACKAGES) 2>&1 | tee output-test-ee
+	cat output-test-ee | $(GOPATH)/bin/go-junit-report > report-ee.xml && rm output-test-ee
 	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 	rm -f config/*.crt
 	rm -f config/*.key
+else
+	@echo Skipping EE Tests
 endif
 
 test-server: test-te test-ee ## Runs tests.
