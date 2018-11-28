@@ -173,7 +173,7 @@ func TestMuteCommandDMChannel(t *testing.T) {
 		t.SkipNow()
 	}
 
-	channel2, _ := th.App.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	channel2, _ := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
 	channel2M, _ := th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
 
 	assert.Equal(t, model.CHANNEL_NOTIFY_ALL, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])

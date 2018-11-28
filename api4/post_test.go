@@ -410,7 +410,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_USER_ROLE_ID}
 
-	directChannel, _ := th.App.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	directChannel, _ := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
 
 	ruser, resp := Client.CreateUser(&user)
 	CheckNoError(t, resp)
