@@ -37,7 +37,8 @@ func StopTestStore() {
 }
 
 type TestHelper struct {
-	App *app.App
+	App    *app.App
+	Server *app.Server
 
 	BasicUser    *model.User
 	BasicChannel *model.Channel
@@ -47,10 +48,11 @@ type TestHelper struct {
 }
 
 func Setup() *TestHelper {
-	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch)
+	s, err := app.NewServer(app.StoreOverride(testStore), app.DisableConfigWatch)
 	if err != nil {
 		panic(err)
 	}
+	a := s.FakeApp()
 	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := a.StartServer()
@@ -59,7 +61,7 @@ func Setup() *TestHelper {
 	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	NewWeb(a, a.Srv.Router)
+	New(s, s.AppOptions, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
@@ -73,7 +75,8 @@ func Setup() *TestHelper {
 	})
 
 	th := &TestHelper{
-		App: a,
+		App:    a,
+		Server: s,
 	}
 
 	return th
@@ -98,7 +101,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) TearDown() {
-	th.App.Shutdown()
+	th.Server.Shutdown()
 	if err := recover(); err != nil {
 		StopTestStore()
 		panic(err)

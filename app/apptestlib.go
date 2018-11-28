@@ -25,6 +25,7 @@ import (
 
 type TestHelper struct {
 	App          *App
+	Server       *Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
 	BasicUser2   *model.User
@@ -91,13 +92,14 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		options = append(options, StoreOverride(testStore))
 	}
 
-	a, err := New(options...)
+	s, err := NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
 
 	th := &TestHelper{
-		App:            a,
+		App:            s.FakeApp(),
+		Server:         s,
 		tempConfigPath: tempConfig.Name(),
 	}
 
@@ -427,7 +429,7 @@ func (me *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emoj
 func (me *TestHelper) ShutdownApp() {
 	done := make(chan bool)
 	go func() {
-		me.App.Shutdown()
+		me.Server.Shutdown()
 		close(done)
 	}()
 
@@ -442,7 +444,6 @@ func (me *TestHelper) ShutdownApp() {
 
 func (me *TestHelper) TearDown() {
 	me.ShutdownApp()
-
 	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
 		StopTestStore()

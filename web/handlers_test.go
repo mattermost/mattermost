@@ -18,10 +18,10 @@ func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
-	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch)
-	defer a.Shutdown()
+	s, err := app.NewServer(app.StoreOverride(testStore), app.DisableConfigWatch)
+	defer s.Shutdown()
 
-	web := NewWeb(a, a.Srv.Router)
+	web := New(s, s.AppOptions, s.Router)
 	if err != nil {
 		panic(err)
 	}
@@ -61,15 +61,17 @@ func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func TestHandlerServeHTTPSecureTransport(t *testing.T) {
-	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch)
-	defer a.Shutdown()
+	s, err := app.NewServer(app.StoreOverride(testStore), app.DisableConfigWatch)
+	defer s.Shutdown()
+
+	a := s.FakeApp()
 
 	a.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.TLSStrictTransport = true
 		*config.ServiceSettings.TLSStrictTransportMaxAge = 6000
 	})
 
-	web := NewWeb(a, a.Srv.Router)
+	web := New(s, s.AppOptions, s.Router)
 	if err != nil {
 		panic(err)
 	}
