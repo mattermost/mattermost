@@ -209,5 +209,4 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
-	return
 }
