@@ -357,7 +357,7 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 		return false
 	}
 
-	pushStatus, ok := userNotifyProps["push_status"]
+	pushStatus, ok := userNotifyProps[model.PUSH_STATUS_NOTIFY_PROP]
 	if (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
 		return true
 	}
