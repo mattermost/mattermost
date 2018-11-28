@@ -25,7 +25,7 @@ func TestPreparePostListForClient(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.DisablePostMetadata = false
+		*cfg.ExperimentalSettings.EnablePostMetadata = true
 	})
 
 	postList := model.NewPostList()
@@ -61,7 +61,7 @@ func TestPreparePostForClient(t *testing.T) {
 			*cfg.ServiceSettings.ImageProxyType = ""
 			*cfg.ServiceSettings.ImageProxyURL = ""
 			*cfg.ServiceSettings.ImageProxyOptions = ""
-			*cfg.ExperimentalSettings.DisablePostMetadata = false
+			*cfg.ExperimentalSettings.EnablePostMetadata = true
 		})
 
 		return th
@@ -395,7 +395,7 @@ func TestPreparePostForClient(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.DisablePostMetadata = true
+			*cfg.ExperimentalSettings.EnablePostMetadata = false
 		})
 
 		post := th.CreatePost(th.BasicChannel)
@@ -418,7 +418,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
 			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
 			*cfg.ServiceSettings.ImageProxyOptions = "foo"
-			*cfg.ExperimentalSettings.DisablePostMetadata = false
+			*cfg.ExperimentalSettings.EnablePostMetadata = true
 		})
 
 		return th
