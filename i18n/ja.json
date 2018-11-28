@@ -29,7 +29,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "証明書を削除する際にエラーが発生しました。config/{{.Filename}}にファイルが存在することを確認してください、"
+    "translation": "証明書を削除する際にエラーが発生しました。config/{{.Filename}}にファイルが存在することを確認してください。"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -240,6 +240,14 @@
     "translation": "%v はチャンネルから削除されました。"
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "ダイレクトメッセージチャンネルの名前は変更できません"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "グループメッセージチャンネルの名前は変更できません"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "チャンネルはアーカイブされているか削除されています"
   },
@@ -410,6 +418,10 @@
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "現在のチャンネルを更新する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "現在のチャンネルを取得する際にエラーが発生しました。"
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -616,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "ユーザーが見付かりませんでした。"
+    "translation": "ユーザーが見付かりませんでした。システム管理者によって無効化されている可能性があります。"
   },
   {
     "id": "api.command_invite.name",
@@ -681,10 +693,6 @@
   {
     "id": "api.command_leave.name",
     "translation": "脱退"
-  },
-  {
-    "id": "api.command_leave.success",
-    "translation": "チャンネルを脱退しました。"
   },
   {
     "id": "api.command_logout.desc",
@@ -824,7 +832,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "ユーザーが見付かりませんでした"
+    "translation": "ユーザーが見つかりませんでした。システム管理者によって無効化されている可能性があります。"
   },
   {
     "id": "api.command_remove.name",
@@ -929,6 +937,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "セッションはOAuthではありませんがクエリー文字列でトークンが渡されました"
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "カスタム利用規約機能は無効化されています"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "カスタム利用規約のテキストを入力してください。"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2019,6 +2035,10 @@
     "translation": "サポートされていないOAuthサービスプロバイダーです"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "不正なチームIDです"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "パスワードを間違えて入力した回数が多過ぎるため、あなたのアカウントはロックされました。パスワードを初期化してください。"
   },
@@ -2177,6 +2197,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "認証委譲はこのサーバーでは設定されていないか利用不可になっています。"
+  },
+  {
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
+    "translation": "受け付けられた値が不正です"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2401,14 +2425,6 @@
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
     "translation": "同一のチャンネルからの外向きのウェブフックには、同一のトリガーワード/コールバックURLを指定できません。"
-  },
-  {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "WebRTCはこのサーバーでは有効化されていません。"
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "WebRTCトークンを登録する際にエラーが発生しました"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2903,10 +2919,6 @@
     "translation": "ユーザーの認証データが長すぎます。"
   },
   {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "ユーザーの認証サービス設定を指定する場合、空ではいけません。"
-  },
-  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "ユーザーの電子メールの長さが不正です。"
   },
@@ -3137,6 +3149,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "要求された移行処理が完了していないため、このAPIエンドポイントにアクセスできません。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "対話型ダイアログのJSONをエンコードする際にエラーが発生しました。"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3599,6 +3615,30 @@
     "translation": "SAML 2.0 は、このサーバーでは設定されていないかサポートされていません。"
   },
   {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "対話型ダイアログのトリガーIDをbase64でデコードできませんでした。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "対話型ダイアログのトリガーIDが期限切れです。トリガーIDは最大{{.Seconds}}秒間有効です。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "対話型ダイアログに必要なデータであるトリガーIDが含まれていません。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "対話型ダイアログにおけるトリガIDのbase64署名のデコードに失敗しました。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "対話型ダイアログのトリガーIDの署名検証に失敗しました。"
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "対話型ダイアログに対して生成されたトリガーIDに署名できませんでした。"
+  },
+  {
     "id": "jobs.do_job.batch_size.parse_error",
     "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
   },
@@ -3737,6 +3777,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "電子メール通知の設定値が不正です"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "チャンネルへのメンションを無視する設定の状態が不正です"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4255,32 +4299,16 @@
     "translation": "ユーザー入力の更新間隔は1000ミリ秒未満に設定しないでください。"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "WebRTCゲートウェイ管理者秘密情報を設定してください。"
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "TLS証明書ファイルに対する不正な値 - LetsEncryptを使用するか、存在する証明書ファイルを設定してください"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTCゲートウェイ管理者URLは、http://またはhttps://で始まる有効なURLにしてください。"
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "TLS鍵ファイルに対する不正な値 - LetsEncryptを使用するか、存在する鍵ファイルを設定してください"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTCゲートウェイウェブソケットURLは、ws://またはwss://で始まる有効なURLにしてください。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URIは、stun:で始まる有効なURLにしてください"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "WebRTC TURN共通鍵は、TURN URIが設定されている場合には空欄にすることはできません。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN URIは、turn:で始まる有効なURIにしてください"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "WebRTC TURNユーザー名は、TURN URIが設定されている場合には空欄にすることはできません。"
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "TLS上書き暗号に対する不正な値 - 正常な値についての文書を参照してください"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4679,6 +4707,22 @@
     "translation": "不正なユーザーIDです"
   },
   {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "必須の利用規約属性 create_at が存在しません。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "不正な利用規約IDです。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "カスタム利用規約テキストが長すぎます。最大 {{.MaxLength}} 文字です。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "必須の利用規約属性 user_id が存在しません。"
+  },
+  {
     "id": "model.token.is_valid.expiry",
     "translation": "不正なトークンの有効期限"
   },
@@ -4688,15 +4732,75 @@
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "有効なメールアドレスを入力してください"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "パスワードは{{.Min}}文字以上に設定してください。"
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は英小文字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつ英小文字と英大文字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と英大文字、数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英小文字と英大文字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は数字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は記号(例: \"~!@#$%^&*()\")にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字は英大文字にしてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と数字、記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "パスワードは少なくとも{{.Min}}文字以上に設定してください。少なくとも1文字ずつの英大文字と記号(例: \"~!@#$%^&*()\")を含めてください。"
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "ユーザー名は、英小文字、数字と \".\"、\"-\" と \"_\"を含む3文字から22文字で、最初は記号と数字以外である必要があります。"
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4715,6 +4819,18 @@
     "translation": "不正なユーザーIDです"
   },
   {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "必須のユーザー利用規約属性 create_at が存在しません。"
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "必須のユーザー利用規約属性 service_terms_id が存在しません。"
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "必須のユーザー利用規約属性 user_id が存在しません。"
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "デコードできませんでした"
   },
@@ -4724,11 +4840,19 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLabの使用条件が更新されました。gitlab.comで新しい使用条件に同意してから、もう一度Mattermostへログインしてみてください。"
+    "translation": "GitLabの利用規約が更新されました。gitlab.comで新しい利用規約に同意してから、もう一度Mattermostへログインしてみてください。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "ユーザーステータスを設定できませんでした。不明なユーザーステータスです。"
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "公開リンクが無効化されています"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "ファイルの公開リンクを取得できません。ファイルは現在のユーザーが読むことができる投稿に添付されている必要があります。"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4891,6 +5015,10 @@
     "translation": "公開チャンネルを取得できませんでした"
   },
   {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "チャンネルメンバーのタイムゾーンを取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.get_unread.app_error",
     "translation": "チャンネルの未読メッセージを取得できませんでした"
   },
@@ -4957,6 +5085,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "ピン留めされた投稿が見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "無効化されたユーザーをチャンネルから削除できませんでした"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -6027,6 +6159,22 @@
     "translation": "チームアイコン更新日を更新できませんでした"
   },
   {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "利用規約を保存できませんでした。"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "利用規約を取得できませんでした。"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "利用規約が見付かりませんでした。"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "既存の利用規約に対する保存処理を呼び出す必要はありません。"
+  },
+  {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
     "translation": "指定された期間内のアクティブなユーザーを取得できませんでした"
   },
@@ -6269,6 +6417,22 @@
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
     "translation": "アクセストークンを有効化できませんでした"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "ユーザー利用規約を削除できませんでした。"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "ユーザー利用規約を取得できませんでした。"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "ユーザー利用規約が見付かりませんでした。"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "ユーザー利用規約を保存できませんでした。"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

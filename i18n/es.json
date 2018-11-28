@@ -240,6 +240,14 @@
     "translation": "%v quitado del canal."
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "No puedes renombrar un canal de mensaje directo"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "No puedes renombrar un canal de grupo"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "El canal ha sido archivado o eliminado"
   },
@@ -410,6 +418,10 @@
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "Error al actualizar el canal actual."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error al recuperar el canal actual."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -616,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "No se pudo encontrar el usuario."
+    "translation": "No se pudo encontrar el usuario. Puede que haya sido desactivado por el Administrador del Sistema."
   },
   {
     "id": "api.command_invite.name",
@@ -681,10 +693,6 @@
   {
     "id": "api.command_leave.name",
     "translation": "leave"
-  },
-  {
-    "id": "api.command_leave.success",
-    "translation": "Abandonaste el canal."
   },
   {
     "id": "api.command_logout.desc",
@@ -824,7 +832,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "No se pudo encontrar el usuario"
+    "translation": "No se pudo encontrar el usuario. Puede que haya sido desactivado por el Administrador del Sistema."
   },
   {
     "id": "api.command_remove.name",
@@ -929,6 +937,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "La sesión no es de tipo OAuth pero existe un token en el query string"
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "La característica de Términos de servicio personalizado está desactivada"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Por favor, introduce el texto de los Términos de Servicio Personalizado."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -2019,6 +2035,10 @@
     "translation": "Proveedor de servicios de OAuth no es compatible"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Id del Equipo no válido"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Tu cuenta ha sido bloqueada debido a demasiados intentos fallidos. Por favor, restablece tu contraseña."
   },
@@ -2177,6 +2197,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "La transferencia de autenticación no está configurado o disponible en este servidor."
+  },
+  {
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
+    "translation": "Valor aceptado incorrecto"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2401,14 +2425,6 @@
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
     "translation": "Webhooks de salida para el mismo canal no pueden tener las mismas palabras que desencadenen acción o los mismos URLs de retorno."
-  },
-  {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "WebRTC no está habilitado en este servidor."
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "Hemos encontrado un error al intentar registrar el Token de WebRTC"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2903,10 +2919,6 @@
     "translation": "La propiedad AuthData del usuario es demasiado larga."
   },
   {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "La propiedad AuthService del usuario no debe estar vacía si se proporciona"
-  },
-  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "El correo electrónico del usuario tiene una longitud no válida."
   },
@@ -3137,6 +3149,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "Este endpoint de la API no es accesible porque requiere una migración que todavía no se ha completado."
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Se encontró un error de codificación de JSON para el diálogo interactivo."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3599,6 +3615,30 @@
     "translation": "SAML 2.0 no está configurado o no es soportado en este servidor"
   },
   {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "No se pudo realizar la decodificación base64 para el trigger ID del diálogo interactivo."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "El trigger ID para el diálogo interactivo ha expirado. Los trigger IDs tienen una duración máxima de {{.Seconds}} segundos."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "No se encuentra el trigger ID requerido para el diálogo interactivo."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "No se pudo realizar el decodificación base64 de la firma del trigger ID para el diálogo interactivo."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Falla al realizar la verificación de la firma del trigger ID para el diálogo interactivo."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "No se pudo firmar el trigger ID generado para el diálogo interactivo."
+  },
+  {
     "id": "jobs.do_job.batch_size.parse_error",
     "translation": "No se pudo interpretar el tamaño de bloque de datos de la exportación de mensajes."
   },
@@ -3737,6 +3777,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "Valor de notificación de correo electrónico no es válido"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Valor no válido para ignorar menciones de canal"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4255,32 +4299,16 @@
     "translation": "El tiempo transcurrido para actualizar que el usuario está escribiendo no debe ser menor a 1000 milisegundos."
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "La clave secreta de Administración de la Puerta de enlace para WebRTC debe ser asignada."
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "Valor no válido para el archivo del certificado TLS - utiliza LetsEncrypt o especifica la ruta del archivo de certificado existente"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "La dirección URL de Administración de la Puerta de enlace para WebRTC debe ser una dirección válida y comenzar con http:// o https://."
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "Valor no válido para el archivo de la llave TLS - utiliza LetsEncrypt o especifica la ruta del archivo llave existente"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "La dirección URL de la Puerta de enlace del WebSocket para WebRTC debe ser una dirección válida y comenzar con ws:// o wss://."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "El STUN URI de WebRTC debe ser un URI válido y comenzar con stun:"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "La Clave Compartida del TURN de WebRTC no puede estar vacía si el TURN URI se ha establecido."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "El TURN URI de WebRTC debe ser un URI válido y comenzar con turn:"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "El Nombre de usuario del TURN de WebRTC no puede estar vacío si el TURN URI se ha establecido."
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "Valor no válido pasado para sobrescribir el cifrado TLS - por favor, consulta la documentación para los valores válidos"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4679,6 +4707,22 @@
     "translation": "Id de usuario inválido"
   },
   {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Falta la propiedad requerida de términos de servicio: create_at."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Id de términos de servicio no válido."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "El texto de los términos de servicio personalizado es muy largo. Un máximo de {{.MaxLength}} es permitido."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Falta la propiedad requerida de términos de servicio: user_id."
+  },
+  {
     "id": "model.token.is_valid.expiry",
     "translation": "Expiración del token no válido"
   },
@@ -4688,15 +4732,75 @@
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "Por favor, ingresa una dirección válida de correo electrónico."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "La contraseña debe contener al menos {{.Min}} caracteres."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula y al menos un número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, al menos un número, y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, y al menos una letra en mayúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, al menos una letra mayúscula y al menos un número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, al menos una letra mayúscula, al menos un número, y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra minúscula, al menos una letra mayúscula y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos un número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos un número y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula y al menos un número."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula, al menos un número, y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Nombre de usuario debe comenzar con una letra y contener entre 3 y 22 caracteres, incluyendo números, letras minúsculas, y los símbolos \".\", \"- \" y \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4715,6 +4819,18 @@
     "translation": "Id de usuario no válido"
   },
   {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "Falta la propiedad requerida de términos de servicio: create_at."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "Falta la propiedad requerida de términos de servicio: service_terms_id."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "Falta la propiedad requerida de términos de servicio: user_id."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "no se puede decodificar"
   },
@@ -4729,6 +4845,14 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "No se pudo establecer el estado del usuario. Estado de usuario desconocido."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Los enlaces públicos han sido inhabilitados"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "No se puede obtener el enlace público para el archivo. El archivo debe estar adjunto a un mensaje que puede ser leído."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4891,6 +5015,10 @@
     "translation": "No se pudo obtener los canales públicos"
   },
   {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "No pudimos obtener las zonas horarias de los miembros del canal"
+  },
+  {
     "id": "store.sql_channel.get_unread.app_error",
     "translation": "No pudimos obtener los mensajes sin leer del canal"
   },
@@ -4957,6 +5085,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "No se puede encontrar los mensajes anclados"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "No se pudo eliminar el usuario desactivado del canal"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -6027,6 +6159,22 @@
     "translation": "No se puede actualizar la fecha de la última actualización del icono del equipo"
   },
   {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "No se puede guardar los términos de servicio."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "No se puede obtener los términos de servicio."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "No se encontraron los términos de servicio."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "No se debe invocar guardar un término de servicio existente"
+  },
+  {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
     "translation": "No se puede obtener los usuarios activos durante el período solicitado"
   },
@@ -6269,6 +6417,22 @@
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
     "translation": "No se puede habilitar guardar token de acceso"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "No se pudo eliminar los términos de servicio."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "No se puede obtener los términos de servicio."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No se encontraron los términos de servicio."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "No se puede guardar los términos de servicio."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
