@@ -297,7 +297,7 @@
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "Команда з тригером '{{.Trigger}}' повернулася відповідь {{. Статус}}"
+    "translation": "Команда з тригером '{{.Trigger}}' повернулася відповідь {{.Status}}"
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
