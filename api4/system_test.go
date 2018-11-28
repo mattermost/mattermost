@@ -147,6 +147,74 @@ func TestUpdateConfig(t *testing.T) {
 	})
 }
 
+func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	messageExportEnabled := *th.App.Config().MessageExportSettings.EnableExport
+	messageExportTimestamp := *th.App.Config().MessageExportSettings.ExportFromTimestamp
+
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = messageExportEnabled
+		*cfg.MessageExportSettings.ExportFromTimestamp = messageExportTimestamp
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = false
+		*cfg.MessageExportSettings.ExportFromTimestamp = int64(0)
+	})
+
+	// Turn it on, timestamp should be updated.
+	cfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	*cfg.MessageExportSettings.EnableExport = true
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
+	assert.NotEqual(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+
+	// Turn it off, timestamp should be cleared.
+	cfg, resp = th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	*cfg.MessageExportSettings.EnableExport = false
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
+	assert.Equal(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+
+	// Set a value from the config file.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = false
+		*cfg.MessageExportSettings.ExportFromTimestamp = int64(12345)
+	})
+
+	// Turn it on, timestamp should *not* be updated.
+	cfg, resp = th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	*cfg.MessageExportSettings.EnableExport = true
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
+	assert.Equal(t, int64(12345), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+
+	// Turn it off, timestamp should be cleared.
+	cfg, resp = th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	*cfg.MessageExportSettings.EnableExport = false
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
+	assert.Equal(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+}
+
 func TestGetEnvironmentConfig(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
 	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
