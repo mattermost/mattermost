@@ -916,7 +916,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Недійсний токен сесії = {{. Token}}, err = {{. Error}}"
+    "translation": "Недійсний токен сесії = {{.Token}}, err = {{.Error}}"
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -956,7 +956,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Година}}:{{.Хвилина}} {{.Часовий пояс}}, {{.Місяць}} {{.День}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "api.email_batching.render_batched_post.direct_message",
@@ -984,8 +984,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "one": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}[{{.SiteName}}] Нові сповіщення для {{.Month}} {{. DAY}}, {{.Year}}",
-      "other": ""
+      "one": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}"
     }
   },
   {
@@ -1428,7 +1428,7 @@
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "Вже видалено id = {{. PostId}}"
+    "translation": "Вже видалено id = {{.PostId}}"
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
@@ -1656,7 +1656,7 @@
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "Наступні адреси електронної пошти не належать до прийнятого домену: {{. Адреса}}. Будь ласка, зв'яжіться зі своїм системним адміністратором для деталей."
+    "translation": "Наступні адреси електронної пошти не належать до прийнятого домену: {{.Addresses}}. Будь ласка, зв'яжіться зі своїм системним адміністратором для деталей."
   },
   {
     "id": "api.team.invite_members.member",
@@ -1880,7 +1880,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Ваш пароль був {{.TeamDisplayName}} оновлений {{.TeamURL}} до {{. Method}}."
+    "translation": "Ваш пароль був {{.TeamDisplayName}} оновлений {{.TeamURL}} до {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1916,7 +1916,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Ви оновили свій метод входу в {{.SiteName}} до {{. Method}}."
+    "translation": "Ви оновили свій метод входу в {{.SiteName}} до {{.Method}}."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2004,7 +2004,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Не вдалося додати параметри прямого каналу для користувача user_id = {{. UserId}}, team_id = {{(TeamId)}, err = {{. Error}}"
+    "translation": "Не вдалося додати параметри прямого каналу для користувача user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2072,7 +2072,7 @@
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Не вдалося створити користувача з об'єкта користувача {{. SERVICE}}"
+    "translation": "Не вдалося створити користувача з об'єкта користувача {{.Service}}"
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
@@ -2184,7 +2184,7 @@
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": "Не вдалося розібрати аутентичні дані з об'єкта користувача {{. SERVICE}}"
+    "translation": "Не вдалося розібрати аутентичні дані з об'єкта користувача {{.Service}}"
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -2236,7 +2236,7 @@
   },
   {
     "id": "api.user.saml.invalid_extension",
-    "translation": "Розширення з extension_id = {{. ExtensionId}} не підтримується."
+    "translation": "Розширення з extension_id={{.ExtensionId}} не підтримується."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2304,7 +2304,7 @@
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": "Не вдалося отримати користувача з об'єкта користувача {{. SERVICE}}"
+    "translation": "Не вдалося отримати користувача з об'єкта користувача {{.Service}}"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -3064,7 +3064,7 @@
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}[{{.SiteName}}] Нові сповіщення для {{.Month}} {{. DAY}}, {{.Year}} "
+    "translation": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}} "
   },
   {
     "id": "app.notification.subject.notification.full",
