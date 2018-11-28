@@ -23,12 +23,12 @@ func sessionHasPermissionToManageBot(c *Context, userId string) *model.AppError 
 		return err
 	}
 
-	if existingBot.CreatorId == c.Session.UserId {
-		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_BOTS) {
+	if existingBot.CreatorId == c.App.Session.UserId {
+		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_BOTS) {
 			return c.MakePermissionError(model.PERMISSION_MANAGE_BOTS)
 		}
 	} else {
-		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
+		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
 			return c.MakePermissionError(model.PERMISSION_MANAGE_OTHERS_BOTS)
 		}
 	}
@@ -37,7 +37,7 @@ func sessionHasPermissionToManageBot(c *Context, userId string) *model.AppError 
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_BOT) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_BOT) {
 		c.SetPermissionError(model.PERMISSION_CREATE_BOT)
 		return
 	}
@@ -49,7 +49,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	bot := &model.Bot{
-		CreatorId: c.Session.UserId,
+		CreatorId: c.App.Session.UserId,
 	}
 	bot.Patch(botPatch)
 
@@ -91,7 +91,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_READ_BOTS) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
 		c.SetPermissionError(model.PERMISSION_READ_BOTS)
 		return
 	}
@@ -114,7 +114,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_READ_BOTS) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
 		c.SetPermissionError(model.PERMISSION_READ_BOTS)
 		return
 	}
