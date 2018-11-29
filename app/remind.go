@@ -95,7 +95,7 @@ func (a *App) triggerReminders() {
 
 			if strings.HasPrefix(reminder.Target, "@") || strings.HasPrefix(reminder.Target, T("app.reminder.me")) {
 
-				channel, cErr := a.GetDirectChannel(remindUser.Id, user.Id)
+				channel, cErr := a.GetOrCreateDirectChannel(remindUser.Id, user.Id)
 				if cErr != nil {
 					continue
 				}
