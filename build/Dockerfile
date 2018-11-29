@@ -1,0 +1,3 @@
+FROM golang:1.11.2
+RUN apt-get update && apt-get install -y make gcc nasm libpng-dev zip git apt-transport-https ca-certificates curl software-properties-common build-essential wget xmlsec1
+RUN curl -fsSL 'https://sks-keyservers.net/pks/lookup?op=get&search=0xee6d536cf7dc86e2d7d56f59a178ac6c6238f52e' | apt-key add - && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo 'deb https://dl.yarnpkg.com/debian/ stable main' | tee /etc/apt/sources.list.d/yarn.list && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && echo 'deb https://deb.nodesource.com/node_10.x xenial main' | tee /etc/apt/sources.list.d/nodesource.list && apt-get update && apt-get install -y yarn nodejs
