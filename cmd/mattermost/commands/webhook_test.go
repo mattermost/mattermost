@@ -172,28 +172,30 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	team := th.BasicTeam.Id
 	user := th.BasicUser.Id
 	displayName := "totally radical webhook"
-	triggerWords := "build\ndefenestrate"
-	callbackURLs := "http://localhost:8000/my-webhook-handler\nhttp://localhost:8000/my-webhook-handler2"
+	triggerWord1 := "build"
+	triggerWord2 := "defenestrate"
+	callbackURL1 := "http://localhost:8000/my-webhook-handler"
+	callbackURL2 := "http://localhost:8000/my-webhook-handler2"
 
 	// should fail because team is not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--display-name", displayName, "--trigger-words", triggerWords, "--urls", callbackURLs, "--user", user))
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
 
 	// should fail because user is not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--trigger-words", triggerWords, "--urls", callbackURLs))
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2))
 
 	// should fail because display name is not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--trigger-words", triggerWords, "--urls", callbackURLs, "--user", user))
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
 
 	// should fail because trigger words are not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--urls", callbackURLs, "--user", user))
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
 
 	// should fail because callback URLs are not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--trigger-words", triggerWords, "--user", user))
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--user", user))
 
 	// should fail because outgoing webhooks cannot be made for private channels
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicPrivateChannel.Id, "--display-name", displayName, "--trigger-words", triggerWords, "--urls", callbackURLs, "--user", user))
+	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicPrivateChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
 
-	CheckCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-words", triggerWords, "--urls", callbackURLs, "--user", user)
+	CheckCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user)
 
 	webhooks, err := th.App.GetOutgoingWebhooksPage(0, 1000)
 	if err != nil {

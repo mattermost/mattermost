@@ -21,6 +21,7 @@ import (
 
 type TestHelper struct {
 	App          *app.App
+	Server       *app.Server
 	BasicTeam    *model.Team
 	BasicUser    *model.User
 	BasicUser2   *model.User
@@ -85,13 +86,14 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		options = append(options, app.StoreOverride(testStore))
 	}
 
-	a, err := app.New(options...)
+	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
 
 	th := &TestHelper{
-		App:            a,
+		App:            s.FakeApp(),
+		Server:         s,
 		tempConfigPath: tempConfig.Name(),
 	}
 
@@ -227,7 +229,7 @@ func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+	if channel, err = me.App.GetOrCreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -290,7 +292,7 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 }
 
 func (me *TestHelper) TearDown() {
-	me.App.Shutdown()
+	me.Server.Shutdown()
 	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
 		StopTestStore()

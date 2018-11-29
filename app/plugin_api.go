@@ -297,7 +297,7 @@ func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *m
 }
 
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
-	return api.app.GetDirectChannel(userId1, userId2)
+	return api.app.GetOrCreateDirectChannel(userId1, userId2)
 }
 
 func (api *PluginAPI) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
@@ -521,25 +521,6 @@ func (api *PluginAPI) RemoveTeamIcon(teamId string) *model.AppError {
 		return err
 	}
 	return nil
-}
-
-func (api *PluginAPI) CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
-	_, err := api.app.GetUser(userId1)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = api.app.GetUser(userId2)
-	if err != nil {
-		return nil, err
-	}
-
-	dm, err := api.app.CreateDirectChannel(userId1, userId2)
-	if err != nil {
-		return nil, err
-	}
-
-	return dm, nil
 }
 
 // Plugin Section

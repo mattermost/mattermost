@@ -16,33 +16,33 @@ import (
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		App:            w.App,
-		HandleFunc:     h,
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       false,
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
 	}
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		App:            w.App,
-		HandleFunc:     h,
-		RequireSession: false,
-		TrustRequester: false,
-		RequireMfa:     false,
-		IsStatic:       true,
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            true,
 	}
 }
 
 type Handler struct {
-	App            *app.App
-	HandleFunc     func(*Context, http.ResponseWriter, *http.Request)
-	RequireSession bool
-	TrustRequester bool
-	RequireMfa     bool
-	IsStatic       bool
+	GetGlobalAppOptions app.AppOptionCreator
+	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
+	RequireSession      bool
+	TrustRequester      bool
+	RequireMfa          bool
+	IsStatic            bool
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -50,12 +50,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
 
 	c := &Context{}
-	c.App = h.App
-	c.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.RequestId = model.NewId()
-	c.IpAddress = utils.GetIpAddress(r)
+	c.App = app.New(
+		h.GetGlobalAppOptions()...,
+	)
+	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
+	c.App.RequestId = model.NewId()
+	c.App.IpAddress = utils.GetIpAddress(r)
 	c.Params = ParamsFromRequest(r)
-	c.Path = r.URL.Path
+	c.App.Path = r.URL.Path
 	c.Log = c.App.Log
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
@@ -72,7 +74,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
-	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
+	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
@@ -106,20 +108,20 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			c.Session = *session
+			c.App.Session = *session
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.Session.UserId, w) {
+		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
 			return
 		}
 	}
 
 	c.Log = c.App.Log.With(
-		mlog.String("path", c.Path),
-		mlog.String("request_id", c.RequestId),
-		mlog.String("ip_addr", c.IpAddress),
-		mlog.String("user_id", c.Session.UserId),
+		mlog.String("path", c.App.Path),
+		mlog.String("request_id", c.App.RequestId),
+		mlog.String("ip_addr", c.App.IpAddress),
+		mlog.String("user_id", c.App.Session.UserId),
 		mlog.String("method", r.Method),
 	)
 
@@ -137,8 +139,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Handle errors that have occurred
 	if c.Err != nil {
-		c.Err.Translate(c.T)
-		c.Err.RequestId = c.RequestId
+		c.Err.Translate(c.App.T)
+		c.Err.RequestId = c.App.RequestId
 
 		if c.Err.Id == "api.context.session_expired.app_error" {
 			c.LogInfo(c.Err)

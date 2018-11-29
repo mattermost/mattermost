@@ -7,6 +7,7 @@ import (
 	"image"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -315,6 +316,8 @@ func getImagesInMessageAttachments(post *model.Post) []string {
 }
 
 func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.OpenGraph, *model.PostImage, error) {
+	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
+
 	// Check cache
 	if useCache {
 		og, image, ok := getLinkMetadataFromCache(requestURL)
@@ -347,6 +350,21 @@ func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.Open
 	}
 
 	return og, image, err
+}
+
+// resolveMetadataURL resolves a given URL relative to the server's site URL.
+func resolveMetadataURL(requestURL string, siteURL string) string {
+	base, err := url.Parse(siteURL)
+	if err != nil {
+		return ""
+	}
+
+	resolved, err := base.Parse(requestURL)
+	if err != nil {
+		return ""
+	}
+
+	return resolved.String()
 }
 
 func getLinkMetadataFromCache(requestURL string) (*opengraph.OpenGraph, *model.PostImage, bool) {

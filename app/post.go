@@ -622,7 +622,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetDirectChannel(userId, user.Id)
+		channel, err := a.GetOrCreateDirectChannel(userId, user.Id)
 		if err != nil {
 			return nil, err
 		}
