@@ -142,6 +142,12 @@ func GroupFromJson(data io.Reader) *Group {
 	return group
 }
 
+func GroupsFromJson(data io.Reader) []*Group {
+	var groups []*Group
+	json.NewDecoder(data).Decode(&groups)
+	return groups
+}
+
 func GroupPatchFromJson(data io.Reader) *GroupPatch {
 	var groupPatch *GroupPatch
 	json.NewDecoder(data).Decode(&groupPatch)

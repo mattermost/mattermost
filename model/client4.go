@@ -3083,14 +3083,7 @@ func (c *Client4) GetLdapGroups() ([]*Group, *Response) {
 	}
 	defer closeBody(r)
 
-	response := BuildResponse(r)
-
-	var groups []*Group
-	if err := json.NewDecoder(r.Body).Decode(&groups); err != nil {
-		return nil, response
-	}
-
-	return groups, BuildResponse(r)
+	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
 // LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
@@ -3103,14 +3096,7 @@ func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response) {
 	}
 	defer closeBody(r)
 
-	response := BuildResponse(r)
-
-	var group *Group
-	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
-		return nil, response
-	}
-
-	return group, BuildResponse(r)
+	return GroupFromJson(r.Body), BuildResponse(r)
 }
 
 // UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
@@ -3123,14 +3109,7 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	}
 	defer closeBody(r)
 
-	response := BuildResponse(r)
-
-	var group *Group
-	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
-		return nil, response
-	}
-
-	return group, BuildResponse(r)
+	return GroupFromJson(r.Body), BuildResponse(r)
 }
 
 // Audits Section
