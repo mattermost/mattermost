@@ -461,11 +461,7 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 			return result
 		}
 
-		groupTeam := &groupTeam{
-			GroupSyncable: *groupSyncable,
-			TeamId:        groupSyncable.SyncableId,
-		}
-		err = s.GetMaster().Insert(groupTeam)
+		err = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
 		channelResult := <-s.Channel().Get(groupSyncable.SyncableId, false)
 		if channelResult.Err != nil {
@@ -473,11 +469,7 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 			return result
 		}
 
-		groupChannel := &groupChannel{
-			GroupSyncable: *groupSyncable,
-			ChannelId:     groupSyncable.SyncableId,
-		}
-		err = s.GetMaster().Insert(groupChannel)
+		err = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
 	default:
 		result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
@@ -689,15 +681,9 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 	var rowsAffected int64
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		rowsAffected, err = s.GetMaster().Update(&groupTeam{
-			*groupSyncable,
-			groupSyncable.SyncableId,
-		})
+		rowsAffected, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		rowsAffected, err = s.GetMaster().Update(&groupChannel{
-			*groupSyncable,
-			groupSyncable.SyncableId,
-		})
+		rowsAffected, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
 	default:
 		model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
@@ -752,17 +738,9 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 	var rowsAffected int64
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		groupTeam := &groupTeam{
-			GroupSyncable: *groupSyncable,
-			TeamId:        groupSyncable.SyncableId,
-		}
-		rowsAffected, err = s.GetMaster().Update(groupTeam)
+		rowsAffected, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		groupChannel := &groupChannel{
-			GroupSyncable: *groupSyncable,
-			ChannelId:     groupSyncable.SyncableId,
-		}
-		rowsAffected, err = s.GetMaster().Update(groupChannel)
+		rowsAffected, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
 	default:
 		model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
@@ -869,4 +847,18 @@ func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroup
 	result.Data = userChannelIDs
 
 	return result
+}
+
+func groupSyncableToGroupTeam(groupSyncable *model.GroupSyncable) *groupTeam {
+	return &groupTeam{
+		GroupSyncable: *groupSyncable,
+		TeamId:        groupSyncable.SyncableId,
+	}
+}
+
+func groupSyncableToGroupChannel(groupSyncable *model.GroupSyncable) *groupChannel {
+	return &groupChannel{
+		GroupSyncable: *groupSyncable,
+		ChannelId:     groupSyncable.SyncableId,
+	}
 }
