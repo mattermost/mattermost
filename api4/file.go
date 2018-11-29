@@ -201,12 +201,12 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+	if !c.App.SessionHasPermissionToChannel(c.App.Session, c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return
 	}
 
-	task := c.App.NewUploadFileTask(FILE_TEAM_ID, c.Params.ChannelId, c.Session.UserId,
+	task := c.App.NewUploadFileTask(FILE_TEAM_ID, c.Params.ChannelId, c.App.Session.UserId,
 		c.Params.Filename, timestamp, r.ContentLength, r.Body)
 	task.ClientId = r.Form.Get("client_id")
 	info, appErr := task.Do()
@@ -349,7 +349,7 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 		if c.Err != nil {
 			return nil
 		}
-		if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
+		if !c.App.SessionHasPermissionToChannel(c.App.Session, c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 			c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 			return nil
 		}
@@ -372,7 +372,7 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 		}
 
 		task := c.App.NewUploadFileTask(FILE_TEAM_ID, c.Params.ChannelId,
-			c.Session.UserId, filename, timestamp, -1, part)
+			c.App.Session.UserId, filename, timestamp, -1, part)
 		task.ClientId = clientId
 		info, appErr := task.Do()
 		if appErr != nil {
@@ -424,7 +424,7 @@ func uploadFileMultipartBuffered(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
+	if !c.App.SessionHasPermissionToChannel(c.App.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return nil
 	}
@@ -458,7 +458,7 @@ func uploadFileMultipartBuffered(c *Context, mr *multipart.Reader,
 		}
 
 		task := c.App.NewUploadFileTask(FILE_TEAM_ID, c.Params.ChannelId,
-			c.Session.UserId, fileHeader.Filename, timestamp, -1, f)
+			c.App.Session.UserId, fileHeader.Filename, timestamp, -1, f)
 		task.ClientId = clientId
 		info, appErr := task.Do()
 		f.Close()
