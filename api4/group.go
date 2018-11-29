@@ -400,8 +400,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
-	w.Write(nil)
+	ReturnStatusOK(w)
 }
 
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {

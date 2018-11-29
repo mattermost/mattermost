@@ -222,7 +222,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	response = th.SystemAdminClient.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-	assert.Equal(t, http.StatusNoContent, response.StatusCode)
+	CheckOKStatus(t, response)
 }
 
 func TestUnlinkGroupChannel(t *testing.T) {
@@ -260,7 +260,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	response = th.SystemAdminClient.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	assert.Equal(t, http.StatusNoContent, response.StatusCode)
+	CheckOKStatus(t, response)
 }
 
 func TestGetGroupTeam(t *testing.T) {
