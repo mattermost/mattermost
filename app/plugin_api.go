@@ -317,7 +317,12 @@ func (api *PluginAPI) SearchChannels(teamId string, term string) ([]*model.Chann
 }
 
 func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
-	return api.app.SearchUsers(search)
+	pluginSearchUsersOptions := &model.UserSearchOptions{
+		IsAdmin:       true,
+		AllowInactive: search.AllowInactive,
+		Limit:         search.Limit,
+	}
+	return api.app.SearchUsers(search, pluginSearchUsersOptions)
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
