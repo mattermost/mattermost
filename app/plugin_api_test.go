@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -42,6 +43,115 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	require.True(t, activated)
 
 	app.SetPluginsEnvironment(env)
+}
+
+func TestPluginAPIGetUsersInTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	user2, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user2)
+
+	user3, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user3" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user3)
+
+	user4, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user4)
+
+	// Add all users to team 1
+	_, _, err = th.App.joinUserToTeam(team1, user1)
+	require.Nil(t, err)
+	_, _, err = th.App.joinUserToTeam(team1, user2)
+	require.Nil(t, err)
+	_, _, err = th.App.joinUserToTeam(team1, user3)
+	require.Nil(t, err)
+	_, _, err = th.App.joinUserToTeam(team1, user4)
+	require.Nil(t, err)
+
+	// Add only user3 and user4 to team 2
+	_, _, err = th.App.joinUserToTeam(team2, user3)
+	require.Nil(t, err)
+	_, _, err = th.App.joinUserToTeam(team2, user4)
+	require.Nil(t, err)
+
+	testCases := []struct {
+		Description   string
+		TeamId        string
+		Page          int
+		PerPage       int
+		ExpectedUsers []*model.User
+	}{
+		{
+			"unknown team",
+			model.NewId(),
+			0,
+			0,
+			[]*model.User{},
+		},
+		{
+			"team 1, page 0, perPage 10",
+			team1.Id,
+			0,
+			10,
+			[]*model.User{user1, user2, user3, user4},
+		},
+		{
+			"team 1, page 0, perPage 2",
+			team1.Id,
+			0,
+			2,
+			[]*model.User{user1, user2},
+		},
+		{
+			"team 1, page 1, perPage 2",
+			team1.Id,
+			1,
+			2,
+			[]*model.User{user3, user4},
+		},
+		{
+			"team 2, page 0, perPage 10",
+			team2.Id,
+			0,
+			10,
+			[]*model.User{user3, user4},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			users, err := api.GetUsersInTeam(testCase.TeamId, testCase.Page, testCase.PerPage)
+			assert.Nil(t, err)
+			assert.Equal(t, testCase.ExpectedUsers, users)
+		})
+	}
 }
 
 func TestPluginAPIUpdateUserStatus(t *testing.T) {
