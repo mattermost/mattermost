@@ -67,8 +67,8 @@ func (a *App) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.App
 }
 
 // GetBots returns the requested page of bots.
-func (a *App) GetBots(page, perPage int, includeDeleted bool) (model.BotList, *model.AppError) {
-	result := <-a.Srv.Store.Bot().GetAll(page*perPage, perPage, includeDeleted)
+func (a *App) GetBots(page, perPage int, creatorId string, includeDeleted bool) (model.BotList, *model.AppError) {
+	result := <-a.Srv.Store.Bot().GetAll(page*perPage, perPage, creatorId, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
 	}

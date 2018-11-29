@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -113,15 +114,29 @@ func (us SqlBotStore) Get(userId string, includeDeleted bool) store.StoreChannel
 }
 
 // GetAll fetches from all bots in the database.
-func (us SqlBotStore) GetAll(offset, limit int, includeDeleted bool) store.StoreChannel {
+func (us SqlBotStore) GetAll(offset, limit int, creatorId string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var excludeDeletedSql = "WHERE b.DeleteAt = 0"
-		if includeDeleted {
-			excludeDeletedSql = ""
+		params := map[string]interface{}{
+			"offset": offset,
+			"limit":  limit,
 		}
 
-		var data []*model.Bot
-		if _, err := us.GetReplica().Select(&data, `
+		var conditions []string
+		var conditionsSql string
+
+		if !includeDeleted {
+			conditions = append(conditions, "b.DeleteAt = 0")
+		}
+		if creatorId != "" {
+			conditions = append(conditions, "b.CreatorId = :creator_id")
+			params["creator_id"] = creatorId
+		}
+
+		if len(conditions) > 0 {
+			conditionsSql = "WHERE " + strings.Join(conditions, " AND ")
+		}
+
+		sql := `
 			SELECT
 			    b.UserId,
 			    u.Username,
@@ -135,17 +150,17 @@ func (us SqlBotStore) GetAll(offset, limit int, includeDeleted bool) store.Store
 			    Bots b
 			JOIN
 			    Users u ON (u.Id = b.UserId)
-			`+excludeDeletedSql+`
+			` + conditionsSql + `
 			ORDER BY
 			    b.CreateAt ASC
 			LIMIT
 			    :limit
 			OFFSET
 			    :offset
-		`, map[string]interface{}{
-			"offset": offset,
-			"limit":  limit,
-		}); err != nil {
+		`
+
+		var data []*model.Bot
+		if _, err := us.GetReplica().Select(&data, sql, params); err != nil {
 			result.Err = model.NewAppError("SqlBotStore.GetAll", "store.sql_bot.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 

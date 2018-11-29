@@ -91,11 +91,6 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
-		c.SetPermissionError(model.PERMISSION_READ_BOTS)
-		return
-	}
-
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -109,6 +104,18 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
+		// Allow access any any bot.
+	} else if bot.CreatorId == c.App.Session.UserId {
+		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
+			c.SetPermissionError(model.PERMISSION_READ_BOTS)
+			return
+		}
+	} else {
+		c.SetPermissionError(model.PERMISSION_READ_OTHERS_BOTS)
+		return
+	}
+
 	if c.HandleEtag(bot.Etag(), "Get Bot", w, r) {
 		return
 	}
@@ -118,14 +125,21 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+
+	var creatorId string
+	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
+		// Get bots created by any user.
+		creatorId = ""
+	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
+		// Only get bots created by this user.
+		creatorId = c.App.Session.UserId
+	} else {
 		c.SetPermissionError(model.PERMISSION_READ_BOTS)
 		return
 	}
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
-
-	bots, err := c.App.GetBots(c.Params.Page, c.Params.PerPage, includeDeleted)
+	bots, err := c.App.GetBots(c.Params.Page, c.Params.PerPage, creatorId, includeDeleted)
 	if err != nil {
 		c.Err = err
 		return

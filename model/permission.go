@@ -71,6 +71,7 @@ var PERMISSION_READ_USER_ACCESS_TOKEN *Permission
 var PERMISSION_REVOKE_USER_ACCESS_TOKEN *Permission
 var PERMISSION_CREATE_BOT *Permission
 var PERMISSION_READ_BOTS *Permission
+var PERMISSION_READ_OTHERS_BOTS *Permission
 var PERMISSION_MANAGE_BOTS *Permission
 var PERMISSION_MANAGE_OTHERS_BOTS *Permission
 
@@ -412,6 +413,12 @@ func initializePermissions() {
 		"authentication.permissions.read_bots.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	PERMISSION_READ_OTHERS_BOTS = &Permission{
+		"read_others_bots",
+		"authentication.permissions.read_others_bots.name",
+		"authentication.permissions.read_others_bots.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
 	PERMISSION_MANAGE_BOTS = &Permission{
 		"manage_bots",
 		"authentication.permissions.manage_bots.name",
@@ -487,6 +494,7 @@ func initializePermissions() {
 		PERMISSION_REVOKE_USER_ACCESS_TOKEN,
 		PERMISSION_CREATE_BOT,
 		PERMISSION_READ_BOTS,
+		PERMISSION_READ_OTHERS_BOTS,
 		PERMISSION_MANAGE_BOTS,
 		PERMISSION_MANAGE_OTHERS_BOTS,
 		PERMISSION_MANAGE_SYSTEM,

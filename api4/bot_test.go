@@ -271,10 +271,22 @@ func TestGetBot(t *testing.T) {
 	deletedBot, resp = th.SystemAdminClient.DisableBot(deletedBot.UserId)
 	CheckOKStatus(t, resp)
 
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	myBot, resp := th.Client.CreateBot(&model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "my bot",
+		Description: "a bot created by non-admin",
+	})
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(myBot.UserId)
+	th.RemovePermissionFromRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+
 	t.Run("get unknown bot", func(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		_, resp := th.Client.GetBot(model.NewId(), "")
@@ -285,6 +297,7 @@ func TestGetBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bot, resp := th.Client.GetBot(bot1.UserId, "")
@@ -299,6 +312,7 @@ func TestGetBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bot, resp := th.Client.GetBot(bot2.UserId, "")
@@ -309,9 +323,10 @@ func TestGetBot(t *testing.T) {
 		CheckEtag(t, bot, resp)
 	})
 
-	t.Run("get bot1 without permission", func(t *testing.T) {
+	t.Run("get bot1 without READ_OTHERS_BOTS permission", func(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
@@ -321,10 +336,23 @@ func TestGetBot(t *testing.T) {
 		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
 	})
 
+	t.Run("get myBot without READ_BOTS OR READ_OTHERS_BOTS permissions", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		_, resp := th.Client.GetBot(myBot.UserId, "")
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+	})
+
 	t.Run("get deleted bot", func(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		_, resp := th.Client.GetBot(deletedBot.UserId, "")
@@ -335,6 +363,7 @@ func TestGetBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bot, resp := th.Client.GetBotIncludeDeleted(deletedBot.UserId, "")
@@ -399,6 +428,7 @@ func TestGetBots(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bots, resp := th.Client.GetBots(0, 10, "")
@@ -413,6 +443,7 @@ func TestGetBots(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bots, resp := th.Client.GetBots(0, 1, "")
@@ -427,6 +458,7 @@ func TestGetBots(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bots, resp := th.Client.GetBots(1, 2, "")
@@ -441,6 +473,7 @@ func TestGetBots(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bots, resp := th.Client.GetBots(2, 2, "")
@@ -455,6 +488,7 @@ func TestGetBots(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(0, 10, "")
@@ -469,6 +503,7 @@ func TestGetBots(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(0, 1, "")
@@ -483,6 +518,7 @@ func TestGetBots(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(1, 2, "")
@@ -497,6 +533,7 @@ func TestGetBots(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(2, 2, "")
