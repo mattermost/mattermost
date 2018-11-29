@@ -88,7 +88,6 @@ export TEST_DATABASE_NAME
 
 # Packages lists
 TE_PACKAGES=$(shell go list ./...)
-TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
@@ -103,12 +102,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 EE_PACKAGES=$(shell go list ./enterprise/...)
-EE_PACKAGES_COMMA=$(shell echo $(EE_PACKAGES) | tr ' ' ',')
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA),$(EE_PACKAGES_COMMA)
+ALL_PACKAGES=$(TE_PACKAGES),$(EE_PACKAGES)
 else
-ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
+ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 
@@ -429,11 +427,7 @@ go-junit-report:
 
 test-te: start-docker go-junit-report do-cover-file ## Runs tests in the team edition.
 	@echo Testing TE
-	@echo "Packages to test: "$(TE_PACKAGES)
-	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES) | tee output-test-te
-	cat output-test-te | $(GOPATH)/bin/go-junit-report > report-te.xml && rm output-test-te
-	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(ALL_PACKAGES)"
 
 test-ee: start-docker go-junit-report do-cover-file ## Runs tests in the enterprise edition.
 	@echo Testing EE
@@ -443,13 +437,7 @@ test-ee: start-docker go-junit-report do-cover-file ## Runs tests in the enterpr
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Testing EE
-	@echo "Packages to test: "$(EE_PACKAGES)
-	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGSEE) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(EE_PACKAGES) 2>&1 | tee output-test-ee
-	cat output-test-ee | $(GOPATH)/bin/go-junit-report > report-ee.xml && rm output-test-ee
-	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
-	rm -f enterprise/config/*.crt
-	rm -f enterprise/config/*.key
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(ALL_PACKAGES)"
 else
 	@echo Skipping EE Tests
 endif
