@@ -57,6 +57,7 @@ type ChannelWithTeamData struct {
 	Channel
 	TeamDisplayName string `json:"team_display_name"`
 	TeamName        string `json:"team_name"`
+	TeamUpdateAt    int64  `json:"team_update_at"`
 }
 
 type ChannelPatch struct {
