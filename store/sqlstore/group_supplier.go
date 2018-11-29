@@ -131,7 +131,7 @@ func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, g
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE RemoteId = :RemoteId AND Type = :Type", map[string]interface{}{"RemoteId": remoteID, "Type": groupType}); err != nil {
 		if err == sql.ErrNoRows {
 			// This AppError's details may be compared against in a call to GroupGetByRemoteID, so don't change it.
-			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.sql_group.no_rows", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
 		} else {
 			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
