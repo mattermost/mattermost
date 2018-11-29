@@ -111,9 +111,6 @@ func (s *Server) initEnterprise() {
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s.FakeApp())
 	}
-	if clusterInterface != nil {
-		s.Cluster = clusterInterface(s.FakeApp())
-	}
 	if complianceInterface != nil {
 		s.Compliance = complianceInterface(s.FakeApp())
 	}
@@ -145,5 +142,8 @@ func (s *Server) initEnterprise() {
 	}
 	if dataRetentionInterface != nil {
 		s.DataRetention = dataRetentionInterface(s.FakeApp())
+	}
+	if clusterInterface != nil {
+		s.Cluster = clusterInterface(s.FakeApp())
 	}
 }
