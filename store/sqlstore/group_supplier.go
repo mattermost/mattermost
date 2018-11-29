@@ -711,7 +711,7 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 		return result
 	}
 
-	if !model.IsValidId(string(syncableID)) {
+	if !model.IsValidId(syncableID) {
 		result.Err = model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group_syncable.syncable_id.app_error", nil, "group_id="+groupID, http.StatusBadRequest)
 		return result
 	}
