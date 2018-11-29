@@ -4064,10 +4064,7 @@ func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType Gro
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	groupSyncable := &GroupSyncable{}
-	bodyBytes, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(bodyBytes, groupSyncable)
-	return groupSyncable, BuildResponse(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
 }
 
 func (c *Client4) UnlinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType) *Response {
@@ -4086,10 +4083,7 @@ func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType Grou
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	groupSyncable := &GroupSyncable{}
-	bodyBytes, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(bodyBytes, groupSyncable)
-	return groupSyncable, BuildResponse(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
 }
 
 func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response) {
@@ -4098,13 +4092,7 @@ func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableTy
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	groupSyncables := []*GroupSyncable{}
-	bodyBytes, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(bodyBytes, &groupSyncables)
-	if err != nil {
-		panic(err)
-	}
-	return groupSyncables, BuildResponse(r)
+	return GroupSyncablesFromJson(r.Body), BuildResponse(r)
 }
 
 func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response) {
@@ -4114,8 +4102,5 @@ func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType Gr
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-	groupSyncable := &GroupSyncable{}
-	bodyBytes, _ := ioutil.ReadAll(r.Body)
-	json.Unmarshal(bodyBytes, groupSyncable)
-	return groupSyncable, BuildResponse(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
 }
