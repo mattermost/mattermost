@@ -42,8 +42,9 @@ type PostActionOptions struct {
 }
 
 type PostActionIntegration struct {
-	URL     string                 `json:"url,omitempty"`
-	Context map[string]interface{} `json:"context,omitempty"`
+	URL          string                 `json:"url,omitempty"`
+	Context      map[string]interface{} `json:"context,omitempty"`
+	CustomHeader string                 `json:"custom_header,omitempty"`
 }
 
 type PostActionIntegrationRequest struct {

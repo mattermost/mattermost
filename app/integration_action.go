@@ -71,7 +71,7 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 		request.Context["selected_option"] = selectedOption
 	}
 
-	resp, err := a.DoActionRequest(action.Integration.URL, request.ToJson())
+	resp, err := a.DoActionRequest(action.Integration.URL, request.ToJson(), action.Integration.CustomHeader)
 	if resp != nil {
 		defer consumeAndClose(resp)
 	}
@@ -126,11 +126,14 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
-func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoActionRequest(rawURL string, body []byte, header_optional ...string) (*http.Response, *model.AppError) {
 	req, _ := http.NewRequest("POST", rawURL, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-
+	// Include custom header if presented
+	if len(header_optional) > 0 {
+		req.Header.Set("X-Custom-Header", header_optional[0])
+	}
 	// Allow access to plugin routes for action buttons
 	var httpClient *httpservice.Client
 	url, _ := url.Parse(rawURL)
