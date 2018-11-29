@@ -45,8 +45,6 @@ pipeline {
                                 echo Webapp Commit: ${WEBAPP_GIT_COMMIT}
 
                                 curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build || exit 1
-
-                                mkdir -p client/plugins
                             '''
                         }
                     }
@@ -60,10 +58,9 @@ pipeline {
             }
 
             steps {
-                withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'golang:1.11') {
+                withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:5.6.0') {
                     ansiColor('xterm') {
                         sh """
-                            apt update && apt install zip -y
                             cd /go/src/github.com/mattermost/mattermost-server
                             mv config/default.json config/config.json || echo ""
                             make check-style BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
@@ -112,19 +109,18 @@ pipeline {
                         """
                     }
                 }
-                withDockerContainer(args: "-u root --privileged --net ${BUILD_ID}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'golang:1.11') {
+                withDockerContainer(args: "-u root --privileged --net ${BUILD_ID}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:5.6.0') {
                     ansiColor('xterm') {
                         sh """
                             while ! curl mysql:3306; do sleep 5; done
 
                             cd /go/src/github.com/mattermost/mattermost-server
 
-                            go get -u github.com/jstemmer/go-junit-report
-
                             sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8|g' config/config.json;
                             sed -i'.bak' 's|"SMTPServer": "dockerhost",|"SMTPServer": "inbucket",|g' config/config.json;
                             sed -i'.bak' 's|"SMTPPort": "2500",|"SMTPPort": "10025",|g' config/config.json;
                             sed -i'.bak' 's|"ConnectionUrl": "http://dockerhost:9200",|"ConnectionUrl": "http://elasticsearch:9200",|g' config/config.json;
+                            mkdir -p client/plugins
 
                             cat config/config.json
 
