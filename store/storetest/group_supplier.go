@@ -108,7 +108,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	res5b := <-ss.Group().Create(g4b)
 	assert.Nil(t, res5b.Data)
-	assert.Equal(t, res5b.Err.Id, "store.commit_error")
+	assert.Equal(t, res5b.Err.Id, "store.sql_group.unique_constraint")
 
 	// Fields cannot be greater than max values
 	g5 := &model.Group{
