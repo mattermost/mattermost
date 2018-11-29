@@ -163,6 +163,12 @@ podTemplate(label: 'jenkins-slave',
             sh 'cd /go/src/github.com/mattermost/mattermost-server && make check-style'
         }
     }
+    stage('I18n Checks') {
+        container('golang') {
+            sh 'go get github.com/mattermost/mattermost-utilities/mmgotool'
+            sh '/go/bin/mmgotool i18n check'
+        }
+    }
     stage('Build') {
         container('golang') {
             sh "cd /go/src/github.com/mattermost/mattermost-server && make build BUILD_NUMBER=${env.BUILD_NUMBER}"
