@@ -79,6 +79,10 @@ func (o *ChannelListWithTeamData) Etag() string {
 			id = v.Id
 		}
 
+		if v.TeamUpdateAt > t {
+			t = v.TeamUpdateAt
+			id = v.Id
+		}
 	}
 
 	return Etag(id, t, delta, len(*o))
@@ -90,8 +94,8 @@ func ChannelListWithTeamDataFromJson(data io.Reader) *ChannelListWithTeamData {
 	return o
 }
 
-func ChannelWithTeamDataSliceFromJson(data io.Reader) []*ChannelWithTeamData {
-	var o []*ChannelWithTeamData
+func ChannelWithTeamDataSliceFromJson(data io.Reader) ChannelListWithTeamData {
+	var o ChannelListWithTeamData
 	json.NewDecoder(data).Decode(&o)
 	return o
 }

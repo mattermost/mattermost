@@ -726,7 +726,9 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channels, err := c.App.SearchAllChannels(props.Term)
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+
+	channels, err := c.App.SearchAllChannels(props.Term, includeDeleted)
 	if err != nil {
 		c.Err = err
 		return
