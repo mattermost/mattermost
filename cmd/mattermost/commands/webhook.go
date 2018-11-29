@@ -116,24 +116,34 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 	defer app.Shutdown()
 
-	channelArg, _ := command.Flags().GetString("channel")
+	channelArg, errChannel := command.Flags().GetString("channel")
+	if errChannel != nil || channelArg == "" {
+		return errors.New("Channel is required")
+	}
 	channel := getChannelFromChannelArg(app, channelArg)
 	if channel == nil {
 		return errors.New("Unable to find channel '" + channelArg + "'")
 	}
 
-	userArg, _ := command.Flags().GetString("user")
+	userArg, errUser := command.Flags().GetString("user")
+	if errUser != nil || userArg == "" {
+		return errors.New("User is required")
+	}
 	user := getUserFromUserArg(app, userArg)
+	if user == nil {
+		return errors.New("Unable to find user '" + userArg + "'")
+	}
+
 	displayName, _ := command.Flags().GetString("display-name")
 	description, _ := command.Flags().GetString("description")
-	iconUrl, _ := command.Flags().GetString("icon")
+	iconURL, _ := command.Flags().GetString("icon")
 	channelLocked, _ := command.Flags().GetBool("lock-to-channel")
 
 	incomingWebhook := &model.IncomingWebhook{
 		ChannelId:     channel.Id,
 		DisplayName:   displayName,
 		Description:   description,
-		IconURL:       iconUrl,
+		IconURL:       iconURL,
 		ChannelLocked: channelLocked,
 	}
 
@@ -298,8 +308,8 @@ func deleteWebhookCmdF(command *cobra.Command, args []string) error {
 }
 
 func init() {
-	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID")
-	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID")
+	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID (required)")
+	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID (required)")
 	WebhookCreateIncomingCmd.Flags().String("display-name", "", "Incoming webhook display name")
 	WebhookCreateIncomingCmd.Flags().String("description", "", "Incoming webhook description")
 	WebhookCreateIncomingCmd.Flags().String("icon", "", "Icon URL")
