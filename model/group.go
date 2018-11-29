@@ -10,6 +10,16 @@ import (
 	"strings"
 )
 
+const (
+	GroupTypeLdap GroupType = "ldap"
+
+	GroupNameMaxLength        = 64
+	GroupTypeMaxLength        = 64
+	GroupDisplayNameMaxLength = 128
+	GroupDescriptionMaxLength = 1024
+	GroupRemoteIDMaxLength    = 48
+)
+
 type GroupType string
 
 type GroupTypes []GroupType
@@ -25,16 +35,6 @@ func (gts *GroupTypes) String() string {
 var groupTypes = GroupTypes{
 	GroupTypeLdap,
 }
-
-const (
-	GroupTypeLdap GroupType = "ldap"
-
-	GroupNameMaxLength        = 64
-	GroupTypeMaxLength        = 64
-	GroupDisplayNameMaxLength = 128
-	GroupDescriptionMaxLength = 1024
-	GroupRemoteIDMaxLength    = 48
-)
 
 var groupTypesRequiringRemoteID = []GroupType{
 	GroupTypeLdap,
