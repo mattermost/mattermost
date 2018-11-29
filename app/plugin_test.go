@@ -34,6 +34,8 @@ func TestPluginKeyValueStore(t *testing.T) {
 	defer func() {
 		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
 		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key2"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key3"))
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key4"))
 	}()
 
 	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test")))
@@ -78,36 +80,49 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.Equal(t, kv.Value, ret)
 
 	// Test ListKeys
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key3", []byte("test3")))
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key4", []byte("test4")))
+
 	list, err := th.App.ListPluginKeys(pluginId, 0, 1)
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(list))
-	assert.Equal(t, "key", list[0])
+	assert.Equal(t, []string{"key"}, list)
 
 	list, err = th.App.ListPluginKeys(pluginId, 1, 1)
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(list))
-	assert.Equal(t, hashedKey2, list[0])
+	assert.Equal(t, []string{"key3"}, list)
+
+	list, err = th.App.ListPluginKeys(pluginId, 0, 4)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
+
+	list, err = th.App.ListPluginKeys(pluginId, 0, 2)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"key", "key3"}, list)
+
+	list, err = th.App.ListPluginKeys(pluginId, 1, 2)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"key4", hashedKey2}, list)
+
+	list, err = th.App.ListPluginKeys(pluginId, 2, 2)
+	assert.Nil(t, err)
+	assert.Equal(t, []string{}, list)
 
 	// List Keys bad input
 	list, err = th.App.ListPluginKeys(pluginId, 0, 0)
 	assert.Nil(t, err)
-	assert.Equal(t, 2, len(list))
+	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 
 	list, err = th.App.ListPluginKeys(pluginId, 0, -1)
 	assert.Nil(t, err)
-	assert.Equal(t, 2, len(list))
+	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 
 	list, err = th.App.ListPluginKeys(pluginId, -1, 1)
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(list))
+	assert.Equal(t, []string{"key"}, list)
 
 	list, err = th.App.ListPluginKeys(pluginId, -1, 0)
 	assert.Nil(t, err)
-	assert.Equal(t, 2, len(list))
-
-	list, err = th.App.ListPluginKeys(pluginId, 2, 2)
-	assert.Nil(t, err)
-	assert.Equal(t, 0, len(list))
+	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 }
 
 func TestServePluginRequest(t *testing.T) {

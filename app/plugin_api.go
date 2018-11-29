@@ -188,7 +188,7 @@ func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *m
 }
 
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersInTeam(teamId, page, perPage)
+	return api.app.GetUsersInTeam(teamId, page*perPage, perPage)
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
