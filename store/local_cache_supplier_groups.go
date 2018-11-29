@@ -48,7 +48,7 @@ func (s *LocalCacheSupplier) GroupUpdate(ctx context.Context, group *model.Group
 
 func (s *LocalCacheSupplier) GroupDelete(ctx context.Context, groupID string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	defer s.doInvalidateCacheCluster(s.groupCache, groupID)
-	defer s.doClearCacheCluster(s.roleCache)
+	defer s.doClearCacheCluster(s.groupCache)
 
 	return s.Next().GroupDelete(ctx, groupID, hints...)
 }
