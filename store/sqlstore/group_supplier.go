@@ -788,8 +788,8 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 	return result
 }
 
-// PendingAutoAddTeamMembers returns a slice of [UserIds, TeamIds] tuples that need newly created
-// memberships as configured by groups.
+// PendingAutoAddTeamMembers returns a slice of UserTeamIDPair that need newly created memberships
+// based on the groups configurations.
 //
 // Typically minGroupMembersCreateAt will be the last successful group sync time.
 func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
@@ -832,8 +832,8 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMem
 	return result
 }
 
-// PendingAutoAddChannelMembers returns a slice [UserIds, ChannelIds] tuples that need newly created
-// memberships as configured by groups.
+// PendingAutoAddChannelMembers returns a slice of UserChannelIDPair that need newly created memberships
+// based on the groups configurations.
 //
 // Typically minGroupMembersCreateAt will be the last successful group sync time.
 func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {

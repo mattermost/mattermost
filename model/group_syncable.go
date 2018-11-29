@@ -15,8 +15,6 @@ const (
 	GroupSyncableTypeChannel
 )
 
-var GroupSyncableTypes = []GroupSyncableType{GroupSyncableTypeTeam, GroupSyncableTypeChannel}
-
 func (gst GroupSyncableType) String() string {
 	// Order matters. Keep in sync with iotas.
 	return [...]string{"Team", "Channel"}[gst]
