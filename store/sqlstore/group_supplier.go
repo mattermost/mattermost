@@ -84,11 +84,6 @@ func (s *SqlSupplier) GroupCreate(ctx context.Context, group *model.Group, hints
 		return result
 	}
 
-	if err := group.IsValidForCreate(); err != nil {
-		result.Err = err
-		return result
-	}
-
 	group.Id = model.NewId()
 	group.CreateAt = model.GetMillis()
 	group.UpdateAt = group.CreateAt
