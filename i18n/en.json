@@ -6683,14 +6683,6 @@
     "translation": "your license does not support ldap groups"
   },
   {
-    "id": "api.ldap_group.already_linked",
-    "translation": "ldap group already linked"
-  },
-  {
-    "id": "api.ldap_group.already_unlinked",
-    "translation": "ldap group already unlinked"
-  },
-  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },

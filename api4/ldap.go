@@ -133,21 +133,22 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	var status int
 	var newOrUpdatedGroup *model.Group
 
-	// Group is already linked.
+	// Group has been previously linked
 	if group != nil {
 		if group.DeleteAt == 0 {
-			c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_group.already_linked", nil, "", http.StatusNotModified)
-			return
-		}
-
-		group.DeleteAt = 0
-		newOrUpdatedGroup, err = c.App.UpdateGroup(group)
-		if err != nil {
-			c.Err = err
-			return
+			newOrUpdatedGroup = group
+		} else {
+			group.DeleteAt = 0
+			newOrUpdatedGroup, err = c.App.UpdateGroup(group)
+			if err != nil {
+				c.Err = err
+				return
+			}
 		}
 		status = http.StatusOK
 	} else {
+		// Group has never been linked
+		//
 		// TODO: In a future phase of LDAP groups sync `Name` will be used for at-mentions and will be editable on
 		// the front-end so it will not have an initial value of `model.NewId()` but rather a slugified version of
 		// the LDAP group name with an appended duplicate-breaker.
@@ -203,9 +204,6 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-	} else {
-		c.Err = model.NewAppError("Api4.unlinkLdapGroup", "api.ldap_group.already_unlinked", nil, "", http.StatusNotModified)
-		return
 	}
 
 	ReturnStatusOK(w)
