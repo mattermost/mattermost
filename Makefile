@@ -283,6 +283,10 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOPATH)/bin/megacheck $(EE_PACKAGES) || exit 1
 endif
 
+i18n-extract: ## Extract strings for translation from the source code
+	go get -u github.com/mattermost/mattermost-utilities/mmgotool
+	$(GOPATH)/bin/mmgotool i18n extract
+
 store-mocks: ## Creates mock files.
 	go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
