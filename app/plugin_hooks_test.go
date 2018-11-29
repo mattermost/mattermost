@@ -887,3 +887,50 @@ func TestErrorString(t *testing.T) {
 		require.Equal(t, expectedErr, cause)
 	})
 }
+
+func TestHookContext(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	// We don't actually have a session, we are faking it so just set somthing arbitrarally
+	th.App.Session.Id = model.NewId()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", th.App.Session.Id).Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
+			p.API.LogDebug(c.SessionId)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "not this",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.CreatePost(post, th.BasicChannel, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

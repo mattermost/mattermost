@@ -141,7 +141,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
-		pluginContext := &plugin.Context{}
+		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
@@ -167,7 +167,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rpost)
 				return true
@@ -357,7 +357,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := &plugin.Context{}
+		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
@@ -375,7 +375,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true
