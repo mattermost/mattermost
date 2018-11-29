@@ -95,8 +95,7 @@ func (s *SqlSupplier) GroupCreate(ctx context.Context, group *model.Group, hints
 			result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.insert_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		transaction.Rollback()
-	} else {
-		result.Data = group
+		return result
 	}
 
 	if err := transaction.Commit(); err != nil {
@@ -104,6 +103,7 @@ func (s *SqlSupplier) GroupCreate(ctx context.Context, group *model.Group, hints
 		result.Data = nil
 	}
 
+	result.Data = group
 	return result
 }
 
