@@ -14,24 +14,24 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-type GroupTeam struct {
+type groupTeam struct {
 	model.GroupSyncable
 	TeamId string `db:"TeamId"`
 }
 
-type GroupChannel struct {
+type groupChannel struct {
 	model.GroupSyncable
 	ChannelId string `db:"ChannelId"`
 }
 
-type GroupTeamJoin struct {
-	GroupTeam
+type groupTeamJoin struct {
+	groupTeam
 	TeamDisplayName string `db:"TeamDisplayName"`
 	TeamType        string `db:"TeamType"`
 }
 
-type GroupChannelJoin struct {
-	GroupChannel
+type groupChannelJoin struct {
+	groupChannel
 	ChannelDisplayName string `db:"ChannelDisplayName"`
 	TeamDisplayName    string `db:"TeamDisplayName"`
 	TeamType           string `db:"TeamType"`
@@ -54,11 +54,11 @@ func initSqlSupplierGroups(sqlStore SqlStore) {
 		groupMembers.ColMap("GroupId").SetMaxSize(26)
 		groupMembers.ColMap("UserId").SetMaxSize(26)
 
-		groupTeams := db.AddTableWithName(GroupTeam{}, "GroupTeams").SetKeys(false, "GroupId", "TeamId")
+		groupTeams := db.AddTableWithName(groupTeam{}, "GroupTeams").SetKeys(false, "GroupId", "TeamId")
 		groupTeams.ColMap("GroupId").SetMaxSize(26)
 		groupTeams.ColMap("TeamId").SetMaxSize(26)
 
-		groupChannels := db.AddTableWithName(GroupChannel{}, "GroupChannels").SetKeys(false, "GroupId", "ChannelId")
+		groupChannels := db.AddTableWithName(groupChannel{}, "GroupChannels").SetKeys(false, "GroupId", "ChannelId")
 		groupChannels.ColMap("GroupId").SetMaxSize(26)
 		groupChannels.ColMap("ChannelId").SetMaxSize(26)
 	}
@@ -466,7 +466,7 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 			return result
 		}
 
-		groupTeam := &GroupTeam{
+		groupTeam := &groupTeam{
 			GroupSyncable: *groupSyncable,
 			TeamId:        groupSyncable.SyncableId,
 		}
@@ -478,7 +478,7 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 			return result
 		}
 
-		groupChannel := &GroupChannel{
+		groupChannel := &groupChannel{
 			GroupSyncable: *groupSyncable,
 			ChannelId:     groupSyncable.SyncableId,
 		}
@@ -523,9 +523,9 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		result, err = s.GetMaster().Get(GroupTeam{}, groupID, syncableID)
+		result, err = s.GetMaster().Get(groupTeam{}, groupID, syncableID)
 	case model.GroupSyncableTypeChannel:
-		result, err = s.GetMaster().Get(GroupChannel{}, groupID, syncableID)
+		result, err = s.GetMaster().Get(groupChannel{}, groupID, syncableID)
 	default:
 	}
 	if err != nil {
@@ -539,7 +539,7 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 	groupSyncable := model.GroupSyncable{}
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		groupTeam := result.(*GroupTeam)
+		groupTeam := result.(*groupTeam)
 		groupSyncable.SyncableId = groupTeam.TeamId
 		groupSyncable.GroupId = groupTeam.GroupId
 		groupSyncable.CanLeave = groupTeam.CanLeave
@@ -549,7 +549,7 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 		groupSyncable.UpdateAt = groupTeam.UpdateAt
 		groupSyncable.Type = syncableType
 	case model.GroupSyncableTypeChannel:
-		groupChannel := result.(*GroupChannel)
+		groupChannel := result.(*groupChannel)
 		groupSyncable.SyncableId = groupChannel.ChannelId
 		groupSyncable.GroupId = groupChannel.GroupId
 		groupSyncable.CanLeave = groupChannel.CanLeave
@@ -589,7 +589,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 			WHERE 
 				GroupId = :GroupId AND GroupTeams.DeleteAt = 0`
 
-		results := []*GroupTeamJoin{}
+		results := []*groupTeamJoin{}
 		_, err := s.GetMaster().Select(&results, sqlQuery, args)
 		if err != nil {
 			result.Err = appErrF(err.Error())
@@ -626,7 +626,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 			WHERE 
 				GroupId = :GroupId AND GroupChannels.DeleteAt = 0`
 
-		results := []*GroupChannelJoin{}
+		results := []*groupChannelJoin{}
 		_, err := s.GetMaster().Select(&results, sqlQuery, args)
 		if err != nil {
 			result.Err = appErrF(err.Error())
@@ -694,12 +694,12 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 	var rowsAffected int64
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		rowsAffected, err = s.GetMaster().Update(&GroupTeam{
+		rowsAffected, err = s.GetMaster().Update(&groupTeam{
 			*groupSyncable,
 			groupSyncable.SyncableId,
 		})
 	case model.GroupSyncableTypeChannel:
-		rowsAffected, err = s.GetMaster().Update(&GroupChannel{
+		rowsAffected, err = s.GetMaster().Update(&groupChannel{
 			*groupSyncable,
 			groupSyncable.SyncableId,
 		})
@@ -757,13 +757,13 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 	var rowsAffected int64
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		groupTeam := &GroupTeam{
+		groupTeam := &groupTeam{
 			GroupSyncable: *groupSyncable,
 			TeamId:        groupSyncable.SyncableId,
 		}
 		rowsAffected, err = s.GetMaster().Update(groupTeam)
 	case model.GroupSyncableTypeChannel:
-		groupChannel := &GroupChannel{
+		groupChannel := &groupChannel{
 			GroupSyncable: *groupSyncable,
 			ChannelId:     groupSyncable.SyncableId,
 		}
