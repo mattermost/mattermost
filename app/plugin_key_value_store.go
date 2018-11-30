@@ -104,7 +104,7 @@ func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
 }
 
 func (a *App) ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError) {
-	result := <-a.Srv.Store.Plugin().List(pluginId, page, perPage)
+	result := <-a.Srv.Store.Plugin().List(pluginId, page*perPage, perPage)
 
 	if result.Err != nil {
 		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(result.Err))
