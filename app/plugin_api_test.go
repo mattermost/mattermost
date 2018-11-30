@@ -523,13 +523,17 @@ func TestPluginAPIUpdateUserActive(t *testing.T) {
 	err = api.UpdateUserActive(th.BasicUser.Id, false)//DeActivate the user
 	require.Nil(t, err)
 
-	_,err = api.GetUserStatus(th.BasicUser.Id)//This should return an error
+	_,err = api.GetUser(th.BasicUser.Id)//This should return an error
 	require.NotNil(t, err)
 
 	//set UpdateUserActive for an already active user
 	err = api.UpdateUserActive(th.BasicUser.Id, true)
 	err = api.UpdateUserActive(th.BasicUser.Id, true)
 	require.Nil(t, err)
+
+	user,err = api.GetUser(th.BasicUser.Id)//This should not return an error and should return a user model
+	require.Nil(t, err)
+	require.NotNil(t, user)
 
 }
 
