@@ -1908,6 +1908,31 @@ func (_m *API) SearchChannels(teamId string, term string) ([]*model.Channel, *mo
 	return r0, r1
 }
 
+// SearchUsers provides a mock function with given fields: search
+func (_m *API) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
+	ret := _m.Called(search)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(*model.UserSearch) []*model.User); ok {
+		r0 = rf(search)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.UserSearch) *model.AppError); ok {
+		r1 = rf(search)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SendEphemeralPost provides a mock function with given fields: userId, post
 func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	ret := _m.Called(userId, post)
