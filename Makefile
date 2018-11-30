@@ -100,12 +100,14 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
 	IGNORE:=$(shell rm -f enterprise)
 	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
+else
+	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
 EE_PACKAGES=$(shell go list ./enterprise/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ALL_PACKAGES=$(TE_PACKAGES),$(EE_PACKAGES)
+ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
@@ -435,23 +437,6 @@ do-cover-file: ## Creates the test coverage report file.
 go-junit-report:
 	go get -u github.com/jstemmer/go-junit-report
 
-test-te: start-docker go-junit-report do-cover-file ## Runs tests in the team edition.
-	@echo Testing TE
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(ALL_PACKAGES)"
-
-test-ee: start-docker go-junit-report do-cover-file ## Runs tests in the enterprise edition.
-	@echo Testing EE
-
-	rm -f enterprise/config/*.crt
-	rm -f enterprise/config/*.key
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Testing EE
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(ALL_PACKAGES)"
-else
-	@echo Skipping EE Tests
-endif
-
 test-compile:
 	@echo COMPILE TESTS
 
@@ -459,8 +444,13 @@ test-compile:
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-test-server: test-te test-ee ## Runs tests.
-	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
+test-server: start-docker go-junit-report do-cover-file ## Runs tests.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running all tests
+else
+	@echo Running only TE tests
+endif
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)"
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests

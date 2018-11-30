@@ -8,14 +8,14 @@ GOFLAGS=$2
 PACKAGES=$3
 TESTS=$4
 TESTFLAGS=$5
-ALL_PACKAGES=$6
 
-ALL_PACKAGES_COMMA=$(echo $ALL_PACKAGES | tr ' ' ',')
+PACKAGES_COMMA=$(echo $PACKAGES | tr ' ' ',')
 
 echo "Packages to test: $PACKAGES"
 find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
+find . -type d -name data -not -path './vendor/*' | xargs rm -rf
 
-$GO test $GOFLAGS -run=$TESTS $TESTFLAGS -p 1 -v -timeout=2000s -covermode=count -coverpkg=$ALL_PACKAGES_COMMA -exec $DIR/test-xprog.sh $PACKAGES 2>&1 | tee output
+$GO test $GOFLAGS -run=$TESTS $TESTFLAGS -p 1 -v -timeout=2000s -covermode=count -coverpkg=$PACKAGES_COMMA -exec $DIR/test-xprog.sh $PACKAGES 2>&1 | tee output
 EXIT_STATUS=$?
 
 cat output | $GOPATH/bin/go-junit-report > report.xml
