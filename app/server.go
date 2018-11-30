@@ -304,6 +304,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
 	})
 
+	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
+
 	err := s.RunOldAppInitalization()
 	if err != nil {
 		return nil, err
@@ -314,8 +316,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.AddConfigListener(func(_, _ *model.Config) {
 		s.InitEmailBatching()
 	})
-
-	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
 
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
