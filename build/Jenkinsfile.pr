@@ -30,24 +30,26 @@ pipeline {
         stage('Get Enterprise/Webapp') {
             steps {
                 dir('src/github.com/mattermost/enterprise') {
-                    sh '''
-                        #!/bin/bash -ex
-                        git checkout \${CHANGE_BRANCH} || git checkout \${GIT_BRANCH} || git checkout master || echo 1
-                    '''
+                    ansiColor('xterm') {
+                        sh """
+                            #!/bin/bash -ex
+                            git checkout $env.BRANCH_NAME ||git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout master || echo 1
+                        """
+                    }
                 }
                 dir('src/github.com/mattermost/mattermost-webapp') {
                     withDockerContainer(args: '', image: 'mattermost/mattermost-build-webapp:v5.2.0') {
                         ansiColor('xterm') {
-                            sh '''
+                            sh """
                                 #!/bin/bash -ex
-                                git checkout \${CHANGE_BRANCH} || git checkout \${GIT_BRANCH} || git checkout master || echo 1
+                                git checkout $env.BRANCH_NAME ||git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout master || echo 1
                                 rm -rf ./dist
-                                export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
+                                export WEBAPP_GIT_COMMIT=\$(git rev-parse HEAD)
 
-                                echo Webapp Commit: ${WEBAPP_GIT_COMMIT}
+                                echo Webapp Commit: \${WEBAPP_GIT_COMMIT}
 
-                                curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build || exit 1
-                            '''
+                                curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build || exit 1
+                            """
                         }
                     }
                 }
@@ -96,22 +98,22 @@ pipeline {
                 dir('src/github.com/mattermost/mattermost-server/build') {
                     ansiColor('xterm') {
                         sh """
-                            COMPOSE_PROJECT_NAME=${env.CHANGE_BRANCH}-${env.BUILD_NUMBER} docker-compose up -d
+                            COMPOSE_PROJECT_NAME=${env.BRANCH_NAME}-${env.BUILD_NUMBER} docker-compose up -d
 
                             docker ps
 
-                            ./wait-for-it.sh -t 30 openldap-${env.CHANGE_BRANCH}-${env.BUILD_NUMBER}:389 -- echo "Openldap ready"
+                            ./wait-for-it.sh -t 30 openldap-${env.CHANBRANCH_NAMEGE_BRANCH}-${env.BUILD_NUMBER}:389 -- echo "Openldap ready"
 
-                            docker exec -t openldap-${env.CHANGE_BRANCH}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${env.CHANGE_BRANCH}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${env.CHANGE_BRANCH}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${env.CHANGE_BRANCH}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testtwo@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${env.CHANGE_BRANCH}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${env.CHANGE_BRANCH}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BRANCH_NAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BRANCH_NAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BRANCH_NAME}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BRANCH_NAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testtwo@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BRANCH_NAME}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BRANCH_NAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                         """
                     }
                 }
-                withDockerContainer(args: "-u root --privileged --net ${CHANGE_BRANCH}-${BUILD_NUMBER}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:5.6.0') {
+                withDockerContainer(args: "-u root --privileged --net ${BRANCH_NAME}-${BUILD_NUMBER}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:5.6.0') {
                     ansiColor('xterm') {
                         sh """
                             while ! curl mysql:3306; do sleep 5; done
@@ -186,7 +188,7 @@ pipeline {
             dir('src/github.com/mattermost/mattermost-server/build') {
                 ansiColor('xterm') {
                     sh """
-                        COMPOSE_PROJECT_NAME=${env.CHANGE_BRANCH}-${env.BUILD_NUMBER} docker-compose down -v
+                        COMPOSE_PROJECT_NAME=${env.BRANCH_NAME}-${env.BUILD_NUMBER} docker-compose down -v
                     """
                 }
             }
