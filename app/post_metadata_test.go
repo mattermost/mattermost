@@ -25,7 +25,7 @@ func TestPreparePostListForClient(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.DisablePostMetadata = false
+		*cfg.ExperimentalSettings.EnablePostMetadata = true
 	})
 
 	postList := model.NewPostList()
@@ -61,7 +61,7 @@ func TestPreparePostForClient(t *testing.T) {
 			*cfg.ServiceSettings.ImageProxyType = ""
 			*cfg.ServiceSettings.ImageProxyURL = ""
 			*cfg.ServiceSettings.ImageProxyOptions = ""
-			*cfg.ExperimentalSettings.DisablePostMetadata = false
+			*cfg.ExperimentalSettings.EnablePostMetadata = true
 		})
 
 		return th
@@ -395,7 +395,7 @@ func TestPreparePostForClient(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.DisablePostMetadata = true
+			*cfg.ExperimentalSettings.EnablePostMetadata = false
 		})
 
 		post := th.CreatePost(th.BasicChannel)
@@ -418,7 +418,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
 			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
 			*cfg.ServiceSettings.ImageProxyOptions = "foo"
-			*cfg.ExperimentalSettings.DisablePostMetadata = false
+			*cfg.ExperimentalSettings.EnablePostMetadata = true
 		})
 
 		return th
@@ -990,6 +990,47 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			images := getImagesInMessageAttachments(test.Post)
 
 			assert.ElementsMatch(t, images, test.Expected)
+		})
+	}
+}
+
+func TestResolveMetadataURL(t *testing.T) {
+	for _, test := range []struct {
+		Name       string
+		RequestURL string
+		SiteURL    string
+		Expected   string
+	}{
+		{
+			Name:       "with HTTPS",
+			RequestURL: "https://example.com/file?param=1",
+			Expected:   "https://example.com/file?param=1",
+		},
+		{
+			Name:       "with HTTP",
+			RequestURL: "http://example.com/file?param=1",
+			Expected:   "http://example.com/file?param=1",
+		},
+		{
+			Name:       "with FTP",
+			RequestURL: "ftp://example.com/file?param=1",
+			Expected:   "ftp://example.com/file?param=1",
+		},
+		{
+			Name:       "relative to root",
+			RequestURL: "/file?param=1",
+			SiteURL:    "https://mattermost.example.com:123",
+			Expected:   "https://mattermost.example.com:123/file?param=1",
+		},
+		{
+			Name:       "relative to root with subpath",
+			RequestURL: "/file?param=1",
+			SiteURL:    "https://mattermost.example.com:123/subpath",
+			Expected:   "https://mattermost.example.com:123/file?param=1",
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			assert.Equal(t, resolveMetadataURL(test.RequestURL, test.SiteURL), test.Expected)
 		})
 	}
 }

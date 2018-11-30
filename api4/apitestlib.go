@@ -33,6 +33,7 @@ import (
 
 type TestHelper struct {
 	App            *app.App
+	Server         *app.Server
 	tempConfigPath string
 
 	Client              *model.Client4
@@ -99,13 +100,14 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		options = append(options, app.StoreOverride(testStore))
 	}
 
-	a, err := app.New(options...)
+	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
 
 	th := &TestHelper{
-		App:            a,
+		App:            s.FakeApp(),
+		Server:         s,
 		tempConfigPath: tempConfig.Name(),
 	}
 
@@ -127,8 +129,8 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	Init(th.App, th.App.Srv.Router)
-	web.NewWeb(th.App, th.App.Srv.Router)
+	Init(th.Server, th.Server.AppOptions, th.App.Srv.Router)
+	web.New(th.Server, th.Server.AppOptions, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 	th.App.DoAdvancedPermissionsMigration()
@@ -181,7 +183,7 @@ func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
 func (me *TestHelper) ShutdownApp() {
 	done := make(chan bool)
 	go func() {
-		me.App.Shutdown()
+		me.Server.Shutdown()
 		close(done)
 	}()
 
@@ -218,6 +220,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.TeamAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.LoginTeamAdmin()
+
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
@@ -285,7 +288,10 @@ func (me *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 	}
 
 	utils.DisableDebugLogForTest()
-	rteam, _ := client.CreateTeam(team)
+	rteam, resp := client.CreateTeam(team)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
 	utils.EnableDebugLogForTest()
 	return rteam
 }
@@ -337,7 +343,10 @@ func (me *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 	}
 
 	utils.DisableDebugLogForTest()
-	rchannel, _ := client.CreateChannel(channel)
+	rchannel, resp := client.CreateChannel(channel)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
 	utils.EnableDebugLogForTest()
 	return rchannel
 }
@@ -419,7 +428,7 @@ func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = me.App.CreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+	if channel, err = me.App.GetOrCreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -447,25 +456,37 @@ func (me *TestHelper) LoginSystemAdmin() {
 
 func (me *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	client.Login(me.BasicUser.Email, me.BasicUser.Password)
+	_, resp := client.Login(me.BasicUser.Email, me.BasicUser.Password)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
 	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) LoginBasic2WithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	client.Login(me.BasicUser2.Email, me.BasicUser2.Password)
+	_, resp := client.Login(me.BasicUser2.Email, me.BasicUser2.Password)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
 	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	client.Login(me.TeamAdminUser.Email, me.TeamAdminUser.Password)
+	_, resp := client.Login(me.TeamAdminUser.Email, me.TeamAdminUser.Password)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
 	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	client.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password)
+	_, resp := client.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
 	utils.EnableDebugLogForTest()
 }
 

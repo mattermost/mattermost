@@ -8,10 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -1341,6 +1343,45 @@ func TestImportImportUser(t *testing.T) {
 
 }
 
+func TestImportUserDefaultNotifyProps(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	// Create a valid new user with some, but not all, notify props populated.
+	username := model.NewId()
+	data := UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+		NotifyProps: &UserNotifyPropsImportData{
+			Email: ptrStr("false"),
+		},
+	}
+
+	require.Nil(t, th.App.ImportUser(&data, false))
+
+	user, err := th.App.GetUserByUsername(username)
+	require.Nil(t, err)
+
+	// Check the value of the notify prop we specified explicitly in the import data.
+	val, ok := user.NotifyProps[model.EMAIL_NOTIFY_PROP]
+	assert.True(t, ok)
+	assert.Equal(t, "false", val)
+
+	// Check all the other notify props are set to their default values.
+	comparisonUser := model.User{}
+	comparisonUser.SetDefaultNotifications()
+
+	for key, expectedValue := range comparisonUser.NotifyProps {
+		if key == model.EMAIL_NOTIFY_PROP {
+			continue
+		}
+
+		val, ok := user.NotifyProps[key]
+		assert.True(t, ok)
+		assert.Equal(t, expectedValue, val)
+	}
+}
+
 func TestImportImportPost(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
@@ -1794,9 +1835,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 		},
 		Header: ptrStr("Channel Header"),
 	}
-	if err := th.App.ImportDirectChannel(&data, true); err == nil {
-		t.Fatalf("Expected error due to invalid name.")
-	}
+	err := th.App.ImportDirectChannel(&data, true)
+	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
@@ -1807,9 +1847,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 		model.NewId(),
 	}
-	if err := th.App.ImportDirectChannel(&data, true); err != nil {
-		t.Fatalf("Expected success as cannot validate existence of channel members in dry run mode.")
-	}
+	err = th.App.ImportDirectChannel(&data, true)
+	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
@@ -1821,9 +1860,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 		model.NewId(),
 	}
-	if err := th.App.ImportDirectChannel(&data, true); err != nil {
-		t.Fatalf("Expected success as cannot validate existence of channel members in dry run mode.")
-	}
+	err = th.App.ImportDirectChannel(&data, true)
+	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
@@ -1833,9 +1871,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	data.Members = &[]string{
 		model.NewId(),
 	}
-	if err := th.App.ImportDirectChannel(&data, false); err == nil {
-		t.Fatalf("Expected error due to invalid member (apply mode).")
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
@@ -1846,18 +1883,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	if err := th.App.ImportDirectChannel(&data, false); err != nil {
-		t.Fatalf("Expected success: %v", err.Error())
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.Nil(t, err)
 
 	// Check that one more DIRECT channel is in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do the same DIRECT channel again.
-	if err := th.App.ImportDirectChannel(&data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
@@ -1865,22 +1900,17 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 2")
-	if err := th.App.ImportDirectChannel(&data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Get the channel to check that the header was updated.
-	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
-		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
-	} else {
-		if channel.Header != *data.Header {
-			t.Fatal("Channel header has not been updated successfully.")
-		}
-	}
+	channel, err := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, err)
+	require.Equal(t, channel.Header, *data.Header)
 
 	// Do a GROUP channel with an extra invalid member.
 	user3 := th.CreateUser()
@@ -1890,9 +1920,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 		user3.Username,
 		model.NewId(),
 	}
-	if err := th.App.ImportDirectChannel(&data, false); err == nil {
-		t.Fatalf("Should have failed due to invalid member in list.")
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
@@ -1904,18 +1933,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Username,
 		user3.Username,
 	}
-	if err := th.App.ImportDirectChannel(&data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.Nil(t, err)
 
 	// Check that one more GROUP channel is in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Do the same DIRECT channel again.
-	if err := th.App.ImportDirectChannel(&data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
@@ -1923,9 +1950,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 3")
-	if err := th.App.ImportDirectChannel(&data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
@@ -1937,13 +1963,9 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	if channel, err := th.App.createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
-		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
-	} else {
-		if channel.Header != *data.Header {
-			t.Fatal("Channel header has not been updated successfully.")
-		}
-	}
+	channel, err = th.App.createGroupChannel(userIds, th.BasicUser.Id)
+	require.Equal(t, err.Id, store.CHANNEL_EXISTS_ERROR)
+	require.Equal(t, channel.Header, *data.Header)
 
 	// Import a channel with some favorites.
 	data.Members = &[]string{
@@ -1954,16 +1976,14 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	if err := th.App.ImportDirectChannel(&data, false); err != nil {
-		t.Fatal(err)
-	}
+	err = th.App.ImportDirectChannel(&data, false)
+	require.Nil(t, err)
 
-	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
-		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
-	} else {
-		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
-		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
-	}
+	channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, err)
+	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+
 }
 
 func TestImportImportDirectPost(t *testing.T) {
@@ -1977,25 +1997,21 @@ func TestImportImportDirectPost(t *testing.T) {
 			th.BasicUser2.Username,
 		},
 	}
-	if err := th.App.ImportDirectChannel(&channelData, false); err != nil {
-		t.Fatalf("Expected success: %v", err.Error())
-	}
+	err := th.App.ImportDirectChannel(&channelData, false)
+	require.Nil(t, err)
 
 	// Get the channel.
 	var directChannel *model.Channel
-	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
-		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
-	} else {
-		directChannel = channel
-	}
+	channel, err := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, err)
+	require.NotEmpty(t, channel)
+	directChannel = channel
 
 	// Get the number of posts in the system.
 	var initialPostCount int64
-	if result := <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		initialPostCount = result.Data.(int64)
-	}
+	result := <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, result.Err)
+	initialPostCount = result.Data.(int64)
 
 	// Try adding an invalid post in dry run mode.
 	data := &DirectPostImportData{
@@ -2006,9 +2022,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		User:     ptrStr(th.BasicUser.Username),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := th.App.ImportDirectPost(data, true); err == nil {
-		t.Fatalf("Expected error.")
-	}
+	err = th.App.ImportDirectPost(data, true)
+	require.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding a valid post in dry run mode.
@@ -2021,9 +2036,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := th.App.ImportDirectPost(data, true); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, true)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding an invalid post in apply mode.
@@ -2036,9 +2050,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := th.App.ImportDirectPost(data, false); err == nil {
-		t.Fatalf("Expected error.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding a valid post in apply mode.
@@ -2051,82 +2064,69 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success: %v", err.Error())
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		posts := result.Data.([]*model.Post)
-		if len(posts) != 1 {
-			t.Fatal("Unexpected number of posts found.")
-		}
-		post := posts[0]
-		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
-			t.Fatal("Post properties not as expected")
-		}
-	}
+	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	require.Nil(t, result.Err)
+
+	posts := result.Data.([]*model.Post)
+	require.Equal(t, len(posts), 1)
+
+	post := posts[0]
+	require.Equal(t, post.Message, *data.Message)
+	require.Equal(t, post.CreateAt, *data.CreateAt)
+	require.Equal(t, post.UserId, th.BasicUser.Id)
 
 	// Import the post again.
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		posts := result.Data.([]*model.Post)
-		if len(posts) != 1 {
-			t.Fatal("Unexpected number of posts found.")
-		}
-		post := posts[0]
-		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
-			t.Fatal("Post properties not as expected")
-		}
-	}
+	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	require.Nil(t, result.Err)
+
+	posts = result.Data.([]*model.Post)
+	require.Equal(t, len(posts), 1)
+
+	post = posts[0]
+	require.Equal(t, post.Message, *data.Message)
+	require.Equal(t, post.CreateAt, *data.CreateAt)
+	require.Equal(t, post.UserId, th.BasicUser.Id)
 
 	// Save the post with a different time.
 	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
 
 	// Save the post with a different message.
 	data.Message = ptrStr("Message 2")
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
 
 	// Test with hashtags
 	data.Message = ptrStr("Message 2 #hashtagmashupcity")
 	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		posts := result.Data.([]*model.Post)
-		if len(posts) != 1 {
-			t.Fatal("Unexpected number of posts found.")
-		}
-		post := posts[0]
-		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
-			t.Fatal("Post properties not as expected")
-		}
-		if post.Hashtags != "#hashtagmashupcity" {
-			t.Fatalf("Hashtags not as expected: %s", post.Hashtags)
-		}
-	}
+	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	require.Nil(t, result.Err)
+
+	posts = result.Data.([]*model.Post)
+	require.Equal(t, len(posts), 1)
+
+	post = posts[0]
+	require.Equal(t, post.Message, *data.Message)
+	require.Equal(t, post.CreateAt, *data.CreateAt)
+	require.Equal(t, post.UserId, th.BasicUser.Id)
+	require.Equal(t, post.Hashtags, "#hashtagmashupcity")
 
 	// Test with some flags.
 	data = &DirectPostImportData{
@@ -2143,22 +2143,19 @@ func TestImportImportDirectPost(t *testing.T) {
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
 
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success: %v", err.Error())
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		posts := result.Data.([]*model.Post)
-		if len(posts) != 1 {
-			t.Fatal("Unexpected number of posts found.")
-		}
-		post := posts[0]
-		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-	}
+	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	require.Nil(t, result.Err)
+
+	posts = result.Data.([]*model.Post)
+	require.Equal(t, len(posts), 1)
+
+	post = posts[0]
+	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 
 	// ------------------ Group Channel -------------------------
 
@@ -2171,9 +2168,8 @@ func TestImportImportDirectPost(t *testing.T) {
 			user3.Username,
 		},
 	}
-	if err := th.App.ImportDirectChannel(&channelData, false); err != nil {
-		t.Fatalf("Expected success: %v", err.Error())
-	}
+	err = th.App.ImportDirectChannel(&channelData, false)
+	require.Nil(t, err)
 
 	// Get the channel.
 	var groupChannel *model.Channel
@@ -2182,18 +2178,14 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	if channel, err := th.App.createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
-		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
-	} else {
-		groupChannel = channel
-	}
+	channel, err = th.App.createGroupChannel(userIds, th.BasicUser.Id)
+	require.Equal(t, err.Id, store.CHANNEL_EXISTS_ERROR)
+	groupChannel = channel
 
 	// Get the number of posts in the system.
-	if result := <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		initialPostCount = result.Data.(int64)
-	}
+	result = <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, result.Err)
+	initialPostCount = result.Data.(int64)
 
 	// Try adding an invalid post in dry run mode.
 	data = &DirectPostImportData{
@@ -2205,9 +2197,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		User:     ptrStr(th.BasicUser.Username),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := th.App.ImportDirectPost(data, true); err == nil {
-		t.Fatalf("Expected error.")
-	}
+	err = th.App.ImportDirectPost(data, true)
+	require.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding a valid post in dry run mode.
@@ -2221,9 +2212,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := th.App.ImportDirectPost(data, true); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, true)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding an invalid post in apply mode.
@@ -2238,9 +2228,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := th.App.ImportDirectPost(data, false); err == nil {
-		t.Fatalf("Expected error.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding a valid post in apply mode.
@@ -2254,82 +2243,69 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success: %v", err.Error())
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		posts := result.Data.([]*model.Post)
-		if len(posts) != 1 {
-			t.Fatal("Unexpected number of posts found.")
-		}
-		post := posts[0]
-		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
-			t.Fatal("Post properties not as expected")
-		}
-	}
+	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+	require.Nil(t, result.Err)
+
+	posts = result.Data.([]*model.Post)
+	require.Equal(t, len(posts), 1)
+
+	post = posts[0]
+	require.Equal(t, post.Message, *data.Message)
+	require.Equal(t, post.CreateAt, *data.CreateAt)
+	require.Equal(t, post.UserId, th.BasicUser.Id)
 
 	// Import the post again.
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		posts := result.Data.([]*model.Post)
-		if len(posts) != 1 {
-			t.Fatal("Unexpected number of posts found.")
-		}
-		post := posts[0]
-		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
-			t.Fatal("Post properties not as expected")
-		}
-	}
+	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+	require.Nil(t, result.Err)
+
+	posts = result.Data.([]*model.Post)
+	require.Equal(t, len(posts), 1)
+
+	post = posts[0]
+	require.Equal(t, post.Message, *data.Message)
+	require.Equal(t, post.CreateAt, *data.CreateAt)
+	require.Equal(t, post.UserId, th.BasicUser.Id)
 
 	// Save the post with a different time.
 	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
 
 	// Save the post with a different message.
 	data.Message = ptrStr("Message 2")
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
 
 	// Test with hashtags
 	data.Message = ptrStr("Message 2 #hashtagmashupcity")
 	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success.")
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		posts := result.Data.([]*model.Post)
-		if len(posts) != 1 {
-			t.Fatal("Unexpected number of posts found.")
-		}
-		post := posts[0]
-		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
-			t.Fatal("Post properties not as expected")
-		}
-		if post.Hashtags != "#hashtagmashupcity" {
-			t.Fatalf("Hashtags not as expected: %s", post.Hashtags)
-		}
-	}
+	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+	require.Nil(t, result.Err)
+
+	posts = result.Data.([]*model.Post)
+	require.Equal(t, len(posts), 1)
+
+	post = posts[0]
+	require.Equal(t, post.Message, *data.Message)
+	require.Equal(t, post.CreateAt, *data.CreateAt)
+	require.Equal(t, post.UserId, th.BasicUser.Id)
+	require.Equal(t, post.Hashtags, "#hashtagmashupcity")
 
 	// Test with some flags.
 	data = &DirectPostImportData{
@@ -2347,22 +2323,20 @@ func TestImportImportDirectPost(t *testing.T) {
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
 
-	if err := th.App.ImportDirectPost(data, false); err != nil {
-		t.Fatalf("Expected success: %v", err.Error())
-	}
+	err = th.App.ImportDirectPost(data, false)
+	require.Nil(t, err)
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		posts := result.Data.([]*model.Post)
-		if len(posts) != 1 {
-			t.Fatal("Unexpected number of posts found.")
-		}
-		post := posts[0]
-		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-	}
+	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+	require.Nil(t, result.Err)
+
+	posts = result.Data.([]*model.Post)
+	require.Equal(t, len(posts), 1)
+
+	post = posts[0]
+	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+
 }
 
 func TestImportImportEmoji(t *testing.T) {

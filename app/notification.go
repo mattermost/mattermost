@@ -104,7 +104,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		if len(post.RootId) > 0 && parentPostList != nil {
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
-				if profile != nil && (profile.NotifyProps["comments"] == THREAD_ANY || (profile.NotifyProps["comments"] == THREAD_ROOT && threadPost.Id == parentPostList.Order[0])) {
+				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ROOT && threadPost.Id == parentPostList.Order[0])) {
 					if threadPost.Id == parentPostList.Order[0] {
 						threadMentionedUserIds[threadPost.UserId] = THREAD_ROOT
 					} else {
@@ -565,9 +565,9 @@ func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 		userMention := "@" + strings.ToLower(profile.Username)
 		keywords[userMention] = append(keywords[userMention], id)
 
-		if len(profile.NotifyProps["mention_keys"]) > 0 {
+		if len(profile.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP]) > 0 {
 			// Add all the user's mention keys
-			splitKeys := strings.Split(profile.NotifyProps["mention_keys"], ",")
+			splitKeys := strings.Split(profile.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP], ",")
 			for _, k := range splitKeys {
 				// note that these are made lower case so that we can do a case insensitive check for them
 				key := strings.ToLower(k)
@@ -576,7 +576,7 @@ func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 		}
 
 		// If turned on, add the user's case sensitive first name
-		if profile.NotifyProps["first_name"] == "true" {
+		if profile.NotifyProps[model.FIRST_NAME_NOTIFY_PROP] == "true" {
 			keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
 		}
 
@@ -589,7 +589,7 @@ func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 
 		// Add @channel and @all to keywords if user has them turned on
 		if lookForSpecialMentions {
-			if int64(len(profiles)) <= *a.Config().TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" && !ignoreChannelMentions {
+			if int64(len(profiles)) <= *a.Config().TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP] == "true" && !ignoreChannelMentions {
 				keywords["@channel"] = append(keywords["@channel"], profile.Id)
 				keywords["@all"] = append(keywords["@all"], profile.Id)
 

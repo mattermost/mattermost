@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadLicense(t *testing.T) {
@@ -100,13 +101,18 @@ func TestGetSanitizedClientLicense(t *testing.T) {
 	l1.Features = &model.Features{}
 	l1.Customer = &model.Customer{}
 	l1.Customer.Name = "TestName"
+	l1.SkuName = "SKU NAME"
+	l1.SkuShortName = "SKU SHORT NAME"
 	l1.StartsAt = model.GetMillis() - 1000
 	l1.ExpiresAt = model.GetMillis() + 100000
 	th.App.SetLicense(l1)
 
 	m := th.App.GetSanitizedClientLicense()
 
-	if _, ok := m["Name"]; ok {
-		t.Fatal("should have been sanatized")
-	}
+	_, ok := m["Name"]
+	assert.False(t, ok)
+	_, ok = m["SkuName"]
+	assert.False(t, ok)
+	_, ok = m["SkuShortName"]
+	assert.False(t, ok)
 }

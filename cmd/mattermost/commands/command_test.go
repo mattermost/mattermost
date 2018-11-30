@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -133,6 +132,7 @@ func TestCreateCommand(t *testing.T) {
 	}
 }
 
+/* Race
 func TestDeleteCommand(t *testing.T) {
 	th := api4.Setup().InitBasic()
 	defer th.TearDown()
@@ -162,4 +162,4 @@ func TestDeleteCommand(t *testing.T) {
 	CheckCommand(t, "command", "delete", command.Id)
 	commands, _ = th.Client.ListCommands(team.Id, true)
 	assert.Equal(t, len(commands), 0)
-}
+}*/

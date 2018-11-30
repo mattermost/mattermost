@@ -651,7 +651,7 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable *bool
 	ClientSideCertCheck  *string
-	DisablePostMetadata  *bool
+	EnablePostMetadata   *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -663,8 +663,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.ClientSideCertCheck = NewString(CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH)
 	}
 
-	if s.DisablePostMetadata == nil {
-		s.DisablePostMetadata = NewBool(false)
+	if s.EnablePostMetadata == nil {
+		s.EnablePostMetadata = NewBool(false)
 	}
 }
 
@@ -1883,14 +1883,6 @@ func (s *MessageExportSettings) SetDefaults() {
 	}
 
 	if s.ExportFromTimestamp == nil {
-		s.ExportFromTimestamp = NewInt64(0)
-	}
-
-	if s.EnableExport != nil && *s.EnableExport && *s.ExportFromTimestamp == int64(0) {
-		// when the feature is enabled via the System Console, use the current timestamp as the start time for future exports
-		s.ExportFromTimestamp = NewInt64(GetMillis())
-	} else if s.EnableExport != nil && !*s.EnableExport {
-		// when the feature is disabled, reset the timestamp so that the timestamp will be set if the feature is re-enabled
 		s.ExportFromTimestamp = NewInt64(0)
 	}
 

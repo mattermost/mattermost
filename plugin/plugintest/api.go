@@ -112,31 +112,6 @@ func (_m *API) CreateChannel(channel *model.Channel) (*model.Channel, *model.App
 	return r0, r1
 }
 
-// CreateDirectChannel provides a mock function with given fields: userId1, userId2
-func (_m *API) CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
-	ret := _m.Called(userId1, userId2)
-
-	var r0 *model.Channel
-	if rf, ok := ret.Get(0).(func(string, string) *model.Channel); ok {
-		r0 = rf(userId1, userId2)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Channel)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
-		r1 = rf(userId1, userId2)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // CreatePost provides a mock function with given fields: post
 func (_m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(post)
@@ -1924,6 +1899,31 @@ func (_m *API) SearchChannels(teamId string, term string) ([]*model.Channel, *mo
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
 		r1 = rf(teamId, term)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SearchUsers provides a mock function with given fields: search
+func (_m *API) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
+	ret := _m.Called(search)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(*model.UserSearch) []*model.User); ok {
+		r0 = rf(search)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.UserSearch) *model.AppError); ok {
+		r1 = rf(search)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

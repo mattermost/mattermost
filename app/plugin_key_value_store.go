@@ -23,83 +23,91 @@ func (a *App) SetPluginKey(pluginId string, key string, value []byte) *model.App
 }
 
 func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, expireInSeconds int64) *model.AppError {
-
 	if expireInSeconds > 0 {
 		expireInSeconds = model.GetMillis() + (expireInSeconds * 1000)
 	}
 
 	kv := &model.PluginKeyValue{
 		PluginId: pluginId,
-		Key:      getKeyHash(key),
+		Key:      key,
 		Value:    value,
 		ExpireAt: expireInSeconds,
 	}
 
-	result := <-a.Srv.Store.Plugin().SaveOrUpdate(kv)
-
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	if result := <-a.Srv.Store.Plugin().SaveOrUpdate(kv); result.Err != nil {
+		mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
+		return result.Err
 	}
 
-	return result.Err
+	// Clean up a previous entry using the hashed key, if it exists.
+	if result := <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key)); result.Err != nil {
+		mlog.Error("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
+	}
+
+	return nil
 }
 
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
-	result := <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key))
-
-	if result.Err != nil {
-		if result.Err.StatusCode == http.StatusNotFound {
-			return nil, nil
-		}
-		mlog.Error(result.Err.Error())
+	if result := <-a.Srv.Store.Plugin().Get(pluginId, key); result.Err == nil {
+		return result.Data.(*model.PluginKeyValue).Value, nil
+	} else if result.Err.StatusCode != http.StatusNotFound {
+		mlog.Error("Failed to query plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
 		return nil, result.Err
 	}
 
-	kv := result.Data.(*model.PluginKeyValue)
+	// Lookup using the hashed version of the key for keys written prior to v5.6.
+	if result := <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key)); result.Err == nil {
+		return result.Data.(*model.PluginKeyValue).Value, nil
+	} else if result.Err.StatusCode != http.StatusNotFound {
+		mlog.Error("Failed to query plugin key value using hashed key", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
+		return nil, result.Err
+	}
 
-	return kv.Value, nil
+	return nil, nil
 }
 
 func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
-	result := <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key))
-
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	if result := <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key)); result.Err != nil {
+		mlog.Error("Failed to delete plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
+		return result.Err
 	}
 
-	return result.Err
+	// Also delete the key without hashing
+	if result := <-a.Srv.Store.Plugin().Delete(pluginId, key); result.Err != nil {
+		mlog.Error("Failed to delete plugin key value using hashed key", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
+		return result.Err
+	}
+
+	return nil
 }
 
 func (a *App) DeleteAllKeysForPlugin(pluginId string) *model.AppError {
-	result := <-a.Srv.Store.Plugin().DeleteAllForPlugin(pluginId)
-
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	if result := <-a.Srv.Store.Plugin().DeleteAllForPlugin(pluginId); result.Err != nil {
+		mlog.Error("Failed to delete all plugin key values", mlog.String("plugin_id", pluginId), mlog.Err(result.Err))
+		return result.Err
 	}
 
-	return result.Err
+	return nil
 }
 
 func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
-
 	if a.Srv == nil {
 		return nil
 	}
 
-	result := <-a.Srv.Store.Plugin().DeleteAllExpired()
-
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+	if result := <-a.Srv.Store.Plugin().DeleteAllExpired(); result.Err != nil {
+		mlog.Error("Failed to delete all expired plugin key values", mlog.Err(result.Err))
+		return result.Err
 	}
 
-	return result.Err
+	return nil
 }
 
 func (a *App) ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError) {
-	result := <-a.Srv.Store.Plugin().List(pluginId, page, perPage)
+	result := <-a.Srv.Store.Plugin().List(pluginId, page*perPage, perPage)
 
 	if result.Err != nil {
-		mlog.Error(result.Err.Error())
+		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(result.Err))
 		return nil, result.Err
 	}
 

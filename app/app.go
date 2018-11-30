@@ -7,28 +7,27 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"path"
 	"strconv"
 
-	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost-server/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	"github.com/mattermost/mattermost-server/jobs"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/httpservice"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type App struct {
 	Srv *Server
 
 	Log *mlog.Logger
+
+	T         goi18n.TranslateFunc
+	Session   model.Session
+	RequestId string
+	IpAddress string
+	Path      string
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
@@ -44,363 +43,50 @@ type App struct {
 	HTTPService httpservice.HTTPService
 }
 
-var appCount = 0
-
-// New creates a new App. You must call Shutdown when you're done with it.
-// XXX: For now, only one at a time is allowed as some resources are still shared.
-func New(options ...Option) (outApp *App, outErr error) {
-	appCount++
-	if appCount > 1 {
-		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
-	}
-
-	rootRouter := mux.NewRouter()
-
-	app := &App{
-		Srv: &Server{
-			goroutineExitSignal: make(chan struct{}, 1),
-			RootRouter:          rootRouter,
-			configFile:          "config.json",
-			configListeners:     make(map[string]func(*model.Config, *model.Config)),
-			licenseListeners:    map[string]func(){},
-			sessionCache:        utils.NewLru(model.SESSION_CACHE_SIZE),
-			clientConfig:        make(map[string]string),
-		},
-	}
-
-	app.HTTPService = httpservice.MakeHTTPService(app)
-
-	app.CreatePushNotificationsHub()
-	app.StartPushNotificationsHubWorkers()
-
-	defer func() {
-		if outErr != nil {
-			app.Shutdown()
-		}
-	}()
+func New(options ...AppOption) *App {
+	app := &App{}
 
 	for _, option := range options {
 		option(app)
 	}
 
-	if utils.T == nil {
-		if err := utils.TranslationsPreInit(); err != nil {
-			return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
-		}
-	}
-	model.AppErrorInit(utils.T)
+	return app
+}
 
-	if err := app.LoadConfig(app.Srv.configFile); err != nil {
-		return nil, err
-	}
-
-	// Initalize logging
-	app.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&app.Config().LogSettings))
-
-	// Redirect default golang logger to this logger
-	mlog.RedirectStdLog(app.Log)
-
-	// Use this app logger as the global logger (eventually remove all instances of global logging)
-	mlog.InitGlobalLogger(app.Log)
-
-	app.Srv.logListenerId = app.AddConfigListener(func(_, after *model.Config) {
-		app.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
-	})
-
-	app.EnableConfigWatch()
-
-	app.LoadTimezones()
-
-	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
-		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
-	}
-
-	app.Srv.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
-		app.configOrLicenseListener()
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
-
-		message.Add("config", app.ClientConfigWithComputed())
-		app.Srv.Go(func() {
-			app.Publish(message)
-		})
-	})
-	app.Srv.licenseListenerId = app.AddLicenseListener(func() {
-		app.configOrLicenseListener()
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
-		message.Add("license", app.GetSanitizedClientLicense())
-		app.Srv.Go(func() {
-			app.Publish(message)
-		})
-
-	})
-
-	if err := app.SetupInviteEmailRateLimiting(); err != nil {
-		return nil, err
-	}
-
-	mlog.Info("Server is initializing...")
-
-	app.initEnterprise()
-
-	if app.Srv.newStore == nil {
-		app.Srv.newStore = func() store.Store {
-			return store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings, app.Metrics), app.Metrics, app.Cluster)
-		}
-	}
-
-	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
-	} else {
-		app.Srv.htmlTemplateWatcher = htmlTemplateWatcher
-	}
-
-	app.Srv.Store = app.Srv.newStore()
-
-	if err := app.ensureAsymmetricSigningKey(); err != nil {
-		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
-	}
-
-	if err := app.ensureInstallationDate(); err != nil {
-		return nil, errors.Wrapf(err, "unable to ensure installation date")
-	}
-
-	app.EnsureDiagnosticId()
-	app.regenerateClientConfig()
-
-	app.initJobs()
-	app.AddLicenseListener(func() {
-		app.initJobs()
-	})
-
-	app.Srv.clusterLeaderListenerId = app.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", app.IsLeader()))
-		app.Srv.Jobs.Schedulers.HandleClusterLeaderChange(app.IsLeader())
-	})
-
-	subpath, err := utils.GetSubpathFromConfig(app.Config())
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
-	}
-	app.Srv.Router = app.Srv.RootRouter.PathPrefix(subpath).Subrouter()
-	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", app.ServePluginRequest)
-	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", app.ServePluginRequest)
-
-	// If configured with a subpath, redirect 404s at the root back into the subpath.
-	if subpath != "/" {
-		app.Srv.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r.URL.Path = path.Join(subpath, r.URL.Path)
-			http.Redirect(w, r, r.URL.String(), http.StatusFound)
-		})
-	}
-	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
-
-	app.Srv.WebSocketRouter = &WebSocketRouter{
-		app:      app,
-		handlers: make(map[string]webSocketHandler),
-	}
-
-	app.InitPostMetadata()
-
-	return app, nil
+// DO NOT CALL THIS.
+// This is to avoid having to change all the code in cmd/mattermost/commands/* for now
+// shutdown should be called directly on the server
+func (a *App) Shutdown() {
+	a.Srv.Shutdown()
+	a.Srv = nil
 }
 
 func (a *App) configOrLicenseListener() {
 	a.regenerateClientConfig()
 }
 
-func (a *App) Shutdown() {
-	appCount--
-
-	mlog.Info("Stopping Server...")
-
-	a.StopServer()
-	a.HubStop()
-	a.StopPushNotificationsHubWorkers()
-
-	a.ShutDownPlugins()
-	a.Srv.WaitForGoroutines()
-
-	if a.Srv.Store != nil {
-		a.Srv.Store.Close()
-	}
-
-	if a.Srv.htmlTemplateWatcher != nil {
-		a.Srv.htmlTemplateWatcher.Close()
-	}
-
-	a.RemoveConfigListener(a.Srv.configListenerId)
-	a.RemoveLicenseListener(a.Srv.licenseListenerId)
-	a.RemoveConfigListener(a.Srv.logListenerId)
-	a.RemoveClusterLeaderChangedListener(a.Srv.clusterLeaderListenerId)
-	mlog.Info("Server stopped")
-
-	a.DisableConfigWatch()
-
-	a.HTTPService.Close()
-	a.Srv = nil
-}
-
-var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
-
-func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigrationInterface) {
-	accountMigrationInterface = f
-}
-
-var clusterInterface func(*App) einterfaces.ClusterInterface
-
-func RegisterClusterInterface(f func(*App) einterfaces.ClusterInterface) {
-	clusterInterface = f
-}
-
-var complianceInterface func(*App) einterfaces.ComplianceInterface
-
-func RegisterComplianceInterface(f func(*App) einterfaces.ComplianceInterface) {
-	complianceInterface = f
-}
-
-var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
-
-func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
-	dataRetentionInterface = f
-}
-
-var elasticsearchInterface func(*App) einterfaces.ElasticsearchInterface
-
-func RegisterElasticsearchInterface(f func(*App) einterfaces.ElasticsearchInterface) {
-	elasticsearchInterface = f
-}
-
-var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
-
-func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
-	jobsDataRetentionJobInterface = f
-}
-
-var jobsMessageExportJobInterface func(*App) ejobs.MessageExportJobInterface
-
-func RegisterJobsMessageExportJobInterface(f func(*App) ejobs.MessageExportJobInterface) {
-	jobsMessageExportJobInterface = f
-}
-
-var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
-
-func RegisterJobsElasticsearchAggregatorInterface(f func(*App) ejobs.ElasticsearchAggregatorInterface) {
-	jobsElasticsearchAggregatorInterface = f
-}
-
-var jobsElasticsearchIndexerInterface func(*App) ejobs.ElasticsearchIndexerInterface
-
-func RegisterJobsElasticsearchIndexerInterface(f func(*App) ejobs.ElasticsearchIndexerInterface) {
-	jobsElasticsearchIndexerInterface = f
-}
-
-var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
-
-func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
-	jobsLdapSyncInterface = f
-}
-
-var jobsMigrationsInterface func(*App) tjobs.MigrationsJobInterface
-
-func RegisterJobsMigrationsJobInterface(f func(*App) tjobs.MigrationsJobInterface) {
-	jobsMigrationsInterface = f
-}
-
-var ldapInterface func(*App) einterfaces.LdapInterface
-
-func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
-	ldapInterface = f
-}
-
-var messageExportInterface func(*App) einterfaces.MessageExportInterface
-
-func RegisterMessageExportInterface(f func(*App) einterfaces.MessageExportInterface) {
-	messageExportInterface = f
-}
-
-var metricsInterface func(*App) einterfaces.MetricsInterface
-
-func RegisterMetricsInterface(f func(*App) einterfaces.MetricsInterface) {
-	metricsInterface = f
-}
-
-var mfaInterface func(*App) einterfaces.MfaInterface
-
-func RegisterMfaInterface(f func(*App) einterfaces.MfaInterface) {
-	mfaInterface = f
-}
-
-var samlInterface func(*App) einterfaces.SamlInterface
-
-func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
-	samlInterface = f
-}
-
-func (a *App) initEnterprise() {
-	if accountMigrationInterface != nil {
-		a.AccountMigration = accountMigrationInterface(a)
-	}
-	if clusterInterface != nil {
-		a.Cluster = clusterInterface(a)
-	}
-	if complianceInterface != nil {
-		a.Compliance = complianceInterface(a)
-	}
-	if elasticsearchInterface != nil {
-		a.Elasticsearch = elasticsearchInterface(a)
-	}
-	if ldapInterface != nil {
-		a.Ldap = ldapInterface(a)
-		a.AddConfigListener(func(_, cfg *model.Config) {
-			if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
-				panic(utils.T(err.Id))
-			}
-		})
-	}
-	if messageExportInterface != nil {
-		a.MessageExport = messageExportInterface(a)
-	}
-	if metricsInterface != nil {
-		a.Metrics = metricsInterface(a)
-	}
-	if mfaInterface != nil {
-		a.Mfa = mfaInterface(a)
-	}
-	if samlInterface != nil {
-		a.Saml = samlInterface(a)
-		a.AddConfigListener(func(_, cfg *model.Config) {
-			a.Saml.ConfigureSP()
-		})
-	}
-	if dataRetentionInterface != nil {
-		a.DataRetention = dataRetentionInterface(a)
-	}
-}
-
-func (a *App) initJobs() {
-	a.Srv.Jobs = jobs.NewJobServer(a, a.Srv.Store)
+func (s *Server) initJobs() {
+	s.Jobs = jobs.NewJobServer(s, s.Store)
 	if jobsDataRetentionJobInterface != nil {
-		a.Srv.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
+		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s.FakeApp())
 	}
 	if jobsMessageExportJobInterface != nil {
-		a.Srv.Jobs.MessageExportJob = jobsMessageExportJobInterface(a)
+		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s.FakeApp())
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
-		a.Srv.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)
+		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s.FakeApp())
 	}
 	if jobsElasticsearchIndexerInterface != nil {
-		a.Srv.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(a)
+		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s.FakeApp())
 	}
 	if jobsLdapSyncInterface != nil {
-		a.Srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
+		s.Jobs.LdapSync = jobsLdapSyncInterface(s.FakeApp())
 	}
 	if jobsMigrationsInterface != nil {
-		a.Srv.Jobs.Migrations = jobsMigrationsInterface(a)
+		s.Jobs.Migrations = jobsMigrationsInterface(s.FakeApp())
 	}
-	a.Srv.Jobs.Workers = a.Srv.Jobs.InitWorkers()
-	a.Srv.Jobs.Schedulers = a.Srv.Jobs.InitSchedulers()
+	s.Jobs.Workers = s.Jobs.InitWorkers()
+	s.Jobs.Schedulers = s.Jobs.InitSchedulers()
 }
 
 func (a *App) DiagnosticId() string {

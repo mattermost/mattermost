@@ -36,10 +36,12 @@ func InitDBCommandContext(configFileLocation string) (*app.App, error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	a, err := app.New(app.ConfigFile(configFileLocation))
+	s, err := app.NewServer(app.ConfigFile(configFileLocation))
 	if err != nil {
 		return nil, err
 	}
+
+	a := s.FakeApp()
 
 	if model.BuildEnterpriseReady == "true" {
 		a.LoadLicense()
