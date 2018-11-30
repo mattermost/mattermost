@@ -31,6 +31,7 @@ pipeline {
             steps {
                 dir('src/github.com/mattermost/enterprise') {
                     sh '''
+                        #!/bin/bash -ex
                         git checkout \${CHANGE_BRANCH} || git checkout \${GIT_BRANCH} || git checkout master || echo 1
                     '''
                 }
@@ -38,6 +39,7 @@ pipeline {
                     withDockerContainer(args: '', image: 'mattermost/mattermost-build-webapp:v5.2.0') {
                         ansiColor('xterm') {
                             sh '''
+                                #!/bin/bash -ex
                                 git checkout \${CHANGE_BRANCH} || git checkout \${GIT_BRANCH} || git checkout master || echo 1
                                 rm -rf ./dist
                                 export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
