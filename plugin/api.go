@@ -107,7 +107,7 @@ type API interface {
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
-	// UpdateUserActive updates status of a user whether active or not.
+	// UpdateUserActive deactivates or reactivates an user.
 	//
 	// Minimum server version: 5.6
 	UpdateUserActive(userId string, active bool) *model.AppError

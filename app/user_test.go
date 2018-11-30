@@ -153,6 +153,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	_, err = th.App.UpdateUser(user, false)
 	assert.False(t, err == nil)
 }
+
 func TestUpdateUserActive(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
