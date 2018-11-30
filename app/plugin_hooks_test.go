@@ -894,10 +894,18 @@ func TestHookContext(t *testing.T) {
 
 	// We don't actually have a session, we are faking it so just set somthing arbitrarally
 	th.App.Session.Id = model.NewId()
+	th.App.RequestId = model.NewId()
+	th.App.IpAddress = model.NewId()
+	th.App.AcceptLanguage = model.NewId()
+	th.App.UserAgent = model.NewId()
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", th.App.Session.Id).Return(nil)
+	mockAPI.On("LogInfo", th.App.RequestId).Return(nil)
+	mockAPI.On("LogError", th.App.IpAddress).Return(nil)
+	mockAPI.On("LogWarn", th.App.AcceptLanguage).Return(nil)
+	mockAPI.On("DeleteTeam", th.App.UserAgent).Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -915,6 +923,10 @@ func TestHookContext(t *testing.T) {
 
 		func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 			p.API.LogDebug(c.SessionId)
+			p.API.LogInfo(c.RequestId)
+			p.API.LogError(c.IpAddress)
+			p.API.LogWarn(c.AcceptLanguage)
+			p.API.DeleteTeam(c.UserAgent)
 		}
 
 		func main() {

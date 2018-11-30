@@ -7,7 +7,11 @@ import "github.com/mattermost/mattermost-server/plugin"
 
 func (a *App) PluginContext() *plugin.Context {
 	context := &plugin.Context{
-		SessionId: a.Session.Id,
+		RequestId:      a.RequestId,
+		SessionId:      a.Session.Id,
+		IpAddress:      a.IpAddress,
+		AcceptLanguage: a.AcceptLanguage,
+		UserAgent:      a.UserAgent,
 	}
 	return context
 }
