@@ -1,0 +1,196 @@
+#!/usr/bin/env groovy
+pipeline {
+    agent {
+        label 'carlos-test'
+    }
+
+    options { buildDiscarder(logRotator(numToKeepStr: '3')) }
+
+    stages {
+        stage('Checkout'){
+            steps {
+                cleanWs notFailBuild: true
+                sh """
+                    mkdir -p src/github.com/mattermost/mattermost-server
+                    mkdir -p src/github.com/mattermost/mattermost-webapp
+                    mkdir -p src/github.com/mattermost/enterprise
+                """
+                dir('src/github.com/mattermost/mattermost-server') {
+                    checkout scm
+                }
+                dir('src/github.com/mattermost/mattermost-webapp') {
+                    checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '310159d3-f7c5-4f5d-bfa1-151e3ef2db57', url: 'https://github.com/mattermost/mattermost-webapp.git']]]
+                }
+                dir('src/github.com/mattermost/enterprise') {
+                    checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '310159d3-f7c5-4f5d-bfa1-151e3ef2db57', url: 'https://github.com/mattermost/enterprise.git']]]
+                }
+            }
+        }
+
+        stage('Get Enterprise/Webapp') {
+            steps {
+                dir('src/github.com/mattermost/enterprise') {
+                    sh '''
+                        git checkout \${CHANGE_BRANCH} || git checkout \${GIT_BRANCH} || git checkout master || echo 1
+                    '''
+                }
+                dir('src/github.com/mattermost/mattermost-webapp') {
+                    withDockerContainer(args: '', image: 'mattermost/mattermost-build-webapp:v5.2.0') {
+                        ansiColor('xterm') {
+                            sh '''
+                                git checkout \${CHANGE_BRANCH} || git checkout \${GIT_BRANCH} || git checkout master || echo 1
+                                rm -rf ./dist
+                                export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
+
+                                echo Webapp Commit: ${WEBAPP_GIT_COMMIT}
+
+                                curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/$WEBAPP_GIT_COMMIT/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build || exit 1
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            environment {
+                GOPATH = "/go"
+            }
+
+            steps {
+                withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:5.6.0') {
+                    ansiColor('xterm') {
+                        sh """
+                            cd /go/src/github.com/mattermost/mattermost-server
+                            mv config/default.json config/config.json || echo ""
+                            make check-style BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
+                            make build BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
+                            make package BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Test') {
+            environment {
+                GOPATH = "/go"
+                TEST_DATABASE_MYSQL_HOSTNAME = "mysql"
+                TEST_DATABASE_MYSQL_PORT = "3306"
+                TEST_DATABASE_POSTGRES_HOSTNAME = "postgres"
+                TEST_DATABASE_POSTGRES_PORT = "5432"
+                TEST_DATABASE_USERNAME = "mmuser"
+                TEST_DATABASE_PASSWORD = "mostest"
+                TEST_DATABASE_NAME = "mattermost_test"
+                CI_INBUCKET_HOST = "inbucket"
+                CI_MINIO_HOST = "minio"
+                CI_INBUCKET_PORT = "10080"
+                CI_MINIO_PORT = "9000"
+                CI_LDAP_HOST = "openldap"
+                IS_CI = true
+            }
+
+            steps {
+                dir('src/github.com/mattermost/mattermost-server/build') {
+                    ansiColor('xterm') {
+                        sh """
+                            COMPOSE_PROJECT_NAME=${env.BUILD_ID} docker-compose up -d
+
+                            docker ps
+
+                            ./wait-for-it.sh -t 30 openldap-${env.BUILD_ID}:389 -- echo "Openldap ready"
+
+                            docker exec -t openldap-${env.BUILD_ID} bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BUILD_ID} bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BUILD_ID} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BUILD_ID} bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testtwo@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BUILD_ID} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
+                            docker exec -t openldap-${env.BUILD_ID} bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                        """
+                    }
+                }
+                withDockerContainer(args: "-u root --privileged --net ${BUILD_ID}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:5.6.0') {
+                    ansiColor('xterm') {
+                        sh """
+                            while ! curl mysql:3306; do sleep 5; done
+
+                            cd /go/src/github.com/mattermost/mattermost-server
+
+                            sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8|g' config/config.json;
+                            sed -i'.bak' 's|"SMTPServer": "dockerhost",|"SMTPServer": "inbucket",|g' config/config.json;
+                            sed -i'.bak' 's|"SMTPPort": "2500",|"SMTPPort": "10025",|g' config/config.json;
+                            sed -i'.bak' 's|"ConnectionUrl": "http://dockerhost:9200",|"ConnectionUrl": "http://elasticsearch:9200",|g' config/config.json;
+                            mkdir -p client/plugins
+
+                            cat config/config.json
+
+                            make test-server BUILD_NUMBER='${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Push to S3') {
+            steps {
+                dir('src/github.com/mattermost/mattermost-server/dist') {
+                    step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
+                        bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
+                        excludedFile: '',
+                        flatten: true,
+                        gzipFiles: false,
+                        keepForever: false,
+                        managedArtifacts: false,
+                        noUploadOnFailure: true,
+                        selectedRegion: 'us-east-1',
+                        showDirectlyInBrowser: false,
+                        sourceFile: '*.tar.gz',
+                        storageClass: 'STANDARD',
+                        uploadFromSlave: false,
+                        useServerSideEncryption: false,
+                        userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                    ], [
+                        bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_BRANCH}",
+                        excludedFile: '',
+                        flatten: true,
+                        gzipFiles: false,
+                        keepForever: false,
+                        managedArtifacts: false,
+                        noUploadOnFailure: true,
+                        selectedRegion: 'us-east-1',
+                        showDirectlyInBrowser: false,
+                        sourceFile: '*.tar.gz',
+                        storageClass: 'STANDARD',
+                        uploadFromSlave: false,
+                        useServerSideEncryption: false,
+                        userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                    ]], profileName: 'Releases', userMetadAta: []])
+                }
+            }
+        }
+
+        stage('Trigger docker build') {
+            steps {
+                build job: '../../mk/mattermost-enterprise-edition-release', parameters: [string(name: 'RELEASE', value: "${CHANGE_ID}"), booleanParam(name: 'FROM_PR', value: true)], propagate: false, wait: false
+            }
+        }
+    }
+
+    post {
+        always {
+            dir('src/github.com/mattermost/mattermost-server') {
+                junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'report*.xml'
+            }
+            dir('src/github.com/mattermost/mattermost-server/build') {
+                ansiColor('xterm') {
+                    sh """
+                        COMPOSE_PROJECT_NAME=${env.BUILD_ID} docker-compose down -v
+                    """
+                }
+            }
+        }
+        cleanup {
+            cleanWs notFailBuild: true
+        }
+    }
+}
