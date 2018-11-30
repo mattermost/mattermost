@@ -114,14 +114,16 @@ const (
 	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
 	SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD  = 365
 
-	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
-	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
-	LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE      = ""
-	LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE   = ""
-	LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE   = ""
-	LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
-	LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
-	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME     = ""
+	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE         = ""
+	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE          = ""
+	LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE              = ""
+	LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE                 = ""
+	LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME             = ""
+	LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE = ""
+	LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE           = ""
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
@@ -1335,6 +1337,10 @@ type LdapSettings struct {
 	UserFilter  *string
 	GroupFilter *string
 
+	// Group Mapping
+	GroupDisplayNameAttribute *string
+	GroupIdAttribute          *string
+
 	// User Mapping
 	FirstNameAttribute *string
 	LastNameAttribute  *string
@@ -1401,6 +1407,14 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.GroupFilter == nil {
 		s.GroupFilter = NewString("")
+	}
+
+	if s.GroupDisplayNameAttribute == nil {
+		s.GroupDisplayNameAttribute = NewString(LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE)
+	}
+
+	if s.GroupIdAttribute == nil {
+		s.GroupIdAttribute = NewString(LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE)
 	}
 
 	if s.FirstNameAttribute == nil {
