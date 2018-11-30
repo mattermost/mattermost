@@ -151,6 +151,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 		sleep 10; \
 		docker cp tests/add-users.ldif mattermost-openldap:/add-users.ldif;\
 		docker cp tests/add-groups.ldif mattermost-openldap:/add-groups.ldif;\
+		docker cp tests/qa-data.ldif mattermost-openldap:/qa-data.ldif;\
 		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-users.ldif';\
 		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-groups.ldif';\
 	elif [ $(shell docker ps | grep -ci mattermost-openldap) -eq 0 ]; then \
