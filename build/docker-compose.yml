@@ -3,7 +3,7 @@ services:
   mysql:
     image: "mysql:5.7"
     restart: always
-    container_name: mysql-$BUILD_NUMBER
+    container_name: mysql-$CHANGE_BRANCH-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -14,7 +14,7 @@ services:
   postgres:
     image: "postgres:9.4"
     restart: always
-    container_name: postgres-$BUILD_NUMBER
+    container_name: postgres-$CHANGE_BRANCH-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -24,7 +24,7 @@ services:
   minio:
     image: "minio/minio:RELEASE.2018-05-25T19-49-13Z"
     command: "server /data"
-    container_name: minio-$BUILD_NUMBER
+    container_name: minio-$CHANGE_BRANCH-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -33,13 +33,13 @@ services:
   inbucket:
     image: "jhillyerd/inbucket:release-1.2.0"
     restart: always
-    container_name: inbucket-$BUILD_NUMBER
+    container_name: inbucket-$CHANGE_BRANCH-$BUILD_NUMBER
     networks:
       - mm-test
   openldap:
     image: "osixia/openldap:1.1.6"
     restart: always
-    container_name: openldap-$BUILD_NUMBER
+    container_name: openldap-$CHANGE_BRANCH-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -49,7 +49,7 @@ services:
       LDAP_ADMIN_PASSWORD: "mostest"
   elasticsearch:
     image: "grundleborg/elasticsearch:latest"
-    container_name: elasticsearch-$BUILD_NUMBER
+    container_name: elasticsearch-$CHANGE_BRANCH-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -60,7 +60,7 @@ services:
     image: redis
     networks:
       - mm-test
-    container_name: redis-$BUILD_NUMBER
+    container_name: redis-$CHANGE_BRANCH-$BUILD_NUMBER
 
 networks:
   mm-test:
