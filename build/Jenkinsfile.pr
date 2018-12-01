@@ -15,6 +15,9 @@ pipeline {
             steps {
                 cleanWs notFailBuild: true
                 sh """
+                    export
+                    env
+                    exit 1
                     mkdir -p src/github.com/mattermost/mattermost-server
                     mkdir -p src/github.com/mattermost/mattermost-webapp
                     mkdir -p src/github.com/mattermost/enterprise
