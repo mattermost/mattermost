@@ -6,7 +6,6 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"github.com/mattermost/mattermost-server/mlog"
 	"io"
 	"net/http"
 	"os"
@@ -16,61 +15,62 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+//We use this map to identify the exportable preferences.
+//Here we link the preference category and name, to the name of the relevant filed in the import struct.
+var exportablePreferences = map[ComparablePreference]string{
+	//Theme
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_THEME,
+		Name:     "",
+	}: "Theme",
+	//UseMarkDownPreview
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+		Name:     "feature_enabled_markdown_preview",
+	}: "UseMarkdownPreview",
+	//UseFormatting
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+		Name:     "formatting",
+	}: "UseFormatting",
+	//ShowUnreadSection
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS,
+		Name:     "show_unread_section",
+	}: "ShowUnreadSection",
+	//UseMilitaryTime
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_USE_MILITARY_TIME,
+	}: "UseMilitaryTime",
+	//CollapsePreviews
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
+	}: "CollapsePreviews",
+	//MessageDisplay
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     model.PREFERENCE_NAME_MESSAGE_DISPLAY,
+	}: "MessageDisplay",
+	//ChannelDisplayMode
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+		Name:     "channel_display_mode",
+	}: "ChannelDisplayMode",
+	//TutorialStep
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
+		Name:     "",
+	}: "TutorialStep",
+	//EmailInterval
+	ComparablePreference{
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+	}: "EmailInterval",
+}
+
 func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
-	//We use this map to identify the exportable preferences.
-	//Here we link the preference category and name, to the name of the relevant filed in the import struct.
-	var exportablePreferences = map[ComparablePreference]string{
-		//Theme
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_THEME,
-			Name:     "",
-		}: "Theme",
-		//UseMarkDownPreview
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
-			Name:     "feature_enabled_markdown_preview",
-		}: "UseMarkdownPreview",
-		//UseFormatting
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
-			Name:     "formatting",
-		}: "UseFormatting",
-		//ShowUnreadSection
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS,
-			Name:     "show_unread_section",
-		}: "ShowUnreadSection",
-		//UseMilitaryTime
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     model.PREFERENCE_NAME_USE_MILITARY_TIME,
-		}: "UseMilitaryTime",
-		//CollapsePreviews
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
-		}: "CollapsePreviews",
-		//MessageDisplay
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     model.PREFERENCE_NAME_MESSAGE_DISPLAY,
-		}: "MessageDisplay",
-		//ChannelDisplayMode
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     "channel_display_mode",
-		}: "ChannelDisplayMode",
-		//TutorialStep
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
-			Name:     "",
-		}: "TutorialStep",
-		//EmailInterval
-		ComparablePreference{
-			Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
-			Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
-		}: "EmailInterval",
-	}
 
 	if err := a.ExportVersion(writer); err != nil {
 		return err
