@@ -8,6 +8,7 @@ import (
 	"crypto/subtle"
 	"io"
 	"io/ioutil"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -149,6 +150,36 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(resStruct.ToJson()))
 }
 
+func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
+	v := req.Header.Get("Content-Type")
+	if v == "" {
+		return "", http.ErrNotMultipart
+	}
+	d, params, err := mime.ParseMediaType(v)
+	if err != nil || d != "multipart/form-data" {
+		return "", http.ErrNotMultipart
+	}
+	boundary, ok := params["boundary"]
+	if !ok {
+		return "", http.ErrMissingBoundary
+	}
+
+	return boundary, nil
+}
+
+func multipartReader(req *http.Request, readFrom io.Reader) (*multipart.Reader, error) {
+	boundary, err := parseMultipartRequestHeader(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if readFrom != nil {
+		return multipart.NewReader(readFrom, boundary), nil
+	} else {
+		return multipart.NewReader(req.Body, boundary), nil
+	}
+}
+
 func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Drain any remaining bytes in the request body, up to a limit
 	defer io.CopyN(ioutil.Discard, r.Body, maxUploadDrainBytes)
@@ -184,11 +215,12 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	timestamp := time.Now()
 
-	_, err := r.MultipartReader()
+	_, err := parseMultipartRequestHeader(r)
 	if err == nil {
-		fileUploadResponse = uploadFileMultipart(c, r, timestamp, bufferedMode)
+		fileUploadResponse = uploadFileMultipart(c, r, nil, timestamp)
 		return
-	} else if err != http.ErrNotMultipart {
+	}
+	if err != http.ErrNotMultipart {
 		c.Err = model.NewAppError("uploadFileStream", "api.file.upload_file.read_request.app_error",
 			nil, err.Error(), http.StatusBadRequest)
 		return
@@ -223,20 +255,12 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type uploadFileMultipartMode bool
-
-const (
-	streamMode   = uploadFileMultipartMode(false)
-	bufferedMode = uploadFileMultipartMode(true)
-)
-
-// uploadFileMultipart first peeks into the multipart message to see if
-// channel_id comes before any of the files.  It buffers what it reads out of
-// Input. Then if the channel_id is found, it re-processes the entire POST in
-// the streaming mode, else it prebuffers the entire message, up to the allowed
-// limit.
-func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
-	mode uploadFileMultipartMode) *model.FileUploadResponse {
+// uploadFileMultipart parses and uploads file(s) from a mime/multipart
+// request.  It pre-buffers up to the first part which is either the (a)
+// `channel_id` value, or (b) a file. Then in case of (a) it re-processes the
+// entire message recursively calling itself in stream mode. In case of (b) it
+// calls to uploadFileMultipartBuffered for legacy support
+func uploadFileMultipart(c *Context, r *http.Request, asStream io.Reader, timestamp time.Time) *model.FileUploadResponse {
 
 	expectClientIds := true
 	var clientIds []string
@@ -246,19 +270,15 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 	}
 
 	var buf *bytes.Buffer
-	prevBody := r.Body
-	if mode == bufferedMode {
+	var mr *multipart.Reader
+	var err error
+	if asStream == nil {
+		// We need to buffer until we get the channel_id, or the first file.
 		buf = &bytes.Buffer{}
-		// We need to buffer until we get the channel_id, or the first
-		// file.
-		r.Body = ioutil.NopCloser(io.TeeReader(r.Body, buf))
+		mr, err = multipartReader(r, io.TeeReader(r.Body, buf))
+	} else {
+		mr, err = multipartReader(r, asStream)
 	}
-
-	// Zero out previous multipartReader so that it can be obtained again.
-	r.MultipartForm = nil
-
-	mr, err := r.MultipartReader()
-	r.Body = prevBody
 	if err != nil {
 		c.Err = model.NewAppError("uploadFileMultipart", "api.file.upload_file.read_request.app_error",
 			nil, err.Error(), http.StatusBadRequest)
@@ -303,12 +323,8 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 
 				// Got channel_id, re-process the entire post
 				// in the streaming mode.
-				if mode == bufferedMode {
-					r.Body = ioutil.NopCloser(io.MultiReader(buf, r.Body))
-					defer func() {
-						r.Body = prevBody
-					}()
-					return uploadFileMultipart(c, r, timestamp, streamMode)
+				if asStream == nil {
+					return uploadFileMultipart(c, r, io.MultiReader(buf, r.Body), timestamp)
 				}
 
 			case "client_ids":
@@ -328,14 +344,8 @@ func uploadFileMultipart(c *Context, r *http.Request, timestamp time.Time,
 
 		// A file part.
 
-		if c.Params.ChannelId == "" && mode == bufferedMode {
-			// Zero out previous multipartReader so that it can be
-			// obtained again.
-			r.MultipartForm = nil
-
-			r.Body = ioutil.NopCloser(io.MultiReader(buf, r.Body))
-			mr, err = r.MultipartReader()
-			r.Body = prevBody
+		if c.Params.ChannelId == "" && asStream == nil {
+			mr, err = multipartReader(r, io.MultiReader(buf, r.Body))
 			if err != nil {
 				c.Err = model.NewAppError("uploadFileMultipart", "api.file.upload_file.read_request.app_error",
 					nil, err.Error(), http.StatusBadRequest)
