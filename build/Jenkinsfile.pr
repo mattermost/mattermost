@@ -2,7 +2,7 @@
 
 @Library('shared-pipelines') _
 import org.mattermost.*
-def purge = new org.mattermost.Utils()
+def utils = new org.mattermost.Utils()
 
 pipeline {
     agent {
@@ -19,7 +19,9 @@ pipeline {
     stages {
         stage('Stop Old Builds') {
             steps {
-                purge.stopOldBuilds()
+                script {
+                    utils.stopOldBuilds()
+                }
             }
         }
 
