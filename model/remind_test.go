@@ -3,6 +3,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReminder(t *testing.T) {
@@ -11,33 +13,19 @@ func TestReminder(t *testing.T) {
 	json := reminder.ToJson()
 	reminder2 := ReminderFromJson(strings.NewReader(json))
 
-	if reminder.Id != reminder2.Id {
-		t.Fatal("Id should have matched")
-	}
+	assert.Equal(t, reminder.Id, reminder2.Id)
 
-	if reminder.TeamId != reminder2.TeamId {
-		t.Fatal("TeamId should have matched")
-	}
+	assert.Equal(t, reminder.TeamId, reminder2.TeamId)
 
-	if reminder.UserId != reminder2.UserId {
-		t.Fatal("UserId should have matched")
-	}
+	assert.Equal(t, reminder.UserId, reminder2.UserId)
 
-	if reminder.Target != reminder2.Target {
-		t.Fatal("Target should have matched")
-	}
+	assert.Equal(t, reminder.Target, reminder2.Target)
 
-	if reminder.Message != reminder2.Message {
-		t.Fatal("Message should have matched")
-	}
+	assert.Equal(t, reminder.Message, reminder2.Message)
 
-	if reminder.When != reminder2.When {
-		t.Fatal("When should have matched")
-	}
+	assert.Equal(t, reminder.When, reminder2.When)
 
-	if reminder.Completed != reminder2.Completed {
-		t.Fatal("Completed should have matched")
-	}
+	assert.Equal(t, reminder.Completed, reminder2.Completed)
 }
 
 func TestOccurrence(t *testing.T) {
@@ -46,29 +34,17 @@ func TestOccurrence(t *testing.T) {
 	json := occurrence.ToJson()
 	occurrence2 := OccurrenceFromJson(strings.NewReader(json))
 
-	if occurrence.Id != occurrence2.Id {
-		t.Fatal("Id should have matched")
-	}
+	assert.Equal(t, occurrence.Id, occurrence2.Id)
 
-	if occurrence.UserId != occurrence2.UserId {
-		t.Fatal("UserId should have matched")
-	}
+	assert.Equal(t, occurrence.UserId, occurrence2.UserId)
 
-	if occurrence.ReminderId != occurrence2.ReminderId {
-		t.Fatal("ReminderId should have matched")
-	}
+	assert.Equal(t, occurrence.ReminderId, occurrence2.ReminderId)
 
-	if occurrence.Repeat != occurrence2.Repeat {
-		t.Fatal("Repeat should have matched")
-	}
+	assert.Equal(t, occurrence.Repeat, occurrence2.Repeat)
 
-	if occurrence.Occurrence != occurrence2.Occurrence {
-		t.Fatal("Occurrence should have matched")
-	}
+	assert.Equal(t, occurrence.Occurrence, occurrence2.Occurrence)
 
-	if occurrence.Snoozed != occurrence2.Snoozed {
-		t.Fatal("Snoozed should have matched")
-	}
+	assert.Equal(t, occurrence.Snoozed, occurrence2.Snoozed)
 }
 
 func TestReminderRequest(t *testing.T) {
@@ -79,24 +55,14 @@ func TestReminderRequest(t *testing.T) {
 	json := request.ToJson()
 	request2 := ReminderRequestFromJson(strings.NewReader(json))
 
-	if request.TeamId != request2.TeamId {
-		t.Fatal("TeamId should have matched")
-	}
+	assert.Equal(t, request.TeamId, request2.TeamId)
 
-	if request.UserId != request2.UserId {
-		t.Fatal("UserId should have matched")
-	}
+	assert.Equal(t, request.UserId, request2.UserId)
 
-	if request.Payload != request2.Payload {
-		t.Fatal("Payload should have matched")
-	}
+	assert.Equal(t, request.Payload, request2.Payload)
 
-	if request.Reminder != request2.Reminder {
-		t.Fatal("Reminder should have matched")
-	}
+	assert.Equal(t, request.Reminder, request2.Reminder)
 
-	if request.Occurrences[0] != request2.Occurrences[0] {
-		t.Fatal("Occurrences should have matched")
-	}
+	assert.Equal(t, request.Occurrences[0], request2.Occurrences[0])
 
 }
