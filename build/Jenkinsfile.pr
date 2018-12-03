@@ -15,7 +15,8 @@ pipeline {
         stage('Checkout'){
             steps {
                 cleanWs notFailBuild: true
-                abortPreviousRunningBuilds()
+                @Library('shared-pipelines')
+                def pipeline = new stopOldBuilds()
                 sh """
                     mkdir -p src/github.com/mattermost/mattermost-server
                     mkdir -p src/github.com/mattermost/mattermost-webapp
@@ -242,26 +243,4 @@ pipeline {
             cleanWs notFailBuild: true
         }
     }
-}
-
-
-def abortPreviousRunningBuilds() {
-  def hi = Hudson.instance
-  def pname = env.JOB_NAME.split('/')[0]
-
-  hi.getItem(pname).getItem(env.JOB_BASE_NAME).getBuilds().each{ build ->
-    def exec = build.getExecutor()
-
-    if (build.number != currentBuild.number && exec != null) {
-      exec.interrupt(
-        Result.ABORTED,
-        new CauseOfInterruption.UserInterruption(
-          "Aborted by #${currentBuild.number}"
-        )
-      )
-      println("Aborted previous running build #${build.number}")
-    } else {
-      println("There is no build running for this")
-    }
-  }
 }
