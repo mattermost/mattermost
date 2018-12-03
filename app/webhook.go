@@ -261,6 +261,8 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		}
 	}
 
+	mlog.Debug(model.StringInterfaceToJson(post.Props))
+
 	if len(props) > 0 {
 		for key, val := range props {
 			if key == "attachments" {
@@ -273,12 +275,15 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		}
 	}
 
+	mlog.Debug(model.StringInterfaceToJson(post.Props))
+
 	splits, err := SplitWebhookPost(post, a.MaxPostSize())
 	if err != nil {
 		return nil, err
 	}
 
 	for _, split := range splits {
+		mlog.Debug(model.StringInterfaceToJson(split.Props))
 		if _, err := a.CreatePostMissingChannel(split, false); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		}
@@ -601,13 +606,16 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 
 	req.Props["webhook_display_name"] = hook.DisplayName
 
+	mlog.Debug(req.ToJson())
 	text = a.ProcessSlackText(text)
 	req.Attachments = a.ProcessSlackAttachments(req.Attachments)
+	mlog.Debug(req.ToJson())
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props["attachments"] = req.Attachments
 		webhookType = model.POST_SLACK_ATTACHMENT
 	}
+	mlog.Debug(model.StringInterfaceToJson(req.Props))
 
 	var channel *model.Channel
 	var cchan store.StoreChannel
