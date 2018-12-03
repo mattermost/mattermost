@@ -205,7 +205,7 @@ pipeline {
                             uploadFromSlave: false,
                             useServerSideEncryption: false,
                             userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                        ], profileName: 'Releases', userMetadAta: []])
+                        ]], profileName: 'Releases', userMetadAta: []])
                     }
                 }
             }
