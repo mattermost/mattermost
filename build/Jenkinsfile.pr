@@ -1,4 +1,8 @@
 #!/usr/bin/env groovy
+
+@Library('shared-pipelines')
+def pipeline = new stopOldBuilds()
+
 pipeline {
     agent {
         label 'carlos-test'
@@ -12,11 +16,15 @@ pipeline {
     }
 
     stages {
+        stage('Stop Old Builds') {
+            steps {
+                pipeline.stopOldBuilds()
+            }
+        }
+
         stage('Checkout'){
             steps {
                 cleanWs notFailBuild: true
-                @Library('shared-pipelines')
-                def pipeline = new stopOldBuilds()
                 sh """
                     mkdir -p src/github.com/mattermost/mattermost-server
                     mkdir -p src/github.com/mattermost/mattermost-webapp
