@@ -623,28 +623,25 @@ func TestPluginAPIUpdateUserActive(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
-	err := api.UpdateUserActive(th.BasicUser.Id, true)//Activate the user
-	require.Nil(t, err)
+	err := api.UpdateUserActive(th.BasicUser.Id, true)
+	require.Nil(t, err.Id)
 
-	user,err := api.GetUser(th.BasicUser.Id)//This should not return an error and should return a user model
-	require.Nil(t, err)
+	user, err := api.GetUser(th.BasicUser.Id)
+	require.Nil(t, err.Id)
 	require.NotNil(t, user)
 
-	err = api.UpdateUserActive(th.BasicUser.Id, false)//DeActivate the user
-	require.Nil(t, err)
+	err = api.UpdateUserActive(th.BasicUser.Id, false)
+	require.Nil(t, err.Id)
 
-	_,err = api.GetUser(th.BasicUser.Id)//This should return an error
-	require.NotNil(t, err)
+	_, err = api.GetUser(th.BasicUser.Id)
+	require.NotNil(t, err.Id)
 
-	//set UpdateUserActive for an already active user
 	err = api.UpdateUserActive(th.BasicUser.Id, true)
 	err = api.UpdateUserActive(th.BasicUser.Id, true)
-	require.Nil(t, err)
+	require.Nil(t, err.Id)
 
-	user,err = api.GetUser(th.BasicUser.Id)//This should not return an error and should return a user model
-	require.Nil(t, err)
-	require.NotNil(t, user)
-
+	user, err = api.GetUser(th.BasicUser.Id)
+	require.Nil(t, err.Id)
 }
 
 func TestPluginAPIGetDirectChannel(t *testing.T) {
