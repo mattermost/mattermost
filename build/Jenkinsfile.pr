@@ -1,7 +1,12 @@
 #!/usr/bin/env groovy
+
+@Library('shared-pipelines') _
+import org.mattermost.Utils
+def utils = new org.mattermost.Utils()
+
 pipeline {
     agent {
-        label 'carlos-test'
+        label 'default-mm-builder'
     }
 
     options { buildDiscarder(logRotator(numToKeepStr: '3')) }
@@ -12,6 +17,14 @@ pipeline {
     }
 
     stages {
+        stage('Stop Old Builds') {
+            steps {
+                script {
+                    utils.stopOldBuilds()
+                }
+            }
+        }
+
         stage('Checkout'){
             steps {
                 cleanWs notFailBuild: true
