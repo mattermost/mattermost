@@ -15,13 +15,16 @@ pipeline {
         stage('Checkout'){
             steps {
                 cleanWs notFailBuild: true
-                if (env.CHANGE_ID && env.CHANGE_NAME) {
-                    sh """
-                    echo $env.CHANGE_BRANCH
-                    echo $env.CHANGE_ID
-                    exit 1
-                    """
+                script {
+                    if (env.CHANGE_ID && env.CHANGE_NAME) {
+                        sh """
+                        echo $env.CHANGE_BRANCH
+                        echo $env.CHANGE_ID
+                        exit 1
+                        """
+                    }
                 }
+                
                 sh """
                     export
                     env
