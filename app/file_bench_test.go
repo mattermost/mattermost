@@ -87,7 +87,7 @@ func BenchmarkUploadFile(b *testing.B) {
 			title: "raw-ish DoUploadFile",
 			f: func(b *testing.B, n int, data []byte, ext string) {
 				// re-Read the data for a more adequate comparison with
-				// "UploadFileTask raw"
+				// "UploadFileX raw"
 				data, _ = ioutil.ReadAll(bytes.NewReader(data))
 
 				info1, err := th.App.DoUploadFile(time.Now(), teamId, channelId,
@@ -101,13 +101,16 @@ func BenchmarkUploadFile(b *testing.B) {
 			},
 		},
 		{
-			title: "raw UploadFileTask",
+			title: "raw UploadFileX",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				task := th.App.NewUploadFileTask(teamId, channelId, userId,
+				info, aerr := th.App.UploadFileX(channelId,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
-					time.Now(), int64(len(data)), bytes.NewReader(data))
-				task.Raw = true
-				info, aerr := task.Do()
+					bytes.NewReader(data),
+					UploadFileSetTeamId(teamId),
+					UploadFileSetUserId(userId),
+					UploadFileSetTimestamp(time.Now()),
+					UploadFileSetContentLength(int64(len(data))),
+					UploadFileSetRaw())
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
@@ -131,11 +134,15 @@ func BenchmarkUploadFile(b *testing.B) {
 			},
 		},
 		{
-			title: "UploadFileTask",
+			title: "UploadFileX",
 			f: func(b *testing.B, n int, data []byte, ext string) {
-				info, aerr := th.App.NewUploadFileTask(teamId, channelId, userId,
+				info, aerr := th.App.UploadFileX(channelId,
 					fmt.Sprintf("BenchmarkUploadFileTask-%d%s", n, ext),
-					time.Now(), -1, bytes.NewReader(data)).Do()
+					bytes.NewReader(data),
+					UploadFileSetTeamId(teamId),
+					UploadFileSetUserId(userId),
+					UploadFileSetTimestamp(time.Now()),
+					UploadFileSetContentLength(-1))
 				if aerr != nil {
 					b.Fatal(aerr)
 				}

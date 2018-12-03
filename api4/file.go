@@ -238,10 +238,13 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task := c.App.NewUploadFileTask(FILE_TEAM_ID, c.Params.ChannelId, c.App.Session.UserId,
-		c.Params.Filename, timestamp, r.ContentLength, r.Body)
-	task.ClientId = r.Form.Get("client_id")
-	info, appErr := task.Do()
+	clientId := r.Form.Get("client_id")
+	info, appErr := c.App.UploadFileX(c.Params.ChannelId, c.Params.Filename, r.Body,
+		app.UploadFileSetTeamId(FILE_TEAM_ID),
+		app.UploadFileSetUserId(c.App.Session.UserId),
+		app.UploadFileSetTimestamp(timestamp),
+		app.UploadFileSetContentLength(r.ContentLength),
+		app.UploadFileSetClientId(clientId))
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -250,8 +253,8 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 	fileUploadResponse = &model.FileUploadResponse{
 		FileInfos: []*model.FileInfo{info},
 	}
-	if task.ClientId != "" {
-		fileUploadResponse.ClientIds = []string{task.ClientId}
+	if clientId != "" {
+		fileUploadResponse.ClientIds = []string{clientId}
 	}
 }
 
@@ -381,10 +384,12 @@ func uploadFileMultipart(c *Context, r *http.Request, asStream io.Reader, timest
 			clientId = clientIds[nFiles]
 		}
 
-		task := c.App.NewUploadFileTask(FILE_TEAM_ID, c.Params.ChannelId,
-			c.App.Session.UserId, filename, timestamp, -1, part)
-		task.ClientId = clientId
-		info, appErr := task.Do()
+		info, appErr := c.App.UploadFileX(c.Params.ChannelId, filename, part,
+			app.UploadFileSetTeamId(FILE_TEAM_ID),
+			app.UploadFileSetUserId(c.App.Session.UserId),
+			app.UploadFileSetTimestamp(timestamp),
+			app.UploadFileSetContentLength(-1),
+			app.UploadFileSetClientId(clientId))
 		if appErr != nil {
 			c.Err = appErr
 			return nil
@@ -467,10 +472,12 @@ func uploadFileMultipartBuffered(c *Context, mr *multipart.Reader,
 			clientId = clientIds[i]
 		}
 
-		task := c.App.NewUploadFileTask(FILE_TEAM_ID, c.Params.ChannelId,
-			c.App.Session.UserId, fileHeader.Filename, timestamp, -1, f)
-		task.ClientId = clientId
-		info, appErr := task.Do()
+		info, appErr := c.App.UploadFileX(c.Params.ChannelId, fileHeader.Filename, f,
+			app.UploadFileSetTeamId(FILE_TEAM_ID),
+			app.UploadFileSetUserId(c.App.Session.UserId),
+			app.UploadFileSetTimestamp(timestamp),
+			app.UploadFileSetContentLength(-1),
+			app.UploadFileSetClientId(clientId))
 		f.Close()
 		if appErr != nil {
 			c.Err = appErr

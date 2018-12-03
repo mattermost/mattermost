@@ -431,19 +431,49 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 	return info, err
 }
 
-// UploadFileTask encapsulates the file upload functionality. To upload a file
-// one should use App.NewUploadFileTask(), set optional parameters as needed,
-// then call its Do() method to perform the upload.
-type UploadFileTask struct {
-	//=============================================================
-	// Parameters initialized by NewUploadFileTask
+func UploadFileSetTeamId(teamId string) func(t *uploadFileTask) {
+	return func(t *uploadFileTask) {
+		t.TeamId = filepath.Base(teamId)
+	}
+}
 
-	TeamId    string
-	ChannelId string
-	UserId    string
+func UploadFileSetUserId(userId string) func(t *uploadFileTask) {
+	return func(t *uploadFileTask) {
+		t.UserId = filepath.Base(userId)
+	}
+}
 
+func UploadFileSetTimestamp(timestamp time.Time) func(t *uploadFileTask) {
+	return func(t *uploadFileTask) {
+		t.Timestamp = timestamp
+	}
+}
+
+func UploadFileSetContentLength(contentLength int64) func(t *uploadFileTask) {
+	return func(t *uploadFileTask) {
+		t.ContentLength = contentLength
+	}
+}
+
+func UploadFileSetClientId(clientId string) func(t *uploadFileTask) {
+	return func(t *uploadFileTask) {
+		t.ClientId = clientId
+	}
+}
+
+func UploadFileSetRaw() func(t *uploadFileTask) {
+	return func(t *uploadFileTask) {
+		t.Raw = true
+	}
+}
+
+type uploadFileTask struct {
 	// File name.
 	Name string
+
+	ChannelId string
+	TeamId    string
+	UserId    string
 
 	// Time stamp to use when creating the file.
 	Timestamp time.Time
@@ -453,9 +483,6 @@ type UploadFileTask struct {
 
 	// The file data stream.
 	Input io.Reader
-
-	//=============================================================
-	// Optional parameters
 
 	// An optional, client-assigned Id field.
 	ClientId string
@@ -473,7 +500,6 @@ type UploadFileTask struct {
 	teeInput     io.Reader
 	fileinfo     *model.FileInfo
 	maxFileSize  int64
-	driverName   string
 
 	// Cached image data that (may) get initialized in preprocessImage and
 	// is used in postprocessImage
@@ -487,26 +513,12 @@ type UploadFileTask struct {
 	saveToDatabase     func(*model.FileInfo) store.StoreChannel
 }
 
-func (a *App) NewUploadFileTask(teamId, channelId, userId, name string,
-	timestamp time.Time, contentLength int64,
-	input io.Reader) *UploadFileTask {
+func (t *uploadFileTask) init(a *App) {
+	t.buf = &bytes.Buffer{}
+	t.maxFileSize = *a.Config().FileSettings.MaxFileSize
+	t.limit = *a.Config().FileSettings.MaxFileSize
 
-	t := &UploadFileTask{
-		TeamId:        filepath.Base(teamId),
-		ChannelId:     filepath.Base(channelId),
-		UserId:        filepath.Base(userId),
-		Name:          filepath.Base(name),
-		Timestamp:     timestamp,
-		ContentLength: contentLength,
-		Input:         input,
-
-		buf:         &bytes.Buffer{},
-		fileinfo:    model.NewInfo(filepath.Base(name)),
-		maxFileSize: *a.Config().FileSettings.MaxFileSize,
-		limit:       *a.Config().FileSettings.MaxFileSize,
-		driverName:  *a.Config().FileSettings.DriverName,
-	}
-
+	t.fileinfo = model.NewInfo(filepath.Base(t.Name))
 	t.fileinfo.Id = model.NewId()
 	t.fileinfo.CreatorId = t.UserId
 	t.fileinfo.CreateAt = t.Timestamp.UnixNano() / int64(time.Millisecond)
@@ -534,8 +546,6 @@ func (a *App) NewUploadFileTask(teamId, channelId, userId, name string,
 	t.pluginsEnvironment = a.GetPluginsEnvironment()
 	t.writeFile = a.WriteFile
 	t.saveToDatabase = a.Srv.Store.FileInfo().Save
-
-	return t
 }
 
 // Do uploads a single file as specified in t. It applies the upload
@@ -543,15 +553,20 @@ func (a *App) NewUploadFileTask(teamId, channelId, userId, name string,
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
-func (t *UploadFileTask) Do() (*model.FileInfo, *model.AppError) {
-	var aerr *model.AppError
-	if t.buf == nil {
-		return nil, t.newAppError("api.file.upload_file.read_request.app_error",
-			"UploadFileTask.Do: uninitialized task, use NewUploadFileTask?",
-			http.StatusInternalServerError)
-	}
+func (a *App) UploadFileX(channelId, name string, input io.Reader,
+	opts ...func(*uploadFileTask)) (*model.FileInfo, *model.AppError) {
 
-	if t.driverName == "" {
+	t := &uploadFileTask{
+		ChannelId: filepath.Base(channelId),
+		Name:      filepath.Base(name),
+		Input:     input,
+	}
+	for _, o := range opts {
+		o(t)
+	}
+	t.init(a)
+
+	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error", "",
 			http.StatusNotImplemented)
 	}
@@ -561,6 +576,7 @@ func (t *UploadFileTask) Do() (*model.FileInfo, *model.AppError) {
 			http.StatusRequestEntityTooLarge)
 	}
 
+	var aerr *model.AppError
 	if !t.Raw && t.fileinfo.IsImage() {
 		aerr = t.preprocessImage()
 		if aerr != nil {
@@ -602,7 +618,7 @@ func (t *UploadFileTask) Do() (*model.FileInfo, *model.AppError) {
 	return t.fileinfo, nil
 }
 
-func (t *UploadFileTask) readAll() *model.AppError {
+func (t *uploadFileTask) readAll() *model.AppError {
 	_, err := t.buf.ReadFrom(t.limitedInput)
 	if err != nil {
 		return t.newAppError("api.file.upload_file.read_request.app_error",
@@ -620,7 +636,7 @@ func (t *UploadFileTask) readAll() *model.AppError {
 	return nil
 }
 
-func (t *UploadFileTask) runPlugins() *model.AppError {
+func (t *uploadFileTask) runPlugins() *model.AppError {
 	if t.pluginsEnvironment == nil {
 		return nil
 	}
@@ -657,7 +673,7 @@ func (t *UploadFileTask) runPlugins() *model.AppError {
 	return nil
 }
 
-func (t *UploadFileTask) preprocessImage() *model.AppError {
+func (t *uploadFileTask) preprocessImage() *model.AppError {
 	// If we fail to decode, return "as is".
 	config, _, err := image.DecodeConfig(t.newReader())
 	if err != nil {
@@ -708,7 +724,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	return nil
 }
 
-func (t *UploadFileTask) postprocessImage() {
+func (t *uploadFileTask) postprocessImage() {
 	decoded, typ := t.decoded, t.imageType
 	if decoded == nil {
 		var err error
@@ -781,7 +797,7 @@ func (t *UploadFileTask) postprocessImage() {
 	wg.Wait()
 }
 
-func (t UploadFileTask) newReader() io.Reader {
+func (t uploadFileTask) newReader() io.Reader {
 	if t.teeInput != nil {
 		return io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)
 	} else {
@@ -789,7 +805,7 @@ func (t UploadFileTask) newReader() io.Reader {
 	}
 }
 
-func (t UploadFileTask) pathPrefix() string {
+func (t uploadFileTask) pathPrefix() string {
 	return t.Timestamp.Format("20060102") +
 		"/teams/" + t.TeamId +
 		"/channels/" + t.ChannelId +
@@ -797,11 +813,11 @@ func (t UploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus int) *model.AppError {
+func (t uploadFileTask) newAppError(id string, details interface{}, httpStatus int) *model.AppError {
 	params := map[string]interface{}{
 		"Filename": t.Name,
 	}
-	return model.NewAppError("UploadFileTask", id, params, fmt.Sprintf("%v", details), httpStatus)
+	return model.NewAppError("uploadFileTask", id, params, fmt.Sprintf("%v", details), httpStatus)
 }
 
 func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
