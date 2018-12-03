@@ -6,7 +6,7 @@ def utils = new org.mattermost.Utils()
 
 pipeline {
     agent {
-        label 'carlos-test'
+        label 'default-mm-builder'
     }
 
     options { buildDiscarder(logRotator(numToKeepStr: '3')) }
