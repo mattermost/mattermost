@@ -261,6 +261,15 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 	// update the config
 	app.UpdateConfig(f)
 
+	// Verify new config
+	if err := newConfig.IsValid(); err != nil {
+		return err
+	}
+
+	if err := utils.ValidateLocales(app.Config()); err != nil {
+		return errors.New("Invalid locale configuration")
+	}
+
 	// make the changes persist
 	app.PersistConfig()
 
