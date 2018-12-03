@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
-@Library('shared-pipelines')
-def pipeline = new stopOldBuilds()
+@Library('shared-pipelines') _
+def pipeline = new org.mattermost.stopOldBuilds()
 
 pipeline {
     agent {
