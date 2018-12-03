@@ -2,7 +2,9 @@
 
 @Library('shared-pipelines') _
 import org.mattermost.Utils
+import java.util.*;
 def utils = new org.mattermost.Utils()
+def rnd = UUID.randomUUID().toString()
 
 pipeline {
     agent {
@@ -12,8 +14,7 @@ pipeline {
     options { buildDiscarder(logRotator(numToKeepStr: '3')) }
 
     environment {
-        // convert the PR-xxxx to pr-xxxx to use in docker-compose
-        DCNAME = sh(returnStdout: true, script: "echo ${env.BRANCH_NAME} | sed -e \"s/\\(.*\\)/\\L\\1/\"").trim()
+        DCNAME = rnd
     }
 
     stages {
