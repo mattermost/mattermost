@@ -157,55 +157,57 @@ pipeline {
         stage('Push to S3') {
             steps {
                 dir('src/github.com/mattermost/mattermost-server/dist') {
-                    if (env.CHANGE_ID && env.CHANGE_NAME) {
-                        step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-                            bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
-                            excludedFile: '',
-                            flatten: true,
-                            gzipFiles: false,
-                            keepForever: false,
-                            managedArtifacts: false,
-                            noUploadOnFailure: true,
-                            selectedRegion: 'us-east-1',
-                            showDirectlyInBrowser: false,
-                            sourceFile: '*.tar.gz',
-                            storageClass: 'STANDARD',
-                            uploadFromSlave: false,
-                            useServerSideEncryption: false,
-                            userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                        ], [
-                            bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_NAME}",
-                            excludedFile: '',
-                            flatten: true,
-                            gzipFiles: false,
-                            keepForever: false,
-                            managedArtifacts: false,
-                            noUploadOnFailure: true,
-                            selectedRegion: 'us-east-1',
-                            showDirectlyInBrowser: false,
-                            sourceFile: '*.tar.gz',
-                            storageClass: 'STANDARD',
-                            uploadFromSlave: false,
-                            useServerSideEncryption: false,
-                            userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                        ]], profileName: 'Releases', userMetadAta: []])
-                    } else {
-                         step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-                            bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
-                            excludedFile: '',
-                            flatten: true,
-                            gzipFiles: false,
-                            keepForever: false,
-                            managedArtifacts: false,
-                            noUploadOnFailure: true,
-                            selectedRegion: 'us-east-1',
-                            showDirectlyInBrowser: false,
-                            sourceFile: '*.tar.gz',
-                            storageClass: 'STANDARD',
-                            uploadFromSlave: false,
-                            useServerSideEncryption: false,
-                            userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                        ]], profileName: 'Releases', userMetadAta: []])
+                    script {
+                        if (env.CHANGE_ID && env.CHANGE_NAME) {
+                            step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
+                                bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
+                                excludedFile: '',
+                                flatten: true,
+                                gzipFiles: false,
+                                keepForever: false,
+                                managedArtifacts: false,
+                                noUploadOnFailure: true,
+                                selectedRegion: 'us-east-1',
+                                showDirectlyInBrowser: false,
+                                sourceFile: '*.tar.gz',
+                                storageClass: 'STANDARD',
+                                uploadFromSlave: false,
+                                useServerSideEncryption: false,
+                                userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                            ], [
+                                bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_NAME}",
+                                excludedFile: '',
+                                flatten: true,
+                                gzipFiles: false,
+                                keepForever: false,
+                                managedArtifacts: false,
+                                noUploadOnFailure: true,
+                                selectedRegion: 'us-east-1',
+                                showDirectlyInBrowser: false,
+                                sourceFile: '*.tar.gz',
+                                storageClass: 'STANDARD',
+                                uploadFromSlave: false,
+                                useServerSideEncryption: false,
+                                userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                            ]], profileName: 'Releases', userMetadAta: []])
+                        } else {
+                            step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
+                                bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
+                                excludedFile: '',
+                                flatten: true,
+                                gzipFiles: false,
+                                keepForever: false,
+                                managedArtifacts: false,
+                                noUploadOnFailure: true,
+                                selectedRegion: 'us-east-1',
+                                showDirectlyInBrowser: false,
+                                sourceFile: '*.tar.gz',
+                                storageClass: 'STANDARD',
+                                uploadFromSlave: false,
+                                useServerSideEncryption: false,
+                                userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                            ]], profileName: 'Releases', userMetadAta: []])
+                        }
                     }
                 }
             }
