@@ -135,6 +135,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+	mlog.Debug(model.StringInterfaceToJson(post.Props))
 	if err := a.FillInPostProps(post, channel); err != nil {
 		return nil, err
 	}
@@ -159,6 +160,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
+	mlog.Debug(model.StringInterfaceToJson(post.Props))
 	result = <-a.Srv.Store.Post().Save(post)
 	if result.Err != nil {
 		return nil, result.Err
