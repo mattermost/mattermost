@@ -10,8 +10,8 @@ pipeline {
         // convert the PR-xxxx to pr-xxxx to use in docker-compose
         DCNAME = sh(returnStdout: true, script: "echo ${env.BRANCH_NAME} | sed -e \"s/\\(.*\\)/\\L\\1/\"").trim()
         // the CHANGE_BRANCH/CHANGE_ID does not exist when is building from a branch
-        GIT_CHANGE_ID = sh(returnStdout: true, script: "if [ -z \"${env.CHANGE_ID}\" ];then echo ${env.GIT_BRANCH};else  echo ${env.CHANGE_ID};fi").trim()
-        GIT_CHANGE_NAME = sh(returnStdout: true, script: "if [ -z \"${env.CHANGE_BRANCH}\" ];then echo ${env.GIT_BRANCH};else  echo ${env.CHANGE_BRANCH};fi").trim()
+        GIT_CHANGE_ID = sh(returnStdout: true, script: "/bin/bash if [ \"${env.CHANGE_ID}\" -eq \"null\" ];then echo ${env.GIT_BRANCH};else echo ${env.CHANGE_ID};fi;").trim()
+        GIT_CHANGE_NAME = sh(returnStdout: true, script: "/bin/bash if [ \"${env.CHANGE_BRANCH}\" -eq \"null\" ];then echo ${env.GIT_BRANCH};else echo ${env.CHANGE_BRANCH};fi;").trim()
     }
 
     stages {
