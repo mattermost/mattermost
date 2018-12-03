@@ -1,8 +1,8 @@
 #!/usr/bin/env groovy
 
 @Library('shared-pipelines') _
-import org.mattermost.Utils
-def pipeline = new stopOldBuilds()
+import org.mattermost.*
+def purge = new org.mattermost.Utils()
 
 pipeline {
     agent {
@@ -19,7 +19,7 @@ pipeline {
     stages {
         stage('Stop Old Builds') {
             steps {
-                pipeline.stopOldBuilds()
+                purge.stopOldBuilds()
             }
         }
 
