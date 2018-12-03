@@ -7,7 +7,12 @@ pipeline {
     options { buildDiscarder(logRotator(numToKeepStr: '3')) }
 
     environment {
+        // convert the PR-xxxx to pr-xxxx to use in docker-compose
         DCNAME = sh(returnStdout: true, script: "echo ${env.BRANCH_NAME} | sed -e \"s/\\(.*\\)/\\L\\1/\"").trim()
+        // when Pr get the CHANGE_BRANCH which is the name of the branch if is a branch get the name of the branch
+        // the CHANGE_BRANCH does not exist when is building from a branch
+        GIT_BRANCH_NAME = sh(returnStdout: true, script: "echo ${env.CHANGE_ID} || echo ${env.GIT_BRANCH}").trim()
+        GIT_CHANGE_NAME = sh(returnStdout: true, script: "echo ${env.CHANGE_BRANCH} || echo ${env.GIT_BRANCH}").trim()
     }
 
     stages {
@@ -77,9 +82,9 @@ pipeline {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
                             mv config/default.json config/config.json || echo ""
-                            make check-style BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
-                            make build BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
-                            make package BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
+                            make check-style BUILD_NUMBER='${GIT_CHANGE_NAME}-${BUILD_NUMBER}' || exit 1
+                            make build BUILD_NUMBER='${GIT_CHANGE_NAME}-${BUILD_NUMBER}' || exit 1
+                            make package BUILD_NUMBER='${GIT_CHANGE_NAME}-${BUILD_NUMBER}' || exit 1
                         """
                     }
                 }
@@ -139,7 +144,7 @@ pipeline {
 
                             cat config/config.json
 
-                            make test-server BUILD_NUMBER='${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
+                            make test-server BUILD_NUMBER='${GIT_CHANGE_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
                         """
                     }
                 }
@@ -150,7 +155,7 @@ pipeline {
             steps {
                 dir('src/github.com/mattermost/mattermost-server/dist') {
                     step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-                        bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
+                        bucket: "releases.mattermost.com/mattermost-platform-pr/${GIT_CHANGE_NAME}",
                         excludedFile: '',
                         flatten: true,
                         gzipFiles: false,
@@ -165,7 +170,7 @@ pipeline {
                         useServerSideEncryption: false,
                         userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
                     ], [
-                        bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_BRANCH}",
+                        bucket: "releases.mattermost.com/mattermost-platform-pr/${GIT_BRANCH_NAME}",
                         excludedFile: '',
                         flatten: true,
                         gzipFiles: false,
