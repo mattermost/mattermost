@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 @Library('shared-pipelines') _
-import org.mattermost.*
+import org.mattermost.Utils
 def utils = new org.mattermost.Utils()
 
 pipeline {
