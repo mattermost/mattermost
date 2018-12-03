@@ -15,9 +15,12 @@ const (
 	defaultMysqlPort        = "3307"
 	defaultPostgresHostname = "dockerhost"
 	defaultPostgresPort     = "5433"
-	defaultUsername         = "mmuser"
-	defaultPassword         = "mostest"
-	defaultName             = "mattermost_unittest"
+	defaultMysqlUsername    = "mmuser"
+	defaultMysqlPassword    = "mostest"
+	defaultMysqlDBName      = "mattermost_unittest"
+	defaultPostgresUsername = "mmuser"
+	defaultPostgresPassword = "mostest"
+	defaultPostgresDBName   = "mattermost_unittest"
 )
 
 func getEnv(name, defaultValue string) string {
@@ -32,9 +35,9 @@ func getEnv(name, defaultValue string) string {
 func MySQLSettings() *model.SqlSettings {
 	hostname := getEnv("TEST_DATABASE_MYSQL_HOSTNAME", defaultMysqlHostname)
 	port := getEnv("TEST_DATABASE_MYSQL_PORT", defaultMysqlPort)
-	username := getEnv("TEST_DATABASE_USERNAME", defaultUsername)
-	password := getEnv("TEST_DATABASE_PASSWORD", defaultPassword)
-	name := getEnv("TEST_DATABASE_NAME", defaultName)
+	username := getEnv("TEST_DATABASE_MYSQL_USERNAME", defaultMysqlUsername)
+	password := getEnv("TEST_DATABASE_MYSQL_PASSWORD", defaultMysqlPassword)
+	name := getEnv("TEST_DATABASE_MYSQL_NAME", defaultMysqlDBName)
 
 	return databaseSettings(
 		"mysql",
@@ -46,9 +49,9 @@ func MySQLSettings() *model.SqlSettings {
 func PostgreSQLSettings() *model.SqlSettings {
 	hostname := getEnv("TEST_DATABASE_POSTGRES_HOSTNAME", defaultPostgresHostname)
 	port := getEnv("TEST_DATABASE_POSTGRES_PORT", defaultPostgresPort)
-	username := getEnv("TEST_DATABASE_USERNAME", defaultUsername)
-	password := getEnv("TEST_DATABASE_PASSWORD", defaultPassword)
-	name := getEnv("TEST_DATABASE_NAME", defaultName)
+	username := getEnv("TEST_DATABASE_POSTGRES_USERNAME", defaultPostgresUsername)
+	password := getEnv("TEST_DATABASE_POSTGRES_PASSWORD", defaultPostgresPassword)
+	name := getEnv("TEST_DATABASE_POSTGRES_NAME", defaultPostgresDBName)
 
 	return databaseSettings(
 		"postgres",
