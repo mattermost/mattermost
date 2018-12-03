@@ -321,7 +321,7 @@
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Es ist ein Fehler beim Versenden der E-Mail-Einladung(en) aufgetreten"
+    "translation": "Ein Fehler ist beim Versenden der E-Mail-Einladung(en) aufgetreten"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -1098,19 +1098,19 @@
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
-    "translation": "Ein Fehler während des Lesens vom lokalen Server-Speicher ist aufgetreten."
+    "translation": "Ein Fehler ist während des Lesens vom lokalen Server-Speicher ist aufgetreten."
   },
   {
     "id": "api.file.read_file.s3.app_error",
-    "translation": "Ein Fehler während des Lesens vom S3-Speicher ist aufgetreten."
+    "translation": "Ein Fehler ist während des Lesens vom S3-Speicher aufgetreten."
   },
   {
     "id": "api.file.reader.reading_local.app_error",
-    "translation": "Ein Fehler ist während des Anzeigens des Verzeichnisses vom lokalen Server-Speicher ist aufgetreten."
+    "translation": "Ein Fehler ist während des Anzeigens des Verzeichnisses vom lokalen Server-Speicher aufgetreten."
   },
   {
     "id": "api.file.reader.s3.app_error",
-    "translation": "Ein Fehler während des Lesens vom S3-Speicher ist aufgetreten."
+    "translation": "Ein Fehler ist während des Lesens vom S3-Speicher aufgetreten."
   },
   {
     "id": "api.file.test_connection.local.connection.app_error",
@@ -1150,15 +1150,15 @@
   },
   {
     "id": "api.file.write_file.s3.app_error",
-    "translation": "Beim Schreiben zu S3 ist ein Fehler aufgetreten."
+    "translation": "Ein Fehler ist beim Schreiben zu S3 Fehler aufgetreten."
   },
   {
     "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Ein Fehler ist beim Erstellen des Verzeichnisses für die neue Datei aufgetreten"
+    "translation": "Ein Fehler ist beim Erstellen des Verzeichnisses für die neue Datei aufgetreten."
   },
   {
     "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Es ist Fehler ist beim Schreiben auf den lokalen Server aufgetreten."
+    "translation": "Ein Fehler ist beim Schreiben auf den lokalen Server aufgetreten."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1246,19 +1246,19 @@
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
-    "translation": "server_error: Es trat ein interner Serverfehler beim Zugriff auf die Datenbank auf"
+    "translation": "server_error: Ein interner Serverfehler ist beim Zugriff auf die Datenbank aufgetreten."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": "server_error: Es trat ein interner Serverfehler während des Speicherns des Zugriffstokens in die Datenbank auf"
+    "translation": "server_error: Ein interner Serverfehler ist während des Speicherns des Zugriffstokens in die Datenbank aufgetreten."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error: Es trat ein interner Serverfehler während des Speicherns der Sitzung in die Datenbank auf"
+    "translation": "server_error: Ein interner Serverfehler ist während des Speicherns der Sitzung in die Datenbank aufgetreten."
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error: Es trat ein interner Serverfehler während des Ladens des Benutzers von der Datenbank auf"
+    "translation": "server_error: Ein interner Serverfehler ist während des Ladens des Benutzers von der Datenbank aufgetreten."
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
@@ -3088,11 +3088,11 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Es trat ein Fehler beim Extrahieren des Plugins auf"
+    "translation": "Ein Fehler ist beim Extrahieren des Plugins aufgetreten."
   },
   {
     "id": "app.plugin.filesystem.app_error",
-    "translation": "Es ist ein Dateisystemfehler aufgetreten"
+    "translation": "Ein Dateisystemfehler ist aufgetreten."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3152,7 +3152,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Encountered an error encoding JSON for the interactive dialog."
+    "translation": "Ein Fehler ist beim Kodieren von JSON für den interaktiven Dialog aufgetreten."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -5932,7 +5932,7 @@
   },
   {
     "id": "store.sql_status.get.app_error",
-    "translation": "Es trat ein Fehler beim Abruf des Status auf"
+    "translation": "Ein Fehler ist beim Abruf des Status aufgetreten."
   },
   {
     "id": "store.sql_status.get.missing.app_error",
@@ -5940,15 +5940,15 @@
   },
   {
     "id": "store.sql_status.get_online.app_error",
-    "translation": "Es ist ein Fehler beim Abruf aller Online Status aufgetreten"
+    "translation": "Ein Fehler ist beim Abruf aller Online Status aufgetreten."
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Es ist ein Fehler beim Abruf aller Online/Abwesend Status aufgetreten"
+    "translation": "Ein Fehler ist beim Abruf aller Online/Abwesend Status aufgetreten."
   },
   {
     "id": "store.sql_status.get_team_statuses.app_error",
-    "translation": "Es trat ein Fehler beim Abruf aller Status der Teammitglieder auf"
+    "translation": "Ein Fehler ist beim Abruf aller Status der Teammitglieder auf."
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
@@ -5956,15 +5956,15 @@
   },
   {
     "id": "store.sql_status.reset_all.app_error",
-    "translation": "Es ist ein Fehler beim Zurücksetzen aller Status aufgetreten"
+    "translation": "Ein Fehler ist beim Zurücksetzen aller Status aufgetreten."
   },
   {
     "id": "store.sql_status.save.app_error",
-    "translation": "Es ist ein Fehler beim Speichern der Status aufgetreten"
+    "translation": "Ein Fehler ist beim Speichern der Status aufgetreten."
   },
   {
     "id": "store.sql_status.update.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren des Status auf"
+    "translation": "Ein Fehler ist beim Aktualisieren des Status auf."
   },
   {
     "id": "store.sql_status.update_last_activity_at.app_error",
@@ -6552,23 +6552,23 @@
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Fehler beim Auflisten des Verzeichnisses von S3."
+    "translation": "Ein Fehler ist beim Auflisten des Verzeichnisses von S3 aufgetreten."
   },
   {
     "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Ein Fehler ist während des Löschens des Verzeichnisses vom lokalen Server ist aufgetreten."
+    "translation": "Ein Fehler ist während des Löschens des Verzeichnisses vom lokalen Server aufgetreten."
   },
   {
     "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Fehler beim Entfernen des Verzeichnisses von S3."
+    "translation": "Ein Fehler ist beim Entfernen des Verzeichnisses von S3 aufgetreten."
   },
   {
     "id": "utils.file.remove_file.local.app_error",
-    "translation": "Ein Fehler ist während des Löschens der Datei vom lokalen Server aufgetreten"
+    "translation": "Ein Fehler ist während des Löschens der Datei vom lokalen Server aufgetreten."
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Fehler beim Entfernen der Datei von S3."
+    "translation": "Ein Fehler ist beim Entfernen der Datei von S3 aufgetreten."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
