@@ -9,15 +9,19 @@ pipeline {
     environment {
         // convert the PR-xxxx to pr-xxxx to use in docker-compose
         DCNAME = sh(returnStdout: true, script: "echo ${env.BRANCH_NAME} | sed -e \"s/\\(.*\\)/\\L\\1/\"").trim()
-        // the CHANGE_BRANCH/CHANGE_ID does not exist when is building from a branch
-        GIT_CHANGE_ID = sh(returnStdout: true, script: "/bin/bash if [ \"${env.CHANGE_ID}\" -eq \"null\" ];then echo ${env.GIT_BRANCH};else echo ${env.CHANGE_ID};fi;").trim()
-        GIT_CHANGE_NAME = sh(returnStdout: true, script: "/bin/bash if [ \"${env.CHANGE_BRANCH}\" -eq \"null\" ];then echo ${env.GIT_BRANCH};else echo ${env.CHANGE_BRANCH};fi;").trim()
     }
 
     stages {
         stage('Checkout'){
             steps {
                 cleanWs notFailBuild: true
+                if (env.CHANGE_ID && env.CHANGE_NAME) {
+                    sh """
+                    echo $env.CHANGE_BRANCH
+                    echo $env.CHANGE_ID
+                    exit 1
+                    """
+                }
                 sh """
                     export
                     env
@@ -81,9 +85,9 @@ pipeline {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
                             mv config/default.json config/config.json || echo ""
-                            make check-style BUILD_NUMBER='${GIT_CHANGE_NAME}-${BUILD_NUMBER}' || exit 1
-                            make build BUILD_NUMBER='${GIT_CHANGE_NAME}-${BUILD_NUMBER}' || exit 1
-                            make package BUILD_NUMBER='${GIT_CHANGE_NAME}-${BUILD_NUMBER}' || exit 1
+                            make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
+                            make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
+                            make package BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
                         """
                     }
                 }
@@ -143,7 +147,7 @@ pipeline {
 
                             cat config/config.json
 
-                            make test-server BUILD_NUMBER='${GIT_CHANGE_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
+                            make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
                         """
                     }
                 }
@@ -153,37 +157,56 @@ pipeline {
         stage('Push to S3') {
             steps {
                 dir('src/github.com/mattermost/mattermost-server/dist') {
-                    step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-                        bucket: "releases.mattermost.com/mattermost-platform-pr/${GIT_CHANGE_ID}",
-                        excludedFile: '',
-                        flatten: true,
-                        gzipFiles: false,
-                        keepForever: false,
-                        managedArtifacts: false,
-                        noUploadOnFailure: true,
-                        selectedRegion: 'us-east-1',
-                        showDirectlyInBrowser: false,
-                        sourceFile: '*.tar.gz',
-                        storageClass: 'STANDARD',
-                        uploadFromSlave: false,
-                        useServerSideEncryption: false,
-                        userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                    ], [
-                        bucket: "releases.mattermost.com/mattermost-platform-pr/${GIT_CHANGE_NAME}",
-                        excludedFile: '',
-                        flatten: true,
-                        gzipFiles: false,
-                        keepForever: false,
-                        managedArtifacts: false,
-                        noUploadOnFailure: true,
-                        selectedRegion: 'us-east-1',
-                        showDirectlyInBrowser: false,
-                        sourceFile: '*.tar.gz',
-                        storageClass: 'STANDARD',
-                        uploadFromSlave: false,
-                        useServerSideEncryption: false,
-                        userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                    ]], profileName: 'Releases', userMetadAta: []])
+                    if (env.CHANGE_ID && env.CHANGE_NAME) {
+                        step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
+                            bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
+                            excludedFile: '',
+                            flatten: true,
+                            gzipFiles: false,
+                            keepForever: false,
+                            managedArtifacts: false,
+                            noUploadOnFailure: true,
+                            selectedRegion: 'us-east-1',
+                            showDirectlyInBrowser: false,
+                            sourceFile: '*.tar.gz',
+                            storageClass: 'STANDARD',
+                            uploadFromSlave: false,
+                            useServerSideEncryption: false,
+                            userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                        ], [
+                            bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_NAME}",
+                            excludedFile: '',
+                            flatten: true,
+                            gzipFiles: false,
+                            keepForever: false,
+                            managedArtifacts: false,
+                            noUploadOnFailure: true,
+                            selectedRegion: 'us-east-1',
+                            showDirectlyInBrowser: false,
+                            sourceFile: '*.tar.gz',
+                            storageClass: 'STANDARD',
+                            uploadFromSlave: false,
+                            useServerSideEncryption: false,
+                            userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                        ]], profileName: 'Releases', userMetadAta: []])
+                    } else {
+                         step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
+                            bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
+                            excludedFile: '',
+                            flatten: true,
+                            gzipFiles: false,
+                            keepForever: false,
+                            managedArtifacts: false,
+                            noUploadOnFailure: true,
+                            selectedRegion: 'us-east-1',
+                            showDirectlyInBrowser: false,
+                            sourceFile: '*.tar.gz',
+                            storageClass: 'STANDARD',
+                            uploadFromSlave: false,
+                            useServerSideEncryption: false,
+                            userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                        ], profileName: 'Releases', userMetadAta: []])
+                    }
                 }
             }
         }
