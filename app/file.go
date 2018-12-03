@@ -548,7 +548,7 @@ func (t *uploadFileTask) init(a *App) {
 	t.saveToDatabase = a.Srv.Store.FileInfo().Save
 }
 
-// Do uploads a single file as specified in t. It applies the upload
+// UploadFileX uploads a single file as specified in t. It applies the upload
 // constraints, executes plugins and image processing logic as needed. It
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
@@ -567,13 +567,12 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	t.init(a)
 
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return nil, t.newAppError("api.file.upload_file.storage.app_error", "",
-			http.StatusNotImplemented)
+		return nil, t.newAppError("api.file.upload_file.storage.app_error",
+			"", http.StatusNotImplemented)
 	}
 	if t.ContentLength > t.maxFileSize {
-		return nil, t.newAppError("api.file.upload_file.too_large.app_error",
-			fmt.Sprintf("Content-Length: %v, MaxFileSize:%v", t.ContentLength, t.maxFileSize),
-			http.StatusRequestEntityTooLarge)
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
+			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
 	var aerr *model.AppError
@@ -605,7 +604,8 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		}()
 	}
 
-	if _, aerr := t.writeFile(t.newReader(), t.fileinfo.Path); aerr != nil {
+	_, aerr = t.writeFile(t.newReader(), t.fileinfo.Path)
+	if aerr != nil {
 		return nil, aerr
 	}
 
@@ -622,12 +622,11 @@ func (t *uploadFileTask) readAll() *model.AppError {
 	_, err := t.buf.ReadFrom(t.limitedInput)
 	if err != nil {
 		return t.newAppError("api.file.upload_file.read_request.app_error",
-			err.Error(), http.StatusInternalServerError)
+			err.Error(), http.StatusBadRequest)
 	}
 	if int64(t.buf.Len()) > t.limit {
-		return t.newAppError("api.file.upload_file.too_large.app_error",
-			fmt.Sprintf("read: %v, limit:%v", t.buf.Len(), t.limit),
-			http.StatusRequestEntityTooLarge)
+		return t.newAppError("api.file.upload_file.too_large_detailed.app_error",
+			"", http.StatusRequestEntityTooLarge, "Length", t.buf.Len(), "Limit", t.limit)
 	}
 	t.fileinfo.Size = int64(t.buf.Len())
 
@@ -685,9 +684,8 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 
 	// Check dimensions before loading the whole thing into memory later on.
 	if t.fileinfo.Width*t.fileinfo.Height > MaxImageSize {
-		return t.newAppError("api.file.upload_file.large_image.app_error",
-			fmt.Sprintf("width:%v, height:%v", t.fileinfo.Width, t.fileinfo.Height),
-			http.StatusBadRequest)
+		return t.newAppError("api.file.upload_file.large_image_detailed.app_error",
+			"", http.StatusBadRequest)
 	}
 	t.fileinfo.HasPreviewImage = true
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
@@ -813,10 +811,24 @@ func (t uploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t uploadFileTask) newAppError(id string, details interface{}, httpStatus int) *model.AppError {
+func (t uploadFileTask) newAppError(id string, details interface{}, httpStatus int, extra ...interface{}) *model.AppError {
 	params := map[string]interface{}{
-		"Filename": t.Name,
+		"Name":          t.Name,
+		"Filename":      t.Name,
+		"ChannelId":     t.ChannelId,
+		"TeamId":        t.TeamId,
+		"UserId":        t.UserId,
+		"ContentLength": t.ContentLength,
+		"ClientId":      t.ClientId,
 	}
+	if t.fileinfo != nil {
+		params["Width"] = t.fileinfo.Width
+		params["Height"] = t.fileinfo.Height
+	}
+	for i := 0; i+1 < len(extra); i += 2 {
+		params[fmt.Sprintf("%v", extra[i])] = extra[i+1]
+	}
+
 	return model.NewAppError("uploadFileTask", id, params, fmt.Sprintf("%v", details), httpStatus)
 }
 
