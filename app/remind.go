@@ -218,28 +218,6 @@ func (a *App) triggerReminders() {
 					UserId:        remindUser.Id,
 					Message:       T("app.reminder.message", messageParameters),
 					Props:         model.StringInterface{},
-
-					//Props: model.StringInterface{
-					//	"attachments": []*model.SlackAttachment{
-					//		{
-					//			Text: "hello",
-					//			Actions: []*model.PostAction{
-					//				{
-					//					Integration: &model.PostActionIntegration{
-					//						Context: model.StringInterface{
-					//							"s": "foo",
-					//							"n": 3,
-					//						},
-					//						URL: ts.URL,
-					//					},
-					//					Name:       "action",
-					//					Type:       "some_type",
-					//					DataSource: "some_source",
-					//				},
-					//			},
-					//		},
-					//	},
-					//},
 				}
 
 				if _, pErr := a.CreatePostAsUser(&interactivePost, false); pErr != nil {
@@ -847,12 +825,28 @@ func (a *App) createOccurrences(request *model.ReminderRequest) error {
 
 func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.Time) error {
 
+	_, _, _, T := a.shared(request.UserId)
+
 	for _, o := range occurrences {
 
 		repeat := ""
 
 		if a.isRepeating(request) {
 			repeat = request.Reminder.When
+			if strings.HasPrefix(request.Reminder.Target, "@") &&
+				request.Reminder.Target != T("app.reminder.me") {
+
+				rUser, _ := a.GetUser(request.UserId)
+
+				if tUser, tErr := a.GetUserByUsername(request.Reminder.Target[1:]); tErr != nil {
+					return tErr
+				} else {
+					if rUser.Id != tUser.Id {
+						return errors.New("repeating reminders for another user not permitted")
+					}
+				}
+
+			}
 		}
 
 		occurrence := &model.Occurrence{
