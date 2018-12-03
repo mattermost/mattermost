@@ -1977,6 +1977,35 @@ func (s *apiRPCServer) SearchChannels(args *Z_SearchChannelsArgs, returns *Z_Sea
 	return nil
 }
 
+type Z_SearchUsersArgs struct {
+	A *model.UserSearch
+}
+
+type Z_SearchUsersReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
+	_args := &Z_SearchUsersArgs{search}
+	_returns := &Z_SearchUsersReturns{}
+	if err := g.client.Call("Plugin.SearchUsers", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchUsers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchUsers(args *Z_SearchUsersArgs, returns *Z_SearchUsersReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchUsers(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SearchUsers called but not implemented."))
+	}
+	return nil
+}
+
 type Z_AddChannelMemberArgs struct {
 	A string
 	B string
