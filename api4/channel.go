@@ -97,13 +97,12 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var oldChannel *model.Channel
-	if originalOldChannel, err := c.App.GetChannel(channel.Id); err != nil {
+	originalOldChannel, err := c.App.GetChannel(channel.Id)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		oldChannel = originalOldChannel.DeepCopy()
 	}
+	oldChannel := originalOldChannel.DeepCopy()
 
 	switch oldChannel.Type {
 	case model.CHANNEL_OPEN:
@@ -201,8 +200,8 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var user *model.User
-	if user, err = c.App.GetUser(c.App.Session.UserId); err != nil {
+	user, err := c.App.GetUser(c.App.Session.UserId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -231,13 +230,12 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var oldChannel *model.Channel
-	if originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId); err != nil {
+	originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		oldChannel = originalOldChannel.DeepCopy()
 	}
+	oldChannel := originalOldChannel.DeepCopy()
 
 	switch oldChannel.Type {
 	case model.CHANNEL_OPEN:
@@ -286,9 +284,8 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var channel *model.Channel
-	var err *model.AppError
-	if channel, err = c.App.GetChannel(c.Params.ChannelId); err != nil {
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -457,7 +454,6 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	memberCount, err := c.App.GetChannelMemberCount(c.Params.ChannelId)
-
 	if err != nil {
 		c.Err = err
 		return
@@ -703,9 +699,8 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var channel *model.Channel
-	var err *model.AppError
-	if channel, err = c.App.GetChannel(c.Params.ChannelId); err != nil {
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -742,12 +737,10 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var channel *model.Channel
-	var err *model.AppError
-
 	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 
-	if channel, err = c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted); err != nil {
+	channel, err := c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -779,12 +772,10 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var channel *model.Channel
-	var err *model.AppError
-
 	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 
-	if channel, err = c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted); err != nil {
+	channel, err := c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -932,7 +923,6 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	times, err := c.App.ViewChannel(view, c.Params.UserId, !c.App.Session.IsMobileApp())
-
 	if err != nil {
 		c.Err = err
 		return
@@ -1064,8 +1054,8 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var channel *model.Channel
-	if channel, err = c.App.GetChannel(member.ChannelId); err != nil {
+	channel, err := c.App.GetChannel(member.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -1112,9 +1102,8 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var channel *model.Channel
-	var err *model.AppError
-	if channel, err = c.App.GetChannel(c.Params.ChannelId); err != nil {
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
 	}
