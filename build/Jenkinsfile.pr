@@ -256,5 +256,12 @@ pipeline {
         cleanup {
             cleanWs notFailBuild: true
         }
+        success {
+            githubNotify credentialsId: '310159d3-f7c5-4f5d-bfa1-151e3ef2db57', context: 'build.mattermost.com', description: 'Successful Build',  status: 'SUCCESS'
+        }
+
+        failure {
+            githubNotify credentialsId: '310159d3-f7c5-4f5d-bfa1-151e3ef2db57', context: 'build.mattermost.com', description: 'Successful Build',  status: 'FAILED'
+        }
     }
 }
