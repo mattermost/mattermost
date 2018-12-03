@@ -7,6 +7,7 @@ pipeline {
     options { buildDiscarder(logRotator(numToKeepStr: '3')) }
 
     environment {
+        // convert the PR-xxxx to pr-xxxx to use in docker-compose
         DCNAME = sh(returnStdout: true, script: "echo ${env.BRANCH_NAME} | sed -e \"s/\\(.*\\)/\\L\\1/\"").trim()
     }
 
@@ -74,9 +75,9 @@ pipeline {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
                             mv config/default.json config/config.json || echo ""
-                            make check-style BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
-                            make build BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
-                            make package BUILD_NUMBER='${BUILD_NUMBER}' || exit 1
+                            make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
+                            make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
+                            make package BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
                         """
                     }
                 }
@@ -136,14 +137,20 @@ pipeline {
 
                             cat config/config.json
 
-                            make test-server BUILD_NUMBER='${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
+                            make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
                         """
                     }
                 }
             }
         }
 
-        stage('Push to S3') {
+        stage('Push to S3 - PR') {
+            when {
+                allOf {
+                    expression { env.CHANGE_ID != null }
+                    expression { env.CHANGE_TARGET != null }
+                }
+            }
             steps {
                 dir('src/github.com/mattermost/mattermost-server/dist') {
                     step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
@@ -181,7 +188,36 @@ pipeline {
             }
         }
 
+        stage('Push to S3 - BRANCH') {
+            when {
+                expression { env.CHANGE_ID == null }
+            }
+            steps {
+                dir('src/github.com/mattermost/mattermost-server/dist') {
+                    step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
+                        bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
+                        excludedFile: '',
+                        flatten: true,
+                        gzipFiles: false,
+                        keepForever: false,
+                        managedArtifacts: false,
+                        noUploadOnFailure: true,
+                        selectedRegion: 'us-east-1',
+                        showDirectlyInBrowser: false,
+                        sourceFile: '*.tar.gz',
+                        storageClass: 'STANDARD',
+                        uploadFromSlave: false,
+                        useServerSideEncryption: false,
+                        userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                    ]], profileName: 'Releases', userMetadAta: []])
+                }
+            }
+        }
+
         stage('Trigger docker build') {
+            when {
+                expression { env.CHANGE_ID != null }
+            }
             steps {
                 build job: '../../mk/mattermost-enterprise-edition-release', parameters: [string(name: 'RELEASE', value: "${CHANGE_ID}"), booleanParam(name: 'FROM_PR', value: true)], propagate: false, wait: false
             }
