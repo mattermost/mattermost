@@ -1,4 +1,5 @@
-DEPS = $(go list -f '{{range .Imports}}{{.}} {{end}}' ./...)
+DEPS := $(shell go list -f '{{range .Imports}}{{.}} {{end}}' ./...)
+
 test: subnet
 	go test ./...
 
@@ -13,7 +14,7 @@ cov:
 	open /tmp/coverage.html
 
 deps:
-	go get -d -v ./...
+	go get -t -d -v ./...
 	echo $(DEPS) | xargs -n1 go get -d
 
 .PHONY: test cov integ
