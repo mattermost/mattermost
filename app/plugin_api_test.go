@@ -624,24 +624,25 @@ func TestPluginAPIUpdateUserActive(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 	err := api.UpdateUserActive(th.BasicUser.Id, true)
-	require.Nil(t, err.Id)
+	require.Nil(t, err)
 
 	user, err := api.GetUser(th.BasicUser.Id)
-	require.Nil(t, err.Id)
+	require.Nil(t, err)
 	require.NotNil(t, user)
 
 	err = api.UpdateUserActive(th.BasicUser.Id, false)
-	require.Nil(t, err.Id)
+	require.Nil(t, err)
 
 	_, err = api.GetUser(th.BasicUser.Id)
-	require.NotNil(t, err.Id)
+	require.NotNil(t, err)
+	require.Equal(t, "someerror", err.Id)
 
 	err = api.UpdateUserActive(th.BasicUser.Id, true)
 	err = api.UpdateUserActive(th.BasicUser.Id, true)
-	require.Nil(t, err.Id)
+	require.Nil(t, err)
 
 	user, err = api.GetUser(th.BasicUser.Id)
-	require.Nil(t, err.Id)
+	require.Nil(t, err)
 }
 
 func TestPluginAPIGetDirectChannel(t *testing.T) {
