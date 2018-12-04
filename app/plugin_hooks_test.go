@@ -892,7 +892,7 @@ func TestHookContext(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	// We don't actually have a session, we are faking it so just set somthing arbitrarally
+	// We don't actually have a session, we are faking it so just set something arbitrarily
 	th.App.Session.Id = model.NewId()
 	th.App.RequestId = model.NewId()
 	th.App.IpAddress = model.NewId()
