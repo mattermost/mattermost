@@ -49,7 +49,7 @@ var CommandDeleteCmd = &cobra.Command{
 	Short:   "Delete a slash command",
 	Long:    `Delete a slash command. Commands can be specified by command ID.`,
 	Example: `  command delete commandID`,
-	Args:    cobra.MinimumNArgs(1),
+	Args:    cobra.ExactArgs(1),
 	RunE:    deleteCommandCmdF,
 }
 
@@ -141,9 +141,9 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if _, err := a.CreateCommand(newCommand); err != nil {
-		return errors.New("unable to create command '" + newCommand.Trigger + "'. " + err.Error())
+		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + err.Error())
 	}
-	CommandPrettyPrintln("created command '" + newCommand.Trigger + "'")
+	CommandPrettyPrintln("created command '" + newCommand.DisplayName + "'")
 
 	return nil
 }
@@ -165,16 +165,15 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	commands := getCommandsFromCommandArgs(a, args[1:])
-	CommandPrintErrorln(commands)
 	for i, command := range commands {
 		if command == nil {
 			CommandPrintErrorln("Unable to find command '" + args[i+1] + "'")
 			continue
 		}
 		if err := moveCommand(a, team, command); err != nil {
-			CommandPrintErrorln("Unable to move command '" + command.Trigger + "' error: " + err.Error())
+			CommandPrintErrorln("Unable to move command '" + command.DisplayName + "' error: " + err.Error())
 		} else {
-			CommandPrettyPrintln("Moved command '" + command.Trigger + "'")
+			CommandPrettyPrintln("Moved command '" + command.DisplayName + "'")
 		}
 	}
 
@@ -229,13 +228,15 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	commandID := args[0]
-
-	deleteErr := a.DeleteCommand(commandID)
-	if deleteErr != nil {
-		CommandPrintErrorln("Unable to delete command '" + commandID + "' error: " + deleteErr.Error())
-		return deleteErr
+	slashCommand := getCommandFromCommandArg(a, args[0])
+	if slashCommand == nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to find command '" + args[0] + "'")
 	}
-	CommandPrettyPrintln("Deleted command '" + commandID + "'")
+	if err := a.DeleteCommand(slashCommand.Id); err != nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to delete command '" + slashCommand.Id + "' error: " + err.Error())
+	}
+	CommandPrettyPrintln("Deleted command '" + slashCommand.Id + "' (" + slashCommand.DisplayName + ")")
 	return nil
 }
