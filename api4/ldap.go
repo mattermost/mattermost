@@ -139,6 +139,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			newOrUpdatedGroup = group
 		} else {
 			group.DeleteAt = 0
+			group.DisplayName = ldapGroup.DisplayName
 			newOrUpdatedGroup, err = c.App.UpdateGroup(group)
 			if err != nil {
 				c.Err = err
