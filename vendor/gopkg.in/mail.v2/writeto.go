@@ -1,4 +1,4 @@
-package gomail
+package mail
 
 import (
 	"encoding/base64"
@@ -7,6 +7,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -18,8 +19,8 @@ func (m *Message) WriteTo(w io.Writer) (int64, error) {
 }
 
 func (w *messageWriter) writeMessage(m *Message) {
-	if _, ok := m.header["Mime-Version"]; !ok {
-		w.writeString("Mime-Version: 1.0\r\n")
+	if _, ok := m.header["MIME-Version"]; !ok {
+		w.writeString("MIME-Version: 1.0\r\n")
 	}
 	if _, ok := m.header["Date"]; !ok {
 		w.writeHeader("Date", m.FormatDate(now()))
@@ -27,19 +28,18 @@ func (w *messageWriter) writeMessage(m *Message) {
 	w.writeHeaders(m.header)
 
 	if m.hasMixedPart() {
-		w.openMultipart("mixed")
+		w.openMultipart("mixed", m.boundary)
 	}
 
 	if m.hasRelatedPart() {
-		w.openMultipart("related")
+		w.openMultipart("related", m.boundary)
 	}
 
 	if m.hasAlternativePart() {
-		w.openMultipart("alternative")
+		w.openMultipart("alternative", m.boundary)
 	}
 	for _, part := range m.parts {
-		w.writeHeaders(part.header)
-		w.writeBody(part.copier, m.encoding)
+		w.writePart(part, m.charset)
 	}
 	if m.hasAlternativePart() {
 		w.closeMultipart()
@@ -77,9 +77,12 @@ type messageWriter struct {
 	err        error
 }
 
-func (w *messageWriter) openMultipart(mimeType string) {
+func (w *messageWriter) openMultipart(mimeType, boundary string) {
 	mw := multipart.NewWriter(w)
-	contentType := "multipart/" + mimeType + "; boundary=" + mw.Boundary()
+	if boundary != "" {
+		mw.SetBoundary(boundary)
+	}
+	contentType := "multipart/" + mimeType + ";\r\n boundary=" + mw.Boundary()
 	w.writers[w.depth] = mw
 
 	if w.depth == 0 {
@@ -102,6 +105,14 @@ func (w *messageWriter) closeMultipart() {
 		w.writers[w.depth-1].Close()
 		w.depth--
 	}
+}
+
+func (w *messageWriter) writePart(p *part, charset string) {
+	w.writeHeaders(map[string][]string{
+		"Content-Type":              {p.contentType + "; charset=" + charset},
+		"Content-Transfer-Encoding": {string(p.encoding)},
+	})
+	w.writeBody(p.copier, p.encoding)
 }
 
 func (w *messageWriter) addFiles(files []*file, isAttachment bool) {
@@ -150,28 +161,88 @@ func (w *messageWriter) Write(p []byte) (int, error) {
 }
 
 func (w *messageWriter) writeString(s string) {
-	n, _ := io.WriteString(w.w, s)
+	if w.err != nil { // do nothing when in error
+		return
+	}
+	var n int
+	n, w.err = io.WriteString(w.w, s)
 	w.n += int64(n)
-}
-
-func (w *messageWriter) writeStrings(a []string, sep string) {
-	if len(a) > 0 {
-		w.writeString(a[0])
-		if len(a) == 1 {
-			return
-		}
-	}
-	for _, s := range a[1:] {
-		w.writeString(sep)
-		w.writeString(s)
-	}
 }
 
 func (w *messageWriter) writeHeader(k string, v ...string) {
 	w.writeString(k)
+	if len(v) == 0 {
+		w.writeString(":\r\n")
+		return
+	}
 	w.writeString(": ")
-	w.writeStrings(v, ", ")
+
+	// Max header line length is 78 characters in RFC 5322 and 76 characters
+	// in RFC 2047. So for the sake of simplicity we use the 76 characters
+	// limit.
+	charsLeft := 76 - len(k) - len(": ")
+
+	for i, s := range v {
+		// If the line is already too long, insert a newline right away.
+		if charsLeft < 1 {
+			if i == 0 {
+				w.writeString("\r\n ")
+			} else {
+				w.writeString(",\r\n ")
+			}
+			charsLeft = 75
+		} else if i != 0 {
+			w.writeString(", ")
+			charsLeft -= 2
+		}
+
+		// While the header content is too long, fold it by inserting a newline.
+		for len(s) > charsLeft {
+			s = w.writeLine(s, charsLeft)
+			charsLeft = 75
+		}
+		w.writeString(s)
+		if i := lastIndexByte(s, '\n'); i != -1 {
+			charsLeft = 75 - (len(s) - i - 1)
+		} else {
+			charsLeft -= len(s)
+		}
+	}
 	w.writeString("\r\n")
+}
+
+func (w *messageWriter) writeLine(s string, charsLeft int) string {
+	// If there is already a newline before the limit. Write the line.
+	if i := strings.IndexByte(s, '\n'); i != -1 && i < charsLeft {
+		w.writeString(s[:i+1])
+		return s[i+1:]
+	}
+
+	for i := charsLeft - 1; i >= 0; i-- {
+		if s[i] == ' ' {
+			w.writeString(s[:i])
+			w.writeString("\r\n ")
+			return s[i+1:]
+		}
+	}
+
+	// We could not insert a newline cleanly so look for a space or a newline
+	// even if it is after the limit.
+	for i := 75; i < len(s); i++ {
+		if s[i] == ' ' {
+			w.writeString(s[:i])
+			w.writeString("\r\n ")
+			return s[i+1:]
+		}
+		if s[i] == '\n' {
+			w.writeString(s[:i+1])
+			return s[i+1:]
+		}
+	}
+
+	// Too bad, no space or newline in the whole string. Just write everything.
+	w.writeString(s)
+	return ""
 }
 
 func (w *messageWriter) writeHeaders(h map[string][]string) {

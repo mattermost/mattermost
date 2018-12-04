@@ -23,5 +23,8 @@ update_fixtures: fixtures.ttar sysfs/fixtures.ttar
 	rm -v $(dir $*)fixtures/.unpacked
 	./ttar -C $(dir $*) -c -f $*fixtures.ttar fixtures/
 
+.PHONY: build
+build:
+
 .PHONY: test
 test: fixtures/.unpacked sysfs/fixtures/.unpacked common-test

@@ -1,10 +1,10 @@
-package gomail
+package mail
 
 import (
 	"errors"
 	"fmt"
 	"io"
-	"net/mail"
+	stdmail "net/mail"
 )
 
 // Sender is the interface that wraps the Send method.
@@ -20,7 +20,7 @@ type SendCloser interface {
 	Close() error
 }
 
-// A SendFunc is a function that sends emails to the given adresses.
+// A SendFunc is a function that sends emails to the given addresses.
 //
 // The SendFunc type is an adapter to allow the use of ordinary functions as
 // email senders. If f is a function with the appropriate signature, SendFunc(f)
@@ -36,7 +36,7 @@ func (f SendFunc) Send(from string, to []string, msg io.WriterTo) error {
 func Send(s Sender, msg ...*Message) error {
 	for i, m := range msg {
 		if err := send(s, m); err != nil {
-			return fmt.Errorf("gomail: could not send email %d: %v", i+1, err)
+			return &SendError{Cause: err, Index: uint(i)}
 		}
 	}
 
@@ -108,10 +108,9 @@ func addAddress(list []string, addr string) []string {
 }
 
 func parseAddress(field string) (string, error) {
-	a, err := mail.ParseAddress(field)
-	if a == nil {
-		return "", err
+	addr, err := stdmail.ParseAddress(field)
+	if err != nil {
+		return "", fmt.Errorf("gomail: invalid address %q: %v", field, err)
 	}
-
-	return a.Address, err
+	return addr.Address, nil
 }

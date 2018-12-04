@@ -1,10 +1,11 @@
 // +build go1.5
 
-package gomail
+package mail
 
 import (
 	"mime"
 	"mime/quotedprintable"
+	"strings"
 )
 
 var newQPWriter = quotedprintable.NewWriter
@@ -14,6 +15,7 @@ type mimeEncoder struct {
 }
 
 var (
-	bEncoding = mimeEncoder{mime.BEncoding}
-	qEncoding = mimeEncoder{mime.QEncoding}
+	bEncoding     = mimeEncoder{mime.BEncoding}
+	qEncoding     = mimeEncoder{mime.QEncoding}
+	lastIndexByte = strings.LastIndexByte
 )
