@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	SEGMENT_KEY = "fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok"
+	SEGMENT_KEY = "placeholder_segment_key"
 
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"
@@ -59,7 +59,7 @@ const (
 var client *analytics.Client
 
 func (a *App) SendDailyDiagnostics() {
-	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() {
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && !strings.Contains(SEGMENT_KEY, "placeholder") {
 		a.initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
