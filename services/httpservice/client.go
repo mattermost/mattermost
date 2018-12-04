@@ -102,14 +102,7 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 	}
 }
 
-// NewHTTPClient returns a variation the default implementation of Client.
-// It uses a Transport with the same settings as the default Transport
-// but with the following modifications:
-// - shorter timeout for dial and TLS handshake (defined as constant
-//   "connectTimeout")
-// - timeout for the end-to-end request (defined as constant
-//   "requestTimeout")
-func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *http.Client {
+func NewTransport(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) http.RoundTripper {
 	dialContext := (&net.Dialer{
 		Timeout:   connectTimeout,
 		KeepAlive: 30 * time.Second,
@@ -119,22 +112,24 @@ func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) b
 		dialContext = dialContextFilter(dialContext, allowHost, allowIP)
 	}
 
-	client := &http.Client{
-		Transport: &MattermostTransport{
-			&http.Transport{
-				Proxy:                 http.ProxyFromEnvironment,
-				DialContext:           dialContext,
-				MaxIdleConns:          100,
-				IdleConnTimeout:       90 * time.Second,
-				TLSHandshakeTimeout:   connectTimeout,
-				ExpectContinueTimeout: 1 * time.Second,
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: enableInsecureConnections,
-				},
+	return &MattermostTransport{
+		&http.Transport{
+			Proxy:                 http.ProxyFromEnvironment,
+			DialContext:           dialContext,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   connectTimeout,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: enableInsecureConnections,
 			},
 		},
-		Timeout: requestTimeout,
 	}
+}
 
-	return client
+func NewHTTPClient(transport http.RoundTripper) *http.Client {
+	return &http.Client{
+		Transport: transport,
+		Timeout:   requestTimeout,
+	}
 }

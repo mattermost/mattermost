@@ -11,9 +11,14 @@ import (
 	"github.com/mattermost/mattermost-server/services/configservice"
 )
 
-// Wraps the functionality for creating a new http.Client to encapsulate that and allow it to be mocked when testing
+// HTTPService wraps the functionality for creating a new http.Client to provide some improvements to the default client
+// behaviour and allow it to be mocked when testing. The default implementation uses a Transport with the same settings
+// as the default Transport with the following modifications:
+// - A shorter timeout for dial and TLS handshake (defined as the constant "connectTimeout")
+// - A timeout for end-to-end requests (defined as constant "requestTimeout")
 type HTTPService interface {
 	MakeClient(trustURLs bool) *http.Client
+	MakeTransport(trustURLs bool) http.RoundTripper
 	Close()
 }
 
@@ -26,10 +31,14 @@ func MakeHTTPService(configService configservice.ConfigService) HTTPService {
 }
 
 func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
+	return NewHTTPClient(h.MakeTransport(trustURLs))
+}
+
+func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
 	insecure := h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections
 
 	if trustURLs {
-		return NewHTTPClient(insecure, nil, nil)
+		return NewTransport(insecure, nil, nil)
 	}
 
 	allowHost := func(host string) bool {
@@ -59,7 +68,7 @@ func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
 		return false
 	}
 
-	return NewHTTPClient(insecure, allowHost, allowIP)
+	return NewTransport(insecure, allowHost, allowIP)
 }
 
 func (h *HTTPServiceImpl) Close() {

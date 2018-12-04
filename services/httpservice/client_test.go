@@ -16,7 +16,7 @@ import (
 
 func TestHTTPClient(t *testing.T) {
 	for _, allowInternal := range []bool{true, false} {
-		c := NewHTTPClient(false, func(_ string) bool { return false }, func(ip net.IP) bool { return allowInternal || !IsReservedIP(ip) })
+		c := NewHTTPClient(NewTransport(false, func(_ string) bool { return false }, func(ip net.IP) bool { return allowInternal || !IsReservedIP(ip) }))
 		for _, tc := range []struct {
 			URL        string
 			IsInternal bool
@@ -56,7 +56,7 @@ func TestHTTPClientWithProxy(t *testing.T) {
 	proxy := createProxyServer()
 	defer proxy.Close()
 
-	c := NewHTTPClient(true, nil, nil)
+	c := NewHTTPClient(NewTransport(true, nil, nil))
 	purl, _ := url.Parse(proxy.URL)
 	c.Transport.(*MattermostTransport).Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
 
@@ -132,7 +132,7 @@ func TestUserAgentIsSet(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	client := NewHTTPClient(true, nil, nil)
+	client := NewHTTPClient(NewTransport(true, nil, nil))
 	req, err := http.NewRequest("GET", ts.URL, nil)
 	if err != nil {
 		t.Fatal("NewRequest failed", err)
