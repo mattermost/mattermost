@@ -771,6 +771,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
+	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 
 	if license != nil {
 		if *license.Features.LDAP {
@@ -779,10 +780,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 			props["LdapLoginButtonColor"] = *c.LdapSettings.LoginButtonColor
 			props["LdapLoginButtonBorderColor"] = *c.LdapSettings.LoginButtonBorderColor
 			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
-		}
-
-		if *license.Features.MFA {
-			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 		}
 
 		if *license.Features.SAML {
