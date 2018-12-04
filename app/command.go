@@ -308,7 +308,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	return response, nil
 }
 
-func (a *App) HandleCommandResponsePost(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+func (a *App) HandleCommandResponsePost(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
 	post := &model.Post{}
 	post.ChannelId = args.ChannelId
 	post.RootId = args.RootId
@@ -357,7 +357,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		mlog.Error(err.Error())
 	}
 
-	return response, nil
+	return post, nil
 }
 
 func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
