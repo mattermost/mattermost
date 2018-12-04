@@ -58,7 +58,7 @@ func TestHTTPClientWithProxy(t *testing.T) {
 
 	c := NewHTTPClient(true, nil, nil)
 	purl, _ := url.Parse(proxy.URL)
-	c.Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
+	c.Transport.(*MattermostTransport).Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
 
 	resp, err := c.Get("http://acme.com")
 	if err != nil {

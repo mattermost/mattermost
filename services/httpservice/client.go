@@ -102,15 +102,6 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 	}
 }
 
-type Client struct {
-	*http.Client
-}
-
-func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	req.Header.Set("User-Agent", defaultUserAgent)
-	return c.Client.Do(req)
-}
-
 // NewHTTPClient returns a variation the default implementation of Client.
 // It uses a Transport with the same settings as the default Transport
 // but with the following modifications:
@@ -118,7 +109,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 //   "connectTimeout")
 // - timeout for the end-to-end request (defined as constant
 //   "requestTimeout")
-func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *Client {
+func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *http.Client {
 	dialContext := (&net.Dialer{
 		Timeout:   connectTimeout,
 		KeepAlive: 30 * time.Second,
@@ -129,19 +120,21 @@ func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) b
 	}
 
 	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy:                 http.ProxyFromEnvironment,
-			DialContext:           dialContext,
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   connectTimeout,
-			ExpectContinueTimeout: 1 * time.Second,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: enableInsecureConnections,
+		Transport: &MattermostTransport{
+			&http.Transport{
+				Proxy:                 http.ProxyFromEnvironment,
+				DialContext:           dialContext,
+				MaxIdleConns:          100,
+				IdleConnTimeout:       90 * time.Second,
+				TLSHandshakeTimeout:   connectTimeout,
+				ExpectContinueTimeout: 1 * time.Second,
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: enableInsecureConnections,
+				},
 			},
 		},
 		Timeout: requestTimeout,
 	}
 
-	return &Client{Client: client}
+	return client
 }

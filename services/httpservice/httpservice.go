@@ -5,6 +5,7 @@ package httpservice
 
 import (
 	"net"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/services/configservice"
@@ -12,7 +13,7 @@ import (
 
 // Wraps the functionality for creating a new http.Client to encapsulate that and allow it to be mocked when testing
 type HTTPService interface {
-	MakeClient(trustURLs bool) *Client
+	MakeClient(trustURLs bool) *http.Client
 	Close()
 }
 
@@ -24,7 +25,7 @@ func MakeHTTPService(configService configservice.ConfigService) HTTPService {
 	return &HTTPServiceImpl{configService}
 }
 
-func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *Client {
+func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
 	insecure := h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections
 
 	if trustURLs {
