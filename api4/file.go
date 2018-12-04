@@ -329,8 +329,12 @@ NEXT_PART:
 
 			switch formname {
 			case "channel_id":
-				// Allow the channel_id value in the form to
-				// override URL params if any.
+				if c.Params.ChannelId != "" && c.Params.ChannelId != v {
+					c.Err = model.NewAppError("uploadFileMultipart",
+						"api.file.upload_file.multiple_channel_ids.app_error",
+						nil, "", http.StatusBadRequest)
+					return nil
+				}
 				if v != "" {
 					c.Params.ChannelId = v
 				}
