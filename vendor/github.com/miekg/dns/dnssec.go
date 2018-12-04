@@ -401,7 +401,7 @@ func (rr *RRSIG) Verify(k *DNSKEY, rrset []RR) error {
 	if rr.Algorithm != k.Algorithm {
 		return ErrKey
 	}
-	if strings.ToLower(rr.SignerName) != strings.ToLower(k.Hdr.Name) {
+	if !strings.EqualFold(rr.SignerName, k.Hdr.Name) {
 		return ErrKey
 	}
 	if k.Protocol != 3 {
@@ -724,7 +724,7 @@ func rawSignatureData(rrset []RR, s *RRSIG) (buf []byte, err error) {
 			x.Target = strings.ToLower(x.Target)
 		}
 		// 6.2. Canonical RR Form. (5) - origTTL
-		wire := make([]byte, r1.len()+1) // +1 to be safe(r)
+		wire := make([]byte, Len(r1)+1) // +1 to be safe(r)
 		off, err1 := PackRR(r1, wire, 0, nil, false)
 		if err1 != nil {
 			return nil, err1
