@@ -349,7 +349,7 @@ NEXT_PART:
 				clientIds = append(clientIds, v)
 
 			default:
-				c.SetInvalidParam("formname")
+				c.SetInvalidParam(formname)
 				return nil
 			}
 
