@@ -342,6 +342,7 @@ type Ring struct {
 	shards        *ringShards
 	cmdsInfoCache *cmdsInfoCache
 
+	process         func(Cmder) error
 	processPipeline func([]Cmder) error
 }
 
@@ -354,6 +355,7 @@ func NewRing(opt *RingOptions) *Ring {
 	}
 	ring.cmdsInfoCache = newCmdsInfoCache(ring.cmdsInfo)
 
+	ring.process = ring.defaultProcess
 	ring.processPipeline = ring.defaultProcessPipeline
 	ring.cmdable.setProcessor(ring.Process)
 
@@ -526,19 +528,34 @@ func (c *Ring) Do(args ...interface{}) *Cmd {
 func (c *Ring) WrapProcess(
 	fn func(oldProcess func(cmd Cmder) error) func(cmd Cmder) error,
 ) {
-	c.ForEachShard(func(c *Client) error {
-		c.WrapProcess(fn)
-		return nil
-	})
+	c.process = fn(c.process)
 }
 
 func (c *Ring) Process(cmd Cmder) error {
-	shard, err := c.cmdShard(cmd)
-	if err != nil {
-		cmd.setErr(err)
-		return err
+	return c.process(cmd)
+}
+
+func (c *Ring) defaultProcess(cmd Cmder) error {
+	for attempt := 0; attempt <= c.opt.MaxRetries; attempt++ {
+		if attempt > 0 {
+			time.Sleep(c.retryBackoff(attempt))
+		}
+
+		shard, err := c.cmdShard(cmd)
+		if err != nil {
+			cmd.setErr(err)
+			return err
+		}
+
+		err = shard.Client.Process(cmd)
+		if err == nil {
+			return nil
+		}
+		if !internal.IsRetryableError(err, cmd.readTimeout() == nil) {
+			return err
+		}
 	}
-	return shard.Client.Process(cmd)
+	return cmd.Err()
 }
 
 func (c *Ring) Pipeline() Pipeliner {
@@ -575,36 +592,42 @@ func (c *Ring) defaultProcessPipeline(cmds []Cmder) error {
 			time.Sleep(c.retryBackoff(attempt))
 		}
 
+		var mu sync.Mutex
 		var failedCmdsMap map[string][]Cmder
+		var wg sync.WaitGroup
 
 		for hash, cmds := range cmdsMap {
-			shard, err := c.shards.GetByHash(hash)
-			if err != nil {
-				setCmdsErr(cmds, err)
-				continue
-			}
+			wg.Add(1)
+			go func(hash string, cmds []Cmder) {
+				defer wg.Done()
 
-			cn, err := shard.Client.getConn()
-			if err != nil {
-				setCmdsErr(cmds, err)
-				continue
-			}
-
-			canRetry, err := shard.Client.pipelineProcessCmds(cn, cmds)
-			if err == nil || internal.IsRedisError(err) {
-				shard.Client.connPool.Put(cn)
-				continue
-			}
-			shard.Client.connPool.Remove(cn)
-
-			if canRetry && internal.IsRetryableError(err, true) {
-				if failedCmdsMap == nil {
-					failedCmdsMap = make(map[string][]Cmder)
+				shard, err := c.shards.GetByHash(hash)
+				if err != nil {
+					setCmdsErr(cmds, err)
+					return
 				}
-				failedCmdsMap[hash] = cmds
-			}
+
+				cn, err := shard.Client.getConn()
+				if err != nil {
+					setCmdsErr(cmds, err)
+					return
+				}
+
+				canRetry, err := shard.Client.pipelineProcessCmds(cn, cmds)
+				shard.Client.releaseConnStrict(cn, err)
+
+				if canRetry && internal.IsRetryableError(err, true) {
+					mu.Lock()
+					if failedCmdsMap == nil {
+						failedCmdsMap = make(map[string][]Cmder)
+					}
+					failedCmdsMap[hash] = cmds
+					mu.Unlock()
+				}
+			}(hash, cmds)
 		}
 
+		wg.Wait()
 		if len(failedCmdsMap) == 0 {
 			break
 		}
