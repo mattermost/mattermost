@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -135,7 +134,7 @@ func TestCreateCommand(t *testing.T) {
 }
 
 func TestDeleteCommand(t *testing.T) {
-	th := app.Setup().InitBasic()
+	th := api4.Setup().InitBasic()
 	defer th.TearDown()
 	url := "http://localhost:8000/test-command"
 	team := th.BasicTeam
