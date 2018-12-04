@@ -1,4 +1,4 @@
-package gomail
+package mail
 
 import (
 	"bytes"
@@ -11,20 +11,22 @@ import (
 // Message represents an email.
 type Message struct {
 	header      header
-	parts       []part
+	parts       []*part
 	attachments []*file
 	embedded    []*file
 	charset     string
 	encoding    Encoding
 	hEncoder    mimeEncoder
 	buf         bytes.Buffer
+	boundary    string
 }
 
 type header map[string][]string
 
 type part struct {
-	header header
-	copier func(io.Writer) error
+	contentType string
+	copier      func(io.Writer) error
+	encoding    Encoding
 }
 
 // NewMessage creates a new message. It uses UTF-8 and quoted-printable encoding
@@ -96,6 +98,11 @@ const (
 	Unencoded Encoding = "8bit"
 )
 
+// SetBoundary sets a custom multipart boundary.
+func (m *Message) SetBoundary(boundary string) {
+	m.boundary = boundary
+}
+
 // SetHeader sets a value to the given header field.
 func (m *Message) SetHeader(field string, value ...string) {
 	m.encodeHeader(value)
@@ -126,6 +133,10 @@ func (m *Message) SetAddressHeader(field, address, name string) {
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
 func (m *Message) FormatAddress(address, name string) string {
+	if name == "" {
+		return address
+	}
+
 	enc := m.encodeString(name)
 	if enc == name {
 		m.buf.WriteByte('"')
@@ -177,53 +188,66 @@ func (m *Message) GetHeader(field string) []string {
 	return m.header[field]
 }
 
-// SetBody sets the body of the message.
-func (m *Message) SetBody(contentType, body string) {
-	m.parts = []part{
-		{
-			header: m.getPartHeader(contentType),
-			copier: func(w io.Writer) error {
-				_, err := io.WriteString(w, body)
-				return err
-			},
-		},
-	}
+// SetBody sets the body of the message. It replaces any content previously set
+// by SetBody, SetBodyWriter, AddAlternative or AddAlternativeWriter.
+func (m *Message) SetBody(contentType, body string, settings ...PartSetting) {
+	m.SetBodyWriter(contentType, newCopier(body), settings...)
+}
+
+// SetBodyWriter sets the body of the message. It can be useful with the
+// text/template or html/template packages.
+func (m *Message) SetBodyWriter(contentType string, f func(io.Writer) error, settings ...PartSetting) {
+	m.parts = []*part{m.newPart(contentType, f, settings)}
 }
 
 // AddAlternative adds an alternative part to the message.
 //
 // It is commonly used to send HTML emails that default to the plain text
-// version for backward compatibility.
-//
-// More info: http://en.wikipedia.org/wiki/MIME#Alternative
-func (m *Message) AddAlternative(contentType, body string) {
-	m.parts = append(m.parts,
-		part{
-			header: m.getPartHeader(contentType),
-			copier: func(w io.Writer) error {
-				_, err := io.WriteString(w, body)
-				return err
-			},
-		},
-	)
+// version for backward compatibility. AddAlternative appends the new part to
+// the end of the message. So the plain text part should be added before the
+// HTML part. See http://en.wikipedia.org/wiki/MIME#Alternative
+func (m *Message) AddAlternative(contentType, body string, settings ...PartSetting) {
+	m.AddAlternativeWriter(contentType, newCopier(body), settings...)
+}
+
+func newCopier(s string) func(io.Writer) error {
+	return func(w io.Writer) error {
+		_, err := io.WriteString(w, s)
+		return err
+	}
 }
 
 // AddAlternativeWriter adds an alternative part to the message. It can be
 // useful with the text/template or html/template packages.
-func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
-	m.parts = []part{
-		{
-			header: m.getPartHeader(contentType),
-			copier: f,
-		},
-	}
+func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error, settings ...PartSetting) {
+	m.parts = append(m.parts, m.newPart(contentType, f, settings))
 }
 
-func (m *Message) getPartHeader(contentType string) header {
-	return map[string][]string{
-		"Content-Type":              {contentType + "; charset=" + m.charset},
-		"Content-Transfer-Encoding": {string(m.encoding)},
+func (m *Message) newPart(contentType string, f func(io.Writer) error, settings []PartSetting) *part {
+	p := &part{
+		contentType: contentType,
+		copier:      f,
+		encoding:    m.encoding,
 	}
+
+	for _, s := range settings {
+		s(p)
+	}
+
+	return p
+}
+
+// A PartSetting can be used as an argument in Message.SetBody,
+// Message.SetBodyWriter, Message.AddAlternative or Message.AddAlternativeWriter
+// to configure the part added to a message.
+type PartSetting func(*part)
+
+// SetPartEncoding sets the encoding of the part added to the message. By
+// default, parts use the same encoding than the message.
+func SetPartEncoding(e Encoding) PartSetting {
+	return PartSetting(func(p *part) {
+		p.encoding = e
+	})
 }
 
 type file struct {
@@ -252,6 +276,14 @@ func SetHeader(h map[string][]string) FileSetting {
 	}
 }
 
+// Rename is a file setting to set the name of the attachment if the name is
+// different than the filename on disk.
+func Rename(name string) FileSetting {
+	return func(f *file) {
+		f.Name = name
+	}
+}
+
 // SetCopyFunc is a file setting to replace the function that runs when the
 // message is sent. It should copy the content of the file to the io.Writer.
 //
@@ -263,8 +295,28 @@ func SetCopyFunc(f func(io.Writer) error) FileSetting {
 	}
 }
 
-func (m *Message) appendFile(list []*file, name string, settings []FileSetting) []*file {
-	f := &file{
+// AttachReader attaches a file using an io.Reader
+func (m *Message) AttachReader(name string, r io.Reader, settings ...FileSetting) {
+	m.attachments = m.appendFile(m.attachments, fileFromReader(name, r), settings)
+}
+
+// Attach attaches the files to the email.
+func (m *Message) Attach(filename string, settings ...FileSetting) {
+	m.attachments = m.appendFile(m.attachments, fileFromFilename(filename), settings)
+}
+
+// EmbedReader embeds the images to the email.
+func (m *Message) EmbedReader(name string, r io.Reader, settings ...FileSetting) {
+	m.embedded = m.appendFile(m.embedded, fileFromReader(name, r), settings)
+}
+
+// Embed embeds the images to the email.
+func (m *Message) Embed(filename string, settings ...FileSetting) {
+	m.embedded = m.appendFile(m.embedded, fileFromFilename(filename), settings)
+}
+
+func fileFromFilename(name string) *file {
+	return &file{
 		Name:   filepath.Base(name),
 		Header: make(map[string][]string),
 		CopyFunc: func(w io.Writer) error {
@@ -279,7 +331,22 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 			return h.Close()
 		},
 	}
+}
 
+func fileFromReader(name string, r io.Reader) *file {
+	return &file{
+		Name:   filepath.Base(name),
+		Header: make(map[string][]string),
+		CopyFunc: func(w io.Writer) error {
+			if _, err := io.Copy(w, r); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+}
+
+func (m *Message) appendFile(list []*file, f *file, settings []FileSetting) []*file {
 	for _, s := range settings {
 		s(f)
 	}
@@ -289,14 +356,4 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 	}
 
 	return append(list, f)
-}
-
-// Attach attaches the files to the email.
-func (m *Message) Attach(filename string, settings ...FileSetting) {
-	m.attachments = m.appendFile(m.attachments, filename, settings)
-}
-
-// Embed embeds the images to the email.
-func (m *Message) Embed(filename string, settings ...FileSetting) {
-	m.embedded = m.appendFile(m.embedded, filename, settings)
 }
