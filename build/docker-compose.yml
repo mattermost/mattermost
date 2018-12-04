@@ -48,7 +48,7 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
   elasticsearch:
-    image: "grundleborg/elasticsearch:latest"
+    image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
     container_name: elasticsearch-$DCNAME-$BUILD_NUMBER
     networks:
       - mm-test
