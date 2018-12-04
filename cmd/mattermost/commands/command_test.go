@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/api4"
+	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -132,34 +134,38 @@ func TestCreateCommand(t *testing.T) {
 	}
 }
 
-/* Race
 func TestDeleteCommand(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := app.Setup().InitBasic()
 	defer th.TearDown()
 	url := "http://localhost:8000/test-command"
 	team := th.BasicTeam
 	user := th.BasicUser
 	th.LinkUserToTeam(user, team)
 
-	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
-	id := model.NewId()
 	c := &model.Command{
-		DisplayName: "dn_" + id,
+		DisplayName: "dn_" + model.NewId(),
 		Method:      "G",
 		TeamId:      team.Id,
 		Username:    user.Username,
+		CreatorId:   user.Id,
 		URL:         url,
-		Trigger:     "test",
+		Trigger:     "trigger_" + model.NewId(),
 	}
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, model.TEAM_USER_ROLE_ID)
-	command, _ := th.Client.CreateCommand(c)
-	commands, _ := th.Client.ListCommands(team.Id, true)
-	assert.Equal(t, len(commands), 1)
-	CheckCommand(t, "command", "delete", command.Id)
-	commands, _ = th.Client.ListCommands(team.Id, true)
-	assert.Equal(t, len(commands), 0)
-}*/
+
+	t.Run("existing command", func(t *testing.T) {
+		command, err := th.App.CreateCommand(c)
+		require.Nil(t, err)
+		commands, err := th.App.ListTeamCommands(team.Id)
+		require.Nil(t, err)
+		assert.Equal(t, len(commands), 1)
+
+		CheckCommand(t, "command", "delete", command.Id)
+		commands, err = th.App.ListTeamCommands(team.Id)
+		require.Nil(t, err)
+		assert.Equal(t, len(commands), 0)
+	})
+
+	t.Run("not existing command", func(t *testing.T) {
+		assert.Error(t, RunCommand(t, "command", "delete", "invalid"))
+	})
+}
