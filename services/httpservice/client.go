@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	connectTimeout = 3 * time.Second
-	requestTimeout = 30 * time.Second
+	ConnectTimeout = 3 * time.Second
+	RequestTimeout = 30 * time.Second
 )
 
 var reservedIPRanges []*net.IPNet
@@ -104,7 +104,7 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 
 func NewTransport(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) http.RoundTripper {
 	dialContext := (&net.Dialer{
-		Timeout:   connectTimeout,
+		Timeout:   ConnectTimeout,
 		KeepAlive: 30 * time.Second,
 	}).DialContext
 
@@ -118,7 +118,7 @@ func NewTransport(enableInsecureConnections bool, allowHost func(host string) bo
 			DialContext:           dialContext,
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   connectTimeout,
+			TLSHandshakeTimeout:   ConnectTimeout,
 			ExpectContinueTimeout: 1 * time.Second,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: enableInsecureConnections,
@@ -130,6 +130,6 @@ func NewTransport(enableInsecureConnections bool, allowHost func(host string) bo
 func NewHTTPClient(transport http.RoundTripper) *http.Client {
 	return &http.Client{
 		Transport: transport,
-		Timeout:   requestTimeout,
+		Timeout:   RequestTimeout,
 	}
 }
