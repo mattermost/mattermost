@@ -40,7 +40,7 @@ func NewMainHelper() *MainHelper {
 
 	container, settings, err := storetest.NewMySQLContainer()
 	if err != nil {
-		panic(err)
+		panic("failed to start mysql container: " + err.Error())
 	}
 
 	testClusterInterface := &FakeClusterInterface{}
