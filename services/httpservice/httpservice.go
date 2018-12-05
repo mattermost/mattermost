@@ -17,8 +17,15 @@ import (
 // - A shorter timeout for dial and TLS handshake (defined as the constant "connectTimeout")
 // - A timeout for end-to-end requests (defined as constant "requestTimeout")
 type HTTPService interface {
+	// MakeClient returns an http client constructed with a RoundTripper as returned by MakeTransport.
 	MakeClient(trustURLs bool) *http.Client
+
+	// MakeTransport returns a RoundTripper that is suitable for making requests to external resources. The default
+	// implementation provides a Mattermost-specific user agent header along with standard timeouts and security
+	// settings.
 	MakeTransport(trustURLs bool) http.RoundTripper
+
+	// Close performs any needed cleanup when shutting down the server.
 	Close()
 }
 
