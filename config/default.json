@@ -282,6 +282,8 @@
         "BindPassword": "",
         "UserFilter": "",
         "GroupFilter": "",
+        "GroupDisplayNameAttribute": "",
+        "GroupIdAttribute": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",
