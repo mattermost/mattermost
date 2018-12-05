@@ -158,7 +158,7 @@ func TestDeleteCommand(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, len(commands), 1)
 
-		assert.Nil(t, RunCommand(t, "command", "delete", command.Id))
+		CheckCommand(t, "command", "delete", command.Id)
 		commands, err = th.App.ListTeamCommands(team.Id)
 		require.Nil(t, err)
 		assert.Equal(t, len(commands), 0)
