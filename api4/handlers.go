@@ -11,6 +11,8 @@ import (
 
 type Context = web.Context
 
+// ApiHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
+// granted.
 func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
@@ -22,6 +24,8 @@ func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request))
 	}
 }
 
+// ApiSessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
+// be granted.
 func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
@@ -33,6 +37,9 @@ func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.R
 	}
 }
 
+// ApiSessionRequiredMfa provides a handler for API endpoints which require a logged-in user session  but when accessed,
+// if MFA is enabled, the MFA process is not yet complete, and therefore the requirement to have completed the MFA
+// authentication must be waived.
 func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
@@ -44,6 +51,9 @@ func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 	}
 }
 
+// ApiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
+// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
+// websocket.
 func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
@@ -55,6 +65,8 @@ func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 	}
 }
 
+// ApiSessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
+// are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
 func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &web.Handler{
 		GetGlobalAppOptions: api.GetGlobalAppOptions,
