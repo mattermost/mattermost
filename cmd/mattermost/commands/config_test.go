@@ -79,27 +79,32 @@ func TestConfigGet(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	// Error when no arguments are given
-	assert.Error(t, th.RunCommand(t, "config", "get"))
+	t.Run("Error when no arguments are given", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "get"))
+	})
 
-	// Error when more than one config settings are given
-	assert.Error(t, th.RunCommand(t, "config", "get", "abc", "def"))
+	t.Run("Error when more than one config settings are given", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "get", "abc", "def"))
+	})
 
-	// Error when a config setting which is not in the config.json is given
-	assert.Error(t, th.RunCommand(t, "config", "get", "abc"))
+	t.Run("Error when a config setting which is not in the config.json is given", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "get", "abc"))
+	})
 
-	// No Error when a config setting which is  in the config.json is given
-	assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings"))
-	assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings"))
-	assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType"))
+	t.Run("No Error when a config setting which is in the config.json is given", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings"))
+		assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings"))
+		assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType"))
+	})
 
-	// check output
-	output := th.CheckCommand(t, "config", "get", "MessageExportSettings")
+	t.Run("check output", func(t *testing.T) {
+		output := th.CheckCommand(t, "config", "get", "MessageExportSettings")
 
-	assert.Contains(t, string(output), "EnableExport")
-	assert.Contains(t, string(output), "ExportFormat")
-	assert.Contains(t, string(output), "DailyRunTime")
-	assert.Contains(t, string(output), "ExportFromTimestamp")
+		assert.Contains(t, string(output), "EnableExport")
+		assert.Contains(t, string(output), "ExportFormat")
+		assert.Contains(t, string(output), "DailyRunTime")
+		assert.Contains(t, string(output), "ExportFromTimestamp")
+	})
 }
 
 func TestConfigSet(t *testing.T) {
