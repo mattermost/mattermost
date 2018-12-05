@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 )
 
 type PluginCommand struct {
@@ -106,7 +105,7 @@ func (a *App) ExecutePluginCommand(args *model.CommandArgs) (*model.Command, *mo
 				if err != nil {
 					return pc.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 				}
-				response, appErr := pluginHooks.ExecuteCommand(&plugin.Context{}, args)
+				response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)
 				return pc.Command, response, appErr
 			}
 		}

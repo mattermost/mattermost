@@ -23,11 +23,13 @@ type App struct {
 
 	Log *mlog.Logger
 
-	T         goi18n.TranslateFunc
-	Session   model.Session
-	RequestId string
-	IpAddress string
-	Path      string
+	T              goi18n.TranslateFunc
+	Session        model.Session
+	RequestId      string
+	IpAddress      string
+	Path           string
+	UserAgent      string
+	AcceptLanguage string
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
